@@ -1,0 +1,248 @@
+@page "/mobile/service/{id:int}"
+@using Khadamat.Application.DTOs
+@using Khadamat.Shared.Interfaces
+@inject ApiClient Api
+@inject IPhoneService Phone
+@inject IShareService Share
+@inject ILocationService Location
+@inject NavigationManager Navigation
+
+<div class="mobile-service-details">
+    @if (service == null)
+    {
+        <div class="loading-container">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">جاري التحميل...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Image Gallery -->
+        <div class="service-gallery">
+            @if (service.Images?.Any() == true)
+            {
+                <img src="@service.Images.First()" alt="@service.Title" class="service-image" />
+            }
+            else
+            {
+                <div class="no-image">
+                    <i class="fa-solid fa-image fa-3x text-muted"></i>
+                </div>
+            }
+        </div>
+
+        <!-- Service Info Card -->
+        <div class="service-info-card glass-card p-4 m-3 rounded-4">
+            <h1 class="service-title fw-bold mb-2">@service.Title</h1>
+            
+            @if (service.Price.HasValue)
+            {
+                <div class="price-tag mb-3">
+                    <span class="price">@service.Price.Value.ToString("N0")</span>
+                    <span class="currency">جنيه</span>
+                </div>
+            }
+
+            <p class="service-description text-muted">@service.Description</p>
+
+            <!-- Location -->
+            @if (!string.IsNullOrEmpty(service.Location))
+            {
+                <div class="info-row">
+                    <i class="fa-solid fa-location-dot text-primary"></i>
+                    <span>@service.Location</span>
+                </div>
+            }
+
+            <!-- Category -->
+            @if (!string.IsNullOrEmpty(service.CategoryName))
+            {
+                <div class="info-row">
+                    <i class="fa-solid fa-tag text-secondary"></i>
+                    <span>@service.CategoryName</span>
+                </div>
+            }
+            
+            <!-- Provider -->
+             <div class="info-row">
+                <i class="fa-solid fa-user text-info"></i>
+                <span>@service.ProviderName</span>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons p-3">
+            <button class="btn btn-primary btn-lg w-100 mb-2 rounded-pill" @onclick="CallProvider" disabled="@string.IsNullOrEmpty(service.Phone1)">
+                <i class="fa-solid fa-phone me-2"></i>
+                اتصل الآن
+            </button>
+
+            <button class="btn btn-success btn-lg w-100 mb-2 rounded-pill" @onclick="OpenWhatsApp" disabled="@string.IsNullOrEmpty(service.WhatsApp)">
+                <i class="fa-brands fa-whatsapp me-2"></i>
+                واتساب
+            </button>
+
+            <div class="row g-2">
+                <div class="col-6">
+                    <button class="btn btn-outline-primary w-100 rounded-pill" @onclick="ShareService">
+                        <i class="fa-solid fa-share-nodes me-2"></i>
+                        مشاركة
+                    </button>
+                </div>
+                <div class="col-6">
+                    <button class="btn btn-outline-secondary w-100 rounded-pill" @onclick="OpenMaps" disabled="@string.IsNullOrEmpty(service.Location)">
+                        <i class="fa-solid fa-map-location-dot me-2"></i>
+                        الموقع
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .mobile-service-details {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    }
+
+    .service-gallery {
+        width: 100%;
+        height: 300px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .service-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .no-image {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .service-info-card {
+        margin-top: -30px;
+        position: relative;
+        z-index: 10;
+    }
+
+    .service-title {
+        font-size: 1.5rem;
+        color: #1e293b;
+    }
+
+    .price-tag {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 5px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: bold;
+    }
+
+    .price {
+        font-size: 1.5rem;
+    }
+
+    .currency {
+        font-size: 1rem;
+    }
+
+    .service-description {
+        line-height: 1.8;
+        margin: 1rem 0;
+    }
+
+    .info-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .action-buttons {
+        position: sticky;
+        bottom: 70px;
+        background: white;
+        border-top: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+    }
+
+    .loading-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+    }
+</style>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    
+    private ServiceDto? service;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            service = await Api.GetServiceByIdAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading service: {ex.Message}");
+        }
+    }
+
+    private async Task CallProvider()
+    {
+        if (!string.IsNullOrEmpty(service?.Phone1))
+        {
+            await Phone.MakePhoneCallAsync(service.Phone1);
+        }
+    }
+
+    private async Task OpenWhatsApp()
+    {
+        if (!string.IsNullOrEmpty(service?.WhatsApp))
+        {
+            var message = $"مرحباً، أنا مهتم بخدمة: {service.Title}";
+            await Phone.OpenWhatsAppChatAsync(service.WhatsApp, message);
+        }
+    }
+
+    private async Task ShareService()
+    {
+        if (service != null)
+        {
+            var shareText = $"شاهد هذه الخدمة الرائعة: {service.Title}\n{Navigation.Uri}";
+            await Share.ShareTextAsync(shareText, "مشاركة خدمة");
+        }
+    }
+
+    private async Task OpenMaps()
+    {
+        if (service != null && !string.IsNullOrEmpty(service.Location))
+        {
+            // Parse coordinates if stored in Location field, or use generic search
+            // For now assuming Location is a string address
+            // Use 0,0 to let map search by query
+            await Location.OpenMapsNavigationAsync(0, 0, service.Location);
+        }
+    }
+}

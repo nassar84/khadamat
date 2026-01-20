@@ -1,0 +1,8 @@
+@page "/provider/editservice_old/{Id:int}"
+@* This page is now handled by CreateService.razor using multiple @page directives *@
+@inject NavigationManager Navigation
+
+@code {
+    [Parameter] public int Id { get; set; }
+    protected override void OnInitialized() => Navigation.NavigateTo($"/provider/editservice/{Id}");
+}

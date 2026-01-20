@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>LSRequiresIPhoneOS</key>
+    <true/>
+    <key>UIDeviceFamily</key>
+    <array>
+        <integer>1</integer>
+        <integer>2</integer>
+    </array>
+    <key>UIRequiredDeviceCapabilities</key>
+    <array>
+        <string>arm64</string>
+    </array>
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+    <key>UISupportedInterfaceOrientations~ipad</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationPortraitUpsideDown</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+    <key>XSAppIconAssets</key>
+    <string>Assets.xcassets/appicon.appiconset</string>
+    
+    <!-- Privacy Descriptions -->
+    <key>NSCameraUsageDescription</key>
+    <string>نحتاج للوصول إلى الكاميرا لالتقاط صور الخدمات</string>
+    
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>نحتاج للوصول إلى معرض الصور لاختيار صور الخدمات</string>
+    
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>نحتاج لحفظ الصور في معرض الصور</string>
+    
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>نحتاج لموقعك لعرض الخدمات القريبة منك</string>
+    
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>نحتاج لموقعك لعرض الخدمات القريبة منك</string>
+    
+    <key>NSMicrophoneUsageDescription</key>
+    <string>نحتاج للوصول إلى الميكروفون للمكالمات الصوتية</string>
+    
+    <key>NSContactsUsageDescription</key>
+    <string>نحتاج للوصول إلى جهات الاتصال لمشاركة الخدمات</string>
+    
+    <!-- App Transport Security -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <true/>
+    </dict>
+    
+    <!-- Background Modes -->
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>fetch</string>
+        <string>remote-notification</string>
+    </array>
+    
+    <!-- URL Schemes -->
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>com.khadamat.app</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>khadamat</string>
+            </array>
+        </dict>
+    </array>
+    
+    <!-- Queries Schemes for WhatsApp -->
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>whatsapp</string>
+        <string>tel</string>
+        <string>mailto</string>
+        <string>maps</string>
+    </array>
+</dict>
+</plist>

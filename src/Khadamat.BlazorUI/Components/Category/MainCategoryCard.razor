@@ -1,0 +1,42 @@
+<div class="category-card p-4 rounded-4 shadow-sm border text-center h-100 animate-up" @onclick="HandleClick">
+    <div class="icon-box-large mb-3 mx-auto">
+        <span class="category-icon-display">@Category.Icon</span>
+    </div>
+    <div class="fw-bold fs-5">@Category.Name</div>
+    <div class="text-muted small mt-1">استكشف الخدمات</div>
+</div>
+
+<style>
+    .icon-box-large {
+        width: 70px;
+        height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(99, 102, 241, 0.08);
+        border-radius: 20px;
+        transition: all 0.3s ease;
+    }
+    .category-icon-display {
+        font-size: 2.5rem;
+    }
+    .category-card:hover .icon-box-large {
+        background: var(--primary);
+        color: white;
+        transform: scale(1.1) rotate(5deg);
+    }
+</style>
+
+@code {
+    [Parameter] public MainCategoryDto Category { get; set; } = new();
+    [Parameter] public EventCallback<MainCategoryDto> OnClick { get; set; }
+
+    private async Task HandleClick()
+    {
+        if (OnClick.HasDelegate)
+        {
+            await OnClick.InvokeAsync(Category);
+        }
+    }
+}
+

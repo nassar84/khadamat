@@ -1,0 +1,89 @@
+@page "/provider/myservices"
+@using Khadamat.Application.DTOs
+@using Khadamat.Application.Common.Models
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+@inject NavigationManager Navigation
+
+<div class="px-3 pt-3 pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-0">خدماتي</h3>
+            <p class="text-muted small">إدارة جميع الخدمات التي تقدمها عبر المنصة</p>
+        </div>
+        <button class="btn btn-primary-premium rounded-pill px-4" @onclick='() => Navigation.NavigateTo("/provider/create-request")'>
+            <i class="fa-solid fa-plus me-2"></i> إضافة خدمة
+        </button>
+    </div>
+
+    @if (services == null)
+    {
+        <div class="d-flex justify-content-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+    }
+    else if (!services.Any())
+    {
+        <div class="glass-card p-5 text-center">
+            <i class="fa-solid fa-folder-open display-1 text-muted opacity-25 mb-3"></i>
+            <h5>لم تقم بإضافة أي خدمات بعد</h5>
+            <p class="text-muted">ابدأ بإضافة أول خدمة لك لتظهر للعملاء</p>
+            <button class="btn btn-primary rounded-pill px-5 mt-3" @onclick='() => Navigation.NavigateTo("/provider/create-request")'>أضف خدمتك الأولى</button>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var s in services)
+            {
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="glass-card p-0 overflow-hidden border-0 shadow-sm h-100 animate-up">
+                        <div class="position-relative">
+                            <img src="@(s.Images.FirstOrDefault() ?? "https://via.placeholder.com/300")" class="w-100 object-fit-cover" style="height: 180px;" />
+                            <div class="position-absolute top-0 end-0 m-2">
+                                <span class="badge @(s.IsApproved ? "bg-success" : "bg-warning text-dark") rounded-pill">
+                                    @(s.IsApproved ? "مقبول" : "بانتظار المراجعة")
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="fw-bold mb-0 text-truncate" style="max-width: 70%;">@s.Title</h6>
+                                <div class="text-primary fw-bold">@s.Price?.ToString("N0") <small class="x-small">ج.م</small></div>
+                            </div>
+                            <div class="x-small text-muted mb-3">
+                                <i class="fa-solid fa-layer-group me-1"></i> @s.SubCategoryName
+                                <span class="mx-2">|</span>
+                                <i class="fa-solid fa-location-dot me-1"></i> @(s.CityName ?? s.Location ?? "غير محدد")
+                            </div>
+                            
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-primary btn-sm flex-grow-1 rounded-pill" @onclick='() => Navigation.NavigateTo($"/provider/editservice/{s.Id}")'>
+                                    <i class="fa-solid fa-pen-to-square me-1"></i> تعديل
+                                </button>
+                                <button class="btn btn-light btn-sm rounded-circle" @onclick='() => Navigation.NavigateTo($"/service/{s.Id}")' title="عرض">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                                <button class="btn btn-light btn-sm rounded-circle text-danger" @onclick="() => ConfirmDelete(s)" title="حذف">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<ServiceDto>? services;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await Api.GetMyServicesAsync();
+        services = result.Items;
+    }
+
+    private void ConfirmDelete(ServiceDto s) { /* Delete logic */ }
+}

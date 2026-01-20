@@ -1,0 +1,173 @@
+@page "/admin/categories"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+@inject IJSRuntime JS
+
+<div class="px-3 pt-3 pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="/admin" class="text-decoration-none text-muted">لوحة المدير</a></li>
+                    <li class="breadcrumb-item active">التصنيفات</li>
+                </ol>
+            </nav>
+            <h3 class="fw-bold mb-0">إدارة التصنيفات</h3>
+        </div>
+        <button class="btn btn-primary-premium rounded-pill px-4" @onclick="OpenAddCategory">
+            <i class="fa-solid fa-plus me-2"></i> إضافة تصنيف رئيسي
+        </button>
+    </div>
+
+    <div class="row g-4">
+        @foreach (var mc in mainCategories)
+        {
+            <div class="col-12 col-lg-6">
+                <div class="glass-card p-0 overflow-hidden border-0 shadow-sm transition-all h-100">
+                    <div class="p-3 d-flex align-items-center justify-content-between" style="background: @(mc.Color)15;">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="category-icon shadow-sm" style="background: @mc.Color; color: white;">
+                                <i class="@mc.Icon"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-0">@mc.Name</h5>
+                                <span class="x-small text-muted">الترتيب: @mc.Order</span>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-sm btn-light border rounded-circle" @onclick="() => EditMainCategory(mc)"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn btn-sm btn-light border rounded-circle text-danger" @onclick="() => DeleteMainCategory(mc)"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold small text-muted mb-0">التصنيفات الفرعية</h6>
+                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 x-small" @onclick="() => OpenAddSubCategory(mc)">+ إضافة</button>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var sub in subCategories.Where(s => s.MainCategoryId == mc.Id))
+                            {
+                                <div class="subcategory-pill glass-morphism py-1 px-3 rounded-pill d-flex align-items-center gap-2">
+                                    <span class="small">@sub.Name</span>
+                                    <button class="btn btn-link p-0 x-small text-muted" @onclick="() => DeleteSubCategory(sub)"><i class="fa-solid fa-xmark"></i></button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .category-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    .subcategory-pill {
+        border: 1px solid rgba(0,0,0,0.05);
+        transition: all 0.2s;
+    }
+    .subcategory-pill:hover {
+        background: white;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        color: var(--primary);
+    }
+</style>
+
+@code {
+    private List<MainCategoryDto> mainCategories = new();
+    private List<SubCategoryDto> subCategories = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        mainCategories = await Api.GetMainCategoriesAsync();
+        
+        subCategories.Clear();
+        foreach (var mc in mainCategories)
+        {
+            var cats = await Api.GetCategoriesByMainIdAsync(mc.Id);
+            foreach (var cat in cats)
+            {
+                var subs = await Api.GetSubCategoriesByCategoryIdAsync(cat.Id);
+                subCategories.AddRange(subs);
+            }
+        }
+    }
+
+    private async Task OpenAddCategory() 
+    {
+        var name = await JS.InvokeAsync<string>("prompt", "اسم التصنيف الرئيسي الجديد:");
+        if (!string.IsNullOrEmpty(name))
+        {
+            await Api.CreateMainCategoryAsync(new MainCategoryDto { Name = name, Icon = "fa-solid fa-layer-group", Color = "#6366f1", Order = 0 });
+            await LoadData();
+        }
+    }
+
+    private async Task EditMainCategory(MainCategoryDto mc) 
+    {
+        var name = await JS.InvokeAsync<string>("prompt", "تعديل اسم التصنيف:", mc.Name);
+        if (!string.IsNullOrEmpty(name))
+        {
+            mc.Name = name;
+            await Api.UpdateMainCategoryAsync(mc.Id, mc);
+            await LoadData();
+        }
+    }
+
+    private async Task DeleteMainCategory(MainCategoryDto mc) 
+    {
+        if (await JS.InvokeAsync<bool>("confirm", $"هل أنت متأكد من حذف {mc.Name}؟"))
+        {
+            await Api.DeleteMainCategoryAsync(mc.Id);
+            await LoadData();
+        }
+    }
+    
+    private async Task OpenAddSubCategory(MainCategoryDto mc) 
+    {
+        // For simplicity, we'll ask for category name first then subcategory
+        // In a real app we'd have a dropdown of middle categories
+        var cats = await Api.GetCategoriesByMainIdAsync(mc.Id);
+        if (!cats.Any())
+        {
+            var catName = await JS.InvokeAsync<string>("prompt", "يجب إنشاء تصنيف فرعي أولاً. اسم التصنيف الفرعي:");
+            if (!string.IsNullOrEmpty(catName))
+            {
+                await Api.CreateCategoryAsync(new CategoryDto { Name = catName, MainCategoryId = mc.Id });
+                cats = await Api.GetCategoriesByMainIdAsync(mc.Id);
+            }
+            else return;
+        }
+
+        var subName = await JS.InvokeAsync<string>("prompt", "اسم التخصص الجديد:");
+        if (!string.IsNullOrEmpty(subName))
+        {
+            await Api.CreateSubCategoryAsync(new SubCategoryDto { Name = subName, CategoryId = cats.First().Id });
+            await LoadData();
+        }
+    }
+
+    private async Task DeleteSubCategory(SubCategoryDto sub) 
+    {
+        if (await JS.InvokeAsync<bool>("confirm", $"حذف {sub.Name}؟"))
+        {
+            await Api.DeleteSubCategoryAsync(sub.Id);
+            await LoadData();
+        }
+    }
+}

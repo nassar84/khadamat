@@ -1,0 +1,261 @@
+@page "/admin/users"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@using Khadamat.BlazorUI.Services.Admin
+@inject ApiClient Api
+@inject IAdminService AdminService
+@inject NavigationManager Navigation
+
+<div class="px-3 pt-3 pb-5">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="/admin" class="text-decoration-none text-muted">لوحة المدير</a></li>
+                    <li class="breadcrumb-item active">إدارة المستخدمين</li>
+                </ol>
+            </nav>
+            <h3 class="fw-bold mb-0">إدارة المستخدمين</h3>
+        </div>
+        <button class="btn btn-primary-premium rounded-pill px-4" @onclick="AddNewUser">
+            <i class="fa-solid fa-user-plus me-2"></i> إضافة مستخدم
+        </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="glass-card p-3 mb-4 d-flex flex-wrap gap-3 align-items-center justify-content-between">
+        <div class="search-box position-relative flex-grow-1" style="max-width: 400px;">
+            <i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+            <input type="text" class="form-control rounded-pill ps-5 border-0 bg-light" placeholder="ابحث بالاسم أو البريد..." @bind="SearchTerm" @bind:event="oninput">
+        </div>
+        <div class="d-flex gap-2">
+            <select class="form-select rounded-pill border-0 bg-light px-4" style="width: auto;" @bind="SelectedRole">
+                <option value="">جميع الأدوار</option>
+                <option value="User">مستخدم</option>
+                <option value="SystemAdmin">مدير نظام</option>
+                <option value="SuperAdmin">مدير خارق</option>
+            </select>
+            <button class="btn btn-light rounded-pill px-3" @onclick="ClearFilters">
+                <i class="fa-solid fa-rotate-left"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="glass-card overflow-hidden rounded-4 border-0 shadow-sm animate-up">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">المستخدم</th>
+                        <th>الدور</th>
+                        <th>الحالة</th>
+                        <th>تاريخ الانضمام</th>
+                        <th class="text-center">إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in FilteredUsers)
+                    {
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle me-3">
+                                        <img src="https://ui-avatars.com/api/?name=@user.FullName&background=random" class="rounded-circle" width="40" height="40" />
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold mb-0">@user.FullName</div>
+                                        <div class="x-small text-muted">@user.Email</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge rounded-pill @GetRoleBadgeClass(user.Role)">@GetRoleName(user.Role)</span>
+                            </td>
+                            <td>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" checked="@user.IsActive" @onchange="() => ToggleUserStatus(user)">
+                                    <span class="small @(user.IsActive ? "text-success" : "text-danger")">@(user.IsActive ? "نشط" : "معطل")</span>
+                                </div>
+                            </td>
+                            <td class="small text-muted">@user.CreatedAt.ToString("dd/MM/yyyy")</td>
+                            <td class="text-center">
+                                <div class="dropdown">
+                                    <button class="btn btn-icon" type="button" data-bs-toggle="dropdown">
+                                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3">
+                                        <li><button class="dropdown-item py-2" @onclick="() => OpenPermissions(user)"><i class="fa-solid fa-shield-halved me-2 text-primary"></i> الصلاحيات</button></li>
+                                        <li><button class="dropdown-item py-2" @onclick="() => OpenChangeRole(user)"><i class="fa-solid fa-user-tag me-2 text-warning"></i> تغيير الدور</button></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><button class="dropdown-item py-2 text-danger" @onclick="() => ConfirmDelete(user)"><i class="fa-solid fa-trash me-2"></i> حذف</button></li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Simple Modals -->
+@if (selectedUser != null && showPermissionsModal)
+{
+    <div class="modal-overlay">
+        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop" style="max-width: 500px;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0">تعديل صلاحيات @selectedUser.FullName</h5>
+                <button class="btn-close" @onclick="() => showPermissionsModal = false"></button>
+            </div>
+            
+            <div class="permissions-list mb-4">
+                @foreach (var perm in AvailablePermissions)
+                {
+                    <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
+                        <div>
+                            <div class="fw-bold small">@perm.Name</div>
+                            <div class="x-small text-muted">@perm.Description</div>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" @bind="perm.IsGranted">
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary flex-grow-1 rounded-pill" @onclick="SavePermissions">حفظ التغييرات</button>
+                <button class="btn btn-light flex-grow-1 rounded-pill" @onclick="() => showPermissionsModal = false">إلغاء</button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .avatar-circle {
+        transition: transform 0.2s;
+    }
+    
+    .table tr:hover .avatar-circle {
+        transform: scale(1.1);
+    }
+
+    .badge-superadmin { background: rgba(147, 51, 234, 0.1); color: #9333ea; }
+    .badge-systemadmin { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+    .badge-user { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #64748b;
+        transition: all 0.2s;
+    }
+    .btn-icon:hover {
+        background: rgba(0,0,0,0.05);
+        color: var(--primary);
+    }
+
+    .modal-overlay {
+        position: fixed; inset: 0; z-index: 2000;
+        background: rgba(0,0,0,0.4);
+        backdrop-filter: blur(5px);
+        display: flex; align-items: center; justify-content: center;
+    }
+
+    .animate-pop {
+        animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @@keyframes pop {
+        from { transform: scale(0.8); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+</style>
+
+@code {
+    private List<UserDto> users = new();
+    private string SearchTerm { get; set; } = "";
+    private string SelectedRole { get; set; } = "";
+    
+    private UserDto? selectedUser;
+    private bool showPermissionsModal = false;
+
+    private List<PermissionModel> AvailablePermissions = new()
+    {
+        new() { Id = "edit_service_info", Name = "تعديل بيانات الخدمة", Description = "تعديل الاسم والوصف والموقع والسعر", IsGranted = true },
+        new() { Id = "manage_gallery", Name = "إدارة معرض الصور", Description = "إضافة وحذف الصور من معرض الخدمة", IsGranted = true },
+        new() { Id = "post_updates", Name = "نشر التحديثات", Description = "إضافة منشورات جديدة في صفحة الخدمة", IsGranted = false },
+        new() { Id = "manage_reviews", Name = "إدارة التقييمات", Description = "الرد على العملاء أو إخفاء التقييمات المسيئة", IsGranted = false }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try 
+        {
+            users = await AdminService.GetAllUsers();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading users: {ex.Message}");
+            // Fallback to empty or mock if needed
+        }
+    }
+
+    private IEnumerable<UserDto> FilteredUsers => users
+        .Where(u => (string.IsNullOrEmpty(SearchTerm) || u.FullName.Contains(SearchTerm) || u.Email.Contains(SearchTerm)) &&
+                    (string.IsNullOrEmpty(SelectedRole) || u.Role == SelectedRole));
+
+    private string GetRoleBadgeClass(string role) => role switch
+    {
+        "SuperAdmin" => "badge-superadmin",
+        "SystemAdmin" => "badge-systemadmin",
+        _ => "badge-user"
+    };
+
+    private string GetRoleName(string role) => role switch
+    {
+        "SuperAdmin" => "مدير خارق",
+        "SystemAdmin" => "مدير نظام",
+        _ => "مستخدم"
+    };
+
+    private void ToggleUserStatus(UserDto user) => user.IsActive = !user.IsActive;
+
+    private void AddNewUser() { /* Add user logic */ }
+    
+    private void ClearFilters()
+    {
+        SearchTerm = "";
+        SelectedRole = "";
+    }
+
+    private void OpenPermissions(UserDto user)
+    {
+        selectedUser = user;
+        showPermissionsModal = true;
+    }
+
+    private void SavePermissions()
+    {
+        // Save logic
+        showPermissionsModal = false;
+        // Show success toast
+    }
+
+    private void OpenChangeRole(UserDto user) { /* Change role logic */ }
+    private void ConfirmDelete(UserDto user) { /* Delete logic */ }
+
+    public class PermissionModel
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public bool IsGranted { get; set; }
+    }
+}

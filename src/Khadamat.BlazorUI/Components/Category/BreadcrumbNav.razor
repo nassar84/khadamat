@@ -1,0 +1,61 @@
+@inject NavigationManager Navigation
+
+<nav class="breadcrumb-container mb-4 overflow-auto text-nowrap py-2 px-1">
+    <span class="breadcrumb-nav-item" @onclick='() => Navigation.NavigateTo("/")'>
+        <i class="fa-solid fa-house me-1"></i> الرئيسية
+    </span>
+    
+    @foreach (var item in Items)
+    {
+        <i class="fa-solid fa-chevron-left mx-2 opacity-50 small"></i>
+        <span class="breadcrumb-nav-item @(item.IsActive ? "active" : "")" 
+              @onclick="() => HandleItemClick(item)">
+            @item.Label
+        </span>
+    }
+</nav>
+
+<style>
+    .breadcrumb-container {
+        display: flex;
+        align-items: center;
+        font-size: 0.9rem;
+    }
+    .breadcrumb-nav-item {
+        cursor: pointer;
+        color: #64748b;
+        transition: color 0.2s;
+        display: inline-flex;
+        align-items: center;
+    }
+    .breadcrumb-nav-item:hover {
+        color: var(--primary);
+    }
+    .breadcrumb-nav-item.active {
+        color: var(--primary);
+        font-weight: 700;
+        cursor: default;
+    }
+</style>
+
+@code {
+    [Parameter] public List<BreadcrumbItem> Items { get; set; } = new();
+    [Parameter] public EventCallback<BreadcrumbItem> OnItemClick { get; set; }
+
+    private async Task HandleItemClick(BreadcrumbItem item)
+    {
+        if (!item.IsActive && OnItemClick.HasDelegate)
+        {
+            await OnItemClick.InvokeAsync(item);
+        }
+    }
+
+    public class BreadcrumbItem
+    {
+        public string Label { get; set; } = "";
+        public string Url { get; set; } = "";
+        public bool IsActive { get; set; }
+        public object? Data { get; set; }
+    }
+}
+

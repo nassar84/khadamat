@@ -1,0 +1,212 @@
+@page "/login"
+@layout AuthLayout
+@using Khadamat.Application.DTOs
+@inject Khadamat.BlazorUI.Services.Auth.IAuthService AuthService
+@inject NavigationManager Navigation
+@inject Khadamat.BlazorUI.State.AppState AppState
+
+<div class="glass-card auth-card">
+    <div class="auth-header">
+        <h2 class="brand-name">خدمات</h2>
+        <h3>تسجيل الدخول</h3>
+        <p>مرحباً بعودتك! الرجاء إدخال بياناتك</p>
+    </div>
+
+    <EditForm Model="@loginRequest" OnValidSubmit="HandleLogin">
+        <DataAnnotationsValidator />
+        
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger">@errorMessage</div>
+        }
+
+        <div class="form-group">
+            <label>اسم المستخدم</label>
+            <InputText @bind-Value="loginRequest.UserName" class="form-control glass-input" placeholder="اسم المستخدم" />
+            <ValidationMessage For="@(() => loginRequest.UserName)" />
+        </div>
+
+        <div class="form-group">
+            <label>كلمة المرور</label>
+            <InputText @bind-Value="loginRequest.Password" type="password" class="form-control glass-input" placeholder="••••••••" />
+            <ValidationMessage For="@(() => loginRequest.Password)" />
+        </div>
+
+        <div class="auth-actions">
+            <a href="/forgot-password" class="forgot-link">نسيت كلمة المرور؟</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary glass-btn-primary" disabled="@isLoading">
+            @if (isLoading)
+            {
+                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                <span> جاري التحميل...</span>
+            }
+            else
+            {
+                <span>تسجيل الدخول</span>
+            }
+        </button>
+    </EditForm>
+
+    <div class="auth-footer">
+        <span>ليس لديك حساب؟</span>
+        <a href="/register">إنشاء حساب جديد</a>
+    </div>
+    
+    <div class="text-center mt-3">
+        <a href="/" class="text-muted text-decoration-none small">
+            <i class="fa-solid fa-arrow-right ms-1"></i> تخطي والذهاب للرئيسية
+        </a>
+    </div>
+</div>
+
+<style>
+    .auth-card {
+        padding: 40px;
+        backdrop-filter: blur(20px);
+    }
+    
+    .auth-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .auth-header h3 {
+        color: var(--theme-primary);
+        margin: 10px 0;
+        font-weight: 700;
+    }
+
+    .auth-header p {
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #475569;
+        font-weight: 600;
+    }
+
+    .glass-input {
+        width: 100%;
+        padding: 12px 15px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        background: rgba(255, 255, 255, 0.5);
+        transition: all 0.3s ease;
+    }
+
+    .glass-input:focus {
+        background: white;
+        border-color: var(--theme-primary);
+        box-shadow: 0 0 0 4px var(--theme-light);
+        outline: none;
+    }
+
+    .auth-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 20px;
+    }
+
+    .forgot-link {
+        color: var(--theme-secondary);
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+
+    .glass-btn-primary {
+        width: 100%;
+        padding: 14px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));
+        border: none;
+        color: white;
+        font-weight: 700;
+        font-size: 1rem;
+        box-shadow: 0 4px 15px var(--theme-glow);
+        transition: all 0.3s ease;
+    }
+
+    .glass-btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px var(--theme-glow);
+    }
+    
+    .glass-btn-primary:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .auth-footer {
+        margin-top: 30px;
+        text-align: center;
+        font-size: 0.95rem;
+    }
+
+    .auth-footer a {
+        color: var(--theme-primary);
+        font-weight: 700;
+        text-decoration: none;
+        margin-right: 5px;
+    }
+</style>
+
+@code {
+    private LoginRequest loginRequest = new LoginRequest();
+    private bool isLoading = false;
+    private string errorMessage = "";
+
+    protected override void OnInitialized()
+    {
+        if (AppState.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/");
+        }
+    }
+
+    private async Task HandleLogin()
+    {
+        isLoading = true;
+        errorMessage = "";
+
+        try
+        {
+            var result = await AuthService.Login(loginRequest);
+            if (result != null)
+            {
+                AppState.UserName = result.UserName;
+                AppState.CityId = result.CityId;
+                AppState.GovernorateId = result.GovernorateId;
+                AppState.PhoneNumber = result.PhoneNumber;
+                AppState.UserRole = result.Roles.FirstOrDefault() switch
+                {
+                    "SuperAdmin" => "مدير خارق",
+                    "SystemAdmin" => "مدير نظام",
+                    _ => "مستخدم"
+                };
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                errorMessage = "اسم المستخدم أو كلمة المرور غير صحيحة.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة لاحقاً.";
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

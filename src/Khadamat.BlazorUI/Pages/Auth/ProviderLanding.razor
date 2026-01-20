@@ -1,0 +1,245 @@
+@page "/register-provider"
+@layout Khadamat.BlazorUI.Layout.MainLayout
+@inject NavigationManager Navigation
+@inject Khadamat.BlazorUI.State.AppState AppState
+@using Microsoft.AspNetCore.Components.Authorization
+
+<div class="provider-landing py-5">
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="glass-card p-5 mb-5 overflow-hidden position-relative">
+            <div class="row align-items-center">
+                <div class="col-lg-6 z-2">
+                    <span class="badge bg-primary-soft text-primary px-3 py-2 rounded-pill mb-3 fw-bold">لانك محترف، مكانك هنا</span>
+                    <h1 class="display-4 fw-bold mb-4">زود دخلك وسجل <span class="text-primary-gradient">خدماتك</span> معانا</h1>
+                    <p class="fs-5 text-muted mb-4">
+                        انضم إلى آلاف المحترفين في مصر وقدم خدماتك لملايين العملاء. 
+                        نوفر لك المنصة المتكاملة لإدارة أعمالك والتواصل مع عملائك بسهولة.
+                    </p>
+                    
+                    <div class="d-flex gap-3 flex-wrap">
+                        <AuthorizeView Roles="Provider" Context="providerContext">
+                            <Authorized>
+                                <button class="btn btn-primary-premium px-5 py-3 rounded-pill shadow-lg" @onclick='() => Navigation.NavigateTo("/provider/createservice")'>
+                                    إضافة خدمة جديدة <i class="fas fa-plus ms-2"></i>
+                                </button>
+                            </Authorized>
+                            <NotAuthorized>
+                                <AuthorizeView Context="userContext">
+                                    <Authorized>
+                                        <button class="btn btn-primary-premium px-5 py-3 rounded-pill shadow-lg" @onclick="ApplyToBeProvider">
+                                            ابدأ الآن كمزود خدمة <i class="fas fa-rocket ms-2"></i>
+                                        </button>
+                                    </Authorized>
+                                    <NotAuthorized>
+                                        <button class="btn btn-primary-premium px-5 py-3 rounded-pill shadow-lg" @onclick='() => Navigation.NavigateTo("/register?type=Provider")'>
+                                            إنشاء حساب مزود <i class="fas fa-user-plus ms-2"></i>
+                                        </button>
+                                        <button class="btn btn-outline-primary px-5 py-3 rounded-pill" @onclick='() => Navigation.NavigateTo("/login")'>
+                                            تسجيل الدخول
+                                        </button>
+                                    </NotAuthorized>
+                                </AuthorizeView>
+                            </NotAuthorized>
+                        </AuthorizeView>
+                    </div>
+                </div>
+                <div class="col-lg-6 mt-5 mt-lg-0">
+                    <div class="hero-image-wrapper">
+                        <img src="images/provider_landing_hero.png" alt="Join as Provider" class="img-fluid rounded-4 shadow-2xl floating-animation" />
+                        <div class="experience-badge shadow-lg">
+                            <span class="number">+10,000</span>
+                            <span class="text">مزود خدمة</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="abstract-shape shape-1"></div>
+            <div class="abstract-shape shape-2"></div>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="glass-card p-4 h-100 text-center hover-up transition-all">
+                    <div class="icon-box bg-purple-soft text-purple mb-4 mx-auto">
+                        <i class="fas fa-chart-line fs-2"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">نمو مستمر</h4>
+                    <p class="text-muted small">احصل على طلبات مستمرة من عملاء حقيقيين في منطقتك الجغرافية.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="glass-card p-4 h-100 text-center hover-up transition-all">
+                    <div class="icon-box bg-blue-soft text-blue mb-4 mx-auto">
+                        <i class="fas fa-bolt fs-2"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">سهولة الإدارة</h4>
+                    <p class="text-muted small">لوحة تحكم بسيطة وقوية لإدارة خدماتك، صورك، وأسعارك في أي وقت.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="glass-card p-4 h-100 text-center hover-up transition-all">
+                    <div class="icon-box bg-green-soft text-green mb-4 mx-auto">
+                        <i class="fas fa-comments fs-2"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">تواصل مباشر</h4>
+                    <p class="text-muted small">دردشة مباشرة واتصال مع العملاء المهتمين بخدماتك بدون وسيط.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Steps Section -->
+        <div class="text-center mb-5">
+            <h2 class="fw-bold mb-4">كيف تبدأ؟</h2>
+            <div class="steps-row d-flex justify-content-between position-relative">
+                <div class="step-item text-center">
+                    <div class="step-num shadow">1</div>
+                    <h6 class="fw-bold mt-3">سجل حسابك</h6>
+                </div>
+                <div class="step-item text-center">
+                    <div class="step-num shadow">2</div>
+                    <h6 class="fw-bold mt-3">أضف تفاصيل خدمتك</h6>
+                </div>
+                <div class="step-item text-center">
+                    <div class="step-num shadow">3</div>
+                    <h6 class="fw-bold mt-3">ارفع صور أعمالك</h6>
+                </div>
+                <div class="step-item text-center">
+                    <div class="step-num shadow">4</div>
+                    <h6 class="fw-bold mt-3">ابدأ استقبال الطلبات</h6>
+                </div>
+                <div class="step-line d-none d-md-block"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .provider-landing {
+        background: radial-gradient(circle at top right, var(--theme-light), transparent),
+                    radial-gradient(circle at bottom left, var(--theme-light), transparent);
+        min-height: 80vh;
+    }
+
+    .text-primary-gradient {
+        background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .bg-primary-soft { background-color: rgba(var(--theme-primary-rgb), 0.1); }
+    .text-purple { color: #8b5cf6; }
+    .bg-purple-soft { background-color: rgba(139, 92, 246, 0.1); }
+    .text-blue { color: #3b82f6; }
+    .bg-blue-soft { background-color: rgba(59, 130, 246, 0.1); }
+    .text-green { color: #10b981; }
+    .bg-green-soft { background-color: rgba(16, 185, 129, 0.1); }
+
+    .icon-box {
+        width: 70px;
+        height: 70px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .hero-image-wrapper {
+        position: relative;
+        perspective: 1000px;
+    }
+
+    .experience-badge {
+        position: absolute;
+        bottom: 20px;
+        left: -30px;
+        background: white;
+        padding: 15px 25px;
+        border-radius: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .experience-badge .number {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--theme-primary);
+    }
+
+    .experience-badge .text {
+        font-size: 0.8rem;
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    .floating-animation {
+        animation: floating 4s ease-in-out infinite;
+    }
+
+    @@keyframes floating {
+        0%, 100% { transform: translateY(0) rotate(-1deg); }
+        50% { transform: translateY(-15px) rotate(1deg); }
+    }
+
+    .abstract-shape {
+        position: absolute;
+        z-index: 1;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.1;
+    }
+
+    .shape-1 { width: 300px; height: 300px; background: var(--theme-primary); top: -100px; right: -100px; }
+    .shape-2 { width: 400px; height: 400px; background: var(--theme-secondary); bottom: -150px; left: -150px; }
+
+    .step-num {
+        width: 50px;
+        height: 50px;
+        background: white;
+        color: var(--theme-primary);
+        border-radius: 15px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        position: relative;
+        z-index: 3;
+        border: 2px solid var(--theme-primary);
+    }
+
+    .steps-row {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .step-line {
+        position: absolute;
+        top: 25px;
+        left: 50px;
+        right: 50px;
+        height: 2px;
+        background: rgba(0,0,0,0.05);
+        z-index: 1;
+    }
+
+    .transition-all { transition: all 0.3s ease; }
+    .hover-up:hover { transform: translateY(-10px); }
+</style>
+
+@code {
+    private void ApplyToBeProvider()
+    {
+        if (AppState.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/provider/apply");
+        }
+        else
+        {
+            Navigation.NavigateTo("/register?type=Provider");
+        }
+    }
+}

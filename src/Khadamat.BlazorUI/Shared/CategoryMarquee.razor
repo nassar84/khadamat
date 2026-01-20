@@ -1,0 +1,205 @@
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<div class="category-marquee-container">
+    <div class="scroll-track">
+        @if (categories != null)
+        {
+            @foreach (var cat in categories.Concat(categories))
+            {
+                <div class="category-item d-flex flex-column align-items-center" @onclick="() => OnCategorySelected(cat)">
+                    <div class="category-shape-wrapper">
+                        <span class="fs-4">@cat.Icon</span>
+                    </div>
+                    <span class="category-name-small">@cat.Name</span>
+                </div>
+            }
+        }
+        else
+        {
+            @for (int i = 0; i < 10; i++)
+            {
+                <div class="category-item d-flex flex-column align-items-center">
+                    <div class="category-shape-wrapper skeleton"></div>
+                    <div class="skeleton rounded-pill mt-2" style="width: 40px; height: 10px;"></div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<style>
+    .category-marquee-container {
+        padding: 15px 0 25px 0;
+        margin-bottom: 25px;
+        overflow-x: hidden;
+        overflow-y: visible;
+        width: 100%;
+        position: relative;
+    }
+
+    .scroll-track {
+        display: flex;
+        width: fit-content;
+        animation: marquee 30s linear infinite;
+        transition: animation-play-state 0.3s ease;
+        padding: 10px 0;
+    }
+
+    .scroll-track:hover {
+        animation-play-state: paused;
+    }
+
+    .category-item {
+        margin: 0 18px;
+        padding: 8px;
+        transition: transform 0.3s ease;
+        cursor: pointer;
+    }
+
+    .category-item:hover {
+        transform: translateY(-8px) scale(1.05);
+    }
+    
+    .category-shape-wrapper {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        
+        /* 3D Glass Ball Effect */
+        background: linear-gradient(145deg, 
+            rgba(255, 255, 255, 0.9) 0%,
+            rgba(255, 255, 255, 0.4) 40%,
+            var(--theme-light) 100%) !important;
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        
+        /* 3D Borders - Creates depth */
+        border: 2px solid rgba(255, 255, 255, 0.6);
+        border-top: 2px solid rgba(255, 255, 255, 0.9);
+        border-left: 2px solid rgba(255, 255, 255, 0.8);
+        border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+        
+        /* Multiple shadows for 3D depth with Theme Glow */
+        box-shadow:
+            0 10px 20px -5px var(--theme-glow),
+            inset 0 3px 8px rgba(255, 255, 255, 0.9),
+            inset 0 -3px 8px rgba(0, 0, 0, 0.05),
+            0 0 0 1px rgba(255, 255, 255, 0.6);
+        
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    
+    /* Glass reflection effect */
+    .category-shape-wrapper::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(135deg,
+            rgba(255, 255, 255, 0.6) 0%,
+            rgba(255, 255, 255, 0) 50%,
+            rgba(255, 255, 255, 0.3) 100%);
+        transform: rotate(30deg);
+        pointer-events: none;
+        opacity: 0.7;
+    }
+    
+    .category-shape-wrapper span {
+        color: var(--theme-primary);
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        position: relative;
+        z-index: 1;
+        transition: transform 0.3s ease;
+    }
+    
+    .category-item:hover .category-shape-wrapper {
+        transform: scale(1.1) rotate(5deg);
+        box-shadow:
+            0 15px 35px rgba(0, 0, 0, 0.15),
+            inset 0 2px 12px rgba(255, 255, 255, 1),
+            inset 0 -2px 12px rgba(0, 0, 0, 0.05),
+            0 0 0 2px var(--theme-primary);
+    }
+    
+    .category-item:hover .category-shape-wrapper span {
+        transform: scale(1.15) rotate(-5deg);
+    }
+    
+    .category-item:active .category-shape-wrapper {
+        transform: scale(0.95);
+        box-shadow:
+            0 5px 15px rgba(0, 0, 0, 0.1),
+            inset 0 2px 8px rgba(255, 255, 255, 0.8);
+    }
+
+    .category-name-small {
+        font-size: 0.8rem;
+        font-weight: 800;
+        color: var(--text-main);
+        margin-top: 8px;
+        text-align: center;
+        max-width: 90px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    @@keyframes marquee {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+
+    /* RTL Support */
+    [dir="rtl"] .scroll-track {
+        animation: marquee-rtl 30s linear infinite;
+    }
+
+    @@keyframes marquee-rtl {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(50%); }
+    }
+    
+    .skeleton {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+    }
+
+    @@keyframes loading {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+</style>
+
+@code {
+    private List<MainCategoryDto>? categories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            categories = await Api.GetMainCategoriesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading categories: {ex.Message}");
+            categories = new();
+        }
+    }
+
+    private void OnCategorySelected(MainCategoryDto category)
+    {
+        Navigation.NavigateTo($"/explore/main/{category.Id}/{Uri.EscapeDataString(category.Name)}");
+    }
+}

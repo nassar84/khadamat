@@ -1,0 +1,129 @@
+@using Khadamat.BlazorUI.State
+@using Khadamat.BlazorUI.Services.Auth
+@inject AppState State
+@inject IJSRuntime JSRuntime
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+
+<header class="app-header">
+    <AuthorizeView>
+        <Authorized>
+            <div class="user-profile" @onclick="NavigateToProfile" style="cursor: pointer;">
+                <img src="@State.UserImageUrl" class="user-avatar" alt="User Profile" />
+                <div class="welcome-text">
+                    <span class="greet">أهلاً بك،</span>
+                    <span class="name">@context.User.Identity?.Name</span>
+                </div>
+            </div>
+        </Authorized>
+        <NotAuthorized>
+            <div class="user-profile">
+                <a href="/login" class="btn text-white fw-bold me-2">تسجيل الدخول</a>
+                <a href="/register" class="btn btn-sm btn-light" style="border-radius: 10px;">حساب جديد</a>
+            </div>
+        </NotAuthorized>
+    </AuthorizeView>
+    
+    <!-- Circular Theme Selector -->
+    <div class="theme-selector-wrapper">
+        <button class="theme-main-btn" @onclick="ToggleThemeMenu" title="تغيير المظهر">
+            <i class="fa-solid fa-palette"></i>
+        </button>
+        <div class="theme-options-arc @(isThemeMenuOpen ? "show" : "")" style="--total: 6;">
+            <button class="theme-opt-bubble @(State.CurrentTheme == "default" ? "active" : "")" 
+                    @onclick='() => HandleSetTheme("default")' 
+                    data-theme-name="default"
+                    style="--i: 0;" title="أورورا"></button>
+            <button class="theme-opt-bubble @(State.CurrentTheme == "sunset" ? "active" : "")" 
+                    @onclick='() => HandleSetTheme("sunset")' 
+                    data-theme-name="sunset"
+                    style="--i: 1;" title="غروب"></button>
+            <button class="theme-opt-bubble @(State.CurrentTheme == "ocean" ? "active" : "")" 
+                    @onclick='() => HandleSetTheme("ocean")' 
+                    data-theme-name="ocean"
+                    style="--i: 2;" title="محيطي"></button>
+            <button class="theme-opt-bubble @(State.CurrentTheme == "forest" ? "active" : "")" 
+                    @onclick='() => HandleSetTheme("forest")' 
+                    data-theme-name="forest"
+                    style="--i: 3;" title="غابة"></button>
+            <button class="theme-opt-bubble @(State.CurrentTheme == "lavender" ? "active" : "")" 
+                    @onclick='() => HandleSetTheme("lavender")' 
+                    data-theme-name="lavender"
+                    style="--i: 4;" title="لافندر"></button>
+            <button class="theme-opt-bubble @(State.CurrentTheme == "royal" ? "active" : "")" 
+                    @onclick='() => HandleSetTheme("royal")' 
+                    data-theme-name="royal"
+                    style="--i: 5;" title="ملكي"></button>
+        </div>
+    </div>
+    
+    <div class="header-actions">
+        <!-- Admin Link if Admin -->
+         <AuthorizeView Roles="SystemAdmin,SuperAdmin">
+            <a href="/admin" class="btn btn-sm btn-warning rounded-pill px-3 fw-bold d-flex align-items-center gap-2 shadow-sm" title="لوحة التحكم">
+                 <i class="fa-solid fa-gauge-high"></i>
+                 <span class="d-none d-md-inline">لوحة المدير</span>
+            </a>
+        </AuthorizeView>
+
+        <!-- Notifications -->
+        <button class="header-icon-btn position-relative" title="التنبيهات">
+            <i class="fa-solid fa-bell"></i>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; padding: 0.25rem 0.4rem;">
+                3
+            </span>
+        </button>
+
+        <!-- Logout Button -->
+        <AuthorizeView>
+            <Authorized>
+                <button class="header-icon-btn" @onclick="HandleLogout" title="تسجيل الخروج">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </Authorized>
+        </AuthorizeView>
+    </div>
+</header>
+
+@code {
+    private bool isThemeMenuOpen = false;
+
+    protected override void OnInitialized()
+    {
+        State.OnChange += StateHasChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Apply initial theme
+            await JSRuntime.InvokeVoidAsync("document.body.setAttribute", "data-theme", State.CurrentTheme);
+        }
+    }
+
+    public void Dispose()
+    {
+        State.OnChange -= StateHasChanged;
+    }
+
+    private void ToggleThemeMenu() => isThemeMenuOpen = !isThemeMenuOpen;
+
+    private async Task HandleSetTheme(string theme)
+    {
+        State.SetTheme(theme);
+        await JSRuntime.InvokeVoidAsync("document.body.setAttribute", "data-theme", theme);
+        isThemeMenuOpen = false;
+    }
+
+    private async Task HandleLogout()
+    {
+        await AuthService.Logout();
+        Navigation.NavigateTo("/login");
+    }
+
+    private void NavigateToProfile()
+    {
+        Navigation.NavigateTo("/profile");
+    }
+}

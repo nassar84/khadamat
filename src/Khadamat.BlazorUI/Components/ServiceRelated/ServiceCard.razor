@@ -1,0 +1,56 @@
+<div class="service-card animate-up" @onclick="HandleClick">
+    <div class="p-3">
+        <div class="d-flex gap-3">
+            <div class="service-img rounded-4 bg-light overflow-hidden" style="width: 90px; height: 90px; flex-shrink: 0;">
+                @if (Service.Images?.Any() == true)
+                {
+                    <img src="@Service.Images.First()" class="w-100 h-100 object-fit-cover" alt="@Service.Title" />
+                }
+                else
+                {
+                    <img src="https://ui-avatars.com/api/?name=@(Uri.EscapeDataString(Service.Title))&background=random&color=fff&size=128" 
+                         class="w-100 h-100 object-fit-cover" alt="@Service.Title Placeholder" />
+                }
+            </div>
+            <div class="flex-grow-1 overflow-hidden">
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                    <h6 class="fw-bold mb-0 text-truncate" style="font-size: 1rem;">@Service.Title</h6>
+                    @if (IsFavorite)
+                    {
+                        <i class="fa-solid fa-heart text-danger ms-2" @onclick:stopPropagation="true"></i>
+                    }
+                    else
+                    {
+                        <i class="fa-regular fa-heart text-muted ms-2" @onclick:stopPropagation="true"></i>
+                    }
+                </div>
+                <p class="text-muted small mb-1 text-truncate">@Service.ProviderName</p>
+                
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div class="text-primary fw-bold">
+                        @Service.Price <span class="small opacity-75">ج.م</span>
+                    </div>
+                    <div class="bg-warning bg-opacity-10 text-warning rounded-pill px-2 py-1 small fw-bold">
+                        <i class="fa-solid fa-star me-1 small"></i> @Rating.ToString("F1")
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public ServiceDto Service { get; set; } = new();
+    [Parameter] public double Rating { get; set; } = 4.8;
+    [Parameter] public bool IsFavorite { get; set; }
+    [Parameter] public EventCallback<ServiceDto> OnClick { get; set; }
+
+    private async Task HandleClick()
+    {
+        if (OnClick.HasDelegate)
+        {
+            await OnClick.InvokeAsync(Service);
+        }
+    }
+}
+

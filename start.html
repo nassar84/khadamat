@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دليل البدء السريع - خدمات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .emoji {
+            font-size: 4rem;
+            margin: 20px 0;
+        }
+
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 18px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin: 20px 10px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+        }
+
+        .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+        }
+
+        .features {
+            text-align: right;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 16px;
+        }
+
+        .feature {
+            padding: 10px 0;
+            font-size: 1.1rem;
+            color: #333;
+        }
+
+        .feature::before {
+            content: "✅ ";
+            margin-left: 10px;
+        }
+
+        .note {
+            background: #fff3cd;
+            border-right: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #856404;
+            text-align: right;
+        }
+
+        .tech-stack {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .tech {
+            background: #e9ecef;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            color: #495057;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="emoji">🎉</div>
+        <h1>مرحباً بك في خدمات!</h1>
+        <p class="subtitle">منصة الخدمات المتكاملة - جاهزة للاستخدام</p>
+
+        <div class="features">
+            <h3 style="margin-bottom: 15px; color: #667eea;">✨ المميزات الرئيسية</h3>
+            <div class="feature">تصميم عصري بتأثيرات 3D ناعمة</div>
+            <div class="feature">واجهة عربية كاملة (RTL)</div>
+            <div class="feature">استجابة كاملة لجميع الأجهزة</div>
+            <div class="feature">6 مجموعات خدمات + 30 خدمة</div>
+            <div class="feature">نظام بحث ومفضلة متقدم</div>
+            <div class="feature">حركات انتقالية سلسة</div>
+            <div class="feature">بدون أي مكتبات خارجية</div>
+        </div>
+
+        <a href="index.html" class="button">🚀 ابدأ الآن</a>
+
+        <div class="note">
+            <strong>💡 نصيحة:</strong> للحصول على أفضل تجربة، افتح التطبيق في وضع "عرض الأجهزة المحمولة" في متصفحك (F12
+            ← Toggle Device Toolbar)
+        </div>
+
+        <div class="tech-stack">
+            <span class="tech">HTML5</span>
+            <span class="tech">CSS3</span>
+            <span class="tech">JavaScript</span>
+            <span class="tech">Cairo Font</span>
+        </div>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #e9ecef;">
+            <p style="color: #999; font-size: 0.9rem;">
+                📚 اقرأ <a href="README.md" style="color: #667eea;">README.md</a> للتفاصيل الكاملة<br>
+                📊 راجع <a href="PROJECT_SUMMARY.md" style="color: #667eea;">ملخص المشروع</a> لمعرفة كل شيء
+            </p>
+        </div>
+
+        <div style="margin-top: 20px; font-size: 0.85rem; color: #999;">
+            تم الإنشاء بواسطة Antigravity AI ❤️
+        </div>
+    </div>
+
+    <script>
+        // Easter egg: confetti on load
+        console.log('🎉 مرحباً بك في خدمات!');
+        console.log('📱 التطبيق جاهز للاستخدام');
+        console.log('🚀 افتح index.html للبدء');
+    </script>
+</body>
+
+</html>

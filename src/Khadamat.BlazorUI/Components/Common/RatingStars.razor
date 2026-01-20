@@ -1,0 +1,26 @@
+<div class="rating-stars @(ReadOnly ? "readonly" : "")">
+    @for (int i = 1; i <= 5; i++)
+    {
+        var starValue = i;
+        <i class="fa-star @(starValue <= Value ? "fas" : "far")" 
+           @onclick="@(() => HandleClick(starValue))"></i>
+    }
+</div>
+
+@code {
+    [Parameter] public int Value { get; set; }
+    [Parameter] public EventCallback<int> ValueChanged { get; set; }
+    [Parameter] public bool ReadOnly { get; set; } = false;
+
+    private async Task HandleClick(int value)
+    {
+        if (!ReadOnly)
+        {
+            Value = value;
+            if (ValueChanged.HasDelegate)
+            {
+                await ValueChanged.InvokeAsync(value);
+            }
+        }
+    }
+}

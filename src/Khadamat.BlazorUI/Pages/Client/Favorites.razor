@@ -1,0 +1,64 @@
+@page "/client/favorites"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+@inject NavigationManager Navigation
+
+<div class="px-3 pt-3 pb-5">
+    <div class="d-flex align-items-center mb-4">
+        <button class="btn btn-icon me-3" @onclick='() => Navigation.NavigateTo("/")'>
+            <i class="fa-solid fa-arrow-right"></i>
+        </button>
+        <h3 class="fw-bold mb-0 gradient-text">المفضلة</h3>
+    </div>
+
+    @if (favoriteServices == null)
+    {
+        <LoadingSpinner Message="جاري تحميل مفضلاتك..." />
+    }
+    else if (!favoriteServices.Any())
+    {
+        <div class="text-center py-5 opacity-50 bg-light rounded-4">
+            <i class="fa-solid fa-heart-crack fs-1 mb-3"></i>
+            <p>قائمتك المفضلة فارغة حالياً</p>
+            <button class="btn btn-primary rounded-pill mt-2" @onclick='() => Navigation.NavigateTo("/services")'>
+                استكشف الخدمات
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var service in favoriteServices)
+            {
+                <div class="col-12 col-md-6">
+                    <ServiceCard Service="service" IsFavorite="true" OnClick="OnServiceSelected" />
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<ServiceDto>? favoriteServices;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // For now, we fetch some services as "favorites" for demo
+        try 
+        {
+            var result = await Api.GetServicesAsync();
+            favoriteServices = result.Items.Take(3).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            favoriteServices = new();
+        }
+    }
+
+    private void OnServiceSelected(ServiceDto service)
+    {
+        Navigation.NavigateTo($"/service/{service.Id}");
+    }
+}

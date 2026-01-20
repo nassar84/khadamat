@@ -1,0 +1,77 @@
+﻿@inherits LayoutComponentBase
+
+<div class="khadamat-app">
+    <Sidebar />
+    
+    <div class="app-main-view">
+        <Header />
+        
+        <main class="app-content">
+            <CategoryMarquee />
+            <div class="content-wrapper">
+                <HeroAds />
+                @Body
+            </div>
+        </main>
+
+        <Footer />
+    </div>
+
+    <BottomNav />
+</div>
+
+<style>
+    .khadamat-app {
+        display: flex;
+        flex-direction: row;
+        min-height: 100vh;
+        width: 100%;
+        background: transparent;
+        position: relative;
+    }
+
+    .app-main-view {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        overflow-y: auto;
+        position: relative;
+    }
+
+    @@media (max-width: 991px) {
+        .khadamat-app {
+            flex-direction: column;
+        }
+        .app-main-view {
+            width: 100%;
+        }
+    }
+</style>
+
+@inject Khadamat.BlazorUI.Services.Auth.IAuthService AuthService
+@inject Khadamat.BlazorUI.State.AppState AppState
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        if (AppState.IsAuthenticated && !AppState.IsProfileComplete)
+        {
+            try
+            {
+                var profile = await AuthService.GetProfileAsync();
+                if (profile?.Success == true && profile.Data != null)
+                {
+                    AppState.UserName = profile.Data.UserName;
+                    AppState.CityId = profile.Data.CityId;
+                    AppState.GovernorateId = profile.Data.GovernorateId;
+                    AppState.PhoneNumber = profile.Data.PhoneNumber;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error syncing profile: {ex.Message}");
+            }
+        }
+    }
+}

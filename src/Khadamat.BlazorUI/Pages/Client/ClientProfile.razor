@@ -1,0 +1,419 @@
+@page "/client/clientprofile"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@using Khadamat.BlazorUI.Services.Auth
+@inject IAuthService AuthService
+@inject ApiClient Api
+@inject NavigationManager Navigation
+@inject Khadamat.BlazorUI.State.AppState AppState
+@inject IJSRuntime JS
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h3 class="fw-bold mb-1">
+                        <i class="fa-solid fa-user-pen me-2 text-primary"></i>تعديل الملف الشخصي
+                    </h3>
+                    <p class="text-muted small mb-0">قم بتحديث معلوماتك الشخصية</p>
+                </div>
+                <button class="btn btn-outline-primary" @onclick="@(() => Navigation.NavigateTo("/profile"))">
+                    <i class="fa-solid fa-eye me-2"></i>عرض الملف
+                </button>
+            </div>
+
+            @if (isLoading)
+            {
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary"></div>
+                </div>
+            }
+            else if (profile != null)
+            {
+                <EditForm Model="@profile" OnValidSubmit="HandleSaveProfile">
+                    <DataAnnotationsValidator />
+
+                    <!-- Profile Photo Section -->
+                    <div class="glass-card p-4 mb-4">
+                        <h5 class="fw-bold mb-3">
+                            <i class="fa-solid fa-camera me-2 text-primary"></i>صورة الملف الشخصي
+                        </h5>
+                        <div class="text-center">
+                            <div class="profile-photo-upload mb-3">
+                                <img src="@(string.IsNullOrEmpty(profilePhoto) ? AppState.UserImageUrl : profilePhoto)" 
+                                     alt="Profile" class="profile-photo-preview" />
+                                <label for="photoInput" class="photo-upload-btn">
+                                    <i class="fa-solid fa-camera"></i>
+                                </label>
+                                <InputFile id="photoInput" OnChange="HandlePhotoUpload" accept="image/*" class="d-none" />
+                            </div>
+                            @if (isUploadingPhoto)
+                            {
+                                <div class="spinner-border spinner-border-sm text-primary"></div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Basic Information -->
+                    <div class="glass-card p-4 mb-4">
+                        <h5 class="fw-bold mb-3">
+                            <i class="fa-solid fa-id-card me-2 text-primary"></i>المعلومات الأساسية
+                        </h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">الاسم الكامل <span class="text-danger">*</span></label>
+                                <InputText @bind-Value="profile.FullName" class="form-control form-control-lg" placeholder="أدخل اسمك الكامل" />
+                                <ValidationMessage For="@(() => profile.FullName)" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">اسم المستخدم <span class="text-danger">*</span></label>
+                                <InputText @bind-Value="profile.UserName" class="form-control form-control-lg" placeholder="username" disabled />
+                                <small class="text-muted">لا يمكن تغيير اسم المستخدم</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">البريد الإلكتروني <span class="text-danger">*</span></label>
+                                <InputText @bind-Value="profile.Email" type="email" class="form-control form-control-lg" placeholder="email@example.com" />
+                                <ValidationMessage For="@(() => profile.Email)" />
+                                @if (profile.EmailConfirmed)
+                                {
+                                    <small class="text-success"><i class="fa-solid fa-check-circle"></i> موثق</small>
+                                }
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">رقم الهاتف <span class="text-danger">*</span></label>
+                                <InputText @bind-Value="profile.PhoneNumber" class="form-control form-control-lg" placeholder="+20xxxxxxxxxx" />
+                                <ValidationMessage For="@(() => profile.PhoneNumber)" />
+                                @if (profile.PhoneNumberConfirmed)
+                                {
+                                    <small class="text-success"><i class="fa-solid fa-check-circle"></i> موثق</small>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Location Information -->
+                    <div class="glass-card p-4 mb-4">
+                        <h5 class="fw-bold mb-3">
+                            <i class="fa-solid fa-location-dot me-2 text-primary"></i>الموقع
+                        </h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">المحافظة <span class="text-danger">*</span></label>
+                                <InputSelect @bind-Value="selectedGovernorateId" class="form-select form-select-lg" @onchange="OnGovernorateChanged">
+                                    <option value="0">اختر المحافظة</option>
+                                    @if (governorates != null)
+                                    {
+                                        @foreach (var gov in governorates)
+                                        {
+                                            <option value="@gov.Id">@gov.NameAr</option>
+                                        }
+                                    }
+                                </InputSelect>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">المدينة <span class="text-danger">*</span></label>
+                                <InputSelect @bind-Value="profile.CityId" class="form-select form-select-lg">
+                                    <option value="0">اختر المدينة</option>
+                                    @if (cities != null)
+                                    {
+                                        @foreach (var city in cities)
+                                        {
+                                            <option value="@city.Id">@city.NameAr</option>
+                                        }
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Provider/Business Information (Optional) -->
+                    <div class="glass-card p-4 mb-4">
+                        <h5 class="fw-bold mb-3">
+                            <i class="fa-solid fa-briefcase me-2 text-primary"></i>معلومات العمل (اختياري)
+                        </h5>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label fw-bold">اسم النشاط التجاري</label>
+                                <input type="text" @bind="businessName" class="form-control form-control-lg" placeholder="مثال: شركة النور للخدمات" />
+                                <small class="text-muted">سيظهر هذا في ملفك الشخصي إذا كنت تقدم خدمات</small>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold">نبذة عنك</label>
+                                <textarea @bind="bio" class="form-control" rows="4" placeholder="أخبر الآخرين عن نفسك وخبراتك..."></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">رقم تواصل إضافي</label>
+                                <input type="text" @bind="contactNumber" class="form-control form-control-lg" placeholder="+20xxxxxxxxxx" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">الموقع التفصيلي</label>
+                                <input type="text" @bind="location" class="form-control form-control-lg" placeholder="العنوان التفصيلي" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Social Media Links -->
+                    <div class="glass-card p-4 mb-4">
+                        <h5 class="fw-bold mb-3">
+                            <i class="fa-solid fa-share-nodes me-2 text-primary"></i>روابط التواصل الاجتماعي
+                        </h5>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fa-solid fa-globe text-primary"></i> الموقع الإلكتروني
+                                </label>
+                                <input type="url" @bind="websiteUrl" class="form-control" placeholder="https://example.com" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fa-brands fa-instagram text-danger"></i> Instagram
+                                </label>
+                                <input type="url" @bind="instagramUrl" class="form-control" placeholder="https://instagram.com/..." />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fa-brands fa-twitter text-info"></i> Twitter/X
+                                </label>
+                                <input type="url" @bind="twitterUrl" class="form-control" placeholder="https://twitter.com/..." />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Error/Success Messages -->
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fa-solid fa-exclamation-circle me-2"></i>@errorMessage
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(successMessage))
+                    {
+                        <div class="alert alert-success">
+                            <i class="fa-solid fa-check-circle me-2"></i>@successMessage
+                        </div>
+                    }
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-primary btn-lg flex-grow-1" disabled="@isSaving">
+                            @if (isSaving)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-save me-2"></i>
+                            }
+                            حفظ التغييرات
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-lg" @onclick="@(() => Navigation.NavigateTo("/dashboard"))">
+                            إلغاء
+                        </button>
+                    </div>
+                </EditForm>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .profile-photo-upload {
+        position: relative;
+        width: 150px;
+        height: 150px;
+        margin: 0 auto;
+    }
+
+    .profile-photo-preview {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid white;
+        box-shadow: 0 8px 20px var(--theme-glow);
+    }
+
+    .photo-upload-btn {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: var(--theme-primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+    }
+
+    .photo-upload-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px var(--theme-glow);
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--theme-primary);
+        box-shadow: 0 0 0 0.25rem var(--theme-light);
+    }
+</style>
+
+@code {
+    private AuthResponse? profile;
+    private List<GovernorateDto> governorates = new();
+    private List<CityDto> cities = new();
+    private int selectedGovernorateId = 0;
+
+    // Provider/Business fields
+    private string businessName = string.Empty;
+    private string bio = string.Empty;
+    private string contactNumber = string.Empty;
+    private string location = string.Empty;
+    private string websiteUrl = string.Empty;
+    private string instagramUrl = string.Empty;
+    private string twitterUrl = string.Empty;
+    private string profilePhoto = string.Empty;
+
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private bool isUploadingPhoto = false;
+    private string? errorMessage;
+    private string? successMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProfile();
+        await LoadGovernorates();
+    }
+
+    private async Task LoadProfile()
+    {
+        isLoading = true;
+        try
+        {
+            var profileResult = await AuthService.GetProfileAsync();
+            if (profileResult?.Success == true && profileResult.Data != null)
+            {
+                profile = profileResult.Data;
+                selectedGovernorateId = profile.GovernorateId ?? 0;
+                
+                if (selectedGovernorateId > 0)
+                {
+                    await LoadCities(selectedGovernorateId);
+                }
+
+                // Load provider profile if exists
+                // TODO: Add API call to get provider profile data
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"فشل في تحميل البيانات: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadGovernorates()
+    {
+        try
+        {
+            governorates = await Api.GetGovernoratesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading governorates: {ex.Message}");
+        }
+    }
+
+    private async Task LoadCities(int governorateId)
+    {
+        try
+        {
+            cities = await Api.GetCitiesAsync(governorateId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading cities: {ex.Message}");
+        }
+    }
+
+    private async Task OnGovernorateChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int govId) && govId > 0)
+        {
+            selectedGovernorateId = govId;
+            await LoadCities(govId);
+            if (profile != null)
+            {
+                profile.CityId = 0; // Reset city selection
+            }
+        }
+    }
+
+    private async Task HandlePhotoUpload(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            isUploadingPhoto = true;
+            try
+            {
+                var format = "image/png";
+                var resizedFile = await file.RequestImageFileAsync(format, 300, 300);
+                var buffer = new byte[resizedFile.Size];
+                using var stream = resizedFile.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
+                await stream.ReadAsync(buffer);
+                profilePhoto = $"data:{format};base64,{Convert.ToBase64String(buffer)}";
+            }
+            catch (Exception ex)
+            {
+                await JS.InvokeVoidAsync("alert", $"فشل في رفع الصورة: {ex.Message}");
+            }
+            finally
+            {
+                isUploadingPhoto = false;
+            }
+        }
+    }
+
+    private async Task HandleSaveProfile()
+    {
+        if (profile == null) return;
+
+        isSaving = true;
+        errorMessage = null;
+        successMessage = null;
+
+        try
+        {
+            // TODO: Add API call to update profile
+            // await Api.UpdateProfileAsync(profile);
+            
+            // TODO: Add API call to update provider profile data
+            // if (!string.IsNullOrEmpty(businessName) || !string.IsNullOrEmpty(bio))
+            // {
+            //     await Api.UpdateProviderProfileAsync(new { ... });
+            // }
+
+            successMessage = "تم حفظ التغييرات بنجاح!";
+            await Task.Delay(1500);
+            Navigation.NavigateTo("/profile");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"فشل في حفظ التغييرات: {ex.Message}";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+}

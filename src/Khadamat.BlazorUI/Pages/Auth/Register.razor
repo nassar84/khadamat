@@ -1,0 +1,281 @@
+@page "/register"
+@layout Khadamat.BlazorUI.Layout.AuthLayout
+@inject Khadamat.BlazorUI.Services.Auth.IAuthService AuthService
+@inject Khadamat.BlazorUI.Services.ApiClient ApiClient
+@inject NavigationManager Navigation
+@inject Khadamat.BlazorUI.State.AppState AppState
+
+<div class="auth-container d-flex justify-content-center align-items-center py-5">
+    <div class="glass-card p-4 p-md-5 w-100" style="max-width: 700px;">
+        <div class="text-center mb-4">
+             <h2 class="brand-name mb-2">خدمات</h2>
+             <h4 class="text-muted">إنشاء حساب جديد</h4>
+        </div>
+        
+        <EditForm Model="@registerModel" OnValidSubmit="HandleRegister">
+            <DataAnnotationsValidator />
+            
+            <div class="row">
+                <div class="col-12 mb-2">
+                    <ValidationSummary class="alert alert-danger glass-card border-danger text-danger list-unstyled py-2 px-3 small" />
+                </div>
+                <div class="col-md-12 mb-3">
+                    <label class="form-label">الاسم الكامل</label>
+                    <div class="input-group">
+                        <span class="input-group-text glass-input-addon"><i class="fas fa-user"></i></span>
+                        <InputText @bind-Value="registerModel.FullName" class="form-control glass-input" placeholder="الاسم كما يظهر في الهوية" />
+                    </div>
+                    <ValidationMessage For="@(() => registerModel.FullName)" />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">اسم المستخدم (للدخول)</label>
+                    <div class="input-group">
+                         <span class="input-group-text glass-input-addon"><i class="fas fa-at"></i></span>
+                         <InputText @bind-Value="registerModel.UserName" class="form-control glass-input" placeholder="username" />
+                    </div>
+                    <ValidationMessage For="@(() => registerModel.UserName)" />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">البريد الإلكتروني</label>
+                    <div class="input-group">
+                         <span class="input-group-text glass-input-addon"><i class="fas fa-envelope"></i></span>
+                         <InputText @bind-Value="registerModel.Email" class="form-control glass-input" placeholder="example@mail.com" />
+                    </div>
+                    <ValidationMessage For="@(() => registerModel.Email)" />
+                </div>
+
+                <div class="col-md-12 mb-3">
+                    <label class="form-label">رقم الهاتف</label>
+                    <div class="input-group">
+                         <span class="input-group-text glass-input-addon"><i class="fas fa-phone"></i></span>
+                         <InputText @bind-Value="registerModel.PhoneNumber" class="form-control glass-input" placeholder="01xxxxxxxxx" />
+                    </div>
+                     <ValidationMessage For="@(() => registerModel.PhoneNumber)" />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                     <label class="form-label">المحافظة</label>
+                     <select class="form-select glass-input" value="@SelectedGovernorateId" @onchange="OnGovernorateChanged">
+                        <option value="0">اختر المحافظة...</option>
+                        @foreach(var gov in governorates) {
+                            <option value="@gov.Id">@gov.NameAr</option>
+                        }
+                     </select>
+                </div>
+
+                 <div class="col-md-6 mb-3">
+                     <label class="form-label">المدينة</label>
+                     <InputSelect @bind-Value="registerModel.CityId" class="form-select glass-input" disabled="@(cities.Count == 0)">
+                        <option value="0">اختر المدينة...</option>
+                        @foreach(var city in cities) {
+                            <option value="@city.Id">@city.NameAr</option>
+                        }
+                     </InputSelect>
+                     <ValidationMessage For="@(() => registerModel.CityId)" />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">كلمة المرور</label>
+                    <div class="input-group">
+                        <span class="input-group-text glass-input-addon"><i class="fas fa-lock"></i></span>
+                        <InputText type="password" @bind-Value="registerModel.Password" class="form-control glass-input" />
+                    </div>
+                    <ValidationMessage For="@(() => registerModel.Password)" />
+                </div>
+
+                 <div class="col-md-6 mb-3">
+                    <label class="form-label">تأكيد كلمة المرور</label>
+                    <div class="input-group">
+                        <span class="input-group-text glass-input-addon"><i class="fas fa-lock"></i></span>
+                        <InputText type="password" @bind-Value="confirmPassword" class="form-control glass-input" />
+                    </div>
+                    @if (!passwordsMatch && !string.IsNullOrEmpty(confirmPassword))
+                    {
+                        <div class="text-danger small mt-1">كلمات المرور غير متطابقة</div>
+                    }
+                </div>
+            </div>
+            
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="termsCheck" required>
+                <label class="form-check-label" for="termsCheck">أوافق على الشروط والأحكام</label>
+            </div>
+
+            @if (!string.IsNullOrEmpty(errorMessage) || (apiErrors != null && apiErrors.Any()))
+            {
+                <div class="alert alert-danger glass-card border-danger text-danger p-3 mb-3">
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="d-flex align-items-center mb-1">
+                            <i class="fas fa-exclamation-circle me-2"></i> @errorMessage
+                        </div>
+                    }
+                    @if (apiErrors != null && apiErrors.Any())
+                    {
+                        <ul class="mb-0 ps-4 small">
+                            @foreach (var error in apiErrors)
+                            {
+                                <li>@error</li>
+                            }
+                        </ul>
+                    }
+                </div>
+            }
+
+            <button type="submit" class="btn btn-primary-premium w-100 mt-2" disabled="@(isBusy)">
+                @if(isBusy) { <span><i class="fas fa-spinner fa-spin"></i> جاري التسجيل...</span> } 
+                else { <span>تسجيل حساب <i class="fas fa-user-plus ms-2"></i></span> }
+            </button>
+            
+            <div class="text-center mt-4">
+                <a href="/login" class="text-dark fw-bold text-decoration-none hover-highlight">
+                    لديك حساب بالفعل؟ <span class="text-primary">تسجيل الدخول</span>
+                </a>
+            </div>
+
+            <div class="text-center mt-3">
+                <a href="/" class="text-muted text-decoration-none small">
+                    <i class="fa-solid fa-arrow-right ms-1"></i> تخطي والذهاب للرئيسية
+                </a>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+<style>
+    .glass-input {
+        background: rgba(255, 255, 255, 0.5) !important;
+        border: 1px solid rgba(255, 255, 255, 0.6) !important;
+        backdrop-filter: blur(5px);
+        border-radius: 0 10px 10px 0 !important; /* RTL Left rounded */
+    }
+    
+    .glass-input:focus {
+        background: rgba(255, 255, 255, 0.8) !important;
+        box-shadow: 0 0 0 4px var(--theme-glow);
+        border-color: var(--theme-primary) !important;
+    }
+
+    .form-select.glass-input {
+        border-radius: 10px !important;
+    }
+
+    .glass-input-addon {
+        background: rgba(255, 255, 255, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-left: none;
+        border-radius: 0 10px 10px 0 !important;
+        color: var(--theme-primary);
+    }
+    
+    /* RTL Adjustments for Input Group */
+    [dir="rtl"] .glass-input {
+        border-radius: 10px 0 0 10px !important;
+    }
+    [dir="rtl"] .glass-input-addon {
+        border-left: 1px solid rgba(255, 255, 255, 0.6);
+        border-right: none;
+        border-radius: 0 10px 10px 0 !important;
+        /* Wait, in RTL: Addon is Right. Input is Left. */
+        /* Addon: Radius Right 10px. Input: Radius Left 10px. */
+    }
+    
+    [dir="rtl"] .input-group > :not(:first-child):not(.dropdown-menu):not(.valid-tooltip):not(.valid-feedback):not(.invalid-tooltip):not(.invalid-feedback) {
+        border-top-right-radius: 0 !important;
+        border-bottom-right-radius: 0 !important;
+        border-top-left-radius: 10px !important;
+        border-bottom-left-radius: 10px !important;
+    }
+
+    [dir="rtl"] .input-group:not(.has-validation) > :not(:last-child):not(.dropdown-toggle):not(.dropdown-menu):not(.form-floating), [dir="rtl"] .input-group:not(.has-validation) > .dropdown-toggle:nth-last-child(n+3), [dir="rtl"] .input-group:not(.has-validation) > .form-floating:not(:last-child) > .form-control, [dir="rtl"] .input-group:not(.has-validation) > .form-floating:not(:last-child) > .form-select {
+        border-top-left-radius: 0 !important;
+        border-bottom-left-radius: 0 !important;
+        border-top-right-radius: 10px !important;
+        border-bottom-right-radius: 10px !important;
+    }
+</style>
+
+@code {
+
+
+    private Khadamat.Application.DTOs.RegisterRequest registerModel = new();
+    private string confirmPassword = "";
+    private bool isBusy = false;
+    private string errorMessage = "";
+    private List<string> apiErrors = new();
+    private bool passwordsMatch => string.IsNullOrEmpty(registerModel.Password) || registerModel.Password == confirmPassword;
+
+    private List<Khadamat.Application.DTOs.GovernorateDto> governorates = new();
+    private List<Khadamat.Application.DTOs.CityDto> cities = new();
+    private int SelectedGovernorateId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        registerModel.UserType = "User";
+        
+        try 
+        {
+            governorates = await ApiClient.GetGovernoratesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading governorates: {ex.Message}");
+        }
+    }
+
+    private async Task OnGovernorateChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int govId))
+        {
+            SelectedGovernorateId = govId;
+            cities = await ApiClient.GetCitiesAsync(govId);
+            registerModel.CityId = 0; // Reset city
+        }
+    }
+
+    private async Task HandleRegister()
+    {
+        errorMessage = "";
+        
+        if (registerModel.Password != confirmPassword)
+        {
+            errorMessage = "كلمة المرور وتأكيدها غير متطابقين";
+            return;
+        }
+
+        if (registerModel.CityId == 0)
+        {
+            errorMessage = "الرجاء اختيار المدينة";
+            return;
+        }
+
+        isBusy = true;
+        apiErrors.Clear();
+        try
+        {
+            var result = await AuthService.Register(registerModel);
+            if (result.Success)
+            {
+                Navigation.NavigateTo("/login?registered=true");
+            }
+            else
+            {
+                errorMessage = result.Message ?? "حدث خطأ أثناء التسجيل";
+                if (result.Errors != null && result.Errors.Any())
+                {
+                    apiErrors = result.Errors;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "حدث خطأ غير متوقع: " + ex.Message;
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+}

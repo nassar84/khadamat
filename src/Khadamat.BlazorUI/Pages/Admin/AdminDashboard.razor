@@ -1,0 +1,263 @@
+@page "/admin"
+@page "/admin/admindashboard"
+@using Khadamat.BlazorUI.Components.Provider
+@using Khadamat.BlazorUI.Services
+@using Khadamat.Application.DTOs
+@inject NavigationManager Navigation
+@inject ApiClient Api
+
+<div class="px-3 pt-3 pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-0 gradient-text">لوحة المدير</h3>
+            <p class="text-muted small">مرحباً بك مجدداً، إليك ملخص النظام اليوم</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-icon-glass shadow-sm"><i class="fa-solid fa-bell"></i></button>
+            <button class="btn btn-icon-glass shadow-sm"><i class="fa-solid fa-gear"></i></button>
+        </div>
+    </div>
+
+    <!-- System Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <StatsWidget Icon="fa-solid fa-users" Label="المستخدمين" Value="@(stats?.TotalUsers.ToString("N0") ?? "...")" Color="primary" />
+        </div>
+        <div class="col-6 col-md-3">
+            <StatsWidget Icon="fa-solid fa-user-tie" Label="المزودين" Value="@(stats?.TotalProviders.ToString("N0") ?? "...")" Color="success" />
+        </div>
+        <div class="col-6 col-md-3">
+            <StatsWidget Icon="fa-solid fa-screwdriver-wrench" Label="الخدمات" Value="@(stats?.TotalServices.ToString("N0") ?? "...")" Color="warning" />
+        </div>
+        <div class="col-6 col-md-3">
+            <StatsWidget Icon="fa-solid fa-hand-holding-dollar" Label="المبيعات" Value="@(stats?.TotalOrders.ToString("N0") ?? "...")" Color="info" />
+        </div>
+    </div>
+
+    <!-- Floating Action Alert -->
+    <div class="glass-card status-alert p-3 mb-4 d-flex align-items-center justify-content-between overflow-hidden position-relative">
+        <div class="d-flex align-items-center z-1">
+            <div class="alert-icon-box bg-warning text-white me-3">
+                <i class="fa-solid fa-bullhorn animate-tada"></i>
+            </div>
+            <div>
+                <div class="fw-bold">طلبات مراجعة جديدة</div>
+                <div class="small opacity-75">هناك @pendingCount طلباً جديداً يحتاج لموافقتك</div>
+            </div>
+        </div>
+        <button class="btn btn-warning btn-sm rounded-pill px-4 fw-bold z-1 shadow-sm" @onclick='() => Navigation.NavigateTo("/admin/providersapproval")'>
+            ابدأ المراجعة
+        </button>
+        <div class="alert-bg-pattern"></div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- Management Modules Grid -->
+        <div class="col-12 col-xl-8">
+            <h6 class="fw-bold mb-3 d-flex align-items-center">
+                <i class="fa-solid fa-grip me-2 text-primary"></i> إدارة النظام
+            </h6>
+            <div class="row g-3">
+                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/usersmanagement")'>
+                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up">
+                        <div class="module-icon bg-light-primary mb-3">
+                            <i class="fa-solid fa-user-gear text-primary"></i>
+                        </div>
+                        <div class="module-title fw-bold">المستخدمين</div>
+                        <div class="module-desc x-small text-muted">إدارة الصلاحيات والأدوار</div>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/categoriesmanagement")'>
+                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up">
+                        <div class="module-icon bg-light-success mb-3">
+                            <i class="fa-solid fa-list-check text-success"></i>
+                        </div>
+                        <div class="module-title fw-bold">التصنيفات</div>
+                        <div class="module-desc x-small text-muted">التنظيم الهيكلي للخدمات</div>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/adsmanagement")'>
+                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up">
+                        <div class="module-icon bg-light-info mb-3">
+                            <i class="fa-solid fa-rectangle-ad text-info"></i>
+                        </div>
+                        <div class="module-title fw-bold">الإعلانات</div>
+                        <div class="module-desc x-small text-muted">إدارة الحملات والبنرات</div>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/subscriptionsplans")'>
+                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up">
+                        <div class="module-icon bg-light-warning mb-3">
+                            <i class="fa-solid fa-gem text-warning"></i>
+                        </div>
+                        <div class="module-title fw-bold">الباقات</div>
+                        <div class="module-desc x-small text-muted">تحكم في خطط الاشتراك</div>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/reports")'>
+                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up">
+                        <div class="module-icon bg-light-danger mb-3">
+                            <i class="fa-solid fa-chart-pie text-danger"></i>
+                        </div>
+                        <div class="module-title fw-bold">التقارير</div>
+                        <div class="module-desc x-small text-muted">إحصائيات وأداء النظام</div>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/systemsettings")'>
+                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up">
+                        <div class="module-icon bg-light-muted mb-3">
+                            <i class="fa-solid fa-sliders text-muted"></i>
+                        </div>
+                        <div class="module-title fw-bold">الإعدادات</div>
+                        <div class="module-desc x-small text-muted">تكوينات النظام العامة</div>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/locationsmanagement")'>
+                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up">
+                        <div class="module-icon bg-light-danger mb-3" style="background: rgba(239, 68, 68, 0.1);">
+                            <i class="fa-solid fa-map-location-dot text-danger"></i>
+                        </div>
+                        <div class="module-title fw-bold">المناطق</div>
+                        <div class="module-desc x-small text-muted">المحافظات والمدن</div>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/services")'>
+                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up">
+                        <div class="module-icon bg-light-primary mb-3">
+                            <i class="fa-solid fa-briefcase text-primary"></i>
+                        </div>
+                        <div class="module-title fw-bold">الخدمات</div>
+                        <div class="module-desc x-small text-muted">إدارة وقبول الخدمات</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity Side Panel -->
+        <div class="col-12 col-xl-4">
+            <h6 class="fw-bold mb-3 d-flex align-items-center">
+                <i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i> النشاط الأخير
+            </h6>
+            <div class="glass-card p-3 h-100">
+                <div class="activity-timeline">
+                    @foreach (var activity in recentActivities)
+                    {
+                        <div class="activity-item d-flex gap-3 mb-3 border-bottom pb-2">
+                            <div class="activity-icon-sm bg-light text-primary rounded-circle shadow-sm">
+                                <i class="@activity.Icon fa-xs"></i>
+                            </div>
+                            <div>
+                                <div class="small fw-bold mb-0">@activity.Title</div>
+                                <div class="x-small text-muted">@activity.Time</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <button class="btn btn-link w-100 text-decoration-none x-small fw-bold">مشاهدة جميع السجلات</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .gradient-text {
+        background: linear-gradient(135deg, var(--primary), #4f46e5);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .btn-icon-glass {
+        width: 42px; height: 42px;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(0,0,0,0.05);
+        color: #64748b;
+        transition: all 0.2s;
+    }
+    .btn-icon-glass:hover {
+        background: white;
+        color: var(--primary);
+        transform: translateY(-2px);
+    }
+
+    .mgmt-module-card {
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(0,0,0,0.05) !important;
+    }
+    .mgmt-module-card:hover {
+        border-color: var(--primary) !important;
+        box-shadow: 0 15px 30px rgba(0,0,0,0.08) !important;
+        transform: translateY(-8px);
+    }
+
+    .module-icon {
+        width: 45px; height: 45px;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem;
+    }
+    .bg-light-primary { background: rgba(99, 102, 241, 0.1); }
+    .bg-light-success { background: rgba(16, 185, 129, 0.1); }
+    .bg-light-info { background: rgba(6, 182, 212, 0.1); }
+    .bg-light-warning { background: rgba(245, 158, 11, 0.1); }
+    .bg-light-danger { background: rgba(239, 68, 68, 0.1); }
+    .bg-light-muted { background: rgba(100, 116, 139, 0.1); }
+
+    .status-alert {
+        border-right: 5px solid #f59e0b !important;
+        background: linear-gradient(90deg, #fff 0%, rgba(245, 158, 11, 0.05) 100%) !important;
+    }
+    .alert-icon-box {
+        width: 50px; height: 50px;
+        border-radius: 15px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.3rem;
+        box-shadow: 0 8px 15px rgba(245, 158, 11, 0.3);
+    }
+
+    .activity-icon-sm {
+        width: 32px; height: 32px;
+        flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+    }
+
+    .animate-tada {
+        animation: tada 2s infinite;
+    }
+    @@keyframes tada {
+        0% { transform: scale(1); }
+        10%, 20% { transform: scale(0.9) rotate(-3deg); }
+        30%, 50%, 70%, 90% { transform: scale(1.1) rotate(3deg); }
+        40%, 60%, 80% { transform: scale(1.1) rotate(-3deg); }
+        100% { transform: scale(1) rotate(0); }
+    }
+</style>
+
+@code {
+    private AdminStatsDto? stats;
+    private int pendingCount = 0;
+    private List<RecentActivity> recentActivities = new()
+    {
+        new() { Title = "انضمام مزود جديد: أحمد محمود", Time = "منذ 10 دقائق", Icon = "fa-solid fa-user-plus" },
+        new() { Title = "تمت الموافقة على خدمة: إصلاح تكييف", Time = "منذ ساعة", Icon = "fa-solid fa-check-double" },
+        new() { Title = "تحديث باقة بريميوم للمستخدم وسيم", Time = "منذ 3 ساعات", Icon = "fa-solid fa-gem" },
+        new() { Title = "بلاغ عن محتوى مسيء من مستخدم", Time = "منذ 5 ساعات", Icon = "fa-solid fa-flag" },
+        new() { Title = "تم تغيير إعدادات النظام وتحديث الضريبة", Time = "منذ يوم", Icon = "fa-solid fa-circle-exclamation" }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        stats = await Api.GetAdminStatsAsync();
+        var pending = await Api.GetPendingProvidersAsync();
+        pendingCount = pending.Count;
+    }
+
+    public class RecentActivity
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Time { get; set; } = string.Empty;
+        public string Icon { get; set; } = string.Empty;
+    }
+}

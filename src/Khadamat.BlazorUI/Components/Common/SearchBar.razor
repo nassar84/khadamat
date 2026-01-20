@@ -1,0 +1,167 @@
+<div class="search-container-modern animate-up">
+    <div class="search-input-group glass-morphism">
+        <div class="search-icon-wrapper">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+        <input type="text" class="modern-search-input" 
+               placeholder="ابحث عن سباك، نجار، أو مبرمج..." 
+               @bind="SearchTerm" 
+               @bind:event="oninput" 
+               @onkeyup="HandleKeyUp" />
+        
+        <div class="divider"></div>
+        
+        <button class="voice-search-btn" title="بحث صوتي (قريباً)">
+            <i class="fa-solid fa-microphone"></i>
+        </button>
+
+        <button class="modern-search-btn" @onclick="Search">
+            <span class="btn-text d-none d-md-block">بحث</span>
+            <i class="fa-solid fa-arrow-left d-md-none"></i>
+        </button>
+    </div>
+    
+    <div class="trending-tags mt-3 d-none d-md-flex align-items-center gap-2">
+        <span class="small text-muted fw-bold">الأكثر بحثاً:</span>
+        <span class="trending-tag" @onclick='() => SetAndSearch("سباكة")'>سباكة</span>
+        <span class="trending-tag" @onclick='() => SetAndSearch("كهرباء")'>كهرباء</span>
+        <span class="trending-tag" @onclick='() => SetAndSearch("تنظيف")'>تنظيف</span>
+    </div>
+</div>
+
+<style>
+    .search-container-modern {
+        width: 100%;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .search-input-group {
+        display: flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.85);
+        border-radius: 20px;
+        padding: 8px 10px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(10px);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .search-input-group:focus-within {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 40px rgba(99, 102, 241, 0.15);
+        border-color: var(--primary);
+    }
+
+    .search-icon-wrapper {
+        padding: 0 15px;
+        color: #94a3b8;
+        font-size: 1.2rem;
+    }
+
+    .modern-search-input {
+        border: none;
+        background: transparent;
+        flex-grow: 1;
+        padding: 12px 5px;
+        font-size: 1.1rem;
+        outline: none;
+        color: #1e293b;
+    }
+
+    .modern-search-input::placeholder {
+        color: #94a3b8;
+    }
+
+    .divider {
+        width: 1px;
+        height: 24px;
+        background: rgba(0, 0, 0, 0.1);
+        margin: 0 10px;
+    }
+
+    .voice-search-btn {
+        background: transparent;
+        border: none;
+        color: #64748b;
+        font-size: 1.2rem;
+        padding: 10px;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
+    .voice-search-btn:hover {
+        color: var(--primary);
+    }
+
+    .modern-search-btn {
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 10px 25px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .modern-search-btn:hover {
+        background: #4f46e5;
+        transform: scale(1.02);
+    }
+
+    .modern-search-btn:active {
+        transform: scale(0.98);
+    }
+
+    .trending-tag {
+        font-size: 0.8rem;
+        background: rgba(255, 255, 255, 0.5);
+        padding: 4px 12px;
+        border-radius: 8px;
+        color: #64748b;
+        cursor: pointer;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: all 0.2s;
+    }
+
+    .trending-tag:hover {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    [data-theme='ocean'] .search-input-group { background: rgba(240, 249, 255, 0.9); }
+    [data-theme='forest'] .search-input-group { background: rgba(240, 253, 244, 0.9); }
+</style>
+
+@code {
+    [Parameter] public EventCallback<string> OnSearch { get; set; }
+    private string SearchTerm { get; set; } = "";
+
+    private async Task HandleKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await Search();
+        }
+    }
+
+    private async Task SetAndSearch(string term)
+    {
+        SearchTerm = term;
+        await Search();
+    }
+
+    private async Task Search()
+    {
+        if (OnSearch.HasDelegate)
+        {
+            await OnSearch.InvokeAsync(SearchTerm);
+        }
+    }
+}

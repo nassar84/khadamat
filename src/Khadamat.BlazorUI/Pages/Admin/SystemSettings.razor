@@ -1,0 +1,70 @@
+@page "/admin/settings"
+@attribute [Authorize(Roles = "SuperAdmin")]
+
+<div class="px-3 pt-3 pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="/admin" class="text-decoration-none text-muted">لوحة المدير</a></li>
+                    <li class="breadcrumb-item active">إعدادات النظام</li>
+                </ol>
+            </nav>
+            <h3 class="fw-bold mb-0">إعدادات النظام (Super Admin)</h3>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="glass-card p-4 h-100">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-display me-2 text-primary"></i>هوية النظام</h5>
+                <div class="mb-3">
+                    <label class="form-label small">اسم النظام</label>
+                    <input type="text" class="form-control" value="خدمات">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small">الشعار (Logo)</label>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="p-3 bg-light rounded-3">
+                            <i class="fa-solid fa-bolt-lightning text-primary fs-3"></i>
+                        </div>
+                        <button class="btn btn-outline-primary btn-sm">تغيير الشعار</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="glass-card p-4 h-100">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-palette me-2 text-success"></i>المظهر والألوان</h5>
+                <p class="text-muted small">إدارة الثيمات الافتراضية والألوان الأساسية للمنصة.</p>
+                <button class="btn btn-outline-success w-100">إدارة القوالب</button>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="glass-card p-4 h-100">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-database me-2 text-warning"></i>التخزين والملفات</h5>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small">نوع التخزين</span>
+                    <span class="badge bg-light text-dark">محلي (Local)</span>
+                </div>
+                <div class="progress mb-3" style="height: 8px;">
+                    <div class="progress-bar bg-warning" style="width: 45%"></div>
+                </div>
+                <button class="btn btn-outline-warning w-100 btn-sm">إدارة مساحة التخزين</button>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="glass-card p-4 h-100">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-user-shield me-2 text-danger"></i>مدراء النظام</h5>
+                <p class="text-muted small">إدارة حسابات (System Admin) وتحديد صلاحياتهم.</p>
+                <a href="/admin/usersmanagement?role=SystemAdmin" class="btn btn-outline-danger w-100">إدارة المدراء</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {}
+

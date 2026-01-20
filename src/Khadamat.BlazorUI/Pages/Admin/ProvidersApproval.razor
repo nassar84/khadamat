@@ -1,0 +1,178 @@
+@page "/admin/approvals/providers"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+@inject NavigationManager Navigation
+
+<div class="px-3 pt-3 pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="/admin" class="text-decoration-none text-muted">لوحة المدير</a></li>
+                    <li class="breadcrumb-item active">طلبات انضمام المزودين</li>
+                </ol>
+            </nav>
+            <h3 class="fw-bold mb-0">طلبات انضمام المزودين</h3>
+        </div>
+        <div class="badge bg-warning text-dark rounded-pill px-3 py-2">
+            @pendingProviders.Count() طلبات بانتظار المراجعة
+        </div>
+    </div>
+
+    @if (!pendingProviders.Any())
+    {
+        <div class="glass-card p-5 text-center mt-4">
+            <i class="fa-solid fa-circle-check text-success display-1 mb-3 opacity-25"></i>
+            <h5 class="fw-bold">كل شيء جاهز!</h5>
+            <p class="text-muted">لا توجد طلبات انضمام بانتظار المراجعة حالياً.</p>
+            <button class="btn btn-primary-premium rounded-pill px-4" @onclick='() => Navigation.NavigateTo("/admin")'>العودة للوحة التحكم</button>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var provider in pendingProviders)
+            {
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="glass-card p-0 overflow-hidden border-0 shadow-sm h-100 animate-up">
+                        <div class="provider-header p-3 bg-light d-flex align-items-center gap-3">
+                            <img src="https://ui-avatars.com/api/?name=@provider.Name&background=random" class="rounded-circle shadow-sm" width="50" height="50" />
+                            <div>
+                                <h6 class="fw-bold mb-0">@provider.Name</h6>
+                                <span class="x-small text-muted">@provider.Expertise</span>
+                            </div>
+                        </div>
+                        <div class="p-3">
+                            <div class="small mb-3">
+                                <div class="mb-1"><i class="fa-solid fa-envelope me-2 text-primary opacity-50"></i> @provider.Email</div>
+                                <div class="mb-1"><i class="fa-solid fa-phone me-2 text-primary opacity-50"></i> @provider.Phone</div>
+                                <div class="mb-1"><i class="fa-solid fa-location-dot me-2 text-primary opacity-50"></i> @provider.City</div>
+                            </div>
+                            
+                            <div class="docs-preview d-flex gap-2 mb-3">
+                                <div class="doc-item flex-grow-1 p-2 rounded-3 bg-light text-center cursor-pointer" @onclick='() => ViewDoc(provider, "ID")'>
+                                    <i class="fa-solid fa-id-card d-block mb-1 text-muted"></i>
+                                    <span class="x-small fw-bold">البطاقة الشخصية</span>
+                                </div>
+                                <div class="doc-item flex-grow-1 p-2 rounded-3 bg-light text-center cursor-pointer" @onclick='() => ViewDoc(provider, "Certificate")'>
+                                    <i class="fa-solid fa-certificate d-block mb-1 text-muted"></i>
+                                    <span class="x-small fw-bold">الشهادات</span>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-success flex-grow-1 rounded-pill btn-sm py-2" @onclick="() => ApproveProvider(provider)">
+                                    <i class="fa-solid fa-check me-1"></i> قبول
+                                </button>
+                                <button class="btn btn-danger flex-grow-1 rounded-pill btn-sm py-2" @onclick="() => RejectProvider(provider)">
+                                    <i class="fa-solid fa-xmark me-1"></i> رفض
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@if (selectedDocProvider != null)
+{
+    <div class="modal-overlay" @onclick="() => selectedDocProvider = null">
+        <div class="glass-card p-4 rounded-4 w-75 animate-pop text-center" @onclick:stopPropagation="true">
+            <h5 class="fw-bold mb-3">مستند: @selectedDocType</h5>
+            <img src="@GetSelectedDocImage()" class="img-fluid rounded-4 mb-3 shadow-lg" style="max-height: 80vh;" />
+            <button class="btn btn-light rounded-pill px-5" @onclick="() => selectedDocProvider = null">إغلاق</button>
+        </div>
+    </div>
+}
+
+<style>
+    .provider-header {
+        border-bottom: 2px solid rgba(0,0,0,0.03);
+    }
+    .doc-item {
+        transition: all 0.2s;
+        border: 1px solid transparent;
+    }
+    .doc-item:hover {
+        background: #fff !important;
+        border-color: var(--primary);
+        color: var(--primary);
+        transform: translateY(-2px);
+    }
+    .modal-overlay {
+        position: fixed; inset: 0; z-index: 2000;
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(8px);
+        display: flex; align-items: center; justify-content: center;
+    }
+    .animate-pop {
+        animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @@keyframes pop {
+        from { transform: scale(0.8); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+</style>
+
+@using Khadamat.BlazorUI.Services.Admin
+@inject IAdminService AdminService
+@inject IJSRuntime JS
+
+@code {
+    private List<PendingProviderDto> pendingProviders = new();
+    private PendingProviderDto? selectedDocProvider;
+    private string selectedDocType = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+    
+    private async Task LoadData()
+    {
+        try 
+        {
+            pendingProviders = await AdminService.GetPendingProviders();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading providers: {ex}");
+        }
+    }
+
+    private void ViewDoc(PendingProviderDto provider, string type)
+    {
+        selectedDocProvider = provider;
+        selectedDocType = type;
+        StateHasChanged(); // Force re-render for modal
+    }
+
+    private string GetSelectedDocImage()
+    {
+        if (selectedDocProvider == null) return "";
+        return selectedDocType == "ID" ? selectedDocProvider.IdCardImage : selectedDocProvider.CertificateImage;
+    }
+
+    private async Task ApproveProvider(PendingProviderDto provider)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", $"تأكيد اعتماد {provider.Name} كمزود خدمة؟"))
+        {
+            await AdminService.ApproveProvider(provider.Id);
+            pendingProviders.Remove(provider);
+            StateHasChanged();
+        }
+    }
+
+    private async Task RejectProvider(PendingProviderDto provider)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", $"هل تريد حقاً رفض طلب {provider.Name} وحذفه؟"))
+        {
+            await AdminService.RejectProvider(provider.Id);
+            pendingProviders.Remove(provider);
+            StateHasChanged();
+        }
+    }
+}

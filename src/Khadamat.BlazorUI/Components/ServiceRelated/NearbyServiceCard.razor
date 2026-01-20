@@ -1,0 +1,113 @@
+@using Khadamat.Application.DTOs
+@inject NavigationManager Navigation
+
+<div class="nearby-card" @onclick="OnClickInternal">
+    <div class="nearby-image-wrapper">
+        <img src="@(Service.Images.Any() ? Service.Images.First() : "https://via.placeholder.com/80x80/667eea/ffffff?text=" + (Service.ProviderName?.Substring(0, Math.Min(2, Service.ProviderName.Length)) ?? "S"))" 
+             alt="@Service.Title" 
+             class="nearby-image">
+    </div>
+    <div class="nearby-info">
+        <h4 class="nearby-title">@Service.Title</h4>
+        <div class="nearby-meta">
+            <div class="stars text-warning small">
+                @for (int i = 0; i < 5; i++)
+                {
+                    <i class="fa-solid fa-star @(i < (int)Service.Rating ? "" : "opacity-25")"></i>
+                }
+                <span class="ms-1 text-muted">@Service.Rating</span>
+            </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+            <span class="distance-badge">
+                <i class="fa-solid fa-location-dot me-1"></i>
+                @Distance km
+            </span>
+            <span class="price-text small fw-bold text-primary">@Service.Price?.ToString("C0")</span>
+        </div>
+    </div>
+</div>
+
+<style>
+    .nearby-card {
+        background: var(--glass-bg);
+        border-radius: 20px;
+        padding: 12px;
+        border: 1px solid var(--glass-border);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 12px;
+    }
+
+    .nearby-card:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 10px 20px var(--theme-glow);
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .nearby-image-wrapper {
+        width: 70px;
+        height: 70px;
+        border-radius: 15px;
+        overflow: hidden;
+        flex-shrink: 0;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .nearby-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .nearby-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .nearby-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .nearby-meta {
+        margin-bottom: 6px;
+    }
+
+    .distance-badge {
+        display: inline-flex;
+        align-items: center;
+        background: var(--theme-light);
+        color: var(--theme-secondary);
+        padding: 2px 8px;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+</style>
+
+@code {
+    [Parameter] public ServiceDto Service { get; set; } = default!;
+    [Parameter] public EventCallback<ServiceDto> OnClick { get; set; }
+    
+    // Random distance for demo
+    private double Distance = Math.Round(new Random().NextDouble() * 5 + 0.5, 1);
+
+    private async Task OnClickInternal()
+    {
+        if (OnClick.HasDelegate)
+            await OnClick.InvokeAsync(Service);
+        else
+            Navigation.NavigateTo($"/service/{Service.Id}");
+    }
+}

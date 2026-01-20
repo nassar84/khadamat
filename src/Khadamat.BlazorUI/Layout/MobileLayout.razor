@@ -1,0 +1,48 @@
+@inherits LayoutComponentBase
+@inject Khadamat.BlazorUI.State.AppState AppState
+@inject NavigationManager Navigation
+
+<div class="mobile-app">
+    <main class="mobile-content">
+        @Body
+    </main>
+    
+    <MobileBottomNav />
+</div>
+
+<style>
+    .mobile-app {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    }
+
+    .mobile-content {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 70px; /* Space for bottom nav */
+    }
+
+    /* Hide web-specific elements */
+    .sidebar,
+    .header,
+    .footer,
+    .category-marquee {
+        display: none !important;
+    }
+
+    /* Mobile optimizations */
+    * {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Smooth scrolling */
+    html {
+        scroll-behavior: smooth;
+    }
+</style>

@@ -1,0 +1,283 @@
+@page "/settings"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@using Khadamat.BlazorUI.Services.Auth
+@inject IAuthService AuthService
+@inject ApiClient Api
+@inject NavigationManager Navigation
+@inject Khadamat.BlazorUI.State.AppState AppState
+@inject IJSRuntime JS
+
+<div class="settings-page py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Breadcrumbs -->
+                <nav aria-label="breadcrumb" class="mb-4 animate-fade-in">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">الرئيسية</a></li>
+                        <li class="breadcrumb-item active fw-bold text-primary" aria-current="page">إعدادات الملف الشخصي</li>
+                    </ol>
+                </nav>
+
+                @if (!AppState.IsProfileComplete && !string.IsNullOrEmpty(ReturnUrl))
+                {
+                    <div class="alert alert-warning glass-card border-warning mb-4 animate-up" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="fa-solid fa-triangle-exclamation fs-4 me-3 text-warning"></i>
+                            <div>
+                                <h6 class="alert-heading fw-bold mb-1">بيانات الملف الشخصي غير مكتملة</h6>
+                                <p class="mb-0 small">يجب إكمال بيانات (المحافظة، المدينة، رقم الهاتف) قبل البدء في إضافة خدماتك.</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <div class="glass-card p-0 overflow-hidden shadow-premium border-0 rounded-4 animate-up">
+                    <div class="settings-header p-4 p-md-5 text-white" style="background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));">
+                        <div class="d-flex align-items-center">
+                            <div class="profile-avatar-wrapper me-4 position-relative">
+                                <img src="@AppState.UserImageUrl" class="rounded-circle border border-4 border-white shadow-lg" width="100" height="100" />
+                                <button class="btn btn-light btn-sm rounded-circle position-absolute bottom-0 end-0 p-2 shadow-sm scale-hover">
+                                    <i class="fa-solid fa-camera text-primary"></i>
+                                </button>
+                            </div>
+                            <div>
+                                <h3 class="fw-bold mb-1">@AppState.UserName</h3>
+                                <p class="mb-0 opacity-75">إدارة بيانات حسابك وتفضيلاتك</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 p-md-5 bg-white">
+                        <EditForm Model="@model" OnValidSubmit="HandleSubmit">
+                            <DataAnnotationsValidator />
+
+                            <div class="row g-4">
+                                <div class="col-12">
+                                    <h5 class="fw-bold text-primary border-bottom pb-2 mb-3">
+                                        <i class="fa-solid fa-user-gear me-2"></i> البيانات الأساسية
+                                    </h5>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold small">الاسم الكامل</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-solid fa-id-card text-muted"></i></span>
+                                        <InputText @bind-Value="model.FullName" class="form-control premium-input" placeholder="أدخل اسمك بالكامل" />
+                                    </div>
+                                    <ValidationMessage For="@(() => model.FullName)" class="text-danger small mt-1" />
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">رقم الهاتف</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-solid fa-phone text-muted"></i></span>
+                                        <InputText @bind-Value="model.PhoneNumber" class="form-control premium-input" dir="ltr" placeholder="01xxxxxxxxx" />
+                                    </div>
+                                    <ValidationMessage For="@(() => model.PhoneNumber)" class="text-danger small mt-1" />
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">المحافظة</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-solid fa-location-dot text-muted"></i></span>
+                                        <select class="form-select premium-input" @onchange="OnGovernorateChanged" value="@selectedGovernorateId">
+                                            <option value="">اختر المحافظة...</option>
+                                            @foreach (var gov in governorates)
+                                            {
+                                                <option value="@gov.Id">@gov.NameAr</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold small">المدينة</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-solid fa-city text-muted"></i></span>
+                                        <InputSelect @bind-Value="model.CityId" class="form-select premium-input">
+                                            <option value="0">اختر المدينة...</option>
+                                            @foreach (var city in cities)
+                                            {
+                                                <option value="@city.Id">@city.NameAr</option>
+                                            }
+                                        </InputSelect>
+                                    </div>
+                                    <ValidationMessage For="@(() => model.CityId)" class="text-danger small mt-1" />
+                                </div>
+                            </div>
+
+                            <div class="mt-5 pt-4 border-top">
+                                <button type="submit" class="btn btn-primary-premium btn-lg rounded-pill px-5 shadow-lg float-start" disabled="@isLoading">
+                                    @if (isLoading)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2"></span>
+                                        <span>جاري الحفظ...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>حفظ التعديلات <i class="fa-solid fa-save ms-2"></i></span>
+                                    }
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-lg rounded-pill px-4 float-end" @onclick="GoBack">
+                                    إلغاء
+                                </button>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .settings-page {
+        background-color: #f8fafc;
+        min-height: 90vh;
+    }
+
+    .premium-input {
+        padding: 0.85rem 1.25rem;
+        border-radius: 0 1rem 1rem 0 !important;
+        border: 1px solid #e2e8f0;
+        background-color: #fff;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 0.95rem;
+    }
+
+    [dir="rtl"] .premium-input {
+        border-radius: 1rem 0 0 1rem !important;
+    }
+
+    [dir="rtl"] .rounded-start-4 {
+        border-radius: 0 1rem 1rem 0 !important;
+    }
+
+    .premium-input:focus {
+        border-color: var(--theme-primary);
+        box-shadow: 0 0 0 4px var(--theme-glow);
+        transform: translateY(-2px);
+    }
+
+    .shadow-premium {
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .animate-up {
+        animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @@keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .profile-avatar-wrapper:hover .scale-hover {
+        transform: scale(1.1);
+    }
+</style>
+
+@code {
+    [Parameter][SupplyParameterFromQuery] public string? ReturnUrl { get; set; }
+
+    private UpdateProfileRequest model = new();
+    private bool isLoading = false;
+    private List<GovernorateDto> governorates = new();
+    private List<CityDto> cities = new();
+    private int selectedGovernorateId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+            governorates = await Api.GetGovernoratesAsync();
+
+            var profileResult = await AuthService.GetProfileAsync();
+            if (profileResult?.Success == true && profileResult.Data != null)
+            {
+                var data = profileResult.Data;
+                model.FullName = AppState.UserName; // Or fetch from full data if available
+                model.PhoneNumber = data.PhoneNumber ?? "";
+                model.CityId = data.CityId ?? 0;
+
+                if (data.GovernorateId.HasValue)
+                {
+                    selectedGovernorateId = data.GovernorateId.Value;
+                    cities = await Api.GetCitiesAsync(selectedGovernorateId);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task OnGovernorateChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int val))
+        {
+            selectedGovernorateId = val;
+            cities = await Api.GetCitiesAsync(val);
+            model.CityId = 0;
+        }
+        else
+        {
+            selectedGovernorateId = 0;
+            cities.Clear();
+            model.CityId = 0;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        isLoading = true;
+        try
+        {
+            var result = await AuthService.UpdateProfile(model);
+            if (result.Success)
+            {
+                // Update AppState
+                AppState.UserName = model.FullName;
+                AppState.PhoneNumber = model.PhoneNumber;
+                AppState.CityId = model.CityId;
+                AppState.GovernorateId = selectedGovernorateId;
+
+                await JS.InvokeVoidAsync("alert", "تم تحديث بيانات ملفك الشخصي بنجاح");
+
+                if (!string.IsNullOrEmpty(ReturnUrl))
+                {
+                    Navigation.NavigateTo(ReturnUrl);
+                }
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", result.Message ?? "فشل تحديث البيانات");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            await JS.InvokeVoidAsync("alert", "حدث خطأ أثناء حفظ البيانات");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        if (!string.IsNullOrEmpty(ReturnUrl))
+            Navigation.NavigateTo(ReturnUrl);
+        else
+            Navigation.NavigateTo("/");
+    }
+}

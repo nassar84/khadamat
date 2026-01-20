@@ -1,0 +1,40 @@
+﻿@using Microsoft.AspNetCore.Components.Routing
+@using Khadamat.BlazorUI.Layout
+
+<Router AppAssembly="@typeof(Khadamat.BlazorUI._Imports).Assembly" 
+        AdditionalAssemblies="@(new[] { typeof(MauiProgram).Assembly })">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MobileLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout="@typeof(MobileLayout)">
+            <div class="not-found-page">
+                <div class="not-found-content">
+                    <i class="fa-solid fa-map-location-dot fa-5x mb-4 text-muted"></i>
+                    <h1 class="display-4 fw-bold">404</h1>
+                    <p class="lead text-muted mb-4">عذراً، الصفحة المطلوبة غير موجودة</p>
+                    <a href="/" class="btn btn-primary btn-lg rounded-pill px-5">
+                        <i class="fa-solid fa-house me-2"></i>
+                        العودة للرئيسية
+                    </a>
+                </div>
+            </div>
+        </LayoutView>
+    </NotFound>
+</Router>
+
+<style>
+    .not-found-page {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 80vh;
+        padding: 2rem;
+    }
+
+    .not-found-content {
+        text-align: center;
+        max-width: 500px;
+    }
+</style>

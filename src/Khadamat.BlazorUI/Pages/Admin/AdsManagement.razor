@@ -1,0 +1,162 @@
+@page "/admin/ads"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+@inject IJSRuntime JS
+
+<div class="px-3 pt-3 pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="/admin" class="text-decoration-none text-muted">لوحة المدير</a></li>
+                    <li class="breadcrumb-item active">إدارة الإعلانات</li>
+                </ol>
+            </nav>
+            <h3 class="fw-bold mb-0">إدارة الإعلانات</h3>
+        </div>
+        <button class="btn btn-primary-premium rounded-pill px-4" @onclick="() => showCreateModal = true">
+            <i class="fa-solid fa-plus me-2"></i> إضافة إعلان
+        </button>
+    </div>
+
+    @if (ads == null)
+    {
+        <div class="d-flex justify-content-center p-5">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+    }
+    else if (!ads.Any())
+    {
+        <div class="glass-card p-5 text-center text-muted">
+            <i class="fa-solid fa-rectangle-ad fs-1 mb-3 opacity-50"></i>
+            <p>لا توجد إعلانات نشطة حالياً</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var ad in ads)
+            {
+                <div class="col-12 col-md-6">
+                    <div class="glass-card overflow-hidden p-0 h-100 animate-up">
+                        <div class="ad-image-container position-relative">
+                            <div class="ad-preview-img @ad.ImageUrl" style="height: 180px;"></div>
+                            <div class="ad-actions position-absolute top-0 end-0 p-3 d-flex gap-2">
+                                <button class="btn btn-light btn-sm rounded-circle shadow-sm" @onclick="() => DeleteAd(ad)"><i class="fa-solid fa-trash text-danger"></i></button>
+                            </div>
+                        </div>
+                        <div class="p-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="fw-bold mb-0">@ad.Title</h5>
+                                <span class="badge bg-success small rounded-pill">نشط</span>
+                            </div>
+                            <p class="small text-muted mb-3">رابط الوجهة: <code class="bg-light px-2 rounded x-small">@(ad.TargetUrl ?? "غير محدد")</code></p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@if (showCreateModal)
+{
+    <div class="modal-overlay">
+        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop" style="max-width: 500px;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0">إضافة إعلان جديد</h5>
+                <button class="btn-close" @onclick="() => showCreateModal = false"></button>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label small fw-bold">العنوان</label>
+                <input type="text" class="form-control rounded-pill" @bind="newAd.Title" placeholder="مثلاً: خصم خاص 20%">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold">الخلفية / الصورة</label>
+                <select class="form-select rounded-pill" @bind="newAd.ImageUrl">
+                    <option value="hero-gradient-1">تدرج أرجواني</option>
+                    <option value="hero-gradient-2">تدرج سماوي</option>
+                    <option value="hero-gradient-3">تدرج برتقالي</option>
+                    <option value="hero-gradient-4">تدرج أخضر</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label small fw-bold">رابط التوجه (اختياري)</label>
+                <input type="text" class="form-control rounded-pill" @bind="newAd.TargetUrl" placeholder="/category/1">
+            </div>
+
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary-premium flex-grow-1 rounded-pill" @onclick="SaveAd">حفظ الإعلان</button>
+                <button class="btn btn-light flex-grow-1 rounded-pill" @onclick="() => showCreateModal = false">إلغاء</button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .ad-image-container {
+        overflow: hidden;
+    }
+    .ad-preview-img {
+        background-size: cover;
+        background-position: center;
+        transition: transform 0.5s;
+    }
+    .glass-card:hover .ad-preview-img {
+        transform: scale(1.05);
+    }
+    
+    .hero-gradient-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .hero-gradient-2 { background: linear-gradient(135deg, #0abde3 0%, #00d2d3 100%); }
+    .hero-gradient-3 { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); }
+    .hero-gradient-4 { background: linear-gradient(135deg, #10ac84 0%, #01a3a4 100%); }
+
+    .modal-overlay {
+        position: fixed; inset: 0; z-index: 2000;
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(5px);
+        display: flex; align-items: center; justify-content: center;
+    }
+    
+    .animate-pop {
+        animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @@keyframes pop {
+        from { transform: scale(0.8); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+</style>
+
+@code {
+    private List<AdDto>? ads;
+    private bool showCreateModal = false;
+    private AdDto newAd = new() { ImageUrl = "hero-gradient-1" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        ads = await Api.GetSliderAdsAsync();
+    }
+
+    private async Task SaveAd()
+    {
+        if (string.IsNullOrWhiteSpace(newAd.Title)) return;
+        
+        await Api.CreateAdAsync(newAd);
+        ads?.Add(new AdDto { Id = (ads.Max(a => a.Id) + 1), Title = newAd.Title, ImageUrl = newAd.ImageUrl, TargetUrl = newAd.TargetUrl });
+        showCreateModal = false;
+        newAd = new() { ImageUrl = "hero-gradient-1" };
+    }
+
+    private async Task DeleteAd(AdDto ad)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", "تأكيد حذف هذا الإعلان؟"))
+        {
+            await Api.DeleteAdAsync(ad.Id);
+            ads?.Remove(ad);
+        }
+    }
+}

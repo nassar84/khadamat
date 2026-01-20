@@ -1,0 +1,162 @@
+@page "/admin/approvals/services"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@using Khadamat.BlazorUI.Services.Admin
+@inject ApiClient Api
+@inject IAdminService AdminService
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<PageTitle>طلبات الخدمات</PageTitle>
+
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">طلبات الخدمات</h2>
+        <p class="text-muted small">مراجعة واعتماد الخدمات الجديدة المقدمة من المستخدمين</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-primary rounded-pill" @onclick="LoadServices"><i class="fa-solid fa-rotate me-1"></i> تحديث</button>
+    </div>
+</div>
+
+<div class="glass-card table-responsive p-0 overflow-hidden">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="bg-light">
+            <tr>
+                <th class="border-0 p-3">الخدمة</th>
+                <th class="border-0 p-3">مقدم الطلب</th>
+                <th class="border-0 p-3">التصنيف</th>
+                <th class="border-0 p-3">تاريخ الطلب</th>
+                <th class="border-0 p-3 text-end">إجراءات</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (isLoading)
+            {
+                <tr>
+                    <td colspan="5" class="text-center p-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                    </td>
+                </tr>
+            }
+            else if (pendingServices == null || !pendingServices.Any())
+            {
+                <tr>
+                    <td colspan="5" class="text-center p-5 text-muted">
+                        <i class="fa-solid fa-check-double fs-1 mb-3 text-success opacity-50"></i>
+                        <p>لا توجد طلبات معلقة حالياً</p>
+                    </td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var service in pendingServices)
+                {
+                    <tr>
+                        <td class="p-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <img src="@(service.Images.FirstOrDefault() ?? "https://ui-avatars.com/api/?name="+service.Title)" 
+                                     class="rounded-3 object-fit-cover" width="60" height="60" />
+                                <div>
+                                    <h6 class="fw-bold mb-1 text-truncate" style="max-width: 250px;">@service.Title</h6>
+                                    <small class="text-muted d-block text-truncate" style="max-width: 250px;">@service.Description</small>
+                                    @if(service.Price.HasValue) {
+                                        <span class="badge bg-primary-subtle text-primary mt-1">@service.Price.Value.ToString("N0") ج.م</span>
+                                    }
+                                </div>
+                            </div>
+                        </td>
+                        <td class="p-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <img src="@(service.ProviderPhoto ?? "https://ui-avatars.com/api/?name=P")" 
+                                     class="rounded-circle" width="35" height="35" />
+                                <div>
+                                    <div class="fw-bold small">@service.ProviderName</div>
+                                    <div class="x-small text-muted">@service.CityName</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="p-3">
+                            <span class="badge bg-light text-dark border">@service.CategoryName</span>
+                            @if(!string.IsNullOrEmpty(service.SubCategoryName)) {
+                                <div class="mt-1 small text-muted">@service.SubCategoryName</div>
+                            }
+                        </td>
+                        <td class="p-3">
+                            <small class="text-muted">@service.CreatedAt.ToString("dd/MM/yyyy")</small>
+                            <div class="x-small text-muted">@service.CreatedAt.ToString("hh:mm tt")</div>
+                        </td>
+                        <td class="p-3 text-end">
+                            <div class="d-flex justify-content-end gap-2">
+                                <button class="btn btn-sm btn-outline-primary" @onclick="@(() => Navigation.NavigateTo($"/service/{service.Id}"))" title="عرض التفاصيل">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-success" @onclick="() => Approve(service)">
+                                    <i class="fa-solid fa-check me-1"></i> قبول
+                                </button>
+                                <button class="btn btn-sm btn-danger" @onclick="() => Reject(service)">
+                                    <i class="fa-solid fa-xmark me-1"></i> رفض
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private List<ServiceDto> pendingServices = new();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadServices();
+    }
+
+    private async Task LoadServices()
+    {
+        isLoading = true;
+        try
+        {
+            // We get all services and filter in client because API might not support filtering by pending status yet
+            // Ideally backend should support /api/v1/services?approved=false
+            // Assuming default GetServices returns approved ones, we might need a special endpoint for admin
+            // But waiting for clarification, I'll assume GetServices returns all or filterable?
+            // Actually Services.razor lists all and shows status.
+            
+            var result = await Api.GetServicesAsync(page: 1, isApproved: false); 
+            
+            pendingServices = result.Items;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading services: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task Approve(ServiceDto service)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", "اعتماد هذه الخدمة؟"))
+        {
+            await AdminService.ApproveService(service.Id);
+            pendingServices.Remove(service);
+            StateHasChanged();
+        }
+    }
+
+    private async Task Reject(ServiceDto service)
+    {
+         if (await JS.InvokeAsync<bool>("confirm", "رفض هذه الخدمة؟"))
+        {
+            await AdminService.RejectService(service.Id);
+            pendingServices.Remove(service);
+            StateHasChanged();
+        }
+    }
+}

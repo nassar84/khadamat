@@ -1,0 +1,101 @@
+@page "/provider/providerdashboard"
+@using Khadamat.BlazorUI.Components.Provider
+@inject NavigationManager Navigation
+
+<div class="px-3 pt-3 pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold mb-0 gradient-text">لوحة المزود</h3>
+        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2">نشط</span>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="row g-3 mb-4">
+        <div class="col-6">
+            <StatsWidget Icon="fa-solid fa-eye" Label="المشاهدات" Value="1.2K" Color="primary" />
+        </div>
+        <div class="col-6">
+            <StatsWidget Icon="fa-solid fa-star" Label="التقييم" Value="4.9" Color="warning" />
+        </div>
+        <div class="col-6">
+            <StatsWidget Icon="fa-solid fa-briefcase" Label="الطلبات" Value="+85" Color="success" />
+        </div>
+        <div class="col-6">
+            <StatsWidget Icon="fa-solid fa-coins" Label="الأرباح" Value="2500" Color="info" />
+        </div>
+    </div>
+
+    <!-- Subscription Status -->
+    <SubscriptionStatus PlanName="الخطة الاحترافية" DaysRemaining="15" IsActive="true" />
+
+    <!-- Actions -->
+    <h6 class="fw-bold mb-3 mt-4">إجراءات سريعة</h6>
+    <div class="row g-3 mb-4">
+        <div class="col-4 text-center" @onclick='() => Navigation.NavigateTo("/provider/createservice")'>
+            <div class="action-btn bg-primary bg-opacity-10 text-primary mb-2 mx-auto">
+                <i class="fa-solid fa-plus fs-4"></i>
+            </div>
+            <div class="small fw-bold">خدمة جديدة</div>
+        </div>
+        <div class="col-4 text-center" @onclick='() => Navigation.NavigateTo("/provider/createpost")'>
+            <div class="action-btn bg-success bg-opacity-10 text-success mb-2 mx-auto">
+                <i class="fa-solid fa-pen-to-square fs-4"></i>
+            </div>
+            <div class="small fw-bold">نشر تحديث</div>
+        </div>
+        <div class="col-4 text-center" @onclick='() => Navigation.NavigateTo("/provider/myservices")'>
+            <div class="action-btn bg-info bg-opacity-10 text-info mb-2 mx-auto">
+                <i class="fa-solid fa-list-check fs-4"></i>
+            </div>
+            <div class="small fw-bold">إدارة الخدمات</div>
+        </div>
+    </div>
+
+    <!-- Recent Messages -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0">رسائل حديثة</h6>
+        <button class="btn btn-link text-primary p-0 small text-decoration-none" @onclick='() => Navigation.NavigateTo("/provider/messages")'>عرض الكل</button>
+    </div>
+    
+    <div class="glass-container rounded-4 overflow-hidden border">
+        @for (int i = 0; i < 3; i++)
+        {
+            <div class="p-3 border-bottom d-flex gap-3 align-items-center list-item-hover">
+                <img src="https://i.pravatar.cc/150?u=@i" class="rounded-circle" width="45" height="45" />
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between">
+                        <h6 class="fw-bold mb-0 small">عميل @(i+1)</h6>
+                        <span class="text-muted x-small">10:30 ص</span>
+                    </div>
+                    <p class="text-muted mb-0 small text-truncate" style="max-width: 200px;">أريد الاستفسار عن تفاصيل الخدمة...</p>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .action-btn {
+        width: 60px;
+        height: 60px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    .action-btn:hover {
+        transform: scale(1.1);
+    }
+    .list-item-hover {
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .list-item-hover:hover {
+        background: rgba(0,0,0,0.02);
+    }
+</style>
+
+@code {
+
+}

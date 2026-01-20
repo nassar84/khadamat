@@ -1,0 +1,450 @@
+@page "/dashboard"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@using Khadamat.BlazorUI.Services.Auth
+@inject IAuthService AuthService
+@inject ApiClient Api
+@inject NavigationManager Navigation
+@inject Khadamat.BlazorUI.State.AppState AppState
+
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="fw-bold mb-1">
+                        <i class="fa-solid fa-chart-line me-2 text-primary"></i>لوحة التحكم
+                    </h3>
+                    <p class="text-muted small mb-0">مرحباً @AppState.UserName، إدارة خدماتك وأنشطتك</p>
+                </div>
+                <button class="btn btn-primary" @onclick="@(() => Navigation.NavigateTo("/provider/create-request"))">
+                    <i class="fa-solid fa-plus me-2"></i>إضافة خدمة جديدة
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-primary">
+                    <i class="fa-solid fa-briefcase"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">@myServices.Count</div>
+                    <div class="stat-label">إجمالي الخدمات</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-success">
+                    <i class="fa-solid fa-check-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">@myServices.Count(s => s.IsApproved)</div>
+                    <div class="stat-label">خدمات نشطة</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-warning">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">@myServices.Count(s => !s.IsApproved)</div>
+                    <div class="stat-label">قيد المراجعة</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-info">
+                    <i class="fa-solid fa-eye"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">@myServices.Sum(s => s.ViewsCount)</div>
+                    <div class="stat-label">مشاهدات</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Side - Services Management -->
+        <div class="col-lg-8">
+            <!-- Services Tab -->
+            <div class="glass-card p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">
+                        <i class="fa-solid fa-list-check me-2"></i>خدماتي
+                    </h5>
+                    <div class="btn-group">
+                        <button class="btn btn-sm @(filterStatus == "all" ? "btn-primary" : "btn-outline-primary")" 
+                                @onclick="@(() => filterStatus = "all")">
+                            الكل (@myServices.Count)
+                        </button>
+                        <button class="btn btn-sm @(filterStatus == "active" ? "btn-primary" : "btn-outline-primary")" 
+                                @onclick="@(() => filterStatus = "active")">
+                            نشط (@myServices.Count(s => s.IsApproved))
+                        </button>
+                        <button class="btn btn-sm @(filterStatus == "pending" ? "btn-primary" : "btn-outline-primary")" 
+                                @onclick="@(() => filterStatus = "pending")">
+                            معلق (@myServices.Count(s => !s.IsApproved))
+                        </button>
+                    </div>
+                </div>
+
+                @if (isLoading)
+                {
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary"></div>
+                    </div>
+                }
+                else if (filteredServices.Any())
+                {
+                    <div class="services-list">
+                        @foreach (var service in filteredServices)
+                        {
+                            <div class="service-item">
+                                <div class="service-item-image">
+                                    @if (service.Images.Any())
+                                    {
+                                        <img src="@service.Images.First()" alt="@service.Title" />
+                                    }
+                                    else
+                                    {
+                                        <div class="no-image">
+                                            <i class="fa-solid fa-image"></i>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="service-item-content">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <h6 class="fw-bold mb-1">@service.Title</h6>
+                                            <p class="text-muted small mb-1">@service.Description.Substring(0, Math.Min(100, service.Description.Length))...</p>
+                                        </div>
+                                        <span class="badge @(service.IsApproved ? "bg-success" : "bg-warning")">
+                                            @(service.IsApproved ? "نشط" : "قيد المراجعة")
+                                        </span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="text-muted small">
+                                            <i class="fa-solid fa-eye me-1"></i> @service.ViewsCount مشاهدة
+                                            @if (service.Price.HasValue)
+                                            {
+                                                <span class="ms-3 text-primary fw-bold">@service.Price.Value.ToString("N0") ج.م</span>
+                                            }
+                                        </div>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-outline-primary" @onclick="@(() => Navigation.NavigateTo($"/service/{service.Id}"))">
+                                                <i class="fa-solid fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-secondary">
+                                                <i class="fa-solid fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5 opacity-50">
+                        <i class="fa-solid fa-inbox fs-1 mb-3"></i>
+                        <p>لا توجد خدمات @(filterStatus == "active" ? "نشطة" : filterStatus == "pending" ? "معلقة" : "")</p>
+                    </div>
+                }
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="glass-card p-4">
+                <h5 class="fw-bold mb-4">
+                    <i class="fa-solid fa-clock-rotate-left me-2"></i>النشاطات الأخيرة
+                </h5>
+                <div class="activity-timeline">
+                    <div class="activity-item">
+                        <div class="activity-icon bg-success">
+                            <i class="fa-solid fa-check"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">تم قبول خدمة "صيانة كمبيوتر"</div>
+                            <div class="activity-time">منذ ساعتين</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon bg-info">
+                            <i class="fa-solid fa-plus"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">تم إضافة خدمة جديدة</div>
+                            <div class="activity-time">منذ 5 ساعات</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon bg-warning">
+                            <i class="fa-solid fa-star"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">تقييم جديد (5 نجوم)</div>
+                            <div class="activity-time">منذ يوم واحد</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side - Quick Actions & Info -->
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="glass-card p-4 mb-4">
+                <h6 class="fw-bold mb-3">
+                    <i class="fa-solid fa-bolt me-2"></i>إجراءات سريعة
+                </h6>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary" @onclick="@(() => Navigation.NavigateTo("/provider/create-request"))">
+                        <i class="fa-solid fa-plus me-2"></i>إضافة خدمة
+                    </button>
+                    <button class="btn btn-outline-secondary" @onclick="@(() => Navigation.NavigateTo("/client/clientprofile"))">
+                        <i class="fa-solid fa-user-edit me-2"></i>تعديل الملف الشخصي
+                    </button>
+                    <button class="btn btn-outline-info" @onclick="@(() => Navigation.NavigateTo("/client/favorites"))">
+                        <i class="fa-solid fa-heart me-2"></i>المفضلات
+                    </button>
+                    <button class="btn btn-outline-success" @onclick="@(() => Navigation.NavigateTo("/settings"))">
+                        <i class="fa-solid fa-gear me-2"></i>الإعدادات
+                    </button>
+                </div>
+            </div>
+
+            <!-- Profile Completion -->
+            <div class="glass-card p-4 mb-4">
+                <h6 class="fw-bold mb-3">
+                    <i class="fa-solid fa-chart-pie me-2"></i>اكتمال الملف الشخصي
+                </h6>
+                <div class="progress mb-2" style="height: 25px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
+                        75%
+                    </div>
+                </div>
+                <p class="text-muted small mb-3">أكمل ملفك الشخصي لزيادة الثقة</p>
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="fa-solid fa-check-circle text-success me-2"></i>المعلومات الأساسية
+                    </li>
+                    <li class="mb-2">
+                        <i class="fa-solid fa-check-circle text-success me-2"></i>رقم الهاتف
+                    </li>
+                    <li class="mb-2">
+                        <i class="fa-solid fa-times-circle text-danger me-2"></i>صورة الملف الشخصي
+                    </li>
+                    <li class="mb-2">
+                        <i class="fa-solid fa-times-circle text-danger me-2"></i>روابط التواصل
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Help & Support -->
+            <div class="glass-card p-4">
+                <h6 class="fw-bold mb-3">
+                    <i class="fa-solid fa-question-circle me-2"></i>مساعدة و دعم
+                </h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <a href="/help" class="text-decoration-none">
+                            <i class="fa-solid fa-book me-2"></i>دليل الاستخدام
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="/faq" class="text-decoration-none">
+                            <i class="fa-solid fa-circle-question me-2"></i>الأسئلة الشائعة
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="/contact" class="text-decoration-none">
+                            <i class="fa-solid fa-envelope me-2"></i>اتصل بنا
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .stat-content {
+        flex: 1;
+    }
+
+    .stat-value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--theme-primary);
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    .services-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .service-item {
+        display: flex;
+        gap: 15px;
+        padding: 15px;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+    }
+
+    .service-item:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transform: translateX(-3px);
+    }
+
+    .service-item-image {
+        width: 80px;
+        height: 80px;
+        border-radius: 8px;
+        overflow: hidden;
+        flex-shrink: 0;
+        background: #f1f5f9;
+    }
+
+    .service-item-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .no-image {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #cbd5e1;
+        font-size: 2rem;
+    }
+
+    .service-item-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .activity-timeline {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .activity-item {
+        display: flex;
+        gap: 15px;
+        align-items: flex-start;
+    }
+
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .activity-title {
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .activity-time {
+        font-size: 0.85rem;
+        color: #94a3b8;
+    }
+</style>
+
+@code {
+    private List<ServiceDto> myServices = new();
+    private bool isLoading = true;
+    private string filterStatus = "all";
+
+    private List<ServiceDto> filteredServices => filterStatus switch
+    {
+        "active" => myServices.Where(s => s.IsApproved).ToList(),
+        "pending" => myServices.Where(s => !s.IsApproved).ToList(),
+        _ => myServices
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMyServices();
+    }
+
+    private async Task LoadMyServices()
+    {
+        isLoading = true;
+        try
+        {
+            var profile = await AuthService.GetProfileAsync();
+            if (profile?.Success == true && profile.Data != null)
+            {
+                var result = await Api.GetServicesAsync(userId: profile.Data.Id);
+                myServices = result.Items;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading services: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

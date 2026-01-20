@@ -1,0 +1,110 @@
+@page "/services"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+@inject NavigationManager Navigation
+
+<div class="px-3 pt-3 pb-5">
+    <!-- Header with Search/Filter -->
+    <div class="d-flex align-items-center mb-4">
+        <h3 class="fw-bold mb-0 gradient-text">استكشف الخدمات</h3>
+    </div>
+
+    <div class="mb-4">
+        <SearchBar OnSearch="HandleSearch" />
+    </div>
+
+    <div class="d-flex gap-2 mb-4 overflow-auto py-1 no-scrollbar">
+        <button class="btn btn-filter active">الكل</button>
+        <button class="btn btn-filter">الأعلى تقييماً</button>
+        <button class="btn btn-filter">الأحدث</button>
+        <button class="btn btn-filter">الأقل سعراً</button>
+    </div>
+
+    <!-- Services List -->
+    <div class="row g-3">
+        @if (services != null)
+        {
+            @if (!services.Any())
+            {
+                <div class="col-12 text-center py-5 opacity-50 bg-light rounded-4">
+                    <i class="fa-solid fa-ghost fs-1 mb-3"></i>
+                    <p>لم نجد أي خدمات تطابق بحثك</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var service in services)
+                {
+                    <div class="col-12 col-md-6">
+                        <ServiceCard Service="service" OnClick="OnServiceSelected" />
+                    </div>
+                }
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <LoadingSpinner Message="جاري تحميل الخدمات..." />
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .btn-filter {
+        background: white;
+        border: 1px solid rgba(0,0,0,0.05);
+        color: #64748b;
+        border-radius: 12px;
+        padding: 0.5rem 1.2rem;
+        font-weight: 600;
+        white-space: nowrap;
+        transition: all 0.3s ease;
+    }
+    .btn-filter.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+    }
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+</style>
+
+@code {
+    private List<ServiceDto>? services;
+    private string? currentSearch;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadServices();
+    }
+
+    private async Task LoadServices(string? search = null)
+    {
+        try
+        {
+            services = null;
+            var result = await Api.GetServicesAsync(search: search);
+            services = result.Items;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading services: {ex.Message}");
+            services = new();
+        }
+    }
+
+    private void OnServiceSelected(ServiceDto service)
+    {
+        Navigation.NavigateTo($"/service/{service.Id}");
+    }
+
+    private async Task HandleSearch(string term)
+    {
+        currentSearch = term;
+        await LoadServices(term);
+    }
+}

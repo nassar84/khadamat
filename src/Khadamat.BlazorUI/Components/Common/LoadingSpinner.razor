@@ -1,0 +1,11 @@
+<div class="loading-spinner-container">
+    <div class="spinner"></div>
+    @if (!string.IsNullOrEmpty(Message))
+    {
+        <p>@Message</p>
+    }
+</div>
+
+@code {
+    [Parameter] public string Message { get; set; } = "جاري التحميل...";
+}

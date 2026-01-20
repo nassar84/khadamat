@@ -1,0 +1,123 @@
+@inject NavigationManager Navigation
+@inject Khadamat.BlazorUI.State.AppState State
+
+<nav class="bottom-nav">
+    <button class="nav-item @GetActiveClass("/")" @onclick='() => Navigate("/")'>
+        <i class="fa-solid fa-house"></i>
+        <span>الرئيسية</span>
+    </button>
+    
+    <button class="nav-item @GetActiveClass("/categories")" @onclick='() => Navigate("/categories")'>
+        <i class="fa-solid fa-th-large"></i>
+        <span>الأقسام</span>
+    </button>
+    
+    <button class="nav-item @GetActiveClass("/favorites")" @onclick='() => Navigate("/favorites")'>
+        <i class="fa-solid fa-heart"></i>
+        <span>المفضلة</span>
+    </button>
+    
+    @if (State.IsAuthenticated)
+    {
+        <button class="nav-item @GetActiveClass("/profile")" @onclick='() => Navigate("/profile")'>
+            <i class="fa-solid fa-user-circle"></i>
+            <span>حسابي</span>
+        </button>
+    }
+    else
+    {
+        <button class="nav-item @GetActiveClass("/login")" @onclick='() => Navigate("/login")'>
+            <i class="fa-solid fa-sign-in-alt"></i>
+            <span>دخول</span>
+        </button>
+    }
+</nav>
+
+<style>
+    .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(0, 0, 0, 0.08);
+        padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+        z-index: 1000;
+    }
+
+    .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        background: none;
+        border: none;
+        color: #64748b;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 12px;
+        min-width: 70px;
+    }
+
+    .nav-item i {
+        font-size: 1.4rem;
+        transition: all 0.3s;
+    }
+
+    .nav-item.active {
+        color: var(--theme-primary, #3b82f6);
+    }
+
+    .nav-item.active i {
+        transform: scale(1.1);
+    }
+
+    .nav-item:active {
+        transform: scale(0.95);
+        background: rgba(59, 130, 246, 0.1);
+    }
+
+    /* Ripple effect */
+    .nav-item::before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, var(--theme-primary, #3b82f6) 0%, transparent 70%);
+        opacity: 0;
+        transition: opacity 0.3s;
+        border-radius: 12px;
+    }
+
+    .nav-item:active::before {
+        opacity: 0.2;
+    }
+
+    /* Safe area for notched devices */
+    @@supports (padding: max(0px)) {
+        .bottom-nav {
+            padding-bottom: max(8px, env(safe-area-inset-bottom));
+        }
+    }
+</style>
+
+@code {
+    private string GetActiveClass(string path)
+    {
+        var currentPath = new Uri(Navigation.Uri).AbsolutePath;
+        return currentPath == path || (path != "/" && currentPath.StartsWith(path)) ? "active" : "";
+    }
+
+    private void Navigate(string path)
+    {
+        Navigation.NavigateTo(path);
+    }
+}

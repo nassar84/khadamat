@@ -1,0 +1,151 @@
+@page "/admin/reports"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+
+<div class="px-3 pt-3 pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="/admin" class="text-decoration-none text-muted">لوحة المدير</a></li>
+                    <li class="breadcrumb-item active">التقارير والإحصائيات</li>
+                </ol>
+            </nav>
+            <h3 class="fw-bold mb-0">التقارير والإحصائيات</h3>
+        </div>
+        <button class="btn btn-outline-primary rounded-pill px-4"><i class="fa-solid fa-file-export me-2"></i> تصدير تقرير PDF</button>
+    </div>
+
+    <!-- Quick Overview -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="glass-card p-3 border-0 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small text-muted">إجمالي الإيرادات</span>
+                    <span class="text-success small fw-bold"><i class="fa-solid fa-caret-up me-1"></i> 12%</span>
+                </div>
+                <h3 class="fw-bold mb-0">12,450 ج.م</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card p-3 border-0 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small text-muted">الاشتراكات النشطة</span>
+                    <span class="text-success small fw-bold"><i class="fa-solid fa-caret-up me-1"></i> 5%</span>
+                </div>
+                <h3 class="fw-bold mb-0">142</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card p-3 border-0 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small text-muted">متوسط التقييم العام</span>
+                    <span class="text-warning small fw-bold"><i class="fa-solid fa-star me-1"></i> 4.8</span>
+                </div>
+                <h3 class="fw-bold mb-0">4.8/5</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card p-3 border-0 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small text-muted">معدل التحويل</span>
+                    <span class="text-danger small fw-bold"><i class="fa-solid fa-caret-down me-1"></i> 2%</span>
+                </div>
+                <h3 class="fw-bold mb-0">8.5%</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- New Users Chart Placeholder -->
+        <div class="col-lg-8">
+            <div class="glass-card p-4 h-100 border-0 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">نمو المستخدمين (آخر 30 يوم)</h5>
+                    <select class="form-select form-select-sm rounded-pill w-auto border-0 bg-light">
+                        <option>آخر 30 يوم</option>
+                        <option>آخر 6 أشهر</option>
+                    </select>
+                </div>
+                <div class="chart-container d-flex align-items-end gap-2 justify-content-between px-3" style="height: 250px;">
+                    @for (int i = 1; i <= 15; i++)
+                    {
+                        var height = new Random().Next(40, 100);
+                        <div class="chart-bar bg-primary opacity-75 rounded-top" style="height: @(height)%; width: 100%;" title="يوم @i: @(height * 10) مستخدم"></div>
+                    }
+                </div>
+                <div class="d-flex justify-content-between mt-3 x-small text-muted px-2">
+                    <span>1 يناير</span>
+                    <span>15 يناير</span>
+                    <span>30 يناير</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Most Popular Categories -->
+        <div class="col-lg-4">
+            <div class="glass-card p-4 h-100 border-0 shadow-sm">
+                <h5 class="fw-bold mb-4">الفئات الأكثر طلباً</h5>
+                <div class="category-list">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>الخدمات الطبية</span>
+                            <span class="fw-bold">45%</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-success" style="width: 45%;"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>الصيانة المنزلية</span>
+                            <span class="fw-bold">30%</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-warning" style="width: 30%;"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>الدروس الخصوصية</span>
+                            <span class="fw-bold">15%</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-primary" style="width: 15%;"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>التقنية والبرمجة</span>
+                            <span class="fw-bold">10%</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-info" style="width: 10%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .chart-bar {
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    .chart-bar:hover {
+        opacity: 1 !important;
+        transform: scaleY(1.05);
+    }
+</style>
+
+@code {
+    private AdminStatsDto? stats;
+
+    protected override async Task OnInitializedAsync()
+    {
+        stats = await Api.GetAdminStatsAsync();
+    }
+}

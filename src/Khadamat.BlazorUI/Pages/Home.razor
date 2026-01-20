@@ -1,0 +1,208 @@
+﻿@page "/"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@using Khadamat.BlazorUI.Components.ServiceRelated
+@inject ApiClient Api
+@inject NavigationManager Navigation
+@inject Khadamat.BlazorUI.State.AppState AppState
+
+<div class="px-3">
+    <!-- Featured Services (Horizontal Scroll) -->
+    <div class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0">⭐ خدمات مميزة</h5>
+            <a href="services" class="text-primary text-decoration-none fw-bold small">عرض الكل</a>
+        </div>
+        
+        <div class="featured-scroll-container">
+            @if (featuredServices != null)
+            {
+                @if (!featuredServices.Any())
+                {
+                    <div class="text-center p-4 opacity-50 bg-light rounded-4 w-100">
+                        <i class="fa-solid fa-cloud-moon fs-1 mb-2"></i>
+                        <p>لا توجد خدمات متاحة حالياً</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="d-flex gap-3 overflow-auto pb-2" style="scrollbar-width: none; -ms-overflow-style: none;">
+                        @foreach (var service in featuredServices)
+                        {
+                            <div style="min-width: 280px;">
+                                <ServiceCard Service="service" OnClick="OnServiceSelected" />
+                            </div>
+                        }
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="d-flex gap-3 overflow-hidden">
+                    @for (int i = 0; i < 3; i++)
+                    {
+                        <div class="skeleton rounded-4" style="min-width: 280px; height: 180px;"></div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Nearby Services Section -->
+    <div class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0">📍 قريبة منك</h5>
+            <a href="services" class="text-primary text-decoration-none fw-bold small">عرض الكل</a>
+        </div>
+
+        <div class="nearby-list">
+            @if (nearbyServices != null)
+            {
+                @foreach (var service in nearbyServices)
+                {
+                    <NearbyServiceCard Service="service" OnClick="OnServiceSelected" />
+                }
+            }
+            else
+            {
+                @for (int i = 0; i < 3; i++)
+                {
+                    <div class="skeleton rounded-4 mb-3" style="height: 90px;"></div>
+                }
+            }
+        </div>
+    </div>
+
+    <!-- Join as Provider Banner -->
+    <div class="provider-banner-card mb-5" @onclick="GoToRegisterProvider">
+        <div class="banner-content">
+            <div class="status-badge">فرصة عمل</div>
+            <h3>كن مقدم خدمة</h3>
+            <p>سجل مهاراتك ووصّل خدماتك لآلاف العملاء في منطقتك</p>
+            <button class="btn-banner">سجل الآن مجاناً <i class="fa-solid fa-arrow-left ms-2"></i></button>
+        </div>
+        <div class="banner-icon">
+            <i class="fa-solid fa-briefcase"></i>
+        </div>
+    </div>
+</div>
+
+<style>
+    .featured-scroll-container::-webkit-scrollbar {
+        display: none;
+    }
+
+    .provider-banner-card {
+        background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%);
+        border-radius: 24px;
+        padding: 25px;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 15px 30px var(--theme-glow);
+        transition: transform 0.3s ease;
+    }
+
+    .provider-banner-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .banner-content {
+        z-index: 2;
+        max-width: 70%;
+    }
+
+    .status-badge {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        padding: 4px 12px;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        display: inline-block;
+        margin-bottom: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .banner-content h3 {
+        font-weight: 800;
+        margin-bottom: 8px;
+    }
+
+    .banner-content p {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        margin-bottom: 20px;
+    }
+
+    .btn-banner {
+        background: white;
+        color: var(--theme-primary);
+        border: none;
+        padding: 8px 20px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .banner-icon {
+        font-size: 5rem;
+        opacity: 0.15;
+        position: absolute;
+        left: -10px;
+        bottom: -20px;
+        transform: rotate(-15deg);
+    }
+
+    .skeleton {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+    }
+
+    @@keyframes loading {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+</style>
+
+@code {
+    private List<ServiceDto>? featuredServices;
+    private List<ServiceDto>? nearbyServices;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try 
+        {
+            var servicesResult = await Api.GetServicesAsync();
+            featuredServices = servicesResult.Items.Take(6).ToList();
+            
+            // For now, nearby is the same but reversed or just another set
+            nearbyServices = servicesResult.Items.Skip(1).Take(4).ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading home data: {ex.Message}");
+            featuredServices = new();
+            nearbyServices = new();
+        }
+    }
+
+    private void OnServiceSelected(ServiceDto service)
+    {
+        Navigation.NavigateTo($"/service/{service.Id}");
+    }
+
+    private void GoToRegisterProvider()
+    {
+        if (AppState.IsAuthenticated)
+            Navigation.NavigateTo("/provider/apply");
+        else
+            Navigation.NavigateTo("/register");
+    }
+}

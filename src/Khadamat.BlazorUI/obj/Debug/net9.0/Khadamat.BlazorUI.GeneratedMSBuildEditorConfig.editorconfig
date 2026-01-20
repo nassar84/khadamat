@@ -1,0 +1,357 @@
+is_global = true
+build_property.TargetFramework = net9.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = 
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = Linux,macOS,Windows,browser,android,ios
+build_property.RootNamespace = Khadamat.BlazorUI
+build_property.RootNamespace = Khadamat.BlazorUI
+build_property.ProjectDir = e:\MVC\khadamat\src\Khadamat.BlazorUI\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.RazorLangVersion = 9.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = e:\MVC\khadamat\src\Khadamat.BlazorUI
+build_property._RazorSourceGeneratorDebug = 
+build_property.EffectiveAnalysisLevelStyle = 9.0
+build_property.EnableCodeStyleSeverity = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/App.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Components/Ads/AdBanner.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBZHNcQWRCYW5uZXIucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Components/Ads/AdsSlider.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBZHNcQWRzU2xpZGVyLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Components/Ads/NativeAdCard.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBZHNcTmF0aXZlQWRDYXJkLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Components/Category/BreadcrumbNav.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xDYXRlZ29yeVxCcmVhZGNydW1iTmF2LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Components/Category/CategoryTree.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xDYXRlZ29yeVxDYXRlZ29yeVRyZWUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Components/Category/MainCategoryCard.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xDYXRlZ29yeVxNYWluQ2F0ZWdvcnlDYXJkLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Components/Common/ConfirmDialog.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xDb21tb25cQ29uZmlybURpYWxvZy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Components/Common/ImageUploader.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xDb21tb25cSW1hZ2VVcGxvYWRlci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Components/Common/LoadingSpinner.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xDb21tb25cTG9hZGluZ1NwaW5uZXIucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Components/Common/Pagination.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xDb21tb25cUGFnaW5hdGlvbi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Components/Common/RatingStars.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xDb21tb25cUmF0aW5nU3RhcnMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Components/Common/SearchBar.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xDb21tb25cU2VhcmNoQmFyLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Components/Common/Toast.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xDb21tb25cVG9hc3QucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Components/Common/VideoEmbed.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xDb21tb25cVmlkZW9FbWJlZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Components/Provider/PostCard.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQcm92aWRlclxQb3N0Q2FyZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Components/Provider/ProviderCard.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQcm92aWRlclxQcm92aWRlckNhcmQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Components/Provider/StatsWidget.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQcm92aWRlclxTdGF0c1dpZGdldC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Components/Provider/SubscriptionStatus.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQcm92aWRlclxTdWJzY3JpcHRpb25TdGF0dXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Components/ServiceRelated/NearbyServiceCard.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xTZXJ2aWNlUmVsYXRlZFxOZWFyYnlTZXJ2aWNlQ2FyZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Components/ServiceRelated/ServiceCard.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xTZXJ2aWNlUmVsYXRlZFxTZXJ2aWNlQ2FyZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Components/ServiceRelated/ServiceFilters.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xTZXJ2aWNlUmVsYXRlZFxTZXJ2aWNlRmlsdGVycy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Components/ServiceRelated/ServiceGallery.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xTZXJ2aWNlUmVsYXRlZFxTZXJ2aWNlR2FsbGVyeS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Components/ServiceRelated/ServiceList.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xTZXJ2aWNlUmVsYXRlZFxTZXJ2aWNlTGlzdC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Components/ServiceRelated/ServiceReviews.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xTZXJ2aWNlUmVsYXRlZFxTZXJ2aWNlUmV2aWV3cy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Layout/AdminLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XEFkbWluTGF5b3V0LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Layout/AuthLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XEF1dGhMYXlvdXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Layout/BottomNav.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XEJvdHRvbU5hdi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Layout/Footer.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XEZvb3Rlci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Layout/Header.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XEhlYWRlci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Layout/MobileLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XE1vYmlsZUxheW91dC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Layout/ProviderLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XFByb3ZpZGVyTGF5b3V0LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Layout/Sidebar.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XFNpZGViYXIucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Admin/AdminDashboard.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWRtaW5cQWRtaW5EYXNoYm9hcmQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Admin/AdsManagement.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWRtaW5cQWRzTWFuYWdlbWVudC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Admin/AuditLogs.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWRtaW5cQXVkaXRMb2dzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Admin/CategoriesManagement.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWRtaW5cQ2F0ZWdvcmllc01hbmFnZW1lbnQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Admin/LocationsManagement.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWRtaW5cTG9jYXRpb25zTWFuYWdlbWVudC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Admin/ProvidersApproval.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWRtaW5cUHJvdmlkZXJzQXBwcm92YWwucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Admin/Reports.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWRtaW5cUmVwb3J0cy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Admin/Services.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWRtaW5cU2VydmljZXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Admin/ServicesApproval.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWRtaW5cU2VydmljZXNBcHByb3ZhbC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Admin/SubscriptionsPlans.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWRtaW5cU3Vic2NyaXB0aW9uc1BsYW5zLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Admin/SystemSettings.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWRtaW5cU3lzdGVtU2V0dGluZ3MucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Admin/UsersManagement.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWRtaW5cVXNlcnNNYW5hZ2VtZW50LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Admin/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWRtaW5cX0ltcG9ydHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Auth/Login.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXV0aFxMb2dpbi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Auth/ProviderLanding.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXV0aFxQcm92aWRlckxhbmRpbmcucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Auth/Register.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXV0aFxSZWdpc3Rlci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Categories.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ2F0ZWdvcmllcy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Client/ClientProfile.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ2xpZW50XENsaWVudFByb2ZpbGUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Client/Favorites.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ2xpZW50XEZhdm9yaXRlcy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Client/MyComments.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ2xpZW50XE15Q29tbWVudHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Client/MyRatings.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ2xpZW50XE15UmF0aW5ncy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Client/Notifications.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ2xpZW50XE5vdGlmaWNhdGlvbnMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Counter.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ291bnRlci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Dashboard.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRGFzaGJvYXJkLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Explore.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRXhwbG9yZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Home.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSG9tZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Mobile/MobileServiceDetails.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTW9iaWxlXE1vYmlsZVNlcnZpY2VEZXRhaWxzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Profile.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvZmlsZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Provider/ApplyProvider.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvdmlkZXJcQXBwbHlQcm92aWRlci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Provider/CreatePost.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvdmlkZXJcQ3JlYXRlUG9zdC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Provider/CreateRequest.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvdmlkZXJcQ3JlYXRlUmVxdWVzdC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Provider/CreateService.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvdmlkZXJcQ3JlYXRlU2VydmljZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Provider/EditService.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvdmlkZXJcRWRpdFNlcnZpY2UucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Provider/Messages.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvdmlkZXJcTWVzc2FnZXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Provider/MyPosts.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvdmlkZXJcTXlQb3N0cy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Provider/MyServices.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvdmlkZXJcTXlTZXJ2aWNlcy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Provider/ProviderDashboard.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvdmlkZXJcUHJvdmlkZXJEYXNoYm9hcmQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Provider/ProviderSettings.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvdmlkZXJcUHJvdmlkZXJTZXR0aW5ncy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Provider/Statistics.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvdmlkZXJcU3RhdGlzdGljcy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Provider/Subscription.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvdmlkZXJcU3Vic2NyaXB0aW9uLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Search.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2VhcmNoLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/ServiceDetails.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2VydmljZURldGFpbHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Services.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2VydmljZXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/UserSettings.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXNlclNldHRpbmdzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Pages/Weather.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcV2VhdGhlci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Shared/CategoryMarquee.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXENhdGVnb3J5TWFycXVlZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Shared/HeroAds.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXEhlcm9BZHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Shared/MobileBottomNav.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXE1vYmlsZUJvdHRvbU5hdi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Layout/MainLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XE1haW5MYXlvdXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-nctm8kh58c
+
+[e:/MVC/khadamat/src/Khadamat.BlazorUI/Layout/NavMenu.razor]
+build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XE5hdk1lbnUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-7lfx2k7mfx

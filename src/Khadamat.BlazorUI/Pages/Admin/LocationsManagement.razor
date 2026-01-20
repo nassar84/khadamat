@@ -1,0 +1,156 @@
+@page "/admin/locations"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+@inject IJSRuntime JS
+
+<div class="px-3 pt-3 pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="/admin" class="text-decoration-none text-muted">لوحة المدير</a></li>
+                    <li class="breadcrumb-item active">المحافظات والمدن</li>
+                </ol>
+            </nav>
+            <h3 class="fw-bold mb-0">إدارة المناطق</h3>
+        </div>
+        <button class="btn btn-primary-premium rounded-pill px-4" @onclick="OpenAddGovernorate">
+            <i class="fa-solid fa-plus me-2"></i> إضافة محافظة
+        </button>
+    </div>
+
+    <div class="row g-4">
+        @foreach (var g in governorates)
+        {
+            <div class="col-12 col-lg-6">
+                <div class="glass-card p-0 overflow-hidden border-0 shadow-sm transition-all h-100">
+                    <div class="p-3 d-flex align-items-center justify-content-between bg-light">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="loc-icon bg-primary text-white shadow-sm">
+                                <i class="fa-solid fa-map-location-dot"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-0">@g.NameAr</h5>
+                                <span class="x-small text-muted">@g.NameEn</span>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-sm btn-light border rounded-circle" @onclick="() => EditGovernorate(g)"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn btn-sm btn-light border rounded-circle text-danger" @onclick="() => DeleteGovernorate(g)"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold small text-muted mb-0">المدن / المراكز</h6>
+                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 x-small" @onclick="() => OpenAddCity(g)">+ إضافة مدينة</button>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            @if (citiesByGov.ContainsKey(g.Id))
+                            {
+                                @foreach (var city in citiesByGov[g.Id])
+                                {
+                                    <div class="city-pill glass-morphism py-1 px-3 rounded-pill d-flex align-items-center gap-2">
+                                        <span class="small">@city.NameAr</span>
+                                        <button class="btn btn-link p-0 x-small text-muted" @onclick="() => DeleteCity(city)"><i class="fa-solid fa-xmark"></i></button>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .loc-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+    .city-pill {
+        border: 1px solid rgba(0,0,0,0.05);
+        transition: all 0.2s;
+        background: rgba(255,255,255,0.5);
+    }
+    .city-pill:hover {
+        background: white;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        color: var(--primary);
+    }
+</style>
+
+@code {
+    private List<GovernorateDto> governorates = new();
+    private Dictionary<int, List<CityDto>> citiesByGov = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        governorates = await Api.GetGovernoratesAsync();
+        citiesByGov.Clear();
+        foreach (var g in governorates)
+        {
+            var cities = await Api.GetCitiesAsync(g.Id);
+            citiesByGov[g.Id] = cities;
+        }
+    }
+
+    private async Task OpenAddGovernorate()
+    {
+        var nameAr = await JS.InvokeAsync<string>("prompt", "اسم المحافظة (بالعربي):");
+        if (string.IsNullOrEmpty(nameAr)) return;
+        var nameEn = await JS.InvokeAsync<string>("prompt", "اسم المحافظة (بالإنجليزي):");
+        
+        await Api.CreateGovernorateAsync(new GovernorateDto { NameAr = nameAr, NameEn = nameEn ?? "", Approved = true });
+        await LoadData();
+    }
+
+    private async Task EditGovernorate(GovernorateDto g)
+    {
+        var nameAr = await JS.InvokeAsync<string>("prompt", "تعديل الاسم (عربي):", g.NameAr);
+        if (string.IsNullOrEmpty(nameAr)) return;
+        
+        g.NameAr = nameAr;
+        await Api.UpdateGovernorateAsync(g.Id, g);
+        await LoadData();
+    }
+
+    private async Task DeleteGovernorate(GovernorateDto g)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", $"حذف محافظة {g.NameAr}؟"))
+        {
+            await Api.DeleteGovernorateAsync(g.Id);
+            await LoadData();
+        }
+    }
+
+    private async Task OpenAddCity(GovernorateDto g)
+    {
+        var nameAr = await JS.InvokeAsync<string>("prompt", $"اسم المدينة في {g.NameAr}:");
+        if (string.IsNullOrEmpty(nameAr)) return;
+
+        await Api.CreateCityAsync(new CityDto { GovernorateId = g.Id, NameAr = nameAr, Approved = true });
+        await LoadData();
+    }
+
+    private async Task DeleteCity(CityDto city)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", $"حذف مدينة {city.NameAr}؟"))
+        {
+            await Api.DeleteCityAsync(city.Id);
+            await LoadData();
+        }
+    }
+}

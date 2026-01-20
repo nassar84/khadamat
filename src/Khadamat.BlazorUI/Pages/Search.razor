@@ -1,0 +1,163 @@
+@page "/search"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+@inject NavigationManager Navigation
+
+<div class="px-3 pt-3">
+    <!-- Header -->
+    <div class="d-flex align-items-center mb-4">
+        <button class="btn btn-icon me-3" @onclick='() => Navigation.NavigateTo("/")'>
+            <i class="fa-solid fa-arrow-right"></i>
+        </button>
+        <h3 class="fw-bold mb-0 gradient-text">البحث</h3>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="mb-4">
+        <SearchBar OnSearch="HandleSearch" />
+    </div>
+
+    @if (string.IsNullOrWhiteSpace(currentQuery))
+    {
+        <div class="recent-searches mb-4 animate-up">
+            <h6 class="fw-bold mb-3">عمليات البحث الأخيرة</h6>
+            <div class="d-flex flex-wrap gap-2">
+                @foreach (var s in recentSearches)
+                {
+                    <span class="badge bg-light text-dark rounded-pill p-2 px-3 border-hover" @onclick="() => HandleSearch(s)">
+                        @s
+                    </span>
+                }
+            </div>
+        </div>
+
+        <div class="search-suggestions animate-up" style="animation-delay: 0.1s;">
+            <h6 class="fw-bold mb-3">مقترحات لك</h6>
+            <div class="glass-container rounded-4 overflow-hidden border">
+                <div class="p-3 border-bottom list-item-hover" @onclick='() => HandleSearch("تمريض منزلي")'>
+                    <div class="d-flex align-items-center">
+                        <i class="fa-solid fa-arrow-trend-up text-primary me-3"></i>
+                        <span>الأكثر بحثاً: تمريض منزلي</span>
+                    </div>
+                </div>
+                <div class="p-3 list-item-hover" @onclick='() => HandleSearch("تنظيف مكيفات")'>
+                    <div class="d-flex align-items-center">
+                        <i class="fa-solid fa-arrow-trend-up text-primary me-3"></i>
+                        <span>الأكثر بحثاً: تنظيف مكيفات</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="search-results">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0">نتائج البحث عن: <span class="text-primary text-decoration-underline">@currentQuery</span></h6>
+                <button class="btn btn-sm btn-light text-muted" @onclick="ClearSearch">مسح البحث</button>
+            </div>
+
+            @if (results != null)
+            {
+                @if (!results.Any())
+                {
+                    <div class="text-center py-5 opacity-50 bg-light rounded-4">
+                        <i class="fa-solid fa-face-frown fs-1 mb-3"></i>
+                        <p>عذراً، لم نجد نتائج لـ "@currentQuery"</p>
+                        <button class="btn btn-primary rounded-pill mt-2" @onclick="ClearSearch">جرب بحثاً آخر</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="row g-3">
+                        @foreach (var service in results)
+                        {
+                            <div class="col-12 col-md-6">
+                                <ServiceCard Service="service" OnClick="OnServiceSelected" />
+                            </div>
+                        }
+                    </div>
+                }
+            }
+            else
+            {
+                <LoadingSpinner Message="جاري البحث..." />
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .border-hover {
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .border-hover:hover {
+        border-color: var(--primary) !important;
+        color: var(--primary) !important;
+        background: rgba(99, 102, 241, 0.05) !important;
+    }
+    .list-item-hover {
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .list-item-hover:hover {
+        background: rgba(0,0,0,0.02);
+    }
+</style>
+
+@code {
+    private string? currentQuery;
+    private List<ServiceDto>? results;
+    private List<string> recentSearches = new() { "سباكة", "كهربائي الرياض", "تصميم شعار" };
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "q")]
+    public string? QueryFromUrl { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!string.IsNullOrEmpty(QueryFromUrl))
+        {
+            await HandleSearch(QueryFromUrl);
+        }
+    }
+
+    private async Task HandleSearch(string term)
+    {
+        if (string.IsNullOrWhiteSpace(term)) return;
+        
+        currentQuery = term;
+        results = null;
+
+        if (!recentSearches.Contains(term))
+        {
+            recentSearches.Insert(0, term);
+            if (recentSearches.Count > 5) recentSearches.RemoveAt(5);
+        }
+
+        try
+        {
+            var searchResult = await Api.GetServicesAsync(search: term);
+            results = searchResult.Items;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Search error: {ex.Message}");
+            results = new();
+        }
+    }
+
+    private void ClearSearch()
+    {
+        currentQuery = null;
+        results = null;
+        Navigation.NavigateTo("/search");
+    }
+
+    private void OnServiceSelected(ServiceDto service)
+    {
+        Navigation.NavigateTo($"/service/{service.Id}");
+    }
+}
