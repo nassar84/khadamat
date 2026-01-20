@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "jKx4/bgBro8=",
+  "dgSpecHash": "bLF5rUhRmw8=",
   "success": true,
-  "projectFilePath": "e:\\MVC\\khadamat\\src\\Khadamat.WebAPI\\Khadamat.WebAPI.csproj",
+  "projectFilePath": "E:\\MVC\\khadamat\\src\\Khadamat.WebAPI\\Khadamat.WebAPI.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\1551\\.nuget\\packages\\automapper\\13.0.1\\automapper.13.0.1.nupkg.sha512",
     "C:\\Users\\1551\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",

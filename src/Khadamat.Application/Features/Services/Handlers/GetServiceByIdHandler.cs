@@ -86,27 +86,21 @@ public class GetServiceByIdHandler : IRequestHandler<GetServiceByIdQuery, Servic
         }
 
         // Fetch Provider Name & Photo
-        if (!string.IsNullOrEmpty(service.UserId))
-        {
-            // Note: GenericRepository GetAsync doesn't support includes, but we just need basic fields
-            // Assuming GetAsync(predicate) exists as seen in interface
-            var providers = await _providerRepo.GetPagedAsync(1, 1, p => p.UserId == service.UserId);
-            var provider = providers.FirstOrDefault();
+        var provider = await _providerRepo.GetByIdAsync(service.ProviderProfileId);
 
-            if (provider != null)
-            {
-                dto.ProviderName = provider.BusinessName ?? service.Name;
-                dto.ProviderPhoto = provider.Photo;
-                
-                // Fetch Posts
-                // Posts have ProviderId (int) which matches ProviderProfile.Id
-                var posts = await _postRepo.GetPagedAsync(1, 5, 
-                    filter: p => p.ProviderId == provider.Id,
-                    orderBy: q => q.OrderByDescending(x => x.CreatedAt),
-                    includeProperties: "Likes");
-                
-                dto.Posts = _mapper.Map<List<PostDto>>(posts);
-            }
+        if (provider != null)
+        {
+            dto.ProviderName = provider.BusinessName ?? service.Name;
+            dto.ProviderPhoto = provider.Photo;
+            
+            // Fetch Posts
+            // Posts have ProviderId (int) which matches ProviderProfile.Id
+            var posts = await _postRepo.GetPagedAsync(1, 5, 
+                filter: p => p.ProviderId == provider.Id,
+                orderBy: q => q.OrderByDescending(x => x.CreatedAt),
+                includeProperties: "Likes");
+            
+            dto.Posts = _mapper.Map<List<PostDto>>(posts);
         }
 
         // Map Ratings to Reviews manually if Mapper didn't do it (Mapper handles basic mapping but customization here is fine)

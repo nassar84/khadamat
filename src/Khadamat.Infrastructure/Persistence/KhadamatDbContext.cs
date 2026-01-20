@@ -56,11 +56,19 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<Category>().HasMany(c => c.Services).WithOne(s => s.Category).HasForeignKey(s => s.CategoryId);
         builder.Entity<SubCategory>().HasMany(s => s.Services).WithOne(se => se.SubCategory).HasForeignKey(se => se.SubCategoryId);
 
+        // Unified Account: ProviderProfile <-> ApplicationUser
+        builder.Entity<ApplicationUser>()
+            .HasOne(u => u.ProviderProfile)
+            .WithOne() // Uni-directional from User -> Profile logic
+            .HasForeignKey<ProviderProfile>(p => p.UserId)
+            .IsRequired(false);
+
+        // Provider <-> Services
         builder.Entity<ProviderProfile>()
             .HasMany(p => p.Services)
-            .WithOne()
-            .HasForeignKey(s => s.UserId)
-            .HasPrincipalKey(p => p.UserId);
+            .WithOne(s => s.ProviderProfile)
+            .HasForeignKey(s => s.ProviderProfileId);
+            
         builder.Entity<ProviderProfile>().HasMany(p => p.Posts).WithOne(po => po.Provider).HasForeignKey(po => po.ProviderId);
         
         // Ad Relationships

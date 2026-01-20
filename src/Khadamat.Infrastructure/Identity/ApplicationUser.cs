@@ -12,10 +12,14 @@ public class ApplicationUser : IdentityUser
     public bool IsActive { get; set; } = true;
     public bool IsProvider { get; set; }
     public bool IsVerified { get; set; }
+    public string? ProfileImageUrl { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public int? CityId { get; set; }
     public virtual City? City { get; set; }
+
+    // Unified Account: One-to-One link to ProviderProfile
+    public virtual ProviderProfile? ProviderProfile { get; set; }
 
     // Refresh Token Support
     public string? RefreshToken { get; set; }

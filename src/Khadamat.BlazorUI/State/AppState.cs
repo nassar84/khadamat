@@ -21,6 +21,10 @@ public class AppState
     public string UserName { get; set; } = "أحمد محمد";
     public string UserRole { get; set; } = "مستخدم";
     public string UserImageUrl { get; set; } = "https://i.pravatar.cc/150?u=antigravity";
+    public bool IsProvider { get; set; }
+    
+    // UI State
+    public bool IsProviderMode { get; set; } // If true, show dashboard. If false, show client UI.
     
     // Profile Information
     public int? CityId { get; set; }
@@ -45,6 +49,24 @@ public class AppState
     }
 
     public void SetTheme(string themeName) => CurrentTheme = themeName;
+
+    public void UpdateUserStatus(string userName, string userRole, bool isProvider, string imageUrl)
+    {
+        UserName = userName;
+        UserRole = userRole;
+        IsProvider = isProvider;
+        UserImageUrl = imageUrl;
+        NotifyStateChanged();
+    }
+
+    public void SetIsProvider(bool isProvider)
+    {
+        if (IsProvider != isProvider)
+        {
+            IsProvider = isProvider;
+            NotifyStateChanged();
+        }
+    }
 
     public bool IsAuthenticated => !string.IsNullOrEmpty(_userToken);
 

@@ -360,17 +360,6 @@ E:\MVC\khadamat\src\Khadamat.WebAPI\obj\Debug\net9.0\rjimswa.dswa.cache.json
 E:\MVC\khadamat\src\Khadamat.WebAPI\obj\Debug\net9.0\rjsmrazor.dswa.cache.json
 E:\MVC\khadamat\src\Khadamat.WebAPI\obj\Debug\net9.0\rjsmcshtml.dswa.cache.json
 E:\MVC\khadamat\src\Khadamat.WebAPI\obj\Debug\net9.0\scopedcss\bundle\Khadamat.WebAPI.styles.css
-E:\MVC\khadamat\src\Khadamat.WebAPI\obj\Debug\net9.0\compressed\fzztm3pbvm-bkcaphluaq.gz
-E:\MVC\khadamat\src\Khadamat.WebAPI\obj\Debug\net9.0\compressed\00mlza7hla-rsar0whw3n.gz
-E:\MVC\khadamat\src\Khadamat.WebAPI\obj\Debug\net9.0\compressed\75gr6g5eou-rsar0whw3n.gz
-E:\MVC\khadamat\src\Khadamat.WebAPI\obj\Debug\net9.0\compressed\jokcrnyg9u-8dcha9pel8.gz
-E:\MVC\khadamat\src\Khadamat.WebAPI\obj\Debug\net9.0\compressed\7nxm5e768r-op82r4k7jw.gz
-E:\MVC\khadamat\src\Khadamat.WebAPI\obj\Debug\net9.0\compressed\3ask28iiz0-nm9b2zhhjt.gz
-E:\MVC\khadamat\src\Khadamat.WebAPI\obj\Debug\net9.0\compressed\3f617o1rym-f5vy7qe0sl.gz
-E:\MVC\khadamat\src\Khadamat.WebAPI\obj\Debug\net9.0\compressed\z67xx6vmoz-va010zuxi0.gz
-E:\MVC\khadamat\src\Khadamat.WebAPI\obj\Debug\net9.0\compressed\ai4mbeizef-uw9jw66naz.gz
-E:\MVC\khadamat\src\Khadamat.WebAPI\obj\Debug\net9.0\compressed\avvcmvmvuq-vg465mb9c5.gz
-E:\MVC\khadamat\src\Khadamat.WebAPI\obj\Debug\net9.0\compressed\mwaesou1t4-9zk71woajr.gz
 E:\MVC\khadamat\src\Khadamat.WebAPI\obj\Debug\net9.0\staticwebassets.build.json
 E:\MVC\khadamat\src\Khadamat.WebAPI\obj\Debug\net9.0\staticwebassets.build.json.cache
 E:\MVC\khadamat\src\Khadamat.WebAPI\obj\Debug\net9.0\staticwebassets.development.json
@@ -381,3 +370,4 @@ E:\MVC\khadamat\src\Khadamat.WebAPI\obj\Debug\net9.0\refint\Khadamat.WebAPI.dll
 E:\MVC\khadamat\src\Khadamat.WebAPI\obj\Debug\net9.0\Khadamat.WebAPI.pdb
 E:\MVC\khadamat\src\Khadamat.WebAPI\obj\Debug\net9.0\Khadamat.WebAPI.genruntimeconfig.cache
 E:\MVC\khadamat\src\Khadamat.WebAPI\obj\Debug\net9.0\ref\Khadamat.WebAPI.dll
+E:\MVC\khadamat\src\Khadamat.WebAPI\obj\Debug\net9.0\Khadamat.WebAPI.sourcelink.json

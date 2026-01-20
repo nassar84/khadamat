@@ -11,10 +11,14 @@ namespace Khadamat.Application.Features.Services.Handlers;
 public class UpdateServiceHandler : IRequestHandler<Commands.UpdateServiceCommand, bool>
 {
     private readonly IGenericRepository<Service> _serviceRepository;
+    private readonly IGenericRepository<ProviderProfile> _providerRepository;
 
-    public UpdateServiceHandler(IGenericRepository<Service> serviceRepository)
+    public UpdateServiceHandler(
+        IGenericRepository<Service> serviceRepository,
+        IGenericRepository<ProviderProfile> providerRepository)
     {
         _serviceRepository = serviceRepository;
+        _providerRepository = providerRepository;
     }
 
     public async Task<bool> Handle(Commands.UpdateServiceCommand request, CancellationToken cancellationToken)
@@ -26,8 +30,9 @@ public class UpdateServiceHandler : IRequestHandler<Commands.UpdateServiceComman
             return false;
         }
 
-        // Verify ownership (simplified, assumes UserId matches)
-        if (service.UserId != request.UserId)
+        // Verify ownership
+        var provider = await _providerRepository.GetAsync(p => p.UserId == request.UserId);
+        if (provider == null || service.ProviderProfileId != provider.Id)
         {
             throw new UnauthorizedAccessException("You do not have permission to edit this service.");
         }

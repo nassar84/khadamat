@@ -3,6 +3,7 @@ using Blazored.LocalStorage;
 using Khadamat.Application.DTOs;
 using Khadamat.Application.Common.Models;
 using Microsoft.AspNetCore.Components.Authorization;
+using Khadamat.BlazorUI.State;
 
 namespace Khadamat.BlazorUI.Services.Auth;
 
@@ -11,14 +12,17 @@ public class AuthService : IAuthService
     private readonly HttpClient _httpClient;
     private readonly AuthenticationStateProvider _authenticationStateProvider;
     private readonly ILocalStorageService _localStorage;
+    private readonly AppState _appState;
 
     public AuthService(HttpClient httpClient,
                        AuthenticationStateProvider authenticationStateProvider,
-                       ILocalStorageService localStorage)
+                       ILocalStorageService localStorage,
+                       AppState appState)
     {
         _httpClient = httpClient;
         _authenticationStateProvider = authenticationStateProvider;
         _localStorage = localStorage;
+        _appState = appState;
     }
 
     public async Task<AuthResponse?> Login(LoginRequest loginRequest)
@@ -58,6 +62,14 @@ public class AuthService : IAuthService
     public async Task<ApiResponse<AuthResponse>> GetProfileAsync()
     {
         var response = await _httpClient.GetFromJsonAsync<ApiResponse<AuthResponse>>("api/v1/auth/profile");
+        if (response?.Success == true && response.Data != null)
+        {
+            var p = response.Data;
+            _appState.UpdateUserStatus(p.UserName, p.Roles.FirstOrDefault() ?? "User", p.IsProvider, p.ImageUrl ?? "https://i.pravatar.cc/150");
+            _appState.CityId = p.CityId;
+            _appState.GovernorateId = p.GovernorateId;
+            _appState.PhoneNumber = p.PhoneNumber;
+        }
         return response!;
     }
 

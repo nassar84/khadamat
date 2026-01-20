@@ -1,0 +1,33 @@
+{
+  "Files": [
+    {
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.MobileApp\\obj\\Debug\\net9.0-ios\\iossimulator-x64\\scopedcss\\bundle\\Khadamat.MobileApp.styles.css",
+      "PackagePath": "staticwebassets\\Khadamat.MobileApp.styles.css"
+    },
+    {
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.MobileApp\\wwwroot\\mobile-index.html",
+      "PackagePath": "staticwebassets\\mobile-index.html"
+    },
+    {
+      "Id": "obj\\Debug\\net9.0-ios\\iossimulator-x64\\staticwebassets\\msbuild.Khadamat.MobileApp.Microsoft.AspNetCore.StaticWebAssetEndpoints.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssetEndpoints.props"
+    },
+    {
+      "Id": "obj\\Debug\\net9.0-ios\\iossimulator-x64\\staticwebassets\\msbuild.Khadamat.MobileApp.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Debug\\net9.0-ios\\iossimulator-x64\\staticwebassets\\msbuild.build.Khadamat.MobileApp.props",
+      "PackagePath": "build\\Khadamat.MobileApp.props"
+    },
+    {
+      "Id": "obj\\Debug\\net9.0-ios\\iossimulator-x64\\staticwebassets\\msbuild.buildMultiTargeting.Khadamat.MobileApp.props",
+      "PackagePath": "buildMultiTargeting\\Khadamat.MobileApp.props"
+    },
+    {
+      "Id": "obj\\Debug\\net9.0-ios\\iossimulator-x64\\staticwebassets\\msbuild.buildTransitive.Khadamat.MobileApp.props",
+      "PackagePath": "buildTransitive\\Khadamat.MobileApp.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

@@ -19,6 +19,20 @@ builder.Services.AddOpenApi();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
 
+// Authorization Policies
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireProvider", policy => 
+        policy.RequireAuthenticatedUser()
+              .RequireClaim("is_provider", "true"));
+
+    options.AddPolicy("RequireAdmin", policy => 
+        policy.RequireRole("SystemAdmin", "SuperAdmin"));
+        
+    options.AddPolicy("RequireSuperAdmin", policy => 
+        policy.RequireRole("SuperAdmin"));
+});
+
 // CORS
 builder.Services.AddCors(options =>
 {

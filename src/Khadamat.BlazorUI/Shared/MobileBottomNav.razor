@@ -2,6 +2,35 @@
 @inject Khadamat.BlazorUI.State.AppState State
 
 <nav class="bottom-nav">
+@if (State.IsProviderMode)
+{
+    <button class="nav-item @GetActiveClass("/provider/dashboard")" @onclick='() => Navigate("/provider/dashboard")'>
+        <i class="fa-solid fa-chart-line"></i>
+        <span>الرئيسية</span>
+    </button>
+    
+    <button class="nav-item @GetActiveClass("/provider/myservices")" @onclick='() => Navigate("/provider/myservices")'>
+        <i class="fa-solid fa-briefcase"></i>
+        <span>خدماتي</span>
+    </button>
+
+    <button class="nav-item" @onclick="ToggleMode">
+        <i class="fa-solid fa-repeat"></i>
+        <span>تبديل</span>
+    </button>
+
+    <button class="nav-item @GetActiveClass("/provider/messages")" @onclick='() => Navigate("/provider/messages")'>
+        <i class="fa-solid fa-message"></i>
+        <span>الرسائل</span>
+    </button>
+    
+    <button class="nav-item @GetActiveClass("/profile")" @onclick='() => Navigate("/profile")'>
+        <i class="fa-solid fa-user-gear"></i>
+        <span>الإعدادات</span>
+    </button>
+}
+else
+{
     <button class="nav-item @GetActiveClass("/")" @onclick='() => Navigate("/")'>
         <i class="fa-solid fa-house"></i>
         <span>الرئيسية</span>
@@ -12,10 +41,20 @@
         <span>الأقسام</span>
     </button>
     
-    <button class="nav-item @GetActiveClass("/favorites")" @onclick='() => Navigate("/favorites")'>
-        <i class="fa-solid fa-heart"></i>
-        <span>المفضلة</span>
-    </button>
+    @if (State.IsProvider)
+    {
+        <button class="nav-item" @onclick="ToggleMode">
+            <i class="fa-solid fa-repeat"></i>
+            <span>مزود</span>
+        </button>
+    }
+    else
+    {
+        <button class="nav-item @GetActiveClass("/favorites")" @onclick='() => Navigate("/favorites")'>
+            <i class="fa-solid fa-heart"></i>
+            <span>المفضلة</span>
+        </button>
+    }
     
     @if (State.IsAuthenticated)
     {
@@ -31,6 +70,7 @@
             <span>دخول</span>
         </button>
     }
+}
 </nav>
 
 <style>
@@ -119,5 +159,14 @@
     private void Navigate(string path)
     {
         Navigation.NavigateTo(path);
+    }
+
+    private void ToggleMode()
+    {
+        State.IsProviderMode = !State.IsProviderMode;
+        if (State.IsProviderMode)
+            Navigation.NavigateTo("/provider/dashboard");
+        else
+            Navigation.NavigateTo("/");
     }
 }

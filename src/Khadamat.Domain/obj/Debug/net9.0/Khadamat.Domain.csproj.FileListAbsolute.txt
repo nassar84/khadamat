@@ -20,3 +20,4 @@ E:\MVC\khadamat\src\Khadamat.Domain\obj\Debug\net9.0\Khadamat.Domain.dll
 E:\MVC\khadamat\src\Khadamat.Domain\obj\Debug\net9.0\refint\Khadamat.Domain.dll
 E:\MVC\khadamat\src\Khadamat.Domain\obj\Debug\net9.0\Khadamat.Domain.pdb
 E:\MVC\khadamat\src\Khadamat.Domain\obj\Debug\net9.0\ref\Khadamat.Domain.dll
+E:\MVC\khadamat\src\Khadamat.Domain\obj\Debug\net9.0\Khadamat.Domain.sourcelink.json

@@ -179,7 +179,8 @@ public class AuthService : IAuthService
             EmailConfirmed = user.EmailConfirmed,
             PhoneNumberConfirmed = user.PhoneNumberConfirmed,
             CreatedAt = user.CreatedAt,
-            IsActive = user.IsActive
+            IsActive = user.IsActive,
+            ImageUrl = user.ProfileImageUrl
         }, message);
     }
 
@@ -244,5 +245,15 @@ public class AuthService : IAuthService
             return null;
 
         return principal;
+    }
+
+    public async Task<bool> SetUserIsProviderAsync(string userId, bool isProvider)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null) return false;
+        
+        user.IsProvider = isProvider;
+        var result = await _userManager.UpdateAsync(user);
+        return result.Succeeded;
     }
 }

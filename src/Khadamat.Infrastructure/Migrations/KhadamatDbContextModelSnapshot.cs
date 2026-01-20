@@ -733,7 +733,6 @@ namespace Khadamat.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<bool>("Verified")
@@ -745,6 +744,10 @@ namespace Khadamat.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CityId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasFilter("[UserId] IS NOT NULL");
 
                     b.ToTable("ProviderProfiles");
                 });
@@ -922,6 +925,9 @@ namespace Khadamat.Infrastructure.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int>("ProviderProfileId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("SubCategoryId")
                         .HasColumnType("int");
 
@@ -936,9 +942,6 @@ namespace Khadamat.Infrastructure.Migrations
 
                     b.Property<string>("UserCreated")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("ViewsCount")
                         .HasColumnType("int");
@@ -958,9 +961,9 @@ namespace Khadamat.Infrastructure.Migrations
 
                     b.HasIndex("CityId");
 
-                    b.HasIndex("SubCategoryId");
+                    b.HasIndex("ProviderProfileId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("SubCategoryId");
 
                     b.ToTable("Services");
                 });
@@ -1393,6 +1396,10 @@ namespace Khadamat.Infrastructure.Migrations
                         .WithMany("ProviderProfiles")
                         .HasForeignKey("CityId");
 
+                    b.HasOne("Khadamat.Infrastructure.Identity.ApplicationUser", null)
+                        .WithOne("ProviderProfile")
+                        .HasForeignKey("Khadamat.Domain.Entities.ProviderProfile", "UserId");
+
                     b.Navigation("City");
                 });
 
@@ -1436,18 +1443,21 @@ namespace Khadamat.Infrastructure.Migrations
                         .WithMany("Services")
                         .HasForeignKey("CityId");
 
+                    b.HasOne("Khadamat.Domain.Entities.ProviderProfile", "ProviderProfile")
+                        .WithMany("Services")
+                        .HasForeignKey("ProviderProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Khadamat.Domain.Entities.SubCategory", "SubCategory")
                         .WithMany("Services")
                         .HasForeignKey("SubCategoryId");
 
-                    b.HasOne("Khadamat.Domain.Entities.ProviderProfile", null)
-                        .WithMany("Services")
-                        .HasForeignKey("UserId")
-                        .HasPrincipalKey("UserId");
-
                     b.Navigation("Category");
 
                     b.Navigation("City");
+
+                    b.Navigation("ProviderProfile");
 
                     b.Navigation("SubCategory");
                 });
@@ -1578,6 +1588,11 @@ namespace Khadamat.Infrastructure.Migrations
             modelBuilder.Entity("Khadamat.Domain.Entities.SubCategory", b =>
                 {
                     b.Navigation("Services");
+                });
+
+            modelBuilder.Entity("Khadamat.Infrastructure.Identity.ApplicationUser", b =>
+                {
+                    b.Navigation("ProviderProfile");
                 });
 #pragma warning restore 612, 618
         }

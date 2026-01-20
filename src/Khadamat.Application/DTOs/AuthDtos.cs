@@ -67,6 +67,7 @@ public class AuthResponse
     public int? GovernorateId { get; set; }
     public string? GovernorateName { get; set; }
     public string? PhoneNumber { get; set; }
+    public string? ImageUrl { get; set; }
 }
 
 public class UpdateProfileRequest

@@ -58,6 +58,25 @@
     </div>
     
     <div class="header-actions">
+        <!-- Provider Actions -->
+        <AuthorizeView>
+            <Authorized>
+                @if (State.IsProvider)
+                {
+                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3 me-2 fw-bold" @onclick="ToggleProviderMode">
+                        <i class="fa-solid fa-repeat me-1"></i>
+                        @(State.IsProviderMode ? "العودة للعميل" : "لوحة المزود")
+                    </button>
+                }
+                else
+                {
+                     <a href="provider/create-request" class="btn btn-sm btn-primary rounded-pill px-3 me-2 fw-bold shadow-sm">
+                         <i class="fa-solid fa-briefcase me-1"></i>
+                         كن مزوداً
+                     </a>
+                }
+            </Authorized>
+        </AuthorizeView>
         <!-- Admin Link if Admin -->
          <AuthorizeView Roles="SystemAdmin,SuperAdmin">
             <a href="/admin" class="btn btn-sm btn-warning rounded-pill px-3 fw-bold d-flex align-items-center gap-2 shadow-sm" title="لوحة التحكم">
@@ -125,5 +144,18 @@
     private void NavigateToProfile()
     {
         Navigation.NavigateTo("/profile");
+    }
+
+    private void ToggleProviderMode()
+    {
+        State.IsProviderMode = !State.IsProviderMode;
+        if (State.IsProviderMode) 
+        {
+            Navigation.NavigateTo("provider/dashboard");
+        }
+        else 
+        {
+             Navigation.NavigateTo("/");
+        }
     }
 }

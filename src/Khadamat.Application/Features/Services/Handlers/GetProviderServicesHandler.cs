@@ -13,24 +13,29 @@ namespace Khadamat.Application.Features.Services.Handlers;
 public class GetProviderServicesHandler : IRequestHandler<Queries.GetProviderServicesQuery, PaginatedResult<ServiceDto>>
 {
     private readonly IGenericRepository<Service> _repository;
+    private readonly IGenericRepository<ProviderProfile> _providerRepository;
     private readonly IMapper _mapper;
 
-    public GetProviderServicesHandler(IGenericRepository<Service> repository, IMapper mapper)
+    public GetProviderServicesHandler(IGenericRepository<Service> repository, IGenericRepository<ProviderProfile> providerRepository, IMapper mapper)
     {
         _repository = repository;
+        _providerRepository = providerRepository;
         _mapper = mapper;
     }
 
     public async Task<PaginatedResult<ServiceDto>> Handle(Queries.GetProviderServicesQuery request, CancellationToken cancellationToken)
     {
+        var provider = await _providerRepository.GetAsync(p => p.UserId == request.UserId);
+        int providerId = provider?.Id ?? 0;
+
         string includes = "Category,SubCategory,City,City.Governorate";
 
         var pagedItems = await _repository.GetPagedAsync(request.Page, request.PageSize, 
-            filter: s => s.UserId == request.UserId, 
+            filter: s => s.ProviderProfileId == providerId, 
             orderBy: q => q.OrderByDescending(s => s.CreatedAt), 
             includeProperties: includes);
             
-        var totalCount = await _repository.CountAsync(s => s.UserId == request.UserId);
+        var totalCount = await _repository.CountAsync(s => s.ProviderProfileId == providerId);
         
         var dtos = _mapper.Map<List<ServiceDto>>(pagedItems);
         

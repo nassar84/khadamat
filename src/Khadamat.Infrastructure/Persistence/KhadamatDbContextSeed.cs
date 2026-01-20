@@ -425,7 +425,8 @@ public static class KhadamatDbContextSeed
                     name: $"خدمة {cat.Name} المميزة رقم {i}",
                     description: $"وصف تفصيلي لخدمة {cat.Name} المتاحة لجميع العملاء بجودة عالية وأفضل الأسعار.",
                     address: location,
-                    userId: provider.UserId
+                    providerProfileId: provider.Id, 
+                    userCreated: provider.UserId
                 );
             }
             else if (allSubCategories.Any())
@@ -438,7 +439,8 @@ public static class KhadamatDbContextSeed
                     name: $"خدمة {sub.Name} احترافية {i}",
                     description: $"نقدم لكم أفضل خدمات {sub.Name} بخبرة تزيد عن 5 سنوات في {location}. تواصل معنا الآن.",
                     address: location,
-                    userId: provider.UserId
+                    providerProfileId: provider.Id,
+                    userCreated: provider.UserId
                 );
             }
             else continue;

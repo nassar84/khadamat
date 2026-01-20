@@ -88,3 +88,4 @@ E:\MVC\khadamat\src\Khadamat.BlazorUI\obj\Debug\net9.0\refint\Khadamat.BlazorUI.
 E:\MVC\khadamat\src\Khadamat.BlazorUI\obj\Debug\net9.0\Khadamat.BlazorUI.pdb
 E:\MVC\khadamat\src\Khadamat.BlazorUI\obj\Debug\net9.0\ref\Khadamat.BlazorUI.dll
 e:\MVC\khadamat\src\Khadamat.BlazorUI\obj\Debug\net9.0\compressed\s2y157ulai-noavsd1ex0.gz
+E:\MVC\khadamat\src\Khadamat.BlazorUI\obj\Debug\net9.0\Khadamat.BlazorUI.sourcelink.json

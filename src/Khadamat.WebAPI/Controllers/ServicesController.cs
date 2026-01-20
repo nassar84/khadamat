@@ -48,7 +48,7 @@ public class ServicesController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize]
+    [Authorize(Policy = "RequireProvider")]
     public async Task<IActionResult> UpdateService(int id, [FromBody] UpdateServiceCommand command)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -64,7 +64,7 @@ public class ServicesController : ControllerBase
     }
 
     [HttpGet("myservices")]
-    [Authorize]
+    [Authorize(Policy = "RequireProvider")]
     public async Task<IActionResult> GetMyServices([FromQuery] int page = 1)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

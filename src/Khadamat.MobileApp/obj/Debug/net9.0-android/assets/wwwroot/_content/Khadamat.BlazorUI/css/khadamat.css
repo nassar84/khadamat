@@ -831,60 +831,7 @@ body::after {
     }
 }
 
-/* ===== UNIQUE CATEGORY SHAPES & MAGNETIC EFFECTS ===== */
-.category-item {
-    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    cursor: pointer;
-}
-
-.category-item:hover {
-    transform: scale(1.1) rotate(2deg);
-}
-
-/* ===== 3D GLASS BALL CATEGORY SHAPES ===== */
-.category-shape-wrapper {
-    position: relative !important;
-    width: 68px !important;
-    height: 68px !important;
-    border-radius: 50% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 40%, rgba(0, 0, 0, 0.1) 100%) !important;
-    backdrop-filter: blur(15px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.5) !important;
-    box-shadow:
-        inset 4px 4px 15px rgba(255, 255, 255, 0.5),
-        inset -4px -4px 15px rgba(0, 0, 0, 0.1),
-        0 10px 25px var(--theme-glow) !important;
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-    overflow: visible !important;
-}
-
-.category-shape-wrapper::before {
-    content: '';
-    position: absolute;
-    top: 10%;
-    left: 10%;
-    width: 30%;
-    height: 30%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0) 80%);
-    border-radius: 50%;
-    filter: blur(1px);
-    z-index: 2;
-    pointer-events: none;
-}
-
-.category-item:hover .category-shape-wrapper {
-    transform: scale(1.15) rotate(5deg);
-    background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.2) 40%, rgba(var(--theme-primary-rgb), 0.2) 100%) !important;
-    box-shadow: 0 15px 35px var(--theme-glow), inset 2px 2px 10px white !important;
-}
-
-.category-item:hover .category-shape-wrapper span {
-    transform: scale(1.2);
-    transition: transform 0.3s ease;
-}
+/* Category items styling moved to component-specific styles */
 
 /* Magnetic Effect Utilities */
 .magnetic {

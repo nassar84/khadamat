@@ -47,6 +47,11 @@ public class ApiClient
             var result = await response.Content.ReadFromJsonAsync<JsonElement>();
             return result.GetProperty("id").GetInt32();
         }
+        else
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"CreateServiceAsync Failed: {response.StatusCode} - {errorContent}");
+        }
         return null;
     }
 

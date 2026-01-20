@@ -28,3 +28,4 @@ E:\MVC\khadamat\src\Khadamat.Application\obj\Debug\net9.0\Khadamat.Application.d
 E:\MVC\khadamat\src\Khadamat.Application\obj\Debug\net9.0\refint\Khadamat.Application.dll
 E:\MVC\khadamat\src\Khadamat.Application\obj\Debug\net9.0\Khadamat.Application.pdb
 E:\MVC\khadamat\src\Khadamat.Application\obj\Debug\net9.0\ref\Khadamat.Application.dll
+E:\MVC\khadamat\src\Khadamat.Application\obj\Debug\net9.0\Khadamat.Application.sourcelink.json

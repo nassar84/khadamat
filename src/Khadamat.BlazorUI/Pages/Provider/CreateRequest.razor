@@ -566,6 +566,9 @@
             var result = await Api.CreateServiceAsync(model);
             if (result.HasValue)
             {
+                // Refresh profile to update IsProvider status in AppState
+                await AuthService.GetProfileAsync();
+                
                 showSuccess = true;
                 StateHasChanged();
             }

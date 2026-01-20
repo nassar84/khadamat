@@ -36,3 +36,4 @@ E:\MVC\khadamat\src\Khadamat.Infrastructure\obj\Debug\net9.0\refint\Khadamat.Inf
 E:\MVC\khadamat\src\Khadamat.Infrastructure\obj\Debug\net9.0\Khadamat.Infrastructure.pdb
 E:\MVC\khadamat\src\Khadamat.Infrastructure\obj\Debug\net9.0\Khadamat.Infrastructure.genruntimeconfig.cache
 E:\MVC\khadamat\src\Khadamat.Infrastructure\obj\Debug\net9.0\ref\Khadamat.Infrastructure.dll
+E:\MVC\khadamat\src\Khadamat.Infrastructure\obj\Debug\net9.0\Khadamat.Infrastructure.sourcelink.json

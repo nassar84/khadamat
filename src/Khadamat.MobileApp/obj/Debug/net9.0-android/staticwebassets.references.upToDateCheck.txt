@@ -1,0 +1,1 @@
+E:\MVC\khadamat\src\Khadamat.BlazorUI\obj\Debug\net9.0\staticwebassets.build.json

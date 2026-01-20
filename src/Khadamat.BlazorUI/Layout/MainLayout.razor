@@ -63,6 +63,7 @@
                 if (profile?.Success == true && profile.Data != null)
                 {
                     AppState.UserName = profile.Data.UserName;
+                    AppState.IsProvider = profile.Data.IsProvider;
                     AppState.CityId = profile.Data.CityId;
                     AppState.GovernorateId = profile.Data.GovernorateId;
                     AppState.PhoneNumber = profile.Data.PhoneNumber;

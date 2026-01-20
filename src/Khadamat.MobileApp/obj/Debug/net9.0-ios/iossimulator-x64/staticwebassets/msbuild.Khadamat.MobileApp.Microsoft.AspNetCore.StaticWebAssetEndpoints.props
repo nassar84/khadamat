@@ -1,0 +1,28 @@
+﻿<Project>
+  <ItemGroup>
+    <StaticWebAssetEndpoint Include="Khadamat.MobileApp.4nl20aclkv.styles.css">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\Khadamat.MobileApp.styles.css'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"4nl20aclkv"},{"Name":"integrity","Value":"sha256-EEKskftbNthwX2rJVYlyQwRFOR3D60CWHc70WNPYgpc="},{"Name":"label","Value":"Khadamat.MobileApp.styles.css"}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"85"},{"Name":"Content-Type","Value":"text/css"},{"Name":"ETag","Value":"\u0022EEKskftbNthwX2rJVYlyQwRFOR3D60CWHc70WNPYgpc=\u0022"},{"Name":"Last-Modified","Value":"Tue, 20 Jan 2026 19:43:58 GMT"},{"Name":"Link","Value":"\u003C_content/Khadamat.BlazorUI/Khadamat.BlazorUI.wemlapv3np.bundle.scp.css\u003E; rel=\u0022preload\u0022; as=\u0022style\u0022"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
+    <StaticWebAssetEndpoint Include="Khadamat.MobileApp.styles.css">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\Khadamat.MobileApp.styles.css'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-EEKskftbNthwX2rJVYlyQwRFOR3D60CWHc70WNPYgpc="}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"85"},{"Name":"Content-Type","Value":"text/css"},{"Name":"ETag","Value":"\u0022EEKskftbNthwX2rJVYlyQwRFOR3D60CWHc70WNPYgpc=\u0022"},{"Name":"Last-Modified","Value":"Tue, 20 Jan 2026 19:43:58 GMT"},{"Name":"Link","Value":"\u003C_content/Khadamat.BlazorUI/Khadamat.BlazorUI.wemlapv3np.bundle.scp.css\u003E; rel=\u0022preload\u0022; as=\u0022style\u0022"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
+    <StaticWebAssetEndpoint Include="mobile-index.html">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\mobile-index.html'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-l2X0\u002B2TYlnWXIafGj5qQejwnS/Q4tGfMR35Ca/3Oseo="}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"3977"},{"Name":"Content-Type","Value":"text/html"},{"Name":"ETag","Value":"\u0022l2X0\u002B2TYlnWXIafGj5qQejwnS/Q4tGfMR35Ca/3Oseo=\u0022"},{"Name":"Last-Modified","Value":"Sun, 18 Jan 2026 22:06:20 GMT"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
+    <StaticWebAssetEndpoint Include="mobile-index.tvv83107ie.html">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\mobile-index.html'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"tvv83107ie"},{"Name":"integrity","Value":"sha256-l2X0\u002B2TYlnWXIafGj5qQejwnS/Q4tGfMR35Ca/3Oseo="},{"Name":"label","Value":"mobile-index.html"}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"3977"},{"Name":"Content-Type","Value":"text/html"},{"Name":"ETag","Value":"\u0022l2X0\u002B2TYlnWXIafGj5qQejwnS/Q4tGfMR35Ca/3Oseo=\u0022"},{"Name":"Last-Modified","Value":"Sun, 18 Jan 2026 22:06:20 GMT"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
+  </ItemGroup>
+</Project>

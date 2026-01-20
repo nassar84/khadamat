@@ -11,7 +11,7 @@ namespace Khadamat.WebAPI.Controllers;
 
 [ApiController]
 [Route("api/v1/[controller]")]
-[Authorize(Roles = "SystemAdmin,SuperAdmin")]
+[Authorize(Policy = "RequireAdmin")]
 public class AdminController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;

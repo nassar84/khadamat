@@ -100,13 +100,13 @@
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\Khadamat.BlazorUI.wemlapv3np.bundle.scp.css'))</AssetFile>
       <Selectors><![CDATA[[]]]></Selectors>
       <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-uGICxgewWxlAvllInhWIUpNihlSWfob/cscqmT2pZwY="}]]]></EndpointProperties>
-      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"241"},{"Name":"Content-Type","Value":"text/css"},{"Name":"ETag","Value":"\u0022uGICxgewWxlAvllInhWIUpNihlSWfob/cscqmT2pZwY=\u0022"},{"Name":"Last-Modified","Value":"Tue, 20 Jan 2026 10:13:12 GMT"}]]]></ResponseHeaders>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"241"},{"Name":"Content-Type","Value":"text/css"},{"Name":"ETag","Value":"\u0022uGICxgewWxlAvllInhWIUpNihlSWfob/cscqmT2pZwY=\u0022"},{"Name":"Last-Modified","Value":"Tue, 20 Jan 2026 19:43:57 GMT"}]]]></ResponseHeaders>
     </StaticWebAssetEndpoint>
     <StaticWebAssetEndpoint Include="_content/Khadamat.BlazorUI/Khadamat.BlazorUI.wemlapv3np.bundle.scp.css">
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\Khadamat.BlazorUI.wemlapv3np.bundle.scp.css'))</AssetFile>
       <Selectors><![CDATA[[]]]></Selectors>
       <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"wemlapv3np"},{"Name":"integrity","Value":"sha256-uGICxgewWxlAvllInhWIUpNihlSWfob/cscqmT2pZwY="},{"Name":"label","Value":"_content/Khadamat.BlazorUI/Khadamat.BlazorUI.bundle.scp.css"}]]]></EndpointProperties>
-      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"241"},{"Name":"Content-Type","Value":"text/css"},{"Name":"ETag","Value":"\u0022uGICxgewWxlAvllInhWIUpNihlSWfob/cscqmT2pZwY=\u0022"},{"Name":"Last-Modified","Value":"Tue, 20 Jan 2026 10:13:12 GMT"}]]]></ResponseHeaders>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"241"},{"Name":"Content-Type","Value":"text/css"},{"Name":"ETag","Value":"\u0022uGICxgewWxlAvllInhWIUpNihlSWfob/cscqmT2pZwY=\u0022"},{"Name":"Last-Modified","Value":"Tue, 20 Jan 2026 19:43:57 GMT"}]]]></ResponseHeaders>
     </StaticWebAssetEndpoint>
     <StaticWebAssetEndpoint Include="_content/Khadamat.BlazorUI/lib/bootstrap/dist/css/bootstrap-grid.bqjiyaj88i.css">
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\lib\bootstrap\dist\css\bootstrap-grid.css'))</AssetFile>

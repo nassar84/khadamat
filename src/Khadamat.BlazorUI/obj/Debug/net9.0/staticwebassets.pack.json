@@ -1,219 +1,219 @@
 {
   "Files": [
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\obj\\Debug\\net9.0\\scopedcss\\projectbundle\\Khadamat.BlazorUI.bundle.scp.css",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\obj\\Debug\\net9.0\\scopedcss\\projectbundle\\Khadamat.BlazorUI.bundle.scp.css",
       "PackagePath": "staticwebassets\\Khadamat.BlazorUI.wemlapv3np.bundle.scp.css"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\css\\app.css",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\css\\app.css",
       "PackagePath": "staticwebassets\\css\\app.css"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\css\\khadamat.css",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\css\\khadamat.css",
       "PackagePath": "staticwebassets\\css\\khadamat.css"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\favicon.png",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\favicon.png",
       "PackagePath": "staticwebassets\\favicon.png"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\icon-192.png",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\icon-192.png",
       "PackagePath": "staticwebassets\\icon-192.png"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\images\\hero_banner.png",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\images\\hero_banner.png",
       "PackagePath": "staticwebassets\\images\\hero_banner.png"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\images\\hero_banner2.png",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\images\\hero_banner2.png",
       "PackagePath": "staticwebassets\\images\\hero_banner2.png"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\images\\provider_landing_hero.png",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\images\\provider_landing_hero.png",
       "PackagePath": "staticwebassets\\images\\provider_landing_hero.png"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\index.html",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\index.html",
       "PackagePath": "staticwebassets\\index.html"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css.map",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css.map"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css.map",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css.map"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css.map",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css.map"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css.map",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css.map"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css.map",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css.map"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css.map",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css.map"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css.map",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css.map"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css.map",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css.map"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css.map",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css.map"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css.map",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css.map"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css.map",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css.map"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css.map",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css.map"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.css"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css.map",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.css.map"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.min.css"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css.map",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.min.css.map"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css.map",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css.map"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css.map",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css.map"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js.map",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js.map"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js.map",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js.map"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js.map",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js.map"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js.map",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js.map"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.js"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js.map",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.js.map"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.min.js"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js.map",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.min.js.map"
     },
     {
-      "Id": "e:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\sample-data\\weather.json",
+      "Id": "E:\\MVC\\khadamat\\src\\Khadamat.BlazorUI\\wwwroot\\sample-data\\weather.json",
       "PackagePath": "staticwebassets\\sample-data\\weather.json"
     },
     {

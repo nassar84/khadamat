@@ -7,10 +7,11 @@ namespace Khadamat.Domain.Entities;
 public class Service : BaseEntity
 {
     // Foreign Keys
+    // Foreign Keys
     public int? SubCategoryId { get; private set; }
     public int? CategoryId { get; private set; }
     public int? CityId { get; private set; }
-    public string? UserId { get; private set; }
+    public int ProviderProfileId { get; private set; } // FK to ProviderProfile
     
     // Basic Information
     public string Name { get; private set; } = string.Empty;
@@ -45,6 +46,7 @@ public class Service : BaseEntity
     public virtual Category? Category { get; private set; }
     public virtual SubCategory? SubCategory { get; private set; }
     public virtual City? City { get; private set; }
+    public virtual ProviderProfile? ProviderProfile { get; private set; }
     public virtual ICollection<Rating> Ratings { get; private set; } = new List<Rating>();
     public virtual ICollection<Like> Likes { get; private set; } = new List<Like>();
 
@@ -58,7 +60,8 @@ public class Service : BaseEntity
         string name, 
         string description, 
         string address,
-        string? userId = null)
+        int providerProfileId,
+        string? userCreated = null)
     {
         if (string.IsNullOrWhiteSpace(name) || name.Length < 3)
             throw new BusinessRuleException("Service name must be at least 3 characters long.");
@@ -72,11 +75,11 @@ public class Service : BaseEntity
         Name = name;
         Description = description;
         Address = address;
-        UserId = userId;
+        ProviderProfileId = providerProfileId;
         Approved = false; // Requires admin approval
         DisplayOrder = 0;
         ViewsCount = 0;
-        UserCreated = userId;
+        UserCreated = userCreated;
     }
 
     public void UpdateDetails(
