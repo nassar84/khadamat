@@ -60,7 +60,7 @@
                 <i class="fa-solid fa-grip me-2 text-primary"></i> إدارة النظام
             </h6>
             <div class="row g-3">
-                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/usersmanagement")'>
+                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/users")'>
                     <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up">
                         <div class="module-icon bg-light-primary mb-3">
                             <i class="fa-solid fa-user-gear text-primary"></i>
@@ -245,7 +245,7 @@
     private List<RecentActivityDto> recentActivities = new();
 
     [CascadingParameter]
-    private Task<AuthenticationState> authStateTask { get; set; }
+    private Task<AuthenticationState> authStateTask { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {

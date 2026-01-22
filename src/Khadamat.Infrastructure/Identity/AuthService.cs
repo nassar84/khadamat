@@ -137,6 +137,7 @@ public class AuthService : IAuthService
         user.FullName = request.FullName;
         user.PhoneNumber = request.PhoneNumber;
         user.CityId = request.CityId;
+        user.ProfileImageUrl = request.ProfileImageUrl;
 
         var result = await _userManager.UpdateAsync(user);
         if (!result.Succeeded)

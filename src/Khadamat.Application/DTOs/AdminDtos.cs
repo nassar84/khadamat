@@ -60,3 +60,14 @@ public class RecentActivityDto
     public string Time { get; set; } = "";
     public string Icon { get; set; } = "";
 }
+
+public class UpdateProviderProfileRequest
+{
+    public string BusinessName { get; set; } = string.Empty;
+    public string Bio { get; set; } = string.Empty;
+    public string ContactNumber { get; set; } = string.Empty;
+    public string? WebsiteUrl { get; set; }
+    public string? InstagramUrl { get; set; }
+    public string? TwitterUrl { get; set; }
+    public string? Photo { get; set; }
+}

@@ -1,3 +1,4 @@
+@page "/admin/users"
 @page "/admin/usersmanagement"
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
@@ -327,8 +328,12 @@
         new() { Id = "manage_reviews", Name = "إدارة التقييمات", Description = "الرد على العملاء أو إخفاء التقييمات المسيئة", IsGranted = false }
     };
 
+    [CascadingParameter]
+    private Task<AuthenticationState> authStateTask { get; set; } = default!;
+
     protected override async Task OnInitializedAsync()
     {
+        await authStateTask;
         try 
         {
             users = await AdminService.GetAllUsers();

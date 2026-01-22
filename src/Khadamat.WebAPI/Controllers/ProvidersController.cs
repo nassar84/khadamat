@@ -54,15 +54,37 @@ public class ProvidersController : ControllerBase
         return Ok(ApiResponse<int>.Succeed(profile.Id));
     }
 
-    [HttpGet("{userId}")]
-    public async Task<IActionResult> GetProfile(string userId)
+     [HttpGet("{userId}")]
+     public async Task<IActionResult> GetProfile(string userId)
+     {
+          var profile = await _context.ProviderProfiles
+              .Include(p => p.City)
+              .FirstOrDefaultAsync(p => p.UserId == userId);
+              
+          if (profile == null) return NotFound();
+          
+          return Ok(profile);
+     }
+
+    [HttpPut("profile")]
+    [Authorize]
+    public async Task<IActionResult> UpdateProfile([FromBody] UpdateProviderProfileRequest dto)
     {
-         var profile = await _context.ProviderProfiles
-             .Include(p => p.City)
-             .FirstOrDefaultAsync(p => p.UserId == userId);
-             
-         if (profile == null) return NotFound();
-         
-         return Ok(profile);
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        var profile = await _context.ProviderProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
+        if (profile == null) return NotFound("Provider profile not found.");
+
+        profile.BusinessName = dto.BusinessName;
+        profile.Bio = dto.Bio;
+        profile.ContactNumber = dto.ContactNumber;
+        profile.WebsiteUrl = dto.WebsiteUrl;
+        profile.InstagramUrl = dto.InstagramUrl;
+        profile.TwitterUrl = dto.TwitterUrl;
+        if (!string.IsNullOrEmpty(dto.Photo)) profile.Photo = dto.Photo;
+
+        await _context.SaveChangesAsync();
+        return Ok(ApiResponse<bool>.Succeed(true));
     }
 }

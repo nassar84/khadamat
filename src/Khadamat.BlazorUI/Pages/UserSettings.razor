@@ -11,12 +11,13 @@
 <div class="settings-page py-5">
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-lg-8">
+            <div class="col-lg-10">
                 <!-- Breadcrumbs -->
                 <nav aria-label="breadcrumb" class="mb-4 animate-fade-in">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">الرئيسية</a></li>
-                        <li class="breadcrumb-item active fw-bold text-primary" aria-current="page">إعدادات الملف الشخصي</li>
+                        <li class="breadcrumb-item"><a href="/profile" class="text-decoration-none text-muted">الملف الشخصي</a></li>
+                        <li class="breadcrumb-item active fw-bold text-primary" aria-current="page">إعدادات الحساب</li>
                     </ol>
                 </nav>
 
@@ -33,98 +34,226 @@
                     </div>
                 }
 
-                <div class="glass-card p-0 overflow-hidden shadow-premium border-0 rounded-4 animate-up">
+                <div class="glass-card p-0 overflow-hidden shadow-premium border-0 rounded-4 animate-up mb-5">
                     <div class="settings-header p-4 p-md-5 text-white" style="background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));">
                         <div class="d-flex align-items-center">
                             <div class="profile-avatar-wrapper me-4 position-relative">
-                                <img src="@AppState.UserImageUrl" class="rounded-circle border border-4 border-white shadow-lg" width="100" height="100" />
-                                <button class="btn btn-light btn-sm rounded-circle position-absolute bottom-0 end-0 p-2 shadow-sm scale-hover">
-                                    <i class="fa-solid fa-camera text-primary"></i>
-                                </button>
+                                <img src="@(string.IsNullOrEmpty(model.ProfileImageUrl) ? AppState.UserImageUrl : model.ProfileImageUrl)" 
+                                     class="rounded-circle border border-4 border-white shadow-lg" width="120" height="120" style="object-fit: cover;" />
+                                <div class="position-absolute bottom-0 end-0 p-1">
+                                     <button class="btn btn-light btn-sm rounded-circle shadow-sm" @onclick="ToggleImageInput">
+                                        <i class="fa-solid fa-pen text-primary"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div>
-                                <h3 class="fw-bold mb-1">@AppState.UserName</h3>
-                                <p class="mb-0 opacity-75">إدارة بيانات حسابك وتفضيلاتك</p>
+                                <h2 class="fw-bold mb-1">@AppState.UserName</h2>
+                                <p class="mb-0 opacity-75">إدارة بيانات حسابك وتفضيلاتك الشخصية</p>
+                                <div class="mt-2">
+                                    <span class="badge bg-white text-primary rounded-pill px-3">@(AppState.IsProvider ? "مزود خدمة" : "عميل")</span>
+                                    @if(AppState.IsProvider) {
+                                        <span class="badge bg-success rounded-pill px-3 ms-2"><i class="fa-solid fa-check-circle me-1"></i> حساب موثق</span>
+                                    }
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="p-4 p-md-5 bg-white">
-                        <EditForm Model="@model" OnValidSubmit="HandleSubmit">
-                            <DataAnnotationsValidator />
+                        <ul class="nav nav-pills custom-pills mb-5 d-flex gap-2" id="settingsTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active rounded-pill px-4" id="basic-tab" data-bs-toggle="pill" data-bs-target="#basic" type="button" role="tab" aria-controls="basic" aria-selected="true">
+                                    <i class="fa-solid fa-id-card me-2"></i>البيانات الأساسية
+                                </button>
+                            </li>
+                            @if (AppState.IsProvider)
+                            {
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link rounded-pill px-4" id="provider-tab" data-bs-toggle="pill" data-bs-target="#provider" type="button" role="tab" aria-controls="provider" aria-selected="false">
+                                        <i class="fa-solid fa-briefcase me-2"></i>بيانات العمل
+                                    </button>
+                                </li>
+                            }
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link rounded-pill px-4" id="security-tab" data-bs-toggle="pill" data-bs-target="#security" type="button" role="tab" aria-controls="security" aria-selected="false">
+                                    <i class="fa-solid fa-shield-halved me-2"></i>الحماية
+                                </button>
+                            </li>
+                        </ul>
 
-                            <div class="row g-4">
-                                <div class="col-12">
-                                    <h5 class="fw-bold text-primary border-bottom pb-2 mb-3">
-                                        <i class="fa-solid fa-user-gear me-2"></i> البيانات الأساسية
-                                    </h5>
-                                </div>
+                        <div class="tab-content" id="settingsTabsContent">
+                            <!-- Basic Info Tab -->
+                            <div class="tab-pane fade show active" id="basic" role="tabpanel" aria-labelledby="basic-tab">
+                                <EditForm Model="@model" OnValidSubmit="HandleBasicSubmit">
+                                    <DataAnnotationsValidator />
+                                    
+                                    <div class="row g-4">
+                                        @if (showImageInput)
+                                        {
+                                            <div class="col-12 animate-fade-in">
+                                                <div class="bg-light p-3 rounded-4 border">
+                                                    <label class="form-label fw-bold small">رابط الصورة الشخصية</label>
+                                                    <div class="input-group">
+                                                        <InputText @bind-Value="model.ProfileImageUrl" class="form-control premium-input border-0" placeholder="https://example.com/photo.jpg" />
+                                                        <button class="btn btn-primary px-4" type="button" @onclick="() => showImageInput = false">موافق</button>
+                                                    </div>
+                                                    <div class="mt-2 small text-muted">استخدم رابط مباشر لصورة (Square ratio best)</div>
+                                                </div>
+                                            </div>
+                                        }
 
-                                <div class="col-md-12">
-                                    <label class="form-label fw-bold small">الاسم الكامل</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-solid fa-id-card text-muted"></i></span>
-                                        <InputText @bind-Value="model.FullName" class="form-control premium-input" placeholder="أدخل اسمك بالكامل" />
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold small">الاسم الكامل</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-solid fa-user text-muted"></i></span>
+                                                <InputText @bind-Value="model.FullName" class="form-control premium-input" placeholder="أدخل اسمك بالكامل" />
+                                            </div>
+                                            <ValidationMessage For="@(() => model.FullName)" class="text-danger small mt-1" />
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold small">رقم الهاتف</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-solid fa-phone text-muted"></i></span>
+                                                <InputText @bind-Value="model.PhoneNumber" class="form-control premium-input" dir="ltr" placeholder="01xxxxxxxxx" />
+                                            </div>
+                                            <ValidationMessage For="@(() => model.PhoneNumber)" class="text-danger small mt-1" />
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold small">المحافظة</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-solid fa-location-dot text-muted"></i></span>
+                                                <select class="form-select premium-input" @onchange="OnGovernorateChanged" value="@selectedGovernorateId">
+                                                    <option value="">اختر المحافظة...</option>
+                                                    @foreach (var gov in governorates)
+                                                    {
+                                                        <option value="@gov.Id">@gov.NameAr</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold small">المدينة</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-solid fa-city text-muted"></i></span>
+                                                <InputSelect @bind-Value="model.CityId" class="form-select premium-input">
+                                                    <option value="0">اختر المدينة...</option>
+                                                    @foreach (var city in cities)
+                                                    {
+                                                        <option value="@city.Id">@city.NameAr</option>
+                                                    }
+                                                </InputSelect>
+                                            </div>
+                                            <ValidationMessage For="@(() => model.CityId)" class="text-danger small mt-1" />
+                                        </div>
+
+                                        <div class="col-12 mt-5">
+                                            <button type="submit" class="btn btn-primary-premium btn-lg rounded-pill px-5 shadow-lg" disabled="@isLoading">
+                                                @if (isLoading)
+                                                {
+                                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                                    <span>جاري الحفظ...</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>حفظ البيانات الأساسية <i class="fa-solid fa-save ms-2"></i></span>
+                                                }
+                                            </button>
+                                        </div>
                                     </div>
-                                    <ValidationMessage For="@(() => model.FullName)" class="text-danger small mt-1" />
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold small">رقم الهاتف</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-solid fa-phone text-muted"></i></span>
-                                        <InputText @bind-Value="model.PhoneNumber" class="form-control premium-input" dir="ltr" placeholder="01xxxxxxxxx" />
-                                    </div>
-                                    <ValidationMessage For="@(() => model.PhoneNumber)" class="text-danger small mt-1" />
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold small">المحافظة</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-solid fa-location-dot text-muted"></i></span>
-                                        <select class="form-select premium-input" @onchange="OnGovernorateChanged" value="@selectedGovernorateId">
-                                            <option value="">اختر المحافظة...</option>
-                                            @foreach (var gov in governorates)
-                                            {
-                                                <option value="@gov.Id">@gov.NameAr</option>
-                                            }
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold small">المدينة</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-solid fa-city text-muted"></i></span>
-                                        <InputSelect @bind-Value="model.CityId" class="form-select premium-input">
-                                            <option value="0">اختر المدينة...</option>
-                                            @foreach (var city in cities)
-                                            {
-                                                <option value="@city.Id">@city.NameAr</option>
-                                            }
-                                        </InputSelect>
-                                    </div>
-                                    <ValidationMessage For="@(() => model.CityId)" class="text-danger small mt-1" />
-                                </div>
+                                </EditForm>
                             </div>
 
-                            <div class="mt-5 pt-4 border-top">
-                                <button type="submit" class="btn btn-primary-premium btn-lg rounded-pill px-5 shadow-lg float-start" disabled="@isLoading">
-                                    @if (isLoading)
-                                    {
-                                        <span class="spinner-border spinner-border-sm me-2"></span>
-                                        <span>جاري الحفظ...</span>
-                                    }
-                                    else
-                                    {
-                                        <span>حفظ التعديلات <i class="fa-solid fa-save ms-2"></i></span>
-                                    }
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary btn-lg rounded-pill px-4 float-end" @onclick="GoBack">
-                                    إلغاء
-                                </button>
+                            <!-- Provider Profile Tab -->
+                            @if (AppState.IsProvider)
+                            {
+                                <div class="tab-pane fade" id="provider" role="tabpanel" aria-labelledby="provider-tab">
+                                    <EditForm Model="@providerModel" OnValidSubmit="HandleProviderSubmit">
+                                        <div class="row g-4">
+                                            <div class="col-md-12">
+                                                <label class="form-label fw-bold small">اسم العمل / النشاط التجاري</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-solid fa-shop text-muted"></i></span>
+                                                    <InputText @bind-Value="providerModel.BusinessName" class="form-control premium-input" placeholder="مثلاً: شركة النور للسباكة" />
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-12">
+                                                <label class="form-label fw-bold small">نبذة تعريفية (Bio)</label>
+                                                <InputTextArea @bind-Value="providerModel.Bio" class="form-control premium-input rounded-4" rows="4" placeholder="إحكي للعملاء أكتر عن خبراتك وخدماتك..." />
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold small">رقم هاتف العمل</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-solid fa-mobile-retro text-muted"></i></span>
+                                                    <InputText @bind-Value="providerModel.ContactNumber" class="form-control premium-input" placeholder="رقم متاح للتواصل الدائم" />
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold small">الموقع الإلكتروني</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-solid fa-globe text-muted"></i></span>
+                                                    <InputText @bind-Value="providerModel.WebsiteUrl" class="form-control premium-input" placeholder="https://..." />
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 mt-4">
+                                                <h6 class="fw-bold mb-3">روابط التواصل الاجتماعي</h6>
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <div class="input-group">
+                                                            <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-brands fa-instagram text-danger"></i></span>
+                                                            <InputText @bind-Value="providerModel.InstagramUrl" class="form-control premium-input" placeholder="Instagram Username" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="input-group">
+                                                            <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-brands fa-twitter text-info"></i></span>
+                                                            <InputText @bind-Value="providerModel.TwitterUrl" class="form-control premium-input" placeholder="Twitter Username" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 mt-5">
+                                                <button type="submit" class="btn btn-primary-premium btn-lg rounded-pill px-5 shadow-lg" disabled="@isLoading">
+                                                    @if (isLoading)
+                                                    {
+                                                        <span class="spinner-border spinner-border-sm me-2"></span>
+                                                        <span>جاري الحفظ...</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>حفظ بيانات العمل <i class="fa-solid fa-briefcase ms-2"></i></span>
+                                                    }
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </EditForm>
+                                </div>
+                            }
+
+                            <!-- Security Tab -->
+                            <div class="tab-pane fade" id="security" role="tabpanel" aria-labelledby="security-tab">
+                                <div class="text-center py-5">
+                                    <i class="fa-solid fa-lock fs-1 text-muted opacity-25 mb-4"></i>
+                                    <h5>تغيير كلمة المرور</h5>
+                                    <p class="text-muted small">سيتم توفير ميزة تغيير كلمة المرور في التحديث القادم.</p>
+                                    <button class="btn btn-outline-secondary rounded-pill px-4 mt-3" disabled>تغيير الآن</button>
+                                </div>
                             </div>
-                        </EditForm>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-footer p-4 bg-light border-top d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">إدارة الحساب</span>
+                        <button class="btn btn-link text-danger text-decoration-none fw-bold" @onclick="HandleDeleteAccount">
+                             <i class="fa-solid fa-trash-can me-2"></i>حذف الحساب
+                        </button>
                     </div>
                 </div>
             </div>
@@ -134,48 +263,68 @@
 
 <style>
     .settings-page {
-        background-color: #f8fafc;
-        min-height: 90vh;
+        background-color: #f1f5f9;
+        min-height: 100vh;
+    }
+
+    .custom-pills .nav-link {
+        color: #64748b;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .custom-pills .nav-link.active {
+        background: var(--theme-primary);
+        color: white;
+        border-color: var(--theme-primary);
+        box-shadow: 0 4px 12px var(--theme-glow);
     }
 
     .premium-input {
         padding: 0.85rem 1.25rem;
-        border-radius: 0 1rem 1rem 0 !important;
         border: 1px solid #e2e8f0;
-        background-color: #fff;
+        background-color: #f8fafc;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         font-size: 0.95rem;
+    }
+
+    .premium-input:focus {
+        border-color: var(--theme-primary);
+        background-color: #fff;
+        box-shadow: 0 0 0 4px var(--theme-glow);
+        transform: translateY(-1px);
+    }
+
+    .shadow-premium {
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+    }
+
+    .settings-header {
+        position: relative;
     }
 
     [dir="rtl"] .premium-input {
         border-radius: 1rem 0 0 1rem !important;
     }
-
-    [dir="rtl"] .rounded-start-4 {
+    
+    [dir="rtl"] .input-group-text {
         border-radius: 0 1rem 1rem 0 !important;
     }
 
-    .premium-input:focus {
-        border-color: var(--theme-primary);
-        box-shadow: 0 0 0 4px var(--theme-glow);
-        transform: translateY(-2px);
-    }
-
-    .shadow-premium {
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    }
-
     .animate-up {
-        animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     @@keyframes slideUp {
-        from { opacity: 0; transform: translateY(30px); }
+        from { opacity: 0; transform: translateY(40px); }
         to { opacity: 1; transform: translateY(0); }
     }
-
-    .profile-avatar-wrapper:hover .scale-hover {
-        transform: scale(1.1);
+    
+    .scale-hover:hover {
+        transform: scale(1.05);
     }
 </style>
 
@@ -183,7 +332,9 @@
     [Parameter][SupplyParameterFromQuery] public string? ReturnUrl { get; set; }
 
     private UpdateProfileRequest model = new();
+    private UpdateProviderProfileRequest providerModel = new();
     private bool isLoading = false;
+    private bool showImageInput = false;
     private List<GovernorateDto> governorates = new();
     private List<CityDto> cities = new();
     private int selectedGovernorateId;
@@ -199,14 +350,41 @@
             if (profileResult?.Success == true && profileResult.Data != null)
             {
                 var data = profileResult.Data;
-                model.FullName = AppState.UserName; // Or fetch from full data if available
+                model.FullName = data.FullName;
                 model.PhoneNumber = data.PhoneNumber ?? "";
                 model.CityId = data.CityId ?? 0;
+                model.ProfileImageUrl = data.ImageUrl;
 
                 if (data.GovernorateId.HasValue)
                 {
                     selectedGovernorateId = data.GovernorateId.Value;
                     cities = await Api.GetCitiesAsync(selectedGovernorateId);
+                }
+
+                if (AppState.IsProvider)
+                {
+                    var providerData = await Api.GetProviderProfileAsync(data.Id);
+                    if (providerData != null)
+                    {
+                        // Use dynamic or deserialize correctly
+                        try {
+                            // If it's a dynamic result from GetProviderProfileAsync
+                             var json = System.Text.Json.JsonSerializer.Serialize(providerData);
+                             var profile = System.Text.Json.JsonSerializer.Deserialize<Khadamat.BlazorUI.Pages.Profile.ProviderProfileDto>(json);
+                             if (profile != null)
+                             {
+                                 providerModel.BusinessName = profile.BusinessName;
+                                 providerModel.Bio = profile.Bio;
+                                 providerModel.ContactNumber = profile.ContactNumber;
+                                 providerModel.WebsiteUrl = profile.WebsiteUrl;
+                                 providerModel.InstagramUrl = profile.InstagramUrl;
+                                 providerModel.TwitterUrl = profile.TwitterUrl;
+                                 providerModel.Photo = profile.Photo;
+                             }
+                        } catch {
+                            // Handler for potential mapping issues
+                        }
+                    }
                 }
             }
         }
@@ -219,6 +397,8 @@
             isLoading = false;
         }
     }
+
+    private void ToggleImageInput() => showImageInput = !showImageInput;
 
     private async Task OnGovernorateChanged(ChangeEventArgs e)
     {
@@ -236,7 +416,7 @@
         }
     }
 
-    private async Task HandleSubmit()
+    private async Task HandleBasicSubmit()
     {
         isLoading = true;
         try
@@ -249,13 +429,9 @@
                 AppState.PhoneNumber = model.PhoneNumber;
                 AppState.CityId = model.CityId;
                 AppState.GovernorateId = selectedGovernorateId;
+                if(!string.IsNullOrEmpty(model.ProfileImageUrl)) AppState.UserImageUrl = model.ProfileImageUrl;
 
-                await JS.InvokeVoidAsync("alert", "تم تحديث بيانات ملفك الشخصي بنجاح");
-
-                if (!string.IsNullOrEmpty(ReturnUrl))
-                {
-                    Navigation.NavigateTo(ReturnUrl);
-                }
+                await JS.InvokeVoidAsync("alert", "تم تحديث البيانات الأساسية بنجاح");
             }
             else
             {
@@ -273,11 +449,42 @@
         }
     }
 
+    private async Task HandleProviderSubmit()
+    {
+        isLoading = true;
+        try
+        {
+            var result = await Api.UpdateProviderProfileAsync(providerModel);
+            if (result)
+            {
+                await JS.InvokeVoidAsync("alert", "تم تحديث بيانات العمل بنجاح");
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", "فشل تحديث بيانات العمل");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            await JS.InvokeVoidAsync("alert", "حدث خطأ أثناء حفظ بيانات العمل");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void HandleDeleteAccount()
+    {
+         // Logic for account deletion
+    }
+
     private void GoBack()
     {
         if (!string.IsNullOrEmpty(ReturnUrl))
             Navigation.NavigateTo(ReturnUrl);
         else
-            Navigation.NavigateTo("/");
+            Navigation.NavigateTo("/profile");
     }
 }

@@ -261,6 +261,12 @@ public class ApiClient
         return response.IsSuccessStatusCode;
     }
 
+    public async Task<bool> UpdateProviderProfileAsync(UpdateProviderProfileRequest dto)
+    {
+        var response = await _http.PutAsJsonAsync("api/v1/providers/profile", dto);
+        return response.IsSuccessStatusCode;
+    }
+
     // Admin
     public async Task<AdminStatsDto?> GetAdminStatsAsync()
     {

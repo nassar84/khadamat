@@ -84,6 +84,8 @@ public class UpdateProfileRequest
     [Required(ErrorMessage = "الرجاء اختيار المدينة")]
     [Range(1, int.MaxValue, ErrorMessage = "الرجاء اختيار المدينة")]
     public int CityId { get; set; }
+
+    public string? ProfileImageUrl { get; set; }
 }
 
 public class RefreshTokenRequest
