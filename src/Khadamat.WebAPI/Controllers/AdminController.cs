@@ -44,10 +44,12 @@ public class AdminController : ControllerBase
             {
                 Id = user.Id,
                 FullName = user.FullName,
-                Email = user.Email,
+                Email = user.Email ?? "",
+                PhoneNumber = user.PhoneNumber,
                 Role = role,
                 IsActive = user.IsActive,
                 IsVerified = user.IsVerified,
+                ProfileImageUrl = user.ProfileImageUrl,
                 CreatedAt = user.CreatedAt
             });
         }
@@ -83,6 +85,8 @@ public class AdminController : ControllerBase
             UserName = dto.Email,
             Email = dto.Email,
             FullName = dto.FullName,
+            PhoneNumber = dto.PhoneNumber,
+            CityId = dto.CityId,
             IsActive = true,
             IsVerified = true,
             CreatedAt = DateTime.UtcNow
@@ -102,10 +106,12 @@ public class AdminController : ControllerBase
         {
             Id = newUser.Id,
             FullName = newUser.FullName,
-            Email = newUser.Email,
+            Email = newUser.Email ?? "",
+            PhoneNumber = newUser.PhoneNumber,
             Role = roleToAssign,
             IsActive = newUser.IsActive,
             IsVerified = newUser.IsVerified,
+            ProfileImageUrl = newUser.ProfileImageUrl,
             CreatedAt = newUser.CreatedAt
         }));
     }
@@ -119,6 +125,10 @@ public class AdminController : ControllerBase
         user.FullName = dto.FullName;
         user.Email = dto.Email;
         user.UserName = dto.Email; // Standard identity behavior
+        user.PhoneNumber = dto.PhoneNumber;
+        user.IsActive = dto.IsActive;
+        user.IsVerified = dto.IsVerified;
+        user.ProfileImageUrl = dto.ProfileImageUrl;
 
         var result = await _userManager.UpdateAsync(user);
         if (!result.Succeeded) return BadRequest(result.Errors);

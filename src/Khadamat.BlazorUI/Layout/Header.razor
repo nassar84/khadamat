@@ -5,110 +5,114 @@
 @inject IAuthService AuthService
 @inject NavigationManager Navigation
 
-<header class="app-header">
-    <AuthorizeView>
-        <Authorized>
-            <div class="user-profile" @onclick="NavigateToProfile" style="cursor: pointer;">
-                <img src="@State.UserImageUrl" class="user-avatar" alt="User Profile" />
-                <div class="welcome-text">
-                    <span class="greet">أهلاً بك،</span>
-                    <span class="name">@context.User.Identity?.Name</span>
-                </div>
-            </div>
-        </Authorized>
-        <NotAuthorized>
-            <div class="user-profile">
-                <a href="/login" class="btn text-white fw-bold me-2">تسجيل الدخول</a>
-                <a href="/register" class="btn btn-sm btn-light" style="border-radius: 10px;">حساب جديد</a>
-            </div>
-        </NotAuthorized>
-    </AuthorizeView>
-    
-    <!-- Circular Theme Selector -->
-    <div class="theme-selector-wrapper">
-        <button class="theme-main-btn" @onclick="ToggleThemeMenu" title="تغيير المظهر">
-            <i class="fa-solid fa-palette"></i>
-        </button>
-        <div class="theme-options-arc @(isThemeMenuOpen ? "show" : "")" style="--total: 6;">
-            <button class="theme-opt-bubble @(State.CurrentTheme == "default" ? "active" : "")" 
-                    @onclick='() => HandleSetTheme("default")' 
-                    data-theme-name="default"
-                    style="--i: 0;" title="أورورا"></button>
-            <button class="theme-opt-bubble @(State.CurrentTheme == "sunset" ? "active" : "")" 
-                    @onclick='() => HandleSetTheme("sunset")' 
-                    data-theme-name="sunset"
-                    style="--i: 1;" title="غروب"></button>
-            <button class="theme-opt-bubble @(State.CurrentTheme == "ocean" ? "active" : "")" 
-                    @onclick='() => HandleSetTheme("ocean")' 
-                    data-theme-name="ocean"
-                    style="--i: 2;" title="محيطي"></button>
-            <button class="theme-opt-bubble @(State.CurrentTheme == "forest" ? "active" : "")" 
-                    @onclick='() => HandleSetTheme("forest")' 
-                    data-theme-name="forest"
-                    style="--i: 3;" title="غابة"></button>
-            <button class="theme-opt-bubble @(State.CurrentTheme == "lavender" ? "active" : "")" 
-                    @onclick='() => HandleSetTheme("lavender")' 
-                    data-theme-name="lavender"
-                    style="--i: 4;" title="لافندر"></button>
-            <button class="theme-opt-bubble @(State.CurrentTheme == "royal" ? "active" : "")" 
-                    @onclick='() => HandleSetTheme("royal")' 
-                    data-theme-name="royal"
-                    style="--i: 5;" title="ملكي"></button>
+<header class="app-header-premium">
+    <div class="header-start">
+        <div class="search-container-glass">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" placeholder="ابحث عن خدمات، صنايعية، أو طلبات..." class="search-input" />
+            <kbd class="search-shortcut">⌘K</kbd>
         </div>
     </div>
-    
-    <div class="header-actions">
-        <!-- Provider Actions -->
-        <AuthorizeView>
-            <Authorized>
-                @if (State.IsProvider)
-                {
-                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3 me-2 fw-bold" @onclick="ToggleProviderMode">
-                        <i class="fa-solid fa-repeat me-1"></i>
-                        @(State.IsProviderMode ? "العودة للعميل" : "لوحة المزود")
-                    </button>
-                }
-                else
-                {
-                     <a href="provider/create-request" class="btn btn-sm btn-primary rounded-pill px-3 me-2 fw-bold shadow-sm">
-                         <i class="fa-solid fa-briefcase me-1"></i>
-                         كن مزوداً
-                     </a>
-                }
-            </Authorized>
-        </AuthorizeView>
-        <!-- Admin Link if Admin -->
-         <AuthorizeView Roles="SystemAdmin,SuperAdmin">
-            <a href="/admin" class="btn btn-sm btn-warning rounded-pill px-3 fw-bold d-flex align-items-center gap-2 shadow-sm" title="لوحة التحكم">
-                 <i class="fa-solid fa-gauge-high"></i>
-                 <span class="d-none d-md-inline">لوحة المدير</span>
-            </a>
-        </AuthorizeView>
+
+    <div class="header-center d-none d-xl-flex">
+        <div class="status-indicator">
+            <div class="status-dot @(State.IsProviderMode ? "provider" : "client")"></div>
+            <span class="status-text">@(State.IsProviderMode ? "وضع المزود نشط" : "وضع العميل")</span>
+        </div>
+    </div>
+
+    <div class="header-end">
+        <!-- Theme Toggle -->
+        <div class="theme-minimal-toggle" @onclick="ToggleThemeMenu">
+            <i class="fa-solid fa-palette"></i>
+            <div class="theme-popover @(isThemeMenuOpen ? "show" : "")">
+                 <div class="theme-grid-minimal">
+                    <button class="theme-dot default @(State.CurrentTheme == "default" ? "active" : "")" @onclick='() => HandleSetTheme("default")' title="أورورا"></button>
+                    <button class="theme-dot sunset @(State.CurrentTheme == "sunset" ? "active" : "")" @onclick='() => HandleSetTheme("sunset")' title="غروب"></button>
+                    <button class="theme-dot ocean @(State.CurrentTheme == "ocean" ? "active" : "")" @onclick='() => HandleSetTheme("ocean")' title="محيطي"></button>
+                    <button class="theme-dot forest @(State.CurrentTheme == "forest" ? "active" : "")" @onclick='() => HandleSetTheme("forest")' title="غابة"></button>
+                    <button class="theme-dot lavender @(State.CurrentTheme == "lavender" ? "active" : "")" @onclick='() => HandleSetTheme("lavender")' title="لافندر"></button>
+                    <button class="theme-dot royal @(State.CurrentTheme == "royal" ? "active" : "")" @onclick='() => HandleSetTheme("royal")' title="ملكي"></button>
+                </div>
+            </div>
+        </div>
 
         <!-- Notifications -->
-        <button class="header-icon-btn position-relative" title="التنبيهات">
+        <div class="icon-action-btn notification-btn">
             <i class="fa-solid fa-bell"></i>
             @if (State.NotificationCount > 0)
             {
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; padding: 0.25rem 0.4rem;">
-                    @State.NotificationCount
-                </span>
+                <span class="pulse-badge">@State.NotificationCount</span>
             }
-        </button>
+        </div>
 
-        <!-- Logout Button -->
+        <!-- User Dropdown -->
         <AuthorizeView>
             <Authorized>
-                <button class="header-icon-btn" @onclick="HandleLogout" title="تسجيل الخروج">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                </button>
+                <div class="user-dropdown-wrapper">
+                    <div class="user-trigger" @onclick="ToggleUserMenu">
+                        <div class="avatar-wrapper">
+                            <img src="@State.UserImageUrl" class="header-avatar-img" alt="User" />
+                            <div class="online-indicator"></div>
+                        </div>
+                        <div class="user-meta d-none d-md-flex">
+                            <span class="user-name-txt">@context.User.Identity?.Name</span>
+                            <span class="user-role-txt">@(State.IsProvider ? "مزود خدمة" : "عميل")</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down ms-2 chevron-icon @(isUserMenuOpen ? "rotate" : "")"></i>
+                    </div>
+
+                    <div class="user-glass-menu @(isUserMenuOpen ? "show" : "")">
+                        <div class="menu-header">
+                            <img src="@State.UserImageUrl" class="menu-avatar" />
+                            <div class="menu-user-info">
+                                <div class="menu-name">@context.User.Identity?.Name</div>
+                                <div class="menu-email">@context.User.FindFirst("email")?.Value</div>
+                            </div>
+                        </div>
+                        <div class="menu-divider"></div>
+                        <a href="/profile" class="menu-link" @onclick="CloseMenus">
+                            <i class="fa-solid fa-circle-user"></i>
+                            <span>الملف الشخصي</span>
+                        </a>
+                        <a href="/settings" class="menu-link" @onclick="CloseMenus">
+                            <i class="fa-solid fa-gear"></i>
+                            <span>الإعدادات</span>
+                        </a>
+                        @if (State.IsProvider)
+                        {
+                            <div class="menu-link mode-switch" @onclick="ToggleProviderMode">
+                                <i class="fa-solid fa-repeat"></i>
+                                <span>@(State.IsProviderMode ? "تبديل لوضع العميل" : "تبديل لوضع المزود")</span>
+                            </div>
+                        }
+                        <AuthorizeView Roles="SystemAdmin,SuperAdmin" Context="adminContext">
+                            <a href="/admin" class="menu-link admin-link" @onclick="CloseMenus">
+                                <i class="fa-solid fa-shield-halved"></i>
+                                <span>لوحة الإدارة</span>
+                            </a>
+                        </AuthorizeView>
+                        <div class="menu-divider"></div>
+                        <div class="menu-link logout-link" @onclick="HandleLogout">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span>تسجيل الخروج</span>
+                        </div>
+                    </div>
+                </div>
             </Authorized>
+            <NotAuthorized>
+                <div class="auth-actions-minimal">
+                    <a href="/login" class="login-link-minimal">تسجيل الدخول</a>
+                    <a href="/register" class="register-btn-premium">إنشاء حساب</a>
+                </div>
+            </NotAuthorized>
         </AuthorizeView>
     </div>
 </header>
 
 @code {
     private bool isThemeMenuOpen = false;
+    private bool isUserMenuOpen = false;
 
     protected override void OnInitialized()
     {
@@ -119,7 +123,6 @@
     {
         if (firstRender)
         {
-            // Apply initial theme
             await JSRuntime.InvokeVoidAsync("document.body.setAttribute", "data-theme", State.CurrentTheme);
         }
     }
@@ -129,7 +132,23 @@
         State.OnChange -= StateHasChanged;
     }
 
-    private void ToggleThemeMenu() => isThemeMenuOpen = !isThemeMenuOpen;
+    private void ToggleThemeMenu() 
+    {
+        isThemeMenuOpen = !isThemeMenuOpen;
+        if (isThemeMenuOpen) isUserMenuOpen = false;
+    }
+
+    private void ToggleUserMenu() 
+    {
+        isUserMenuOpen = !isUserMenuOpen;
+        if (isUserMenuOpen) isThemeMenuOpen = false;
+    }
+
+    private void CloseMenus()
+    {
+        isThemeMenuOpen = false;
+        isUserMenuOpen = false;
+    }
 
     private async Task HandleSetTheme(string theme)
     {
@@ -140,17 +159,14 @@
 
     private async Task HandleLogout()
     {
+        CloseMenus();
         await AuthService.Logout();
         Navigation.NavigateTo("/login");
     }
 
-    private void NavigateToProfile()
-    {
-        Navigation.NavigateTo("/profile");
-    }
-
     private void ToggleProviderMode()
     {
+        CloseMenus();
         State.IsProviderMode = !State.IsProviderMode;
         if (State.IsProviderMode) 
         {
@@ -162,3 +178,4 @@
         }
     }
 }
+

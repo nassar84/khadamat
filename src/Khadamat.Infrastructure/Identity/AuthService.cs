@@ -138,6 +138,10 @@ public class AuthService : IAuthService
         user.PhoneNumber = request.PhoneNumber;
         user.CityId = request.CityId;
         user.ProfileImageUrl = request.ProfileImageUrl;
+        user.Bio = request.Bio;
+        user.WebsiteUrl = request.WebsiteUrl;
+        user.InstagramUrl = request.InstagramUrl;
+        user.TwitterUrl = request.TwitterUrl;
 
         var result = await _userManager.UpdateAsync(user);
         if (!result.Succeeded)
@@ -181,7 +185,11 @@ public class AuthService : IAuthService
             PhoneNumberConfirmed = user.PhoneNumberConfirmed,
             CreatedAt = user.CreatedAt,
             IsActive = user.IsActive,
-            ImageUrl = user.ProfileImageUrl
+            ImageUrl = user.ProfileImageUrl,
+            Bio = user.Bio,
+            WebsiteUrl = user.WebsiteUrl,
+            InstagramUrl = user.InstagramUrl,
+            TwitterUrl = user.TwitterUrl
         }, message);
     }
 

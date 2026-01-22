@@ -64,7 +64,7 @@
                     {
                         <tr>
                             <td class="ps-4">
-                                <div class="dropdown">
+                <div class="dropdown">
                                     <button class="btn btn-icon btn-light" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="fa-solid fa-ellipsis-vertical"></i>
                                     </button>
@@ -81,17 +81,11 @@
                                                 تغيير الدور
                                             </button>
                                         </li>
-                                        <li>
-                                            <button class="dropdown-item py-2" @onclick="() => OpenPermissions(user)">
-                                                <i class="fa-solid fa-key me-2 text-success"></i>
-                                                الصلاحيات
-                                            </button>
-                                        </li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
                                             <button class="dropdown-item py-2 text-danger" @onclick="() => ConfirmDelete(user)">
                                                 <i class="fa-solid fa-trash-can me-2"></i>
-                                                حذف
+                                                حذف المستخدم
                                             </button>
                                         </li>
                                     </ul>
@@ -99,9 +93,16 @@
                             </td>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <div class="avatar-circle me-3">
-                                        @user.FullName.Substring(0, Math.Min(2, user.FullName.Length)).ToUpper()
-                                    </div>
+                                    @if (!string.IsNullOrEmpty(user.ProfileImageUrl))
+                                    {
+                                        <img src="@user.ProfileImageUrl" class="avatar-circle me-3" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" />
+                                    }
+                                    else
+                                    {
+                                        <div class="avatar-circle me-3">
+                                            @user.FullName.Substring(0, Math.Min(2, user.FullName.Length)).ToUpper()
+                                        </div>
+                                    }
                                     <div>
                                         <div class="fw-bold">@user.FullName</div>
                                         <div class="small text-muted">@user.Email</div>
@@ -109,6 +110,7 @@
                                 </div>
                             </td>
                             <td>
+                                <div class="small fw-bold">@user.PhoneNumber</div>
                                 <span class="badge rounded-pill @GetRoleBadgeClass(user.Role)">@GetRoleName(user.Role)</span>
                             </td>
                             <td>
@@ -116,7 +118,7 @@
                                     <input class="form-check-input ms-0" type="checkbox" checked="@user.IsActive"
                                            @onchange="() => ToggleUserStatus(user)">
                                     <span class="ms-2 small @(user.IsActive ? "text-success" : "text-danger")">
-                                        @(user.IsActive ? "نشط" : "غير نشط")
+                                        @(user.IsActive ? "نشط" : "معطل")
                                     </span>
                                 </div>
                             </td>
@@ -133,7 +135,7 @@
 @if (showAddUserModal)
 {
     <div class="modal-overlay">
-        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop" style="max-width: 500px;">
+        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop" style="max-width: 550px; max-height: 90vh; overflow-y: auto;">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h5 class="fw-bold mb-0">إضافة مستخدم جديد</h5>
                 <button class="btn-close" @onclick="() => showAddUserModal = false"></button>
@@ -144,37 +146,55 @@
                 <div class="alert alert-danger small border-0 mb-3">@addUserError</div>
             }
 
-            <div class="mb-3">
-                <label class="form-label small fw-bold">الاسم الكامل</label>
-                <input type="text" class="form-control rounded-pill px-4" @bind="newUserModel.FullName" placeholder="أدخل الاسم الكامل">
+            <div class="row g-3">
+                <div class="col-md-12">
+                    <label class="form-label small fw-bold">الاسم الكامل</label>
+                    <input type="text" class="form-control rounded-pill px-4" @bind="newUserModel.FullName" placeholder="أدخل الاسم الكامل">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">البريد الإلكتروني</label>
+                    <input type="email" class="form-control rounded-pill px-4" @bind="newUserModel.Email" placeholder="example@domain.com">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">رقم الهاتف</label>
+                    <input type="text" class="form-control rounded-pill px-4" @bind="newUserModel.PhoneNumber" placeholder="01xxxxxxxxx">
+                </div>
+
+                <div class="col-md-12">
+                    <label class="form-label small fw-bold">كلمة المرور</label>
+                    <input type="password" class="form-control rounded-pill px-4" @bind="newUserModel.Password" placeholder="أدخل كلمة المرور">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">الدور الوظيفي</label>
+                    <select class="form-select rounded-pill px-4" @bind="newUserModel.Role">
+                        <option value="User">مستخدم</option>
+                        <option value="SystemAdmin">مدير نظام</option>
+                        @if (State.UserRole == "SuperAdmin")
+                        {
+                            <option value="SuperAdmin">مدير خارق</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">المدينة</label>
+                    <select class="form-select rounded-pill px-4" @bind="newUserModel.CityId">
+                        <option value="">اختر المدينة...</option>
+                        @foreach (var city in cities)
+                        {
+                            <option value="@city.Id">@city.NameAr</option>
+                        }
+                    </select>
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label small fw-bold">البريد الإلكتروني</label>
-                <input type="email" class="form-control rounded-pill px-4" @bind="newUserModel.Email" placeholder="example@domain.com">
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label small fw-bold">كلمة المرور</label>
-                <input type="password" class="form-control rounded-pill px-4" @bind="newUserModel.Password" placeholder="أدخل كلمة المرور (6 أحرف على الأقل)">
-            </div>
-
-            <div class="mb-4">
-                <label class="form-label small fw-bold">الدور الوظيفي</label>
-                <select class="form-select rounded-pill px-4" @bind="newUserModel.Role">
-                    <option value="User">مستخدم</option>
-                    <option value="SystemAdmin">مدير نظام</option>
-                    @if (State.UserRole == "SuperAdmin")
-                    {
-                        <option value="SuperAdmin">مدير خارق</option>
-                    }
-                </select>
-            </div>
-
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 mt-4">
                 <button class="btn btn-primary flex-grow-1 rounded-pill" @onclick="SaveNewUser" disabled="@isSaving">
                     @if (isSaving) { <span class="spinner-border spinner-border-sm me-2"></span> }
-                    إضافة المستخدم
+                    إنشاء الحساب
                 </button>
                 <button class="btn btn-light flex-grow-1 rounded-pill" @onclick="() => showAddUserModal = false" disabled="@isSaving">إلغاء</button>
             </div>
@@ -186,37 +206,66 @@
 @if (selectedUser != null && showEditModal)
 {
     <div class="modal-overlay">
-        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop" style="max-width: 500px;">
+        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop" style="max-width: 550px; max-height: 90vh; overflow-y: auto;">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="fw-bold mb-0">تعديل المستخدم</h5>
+                <h5 class="fw-bold mb-0">تعديل بيانات المستخدم</h5>
                 <button class="btn-close" @onclick="() => showEditModal = false"></button>
             </div>
             
-            <div class="mb-3">
-                <label class="form-label small fw-bold">الاسم الكامل</label>
-                <input type="text" class="form-control rounded-pill px-4" @bind="editUserModel.FullName">
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label small fw-bold">البريد الإلكتروني</label>
-                <input type="email" class="form-control rounded-pill px-4" @bind="editUserModel.Email" readonly>
-                <div class="x-small text-muted mt-1 ps-2">البريد الإلكتروني للقراءة فقط حالياً.</div>
-            </div>
-
-            <div class="mb-4">
-                <label class="form-label small fw-bold">الدور الوظيفي</label>
-                <select class="form-select rounded-pill px-4" @bind="editUserModel.Role">
-                    <option value="User">مستخدم</option>
-                    <option value="SystemAdmin">مدير نظام</option>
-                    @if (State.UserRole == "SuperAdmin")
+            <div class="row g-3">
+                <div class="col text-center mb-3">
+                    <div class="position-relative d-inline-block">
+                        <img src="@(string.IsNullOrEmpty(editUserModel.ProfileImageUrl) ? "https://i.pravatar.cc/150" : editUserModel.ProfileImageUrl)" 
+                             class="rounded-circle border border-4 border-white shadow-sm" width="100" height="100" style="object-fit: cover;" />
+                        <button class="btn btn-sm btn-primary rounded-circle position-absolute bottom-0 end-0" @onclick="() => showImageEdit = !showImageEdit">
+                            <i class="fa-solid fa-camera"></i>
+                        </button>
+                    </div>
+                    @if (showImageEdit)
                     {
-                        <option value="SuperAdmin">مدير خارق</option>
+                        <div class="mt-2 animate-fade-in">
+                            <input type="text" class="form-control form-control-sm rounded-pill" @bind="editUserModel.ProfileImageUrl" placeholder="رابط الصورة الجديد..." />
+                        </div>
                     }
-                </select>
+                </div>
+
+                <div class="col-md-12">
+                    <label class="form-label small fw-bold">الاسم الكامل</label>
+                    <input type="text" class="form-control rounded-pill px-4" @bind="editUserModel.FullName">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">البريد الإلكتروني</label>
+                    <input type="email" class="form-control rounded-pill px-4" @bind="editUserModel.Email" readonly>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">رقم الهاتف</label>
+                    <input type="text" class="form-control rounded-pill px-4" @bind="editUserModel.PhoneNumber">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">الدور الوظيفي</label>
+                    <select class="form-select rounded-pill px-4" @bind="editUserModel.Role">
+                        <option value="User">مستخدم</option>
+                        <option value="SystemAdmin">مدير نظام</option>
+                        @if (State.UserRole == "SuperAdmin")
+                        {
+                            <option value="SuperAdmin">مدير خارق</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-6 d-flex align-items-end mb-2">
+                    <div class="form-check form-switch w-100 bg-light p-2 rounded-pill ps-5">
+                        <input class="form-check-input ms-1" type="checkbox" @bind="editUserModel.IsActive" id="activeSwitch">
+                        <label class="form-check-label small fw-bold" for="activeSwitch">حساب نشط</label>
+                    </div>
+                </div>
             </div>
 
-            <div class="d-flex gap-2">
-                <button class="btn btn-primary flex-grow-1 rounded-pill" @onclick="SaveUserChanges">
+            <div class="d-flex gap-2 mt-4">
+                <button class="btn btn-primary flex-grow-1 rounded-pill" @onclick="SaveUserChanges" disabled="@isSaving">
                     @if (isSaving) { <span class="spinner-border spinner-border-sm me-2"></span> }
                     حفظ التغييرات
                 </button>
@@ -225,6 +274,7 @@
         </div>
     </div>
 }
+
 
 <!-- Permissions Modal -->
 @if (selectedUser != null && showPermissionsModal)
@@ -450,18 +500,23 @@
     }
 
     private bool showEditModal = false;
+    private bool showImageEdit = false;
     private bool isSaving = false;
     private UserDto editUserModel = new();
 
     private void OpenEditUser(UserDto user)
     {
         selectedUser = user;
+        showImageEdit = false;
         editUserModel = new UserDto
         {
             Id = user.Id,
             FullName = user.FullName,
             Email = user.Email,
-            Role = user.Role
+            PhoneNumber = user.PhoneNumber,
+            Role = user.Role,
+            IsActive = user.IsActive,
+            ProfileImageUrl = user.ProfileImageUrl
         };
         showEditModal = true;
     }

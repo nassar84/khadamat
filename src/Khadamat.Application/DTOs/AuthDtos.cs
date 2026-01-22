@@ -68,6 +68,10 @@ public class AuthResponse
     public string? GovernorateName { get; set; }
     public string? PhoneNumber { get; set; }
     public string? ImageUrl { get; set; }
+    public string? Bio { get; set; }
+    public string? WebsiteUrl { get; set; }
+    public string? InstagramUrl { get; set; }
+    public string? TwitterUrl { get; set; }
 }
 
 public class UpdateProfileRequest
@@ -86,6 +90,10 @@ public class UpdateProfileRequest
     public int CityId { get; set; }
 
     public string? ProfileImageUrl { get; set; }
+    public string? Bio { get; set; }
+    public string? WebsiteUrl { get; set; }
+    public string? InstagramUrl { get; set; }
+    public string? TwitterUrl { get; set; }
 }
 
 public class RefreshTokenRequest
@@ -109,5 +117,7 @@ public class CreateUserDto
     [MinLength(6, ErrorMessage = "كلمة المرور يجب أن لا تقل عن 6 أحرف")]
     public string Password { get; set; } = string.Empty;
 
+    public string? PhoneNumber { get; set; }
+    public int? CityId { get; set; }
     public string Role { get; set; } = "User";
 }
