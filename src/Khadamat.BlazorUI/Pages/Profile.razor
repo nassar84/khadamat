@@ -70,7 +70,11 @@
                     }
 
                     <!-- Bio -->
-                    @if (!string.IsNullOrEmpty(profileData?.Bio))
+                    @if (!string.IsNullOrEmpty(profile.Bio))
+                    {
+                        <p class="text-muted small mt-3">@profile.Bio</p>
+                    }
+                    else if (!string.IsNullOrEmpty(profileData?.Bio))
                     {
                         <p class="text-muted small mt-3">@profileData.Bio</p>
                     }
@@ -125,7 +129,7 @@
                         </div>
                     }
 
-                    @if (!string.IsNullOrEmpty(profileData?.ContactNumber))
+                    @if (!string.IsNullOrEmpty(profileData?.ContactNumber) && profileData.ContactNumber != profile.PhoneNumber)
                     {
                         <div class="contact-item">
                             <i class="fa-solid fa-mobile-screen text-muted"></i>
@@ -151,30 +155,51 @@
                 </div>
 
                 <!-- Social Links -->
-                @if (!string.IsNullOrEmpty(profileData?.WebsiteUrl) || 
-                     !string.IsNullOrEmpty(profileData?.InstagramUrl) || 
-                     !string.IsNullOrEmpty(profileData?.TwitterUrl))
+                @if (!string.IsNullOrEmpty(profile.WebsiteUrl) || 
+                     !string.IsNullOrEmpty(profile.InstagramUrl) || 
+                     !string.IsNullOrEmpty(profile.TwitterUrl) ||
+                     !string.IsNullOrEmpty(profileData?.WebsiteUrl))
                 {
                     <div class="glass-card p-4 mt-3">
                         <h6 class="fw-bold mb-3">
                             <i class="fa-solid fa-share-nodes me-2 text-primary"></i>روابط التواصل
                         </h6>
                         <div class="d-flex gap-2">
-                            @if (!string.IsNullOrEmpty(profileData.WebsiteUrl))
+                            @if (!string.IsNullOrEmpty(profile.WebsiteUrl))
+                            {
+                                <a href="@profile.WebsiteUrl" target="_blank" class="social-link">
+                                    <i class="fa-solid fa-globe"></i>
+                                </a>
+                            }
+                            else if (!string.IsNullOrEmpty(profileData?.WebsiteUrl))
                             {
                                 <a href="@profileData.WebsiteUrl" target="_blank" class="social-link">
                                     <i class="fa-solid fa-globe"></i>
                                 </a>
                             }
-                            @if (!string.IsNullOrEmpty(profileData.InstagramUrl))
+
+                            @if (!string.IsNullOrEmpty(profile.InstagramUrl))
                             {
-                                <a href="@profileData.InstagramUrl" target="_blank" class="social-link">
+                                <a href="https://instagram.com/@profile.InstagramUrl" target="_blank" class="social-link">
                                     <i class="fa-brands fa-instagram"></i>
                                 </a>
                             }
-                            @if (!string.IsNullOrEmpty(profileData.TwitterUrl))
+                            else if (!string.IsNullOrEmpty(profileData?.InstagramUrl))
                             {
-                                <a href="@profileData.TwitterUrl" target="_blank" class="social-link">
+                                <a href="https://instagram.com/@profileData.InstagramUrl" target="_blank" class="social-link">
+                                    <i class="fa-brands fa-instagram"></i>
+                                </a>
+                            }
+
+                            @if (!string.IsNullOrEmpty(profile.TwitterUrl))
+                            {
+                                <a href="https://twitter.com/@profile.TwitterUrl" target="_blank" class="social-link">
+                                    <i class="fa-brands fa-twitter"></i>
+                                </a>
+                            }
+                            else if (!string.IsNullOrEmpty(profileData?.TwitterUrl))
+                            {
+                                <a href="https://twitter.com/@profileData.TwitterUrl" target="_blank" class="social-link">
                                     <i class="fa-brands fa-twitter"></i>
                                 </a>
                             }
