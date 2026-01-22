@@ -64,7 +64,7 @@ public class ServicesController : ControllerBase
     }
 
     [HttpGet("myservices")]
-    [Authorize(Policy = "RequireProvider")]
+    [Authorize] // Changed from RequireProvider to allow applicants to see their pending services
     public async Task<IActionResult> GetMyServices([FromQuery] int page = 1)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

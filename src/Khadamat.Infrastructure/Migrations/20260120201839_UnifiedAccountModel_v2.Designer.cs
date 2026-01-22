@@ -4,6 +4,7 @@ using Khadamat.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Khadamat.Infrastructure.Migrations
 {
     [DbContext(typeof(KhadamatDbContext))]
-    partial class KhadamatDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260120201839_UnifiedAccountModel_v2")]
+    partial class UnifiedAccountModel_v2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -32,10 +35,6 @@ namespace Khadamat.Infrastructure.Migrations
 
                     b.Property<int?>("ActivityID")
                         .HasColumnType("int");
-
-                    b.Property<string>("AdType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("Approved")
                         .HasColumnType("bit");
@@ -101,36 +100,6 @@ namespace Khadamat.Infrastructure.Migrations
                     b.Property<int?>("SubCategoryID")
                         .HasColumnType("int");
 
-                    b.Property<string>("TargetCities")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TargetDays")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TargetGovernorates")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TargetKeywords")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TargetMonths")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TargetServices")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<TimeOnly?>("TargetTimeEnd")
-                        .HasColumnType("time");
-
-                    b.Property<TimeOnly?>("TargetTimeStart")
-                        .HasColumnType("time");
-
-                    b.Property<string>("TargetUserGender")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TextContent")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -142,9 +111,6 @@ namespace Khadamat.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserCreated")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("VideoUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Views")

@@ -121,7 +121,7 @@ public class CategoriesController : ControllerBase
     }
     // --- Main Categories ---
     [HttpPost("main")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "RequireAdmin")]
     public async Task<ActionResult<ApiResponse<int>>> CreateMainCategory(MainCategoryDto dto)
     {
         var category = new MainCategory(dto.Name, dto.Icon, dto.Color, dto.Order);
@@ -131,7 +131,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpPut("main/{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "RequireAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> UpdateMainCategory(int id, MainCategoryDto dto)
     {
         var category = await _context.MainCategories.FindAsync(id);
@@ -143,7 +143,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpDelete("main/{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "RequireAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> DeleteMainCategory(int id)
     {
         var category = await _context.MainCategories.FindAsync(id);
@@ -156,7 +156,7 @@ public class CategoriesController : ControllerBase
 
     // --- Categories ---
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "RequireAdmin")]
     public async Task<ActionResult<ApiResponse<int>>> CreateCategory(CategoryDto dto)
     {
         var category = new Category(dto.Name, dto.MainCategoryId);
@@ -166,7 +166,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "RequireAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> UpdateCategory(int id, CategoryDto dto)
     {
         var category = await _context.Categories.FindAsync(id);
@@ -178,7 +178,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "RequireAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> DeleteCategory(int id)
     {
         var category = await _context.Categories.FindAsync(id);
@@ -191,7 +191,7 @@ public class CategoriesController : ControllerBase
 
     // --- SubCategories ---
     [HttpPost("sub")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "RequireAdmin")]
     public async Task<ActionResult<ApiResponse<int>>> CreateSubCategory(SubCategoryDto dto)
     {
         var sub = new SubCategory(dto.Name, dto.CategoryId);
@@ -201,7 +201,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpPut("sub/{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "RequireAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> UpdateSubCategory(int id, SubCategoryDto dto)
     {
         var sub = await _context.SubCategories.FindAsync(id);
@@ -213,7 +213,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpDelete("sub/{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "RequireAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> DeleteSubCategory(int id)
     {
         var sub = await _context.SubCategories.FindAsync(id);

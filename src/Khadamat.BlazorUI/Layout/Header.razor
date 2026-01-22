@@ -88,9 +88,12 @@
         <!-- Notifications -->
         <button class="header-icon-btn position-relative" title="التنبيهات">
             <i class="fa-solid fa-bell"></i>
-            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; padding: 0.25rem 0.4rem;">
-                3
-            </span>
+            @if (State.NotificationCount > 0)
+            {
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; padding: 0.25rem 0.4rem;">
+                    @State.NotificationCount
+                </span>
+            }
         </button>
 
         <!-- Logout Button -->

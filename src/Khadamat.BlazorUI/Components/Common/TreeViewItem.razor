@@ -1,0 +1,104 @@
+@typeparam TItem
+
+<div class="tree-item-wrapper">
+    <div class="tree-item-header d-flex align-items-center justify-content-between p-2 rounded-3 @(IsSelected ? "bg-primary bg-opacity-10" : "hover-bg")" 
+         @onclick="ToggleExpand">
+        <div class="d-flex align-items-center gap-2 flex-grow-1 cursor-pointer">
+            <span class="expand-icon @(HasChildren ? "" : "invisible")">
+                <i class="fa-solid @(isExpanded ? "fa-chevron-down" : "fa-chevron-left") x-small text-muted"></i>
+            </span>
+            
+            @if (IconTemplate != null)
+            {
+                @IconTemplate(Item)
+            }
+            else if (!string.IsNullOrEmpty(IconClass))
+            {
+                <i class="@IconClass text-primary opacity-75"></i>
+            }
+            
+            <span class="tree-item-text @(IsSelected ? "fw-bold text-primary" : "")">
+                @TextSelector(Item)
+            </span>
+            
+            @if (BadgeTemplate != null)
+            {
+                @BadgeTemplate(Item)
+            }
+        </div>
+        
+        <div class="tree-item-actions d-flex gap-1">
+            @if (ActionsTemplate != null)
+            {
+                @ActionsTemplate(Item)
+            }
+        </div>
+    </div>
+    
+    @if (isExpanded && HasChildren)
+    {
+        <div class="tree-children ms-4 mt-1 border-start ps-2">
+            @foreach (var child in ChildrenSelector(Item))
+            {
+                <TreeViewItem TItem="TItem" 
+                             Item="child" 
+                             TextSelector="TextSelector"
+                             ChildrenSelector="ChildrenSelector"
+                             IconTemplate="IconTemplate"
+                             BadgeTemplate="BadgeTemplate"
+                             ActionsTemplate="ActionsTemplate"
+                             IsInitiallyExpanded="false" />
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .tree-item-header {
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+    .hover-bg:hover {
+        background: rgba(0,0,0,0.03);
+    }
+    .expand-icon {
+        width: 16px;
+        display: inline-flex;
+        justify-content: center;
+    }
+    .x-small {
+        font-size: 0.7rem;
+    }
+    .tree-children {
+        border-color: rgba(0,0,0,0.08) !important;
+    }
+    .cursor-pointer {
+        cursor: pointer;
+    }
+</style>
+
+@code {
+    [Parameter] public TItem Item { get; set; } = default!;
+    [Parameter] public Func<TItem, string> TextSelector { get; set; } = x => x?.ToString() ?? "";
+    [Parameter] public Func<TItem, IEnumerable<TItem>> ChildrenSelector { get; set; } = x => Enumerable.Empty<TItem>();
+    [Parameter] public RenderFragment<TItem>? IconTemplate { get; set; }
+    [Parameter] public RenderFragment<TItem>? BadgeTemplate { get; set; }
+    [Parameter] public RenderFragment<TItem>? ActionsTemplate { get; set; }
+    [Parameter] public string? IconClass { get; set; }
+    [Parameter] public bool IsSelected { get; set; }
+    [Parameter] public bool IsInitiallyExpanded { get; set; }
+
+    private bool isExpanded;
+    private bool HasChildren => ChildrenSelector(Item)?.Any() ?? false;
+
+    protected override void OnInitialized()
+    {
+        isExpanded = IsInitiallyExpanded;
+    }
+
+    private void ToggleExpand()
+    {
+        if (HasChildren)
+            isExpanded = !isExpanded;
+    }
+}

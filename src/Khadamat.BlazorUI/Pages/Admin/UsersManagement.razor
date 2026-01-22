@@ -1,10 +1,13 @@
-@page "/admin/users"
+@page "/admin/usersmanagement"
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
 @using Khadamat.BlazorUI.Services.Admin
+@using Khadamat.BlazorUI.State
 @inject ApiClient Api
 @inject IAdminService AdminService
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
+@inject AppState State
 
 <div class="px-3 pt-3 pb-5">
     <!-- Header -->
@@ -48,11 +51,11 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light">
                     <tr>
+                        <th class="ps-4" style="width: 80px;">إجراءات</th>
                         <th class="ps-4">المستخدم</th>
                         <th>الدور</th>
                         <th>الحالة</th>
                         <th>تاريخ الانضمام</th>
-                        <th class="text-center">إجراءات</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -60,13 +63,47 @@
                     {
                         <tr>
                             <td class="ps-4">
+                                <div class="dropdown">
+                                    <button class="btn btn-icon btn-light" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu shadow-lg border-0 rounded-3">
+                                        <li>
+                                            <button class="dropdown-item py-2" @onclick="() => OpenEditUser(user)">
+                                                <i class="fa-solid fa-user-pen me-2 text-primary"></i>
+                                                تعديل البيانات
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <button class="dropdown-item py-2" @onclick="() => OpenChangeRole(user)">
+                                                <i class="fa-solid fa-user-shield me-2 text-warning"></i>
+                                                تغيير الدور
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <button class="dropdown-item py-2" @onclick="() => OpenPermissions(user)">
+                                                <i class="fa-solid fa-key me-2 text-success"></i>
+                                                الصلاحيات
+                                            </button>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <button class="dropdown-item py-2 text-danger" @onclick="() => ConfirmDelete(user)">
+                                                <i class="fa-solid fa-trash-can me-2"></i>
+                                                حذف
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                            <td>
                                 <div class="d-flex align-items-center">
                                     <div class="avatar-circle me-3">
-                                        <img src="https://ui-avatars.com/api/?name=@user.FullName&background=random" class="rounded-circle" width="40" height="40" />
+                                        @user.FullName.Substring(0, Math.Min(2, user.FullName.Length)).ToUpper()
                                     </div>
                                     <div>
-                                        <div class="fw-bold mb-0">@user.FullName</div>
-                                        <div class="x-small text-muted">@user.Email</div>
+                                        <div class="fw-bold">@user.FullName</div>
+                                        <div class="small text-muted">@user.Email</div>
                                     </div>
                                 </div>
                             </td>
@@ -74,25 +111,15 @@
                                 <span class="badge rounded-pill @GetRoleBadgeClass(user.Role)">@GetRoleName(user.Role)</span>
                             </td>
                             <td>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" checked="@user.IsActive" @onchange="() => ToggleUserStatus(user)">
-                                    <span class="small @(user.IsActive ? "text-success" : "text-danger")">@(user.IsActive ? "نشط" : "معطل")</span>
+                                <div class="form-check form-switch p-0">
+                                    <input class="form-check-input ms-0" type="checkbox" checked="@user.IsActive"
+                                           @onchange="() => ToggleUserStatus(user)">
+                                    <span class="ms-2 small @(user.IsActive ? "text-success" : "text-danger")">
+                                        @(user.IsActive ? "نشط" : "غير نشط")
+                                    </span>
                                 </div>
                             </td>
                             <td class="small text-muted">@user.CreatedAt.ToString("dd/MM/yyyy")</td>
-                            <td class="text-center">
-                                <div class="dropdown">
-                                    <button class="btn btn-icon" type="button" data-bs-toggle="dropdown">
-                                        <i class="fa-solid fa-ellipsis-vertical"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3">
-                                        <li><button class="dropdown-item py-2" @onclick="() => OpenPermissions(user)"><i class="fa-solid fa-shield-halved me-2 text-primary"></i> الصلاحيات</button></li>
-                                        <li><button class="dropdown-item py-2" @onclick="() => OpenChangeRole(user)"><i class="fa-solid fa-user-tag me-2 text-warning"></i> تغيير الدور</button></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><button class="dropdown-item py-2 text-danger" @onclick="() => ConfirmDelete(user)"><i class="fa-solid fa-trash me-2"></i> حذف</button></li>
-                                    </ul>
-                                </div>
-                            </td>
                         </tr>
                     }
                 </tbody>
@@ -101,16 +128,117 @@
     </div>
 </div>
 
-<!-- Simple Modals -->
+<!-- Add New User Modal -->
+@if (showAddUserModal)
+{
+    <div class="modal-overlay">
+        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop" style="max-width: 500px;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0">إضافة مستخدم جديد</h5>
+                <button class="btn-close" @onclick="() => showAddUserModal = false"></button>
+            </div>
+            
+            @if (!string.IsNullOrEmpty(addUserError))
+            {
+                <div class="alert alert-danger small border-0 mb-3">@addUserError</div>
+            }
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold">الاسم الكامل</label>
+                <input type="text" class="form-control rounded-pill px-4" @bind="newUserModel.FullName" placeholder="أدخل الاسم الكامل">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold">البريد الإلكتروني</label>
+                <input type="email" class="form-control rounded-pill px-4" @bind="newUserModel.Email" placeholder="example@domain.com">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold">كلمة المرور</label>
+                <input type="password" class="form-control rounded-pill px-4" @bind="newUserModel.Password" placeholder="أدخل كلمة المرور (6 أحرف على الأقل)">
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label small fw-bold">الدور الوظيفي</label>
+                <select class="form-select rounded-pill px-4" @bind="newUserModel.Role">
+                    <option value="User">مستخدم</option>
+                    <option value="SystemAdmin">مدير نظام</option>
+                    @if (State.UserRole == "SuperAdmin")
+                    {
+                        <option value="SuperAdmin">مدير خارق</option>
+                    }
+                </select>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary flex-grow-1 rounded-pill" @onclick="SaveNewUser" disabled="@isSaving">
+                    @if (isSaving) { <span class="spinner-border spinner-border-sm me-2"></span> }
+                    إضافة المستخدم
+                </button>
+                <button class="btn btn-light flex-grow-1 rounded-pill" @onclick="() => showAddUserModal = false" disabled="@isSaving">إلغاء</button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Edit User Modal -->
+@if (selectedUser != null && showEditModal)
+{
+    <div class="modal-overlay">
+        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop" style="max-width: 500px;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0">تعديل المستخدم</h5>
+                <button class="btn-close" @onclick="() => showEditModal = false"></button>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label small fw-bold">الاسم الكامل</label>
+                <input type="text" class="form-control rounded-pill px-4" @bind="editUserModel.FullName">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold">البريد الإلكتروني</label>
+                <input type="email" class="form-control rounded-pill px-4" @bind="editUserModel.Email" readonly>
+                <div class="x-small text-muted mt-1 ps-2">البريد الإلكتروني للقراءة فقط حالياً.</div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label small fw-bold">الدور الوظيفي</label>
+                <select class="form-select rounded-pill px-4" @bind="editUserModel.Role">
+                    <option value="User">مستخدم</option>
+                    <option value="SystemAdmin">مدير نظام</option>
+                    @if (State.UserRole == "SuperAdmin")
+                    {
+                        <option value="SuperAdmin">مدير خارق</option>
+                    }
+                </select>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary flex-grow-1 rounded-pill" @onclick="SaveUserChanges">
+                    @if (isSaving) { <span class="spinner-border spinner-border-sm me-2"></span> }
+                    حفظ التغييرات
+                </button>
+                <button class="btn btn-light flex-grow-1 rounded-pill" @onclick="() => showEditModal = false" disabled="@isSaving">إلغاء</button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Permissions Modal -->
 @if (selectedUser != null && showPermissionsModal)
 {
     <div class="modal-overlay">
         <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop" style="max-width: 500px;">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="fw-bold mb-0">تعديل صلاحيات @selectedUser.FullName</h5>
+                <h5 class="fw-bold mb-0">صلاحيات @selectedUser.FullName</h5>
                 <button class="btn-close" @onclick="() => showPermissionsModal = false"></button>
             </div>
             
+            <div class="alert alert-info small border-0 bg-primary-subtle text-primary">
+                هذه الإعدادات مخصصة لمزودي الخدمات فقط حالياً.
+            </div>
+
             <div class="permissions-list mb-4">
                 @foreach (var perm in AvailablePermissions)
                 {
@@ -127,7 +255,7 @@
             </div>
 
             <div class="d-flex gap-2">
-                <button class="btn btn-primary flex-grow-1 rounded-pill" @onclick="SavePermissions">حفظ التغييرات</button>
+                <button class="btn btn-primary flex-grow-1 rounded-pill" @onclick="SavePermissions">حفظ </button>
                 <button class="btn btn-light flex-grow-1 rounded-pill" @onclick="() => showPermissionsModal = false">إلغاء</button>
             </div>
         </div>
@@ -185,6 +313,11 @@
     
     private UserDto? selectedUser;
     private bool showPermissionsModal = false;
+    
+    // Add New User Modal
+    private bool showAddUserModal = false;
+    private CreateUserDto newUserModel = new();
+    private string addUserError = string.Empty;
 
     private List<PermissionModel> AvailablePermissions = new()
     {
@@ -209,7 +342,8 @@
 
     private IEnumerable<UserDto> FilteredUsers => users
         .Where(u => (string.IsNullOrEmpty(SearchTerm) || u.FullName.Contains(SearchTerm) || u.Email.Contains(SearchTerm)) &&
-                    (string.IsNullOrEmpty(SelectedRole) || u.Role == SelectedRole));
+                    (string.IsNullOrEmpty(SelectedRole) || u.Role == SelectedRole) &&
+                    (State.UserRole == "SuperAdmin" || u.Role != "SuperAdmin")); // Safety filtering
 
     private string GetRoleBadgeClass(string role) => role switch
     {
@@ -225,9 +359,71 @@
         _ => "مستخدم"
     };
 
-    private void ToggleUserStatus(UserDto user) => user.IsActive = !user.IsActive;
+    private async Task ToggleUserStatus(UserDto user)
+    {
+        try
+        {
+            await AdminService.ToggleUserStatus(user.Id);
+            user.IsActive = !user.IsActive; // Optimistic update, but API returns state too so we could use that.
+        }
+        catch { /* Handle error */ }
+    }
 
-    private void AddNewUser() { /* Add user logic */ }
+    private void AddNewUser() 
+    {
+        newUserModel = new CreateUserDto { Role = "User" };
+        addUserError = string.Empty;
+        showAddUserModal = true;
+    }
+
+    private async Task SaveNewUser()
+    {
+        addUserError = string.Empty;
+        isSaving = true;
+
+        try
+        {
+            // Basic validation
+            if (string.IsNullOrWhiteSpace(newUserModel.FullName))
+            {
+                addUserError = "الاسم الكامل مطلوب";
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(newUserModel.Email))
+            {
+                addUserError = "البريد الإلكتروني مطلوب";
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(newUserModel.Password) || newUserModel.Password.Length < 6)
+            {
+                addUserError = "كلمة المرور يجب أن تكون 6 أحرف على الأقل";
+                return;
+            }
+
+            var createdUser = await AdminService.CreateUser(newUserModel);
+            if (createdUser != null)
+            {
+                users.Add(createdUser);
+                showAddUserModal = false;
+                await JS.InvokeVoidAsync("alert", $"تم إضافة المستخدم {createdUser.FullName} بنجاح");
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            // Try to extract error message from response
+            addUserError = ex.Message.Contains("already") || ex.Message.Contains("مستخدم") 
+                ? "البريد الإلكتروني مستخدم بالفعل" 
+                : "حدث خطأ أثناء إضافة المستخدم";
+        }
+        catch (Exception ex)
+        {
+            addUserError = "حدث خطأ غير متوقع: " + ex.Message;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
     
     private void ClearFilters()
     {
@@ -248,8 +444,67 @@
         // Show success toast
     }
 
-    private void OpenChangeRole(UserDto user) { /* Change role logic */ }
-    private void ConfirmDelete(UserDto user) { /* Delete logic */ }
+    private bool showEditModal = false;
+    private bool isSaving = false;
+    private UserDto editUserModel = new();
+
+    private void OpenEditUser(UserDto user)
+    {
+        selectedUser = user;
+        editUserModel = new UserDto
+        {
+            Id = user.Id,
+            FullName = user.FullName,
+            Email = user.Email,
+            Role = user.Role
+        };
+        showEditModal = true;
+    }
+
+    private async Task SaveUserChanges()
+    {
+        if (selectedUser == null) return;
+        
+        isSaving = true;
+        try
+        {
+            // Update details
+            await AdminService.UpdateUser(selectedUser.Id, editUserModel);
+            
+            // Update role if changed
+            if (selectedUser.Role != editUserModel.Role)
+            {
+                await AdminService.UpdateUserRole(selectedUser.Id, editUserModel.Role);
+            }
+
+            // Sync UI
+            selectedUser.FullName = editUserModel.FullName;
+            selectedUser.Role = editUserModel.Role;
+            
+            showEditModal = false;
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "خطأ في حفظ البيانات: " + ex.Message);
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private void OpenChangeRole(UserDto user) => OpenEditUser(user);
+
+    private async Task ConfirmDelete(UserDto user) 
+    {
+        if (user.Role == "SuperAdmin" && State.UserRole != "SuperAdmin") return;
+
+        if (await JS.InvokeAsync<bool>("confirm", $"هل أنت متأكد من حذف المستخدم {user.FullName}؟"))
+        {
+            await AdminService.DeleteUser(user.Id);
+            users.Remove(user);
+        }
+    }
 
     public class PermissionModel
     {

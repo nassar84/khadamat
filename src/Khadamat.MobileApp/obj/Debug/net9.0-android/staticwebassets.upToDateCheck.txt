@@ -1,2 +1,0 @@
-wwwroot\mobile-index.html
-E:\MVC\khadamat\src\Khadamat.MobileApp\wwwroot\mobile-index.html

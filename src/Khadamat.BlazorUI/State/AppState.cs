@@ -22,7 +22,7 @@ public class AppState
     public string UserRole { get; set; } = "مستخدم";
     public string UserImageUrl { get; set; } = "https://i.pravatar.cc/150?u=antigravity";
     public bool IsProvider { get; set; }
-    
+    public int NotificationCount { get; set; } = 3;
     // UI State
     public bool IsProviderMode { get; set; } // If true, show dashboard. If false, show client UI.
     

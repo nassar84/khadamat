@@ -1,6 +1,7 @@
-@page "/admin/locations"
+@page "/admin/locationsmanagement"
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
+@using Khadamat.BlazorUI.Components.Common
 @inject ApiClient Api
 @inject IJSRuntime JS
 
@@ -10,147 +11,156 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-1">
                     <li class="breadcrumb-item"><a href="/admin" class="text-decoration-none text-muted">لوحة المدير</a></li>
-                    <li class="breadcrumb-item active">المحافظات والمدن</li>
+                    <li class="breadcrumb-item active">المناطق والمدن</li>
                 </ol>
             </nav>
-            <h3 class="fw-bold mb-0">إدارة المناطق</h3>
+            <h3 class="fw-bold mb-0">إدارة المناطق (شجري)</h3>
         </div>
-        <button class="btn btn-primary-premium rounded-pill px-4" @onclick="OpenAddGovernorate">
+        <button class="btn btn-primary-premium rounded-pill px-4" @onclick="() => AddItem(null)">
             <i class="fa-solid fa-plus me-2"></i> إضافة محافظة
         </button>
     </div>
 
-    <div class="row g-4">
-        @foreach (var g in governorates)
+    <div class="glass-card p-4">
+        @if (isLoading)
         {
-            <div class="col-12 col-lg-6">
-                <div class="glass-card p-0 overflow-hidden border-0 shadow-sm transition-all h-100">
-                    <div class="p-3 d-flex align-items-center justify-content-between bg-light">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="loc-icon bg-primary text-white shadow-sm">
-                                <i class="fa-solid fa-map-location-dot"></i>
-                            </div>
-                            <div>
-                                <h5 class="fw-bold mb-0">@g.NameAr</h5>
-                                <span class="x-small text-muted">@g.NameEn</span>
-                            </div>
-                        </div>
-                        <div class="d-flex gap-1">
-                            <button class="btn btn-sm btn-light border rounded-circle" @onclick="() => EditGovernorate(g)"><i class="fa-solid fa-pen"></i></button>
-                            <button class="btn btn-sm btn-light border rounded-circle text-danger" @onclick="() => DeleteGovernorate(g)"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>
-
-                    <div class="p-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h6 class="fw-bold small text-muted mb-0">المدن / المراكز</h6>
-                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 x-small" @onclick="() => OpenAddCity(g)">+ إضافة مدينة</button>
-                        </div>
-                        <div class="d-flex flex-wrap gap-2">
-                            @if (citiesByGov.ContainsKey(g.Id))
+            <div class="text-center p-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2 text-muted">جاري تحميل المناطق...</p>
+            </div>
+        }
+        else if (!treeNodes.Any())
+        {
+            <div class="text-center p-5 text-muted">
+                <i class="fa-solid fa-map-location-dot fs-1 mb-3 opacity-25"></i>
+                <p>لا توجد محافظات مسجلة</p>
+            </div>
+        }
+        else
+        {
+            <div class="tree-container">
+                @foreach (var node in treeNodes)
+                {
+                    <TreeViewItem TItem="LocationNode" 
+                                 Item="node" 
+                                 TextSelector="@(n => n.Name)"
+                                 ChildrenSelector="@(n => n.Children)"
+                                 IsInitiallyExpanded="false">
+                        <IconTemplate Context="n">
+                            @if (n.Level == 0) { <i class="fa-solid fa-map-location-dot text-primary"></i> }
+                            else { <i class="fa-solid fa-city text-info"></i> }
+                        </IconTemplate>
+                        <ActionsTemplate Context="n">
+                            @if (n.Level == 0)
                             {
-                                @foreach (var city in citiesByGov[g.Id])
-                                {
-                                    <div class="city-pill glass-morphism py-1 px-3 rounded-pill d-flex align-items-center gap-2">
-                                        <span class="small">@city.NameAr</span>
-                                        <button class="btn btn-link p-0 x-small text-muted" @onclick="() => DeleteCity(city)"><i class="fa-solid fa-xmark"></i></button>
-                                    </div>
-                                }
+                                <button class="btn btn-sm btn-light border text-success" title="إضافة مدينة" @onclick:stopPropagation="true" @onclick="() => AddItem(n)">
+                                    <i class="fa-solid fa-plus x-small"></i>
+                                </button>
                             }
-                        </div>
-                    </div>
-                </div>
+                            <button class="btn btn-sm btn-light border" title="تعديل" @onclick:stopPropagation="true" @onclick="() => EditItem(n)">
+                                <i class="fa-solid fa-pen x-small"></i>
+                            </button>
+                            <button class="btn btn-sm btn-light border text-danger" title="حذف" @onclick:stopPropagation="true" @onclick="() => DeleteItem(n)">
+                                <i class="fa-solid fa-trash x-small"></i>
+                            </button>
+                        </ActionsTemplate>
+                    </TreeViewItem>
+                }
             </div>
         }
     </div>
 </div>
 
 <style>
-    .loc-icon {
-        width: 42px;
-        height: 42px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.1rem;
-    }
-    .city-pill {
-        border: 1px solid rgba(0,0,0,0.05);
-        transition: all 0.2s;
-        background: rgba(255,255,255,0.5);
-    }
-    .city-pill:hover {
-        background: white;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        color: var(--primary);
+    .tree-container {
+        max-width: 800px;
     }
 </style>
 
 @code {
-    private List<GovernorateDto> governorates = new();
-    private Dictionary<int, List<CityDto>> citiesByGov = new();
+    private List<LocationNode> treeNodes = new();
+    private bool isLoading = true;
+
+    public class LocationNode
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public string NameEn { get; set; } = "";
+        public int Level { get; set; } // 0: Governorate, 1: City
+        public int? ParentId { get; set; }
+        public List<LocationNode> Children { get; set; } = new();
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadData();
+        await LoadTree();
     }
 
-    private async Task LoadData()
+    private async Task LoadTree()
     {
-        governorates = await Api.GetGovernoratesAsync();
-        citiesByGov.Clear();
-        foreach (var g in governorates)
+        isLoading = true;
+        treeNodes.Clear();
+        
+        var govs = await Api.GetGovernoratesAsync();
+        foreach (var g in govs)
         {
+            var gNode = new LocationNode { Id = g.Id, Name = g.NameAr, NameEn = g.NameEn, Level = 0 };
+            
             var cities = await Api.GetCitiesAsync(g.Id);
-            citiesByGov[g.Id] = cities;
+            foreach (var city in cities)
+            {
+                gNode.Children.Add(new LocationNode { Id = city.Id, Name = city.NameAr, Level = 1, ParentId = g.Id });
+            }
+            treeNodes.Add(gNode);
         }
-    }
-
-    private async Task OpenAddGovernorate()
-    {
-        var nameAr = await JS.InvokeAsync<string>("prompt", "اسم المحافظة (بالعربي):");
-        if (string.IsNullOrEmpty(nameAr)) return;
-        var nameEn = await JS.InvokeAsync<string>("prompt", "اسم المحافظة (بالإنجليزي):");
         
-        await Api.CreateGovernorateAsync(new GovernorateDto { NameAr = nameAr, NameEn = nameEn ?? "", Approved = true });
-        await LoadData();
+        isLoading = false;
     }
 
-    private async Task EditGovernorate(GovernorateDto g)
+    private async Task AddItem(LocationNode? parent)
     {
-        var nameAr = await JS.InvokeAsync<string>("prompt", "تعديل الاسم (عربي):", g.NameAr);
-        if (string.IsNullOrEmpty(nameAr)) return;
+        if (parent == null)
+        {
+            var nameAr = await JS.InvokeAsync<string>("prompt", "اسم المحافظة (عربي):");
+            if (string.IsNullOrEmpty(nameAr)) return;
+            var nameEn = await JS.InvokeAsync<string>("prompt", "اسم المحافظة (إنجليزي):");
+            await Api.CreateGovernorateAsync(new GovernorateDto { NameAr = nameAr, NameEn = nameEn ?? "", Approved = true });
+        }
+        else
+        {
+            var nameAr = await JS.InvokeAsync<string>("prompt", $"اسم المدينة الجديدة في {parent.Name}:");
+            if (string.IsNullOrEmpty(nameAr)) return;
+            await Api.CreateCityAsync(new CityDto { NameAr = nameAr, GovernorateId = parent.Id, Approved = true });
+        }
         
-        g.NameAr = nameAr;
-        await Api.UpdateGovernorateAsync(g.Id, g);
-        await LoadData();
+        await LoadTree();
     }
 
-    private async Task DeleteGovernorate(GovernorateDto g)
+    private async Task EditItem(LocationNode node)
     {
-        if (await JS.InvokeAsync<bool>("confirm", $"حذف محافظة {g.NameAr}؟"))
-        {
-            await Api.DeleteGovernorateAsync(g.Id);
-            await LoadData();
-        }
-    }
-
-    private async Task OpenAddCity(GovernorateDto g)
-    {
-        var nameAr = await JS.InvokeAsync<string>("prompt", $"اسم المدينة في {g.NameAr}:");
+        var nameAr = await JS.InvokeAsync<string>("prompt", "تعديل الاسم (عربي):", node.Name);
         if (string.IsNullOrEmpty(nameAr)) return;
 
-        await Api.CreateCityAsync(new CityDto { GovernorateId = g.Id, NameAr = nameAr, Approved = true });
-        await LoadData();
+        if (node.Level == 0)
+        {
+            var nameEn = await JS.InvokeAsync<string>("prompt", "تعديل الاسم (إنجليزي):", node.NameEn);
+            await Api.UpdateGovernorateAsync(node.Id, new GovernorateDto { Id = node.Id, NameAr = nameAr, NameEn = nameEn ?? "", Approved = true });
+        }
+        else
+        {
+            await Api.UpdateCityAsync(node.Id, new CityDto { Id = node.Id, NameAr = nameAr, GovernorateId = node.ParentId ?? 0, Approved = true });
+        }
+
+        await LoadTree();
     }
 
-    private async Task DeleteCity(CityDto city)
+    private async Task DeleteItem(LocationNode node)
     {
-        if (await JS.InvokeAsync<bool>("confirm", $"حذف مدينة {city.NameAr}؟"))
-        {
-            await Api.DeleteCityAsync(city.Id);
-            await LoadData();
-        }
+        if (!await JS.InvokeAsync<bool>("confirm", $"هل أنت متأكد من حذف {node.Name}؟")) return;
+
+        if (node.Level == 0) await Api.DeleteGovernorateAsync(node.Id);
+        else await Api.DeleteCityAsync(node.Id);
+
+        await LoadTree();
     }
 }

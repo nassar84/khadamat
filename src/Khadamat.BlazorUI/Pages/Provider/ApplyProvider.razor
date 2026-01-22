@@ -280,7 +280,7 @@
         }
         catch (Exception ex)
         {
-            await JS.InvokeVoidAsync("alert", "Error uploading image");
+            await JS.InvokeVoidAsync("alert", "Error uploading image: " + ex.Message);
         }
         finally
         {

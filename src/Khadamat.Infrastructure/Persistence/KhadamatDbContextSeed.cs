@@ -59,6 +59,36 @@ public static class KhadamatDbContextSeed
         {
             await SeedServicesAsync(context);
         }
+
+        // 7. Seed Locations
+        if (!await context.Governorates.AnyAsync())
+        {
+            await SeedLocationsAsync(context);
+        }
+
+        // 8. Seed Ads
+        if (!await context.Ads.AnyAsync())
+        {
+            await SeedAdsAsync(context);
+        }
+    }
+
+    private static async Task SeedAdsAsync(KhadamatDbContext context)
+    {
+        var now = DateTime.UtcNow;
+        
+        var ad1 = new Ad("خصومات الصيانة", "وفر 30% على صيانة التكييفات اليوم!", now.AddDays(-1), now.AddMonths(1), "Image");
+        ad1.UpdateDetails(ad1.Title, ad1.Description, ad1.StartDate, ad1.EndDate, placement: "Slider");
+        ad1.SetMainImage("hero-gradient-1");
+        ad1.Approve();
+
+        var ad2 = new Ad("كشف مجاني", "احصل على فحص مجاني للأسنان عند حجز أول موعد.", now.AddDays(-1), now.AddMonths(1), "Image");
+        ad2.UpdateDetails(ad2.Title, ad2.Description, ad2.StartDate, ad2.EndDate, placement: "Slider");
+        ad2.SetMainImage("hero-gradient-2");
+        ad2.Approve();
+        
+        await context.Ads.AddRangeAsync(ad1, ad2);
+        await context.SaveChangesAsync();
     }
 
     private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
@@ -452,6 +482,34 @@ public static class KhadamatDbContextSeed
         }
 
         await context.Services.AddRangeAsync(services);
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedLocationsAsync(KhadamatDbContext context)
+    {
+        var governorate = new Governorate
+        {
+            Governorate_Name_AR = "القاهرة",
+            Governorate_Name_EN = "Cairo",
+            DisplayOrder = 1,
+            Approved = true,
+            UserCreated = "system"
+        };
+        
+        await context.Governorates.AddAsync(governorate);
+        await context.SaveChangesAsync();
+
+        var city = new City
+        {
+            GovernorateId = governorate.Id,
+            City_Name_AR = "القاهرة",
+            City_Name_EN = "Cairo",
+            DisplayOrder = 1,
+            Approved = true,
+            UserCreated = "system"
+        };
+        
+        await context.Cities.AddAsync(city);
         await context.SaveChangesAsync();
     }
 }

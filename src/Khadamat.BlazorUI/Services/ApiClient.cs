@@ -17,15 +17,15 @@ public class ApiClient
     }
 
     // Services
-    public async Task<PaginatedResult<ServiceDto>> GetServicesAsync(string? search = null, int? subCategoryId = null, string? userId = null, bool? isApproved = true, int page = 1)
+    public async Task<PaginatedResult<ServiceDto>> GetServicesAsync(string? search = null, int? subCategoryId = null, string? userId = null, bool? isApproved = true, int page = 1, int pageSize = 10)
     {
-        var url = $"api/v1/services?page={page}";
+        var url = $"api/v1/services?page={page}&pageSize={pageSize}";
         if (!string.IsNullOrEmpty(search)) url += $"&search={Uri.EscapeDataString(search)}";
         if (subCategoryId.HasValue) url += $"&subCategoryId={subCategoryId}";
         if (!string.IsNullOrEmpty(userId)) url += $"&userId={Uri.EscapeDataString(userId)}";
         if (isApproved.HasValue) url += $"&isApproved={isApproved}";
         
-        return await _http.GetFromJsonAsync<PaginatedResult<ServiceDto>>(url) ?? new PaginatedResult<ServiceDto>(new List<ServiceDto>(), 0, page, 10);
+        return await _http.GetFromJsonAsync<PaginatedResult<ServiceDto>>(url) ?? new PaginatedResult<ServiceDto>(new List<ServiceDto>(), 0, page, pageSize);
     }
 
     public async Task<PaginatedResult<ServiceDto>> GetMyServicesAsync(int page = 1)
@@ -197,15 +197,27 @@ public class ApiClient
     }
 
     // Ads
-    public async Task<List<AdDto>> GetSliderAdsAsync()
+    public async Task<List<EnhancedAdDto>> GetSliderAdsAsync()
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<List<AdDto>>>("api/v1/ads/slider");
-        return response?.Data ?? new List<AdDto>();
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<EnhancedAdDto>>>("api/v1/ads/slider");
+        return response?.Data ?? new List<EnhancedAdDto>();
     }
 
-    public async Task<bool> CreateAdAsync(AdDto ad)
+    public async Task<List<EnhancedAdDto>> GetAllAdsAsync()
+    {
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<EnhancedAdDto>>>("api/v1/ads");
+        return response?.Data ?? new List<EnhancedAdDto>();
+    }
+
+    public async Task<bool> CreateAdAsync(EnhancedAdDto ad)
     {
         var response = await _http.PostAsJsonAsync("api/v1/ads", ad);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> UpdateAdAsync(int id, EnhancedAdDto ad)
+    {
+        var response = await _http.PutAsJsonAsync($"api/v1/ads/{id}", ad);
         return response.IsSuccessStatusCode;
     }
 
@@ -274,21 +286,45 @@ public class ApiClient
         return response.IsSuccessStatusCode;
     }
 
+    public async Task<List<RecentActivityDto>> GetRecentAuditLogsAsync()
+    {
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<RecentActivityDto>>>("api/v1/admin/audit-logs/recent");
+        return response?.Data ?? new List<RecentActivityDto>();
+    }
+
     public async Task<bool> RejectProviderAsync(int id)
     {
         var response = await _http.PostAsync($"api/v1/admin/providers/{id}/reject", null);
         return response.IsSuccessStatusCode;
     }
+
+    public async Task<bool> ToggleUserStatusAsync(string id)
+    {
+        var response = await _http.PostAsync($"api/v1/admin/users/{id}/toggle-status", null);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeleteUserAsync(string id)
+    {
+        var response = await _http.DeleteAsync($"api/v1/admin/users/{id}");
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> ApproveServiceAsync(int id)
+    {
+        var response = await _http.PostAsync($"api/v1/admin/services/{id}/approve", null);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> RejectServiceAsync(int id)
+    {
+        var response = await _http.PostAsync($"api/v1/admin/services/{id}/reject", null);
+        return response.IsSuccessStatusCode;
+    }
 }
 
 // Temporary DTO for Ad until it is standardized in Application project if not there
-public class AdDto
-{
-    public int Id { get; set; }
-    public string Title { get; set; } = "";
-    public string ImageUrl { get; set; } = "";
-    public string? TargetUrl { get; set; }
-}
+
 
 public class LoginDto { public string Email { get; set; } = ""; public string Password { get; set; } = ""; }
 public class AuthResponseDto { public string Token { get; set; } = ""; public string RefreshToken { get; set; } = ""; public string FullName { get; set; } = ""; }

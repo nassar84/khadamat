@@ -2,178 +2,244 @@
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
 @using Khadamat.BlazorUI.Services.Admin
+@using Khadamat.BlazorUI.Components.Common
 @inject ApiClient Api
 @inject IAdminService AdminService
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
-<PageTitle>إدارة الخدمات</PageTitle>
+<PageTitle>استكشاف الخدمات شجرياً</PageTitle>
 
-<div class="page-header d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="fw-bold mb-1">إدارة الخدمات</h2>
-        <p class="text-muted small">عرض وإدارة كافة الخدمات المسجلة في النظام</p>
+<div class="px-3 pt-3 pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="/admin" class="text-decoration-none text-muted">لوحة المدير</a></li>
+                    <li class="breadcrumb-item active">الخدمات</li>
+                </ol>
+            </nav>
+            <h3 class="fw-bold mb-0">هيكل الخدمات (شجري)</h3>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary rounded-pill px-4" @onclick="() => isExpandedAll = !isExpandedAll">
+                <i class="fa-solid @(isExpandedAll ? "fa-compress" : "fa-expand") me-2"></i> @(isExpandedAll ? "طي الكل" : "توسيع الكل")
+            </button>
+            <button class="btn btn-primary-premium rounded-pill px-4" @onclick="NavigateToCreateService">
+                <i class="fa-solid fa-plus me-2"></i> إضافة خدمة
+            </button>
+        </div>
     </div>
-    <div class="d-flex gap-2">
-        <button class="btn btn-outline-primary rounded-pill"><i class="fa-solid fa-filter me-1"></i> تصفية</button>
-        <button class="btn btn-primary rounded-pill"><i class="fa-solid fa-plus me-1"></i> إضافة خدمة</button>
-    </div>
-</div>
 
-<div class="glass-card table-responsive p-0 overflow-hidden">
-    <table class="table table-hover align-middle mb-0">
-        <thead class="bg-light">
-            <tr>
-                <th class="border-0 p-3">الخدمة</th>
-                <th class="border-0 p-3">مقدم الخدمة</th>
-                <th class="border-0 p-3">التصنيف</th>
-                <th class="border-0 p-3">السعر</th>
-                <th class="border-0 p-3">الحالة</th>
-                <th class="border-0 p-3 text-end">إجراءات</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (services == null)
-            {
-                <tr>
-                    <td colspan="6" class="text-center p-5">
-                        <div class="spinner-border text-primary" role="status"></div>
-                    </td>
-                </tr>
-            }
-            else if (!services.Any())
-            {
-                <tr>
-                    <td colspan="6" class="text-center p-5 text-muted">
-                        لا توجد خدمات متاحة حالياً
-                    </td>
-                </tr>
-            }
-            else
-            {
-                @foreach (var service in services)
+    <div class="glass-card p-4">
+        @if (isLoading)
+        {
+            <div class="text-center p-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2 text-muted">جاري بناء هيكل الخدمات...</p>
+            </div>
+        }
+        else if (!treeNodes.Any())
+        {
+            <div class="text-center p-5 text-muted">
+                <i class="fa-solid fa-server fs-1 mb-3 opacity-25"></i>
+                <p>لا توجد بيانات متاحة</p>
+            </div>
+        }
+        else
+        {
+            <div class="tree-container">
+                @foreach (var node in treeNodes)
                 {
-                    <tr>
-                        <td class="p-3">
-                            <div class="d-flex align-items-center gap-3">
-                                <img src="@(service.Images.FirstOrDefault() ?? "https://ui-avatars.com/api/?name="+service.Title)" 
-                                     class="rounded-3 object-fit-cover" width="50" height="50" />
-                                <div>
-                                    <h6 class="fw-bold mb-0 text-truncate" style="max-width: 200px;">@service.Title</h6>
-                                    <small class="text-muted"><i class="fa-solid fa-star text-warning"></i> @service.Rating.ToString("0.0")</small>
+                    <TreeViewItem TItem="ServiceTreeNode" 
+                                 Item="node" 
+                                 TextSelector="@(n => n.Name)"
+                                 ChildrenSelector="@(n => n.Children)"
+                                 IsInitiallyExpanded="isExpandedAll">
+                        <IconTemplate Context="n">
+                            @if (n.Level == 0) { <i class="fa-solid fa-layer-group text-primary"></i> }
+                            else if (n.Level == 1) { <i class="fa-solid fa-folder text-warning"></i> }
+                            else if (n.Level == 2) { <i class="fa-solid fa-tag text-info"></i> }
+                            else { <i class="fa-solid fa-briefcase text-success"></i> }
+                        </IconTemplate>
+                        <BadgeTemplate Context="n">
+                            @if (n.Level < 3 && n.ChildrenCount > 0)
+                            {
+                                <span class="badge rounded-pill bg-light text-dark border ms-2 x-small">@n.ChildrenCount</span>
+                            }
+                            @if (n.Level == 3 && !n.IsApproved)
+                            {
+                                <span class="badge rounded-pill bg-warning text-dark border ms-2 x-small">قيد الانتظار</span>
+                            }
+                        </BadgeTemplate>
+                        <ActionsTemplate Context="n">
+                            @if (n.Level == 3)
+                            {
+                                <div class="d-flex gap-1">
+                                    <button class="btn btn-sm btn-light border" title="عرض" @onclick:stopPropagation="true" @onclick="() => ViewService(n.Id)">
+                                        <i class="fa-solid fa-eye x-small"></i>
+                                    </button>
+                                    @if (!n.IsApproved)
+                                    {
+                                        <button class="btn btn-sm btn-light border text-success" title="اعتماد" @onclick:stopPropagation="true" @onclick="() => Approve(n)">
+                                            <i class="fa-solid fa-check x-small"></i>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-sm btn-light border text-warning" title="إلغاء اعتماد" @onclick:stopPropagation="true" @onclick="() => Reject(n)">
+                                            <i class="fa-solid fa-xmark x-small"></i>
+                                        </button>
+                                    }
+                                    <button class="btn btn-sm btn-light border text-danger" title="حذف" @onclick:stopPropagation="true" @onclick="() => DeleteService(n)">
+                                        <i class="fa-solid fa-trash x-small"></i>
+                                    </button>
                                 </div>
-                            </div>
-                        </td>
-                        <td class="p-3">
-                            <div class="d-flex align-items-center gap-2">
-                                <img src="@(service.ProviderPhoto ?? "https://ui-avatars.com/api/?name=P")" 
-                                     class="rounded-circle" width="30" height="30" />
-                                <span class="small">@service.ProviderName</span>
-                            </div>
-                        </td>
-                        <td class="p-3">
-                            <span class="badge bg-light text-dark border">@service.CategoryName</span>
-                            @if(!string.IsNullOrEmpty(service.SubCategoryName)) {
-                                <i class="fa-solid fa-chevron-left x-small mx-1 opacity-50"></i>
-                                <span class="badge bg-light text-dark border">@service.SubCategoryName</span>
                             }
-                        </td>
-                        <td class="p-3 fw-bold text-primary">
-                            @service.Price?.ToString("N0") ج.م
-                        </td>
-                        <td class="p-3">
-                            @if (service.IsApproved)
-                            {
-                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">معتمد</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3">قيد المراجعة</span>
-                            }
-                        </td>
-                        <td class="p-3 text-end">
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-icon" data-bs-toggle="dropdown"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-                                <ul class="dropdown-menu border-0 shadow-lg rounded-4">
-                                    <li><a class="dropdown-item" href="/service/@service.Id" target="_blank"><i class="fa-solid fa-eye me-2 text-muted"></i> عرض</a></li>
-                                    <li><a class="dropdown-item" @onclick="() => Approve(service)"><i class="fa-solid fa-check me-2 text-success"></i> اعتماد</a></li>
-                                    <li><a class="dropdown-item" @onclick="() => Reject(service)"><i class="fa-solid fa-xmark me-2 text-danger"></i> رفض</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" href="#"><i class="fa-solid fa-trash me-2"></i> حذف</a></li>
-                                </ul>
-                            </div>
-                        </td>
-                    </tr>
+                        </ActionsTemplate>
+                    </TreeViewItem>
                 }
-            }
-        </tbody>
-    </table>
+            </div>
+        }
+    </div>
 </div>
 
-@if (totalPages > 1)
-{
-    <div class="d-flex justify-content-center mt-4">
-        <nav aria-label="Page navigation">
-            <ul class="pagination">
-                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                    <button class="page-link rounded-circle mx-1" @onclick="() => LoadPage(currentPage - 1)"><i class="fa-solid fa-chevron-right"></i></button>
-                </li>
-                @for (int i = 1; i <= totalPages; i++)
-                {
-                    var pageIndex = i;
-                    <li class="page-item @(currentPage == pageIndex ? "active" : "")">
-                        <button class="page-link rounded-circle mx-1" @onclick="() => LoadPage(pageIndex)">@pageIndex</button>
-                    </li>
-                }
-                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-                    <button class="page-link rounded-circle mx-1" @onclick="() => LoadPage(currentPage + 1)"><i class="fa-solid fa-chevron-left"></i></button>
-                </li>
-            </ul>
-        </nav>
-    </div>
-}
+<style>
+    .tree-container {
+        max-width: 900px;
+    }
+</style>
 
 @code {
-    private List<ServiceDto>? services;
-    private int currentPage = 1;
-    private int totalPages = 1;
+    private List<ServiceTreeNode> treeNodes = new();
+    private bool isLoading = true;
+    private bool isExpandedAll = false;
+
+    public class ServiceTreeNode
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public int Level { get; set; } // 0: Main, 1: Category, 2: SubCategory, 3: Service
+        public bool IsApproved { get; set; }
+        public int ChildrenCount => Children.Count;
+        public List<ServiceTreeNode> Children { get; set; } = new();
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadServices();
+        await LoadTree();
     }
 
-    private async Task LoadServices()
+    private async Task LoadTree()
     {
-        try
+        isLoading = true;
+        treeNodes.Clear();
+        
+        try 
         {
-            var result = await Api.GetServicesAsync(page: currentPage, isApproved: null);
-            services = result.Items;
-            totalPages = result.TotalPages;
+            var mainCats = await Api.GetMainCategoriesAsync();
+            
+            // Optimization: Get ALL services at once and group them
+            var allServicesResult = await Api.GetServicesAsync(pageSize: 1000);
+            var allServices = allServicesResult.Items;
+
+            foreach (var mc in mainCats)
+            {
+                var mcNode = new ServiceTreeNode { Id = mc.Id, Name = mc.Name, Level = 0 };
+                
+                var cats = await Api.GetCategoriesByMainIdAsync(mc.Id);
+                foreach (var cat in cats)
+                {
+                    var catNode = new ServiceTreeNode { Id = cat.Id, Name = cat.Name, Level = 1 };
+                    
+                    var subs = await Api.GetSubCategoriesByCategoryIdAsync(cat.Id);
+                    foreach (var sub in subs)
+                    {
+                        var subNode = new ServiceTreeNode { Id = sub.Id, Name = sub.Name, Level = 2 };
+                        
+                        // Add services for this subcategory
+                        var subServices = allServices.Where(s => s.SubCategoryId == sub.Id);
+                        foreach (var s in subServices)
+                        {
+                            subNode.Children.Add(new ServiceTreeNode 
+                            { 
+                                Id = s.Id, 
+                                Name = s.Title, 
+                                Level = 3, 
+                                IsApproved = s.IsApproved 
+                            });
+                        }
+
+                        if (subNode.ChildrenCount > 0)
+                            catNode.Children.Add(subNode);
+                    }
+                    
+                    if (catNode.ChildrenCount > 0)
+                        mcNode.Children.Add(catNode);
+                }
+                
+                if (mcNode.ChildrenCount > 0)
+                    treeNodes.Add(mcNode);
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading services: {ex.Message}");
+            Console.WriteLine($"Error loading service tree: {ex.Message}");
+        }
+        
+        isLoading = false;
+    }
+
+    private void NavigateToCreateService()
+    {
+        Navigation.NavigateTo("/provider/create-service");
+    }
+
+    private void ViewService(int id)
+    {
+        Navigation.NavigateTo($"/service/{id}");
+    }
+
+    private async Task Approve(ServiceTreeNode node)
+    {
+        try
+        {
+            await AdminService.ApproveService(node.Id);
+            node.IsApproved = true;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error approving service: {ex.Message}");
         }
     }
 
-    private async Task LoadPage(int page)
+    private async Task Reject(ServiceTreeNode node)
     {
-        if (page < 1 || page > totalPages) return;
-        currentPage = page;
-        await LoadServices();
+        try
+        {
+            await AdminService.RejectService(node.Id);
+            node.IsApproved = false;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error rejecting service: {ex.Message}");
+        }
     }
 
-    private async Task Approve(ServiceDto service)
+    private async Task DeleteService(ServiceTreeNode node)
     {
-        await AdminService.ApproveService(service.Id);
-        service.IsApproved = true; // Optimistic update
-        StateHasChanged();
-    }
-
-    private async Task Reject(ServiceDto service)
-    {
-        await AdminService.RejectService(service.Id);
-        service.IsApproved = false;
-        StateHasChanged();
+        if (!await JS.InvokeAsync<bool>("confirm", $"هل أنت متأكد من حذف الخدمة: {node.Name}؟")) return;
+        
+        try
+        {
+            await AdminService.RejectService(node.Id);
+            await LoadTree();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting service: {ex.Message}");
+        }
     }
 }

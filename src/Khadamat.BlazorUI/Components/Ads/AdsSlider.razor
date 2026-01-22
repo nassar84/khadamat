@@ -1,3 +1,252 @@
-<h3>AdsSlider.razor</h3>
-@code {}
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
 
+<div class="ads-slider-wrapper mb-4">
+    @if (ads == null)
+    {
+        <div class="skeleton ads-skeleton rounded-4"></div>
+    }
+    else if (!ads.Any())
+    {
+        <div class="no-ads-placeholder rounded-4 d-flex align-items-center justify-content-center text-muted">
+             <i class="fa-solid fa-rectangle-ad me-2"></i> لا توجد إعلانات نشطة
+        </div>
+    }
+    else
+    {
+        <div class="ads-carousel" id="adsCarousel">
+            @for (int i = 0; i < ads.Count; i++)
+            {
+                var ad = ads[i];
+                <div class="ad-slide @(i == currentIndex ? "active" : "")" @onclick="() => OnAdClick(ad)">
+                    <div class="ad-content-card @ad.ImageUrl">
+                        <div class="glass-overlay"></div>
+                        <div class="ad-text-content">
+                            @if (!string.IsNullOrEmpty(ad.Title))
+                            {
+                                <h2 class="ad-title animate-pop">@ad.Title</h2>
+                            }
+                            @if (!string.IsNullOrEmpty(ad.Description))
+                            {
+                                <p class="ad-desc animate-fade-in">@ad.Description</p>
+                            }
+                            <button class="btn btn-light rounded-pill px-4 btn-sm fw-bold mt-2">عرض التفاصيل</button>
+                        </div>
+                        <div class="ad-decoration">
+                            <i class="fa-solid fa-star-of-life floating"></i>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        
+        @if (ads.Count > 1)
+        {
+            <div class="ads-indicators">
+                @for (int i = 0; i < ads.Count; i++)
+                {
+                    var index = i;
+                    <span class="dot @(i == currentIndex ? "active" : "")" @onclick="() => GoToSlide(index)"></span>
+                }
+            </div>
+        }
+    }
+</div>
+
+<style>
+    .ads-slider-wrapper {
+        position: relative;
+        width: 100%;
+        height: 180px;
+        overflow: hidden;
+    }
+    
+    .ads-carousel {
+        width: 100%;
+        height: 100%;
+        position: relative;
+    }
+    
+    .ad-slide {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        transition: opacity 1s ease-in-out, transform 0.5s ease;
+        pointer-events: none;
+        cursor: pointer;
+    }
+    
+    .ad-slide.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    
+    .ad-content-card {
+        width: 100%;
+        height: 100%;
+        background-color: #7c3aed;
+        border-radius: 24px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        padding: 0 40px;
+        color: white;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    .glass-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 60%);
+        z-index: 1;
+    }
+    
+    .ad-text-content {
+        position: relative;
+        z-index: 2;
+        max-width: 60%;
+    }
+    
+    .ad-title {
+        font-weight: 800;
+        font-size: 1.5rem;
+        margin-bottom: 8px;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .ad-desc {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        margin-bottom: 12px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .ad-decoration {
+        position: absolute;
+        right: 40px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 4rem;
+        opacity: 0.2;
+        z-index: 1;
+    }
+    
+    /* Predefined Gradients matching the options in management */
+    .hero-gradient-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .hero-gradient-2 { background: linear-gradient(135deg, #0abde3 0%, #00d2d3 100%); }
+    .hero-gradient-3 { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); }
+    .hero-gradient-4 { background: linear-gradient(135deg, #10ac84 0%, #01a3a4 100%); }
+    
+    .ads-indicators {
+        position: absolute;
+        bottom: 15px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 8px;
+        z-index: 10;
+    }
+    
+    .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.4);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .dot.active {
+        width: 24px;
+        border-radius: 4px;
+        background: white;
+    }
+    
+    .no-ads-placeholder {
+        height: 100%;
+        background: #f1f5f9;
+        border: 2px dashed #e2e8f0;
+    }
+    
+    .ads-skeleton {
+        height: 100%;
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: skeleton-loading 1.5s infinite;
+    }
+    
+    @@keyframes skeleton-loading {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+    
+    .floating {
+        animation: float 3s ease-in-out infinite;
+    }
+    
+    @@keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .animate-pop {
+        animation: pop-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    @@keyframes pop-in {
+        from { transform: scale(0.8); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+</style>
+
+@code {
+    private List<EnhancedAdDto>? ads;
+    private int currentIndex = 0;
+    private System.Timers.Timer? timer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ads = await Api.GetSliderAdsAsync();
+        
+        if (ads != null && ads.Count > 1)
+        {
+            timer = new System.Timers.Timer(5000);
+            timer.Elapsed += (s, e) => 
+            {
+                currentIndex = (currentIndex + 1) % ads.Count;
+                InvokeAsync(StateHasChanged);
+            };
+            timer.Enabled = true;
+        }
+    }
+
+    private void GoToSlide(int index)
+    {
+        currentIndex = index;
+        timer?.Stop();
+        timer?.Start(); // Reset timer
+    }
+
+    private void OnAdClick(EnhancedAdDto ad)
+    {
+        if (!string.IsNullOrEmpty(ad.TargetUrl))
+        {
+            Navigation.NavigateTo(ad.TargetUrl);
+        }
+    }
+
+    public void Dispose()
+    {
+        timer?.Dispose();
+    }
+}

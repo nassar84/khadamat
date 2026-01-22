@@ -3,6 +3,8 @@
 @using Khadamat.BlazorUI.Components.Provider
 @using Khadamat.BlazorUI.Services
 @using Khadamat.Application.DTOs
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "SystemAdmin,SuperAdmin")]
 @inject NavigationManager Navigation
 @inject ApiClient Api
 
@@ -45,7 +47,7 @@
                 <div class="small opacity-75">هناك @pendingCount طلباً جديداً يحتاج لموافقتك</div>
             </div>
         </div>
-        <button class="btn btn-warning btn-sm rounded-pill px-4 fw-bold z-1 shadow-sm" @onclick='() => Navigation.NavigateTo("/admin/providersapproval")'>
+        <button class="btn btn-warning btn-sm rounded-pill px-4 fw-bold z-1 shadow-sm" @onclick="NavigateToReview">
             ابدأ المراجعة
         </button>
         <div class="alert-bg-pattern"></div>
@@ -237,27 +239,59 @@
 
 @code {
     private AdminStatsDto? stats;
-    private int pendingCount = 0;
-    private List<RecentActivity> recentActivities = new()
-    {
-        new() { Title = "انضمام مزود جديد: أحمد محمود", Time = "منذ 10 دقائق", Icon = "fa-solid fa-user-plus" },
-        new() { Title = "تمت الموافقة على خدمة: إصلاح تكييف", Time = "منذ ساعة", Icon = "fa-solid fa-check-double" },
-        new() { Title = "تحديث باقة بريميوم للمستخدم وسيم", Time = "منذ 3 ساعات", Icon = "fa-solid fa-gem" },
-        new() { Title = "بلاغ عن محتوى مسيء من مستخدم", Time = "منذ 5 ساعات", Icon = "fa-solid fa-flag" },
-        new() { Title = "تم تغيير إعدادات النظام وتحديث الضريبة", Time = "منذ يوم", Icon = "fa-solid fa-circle-exclamation" }
-    };
+    private int pendingProvidersCount = 0;
+    private int pendingServicesCount = 0;
+    private int pendingCount => pendingProvidersCount + pendingServicesCount;
+    private List<RecentActivityDto> recentActivities = new();
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authStateTask { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        stats = await Api.GetAdminStatsAsync();
-        var pending = await Api.GetPendingProvidersAsync();
-        pendingCount = pending.Count;
+        await authStateTask; // Ensure headers are set by CustomAuthenticationStateProvider
+        try
+        {
+            stats = await Api.GetAdminStatsAsync();
+            
+            var pendingProviders = await Api.GetPendingProvidersAsync();
+            pendingProvidersCount = pendingProviders?.Count ?? 0;
+            
+            var pendingServices = await Api.GetServicesAsync(isApproved: false);
+            pendingServicesCount = pendingServices?.TotalCount ?? 0;
+            
+            recentActivities = await Api.GetRecentAuditLogsAsync();
+            
+            if (recentActivities == null || !recentActivities.Any())
+            {
+                recentActivities = new List<RecentActivityDto>();
+                recentActivities.Add(new RecentActivityDto { Title = "بدء مراقبة النظام", Time = "الآن", Icon = "fa-solid fa-tower-broadcast" });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading dashboard data: {ex.Message}");
+        }
+        finally
+        {
+            StateHasChanged();
+        }
     }
 
-    public class RecentActivity
+    private void NavigateToReview()
     {
-        public string Title { get; set; } = string.Empty;
-        public string Time { get; set; } = string.Empty;
-        public string Icon { get; set; } = string.Empty;
+        if (pendingProvidersCount > 0)
+        {
+            Navigation.NavigateTo("/admin/approvals/providers");
+        }
+        else if (pendingServicesCount > 0)
+        {
+            Navigation.NavigateTo("/admin/approvals/services");
+        }
+        else
+        {
+            // If nothing pending, maybe refresh or go to one of them anyway
+            Navigation.NavigateTo("/admin/approvals/providers");
+        }
     }
 }

@@ -13,9 +13,12 @@ public class Ad : BaseEntity
     // Basic Information
     public string Title { get; private set; } = string.Empty;
     public string Description { get; private set; } = string.Empty;
+    public string AdType { get; private set; } = "Image"; // Image, Text, Video, Mixed
     
-    // Main Image
+    // Content
     public string? ImagePath { get; private set; }
+    public string? VideoUrl { get; private set; }
+    public string? TextContent { get; private set; } // For text-only or mixed ads
     
     // Date Range
     public DateTime StartDate { get; private set; }
@@ -29,15 +32,24 @@ public class Ad : BaseEntity
     
     // Redirect & Placement
     public string? RedirectUrl { get; private set; }
-    public string? Placement { get; private set; }
+    public string? Placement { get; private set; } // Slider, Sidebar, Header, Footer, InContent
     
     // Analytics
     public int Views { get; private set; }
     public int Clicks { get; private set; }
     
-    // Location
+    // Location & Targeting
     public string? City { get; private set; }
     public string? Governorate { get; private set; }
+    public string? TargetGovernorates { get; private set; }
+    public string? TargetCities { get; private set; }
+    public string? TargetServices { get; private set; }
+    public string? TargetUserGender { get; private set; }
+    public string? TargetDays { get; private set; }
+    public string? TargetMonths { get; private set; }
+    public TimeOnly? TargetTimeStart { get; private set; }
+    public TimeOnly? TargetTimeEnd { get; private set; }
+    public string? TargetKeywords { get; private set; } // Comma separated
     
     // Display Options
     public bool ShowImage { get; private set; }
@@ -56,6 +68,7 @@ public class Ad : BaseEntity
         string description,
         DateTime startDate,
         DateTime endDate,
+        string adType = "Image",
         int? activityId = null,
         int? categoryId = null,
         int? subCategoryId = null,
@@ -71,6 +84,7 @@ public class Ad : BaseEntity
         Description = description;
         StartDate = startDate;
         EndDate = endDate;
+        AdType = adType;
         ActivityID = activityId;
         CategoryID = categoryId;
         SubCategoryID = subCategoryId;
@@ -93,7 +107,19 @@ public class Ad : BaseEntity
         string? redirectUrl = null,
         string? placement = null,
         string? city = null,
-        string? governorate = null)
+        string? governorate = null,
+        string? videoUrl = null,
+        string? textContent = null,
+        string? targetKeywords = null,
+        string? adType = null,
+        string? targetGovernorates = null,
+        string? targetCities = null,
+        string? targetServices = null,
+        string? targetUserGender = null,
+        string? targetDays = null,
+        string? targetMonths = null,
+        TimeOnly? targetTimeStart = null,
+        TimeOnly? targetTimeEnd = null)
     {
         if (string.IsNullOrWhiteSpace(title))
             throw new ArgumentException("Ad title is required.");
@@ -109,6 +135,21 @@ public class Ad : BaseEntity
         Placement = placement;
         City = city;
         Governorate = governorate;
+        VideoUrl = videoUrl;
+        TextContent = textContent;
+        TargetKeywords = targetKeywords;
+        TargetGovernorates = targetGovernorates;
+        TargetCities = targetCities;
+        TargetServices = targetServices;
+        TargetUserGender = targetUserGender;
+        TargetDays = targetDays;
+        TargetMonths = targetMonths;
+        TargetTimeStart = targetTimeStart;
+        TargetTimeEnd = targetTimeEnd;
+        
+        if (!string.IsNullOrEmpty(adType))
+            AdType = adType;
+            
         UpdatedAt = DateTime.UtcNow;
     }
 

@@ -1,0 +1,35 @@
+# .gitignore for Khadamat Project
+
+# .NET
+bin/
+obj/
+*.exe
+*.pdb
+*.dll
+*.user
+*.suo
+*.sln.docstates
+
+# IDEs
+.vs/
+.vscode/
+.idea/
+
+# OS files
+Thumbs.db
+Desktop.ini
+
+# AppSettings (optional, but good to keep secrets out)
+# src/Khadamat.WebAPI/appsettings.json
+# src/Khadamat.WebAPI/appsettings.Development.json
+
+# Build logs
+build_log.txt
+my_build_log.txt
+build_error_output.txt
+mobile_build_error.txt
+build_mobile_fix_attempt.txt
+
+# Temp files
+temp_publish/
+.gemini/

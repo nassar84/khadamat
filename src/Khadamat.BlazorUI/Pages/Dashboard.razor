@@ -56,7 +56,7 @@
                 </div>
                 <div class="stat-content">
                     <div class="stat-value">@myServices.Count(s => !s.IsApproved)</div>
-                    <div class="stat-label">قيد المراجعة</div>
+                    <div class="stat-label">تحت المراجعة</div>
                 </div>
             </div>
         </div>
@@ -93,7 +93,7 @@
                         </button>
                         <button class="btn btn-sm @(filterStatus == "pending" ? "btn-primary" : "btn-outline-primary")" 
                                 @onclick="@(() => filterStatus = "pending")">
-                            معلق (@myServices.Count(s => !s.IsApproved))
+                            تحت المراجعة (@myServices.Count(s => !s.IsApproved))
                         </button>
                     </div>
                 </div>
@@ -129,7 +129,7 @@
                                             <p class="text-muted small mb-1">@service.Description.Substring(0, Math.Min(100, service.Description.Length))...</p>
                                         </div>
                                         <span class="badge @(service.IsApproved ? "bg-success" : "bg-warning")">
-                                            @(service.IsApproved ? "نشط" : "قيد المراجعة")
+                                            @(service.IsApproved ? "نشط" : "تحت المراجعة")
                                         </span>
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center">
@@ -434,7 +434,8 @@
             var profile = await AuthService.GetProfileAsync();
             if (profile?.Success == true && profile.Data != null)
             {
-                var result = await Api.GetServicesAsync(userId: profile.Data.Id);
+                // Use GetMyServicesAsync to ensure we get all services (both active and pending)
+                var result = await Api.GetMyServicesAsync();
                 myServices = result.Items;
             }
         }

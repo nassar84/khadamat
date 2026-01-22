@@ -1,4 +1,4 @@
-@page "/admin/ads"
+@page "/admin/adsmanagement"
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
 @inject ApiClient Api
@@ -13,10 +13,10 @@
                     <li class="breadcrumb-item active">إدارة الإعلانات</li>
                 </ol>
             </nav>
-            <h3 class="fw-bold mb-0">إدارة الإعلانات</h3>
+            <h3 class="fw-bold mb-0">إدارة الإعلانات الشاملة</h3>
         </div>
-        <button class="btn btn-primary-premium rounded-pill px-4" @onclick="() => showCreateModal = true">
-            <i class="fa-solid fa-plus me-2"></i> إضافة إعلان
+        <button class="btn btn-primary-premium rounded-pill px-4" @onclick="OpenAddModal">
+            <i class="fa-solid fa-plus me-2"></i> إضافة إعلان جديد
         </button>
     </div>
 
@@ -30,7 +30,7 @@
     {
         <div class="glass-card p-5 text-center text-muted">
             <i class="fa-solid fa-rectangle-ad fs-1 mb-3 opacity-50"></i>
-            <p>لا توجد إعلانات نشطة حالياً</p>
+            <p>لا توجد إعلانات مسجلة حالياً</p>
         </div>
     }
     else
@@ -38,20 +38,39 @@
         <div class="row g-4">
             @foreach (var ad in ads)
             {
-                <div class="col-12 col-md-6">
+                <div class="col-12 col-md-6 col-lg-4">
                     <div class="glass-card overflow-hidden p-0 h-100 animate-up">
                         <div class="ad-image-container position-relative">
-                            <div class="ad-preview-img @ad.ImageUrl" style="height: 180px;"></div>
-                            <div class="ad-actions position-absolute top-0 end-0 p-3 d-flex gap-2">
-                                <button class="btn btn-light btn-sm rounded-circle shadow-sm" @onclick="() => DeleteAd(ad)"><i class="fa-solid fa-trash text-danger"></i></button>
+                            @if (ad.AdType == "Video")
+                            {
+                                <div class="bg-dark d-flex align-items-center justify-content-center" style="height: 180px;">
+                                    <i class="fa-solid fa-play fs-1 text-white opacity-50"></i>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="ad-preview-img @(ad.ImageUrl?.StartsWith("hero-gradient") == true ? ad.ImageUrl : "")" 
+                                     style="height: 180px; background-image: url('@(ad.ImageUrl?.StartsWith("hero-gradient") == true ? "" : ad.ImageUrl)')">
+                                </div>
+                            }
+                            <div class="ad-actions position-absolute top-0 end-0 p-2 d-flex gap-2">
+                                <button class="btn btn-white btn-sm rounded-circle shadow-sm" @onclick="() => EditAd(ad)"><i class="fa-solid fa-pen text-primary"></i></button>
+                                <button class="btn btn-white btn-sm rounded-circle shadow-sm" @onclick="() => DeleteAd(ad)"><i class="fa-solid fa-trash text-danger"></i></button>
+                            </div>
+                            <div class="position-absolute bottom-0 start-0 p-2">
+                                <span class="badge bg-dark bg-opacity-75 rounded-pill shadow-sm">@ad.Placement</span>
                             </div>
                         </div>
                         <div class="p-3">
                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h5 class="fw-bold mb-0">@ad.Title</h5>
-                                <span class="badge bg-success small rounded-pill">نشط</span>
+                                <h6 class="fw-bold mb-0 text-truncate" style="max-width: 180px;">@ad.Title</h6>
+                                <span class="badge @(ad.IsActive ? "bg-success" : "bg-warning") small rounded-pill">@(ad.IsActive ? "نشط" : "متوقف")</span>
                             </div>
-                            <p class="small text-muted mb-3">رابط الوجهة: <code class="bg-light px-2 rounded x-small">@(ad.TargetUrl ?? "غير محدد")</code></p>
+                            <div class="d-flex justify-content-between text-muted x-small mt-3 border-top pt-2">
+                                <span><i class="fa-solid fa-eye me-1"></i> @ad.ViewCount</span>
+                                <span><i class="fa-solid fa-mouse-pointer me-1"></i> @ad.ClickCount</span>
+                                <span><i class="fa-solid fa-clock me-1"></i> @(ad.EndDate?.ToString("MM/dd"))</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -60,55 +79,118 @@
     }
 </div>
 
-@if (showCreateModal)
+@if (showModal)
 {
     <div class="modal-overlay">
-        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop" style="max-width: 500px;">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="fw-bold mb-0">إضافة إعلان جديد</h5>
-                <button class="btn-close" @onclick="() => showCreateModal = false"></button>
+        <div class="glass-card p-0 rounded-4 w-100 mx-3 animate-pop shadow-2xl" style="max-width: 800px; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column;">
+            <div class="p-3 bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">@(currentAd.Id == 0 ? "إضافة إعلان جديد" : "تعديل إعلان الحملة")</h5>
+                <button class="btn-close btn-close-white" @onclick="() => showModal = false"></button>
             </div>
             
-            <div class="mb-3">
-                <label class="form-label small fw-bold">العنوان</label>
-                <input type="text" class="form-control rounded-pill" @bind="newAd.Title" placeholder="مثلاً: خصم خاص 20%">
+            <div class="p-4 overflow-auto flex-grow-1">
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label class="form-label small fw-bold">العنوان</label>
+                        <input type="text" class="form-control rounded-pill" @bind="currentAd.Title">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">النوع</label>
+                        <select class="form-select rounded-pill" @bind="currentAd.AdType">
+                            <option value="Image">صورة</option>
+                            <option value="Video">فيديو</option>
+                            <option value="Text">نص</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-bold">الوصف</label>
+                        <textarea class="form-control rounded-4" @bind="currentAd.Description" rows="2"></textarea>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">رابط المحتوى (Image/Video URL)</label>
+                        <input type="text" class="form-control rounded-pill" @bind="currentAd.ImageUrl">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">رابط التوجيه (Target URL)</label>
+                        <input type="text" class="form-control rounded-pill" @bind="currentAd.TargetUrl">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">المكان</label>
+                        <select class="form-select rounded-pill" @bind="currentAd.Placement">
+                            <option value="Slider">سلايدر</option>
+                            <option value="Sidebar">جانبي</option>
+                            <option value="Popup">منبثق</option>
+                            <option value="Bottom">أسفل الصفحة</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">تاريخ البدء</label>
+                        <input type="date" class="form-control rounded-pill" @bind="currentAd.StartDate" @bind:format="yyyy-MM-dd">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">تاريخ الانتهاء</label>
+                        <input type="date" class="form-control rounded-pill" @bind="currentAd.EndDate" @bind:format="yyyy-MM-dd">
+                    </div>
+
+                    <div class="col-12 mt-4 pt-2 border-top">
+                        <h6 class="fw-bold text-primary mb-3"><i class="fa-solid fa-bullseye me-2"></i> الاستهداف المتقدم (Advanced Targeting)</h6>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">المحافظات المستهدفة (IDs)</label>
+                        <input type="text" class="form-control rounded-pill form-control-sm" @bind="currentAd.TargetGovernorates" placeholder="مثال: 1,3,5">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">المدن المستهدفة (IDs)</label>
+                        <input type="text" class="form-control rounded-pill form-control-sm" @bind="currentAd.TargetCities">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">الجنس</label>
+                        <select class="form-select rounded-pill form-select-sm" @bind="currentAd.TargetUserGender">
+                            <option value="All">الجميع</option>
+                            <option value="Male">ذكور</option>
+                            <option value="Female">إناث</option>
+                        </select>
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label small fw-bold">أيام العرض (Mon,Tue...)</label>
+                        <input type="text" class="form-control rounded-pill form-control-sm" @bind="currentAd.TargetDays" placeholder="Sat,Sun,Mon">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">وقت البدء (HH:mm)</label>
+                        <input type="time" class="form-control rounded-pill form-control-sm" @bind="currentAd.TargetTimeStart">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">وقت الانتهاء (HH:mm)</label>
+                        <input type="time" class="form-control rounded-pill form-control-sm" @bind="currentAd.TargetTimeEnd">
+                    </div>
+
+                    <div class="col-12 pt-2">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="isActive" @bind="currentAd.IsActive">
+                            <label class="form-check-label small fw-bold ms-2" for="isActive">نشط وقابل للعرض</label>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label small fw-bold">الخلفية / الصورة</label>
-                <select class="form-select rounded-pill" @bind="newAd.ImageUrl">
-                    <option value="hero-gradient-1">تدرج أرجواني</option>
-                    <option value="hero-gradient-2">تدرج سماوي</option>
-                    <option value="hero-gradient-3">تدرج برتقالي</option>
-                    <option value="hero-gradient-4">تدرج أخضر</option>
-                </select>
-            </div>
-
-            <div class="mb-4">
-                <label class="form-label small fw-bold">رابط التوجه (اختياري)</label>
-                <input type="text" class="form-control rounded-pill" @bind="newAd.TargetUrl" placeholder="/category/1">
-            </div>
-
-            <div class="d-flex gap-2">
-                <button class="btn btn-primary-premium flex-grow-1 rounded-pill" @onclick="SaveAd">حفظ الإعلان</button>
-                <button class="btn btn-light flex-grow-1 rounded-pill" @onclick="() => showCreateModal = false">إلغاء</button>
+            <div class="p-3 bg-light d-flex gap-2">
+                <button class="btn btn-primary-premium flex-grow-1 rounded-pill" @onclick="SaveAd">حفظ البيانات</button>
+                <button class="btn btn-outline-secondary flex-grow-1 rounded-pill" @onclick="() => showModal = false">إلغاء</button>
             </div>
         </div>
     </div>
 }
 
 <style>
-    .ad-image-container {
-        overflow: hidden;
-    }
-    .ad-preview-img {
-        background-size: cover;
-        background-position: center;
-        transition: transform 0.5s;
-    }
-    .glass-card:hover .ad-preview-img {
-        transform: scale(1.05);
-    }
+    .ad-image-container { overflow: hidden; background: #f8f9fa; }
+    .ad-preview-img { background-size: cover; background-position: center; transition: all 0.5s; }
+    .glass-card:hover .ad-preview-img { transform: scale(1.05); }
     
     .hero-gradient-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
     .hero-gradient-2 { background: linear-gradient(135deg, #0abde3 0%, #00d2d3 100%); }
@@ -117,46 +199,105 @@
 
     .modal-overlay {
         position: fixed; inset: 0; z-index: 2000;
-        background: rgba(0,0,0,0.5);
-        backdrop-filter: blur(5px);
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(8px);
         display: flex; align-items: center; justify-content: center;
     }
     
-    .animate-pop {
-        animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
+    .animate-pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     @@keyframes pop {
-        from { transform: scale(0.8); opacity: 0; }
+        from { transform: scale(0.85); opacity: 0; }
         to { transform: scale(1); opacity: 1; }
     }
+    .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
 </style>
 
 @code {
-    private List<AdDto>? ads;
-    private bool showCreateModal = false;
-    private AdDto newAd = new() { ImageUrl = "hero-gradient-1" };
+    private List<EnhancedAdDto>? ads;
+    private bool showModal = false;
+    private EnhancedAdDto currentAd = new();
 
     protected override async Task OnInitializedAsync()
     {
-        ads = await Api.GetSliderAdsAsync();
+        await LoadAds();
+    }
+
+    private async Task LoadAds()
+    {
+        ads = await Api.GetAllAdsAsync();
+    }
+
+    private void OpenAddModal()
+    {
+        currentAd = new EnhancedAdDto 
+        { 
+            ImageUrl = "hero-gradient-1", 
+            AdType = "Image", 
+            Placement = "Slider",
+            IsActive = true,
+            StartDate = DateTime.Now,
+            EndDate = DateTime.Now.AddMonths(1),
+            TargetUserGender = "All"
+        };
+        showModal = true;
+    }
+
+    private void EditAd(EnhancedAdDto ad)
+    {
+        currentAd = new EnhancedAdDto
+        {
+            Id = ad.Id,
+            Title = ad.Title,
+            Description = ad.Description,
+            AdType = ad.AdType,
+            ImageUrl = ad.ImageUrl,
+            VideoUrl = ad.VideoUrl,
+            TextContent = ad.TextContent,
+            TargetUrl = ad.TargetUrl,
+            Placement = ad.Placement,
+            DisplayOrder = ad.DisplayOrder,
+            StartDate = ad.StartDate,
+            EndDate = ad.EndDate,
+            IsActive = ad.IsActive,
+            TargetGovernorates = ad.TargetGovernorates,
+            TargetCities = ad.TargetCities,
+            TargetServices = ad.TargetServices,
+            TargetUserGender = ad.TargetUserGender,
+            TargetDays = ad.TargetDays,
+            TargetMonths = ad.TargetMonths,
+            TargetTimeStart = ad.TargetTimeStart,
+            TargetTimeEnd = ad.TargetTimeEnd,
+            TargetKeywords = ad.TargetKeywords
+        };
+        showModal = true;
     }
 
     private async Task SaveAd()
     {
-        if (string.IsNullOrWhiteSpace(newAd.Title)) return;
+        if (string.IsNullOrWhiteSpace(currentAd.Title)) return;
         
-        await Api.CreateAdAsync(newAd);
-        ads?.Add(new AdDto { Id = (ads.Max(a => a.Id) + 1), Title = newAd.Title, ImageUrl = newAd.ImageUrl, TargetUrl = newAd.TargetUrl });
-        showCreateModal = false;
-        newAd = new() { ImageUrl = "hero-gradient-1" };
+        bool success;
+        if (currentAd.Id == 0)
+            success = await Api.CreateAdAsync(currentAd);
+        else
+            success = await Api.UpdateAdAsync(currentAd.Id, currentAd);
+
+        if (success)
+        {
+            await LoadAds();
+            showModal = false;
+        }
     }
 
-    private async Task DeleteAd(AdDto ad)
+    private async Task DeleteAd(EnhancedAdDto ad)
     {
-        if (await JS.InvokeAsync<bool>("confirm", "تأكيد حذف هذا الإعلان؟"))
+        if (await JS.InvokeAsync<bool>("confirm", $"هل أنت متأكد من حذف الإعلان: {ad.Title}؟"))
         {
-            await Api.DeleteAdAsync(ad.Id);
-            ads?.Remove(ad);
+            var success = await Api.DeleteAdAsync(ad.Id);
+            if (success)
+            {
+                ads?.Remove(ad);
+            }
         }
     }
 }

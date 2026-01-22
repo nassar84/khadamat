@@ -26,18 +26,26 @@ public class AdminController : ControllerBase
     [HttpGet("users")]
     public async Task<ActionResult<ApiResponse<List<UserDto>>>> GetAllUsers()
     {
+        var currentUser = await _userManager.GetUserAsync(User);
+        var isSuperAdmin = currentUser != null && await _userManager.IsInRoleAsync(currentUser, "SuperAdmin");
+
         var users = await _userManager.Users.ToListAsync();
         var userDtos = new List<UserDto>();
 
         foreach (var user in users)
         {
             var roles = await _userManager.GetRolesAsync(user);
+            var role = roles.FirstOrDefault() ?? "User";
+
+            // If requester is not SuperAdmin, hide SuperAdmin users
+            if (!isSuperAdmin && role == "SuperAdmin") continue;
+
             userDtos.Add(new UserDto
             {
                 Id = user.Id,
                 FullName = user.FullName,
                 Email = user.Email,
-                Role = roles.FirstOrDefault() ?? "User",
+                Role = role,
                 IsActive = user.IsActive,
                 IsVerified = user.IsVerified,
                 CreatedAt = user.CreatedAt
@@ -45,6 +53,101 @@ public class AdminController : ControllerBase
         }
 
         return Ok(ApiResponse<List<UserDto>>.Succeed(userDtos));
+    }
+
+    [HttpPost("users")]
+    public async Task<IActionResult> CreateUser([FromBody] CreateUserDto dto)
+    {
+        // Validate input
+        if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
+        {
+            return BadRequest(ApiResponse<bool>.Fail("البريد الإلكتروني وكلمة المرور مطلوبان"));
+        }
+
+        // Check if user already exists
+        var existingUser = await _userManager.FindByEmailAsync(dto.Email);
+        if (existingUser != null)
+        {
+            return BadRequest(ApiResponse<bool>.Fail("البريد الإلكتروني مستخدم بالفعل"));
+        }
+
+        // Only SuperAdmin can create SuperAdmin users
+        if (dto.Role == "SuperAdmin" && !User.IsInRole("SuperAdmin"))
+        {
+            return Forbid("Only SuperAdmin can create SuperAdmin users.");
+        }
+
+        // Create new user
+        var newUser = new ApplicationUser
+        {
+            UserName = dto.Email,
+            Email = dto.Email,
+            FullName = dto.FullName,
+            IsActive = true,
+            IsVerified = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var result = await _userManager.CreateAsync(newUser, dto.Password);
+        if (!result.Succeeded)
+        {
+            return BadRequest(ApiResponse<bool>.Fail(string.Join(", ", result.Errors.Select(e => e.Description))));
+        }
+
+        // Assign role
+        var roleToAssign = string.IsNullOrWhiteSpace(dto.Role) ? "User" : dto.Role;
+        await _userManager.AddToRoleAsync(newUser, roleToAssign);
+
+        return Ok(ApiResponse<UserDto>.Succeed(new UserDto
+        {
+            Id = newUser.Id,
+            FullName = newUser.FullName,
+            Email = newUser.Email,
+            Role = roleToAssign,
+            IsActive = newUser.IsActive,
+            IsVerified = newUser.IsVerified,
+            CreatedAt = newUser.CreatedAt
+        }));
+    }
+
+    [HttpPut("users/{id}")]
+    public async Task<IActionResult> UpdateUser(string id, [FromBody] UserDto dto)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null) return NotFound();
+
+        user.FullName = dto.FullName;
+        user.Email = dto.Email;
+        user.UserName = dto.Email; // Standard identity behavior
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded) return BadRequest(result.Errors);
+
+        return Ok(ApiResponse<bool>.Succeed(true));
+    }
+
+    [HttpPost("users/{id}/role")]
+    public async Task<IActionResult> UpdateUserRole(string id, [FromBody] string role)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null) return NotFound();
+
+        // Check permissions: Only SuperAdmin can promote/demote to SuperAdmin
+        if (role == "SuperAdmin" && !User.IsInRole("SuperAdmin"))
+        {
+            return Forbid("Only SuperAdmin can manage SuperAdmin roles.");
+        }
+
+        var currentRoles = await _userManager.GetRolesAsync(user);
+        
+        // Remove old roles
+        await _userManager.RemoveFromRolesAsync(user, currentRoles);
+        
+        // Add new role
+        var result = await _userManager.AddToRoleAsync(user, role);
+        if (!result.Succeeded) return BadRequest(result.Errors);
+
+        return Ok(ApiResponse<bool>.Succeed(true));
     }
 
     [HttpGet("stats")]
@@ -123,15 +226,74 @@ public class AdminController : ControllerBase
         var provider = await _context.ProviderProfiles.FindAsync(id);
         if (provider == null) return NotFound();
 
-        // For rejection, we simply delete the profile so they can apply again, or keep it as unverified?
-        // UI assumes rejection removes it from pending list.
-        // If we keep it unverified, it stays in pending list (Verified=false).
-        // So we should probably delete it or mark a status if we had one.
-        // Given we only have Verified bool, I'll delete it.
-        
         _context.ProviderProfiles.Remove(provider);
         await _context.SaveChangesAsync();
         
         return Ok(ApiResponse<bool>.Succeed(true));
+    }
+
+    [HttpPost("users/{id}/toggle-status")]
+    public async Task<IActionResult> ToggleUserStatus(string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null) return NotFound();
+
+        user.IsActive = !user.IsActive;
+        await _userManager.UpdateAsync(user);
+        return Ok(ApiResponse<bool>.Succeed(user.IsActive));
+    }
+
+    [HttpDelete("users/{id}")]
+    public async Task<IActionResult> DeleteUser(string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null) return NotFound();
+
+        var result = await _userManager.DeleteAsync(user);
+        if (!result.Succeeded) return BadRequest(result.Errors);
+        
+        return Ok(ApiResponse<bool>.Succeed(true));
+    }
+
+    [HttpPost("services/{id}/approve")]
+    public async Task<IActionResult> ApproveService(int id)
+    {
+        var service = await _context.Services.FindAsync(id);
+        if (service == null) return NotFound();
+
+        service.Approve();
+        await _context.SaveChangesAsync();
+        return Ok(ApiResponse<bool>.Succeed(true));
+    }
+
+    [HttpPost("services/{id}/reject")]
+    public async Task<IActionResult> RejectService(int id)
+    {
+        var service = await _context.Services.FindAsync(id);
+        if (service == null) return NotFound();
+
+        // Use domain method for rejection before removal if needed, 
+        // or just remove. Sticking to removal as per previous implementation.
+        _context.Services.Remove(service);
+        await _context.SaveChangesAsync();
+        return Ok(ApiResponse<bool>.Succeed(true));
+    }
+
+    [HttpGet("audit-logs/recent")]
+    public async Task<IActionResult> GetRecentAuditLogs()
+    {
+        var logs = await _context.AuditLogs
+            .OrderByDescending(l => l.CreatedAt)
+            .Take(10)
+            .Select(l => new
+            {
+                Id = l.Id,
+                Title = l.Action, // Using Action as title
+                Time = l.CreatedAt.ToString("yyyy-MM-dd HH:mm"),
+                Icon = "fa-solid fa-list-ul" // Generic icon
+            })
+            .ToListAsync();
+
+        return Ok(ApiResponse<List<object>>.Succeed(logs.Cast<object>().ToList()));
     }
 }

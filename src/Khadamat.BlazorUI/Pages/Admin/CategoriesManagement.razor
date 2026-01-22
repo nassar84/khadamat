@@ -1,6 +1,7 @@
 @page "/admin/categories"
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
+@using Khadamat.BlazorUI.Components.Common
 @inject ApiClient Api
 @inject IJSRuntime JS
 
@@ -13,161 +14,162 @@
                     <li class="breadcrumb-item active">التصنيفات</li>
                 </ol>
             </nav>
-            <h3 class="fw-bold mb-0">إدارة التصنيفات</h3>
+            <h3 class="fw-bold mb-0">إدارة التصنيفات الشجرية</h3>
         </div>
-        <button class="btn btn-primary-premium rounded-pill px-4" @onclick="OpenAddCategory">
+        <button class="btn btn-primary-premium rounded-pill px-4" @onclick="() => AddItem(null)">
             <i class="fa-solid fa-plus me-2"></i> إضافة تصنيف رئيسي
         </button>
     </div>
 
-    <div class="row g-4">
-        @foreach (var mc in mainCategories)
+    <div class="glass-card p-4">
+        @if (isLoading)
         {
-            <div class="col-12 col-lg-6">
-                <div class="glass-card p-0 overflow-hidden border-0 shadow-sm transition-all h-100">
-                    <div class="p-3 d-flex align-items-center justify-content-between" style="background: @(mc.Color)15;">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="category-icon shadow-sm" style="background: @mc.Color; color: white;">
-                                <i class="@mc.Icon"></i>
-                            </div>
-                            <div>
-                                <h5 class="fw-bold mb-0">@mc.Name</h5>
-                                <span class="x-small text-muted">الترتيب: @mc.Order</span>
-                            </div>
-                        </div>
-                        <div class="d-flex gap-1">
-                            <button class="btn btn-sm btn-light border rounded-circle" @onclick="() => EditMainCategory(mc)"><i class="fa-solid fa-pen"></i></button>
-                            <button class="btn btn-sm btn-light border rounded-circle text-danger" @onclick="() => DeleteMainCategory(mc)"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>
-
-                    <div class="p-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h6 class="fw-bold small text-muted mb-0">التصنيفات الفرعية</h6>
-                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 x-small" @onclick="() => OpenAddSubCategory(mc)">+ إضافة</button>
-                        </div>
-                        <div class="d-flex flex-wrap gap-2">
-                            @foreach (var sub in subCategories.Where(s => s.MainCategoryId == mc.Id))
+            <div class="text-center p-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2 text-muted">جاري تحميل الهيكل الشجري...</p>
+            </div>
+        }
+        else if (!treeNodes.Any())
+        {
+            <div class="text-center p-5 text-muted">
+                <i class="fa-solid fa-folder-open fs-1 mb-3 opacity-25"></i>
+                <p>لا توجد تصنيفات حالياً</p>
+            </div>
+        }
+        else
+        {
+            <div class="tree-container">
+                @foreach (var node in treeNodes)
+                {
+                    <TreeViewItem TItem="CategoryNode" 
+                                 Item="node" 
+                                 TextSelector="@(n => n.Name)"
+                                 ChildrenSelector="@(n => n.Children)"
+                                 IsInitiallyExpanded="false">
+                        <IconTemplate Context="n">
+                            @if (n.Level == 0) { <i class="fa-solid fa-layer-group text-primary"></i> }
+                            else if (n.Level == 1) { <i class="fa-solid fa-folder text-warning"></i> }
+                            else { <i class="fa-solid fa-tag text-info"></i> }
+                        </IconTemplate>
+                        <ActionsTemplate Context="n">
+                            @if (n.Level < 2)
                             {
-                                <div class="subcategory-pill glass-morphism py-1 px-3 rounded-pill d-flex align-items-center gap-2">
-                                    <span class="small">@sub.Name</span>
-                                    <button class="btn btn-link p-0 x-small text-muted" @onclick="() => DeleteSubCategory(sub)"><i class="fa-solid fa-xmark"></i></button>
-                                </div>
+                                <button class="btn btn-sm btn-light border text-success" title="إضافة" @onclick:stopPropagation="true" @onclick="() => AddItem(n)">
+                                    <i class="fa-solid fa-plus x-small"></i>
+                                </button>
                             }
-                        </div>
-                    </div>
-                </div>
+                            <button class="btn btn-sm btn-light border" title="تعديل" @onclick:stopPropagation="true" @onclick="() => EditItem(n)">
+                                <i class="fa-solid fa-pen x-small"></i>
+                            </button>
+                            <button class="btn btn-sm btn-light border text-danger" title="حذف" @onclick:stopPropagation="true" @onclick="() => DeleteItem(n)">
+                                <i class="fa-solid fa-trash x-small"></i>
+                            </button>
+                        </ActionsTemplate>
+                    </TreeViewItem>
+                }
             </div>
         }
     </div>
 </div>
 
 <style>
-    .category-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-    }
-    .subcategory-pill {
-        border: 1px solid rgba(0,0,0,0.05);
-        transition: all 0.2s;
-    }
-    .subcategory-pill:hover {
-        background: white;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        color: var(--primary);
+    .tree-container {
+        max-width: 800px;
     }
 </style>
 
 @code {
-    private List<MainCategoryDto> mainCategories = new();
-    private List<SubCategoryDto> subCategories = new();
+    private List<CategoryNode> treeNodes = new();
+    private bool isLoading = true;
+
+    public class CategoryNode
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public int Level { get; set; } // 0: Main, 1: Category, 2: SubCategory
+        public int? ParentId { get; set; }
+        public List<CategoryNode> Children { get; set; } = new();
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadData();
+        await LoadTree();
     }
 
-    private async Task LoadData()
+    private async Task LoadTree()
     {
-        mainCategories = await Api.GetMainCategoriesAsync();
+        isLoading = true;
+        treeNodes.Clear();
         
-        subCategories.Clear();
-        foreach (var mc in mainCategories)
+        var mainCats = await Api.GetMainCategoriesAsync();
+        foreach (var mc in mainCats)
         {
+            var mcNode = new CategoryNode { Id = mc.Id, Name = mc.Name, Level = 0 };
+            
             var cats = await Api.GetCategoriesByMainIdAsync(mc.Id);
             foreach (var cat in cats)
             {
+                var catNode = new CategoryNode { Id = cat.Id, Name = cat.Name, Level = 1, ParentId = mc.Id };
+                
                 var subs = await Api.GetSubCategoriesByCategoryIdAsync(cat.Id);
-                subCategories.AddRange(subs);
+                foreach (var sub in subs)
+                {
+                    catNode.Children.Add(new CategoryNode { Id = sub.Id, Name = sub.Name, Level = 2, ParentId = cat.Id });
+                }
+                mcNode.Children.Add(catNode);
             }
+            treeNodes.Add(mcNode);
         }
+        
+        isLoading = false;
     }
 
-    private async Task OpenAddCategory() 
+    private async Task AddItem(CategoryNode? parent)
     {
-        var name = await JS.InvokeAsync<string>("prompt", "اسم التصنيف الرئيسي الجديد:");
-        if (!string.IsNullOrEmpty(name))
+        string promptMsg = parent == null ? "اسم التصنيف الرئيسي:" : (parent.Level == 0 ? "اسم التصنيف الفرعي:" : "اسم التخصص:");
+        var name = await JS.InvokeAsync<string>("prompt", promptMsg);
+        
+        if (string.IsNullOrEmpty(name)) return;
+
+        if (parent == null)
         {
-            await Api.CreateMainCategoryAsync(new MainCategoryDto { Name = name, Icon = "fa-solid fa-layer-group", Color = "#6366f1", Order = 0 });
-            await LoadData();
+            await Api.CreateMainCategoryAsync(new MainCategoryDto { Name = name, Icon = "fa-solid fa-layer-group", Color = "#6366f1" });
         }
+        else if (parent.Level == 0)
+        {
+            await Api.CreateCategoryAsync(new CategoryDto { Name = name, MainCategoryId = parent.Id });
+        }
+        else if (parent.Level == 1)
+        {
+            await Api.CreateSubCategoryAsync(new SubCategoryDto { Name = name, CategoryId = parent.Id });
+        }
+        
+        await LoadTree();
     }
 
-    private async Task EditMainCategory(MainCategoryDto mc) 
+    private async Task EditItem(CategoryNode node)
     {
-        var name = await JS.InvokeAsync<string>("prompt", "تعديل اسم التصنيف:", mc.Name);
-        if (!string.IsNullOrEmpty(name))
-        {
-            mc.Name = name;
-            await Api.UpdateMainCategoryAsync(mc.Id, mc);
-            await LoadData();
-        }
+        var name = await JS.InvokeAsync<string>("prompt", "تعديل الاسم:", node.Name);
+        if (string.IsNullOrEmpty(name)) return;
+
+        if (node.Level == 0)
+            await Api.UpdateMainCategoryAsync(node.Id, new MainCategoryDto { Id = node.Id, Name = name, Icon = "fa-solid fa-layer-group", Color = "#6366f1" });
+        else if (node.Level == 1)
+            await Api.UpdateCategoryAsync(node.Id, new CategoryDto { Id = node.Id, Name = name, MainCategoryId = node.ParentId ?? 0 });
+        else
+            await Api.UpdateSubCategoryAsync(node.Id, new SubCategoryDto { Id = node.Id, Name = name, CategoryId = node.ParentId ?? 0 });
+
+        await LoadTree();
     }
 
-    private async Task DeleteMainCategory(MainCategoryDto mc) 
+    private async Task DeleteItem(CategoryNode node)
     {
-        if (await JS.InvokeAsync<bool>("confirm", $"هل أنت متأكد من حذف {mc.Name}؟"))
-        {
-            await Api.DeleteMainCategoryAsync(mc.Id);
-            await LoadData();
-        }
-    }
-    
-    private async Task OpenAddSubCategory(MainCategoryDto mc) 
-    {
-        // For simplicity, we'll ask for category name first then subcategory
-        // In a real app we'd have a dropdown of middle categories
-        var cats = await Api.GetCategoriesByMainIdAsync(mc.Id);
-        if (!cats.Any())
-        {
-            var catName = await JS.InvokeAsync<string>("prompt", "يجب إنشاء تصنيف فرعي أولاً. اسم التصنيف الفرعي:");
-            if (!string.IsNullOrEmpty(catName))
-            {
-                await Api.CreateCategoryAsync(new CategoryDto { Name = catName, MainCategoryId = mc.Id });
-                cats = await Api.GetCategoriesByMainIdAsync(mc.Id);
-            }
-            else return;
-        }
+        if (!await JS.InvokeAsync<bool>("confirm", $"هل أنت متأكد من حذف {node.Name}؟")) return;
 
-        var subName = await JS.InvokeAsync<string>("prompt", "اسم التخصص الجديد:");
-        if (!string.IsNullOrEmpty(subName))
-        {
-            await Api.CreateSubCategoryAsync(new SubCategoryDto { Name = subName, CategoryId = cats.First().Id });
-            await LoadData();
-        }
-    }
+        if (node.Level == 0) await Api.DeleteMainCategoryAsync(node.Id);
+        else if (node.Level == 1) await Api.DeleteCategoryAsync(node.Id);
+        else await Api.DeleteSubCategoryAsync(node.Id);
 
-    private async Task DeleteSubCategory(SubCategoryDto sub) 
-    {
-        if (await JS.InvokeAsync<bool>("confirm", $"حذف {sub.Name}؟"))
-        {
-            await Api.DeleteSubCategoryAsync(sub.Id);
-            await LoadData();
-        }
+        await LoadTree();
     }
 }

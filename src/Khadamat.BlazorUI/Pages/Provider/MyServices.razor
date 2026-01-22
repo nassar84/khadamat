@@ -42,7 +42,7 @@
                             <img src="@(s.Images.FirstOrDefault() ?? "https://via.placeholder.com/300")" class="w-100 object-fit-cover" style="height: 180px;" />
                             <div class="position-absolute top-0 end-0 m-2">
                                 <span class="badge @(s.IsApproved ? "bg-success" : "bg-warning text-dark") rounded-pill">
-                                    @(s.IsApproved ? "مقبول" : "بانتظار المراجعة")
+                                    @(s.IsApproved ? "مقبول" : "تحت المراجعة")
                                 </span>
                             </div>
                         </div>

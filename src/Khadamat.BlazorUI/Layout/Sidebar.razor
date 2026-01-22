@@ -57,7 +57,7 @@
                 <AuthorizeView Roles="User,SystemAdmin,SuperAdmin" Context="providerContext">
                     <div class="menu-section">
                         <div class="section-label">مزود الخدمة</div>
-                        <NavLink class="menu-item" href="/provider/providerdashboard">
+                        <NavLink class="menu-item" href="/provider/dashboard">
                             <i class="fa-solid fa-chart-line"></i>
                             <span class="item-label">لوحة المزود</span>
                         </NavLink>
@@ -72,12 +72,32 @@
                     <div class="menu-section">
                         <div class="section-label">الإدارة</div>
                         <NavLink class="menu-item" href="/admin">
-                            <i class="fa-solid fa-shield-halved"></i>
-                            <span class="item-label">لوحة المدير</span>
+                            <i class="fa-solid fa-gauge"></i>
+                            <span class="item-label">لوحة التحكم</span>
                         </NavLink>
                         <NavLink class="menu-item" href="/admin/usersmanagement">
                             <i class="fa-solid fa-users-gear"></i>
                             <span class="item-label">المستخدمين</span>
+                        </NavLink>
+                        <NavLink class="menu-item" href="/admin/approvals/providers">
+                            <i class="fa-solid fa-user-check"></i>
+                            <span class="item-label">اعتماد المزودين</span>
+                        </NavLink>
+                        <NavLink class="menu-item" href="/admin/services">
+                            <i class="fa-solid fa-briefcase"></i>
+                            <span class="item-label">اعتماد الخدمات</span>
+                        </NavLink>
+                        <NavLink class="menu-item" href="/admin/categories">
+                            <i class="fa-solid fa-layer-group"></i>
+                            <span class="item-label">التصنيفات</span>
+                        </NavLink>
+                        <NavLink class="menu-item" href="/admin/locationsmanagement">
+                            <i class="fa-solid fa-map-location-dot"></i>
+                            <span class="item-label">المناطق والمدن</span>
+                        </NavLink>
+                        <NavLink class="menu-item" href="/admin/adsmanagement">
+                            <i class="fa-solid fa-rectangle-ad"></i>
+                            <span class="item-label">الإعلانات</span>
                         </NavLink>
                         
                         <AuthorizeView Roles="SuperAdmin" Context="superContext">
