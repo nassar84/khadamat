@@ -60,6 +60,26 @@ public class LocationsController : ControllerBase
         return Ok(ApiResponse<IEnumerable<CityDto>>.Succeed(cities));
     }
 
+    [HttpGet("cities")]
+    public async Task<ActionResult<ApiResponse<IEnumerable<CityDto>>>> GetAllCities()
+    {
+        var cities = await _context.Cities
+            .OrderBy(c => c.DisplayOrder)
+            .Select(c => new CityDto
+            {
+                Id = c.Id,
+                GovernorateId = c.GovernorateId,
+                NameAr = c.City_Name_AR,
+                NameEn = c.City_Name_EN,
+                DisplayOrder = c.DisplayOrder,
+                Approved = c.Approved,
+                CreatedAt = c.CreatedAt
+            })
+            .ToListAsync();
+        
+        return Ok(ApiResponse<IEnumerable<CityDto>>.Succeed(cities));
+    }
+
     [HttpPost("governorates")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponse<int>>> CreateGovernorate(GovernorateDto dto)

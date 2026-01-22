@@ -381,17 +381,19 @@
     [CascadingParameter]
     private Task<AuthenticationState> authStateTask { get; set; } = default!;
 
+    private List<CityDto> cities = new();
+
     protected override async Task OnInitializedAsync()
     {
         await authStateTask;
         try 
         {
             users = await AdminService.GetAllUsers();
+            cities = await Api.GetCitiesAsync(); // Load all cities for the dropdown
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading users: {ex.Message}");
-            // Fallback to empty or mock if needed
+            Console.WriteLine($"Error loading users or cities: {ex.Message}");
         }
     }
 
