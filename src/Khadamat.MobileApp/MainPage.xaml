@@ -7,12 +7,12 @@
              FlowDirection="RightToLeft"
              Shell.NavBarIsVisible="False">
 
-    <RefreshView x:Name="pullToRefresh" Refreshing="OnRefreshing" RefreshColor="#6366f1">
+    <Grid BackgroundColor="White">
         <BlazorWebView x:Name="blazorWebView" HostPage="wwwroot/index.html">
             <BlazorWebView.RootComponents>
                 <RootComponent Selector="#app" ComponentType="{x:Type local:Components.Routes}" />
             </BlazorWebView.RootComponents>
         </BlazorWebView>
-    </RefreshView>
+    </Grid>
 
 </ContentPage>
