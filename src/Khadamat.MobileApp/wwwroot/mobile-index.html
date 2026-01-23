@@ -49,22 +49,52 @@
             style="position:fixed;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:white;z-index:9999">
             <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
             <div class="mt-4 fw-bold text-primary" style="font-family: 'Tajawal', sans-serif;">تحميل خدمات...</div>
-            <div id="debug-info" style="margin-top:20px; font-size:10px; color:#ccc;">V1.2 | <span
-                    id="timer-val">0</span>s</div>
+            <div id="debug-info"
+                style="margin-top:20px; font-size:16px; color:#000; font-weight:bold; background:rgba(255,255,255,0.95); padding:10px 20px; border-radius:10px; border:2px solid #6366f1;">
+                V1.3 | <span id="timer-val">0</span>s
+            </div>
+            <div id="status-info"
+                style="margin-top:12px; font-size:12px; color:#333; max-width:300px; text-align:center; background:rgba(255,255,255,0.8); padding:6px 12px; border-radius:6px;">
+                Initializing...
+            </div>
         </div>
     </div>
     <script>
         (function () {
             var start = Date.now();
+            var statusEl = document.getElementById('status-info');
+
             setInterval(function () {
                 var el = document.getElementById('timer-val');
-                if (el) el.innerText = Math.floor((Date.now() - start) / 1000);
+                var elapsed = Math.floor((Date.now() - start) / 1000);
+                if (el) el.innerText = elapsed;
+
+                // Update status based on time
+                if (statusEl) {
+                    if (elapsed < 3) statusEl.innerText = '⏳ Loading Blazor framework...';
+                    else if (elapsed < 6) statusEl.innerText = '🔌 Connecting to API (10.0.2.2:5144)...';
+                    else if (elapsed < 10) statusEl.innerText = '📦 Loading components...';
+                    else {
+                        statusEl.innerHTML = '⚠️ <strong>Taking too long!</strong><br>API might be unreachable';
+                        statusEl.style.color = '#dc3545';
+                        statusEl.style.fontWeight = 'bold';
+                    }
+                }
             }, 1000);
+
             setTimeout(function () {
-                console.log("ANTIGRAVITY_LOG: Checking for hang...");
+                console.log("ANTIGRAVITY_LOG: 10s timeout - checking for hang...");
                 var appEl = document.getElementById('app');
                 if (appEl && appEl.innerText.includes('تحميل')) {
-                    console.log("ANTIGRAVITY_LOG: Still loading after 10s. Forcing reload.");
+                    console.log("ANTIGRAVITY_LOG: Still loading after 10s. Possible issues:");
+                    console.log("ANTIGRAVITY_LOG: 1. API not running on localhost:5144");
+                    console.log("ANTIGRAVITY_LOG: 2. Emulator cannot reach 10.0.2.2:5144");
+                    console.log("ANTIGRAVITY_LOG: 3. Blazor WebView bridge failed");
+                    if (statusEl) {
+                        statusEl.innerHTML = '❌ <strong>App Stuck!</strong><br>Check: API running? Network OK?';
+                        statusEl.style.color = '#dc3545';
+                        statusEl.style.fontSize = '13px';
+                    }
                 }
             }, 10000);
         })();
