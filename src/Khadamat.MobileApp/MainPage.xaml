@@ -7,10 +7,12 @@
              FlowDirection="RightToLeft"
              Shell.NavBarIsVisible="False">
 
-    <BlazorWebView x:Name="blazorWebView" HostPage="wwwroot/mobile-index.html">
-        <BlazorWebView.RootComponents>
-            <RootComponent Selector="#app" ComponentType="{x:Type local:Components.Routes}" />
-        </BlazorWebView.RootComponents>
-    </BlazorWebView>
+    <RefreshView x:Name="pullToRefresh" Refreshing="OnRefreshing" RefreshColor="#6366f1">
+        <BlazorWebView x:Name="blazorWebView" HostPage="wwwroot/mobile-index.html">
+            <BlazorWebView.RootComponents>
+                <RootComponent Selector="#app" ComponentType="{x:Type local:Components.Routes}" />
+            </BlazorWebView.RootComponents>
+        </BlazorWebView>
+    </RefreshView>
 
 </ContentPage>

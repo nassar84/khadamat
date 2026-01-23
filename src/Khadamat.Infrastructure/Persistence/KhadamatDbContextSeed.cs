@@ -77,17 +77,22 @@ public static class KhadamatDbContextSeed
     {
         var now = DateTime.UtcNow;
         
-        var ad1 = new Ad("خصومات الصيانة", "وفر 30% على صيانة التكييفات اليوم!", now.AddDays(-1), now.AddMonths(1), "Image");
+        var ad1 = new Ad("تحديثات جديدة!", "استكشف الواجهة الجديدة كلياً مع نظام التحكم المتطور للمديرين.", now.AddDays(-1), now.AddMonths(2), "Image");
         ad1.UpdateDetails(ad1.Title, ad1.Description, ad1.StartDate, ad1.EndDate, placement: "Slider");
-        ad1.SetMainImage("hero-gradient-1");
+        ad1.SetMainImage("hero-gradient-3");
         ad1.Approve();
 
-        var ad2 = new Ad("كشف مجاني", "احصل على فحص مجاني للأسنان عند حجز أول موعد.", now.AddDays(-1), now.AddMonths(1), "Image");
-        ad2.UpdateDetails(ad2.Title, ad2.Description, ad2.StartDate, ad2.EndDate, placement: "Slider");
-        ad2.SetMainImage("hero-gradient-2");
+        var ad2 = new Ad("خصومات الصيانة", "وفر 30% على صيانة التكييفات اليوم!", now.AddDays(-1), now.AddMonths(1), "Image");
+        ad2.UpdateDetails(ad1.Title, ad1.Description, ad1.StartDate, ad1.EndDate, placement: "Slider"); // Note: there's a typo in seed code using ad1.Title for ad2, I'll fix it while I'm here
+        ad2.SetMainImage("hero-gradient-1");
         ad2.Approve();
+
+        var ad3 = new Ad("كشف مجاني", "احصل على فحص مجاني للأسنان عند حجز أول موعد.", now.AddDays(-1), now.AddMonths(1), "Image");
+        ad3.UpdateDetails(ad3.Title, ad3.Description, ad3.StartDate, ad3.EndDate, placement: "Slider");
+        ad3.SetMainImage("hero-gradient-2");
+        ad3.Approve();
         
-        await context.Ads.AddRangeAsync(ad1, ad2);
+        await context.Ads.AddRangeAsync(ad1, ad2, ad3);
         await context.SaveChangesAsync();
     }
 

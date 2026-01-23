@@ -78,4 +78,10 @@ public class AdminService : IAdminService
     {
         await _http.PostAsJsonAsync($"api/v1/admin/users/{id}/role", role);
     }
+
+    public async Task ChangePassword(ChangePasswordDto dto)
+    {
+        var response = await _http.PostAsJsonAsync("api/v1/admin/users/change-password", dto);
+        response.EnsureSuccessStatusCode();
+    }
 }

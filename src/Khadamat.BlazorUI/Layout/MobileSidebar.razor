@@ -1,87 +1,120 @@
 @using Khadamat.BlazorUI.State
 @inject AppState State
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
+@inject Khadamat.BlazorUI.Services.Auth.IAuthService AuthService
 
 <div class="sidebar-overlay @(State.IsSidebarOpen ? "show" : "")" @onclick="CloseSidebar"></div>
 
 <aside class="mobile-sidebar-drawer @(State.IsSidebarOpen ? "open" : "")">
-    <div class="sidebar-top">
-        <div class="user-brief" @onclick='() => NavigateTo("/profile")'>
-            <img src="@State.UserImageUrl" class="user-avatar" />
-            <div class="user-text">
-                <span class="welcome">مرحباً بك،</span>
-                <span class="user-name">@State.UserName</span>
-            </div>
-        </div>
-        <button class="close-btn" @onclick="CloseSidebar">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
-    </div>
-
     <div class="sidebar-menu">
-        <div class="menu-section">
-            <h6 class="section-title">القائمة الرئيسية</h6>
-            <div class="menu-items">
-                <div class="menu-item @GetActiveClass("")" @onclick='() => NavigateTo("/")'>
-                    <i class="fa-solid fa-house"></i>
-                    <span>الرئيسية</span>
-                </div>
-                <div class="menu-item @GetActiveClass("categories")" @onclick='() => NavigateTo("/categories")'>
-                    <i class="fa-solid fa-grid-2"></i>
-                    <span>التصنيفات</span>
-                </div>
-                <div class="menu-item @GetActiveClass("services")" @onclick='() => NavigateTo("/services")'>
-                    <i class="fa-solid fa-briefcase"></i>
-                    <span>تصفح الخدمات</span>
-                </div>
-            </div>
-        </div>
-
         <AuthorizeView>
             <Authorized>
-                <div class="menu-section">
-                    <h6 class="section-title">حسابي</h6>
-                    <div class="menu-items">
-                        <div class="menu-item @GetActiveClass("profile")" @onclick='() => NavigateTo("/profile")'>
-                            <i class="fa-solid fa-user-circle"></i>
-                            <span>الملف الشخصي</span>
+                <div class="sidebar-top-premiumAuthorized">
+                    <div class="user-brief-premium" @onclick='() => NavigateTo("/profile")'>
+                        <div class="avatar-ring">
+                            <img src="@State.UserImageUrl" class="user-avatar-premium" />
                         </div>
-                        <div class="menu-item @GetActiveClass("favorites")" @onclick='() => NavigateTo("/client/favorites")'>
-                            <i class="fa-solid fa-heart"></i>
-                            <span>المفضلة</span>
-                        </div>
-                        <div class="menu-item @GetActiveClass("messages")" @onclick='() => NavigateTo("/provider/messages")'>
-                            <i class="fa-solid fa-comment-dots"></i>
-                            <span>الرسايل</span>
+                        <div class="user-text-premium">
+                            <span class="welcome-label">مرحباً بك،</span>
+                            <span class="user-name-sidebar">@State.UserName</span>
                         </div>
                     </div>
                 </div>
 
-                @if (State.IsProvider)
-                {
+                <div class="menu-sections-wrapper">
                     <div class="menu-section">
-                        <h6 class="section-title">وضع المزود</h6>
+                        <h6 class="section-title">القائمة الرئيسية</h6>
                         <div class="menu-items">
-                             <div class="menu-item provider-mode-btn" @onclick="ToggleProviderMode">
+                            <div class="menu-item @GetActiveClass("")" @onclick='() => NavigateTo("/")'>
+                                <i class="fa-solid fa-house"></i>
+                                <span>الرئيسية</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("categories")" @onclick='() => NavigateTo("/categories")'>
+                                <i class="fa-solid fa-grid-2"></i>
+                                <span>التصنيفات</span>
+                            </div>
+                            <div class="menu-item" @onclick="RefreshApp">
                                 <i class="fa-solid fa-arrows-rotate"></i>
-                                <span>@(State.IsProviderMode ? "التبديل لوضع العميل" : "التبديل لوضع المزود")</span>
-                             </div>
+                                <span>تحديث التطبيق</span>
+                            </div>
                         </div>
                     </div>
-                }
+
+                    <div class="menu-section">
+                        <h6 class="section-title">حسابي الشخصي</h6>
+                        <div class="menu-items">
+                            <div class="menu-item @GetActiveClass("profile")" @onclick='() => NavigateTo("/profile")'>
+                                <i class="fa-solid fa-user-astronaut"></i>
+                                <span>بروفيلي</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("settings")" @onclick='() => NavigateTo("/settings")'>
+                                <i class="fa-solid fa-sliders"></i>
+                                <span>الإعدادات</span>
+                            </div>
+
+                            <AuthorizeView Roles="Admin,SystemAdmin,SuperAdmin" Context="adminCtx">
+                                <div class="menu-item admin-link-premium" @onclick='() => NavigateTo("/admin")'>
+                                    <i class="fa-solid fa-shield-halved"></i>
+                                    <span>لوحة التحكم (Admin)</span>
+                                </div>
+                            </AuthorizeView>
+                        </div>
+                    </div>
+
+                    @if (State.IsProvider)
+                    {
+                        <div class="menu-section">
+                            <h6 class="section-title">إعدادات المزود</h6>
+                            <div class="menu-items">
+                                 <div class="menu-item provider-switch-item" @onclick="ToggleProviderMode">
+                                    <i class="fa-solid fa-shuffle"></i>
+                                    <span>@(State.IsProviderMode ? "التبديل للمستخدم العادي" : "التبديل للمهني/المزود")</span>
+                                 </div>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="menu-section mt-4">
+                        <div class="menu-item logout-item" @onclick="HandleLogout">
+                            <i class="fa-solid fa-power-off"></i>
+                            <span>تسجيل الخروج</span>
+                        </div>
+                    </div>
+                </div>
             </Authorized>
             <NotAuthorized>
-                <div class="menu-section">
-                    <h6 class="section-title">مرحباً بك</h6>
-                    <div class="auth-promo-card">
-                        <p>سجل دخولك للحصول على كامل المميزات</p>
-                        <div class="auth-buttons-grid">
-                            <button class="btn-sidebar-login" @onclick='() => NavigateTo("/login")'>
-                                <i class="fa-solid fa-right-to-bracket ms-1"></i> دخول
-                            </button>
-                            <button class="btn-sidebar-register" @onclick='() => NavigateTo("/register")'>
-                                <i class="fa-solid fa-user-plus ms-1"></i> حساب جديد
-                            </button>
+                <div class="sidebar-top-guest">
+                    <div class="logo-sidebar">
+                        <i class="fa-solid fa-bolt-lightning"></i>
+                        <span>خدمات</span>
+                    </div>
+                </div>
+
+                <div class="menu-sections-wrapper">
+                    <div class="menu-section">
+                        <h6 class="section-title">إكتشف خدمات</h6>
+                        <div class="menu-items">
+                            <div class="menu-item @GetActiveClass("")" @onclick='() => NavigateTo("/")'>
+                                <i class="fa-solid fa-house"></i>
+                                <span>الرئيسية</span>
+                            </div>
+                            <div class="menu-item" @onclick="RefreshApp">
+                                <i class="fa-solid fa-arrows-rotate"></i>
+                                <span>تحديث التطبيق</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="auth-card-sidebar-premium">
+                        <div class="auth-icon-circle">
+                            <i class="fa-solid fa-user-plus"></i>
+                        </div>
+                        <h5>انضم إلينا الآن</h5>
+                        <p>سجل دخولك لتتمكن من طلب الخدمات والتواصل مع المزودين</p>
+                        <div class="auth-actions-sidebar">
+                            <button class="btn-sidebar-login-new" @onclick='() => NavigateTo("/login")'>دخول</button>
+                            <button class="btn-sidebar-register-new" @onclick='() => NavigateTo("/register")'>حساب جديد</button>
                         </div>
                     </div>
                 </div>
@@ -114,10 +147,10 @@
     .mobile-sidebar-drawer {
         position: fixed;
         top: 0;
-        right: -280px; /* Hidden on the right for RTL */
-        width: 280px;
+        right: -300px;
+        width: 300px;
         height: 100vh;
-        background: white;
+        background: #f8fafc;
         z-index: 1100;
         transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         display: flex;
@@ -129,59 +162,72 @@
         right: 0;
     }
 
-    .sidebar-top {
-        padding: 40px 20px 20px;
-        background: linear-gradient(135deg, var(--theme-primary, #6366f1) 0%, var(--theme-secondary, #4f46e5) 100%);
+    .sidebar-top-premiumAuthorized {
+        padding: 40px 25px 25px;
+        background: linear-gradient(135deg, var(--theme-primary, #8e2de2), var(--theme-secondary, #4a00e0));
         color: white;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
         position: relative;
     }
 
-    .user-brief {
+    .user-brief-premium {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 15px;
         cursor: pointer;
     }
 
-    .user-avatar {
-        width: 48px;
-        height: 48px;
-        border-radius: 14px;
-        object-fit: cover;
-        border: 2px solid rgba(255, 255, 255, 0.3);
+    .avatar-ring {
+        padding: 3px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 18px;
+        display: flex;
     }
 
-    .user-text {
+    .user-avatar-premium {
+        width: 55px;
+        height: 55px;
+        border-radius: 15px;
+        object-fit: cover;
+        border: 2px solid white;
+    }
+
+    .user-text-premium {
         display: flex;
         flex-direction: column;
     }
 
-    .welcome {
+    .welcome-label {
         font-size: 0.75rem;
-        opacity: 0.8;
+        opacity: 0.9;
+        font-weight: 600;
     }
 
-    .user-name {
-        font-weight: 700;
-        font-size: 1rem;
+    .user-name-sidebar {
+        font-size: 1.1rem;
+        font-weight: 800;
+        letter-spacing: -0.5px;
     }
 
-    .close-btn {
-        background: rgba(255, 255, 255, 0.2);
-        border: none;
-        color: white;
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
+    .sidebar-top-guest {
+        padding: 50px 25px 30px;
+        background: #fff;
+        border-bottom: 1px solid #f1f5f9;
         display: flex;
-        align-items: center;
         justify-content: center;
     }
 
-    .sidebar-menu {
+    .logo-sidebar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.8rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .menu-sections-wrapper {
         flex: 1;
         overflow-y: auto;
         padding: 20px;
@@ -192,104 +238,139 @@
     }
 
     .section-title {
-        font-size: 0.7rem;
+        font-size: 0.75rem;
         font-weight: 800;
-        text-transform: uppercase;
         color: #94a3b8;
+        padding: 0 10px;
         margin-bottom: 12px;
-        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
 
     .menu-item {
         display: flex;
         align-items: center;
-        gap: 12px;
-        padding: 12px 15px;
-        border-radius: 12px;
+        gap: 15px;
+        padding: 14px 18px;
+        border-radius: 16px;
         color: #475569;
-        font-weight: 600;
-        margin-bottom: 4px;
+        font-weight: 700;
+        margin-bottom: 6px;
         transition: all 0.2s;
         cursor: pointer;
     }
 
     .menu-item i {
-        font-size: 1.2rem;
+        font-size: 1.25rem;
         width: 24px;
         text-align: center;
-        color: #64748b;
+        opacity: 0.8;
     }
 
     .menu-item:active {
         background: #f1f5f9;
-        transform: scale(0.98);
+        transform: scale(0.97);
     }
 
     .menu-item.active {
-        background: var(--theme-light, rgba(99, 102, 241, 0.1));
-        color: var(--theme-primary, #6366f1);
+        background: var(--theme-light, rgba(var(--theme-primary-rgb), 0.1));
+        color: var(--theme-primary);
     }
 
-    .menu-item.active i {
-        color: var(--theme-primary, #6366f1);
+    .admin-link-premium {
+        background: rgba(245, 158, 11, 0.1) !important;
+        color: #b45309 !important;
+        border: 1px dashed rgba(245, 158, 11, 0.4);
     }
 
-    .provider-mode-btn {
-        background: #f8fafc;
-        border: 1px dashed #cbd5e1;
+    .admin-link-premium i {
+        color: #f59e0b !important;
+        opacity: 1;
     }
 
-    /* Auth Promo Card */
-    .auth-promo-card {
+    .provider-switch-item {
         background: #f1f5f9;
-        padding: 15px;
-        border-radius: 16px;
-        text-align: center;
+        border: 1px solid #e2e8f0;
     }
 
-    .auth-promo-card p {
+    .logout-item {
+        color: #ef4444 !important;
+        background: rgba(239, 68, 68, 0.05);
+    }
+
+    .logout-item i {
+        color: #ef4444 !important;
+    }
+
+    /* Auth Card Guest */
+    .auth-card-sidebar-premium {
+        background: white;
+        padding: 25px 20px;
+        border-radius: 24px;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f1f5f9;
+        margin-top: 10px;
+    }
+
+    .auth-icon-circle {
+        width: 60px;
+        height: 60px;
+        background: var(--theme-light, rgba(var(--theme-primary-rgb), 0.1));
+        color: var(--theme-primary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 15px;
+        font-size: 1.5rem;
+    }
+
+    .auth-card-sidebar-premium h5 {
+        font-weight: 800;
+        margin-bottom: 8px;
+        color: #1e293b;
+    }
+
+    .auth-card-sidebar-premium p {
         font-size: 0.8rem;
         color: #64748b;
-        margin-bottom: 12px;
-        font-weight: 600;
+        margin-bottom: 20px;
+        line-height: 1.5;
     }
 
-    .auth-buttons-grid {
+    .auth-actions-sidebar {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 8px;
+        gap: 10px;
     }
 
-    .btn-sidebar-login, .btn-sidebar-register {
+    .btn-sidebar-login-new, .btn-sidebar-register-new {
         padding: 10px;
-        border-radius: 10px;
+        border-radius: 12px;
+        font-weight: 800;
         font-size: 0.85rem;
-        font-weight: 700;
         border: none;
         transition: all 0.2s;
     }
 
-    .btn-sidebar-login {
-        background: var(--theme-primary, #6366f1);
+    .btn-sidebar-login-new {
+        background: var(--theme-primary);
         color: white;
+        box-shadow: 0 4px 12px var(--theme-glow);
     }
 
-    .btn-sidebar-register {
-        background: white;
+    .btn-sidebar-register-new {
+        background: #f1f5f9;
         color: #475569;
-        border: 1px solid #e2e8f0;
-    }
-
-    .btn-sidebar-login:active, .btn-sidebar-register:active {
-        transform: scale(0.95);
     }
 
     .sidebar-bottom {
         padding: 20px;
-        border-top: 1px solid #f1f5f9;
         text-align: center;
         color: #94a3b8;
         font-size: 0.75rem;
+        border-top: 1px solid #f1f5f9;
     }
 </style>
 
@@ -319,6 +400,19 @@
     {
         CloseSidebar();
         Navigation.NavigateTo(path);
+    }
+
+    private async Task HandleLogout()
+    {
+        CloseSidebar();
+        await AuthService.Logout();
+        Navigation.NavigateTo("/login");
+    }
+
+    private async Task RefreshApp()
+    {
+        CloseSidebar();
+        await JS.InvokeVoidAsync("location.reload");
     }
 
     private string GetActiveClass(string path)

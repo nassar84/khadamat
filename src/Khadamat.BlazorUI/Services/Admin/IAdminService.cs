@@ -19,4 +19,5 @@ public interface IAdminService
     
     Task UpdateUser(string id, UserDto dto);
     Task UpdateUserRole(string id, string role);
+    Task ChangePassword(ChangePasswordDto dto);
 }

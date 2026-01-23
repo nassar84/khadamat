@@ -73,3 +73,9 @@ public class UpdateProviderProfileRequest
     public string? TwitterUrl { get; set; }
     public string? Photo { get; set; }
 }
+
+public class ChangePasswordDto
+{
+    public string UserId { get; set; } = string.Empty;
+    public string NewPassword { get; set; } = string.Empty;
+}

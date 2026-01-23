@@ -160,6 +160,37 @@ public class AdminController : ControllerBase
         return Ok(ApiResponse<bool>.Succeed(true));
     }
 
+    [HttpPost("users/change-password")]
+    public async Task<IActionResult> ChangeUserPassword([FromBody] ChangePasswordDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.UserId) || string.IsNullOrWhiteSpace(dto.NewPassword))
+        {
+            return BadRequest(ApiResponse<bool>.Fail("بيانات غير مكتملة"));
+        }
+
+        var user = await _userManager.FindByIdAsync(dto.UserId);
+        if (user == null) return NotFound();
+
+        // Check permissions: Only SuperAdmin can change SuperAdmin passwords
+        var currentRoles = await _userManager.GetRolesAsync(user);
+        if (currentRoles.Contains("SuperAdmin") && !User.IsInRole("SuperAdmin"))
+        {
+            return Forbid("Only SuperAdmin can change SuperAdmin passwords.");
+        }
+
+        // Use Remove/Add password to force update without needing current password
+        var removeResult = await _userManager.RemovePasswordAsync(user);
+        // If user didn't have a password (e.g. external login), it's fine.
+        
+        var addResult = await _userManager.AddPasswordAsync(user, dto.NewPassword);
+        if (!addResult.Succeeded)
+        {
+            return BadRequest(ApiResponse<bool>.Fail(string.Join(", ", addResult.Errors.Select(e => e.Description))));
+        }
+
+        return Ok(ApiResponse<bool>.Succeed(true));
+    }
+
     [HttpGet("stats")]
     public async Task<ActionResult<ApiResponse<AdminStatsDto>>> GetStats()
     {

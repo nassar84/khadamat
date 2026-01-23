@@ -1,28 +1,50 @@
+@implements IDisposable
 @using Khadamat.BlazorUI.State
 @inject AppState State
 @inject NavigationManager Navigation
 
-<header class="mobile-header">
-    <div class="header-left">
-        <button class="menu-toggle-btn" @onclick="ToggleSidebar">
-            <i class="fa-solid fa-bars-staggered"></i>
-        </button>
-    </div>
-
-    <div class="header-center">
-        <div class="header-logo" @onclick='() => Navigation.NavigateTo("/")'>
-            <i class="fa-solid fa-bolt-lightning logo-icon"></i>
-            <span class="logo-text">خدمات</span>
+<header class="mobile-header-premium">
+    <div class="header-glass-content">
+        <div class="header-left">
+            <button class="menu-toggle-btn-glass" @onclick="ToggleSidebar">
+                <i class="fa-solid fa-bars-staggered"></i>
+            </button>
         </div>
-    </div>
 
-    <div class="header-right">
-        <div class="notification-icon" @onclick='() => Navigation.NavigateTo("/notifications")'>
-            <i class="fa-solid fa-bell"></i>
-            @if (State.NotificationCount > 0)
-            {
-                <span class="notification-badge">@State.NotificationCount</span>
-            }
+        <div class="header-center" @onclick='() => Navigation.NavigateTo("/")'>
+            <div class="logo-wrapper-mobile">
+                <i class="fa-solid fa-bolt-lightning logo-icon-glow"></i>
+                <span class="logo-text-premium">خدمات</span>
+            </div>
+        </div>
+
+        <div class="header-right">
+            <AuthorizeView>
+                <Authorized>
+                    <div class="user-profile-header-premium" @onclick='() => Navigation.NavigateTo("/profile")'>
+                        <div class="user-meta-header d-none d-sm-flex">
+                            <span class="user-name-header">@State.UserName</span>
+                        </div>
+                        <div class="avatar-header-wrapper">
+                            <img src="@State.UserImageUrl" alt="Profile" class="user-header-avatar-premium" />
+                            <div class="online-dot-small"></div>
+                        </div>
+                    </div>
+                </Authorized>
+                <NotAuthorized>
+                    <button class="btn-login-minimal" @onclick='() => Navigation.NavigateTo("/login")'>
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                    </button>
+                </NotAuthorized>
+            </AuthorizeView>
+            
+            <div class="icon-btn-minimal" @onclick='() => Navigation.NavigateTo("/notifications")'>
+                <i class="fa-solid fa-bell"></i>
+                @if (State.NotificationCount > 0)
+                {
+                    <span class="badge-dot"></span>
+                }
+            </div>
         </div>
     </div>
 </header>
@@ -35,119 +57,214 @@
 </div>
 
 <style>
-    .mobile-header {
-        height: 65px;
-        background: rgba(255, 255, 255, 0.8);
+    .mobile-header-premium {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        padding: 8px 15px;
+        background: transparent;
+    }
+
+    .header-glass-content {
+        background: rgba(255, 255, 255, 0.7);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
+        height: 60px;
         display: flex;
         align-items: center;
         justify-content: space-between;
         padding: 0 15px;
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-        width: 100%;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
     }
 
-    .menu-toggle-btn {
-        background: none;
+    .menu-toggle-btn-glass {
+        background: rgba(var(--theme-primary-rgb), 0.1);
         border: none;
-        font-size: 1.5rem;
-        color: #64748b;
-        padding: 8px;
+        color: var(--theme-primary);
+        width: 40px;
+        height: 40px;
         border-radius: 12px;
-        transition: background 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        transition: all 0.2s;
     }
 
-    .menu-toggle-btn:active {
-        background: rgba(0, 0, 0, 0.05);
-    }
-
-    .header-logo {
+    .logo-wrapper-mobile {
         display: flex;
         align-items: center;
         gap: 8px;
-        cursor: pointer;
     }
 
-    .logo-icon {
-        color: var(--theme-primary, #6366f1);
+    .logo-icon-glow {
+        color: var(--theme-primary);
+        font-size: 1.3rem;
+        filter: drop-shadow(0 0 10px var(--theme-glow));
+        animation: pulse-glow 2s infinite;
+    }
+
+    .logo-text-premium {
+        font-weight: 900;
         font-size: 1.2rem;
-    }
-
-    .logo-text {
-        font-weight: 800;
-        font-size: 1.1rem;
-        background: linear-gradient(135deg, var(--theme-primary, #6366f1), var(--theme-secondary, #4f46e5));
+        background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        letter-spacing: -0.5px;
     }
 
-    .notification-icon {
-        position: relative;
-        font-size: 1.3rem;
-        color: #64748b;
-        padding: 8px;
+    .user-profile-header-premium {
+        display: flex;
+        align-items: center;
+        gap: 10px;
         cursor: pointer;
+        background: rgba(255, 255, 255, 0.5);
+        padding: 4px 4px 4px 12px;
+        border-radius: 50px;
+        border: 1px solid rgba(0, 0, 0, 0.03);
     }
 
-    .notification-badge {
+    [dir="rtl"] .user-profile-header-premium {
+        padding: 4px 12px 4px 4px;
+    }
+
+    .user-name-header {
+        font-size: 0.8rem;
+        font-weight: 800;
+        color: #1e293b;
+        max-width: 80px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .avatar-header-wrapper {
+        position: relative;
+    }
+
+    .user-header-avatar-premium {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid white;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .online-dot-small {
         position: absolute;
-        top: 5px;
-        right: 5px;
-        background: #ef4444;
+        bottom: 1px;
+        right: 1px;
+        width: 8px;
+        height: 8px;
+        background: #22c55e;
+        border-radius: 50%;
+        border: 1.5px solid white;
+    }
+
+    .icon-btn-minimal {
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #64748b;
+        font-size: 1.1rem;
+        position: relative;
+        margin-right: 5px;
+    }
+
+    .btn-login-minimal {
+        background: var(--theme-primary);
         color: white;
-        font-size: 0.65rem;
-        font-weight: 700;
-        min-width: 18px;
-        height: 18px;
+        border: none;
+        width: 36px;
+        height: 36px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
+        font-size: 0.9rem;
+        box-shadow: 0 4px 12px var(--theme-glow);
+    }
+
+    .badge-dot {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 8px;
+        height: 8px;
+        background: #ef4444;
+        border-radius: 50%;
         border: 2px solid white;
     }
 
+    @@keyframes pulse-glow {
+        0% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.8; transform: scale(1.1); }
+        100% { opacity: 1; transform: scale(1); }
+    }
+
     .mobile-search-bar {
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+        background: transparent;
+        margin-top: -5px;
     }
 
     .search-input-wrapper {
         position: relative;
         width: 100%;
-    }
-
-    .search-icon {
-        position: absolute;
-        right: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #94a3b8;
+        padding: 0 5px;
     }
 
     .search-input-wrapper input {
         width: 100%;
-        padding: 10px 40px 10px 15px;
-        border-radius: 14px;
-        border: 1px solid rgba(0, 0, 0, 0.05);
-        background: #f1f5f9;
+        padding: 12px 45px 12px 15px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
         font-size: 0.9rem;
-        transition: all 0.3s;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
     }
 
-    .search-input-wrapper input:focus {
-        background: white;
-        border-color: var(--theme-primary, #6366f1);
-        box-shadow: 0 0 0 4px var(--theme-light, rgba(99, 102, 241, 0.1));
-        outline: none;
+    [dir="rtl"] .search-input-wrapper input {
+        padding: 12px 15px 12px 45px;
+    }
+
+    .search-icon {
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--theme-primary);
+        opacity: 0.7;
+    }
+
+    [dir="rtl"] .search-icon {
+        right: auto;
+        left: 20px;
     }
 </style>
 
 @code {
+    protected override void OnInitialized()
+    {
+        State.OnChange += OnStateChange;
+    }
+
+    private async void OnStateChange()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        State.OnChange -= OnStateChange;
+    }
+
     private void ToggleSidebar()
     {
         Console.WriteLine($"ANTIGRAVITY_LOG: Toggling sidebar. Current state: {State.IsSidebarOpen}");
