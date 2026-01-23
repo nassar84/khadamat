@@ -76,7 +76,7 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 // Serve Static Files for the Frontend
 app.UseDefaultFiles();

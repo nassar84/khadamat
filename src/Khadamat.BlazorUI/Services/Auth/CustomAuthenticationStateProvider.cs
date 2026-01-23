@@ -23,8 +23,17 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
     {
         Console.WriteLine("ANTIGRAVITY_LOG: GetAuthenticationStateAsync started");
         try {
-            var token = await _localStorage.GetItemAsync<string>("authToken");
-            Console.WriteLine($"ANTIGRAVITY_LOG: Token found: {!string.IsNullOrEmpty(token)}");
+            // Safety timeout for local storage in MAUI (sometimes the bridge hangs)
+            var tokenTask = _localStorage.GetItemAsync<string>("authToken").AsTask();
+            var completedTask = await Task.WhenAny(tokenTask, Task.Delay(2000));
+            
+            string? token = null;
+            if (completedTask == tokenTask) {
+                token = await tokenTask;
+                Console.WriteLine($"ANTIGRAVITY_LOG: Token fetch complete. Found: {!string.IsNullOrEmpty(token)}");
+            } else {
+                Console.WriteLine("ANTIGRAVITY_LOG: Token fetch TIMEOUT (2s). Proceeding as Anonymous.");
+            }
         
             if (string.IsNullOrWhiteSpace(token))
             {
@@ -57,7 +66,14 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
     private IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
     {
         var claims = new List<Claim>();
-        var payload = jwt.Split('.')[1];
+        if (string.IsNullOrEmpty(jwt) || !jwt.Contains(".")) {
+            Console.WriteLine("ANTIGRAVITY_LOG: Invalid JWT format detected.");
+            return claims;
+        }
+        var parts = jwt.Split('.');
+        if (parts.Length < 2) return claims;
+        
+        var payload = parts[1];
         var jsonBytes = ParseBase64WithoutPadding(payload);
         var keyValuePairs = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonBytes);
 

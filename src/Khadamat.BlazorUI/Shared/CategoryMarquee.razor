@@ -155,19 +155,9 @@
         text-overflow: ellipsis;
     }
 
-    @@keyframes marquee {
-        0% { transform: translateX(0); }
-        100% { transform: translateX(-50%); }
-    }
-
     /* RTL Support */
     [dir="rtl"] .scroll-track {
         animation: marquee-rtl 30s linear infinite;
-    }
-
-    @@keyframes marquee-rtl {
-        0% { transform: translateX(0); }
-        100% { transform: translateX(50%); }
     }
     
     .skeleton {
@@ -175,26 +165,29 @@
         background-size: 200% 100%;
         animation: loading 1.5s infinite;
     }
-
-    @@keyframes loading {
-        0% { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
-    }
 </style>
 
 @code {
     private List<MainCategoryDto>? categories;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
+    {
+        Console.WriteLine("ANTIGRAVITY_LOG: CategoryMarquee Initialized. Starting load...");
+        _ = LoadCategoriesAsync();
+    }
+
+    private async Task LoadCategoriesAsync()
     {
         try
         {
             categories = await Api.GetMainCategoriesAsync();
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading categories: {ex.Message}");
+            Console.WriteLine($"ANTIGRAVITY_LOG: Error loading categories: {ex.Message}");
             categories = new();
+            await InvokeAsync(StateHasChanged);
         }
     }
 

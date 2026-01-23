@@ -185,27 +185,12 @@
         animation: skeleton-loading 1.5s infinite;
     }
     
-    @@keyframes skeleton-loading {
-        0% { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
-    }
-    
-    .floating {
-        animation: float 3s ease-in-out infinite;
-    }
-    
-    @@keyframes float {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-10px); }
-    }
-    
     .animate-pop {
         animation: pop-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
-    
-    @@keyframes pop-in {
-        from { transform: scale(0.8); opacity: 0; }
-        to { transform: scale(1); opacity: 1; }
+
+    .floating {
+        animation: float 3s ease-in-out infinite;
     }
 </style>
 
@@ -214,19 +199,33 @@
     private int currentIndex = 0;
     private System.Timers.Timer? timer;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        ads = await Api.GetSliderAdsAsync();
-        
-        if (ads != null && ads.Count > 1)
+        Console.WriteLine("ANTIGRAVITY_LOG: AdsSlider Initialized. Starting load...");
+        _ = LoadAdsAsync();
+    }
+
+    private async Task LoadAdsAsync()
+    {
+        try 
         {
-            timer = new System.Timers.Timer(5000);
-            timer.Elapsed += (s, e) => 
+            ads = await Api.GetSliderAdsAsync();
+            
+            if (ads != null && ads.Count > 1)
             {
-                currentIndex = (currentIndex + 1) % ads.Count;
-                InvokeAsync(StateHasChanged);
-            };
-            timer.Enabled = true;
+                timer = new System.Timers.Timer(5000);
+                timer.Elapsed += (s, e) => 
+                {
+                    currentIndex = (currentIndex + 1) % ads.Count;
+                    InvokeAsync(StateHasChanged);
+                };
+                timer.Enabled = true;
+            }
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ANTIGRAVITY_LOG: Error loading ads: {ex.Message}");
         }
     }
 

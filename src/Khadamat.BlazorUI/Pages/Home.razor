@@ -219,11 +219,6 @@
         animation: pop-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    @@keyframes pop-in {
-        from { transform: scale(0.9); opacity: 0; }
-        to { transform: scale(1); opacity: 1; }
-    }
-
     .banner-content p {
         font-size: 0.9rem;
         opacity: 0.9;
@@ -255,11 +250,6 @@
         background-size: 200% 100%;
         animation: loading 1.5s infinite;
     }
-
-    @@keyframes loading {
-        0% { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
-    }
 </style>
 
 @code {
@@ -267,22 +257,34 @@
     private List<ServiceDto>? nearbyServices;
     private List<MainCategoryDto>? mainCategories;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
+    {
+        Console.WriteLine("ANTIGRAVITY_LOG: Home Page Initialized. Starting background data load...");
+        _ = LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
     {
         try 
         {
+            Console.WriteLine("ANTIGRAVITY_LOG: Fetching services...");
             var servicesResult = await Api.GetServicesAsync();
             featuredServices = servicesResult.Items.Take(6).ToList();
             nearbyServices = servicesResult.Items.Skip(1).Take(4).ToList();
             
+            Console.WriteLine("ANTIGRAVITY_LOG: Fetching categories...");
             mainCategories = await Api.GetMainCategoriesAsync();
+            
+            Console.WriteLine("ANTIGRAVITY_LOG: Data load complete!");
+            await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading home data: {ex.Message}");
+            Console.WriteLine($"ANTIGRAVITY_LOG: Error loading home data: {ex.Message}");
             featuredServices = new();
             nearbyServices = new();
             mainCategories = new();
+            await InvokeAsync(StateHasChanged);
         }
     }
 
