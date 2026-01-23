@@ -6,7 +6,7 @@ using Khadamat.MobileApp.Services;
 using Khadamat.Shared.Interfaces;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Logging;
-using Plugin.LocalNotification;
+// using Plugin.LocalNotification;
 using Blazored.LocalStorage;
 
 namespace Khadamat.MobileApp;
@@ -20,7 +20,7 @@ public static class MauiProgram
         builder
             .UseMauiApp<App>()
             .UseMauiCommunityToolkit()
-            .UseLocalNotification()
+            //.UseLocalNotification()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");

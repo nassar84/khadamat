@@ -1,8 +1,12 @@
 @inherits LayoutComponentBase
 @inject Khadamat.BlazorUI.State.AppState AppState
 @inject NavigationManager Navigation
+@implements IDisposable
 
 <div class="mobile-app">
+    <MobileHeader />
+    <MobileSidebar />
+    
     <main class="mobile-content">
         @Body
     </main>
@@ -46,3 +50,16 @@
         scroll-behavior: smooth;
     }
 </style>
+
+@code {
+    protected override void OnInitialized()
+    {
+        AppState.OnChange += StateHasChanged;
+        Console.WriteLine("ANTIGRAVITY_LOG: MobileLayout OnInitialized called");
+    }
+
+    public void Dispose()
+    {
+        AppState.OnChange -= StateHasChanged;
+    }
+}

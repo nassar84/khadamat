@@ -24,6 +24,7 @@ public class AppState
     public bool IsProvider { get; set; }
     public int NotificationCount { get; set; } = 3;
     // UI State
+    public bool IsSidebarOpen { get; set; }
     public bool IsProviderMode { get; set; } // If true, show dashboard. If false, show client UI.
     
     // Profile Information
@@ -71,6 +72,8 @@ public class AppState
     public bool IsAuthenticated => !string.IsNullOrEmpty(_userToken);
 
     public event Action? OnChange;
+
+    public void TriggerStateChanged() => OnChange?.Invoke();
 
     private void NotifyStateChanged() => OnChange?.Invoke();
 }

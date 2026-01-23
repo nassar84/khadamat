@@ -1,0 +1,161 @@
+@using Khadamat.BlazorUI.State
+@inject AppState State
+@inject NavigationManager Navigation
+
+<header class="mobile-header">
+    <div class="header-left">
+        <button class="menu-toggle-btn" @onclick="ToggleSidebar">
+            <i class="fa-solid fa-bars-staggered"></i>
+        </button>
+    </div>
+
+    <div class="header-center">
+        <div class="header-logo" @onclick='() => Navigation.NavigateTo("/")'>
+            <i class="fa-solid fa-bolt-lightning logo-icon"></i>
+            <span class="logo-text">خدمات</span>
+        </div>
+    </div>
+
+    <div class="header-right">
+        <div class="notification-icon" @onclick='() => Navigation.NavigateTo("/notifications")'>
+            <i class="fa-solid fa-bell"></i>
+            @if (State.NotificationCount > 0)
+            {
+                <span class="notification-badge">@State.NotificationCount</span>
+            }
+        </div>
+    </div>
+</header>
+
+<div class="mobile-search-bar px-3 pb-2">
+    <div class="search-input-wrapper">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" placeholder="ابحث عن خدمات..." @oninput="HandleSearch" />
+    </div>
+</div>
+
+<style>
+    .mobile-header {
+        height: 65px;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 15px;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        width: 100%;
+    }
+
+    .menu-toggle-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: #64748b;
+        padding: 8px;
+        border-radius: 12px;
+        transition: background 0.2s;
+    }
+
+    .menu-toggle-btn:active {
+        background: rgba(0, 0, 0, 0.05);
+    }
+
+    .header-logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+    }
+
+    .logo-icon {
+        color: var(--theme-primary, #6366f1);
+        font-size: 1.2rem;
+    }
+
+    .logo-text {
+        font-weight: 800;
+        font-size: 1.1rem;
+        background: linear-gradient(135deg, var(--theme-primary, #6366f1), var(--theme-secondary, #4f46e5));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .notification-icon {
+        position: relative;
+        font-size: 1.3rem;
+        color: #64748b;
+        padding: 8px;
+        cursor: pointer;
+    }
+
+    .notification-badge {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: #ef4444;
+        color: white;
+        font-size: 0.65rem;
+        font-weight: 700;
+        min-width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid white;
+    }
+
+    .mobile-search-bar {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+    }
+
+    .search-input-wrapper {
+        position: relative;
+        width: 100%;
+    }
+
+    .search-icon {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+    }
+
+    .search-input-wrapper input {
+        width: 100%;
+        padding: 10px 40px 10px 15px;
+        border-radius: 14px;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        background: #f1f5f9;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+    }
+
+    .search-input-wrapper input:focus {
+        background: white;
+        border-color: var(--theme-primary, #6366f1);
+        box-shadow: 0 0 0 4px var(--theme-light, rgba(99, 102, 241, 0.1));
+        outline: none;
+    }
+</style>
+
+@code {
+    private void ToggleSidebar()
+    {
+        State.IsSidebarOpen = !State.IsSidebarOpen;
+        State.TriggerStateChanged();
+    }
+
+    private void HandleSearch(ChangeEventArgs e)
+    {
+        // Placeholder for search logic
+    }
+}

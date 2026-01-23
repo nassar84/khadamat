@@ -14,22 +14,30 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
 
     public CustomAuthenticationStateProvider(ILocalStorageService localStorage, HttpClient http)
     {
+        Console.WriteLine("ANTIGRAVITY_LOG: CustomAuthenticationStateProvider Constructor called");
         _localStorage = localStorage;
         _http = http;
     }
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-        var token = await _localStorage.GetItemAsync<string>("authToken");
+        Console.WriteLine("ANTIGRAVITY_LOG: GetAuthenticationStateAsync started");
+        try {
+            var token = await _localStorage.GetItemAsync<string>("authToken");
+            Console.WriteLine($"ANTIGRAVITY_LOG: Token found: {!string.IsNullOrEmpty(token)}");
+        
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+            }
 
-        if (string.IsNullOrWhiteSpace(token))
-        {
+            _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
+
+            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt")));
+        } catch (Exception ex) {
+            Console.WriteLine($"ANTIGRAVITY_LOG: GetAuthenticationStateAsync ERROR: {ex}");
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
         }
-
-        _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
-
-        return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt")));
     }
 
     public void MarkUserAsAuthenticated(string token)

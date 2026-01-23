@@ -65,7 +65,8 @@
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
         
         <!-- Notifications -->
-        <PackageReference Include="Plugin.LocalNotification" Version="11.1.5" />
+        <!-- Notifications -->
+        <!-- <PackageReference Include="Plugin.LocalNotification" Version="11.1.5" /> -->
         
         <!-- Storage -->
         <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
