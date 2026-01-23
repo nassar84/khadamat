@@ -142,6 +142,9 @@ public class AuthService : IAuthService
         user.WebsiteUrl = request.WebsiteUrl;
         user.InstagramUrl = request.InstagramUrl;
         user.TwitterUrl = request.TwitterUrl;
+        user.FacebookUrl = request.FacebookUrl;
+        user.LinkedInUrl = request.LinkedInUrl;
+        user.TikTokUrl = request.TikTokUrl;
 
         var result = await _userManager.UpdateAsync(user);
         if (!result.Succeeded)
@@ -189,7 +192,10 @@ public class AuthService : IAuthService
             Bio = user.Bio,
             WebsiteUrl = user.WebsiteUrl,
             InstagramUrl = user.InstagramUrl,
-            TwitterUrl = user.TwitterUrl
+            TwitterUrl = user.TwitterUrl,
+            FacebookUrl = user.FacebookUrl,
+            LinkedInUrl = user.LinkedInUrl,
+            TikTokUrl = user.TikTokUrl
         }, message);
     }
 

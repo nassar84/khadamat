@@ -17,6 +17,9 @@ public class ApplicationUser : IdentityUser
     public string? WebsiteUrl { get; set; }
     public string? InstagramUrl { get; set; }
     public string? TwitterUrl { get; set; }
+    public string? FacebookUrl { get; set; }
+    public string? LinkedInUrl { get; set; }
+    public string? TikTokUrl { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public int? CityId { get; set; }

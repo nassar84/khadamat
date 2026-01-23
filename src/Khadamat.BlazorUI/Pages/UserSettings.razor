@@ -41,9 +41,10 @@
                                 <img src="@(string.IsNullOrEmpty(model.ProfileImageUrl) ? AppState.UserImageUrl : model.ProfileImageUrl)" 
                                      class="rounded-circle border border-4 border-white shadow-lg" width="120" height="120" style="object-fit: cover;" />
                                 <div class="position-absolute bottom-0 end-0 p-1">
-                                     <button class="btn btn-light btn-sm rounded-circle shadow-sm" @onclick="ToggleImageInput">
-                                        <i class="fa-solid fa-pen text-primary"></i>
-                                    </button>
+                                     <InputFile id="profileImageInput" OnChange="HandleFileSelected" style="display:none" accept="image/*" />
+                                     <label for="profileImageInput" class="btn btn-light btn-sm rounded-circle shadow-sm cursor-pointer mb-0">
+                                        <i class="fa-solid fa-camera text-primary"></i>
+                                    </label>
                                 </div>
                             </div>
                             <div>
@@ -176,15 +177,18 @@
                                 <EditForm Model="@model" OnValidSubmit="HandleBasicSubmit">
                                     <div class="row g-4">
                                         <div class="col-md-12">
-                                            <label class="form-label fw-bold small">نبذة تعريفية (Bio)</label>
-                                            <InputTextArea @bind-Value="model.Bio" class="form-control premium-input rounded-4" rows="4" placeholder="إحكي للناس أكتر عن نفسك..." />
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <label class="form-label fw-bold small mb-0">نبذة تعريفية (Bio)</label>
+                                                <span class="text-muted small">@model.Bio?.Length / 500</span>
+                                            </div>
+                                            <InputTextArea @bind-Value="model.Bio" class="form-control premium-input rounded-4" rows="3" placeholder="إحكي للناس أكتر عن نفسك، مهاراتك وخبراتك..." />
                                         </div>
 
                                         <div class="col-md-6">
-                                            <label class="form-label fw-bold small">الموقع الإلكتروني الشخصي</label>
+                                            <label class="form-label fw-bold small">الموقع الإلكتروني</label>
                                             <div class="input-group">
-                                                <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-solid fa-globe text-muted"></i></span>
-                                                <InputText @bind-Value="model.WebsiteUrl" class="form-control premium-input" placeholder="https://..." />
+                                                <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-solid fa-globe text-primary"></i></span>
+                                                <InputText @bind-Value="model.WebsiteUrl" class="form-control premium-input" placeholder="https://example.com" />
                                             </div>
                                         </div>
 
@@ -193,14 +197,32 @@
                                             <div class="row g-3">
                                                 <div class="col-md-6">
                                                     <div class="input-group">
+                                                        <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-brands fa-facebook text-primary"></i></span>
+                                                        <InputText @bind-Value="model.FacebookUrl" class="form-control premium-input" placeholder="Facebook URL / Username" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="input-group">
                                                         <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-brands fa-instagram text-danger"></i></span>
                                                         <InputText @bind-Value="model.InstagramUrl" class="form-control premium-input" placeholder="Instagram Username" />
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="input-group">
-                                                        <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-brands fa-twitter text-info"></i></span>
-                                                        <InputText @bind-Value="model.TwitterUrl" class="form-control premium-input" placeholder="Twitter Username" />
+                                                        <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-brands fa-x-twitter text-dark"></i></span>
+                                                        <InputText @bind-Value="model.TwitterUrl" class="form-control premium-input" placeholder="Twitter / X Username" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="input-group">
+                                                        <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-brands fa-linkedin text-primary"></i></span>
+                                                        <InputText @bind-Value="model.LinkedInUrl" class="form-control premium-input" placeholder="LinkedIn Profile" />
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="input-group">
+                                                        <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-brands fa-tiktok text-dark"></i></span>
+                                                        <InputText @bind-Value="model.TikTokUrl" class="form-control premium-input" placeholder="TikTok Username" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -215,7 +237,7 @@
                                                 }
                                                 else
                                                 {
-                                                    <span>حفظ بيانات الملف الشخصي <i class="fa-solid fa-share-nodes ms-2"></i></span>
+                                                    <span>تحديث الملف الشخصي والروابط <i class="fa-solid fa-cloud-arrow-up ms-2"></i></span>
                                                 }
                                             </button>
                                         </div>
@@ -377,6 +399,13 @@
                 model.PhoneNumber = data.PhoneNumber ?? "";
                 model.CityId = data.CityId ?? 0;
                 model.ProfileImageUrl = data.ImageUrl;
+                model.Bio = data.Bio;
+                model.WebsiteUrl = data.WebsiteUrl;
+                model.InstagramUrl = data.InstagramUrl;
+                model.TwitterUrl = data.TwitterUrl;
+                model.FacebookUrl = data.FacebookUrl;
+                model.LinkedInUrl = data.LinkedInUrl;
+                model.TikTokUrl = data.TikTokUrl;
 
                 if (data.GovernorateId.HasValue)
                 {
@@ -421,7 +450,31 @@
         }
     }
 
-    private void ToggleImageInput() => showImageInput = !showImageInput;
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.GetMultipleFiles(1).FirstOrDefault();
+        if (file != null)
+        {
+            try
+            {
+                isLoading = true;
+                var format = file.ContentType;
+                var resizedImage = await file.RequestImageFileAsync(format, 400, 400);
+                var buffer = new byte[resizedImage.Size];
+                await resizedImage.OpenReadStream().ReadAsync(buffer);
+                model.ProfileImageUrl = $"data:{format};base64,{Convert.ToBase64String(buffer)}";
+            }
+            catch (Exception ex)
+            {
+                await JS.InvokeVoidAsync("alert", "حدث خطأ أثناء تحميل الصورة");
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                isLoading = false;
+            }
+        }
+    }
 
     private async Task OnGovernorateChanged(ChangeEventArgs e)
     {
@@ -453,6 +506,9 @@
                 AppState.CityId = model.CityId;
                 AppState.GovernorateId = selectedGovernorateId;
                 if(!string.IsNullOrEmpty(model.ProfileImageUrl)) AppState.UserImageUrl = model.ProfileImageUrl;
+
+                // Update common state
+                _ = AuthService.GetProfileAsync(); // Refresh state from server background
 
                 await JS.InvokeVoidAsync("alert", "تم تحديث البيانات الأساسية بنجاح");
             }

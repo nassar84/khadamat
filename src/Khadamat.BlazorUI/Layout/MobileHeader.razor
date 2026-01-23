@@ -150,8 +150,10 @@
 @code {
     private void ToggleSidebar()
     {
+        Console.WriteLine($"ANTIGRAVITY_LOG: Toggling sidebar. Current state: {State.IsSidebarOpen}");
         State.IsSidebarOpen = !State.IsSidebarOpen;
         State.TriggerStateChanged();
+        Console.WriteLine($"ANTIGRAVITY_LOG: Sidebar toggled to: {State.IsSidebarOpen}");
     }
 
     private void HandleSearch(ChangeEventArgs e)

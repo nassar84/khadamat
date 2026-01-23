@@ -54,12 +54,17 @@
 @code {
     protected override void OnInitialized()
     {
-        AppState.OnChange += StateHasChanged;
+        AppState.OnChange += OnStateChange;
         Console.WriteLine("ANTIGRAVITY_LOG: MobileLayout OnInitialized called");
+    }
+
+    private async void OnStateChange()
+    {
+        await InvokeAsync(StateHasChanged);
     }
 
     public void Dispose()
     {
-        AppState.OnChange -= StateHasChanged;
+        AppState.OnChange -= OnStateChange;
     }
 }

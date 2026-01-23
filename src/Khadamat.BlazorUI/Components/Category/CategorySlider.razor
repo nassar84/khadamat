@@ -18,17 +18,15 @@
     }
     else
     {
-        <div class="swiper mainCategorySwiper">
-            <div class="swiper-wrapper">
+        <div class="native-scroller">
+            <div class="scroller-inner">
                 @foreach (var cat in Categories)
                 {
-                    <div class="swiper-slide">
-                        <div class="simple-cat-card" @onclick="() => OnCategoryClick(cat)">
-                            <div class="icon-circle">
-                                <span>@cat.Icon</span>
-                            </div>
-                            <div class="cat-name">@cat.Name</div>
+                    <div class="simple-cat-card" @onclick="() => OnCategoryClick(cat)">
+                        <div class="icon-circle">
+                            <span>@cat.Icon</span>
                         </div>
+                        <div class="cat-name">@cat.Name</div>
                     </div>
                 }
             </div>
@@ -42,8 +40,23 @@
         overflow: hidden;
     }
 
-    .mainCategorySwiper {
-        padding: 5px 2px 15px;
+    .native-scroller {
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 10px;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE/Edge */
+    }
+
+    .native-scroller::-webkit-scrollbar {
+        display: none; /* Chrome/Safari/Brave */
+    }
+
+    .scroller-inner {
+        display: flex;
+        gap: 12px;
+        padding: 5px 2px;
     }
 
     .simple-cat-card {
@@ -58,6 +71,8 @@
         border: 1px solid rgba(0, 0, 0, 0.03);
         transition: transform 0.2s;
         height: 110px;
+        min-width: 105px; /* Fixed width for cards in scroller */
+        flex-shrink: 0;
         cursor: pointer;
     }
 
@@ -87,42 +102,11 @@
         text-overflow: ellipsis;
         width: 100%;
     }
-
-    .swiper-slide {
-        width: 110px !important;
-    }
 </style>
 
 @code {
     [Parameter] public List<MainCategoryDto>? Categories { get; set; }
     [Parameter] public EventCallback<MainCategoryDto> OnClick { get; set; }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender && Categories?.Any() == true)
-        {
-            await InitSwiper();
-        }
-    }
-
-    private async Task InitSwiper()
-    {
-        await JS.InvokeVoidAsync("eval", @"
-            if (window.catSwiper) window.catSwiper.destroy();
-            window.catSwiper = new Swiper('.mainCategorySwiper', {
-                slidesPerView: 'auto',
-                spaceBetween: 10,
-                loop: true,
-                autoplay: {
-                    delay: 2500,
-                    disableOnInteraction: false,
-                },
-                speed: 800,
-                grabCursor: true,
-                rtl: true
-            });
-        ");
-    }
 
     private async Task OnCategoryClick(MainCategoryDto cat)
     {

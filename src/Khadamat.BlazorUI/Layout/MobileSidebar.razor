@@ -294,6 +294,21 @@
 </style>
 
 @code {
+    protected override void OnInitialized()
+    {
+        State.OnChange += OnStateChange;
+    }
+
+    private async void OnStateChange()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        State.OnChange -= OnStateChange;
+    }
+
     private void CloseSidebar()
     {
         State.IsSidebarOpen = false;
