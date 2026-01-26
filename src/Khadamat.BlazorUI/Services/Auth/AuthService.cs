@@ -12,16 +12,19 @@ public class AuthService : IAuthService
     private readonly HttpClient _httpClient;
     private readonly AuthenticationStateProvider _authenticationStateProvider;
     private readonly ILocalStorageService _localStorage;
+    private readonly Khadamat.Shared.Interfaces.ISecureStorageService _secureStorage;
     private readonly AppState _appState;
 
     public AuthService(HttpClient httpClient,
                        AuthenticationStateProvider authenticationStateProvider,
                        ILocalStorageService localStorage,
+                       Khadamat.Shared.Interfaces.ISecureStorageService secureStorage,
                        AppState appState)
     {
         _httpClient = httpClient;
         _authenticationStateProvider = authenticationStateProvider;
         _localStorage = localStorage;
+        _secureStorage = secureStorage;
         _appState = appState;
     }
 
@@ -34,8 +37,8 @@ public class AuthService : IAuthService
             var result = await response.Content.ReadFromJsonAsync<ApiResponse<AuthResponse>>();
             if (result?.Success == true && result.Data != null)
             {
-                await _localStorage.SetItemAsync("authToken", result.Data.Token);
-                await _localStorage.SetItemAsync("refreshToken", result.Data.RefreshToken);
+                await _secureStorage.SaveAsync("authToken", result.Data.Token);
+                await _secureStorage.SaveAsync("refreshToken", result.Data.RefreshToken);
 
                 ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsAuthenticated(result.Data.Token);
                 return result.Data;
@@ -53,8 +56,8 @@ public class AuthService : IAuthService
 
     public async Task Logout()
     {
-        await _localStorage.RemoveItemAsync("authToken");
-        await _localStorage.RemoveItemAsync("refreshToken");
+        _secureStorage.Remove("authToken");
+        _secureStorage.Remove("refreshToken");
         ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsLoggedOut();
         _httpClient.DefaultRequestHeaders.Authorization = null;
     }
@@ -85,5 +88,14 @@ public class AuthService : IAuthService
         var response = await _httpClient.PostAsJsonAsync("api/v1/auth/change-password", request);
         var result = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
         return result!;
+    }
+
+    public async Task<bool> LoginWithToken(string token, string refreshToken)
+    {
+        await _localStorage.SetItemAsync("authToken", token);
+        await _localStorage.SetItemAsync("refreshToken", refreshToken);
+
+        ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsAuthenticated(token);
+        return true;
     }
 }

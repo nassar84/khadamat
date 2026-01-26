@@ -1,0 +1,70 @@
+@page "/login-callback"
+@using Khadamat.BlazorUI.Services.Auth
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+@inject Khadamat.BlazorUI.State.AppState AppState
+
+<div class="d-flex flex-column align-items-center justify-content-center vh-100 bg-light">
+    <div class="glass-card p-5 text-center">
+        <div class="spinner-border text-primary mb-4" role="status" style="width: 3rem; height: 3rem;"></div>
+        <h4 class="fw-bold">جاري إتمام تسجيل الدخول...</h4>
+        <p class="text-muted">الرجاء الانتظار قليلاً</p>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public string? Token { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string? RefreshToken { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string? Error { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrEmpty(Error))
+        {
+            // Redirect back to login with error
+            Navigation.NavigateTo($"/login?error={Uri.EscapeDataString(Error)}");
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(Token))
+        {
+            try
+            {
+                // In a real app, AuthService should have a method to handle manual token injection
+                // For now, we can use a trick or add a method.
+                var success = await AuthService.LoginWithToken(Token, RefreshToken ?? "");
+                
+                if (success)
+                {
+                    // Fetch profile to sync AppState
+                    var profile = await AuthService.GetProfileAsync();
+                    if (profile != null)
+                    {
+                        AppState.UserName = profile.UserName;
+                        AppState.UserRole = profile.Roles.FirstOrDefault()?.ToString() ?? "Client";
+                    }
+                    
+                    Navigation.NavigateTo("/");
+                }
+                else
+                {
+                    Navigation.NavigateTo("/login?error=invalid_token");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                Navigation.NavigateTo("/login?error=processing_error");
+            }
+        }
+        else
+        {
+             Navigation.NavigateTo("/login");
+        }
+    }
+}

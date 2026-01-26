@@ -289,4 +289,48 @@ public class AuthService : IAuthService
 
         return ApiResponse<bool>.Succeed(true, "تم تغيير كلمة المرور بنجاح");
     }
+
+    public async Task<ApiResponse<AuthResponse>> ExternalLoginCallbackAsync(string email, string name, string provider, string providerUserId)
+    {
+        var info = new UserLoginInfo(provider, providerUserId, provider);
+        var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+
+        if (user == null)
+        {
+            user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+            {
+                user = new ApplicationUser
+                {
+                    UserName = email,
+                    Email = email,
+                    FullName = name,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow,
+                    Role = UserRole.Client,
+                    EmailConfirmed = true
+                };
+
+                var createResult = await _userManager.CreateAsync(user);
+                if (!createResult.Succeeded)
+                {
+                    return ApiResponse<AuthResponse>.Fail("فشل إنشاء مستخدم من خلال تسجيل الدخول الاجتماعي");
+                }
+                
+                await _userManager.AddToRoleAsync(user, UserRole.Client.ToString());
+            }
+
+            var addLoginResult = await _userManager.AddLoginAsync(user, info);
+            if (!addLoginResult.Succeeded)
+            {
+                return ApiResponse<AuthResponse>.Fail("فشل ربط الحساب الاجتماعي");
+            }
+        }
+
+        if (!user.IsActive)
+            return ApiResponse<AuthResponse>.Fail("الحساب معطل حالياً.");
+
+        return await GenerateAuthResponse(user, "تم تسجيل الدخول بنجاح");
+    }
 }

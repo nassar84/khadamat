@@ -3,16 +3,37 @@
 @inject NavigationManager Navigation
 @implements IDisposable
 
-<div class="mobile-app">
-    <MobileHeader />
-    <MobileSidebar />
-    
-    <main class="mobile-content">
-        @Body
-    </main>
-    
-    <MobileBottomNav />
-</div>
+@if (isLocked)
+{
+    <div class="biometric-lock-screen">
+        <div class="lock-card glass-card text-center p-5 animate-scale">
+            <div class="fingerprint-wrapper mb-4">
+                <i class="fa-solid fa-fingerprint text-primary"></i>
+            </div>
+            <h3 class="fw-bold mb-2">تأكيد الهوية</h3>
+            <p class="text-muted mb-4">يرجى تأكيد هويتك باستخدام البصمة أو رمز القفل للوصول إلى بياناتك.</p>
+            <button class="btn btn-primary-premium rounded-pill w-100 py-3" @onclick="UnlockApp">
+                تأكيد الهوية الآن
+            </button>
+            <div class="mt-4">
+                 <button class="btn btn-link text-danger" @onclick="HandleLogout">تسجيل الخروج</button>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="mobile-app">
+        <MobileHeader />
+        <MobileSidebar />
+        
+        <main class="mobile-content">
+            @Body
+        </main>
+        
+        <MobileBottomNav />
+    </div>
+}
 
 <style>
     .mobile-app {
@@ -23,6 +44,38 @@
         overflow: hidden;
         background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     }
+
+    .biometric-lock-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: linear-gradient(135deg, var(--theme-primary, #6366f1), var(--theme-secondary, #a855f7));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .lock-card {
+        max-width: 400px;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.9) !important;
+        border-radius: 30px !important;
+    }
+
+    .fingerprint-wrapper {
+        font-size: 5rem;
+        animation: pulse-glow 2s infinite;
+    }
+
+    @@keyframes pulse-glow {
+        0% { transform: scale(1); filter: drop-shadow(0 0 0px var(--theme-primary)); }
+        50% { transform: scale(1.1); filter: drop-shadow(0 0 20px white); }
+        100% { transform: scale(1); filter: drop-shadow(0 0 0px var(--theme-primary)); }
+    }
+
+    .animate-scale { animation: scaleUp 0.5s ease-out; }
+    @@keyframes scaleUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
     .mobile-content {
         flex: 1;
@@ -50,11 +103,49 @@
     }
 </style>
 
+@inject Khadamat.Shared.Interfaces.IBiometricService BiometricService
+@inject Khadamat.Shared.Interfaces.ISecureStorageService SecureStorage
+@inject Khadamat.BlazorUI.Services.Auth.IAuthService AuthService
+
 @code {
-    protected override void OnInitialized()
+    private bool isLocked = false;
+    private static bool isInitiallyUnlocked = false;
+
+    protected override async Task OnInitializedAsync()
     {
         AppState.OnChange += OnStateChange;
-        Console.WriteLine("ANTIGRAVITY_LOG: MobileLayout OnInitialized called");
+        
+        // Detect if should show lock screen
+        // Only if authenticated and it's mobile and hasn't been unlocked this session
+        if (AppState.IsAuthenticated && !isInitiallyUnlocked)
+        {
+            var isBiometricAvailable = await BiometricService.IsAvailableAsync();
+            if (isBiometricAvailable)
+            {
+                isLocked = true;
+                // Auto prompt
+                await Task.Delay(500);
+                await UnlockApp();
+            }
+        }
+    }
+
+    private async Task UnlockApp()
+    {
+        var success = await BiometricService.AuthenticateAsync("الرجاء تأكيد هويتك للمتابعة");
+        if (success)
+        {
+            isLocked = false;
+            isInitiallyUnlocked = true;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task HandleLogout()
+    {
+        await AuthService.Logout();
+        isLocked = false;
+        Navigation.NavigateTo("/login");
     }
 
     private async void OnStateChange()

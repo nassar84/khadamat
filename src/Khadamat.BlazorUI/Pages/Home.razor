@@ -5,6 +5,7 @@
 @inject ApiClient Api
 @inject NavigationManager Navigation
 @inject Khadamat.BlazorUI.State.AppState AppState
+@inject Khadamat.Shared.Interfaces.IOfflineDataService OfflineData
 @using Khadamat.BlazorUI.Components.Ads
 @using Khadamat.BlazorUI.Components.Category
 
@@ -267,23 +268,38 @@
     {
         try 
         {
-            Console.WriteLine("ANTIGRAVITY_LOG: Fetching services...");
+            Console.WriteLine("ANTIGRAVITY_LOG: Fetching services from API...");
             var servicesResult = await Api.GetServicesAsync();
             featuredServices = servicesResult.Items.Take(6).ToList();
             nearbyServices = servicesResult.Items.Skip(1).Take(4).ToList();
             
+            // Save to offline storage
+            await OfflineData.SaveServicesAsync(servicesResult.Items);
+
             Console.WriteLine("ANTIGRAVITY_LOG: Fetching categories...");
             mainCategories = await Api.GetMainCategoriesAsync();
             
             Console.WriteLine("ANTIGRAVITY_LOG: Data load complete!");
-            await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"ANTIGRAVITY_LOG: Error loading home data: {ex.Message}");
-            featuredServices = new();
-            nearbyServices = new();
+            Console.WriteLine($"ANTIGRAVITY_LOG: API Error: {ex.Message}. Trying offline storage...");
+            var offlineServices = await OfflineData.GetServicesAsync();
+            if (offlineServices.Any())
+            {
+                featuredServices = offlineServices.Take(6).ToList();
+                nearbyServices = offlineServices.Skip(1).Take(4).ToList();
+                Console.WriteLine("ANTIGRAVITY_LOG: Loaded from offline storage successfully.");
+            }
+            else
+            {
+                featuredServices = new();
+                nearbyServices = new();
+            }
             mainCategories = new();
+        }
+        finally
+        {
             await InvokeAsync(StateHasChanged);
         }
     }

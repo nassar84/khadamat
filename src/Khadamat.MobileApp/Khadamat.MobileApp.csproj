@@ -70,6 +70,8 @@
         
         <!-- Storage -->
         <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
+        <PackageReference Include="Plugin.Fingerprint" Version="2.1.5" />
+        <PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
     </ItemGroup>
 
     <ItemGroup>

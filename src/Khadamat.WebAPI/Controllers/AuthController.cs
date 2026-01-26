@@ -11,10 +11,49 @@ namespace Khadamat.WebAPI.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly Microsoft.AspNetCore.Identity.SignInManager<Khadamat.Infrastructure.Identity.ApplicationUser> _signInManager;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, Microsoft.AspNetCore.Identity.SignInManager<Khadamat.Infrastructure.Identity.ApplicationUser> signInManager)
     {
         _authService = authService;
+        _signInManager = signInManager;
+    }
+
+    [HttpGet("external-login")]
+    public IActionResult ExternalLogin(string provider, string redirectUrl)
+    {
+        var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, 
+            Url.Action("ExternalLoginCallback", new { redirectUrl }));
+        return Challenge(properties, provider);
+    }
+
+    [HttpGet("external-login-callback")]
+    public async Task<IActionResult> ExternalLoginCallback(string redirectUrl, string? remoteError = null)
+    {
+        if (remoteError != null)
+        {
+            return Redirect($"{redirectUrl}?error={remoteError}");
+        }
+
+        var info = await _signInManager.GetExternalLoginInfoAsync();
+        if (info == null)
+        {
+            return Redirect($"{redirectUrl}?error=failed_to_get_external_login_info");
+        }
+
+        var email = info.Principal.FindFirstValue(System.Security.Claims.ClaimTypes.Email);
+        var name = info.Principal.FindFirstValue(System.Security.Claims.ClaimTypes.Name);
+        var provider = info.LoginProvider;
+        var providerUserId = info.ProviderKey;
+
+        var result = await _authService.ExternalLoginCallbackAsync(email!, name!, provider, providerUserId);
+
+        if (result.Success)
+        {
+            return Redirect($"{redirectUrl}?token={result.Data.Token}&refreshToken={result.Data.RefreshToken}");
+        }
+
+        return Redirect($"{redirectUrl}?error={result.Message}");
     }
 
     [HttpPost("register")]

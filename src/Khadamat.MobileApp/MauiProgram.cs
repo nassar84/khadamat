@@ -62,7 +62,11 @@ public static class MauiProgram
         builder.Services.AddSingleton<IPhoneService, PhoneService>();
         builder.Services.AddSingleton<IShareService, ShareService>();
         builder.Services.AddSingleton<IFilePickerService, FilePickerService>();
-
+        builder.Services.AddSingleton<ISecureStorageService, MauiSecureStorageService>();
+        builder.Services.AddSingleton<IExternalAuthService, MauiExternalAuthService>();
+        builder.Services.AddSingleton<Khadamat.Shared.Interfaces.IOfflineDataService, LocalDataService>();
+        builder.Services.AddSingleton<IBiometricService, MauiBiometricService>();
+        builder.Services.AddSingleton<SyncService>();
         // Blazored LocalStorage
         builder.Services.AddBlazoredLocalStorage();
 

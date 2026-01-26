@@ -4,18 +4,19 @@ using System.Text.Json;
 using Blazored.LocalStorage;
 using Khadamat.Application.DTOs; // Ensure DTOs are available
 using Microsoft.AspNetCore.Components.Authorization;
+using Khadamat.Shared.Interfaces; // Add this using directive for ISecureStorageService
 
 namespace Khadamat.BlazorUI.Services.Auth;
 
 public class CustomAuthenticationStateProvider : AuthenticationStateProvider
 {
-    private readonly ILocalStorageService _localStorage;
+    private readonly Khadamat.Shared.Interfaces.ISecureStorageService _secureStorage;
     private readonly HttpClient _http;
 
-    public CustomAuthenticationStateProvider(ILocalStorageService localStorage, HttpClient http)
+    public CustomAuthenticationStateProvider(Khadamat.Shared.Interfaces.ISecureStorageService secureStorage, HttpClient http)
     {
         Console.WriteLine("ANTIGRAVITY_LOG: CustomAuthenticationStateProvider Constructor called");
-        _localStorage = localStorage;
+        _secureStorage = secureStorage;
         _http = http;
     }
 
@@ -23,17 +24,8 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
     {
         Console.WriteLine("ANTIGRAVITY_LOG: GetAuthenticationStateAsync started");
         try {
-            // Safety timeout for local storage in MAUI (sometimes the bridge hangs)
-            var tokenTask = _localStorage.GetItemAsync<string>("authToken").AsTask();
-            var completedTask = await Task.WhenAny(tokenTask, Task.Delay(2000));
-            
-            string? token = null;
-            if (completedTask == tokenTask) {
-                token = await tokenTask;
-                Console.WriteLine($"ANTIGRAVITY_LOG: Token fetch complete. Found: {!string.IsNullOrEmpty(token)}");
-            } else {
-                Console.WriteLine("ANTIGRAVITY_LOG: Token fetch TIMEOUT (2s). Proceeding as Anonymous.");
-            }
+            string? token = await _secureStorage.GetAsync("authToken");
+            Console.WriteLine($"ANTIGRAVITY_LOG: Token fetch complete. Found: {!string.IsNullOrEmpty(token)}");
         
             if (string.IsNullOrWhiteSpace(token))
             {

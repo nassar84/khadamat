@@ -48,6 +48,18 @@ public static class DependencyInjection
                 IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
                     System.Text.Encoding.UTF8.GetBytes(configuration["JwtSettings:Secret"]!))
             };
+        })
+        .AddGoogle(options =>
+        {
+            options.ClientId = configuration["Authentication:Google:ClientId"]!;
+            options.ClientSecret = configuration["Authentication:Google:ClientSecret"]!;
+            options.SaveTokens = true;
+        })
+        .AddFacebook(options =>
+        {
+            options.AppId = configuration["Authentication:Facebook:AppId"]!;
+            options.AppSecret = configuration["Authentication:Facebook:AppSecret"]!;
+            options.SaveTokens = true;
         });
 
         return services;

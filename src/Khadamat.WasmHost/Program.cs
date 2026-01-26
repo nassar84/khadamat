@@ -23,6 +23,10 @@ builder.Services.AddScoped<Khadamat.BlazorUI.Services.Admin.IAdminService, Khada
 builder.Services.AddScoped<Khadamat.Shared.Interfaces.IShareService, Khadamat.BlazorUI.Services.WebShareService>();
 builder.Services.AddScoped<Khadamat.Shared.Interfaces.INotificationService, Khadamat.BlazorUI.Services.WebNotificationService>();
 builder.Services.AddScoped<Khadamat.Shared.Interfaces.IPhoneService, Khadamat.BlazorUI.Services.WebPhoneService>();
+builder.Services.AddScoped<Khadamat.Shared.Interfaces.ISecureStorageService, Khadamat.BlazorUI.Services.WebSecureStorageService>();
+builder.Services.AddScoped<Khadamat.Shared.Interfaces.IExternalAuthService, Khadamat.BlazorUI.Services.WebExternalAuthService>();
+builder.Services.AddScoped<Khadamat.Shared.Interfaces.IBiometricService, Khadamat.BlazorUI.Services.WebBiometricService>();
+builder.Services.AddScoped<Khadamat.Shared.Interfaces.IOfflineDataService, Khadamat.BlazorUI.Services.WebOfflineDataService>();
 builder.Services.AddScoped<Khadamat.Shared.Interfaces.ILocationService, Khadamat.BlazorUI.Services.WebLocationService>();
 
 await builder.Build().RunAsync();
