@@ -13,6 +13,7 @@ public class ApplicationUser : IdentityUser
     public bool IsProvider { get; set; }
     public bool IsVerified { get; set; }
     public string? ProfileImageUrl { get; set; }
+    public string? Gender { get; set; } // "Male", "Female", or null
     public string? Bio { get; set; }
     public string? WebsiteUrl { get; set; }
     public string? InstagramUrl { get; set; }

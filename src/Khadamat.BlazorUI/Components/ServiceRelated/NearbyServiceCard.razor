@@ -3,7 +3,7 @@
 
 <div class="nearby-card" @onclick="OnClickInternal">
     <div class="nearby-image-wrapper">
-        <img src="@(Service.Images.Any() ? Service.Images.First() : "https://via.placeholder.com/80x80/667eea/ffffff?text=" + (Service.ProviderName?.Substring(0, Math.Min(2, Service.ProviderName.Length)) ?? "S"))" 
+        <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(Service.CategoryName, Service.Images?.FirstOrDefault())" 
              alt="@Service.Title" 
              class="nearby-image">
     </div>

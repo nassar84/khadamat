@@ -5,56 +5,43 @@
 namespace Khadamat.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class FinalSync : Migration
+    public partial class SyncSocialMedia : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // The following columns already exist in the database
-            /*
             migrationBuilder.AddColumn<string>(
-                name: "Bio",
+                name: "FacebookUrl",
                 table: "AspNetUsers",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
-                name: "InstagramUrl",
+                name: "LinkedInUrl",
                 table: "AspNetUsers",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
-                name: "TwitterUrl",
+                name: "TikTokUrl",
                 table: "AspNetUsers",
                 type: "nvarchar(max)",
                 nullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "WebsiteUrl",
-                table: "AspNetUsers",
-                type: "nvarchar(max)",
-                nullable: true);
-            */
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "Bio",
+                name: "FacebookUrl",
                 table: "AspNetUsers");
 
             migrationBuilder.DropColumn(
-                name: "InstagramUrl",
+                name: "LinkedInUrl",
                 table: "AspNetUsers");
 
             migrationBuilder.DropColumn(
-                name: "TwitterUrl",
-                table: "AspNetUsers");
-
-            migrationBuilder.DropColumn(
-                name: "WebsiteUrl",
+                name: "TikTokUrl",
                 table: "AspNetUsers");
         }
     }

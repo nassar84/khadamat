@@ -57,6 +57,9 @@ public class CreateServiceHandler : IRequestHandler<Commands.CreateServiceComman
             await _authService.SetUserIsProviderAsync(request.UserId, true);
         }
 
+        if (request.CategoryId.HasValue == false && request.SubCategoryId.HasValue == false)
+            throw new Exception("Service must belong to a Category or SubCategory");
+
         // 2. Create Service Entity using Rich Domain Constructor
         var service = new Service(
             request.SubCategoryId,

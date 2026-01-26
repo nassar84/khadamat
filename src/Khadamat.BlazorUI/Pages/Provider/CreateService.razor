@@ -355,12 +355,20 @@
 
     private async Task SaveService()
     {
-        if (string.IsNullOrEmpty(model.Title) || selectedMainCategoryId == 0 || selectedCategoryId == 0)
+        var errors = new List<string>();
+        if (string.IsNullOrWhiteSpace(model.Title)) errors.Add("اسم الخدمة");
+        if (selectedMainCategoryId == 0) errors.Add("التصنيف الرئيسي");
+        
+        // Ensure CategoryId is set correctly
+        model.CategoryId = selectedCategoryId != 0 ? selectedCategoryId : null;
+        if (model.CategoryId == null && model.SubCategoryId == null) errors.Add("القسم / التصنيف الفرعي");
+
+        if (errors.Any())
         {
-            await JS.InvokeVoidAsync("alert", "يرجى إكمال البيانات الأساسية (العنوان، التصنيف الرئيسي، والقسم)");
+            var msg = "يرجى إكمال البيانات التالية: " + string.Join("، ", errors);
+            await JS.InvokeVoidAsync("alert", msg);
             return;
         }
-        model.CategoryId = selectedCategoryId; // Ensure CategoryId is set in model
 
         isSaving = true;
         try

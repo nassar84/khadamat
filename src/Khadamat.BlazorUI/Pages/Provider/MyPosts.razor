@@ -1,4 +1,233 @@
 @page "/provider/myposts"
-<h3>MyPosts.razor</h3>
-@code {}
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@using Khadamat.BlazorUI.Services.Auth
+@inject ApiClient Api
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
 
+<div class="px-3 pt-3 pb-5">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="/provider/providerdashboard" class="text-decoration-none text-muted">لوحة المزود</a></li>
+                    <li class="breadcrumb-item active">منشوراتي</li>
+                </ol>
+            </nav>
+            <h3 class="fw-bold mb-0">إدارة المنشورات</h3>
+        </div>
+        <button class="btn btn-primary-premium rounded-pill px-4" @onclick="() => showCreateModal = true">
+            <i class="fa-solid fa-plus me-2"></i> منشور جديد
+        </button>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="d-flex justify-content-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+    }
+    else if (!posts.Any())
+    {
+        <div class="glass-card p-5 text-center">
+            <i class="fa-regular fa-newspaper display-1 text-muted opacity-25 mb-3"></i>
+            <h5>لا توجد منشورات حتى الآن</h5>
+            <p class="text-muted">شارك آخر أخبار خدماتك وعروضك مع العملاء</p>
+            <button class="btn btn-primary rounded-pill px-5 mt-3" @onclick="() => showCreateModal = true">أضف منشورك الأول</button>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4 masonry-grid">
+            @foreach (var post in posts)
+            {
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="glass-card p-0 overflow-hidden h-100 animate-up">
+                        <div class="p-3">
+                            <div class="d-flex justify-content-between mb-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="avatar-placeholder rounded-circle bg-light d-flex align-items-center justify-content-center" style="width:40px;height:40px;">
+                                        <i class="fa-solid fa-user text-muted"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold small">أنت</div>
+                                        <div class="x-small text-muted">@post.CreatedAt.ToString("dd MMM yyyy, hh:mm tt")</div>
+                                    </div>
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-icon text-muted" data-bs-toggle="dropdown">
+                                        <i class="fa-solid fa-ellipsis"></i>
+                                    </button>
+                                    <ul class="dropdown-menu border-0 shadow-lg rounded-3">
+                                        <li><button class="dropdown-item text-danger small" @onclick="() => DeletePost(post)"><i class="fa-solid fa-trash me-2"></i> حذف المنشور</button></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <p class="mb-3 text-dark">@post.Content</p>
+                            
+                            @if (!string.IsNullOrEmpty(post.ImageUrl))
+                            {
+                                <img src="@post.ImageUrl" class="w-100 rounded-3 mb-3 object-fit-cover" style="max-height: 250px;" />
+                            }
+
+                            <div class="d-flex align-items-center gap-3 pt-2 border-top">
+                                <span class="text-muted small"><i class="fa-regular fa-heart me-1"></i> @post.LikesCount</span>
+                                <span class="text-muted small"><i class="fa-regular fa-comment me-1"></i> 0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@if (showCreateModal)
+{
+    <div class="modal-overlay">
+        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop" style="max-width: 500px;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">إنشاء منشور جديد</h5>
+                <button class="btn-close" @onclick="() => showCreateModal = false"></button>
+            </div>
+            
+            <textarea class="form-control border-0 bg-light rounded-3 p-3 mb-3" rows="4" 
+                      placeholder="بم تفكر؟ أكتب عن عروضك الجديدة..." @bind="newPostContent"></textarea>
+            
+            <div class="mb-3">
+                <label class="form-label small fw-bold">رابط صورة (اختياري)</label>
+                <div class="input-group">
+                    <span class="input-group-text border-0 bg-light"><i class="fa-solid fa-link"></i></span>
+                    <input type="text" class="form-control border-0 bg-light" placeholder="https://..." @bind="newPostImage" />
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary-premium flex-grow-1 rounded-pill" @onclick="CreatePost" disabled="@isSubmitting">
+                    @if (isSubmitting) { <span class="spinner-border spinner-border-sm me-2"></span> }
+                    نشر
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .modal-overlay {
+        position: fixed; inset: 0; z-index: 2000;
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(5px);
+        display: flex; align-items: center; justify-content: center;
+    }
+    .animate-pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    @@keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+</style>
+
+@code {
+    private List<PostDto> posts = new();
+    private bool isLoading = true;
+    private bool showCreateModal = false;
+    private bool isSubmitting = false;
+    
+    private string newPostContent = "";
+    private string newPostImage = "";
+
+    private int providerId; // We need to get this from profile/service context. 
+                            // Since API `GetProviderPosts` requires ID, we might need to fetch profile first.
+
+    protected override async Task OnInitializedAsync()
+    {
+        try 
+        {
+            var profile = await AuthService.GetProfileAsync();
+            if (profile?.Data != null)
+            {
+                // We assume there is a way to get ProviderID from User profile or another call
+                // For now, let's assume we can fetch "My Provider Profile" to get ID
+                var providerProfile = await Api.GetProviderProfileAsync(profile.Data.Id);
+                // Dynamic parsing or DTO
+                if (providerProfile != null)
+                {
+                    // Assuming JSON element or object with Id
+                    // This part depends on how GetProviderProfileAsync returns data. 
+                    // Let's assume we can traverse it.
+                    try 
+                    {
+                        var json = System.Text.Json.JsonSerializer.Serialize(providerProfile);
+                        var pDict = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(json);
+                        System.Text.Json.JsonElement idProp;
+                        if (pDict.TryGetProperty("id", out idProp))
+                        {
+                            providerId = idProp.GetInt32();
+                            await LoadPosts();
+                        }
+                    }
+                    catch { /* handle error */ }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadPosts()
+    {
+        if (providerId > 0)
+        {
+            posts = await Api.GetProviderPostsAsync(providerId);
+        }
+    }
+
+    private async Task CreatePost()
+    {
+        if (string.IsNullOrWhiteSpace(newPostContent)) return;
+
+        isSubmitting = true;
+        try 
+        {
+            var success = await Api.CreatePostAsync(new CreatePostRequest 
+            { 
+                Content = newPostContent, 
+                ImageUrl = string.IsNullOrWhiteSpace(newPostImage) ? null : newPostImage 
+            });
+
+            if (success)
+            {
+                newPostContent = "";
+                newPostImage = "";
+                showCreateModal = false;
+                await LoadPosts();
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "فشل النشر: " + ex.Message);
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private async Task DeletePost(PostDto post)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", "هل أنت متأكد من حذف هذا المنشور؟"))
+        {
+            var success = await Api.DeletePostAsync(post.Id);
+            if (success)
+            {
+                posts.Remove(post);
+            }
+        }
+    }
+}

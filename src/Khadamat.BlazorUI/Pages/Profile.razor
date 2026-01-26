@@ -24,16 +24,8 @@
                 <div class="glass-card p-4 text-center">
                     <!-- Profile Photo -->
                     <div class="profile-photo-wrapper mb-3">
-                        @if (!string.IsNullOrEmpty(profileData?.Photo))
-                        {
-                            <img src="@profileData.Photo" alt="Profile Photo" class="profile-photo" />
-                        }
-                        else
-                        {
-                            <div class="profile-photo-placeholder">
-                                <i class="fa-solid fa-user fs-1"></i>
-                            </div>
-                        }
+                        <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(profile.FullName, null, profileData?.Photo)" 
+                             alt="Profile Photo" class="profile-photo" />
                     </div>
 
                     <!-- User Info -->
@@ -79,31 +71,75 @@
                         <p class="text-muted small mt-3">@profileData.Bio</p>
                     }
 
-                    <!-- Edit Button -->
-                    <button class="btn btn-primary w-100 mt-3" @onclick="NavigateToSettings">
-                        <i class="fa-solid fa-edit me-2"></i>تعديل الملف الشخصي
-                    </button>
+                    <!-- Quick Actions -->
+                    <div class="d-grid gap-2 mt-4">
+                        <button class="btn btn-primary-premium rounded-pill shadow-sm" @onclick="NavigateToSettings">
+                            <i class="fa-solid fa-user-pen me-2"></i>تعديل بياناتي
+                        </button>
+                        <button class="btn btn-outline-primary rounded-pill" @onclick='() => Navigation.NavigateTo("/settings?tab=security")'>
+                            <i class="fa-solid fa-key me-2"></i>تغيير كلمة المرور
+                        </button>
+                    </div>
 
                     <!-- Statistics -->
                     <div class="row g-3 mt-3 text-center">
-                        <div class="col-4">
+                        <div class="col-4 cursor-pointer" @onclick='() => Navigation.NavigateTo("/provider/myservices")'>
                             <div class="stat-box">
                                 <div class="fs-4 fw-bold text-primary">@userServices.Count</div>
                                 <div class="small text-muted">خدمات</div>
                             </div>
                         </div>
-                        <div class="col-4">
+                        <div class="col-4 cursor-pointer" @onclick='() => Navigation.NavigateTo("/client/myratings")'>
                             <div class="stat-box">
-                                <div class="fs-4 fw-bold text-success">0</div>
+                                <div class="fs-4 fw-bold text-success">0</div> <!-- Dynamic count pending -->
                                 <div class="small text-muted">تقييمات</div>
                             </div>
                         </div>
-                        <div class="col-4">
+                        <div class="col-4 cursor-pointer" @onclick='() => Navigation.NavigateTo("/client/favorites")'>
                             <div class="stat-box">
-                                <div class="fs-4 fw-bold text-warning">0</div>
-                                <div class="small text-muted">إعجابات</div>
+                                <div class="fs-4 fw-bold text-warning">0</div> <!-- Dynamic count pending -->
+                                <div class="small text-muted">مفضلة</div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Activity Links -->
+                    <div class="list-group list-group-flush rounded-4 overflow-hidden mt-4 text-start shadow-sm">
+                        <button class="list-group-item list-group-item-action d-flex align-items-center p-3 border-0" 
+                                @onclick='() => Navigation.NavigateTo("/client/favorites")'>
+                            <div class="bg-light-danger text-danger rounded-circle p-2 me-3" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
+                                <i class="fa-solid fa-heart"></i>
+                            </div>
+                            <span class="fw-bold text-muted small">المفضلة</span>
+                            <i class="fa-solid fa-chevron-left ms-auto text-muted opacity-50 x-small"></i>
+                        </button>
+                        <button class="list-group-item list-group-item-action d-flex align-items-center p-3 border-0" 
+                                @onclick='() => Navigation.NavigateTo("/client/myratings")'>
+                            <div class="bg-light-warning text-warning rounded-circle p-2 me-3" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
+                                <i class="fa-solid fa-star"></i>
+                            </div>
+                            <span class="fw-bold text-muted small">تقييماتي</span>
+                            <i class="fa-solid fa-chevron-left ms-auto text-muted opacity-50 x-small"></i>
+                        </button>
+                        <button class="list-group-item list-group-item-action d-flex align-items-center p-3 border-0" 
+                                @onclick='() => Navigation.NavigateTo("/client/mycomments")'>
+                            <div class="bg-light-primary text-primary rounded-circle p-2 me-3" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
+                                <i class="fa-solid fa-comment"></i>
+                            </div>
+                            <span class="fw-bold text-muted small">تعليقاتي</span>
+                            <i class="fa-solid fa-chevron-left ms-auto text-muted opacity-50 x-small"></i>
+                        </button>
+                        @if (profile.IsProvider)
+                        {
+                            <button class="list-group-item list-group-item-action d-flex align-items-center p-3 border-0" 
+                                    @onclick='() => Navigation.NavigateTo("/provider/myposts")'>
+                                <div class="bg-light-info text-info rounded-circle p-2 me-3" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
+                                    <i class="fa-solid fa-newspaper"></i>
+                                </div>
+                                <span class="fw-bold text-muted small">إدارة المنشورات</span>
+                                <i class="fa-solid fa-chevron-left ms-auto text-muted opacity-50 x-small"></i>
+                            </button>
+                        }
                     </div>
                 </div>
 
@@ -233,10 +269,8 @@
                             {
                                 <div class="col-md-6">
                                     <div class="service-mini-card" @onclick="@(() => Navigation.NavigateTo($"/service/{service.Id}"))">
-                                        @if (service.Images?.Any() == true)
-                                        {
-                                            <img src="@service.Images.First()" alt="@service.Title" class="service-mini-image" />
-                                        }
+                                        <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(service.CategoryName, service.Images?.FirstOrDefault())" 
+                                             alt="@service.Title" class="service-mini-image" />
                                         <div class="service-mini-content">
                                             <h6 class="fw-bold mb-1">@service.Title</h6>
                                             <p class="text-muted small mb-2">@(service.Description?.Length > 80 ? service.Description.Substring(0, 80) + "..." : service.Description)</p>

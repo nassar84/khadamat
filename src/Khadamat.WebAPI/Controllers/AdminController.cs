@@ -46,11 +46,20 @@ public class AdminController : ControllerBase
                 FullName = user.FullName,
                 Email = user.Email ?? "",
                 PhoneNumber = user.PhoneNumber,
+                CityId = user.CityId,
                 Role = role,
                 IsActive = user.IsActive,
                 IsVerified = user.IsVerified,
                 ProfileImageUrl = user.ProfileImageUrl,
-                CreatedAt = user.CreatedAt
+                Gender = user.Gender,
+                CreatedAt = user.CreatedAt,
+                Bio = user.Bio,
+                WebsiteUrl = user.WebsiteUrl,
+                InstagramUrl = user.InstagramUrl,
+                TwitterUrl = user.TwitterUrl,
+                FacebookUrl = user.FacebookUrl,
+                LinkedInUrl = user.LinkedInUrl,
+                TikTokUrl = user.TikTokUrl
             });
         }
 
@@ -126,9 +135,18 @@ public class AdminController : ControllerBase
         user.Email = dto.Email;
         user.UserName = dto.Email; // Standard identity behavior
         user.PhoneNumber = dto.PhoneNumber;
+        user.CityId = dto.CityId;
         user.IsActive = dto.IsActive;
         user.IsVerified = dto.IsVerified;
         user.ProfileImageUrl = dto.ProfileImageUrl;
+        user.Gender = dto.Gender;
+        user.Bio = dto.Bio;
+        user.WebsiteUrl = dto.WebsiteUrl;
+        user.InstagramUrl = dto.InstagramUrl;
+        user.TwitterUrl = dto.TwitterUrl;
+        user.FacebookUrl = dto.FacebookUrl;
+        user.LinkedInUrl = dto.LinkedInUrl;
+        user.TikTokUrl = dto.TikTokUrl;
 
         var result = await _userManager.UpdateAsync(user);
         if (!result.Succeeded) return BadRequest(result.Errors);

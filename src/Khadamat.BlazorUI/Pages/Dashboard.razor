@@ -111,16 +111,8 @@
                         {
                             <div class="service-item">
                                 <div class="service-item-image">
-                                    @if (service.Images.Any())
-                                    {
-                                        <img src="@service.Images.First()" alt="@service.Title" />
-                                    }
-                                    else
-                                    {
-                                        <div class="no-image">
-                                            <i class="fa-solid fa-image"></i>
-                                        </div>
-                                    }
+                                    <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(service.CategoryName, service.Images?.FirstOrDefault())" 
+                                         alt="@service.Title" class="w-100 h-100 object-fit-cover" />
                                 </div>
                                 <div class="service-item-content">
                                     <div class="d-flex justify-content-between align-items-start mb-2">

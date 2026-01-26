@@ -21,7 +21,7 @@ This is the user interface you interact with in the browser.
 
 ```bash
 cd E:\MVC\khadamat
-dotnet run --project src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj
+dotnet run --project src\Khadamat.WasmHost\Khadamat.WasmHost.csproj
 ```
 ✅ **Wait** until you see: `Now listening on: http://localhost:5028`
 

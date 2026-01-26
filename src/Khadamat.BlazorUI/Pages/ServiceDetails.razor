@@ -94,7 +94,7 @@
                                 </div>
                                 <div class="vr bg-white opacity-25 d-none d-md-block"></div>
                                 <div class="provider-info-glass" @onclick='() => Navigation.NavigateTo("/provider/profile")'>
-                                    <img src="@(service.ProviderPhoto ?? $"https://ui-avatars.com/api/?name={service.ProviderName}")" class="avatar-sm" />
+                                    <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(service.ProviderName, null, service.ProviderPhoto)" class="avatar-sm" />
                                     <div class="ms-2">
                                         <div class="fw-bold small">@service.ProviderName</div>
                                         <div class="x-small opacity-75">مزود موثوق</div>
@@ -278,7 +278,7 @@
                             {
                                 <div class="glass-card p-3 mb-3">
                                     <div class="d-flex gap-2 mb-2">
-                                        <img src="@(service.ProviderPhoto ?? "https://ui-avatars.com/api/?name=P")" class="rounded-circle" width="40" height="40"/>
+                                        <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(service.ProviderName, null, service.ProviderPhoto)" class="rounded-circle" width="40" height="40"/>
                                         <div>
                                             <h6 class="fw-bold mb-0 small">@service.ProviderName</h6>
                                             <span class="text-muted x-small">@post.CreatedAt.ToString("dd MMM, hh:mm tt")</span>
@@ -327,7 +327,7 @@
                             <div class="glass-card p-3 mb-3">
                                 <div class="d-flex justify-content-between mb-2">
                                     <div class="d-flex gap-2">
-                                        <img src="@(review.UserAvatar ?? $"https://ui-avatars.com/api/?name={review.UserName}")" class="rounded-circle" width="35" height="35" />
+                                        <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(review.UserName, null, review.UserAvatar)" class="rounded-circle" width="35" height="35" />
                                         <div>
                                             <h6 class="fw-bold mb-0 small">@review.UserName</h6>
                                             <div class="text-warning x-small">
@@ -496,7 +496,7 @@
     private bool showRateModal = false;
     private int userRating = 0;
     private string userComment = "";
-    private string mainImage => service?.Images?.FirstOrDefault() ?? "https://via.placeholder.com/600x400?text=No+Image";
+    private string mainImage => Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(service?.CategoryName, service?.Images?.FirstOrDefault());
 
     private string? selectedImage;
     private bool CanEdit = false;
@@ -569,9 +569,13 @@
     
     private void GoBack() => Navigation.NavigateTo("explore");
 
-    private void ToggleFavorite()
+    private async Task ToggleFavorite()
     {
-        if (service != null) service.IsFavorite = !service.IsFavorite;
+        if (service != null)
+        {
+            var success = await Api.ToggleFavoriteAsync(service.Id);
+            service.IsFavorite = success;
+        }
     }
 
     private async Task ShareService()
@@ -616,7 +620,10 @@
 
     private void OpenEdit(string section)
     {
-        // Open edit modal logic
+        if (service != null)
+        {
+            Navigation.NavigateTo($"/provider/editservice/{service.Id}");
+        }
     }
     
     private void AddImage() { /* Add Image */ }

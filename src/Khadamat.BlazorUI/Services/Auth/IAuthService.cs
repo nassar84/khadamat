@@ -10,4 +10,5 @@ public interface IAuthService
     Task Logout();
     Task<Khadamat.Application.Common.Models.ApiResponse<AuthResponse>> GetProfileAsync();
     Task<Khadamat.Application.Common.Models.ApiResponse<bool>> UpdateProfile(UpdateProfileRequest request);
+    Task<Khadamat.Application.Common.Models.ApiResponse<bool>> ChangePassword(ChangeMyPasswordRequest request);
 }

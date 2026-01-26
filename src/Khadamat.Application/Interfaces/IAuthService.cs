@@ -11,5 +11,6 @@ public interface IAuthService
     Task<ApiResponse<AuthResponse>> RefreshTokenAsync(RefreshTokenRequest request);
     Task<ApiResponse<AuthResponse>> GetProfileAsync();
     Task<ApiResponse<bool>> UpdateProfileAsync(UpdateProfileRequest request);
+    Task<ApiResponse<bool>> ChangePasswordAsync(ChangeMyPasswordRequest request);
     Task<bool> SetUserIsProviderAsync(string userId, bool isProvider);
 }

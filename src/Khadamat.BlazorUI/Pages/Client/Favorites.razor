@@ -1,8 +1,10 @@
 @page "/client/favorites"
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
+@using Khadamat.BlazorUI.Components.Common
 @inject ApiClient Api
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 <div class="px-3 pt-3 pb-5">
     <div class="d-flex align-items-center mb-4">
@@ -12,16 +14,18 @@
         <h3 class="fw-bold mb-0 gradient-text">المفضلة</h3>
     </div>
 
-    @if (favoriteServices == null)
+    @if (isLoading)
     {
-        <LoadingSpinner Message="جاري تحميل مفضلاتك..." />
+        <div class="d-flex justify-content-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
     }
-    else if (!favoriteServices.Any())
+    else if (favoriteServices == null || !favoriteServices.Any())
     {
         <div class="text-center py-5 opacity-50 bg-light rounded-4">
             <i class="fa-solid fa-heart-crack fs-1 mb-3"></i>
             <p>قائمتك المفضلة فارغة حالياً</p>
-            <button class="btn btn-primary rounded-pill mt-2" @onclick='() => Navigation.NavigateTo("/services")'>
+            <button class="btn btn-primary rounded-pill mt-2" @onclick='() => Navigation.NavigateTo("/explore")'>
                 استكشف الخدمات
             </button>
         </div>
@@ -32,7 +36,28 @@
             @foreach (var service in favoriteServices)
             {
                 <div class="col-12 col-md-6">
-                    <ServiceCard Service="service" IsFavorite="true" OnClick="OnServiceSelected" />
+                    <div class="glass-card p-0 overflow-hidden h-100 animate-up">
+                        <div class="position-relative">
+                            <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(service.CategoryName, service.Images.FirstOrDefault())" 
+                                 class="w-100 object-fit-cover" style="height: 180px;" @onclick="() => OnServiceSelected(service)" />
+                            
+                            <div class="position-absolute top-0 end-0 m-2">
+                                <button class="btn btn-sm btn-light rounded-circle shadow-sm text-danger" @onclick="() => RemoveFavorite(service)">
+                                    <i class="fa-solid fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-3">
+                            <h6 class="fw-bold mb-1 text-truncate">@service.Title</h6>
+                            <p class="text-muted x-small mb-2">@service.CityName</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-primary fw-bold">@service.Price?.ToString("N0") ج.م</span>
+                                <div class="text-warning x-small">
+                                    <i class="fa-solid fa-star"></i> @service.Rating.ToString("0.0")
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             }
         </div>
@@ -41,24 +66,39 @@
 
 @code {
     private List<ServiceDto>? favoriteServices;
+    private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
-        // For now, we fetch some services as "favorites" for demo
         try 
         {
-            var result = await Api.GetServicesAsync();
-            favoriteServices = result.Items.Take(3).ToList();
+            favoriteServices = await Api.GetMyFavoritesAsync();
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
             favoriteServices = new();
         }
+        finally
+        {
+            isLoading = false;
+        }
     }
 
     private void OnServiceSelected(ServiceDto service)
     {
         Navigation.NavigateTo($"/service/{service.Id}");
+    }
+
+    private async Task RemoveFavorite(ServiceDto service)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", "إزالة من المفضلة؟"))
+        {
+            var success = await Api.ToggleFavoriteAsync(service.Id);
+            if (!success) // Toggle returns false when removed
+            {
+                favoriteServices?.Remove(service);
+            }
+        }
     }
 }

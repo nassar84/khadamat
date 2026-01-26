@@ -1,4 +1,97 @@
 @page "/client/myratings"
-<h3>MyRatings.razor</h3>
-@code {}
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
 
+<div class="px-3 pt-3 pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-0">تقييماتي</h3>
+            <p class="text-muted small">سجل التقييمات التي قمت بإضافتها للخدمات</p>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="d-flex justify-content-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+    }
+    else if (!reviews.Any())
+    {
+        <div class="glass-card p-5 text-center">
+            <i class="fa-regular fa-star display-1 text-muted opacity-25 mb-3"></i>
+            <h5>لم تقم بتقييم أي خدمة بعد</h5>
+            <p class="text-muted">آراؤك تساعد الآخرين في اختيار الخدمة المناسبة</p>
+            <button class="btn btn-primary rounded-pill px-5 mt-3" @onclick='() => Navigation.NavigateTo("/explore")'>تصفح الخدمات</button>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex flex-column gap-3">
+            @foreach (var review in reviews)
+            {
+                <div class="glass-card p-3 animate-up">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <div class="fw-bold text-primary cursor-pointer mb-1" @onclick='() => Navigation.NavigateTo($"/service/{review.ServiceId}")'>
+                                <i class="fa-solid fa-briefcase me-1"></i> @review.ServiceName
+                            </div>
+                            <div class="text-warning small">
+                                @for(int i=1; i<=5; i++) {
+                                    <i class="@(i <= review.Rating ? "fa-solid" : "fa-regular") fa-star"></i>
+                                }
+                            </div>
+                        </div>
+                        <div class="text-muted x-small">@review.CreatedAt.ToString("dd/MM/yyyy")</div>
+                    </div>
+                    
+                    <p class="mb-3 text-dark small bg-light p-3 rounded-3">
+                        <i class="fa-solid fa-quote-right text-muted opacity-25 me-2"></i>
+                        @review.Comment
+                    </p>
+
+                    <div class="d-flex justify-content-end border-top pt-2">
+                        <button class="btn btn-sm text-danger" @onclick="() => DeleteReview(review)">
+                            <i class="fa-solid fa-trash-can me-1"></i> حذف التقييم
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<MyReviewDto> reviews = new();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try 
+        {
+            reviews = await Api.GetMyReviewsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task DeleteReview(MyReviewDto review)
+    {
+        if (await JS.InvokeAsync<bool>("confirm", "هل أنت متأكد من حذف هذا التقييم؟"))
+        {
+            var success = await Api.DeleteReviewAsync(review.Id);
+            if (success)
+            {
+                reviews.Remove(review);
+            }
+        }
+    }
+}

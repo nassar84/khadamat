@@ -55,7 +55,7 @@
                     <tr>
                         <td class="p-3">
                             <div class="d-flex align-items-center gap-3">
-                                <img src="@(service.Images.FirstOrDefault() ?? "https://ui-avatars.com/api/?name="+service.Title)" 
+                                <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(service.CategoryName, service.Images.FirstOrDefault())" 
                                      class="rounded-3 object-fit-cover" width="60" height="60" />
                                 <div>
                                     <h6 class="fw-bold mb-1 text-truncate" style="max-width: 250px;">@service.Title</h6>
@@ -68,7 +68,7 @@
                         </td>
                         <td class="p-3">
                             <div class="d-flex align-items-center gap-2">
-                                <img src="@(service.ProviderPhoto ?? "https://ui-avatars.com/api/?name=P")" 
+                                <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(service.ProviderName, null, service.ProviderPhoto)" 
                                      class="rounded-circle" width="35" height="35" />
                                 <div>
                                     <div class="fw-bold small">@service.ProviderName</div>

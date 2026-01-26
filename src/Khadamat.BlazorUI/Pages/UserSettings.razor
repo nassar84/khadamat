@@ -56,7 +56,6 @@
                                         <span class="badge bg-success rounded-pill px-3 ms-2"><i class="fa-solid fa-check-circle me-1"></i> حساب موثق</span>
                                     }
                                 </div>
-                            </div>
                         </div>
                     </div>
 
@@ -284,12 +283,54 @@
 
                             <!-- Security Tab -->
                             <div class="tab-pane fade" id="security" role="tabpanel" aria-labelledby="security-tab">
-                                <div class="text-center py-5">
-                                    <i class="fa-solid fa-lock fs-1 text-muted opacity-25 mb-4"></i>
-                                    <h5>تغيير كلمة المرور</h5>
-                                    <p class="text-muted small">سيتم توفير ميزة تغيير كلمة المرور في التحديث القادم.</p>
-                                    <button class="btn btn-outline-secondary rounded-pill px-4 mt-3" disabled>تغيير الآن</button>
+                                <div class="p-4">
+                                    <h5 class="fw-bold mb-4">تغيير كلمة المرور</h5>
+                                    
+                                    <EditForm Model="@changePasswordModel" OnValidSubmit="HandleChangePasswordSubmit">
+                                        <DataAnnotationsValidator />
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold small">كلمة المرور الحالية</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-solid fa-key text-muted"></i></span>
+                                                <InputText type="password" @bind-Value="changePasswordModel.OldPassword" class="form-control premium-input" />
+                                            </div>
+                                            <ValidationMessage For="@(() => changePasswordModel.OldPassword)" class="text-danger small mt-1" />
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold small">كلمة المرور الجديدة</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-solid fa-lock text-primary"></i></span>
+                                                <InputText type="password" @bind-Value="changePasswordModel.NewPassword" class="form-control premium-input" />
+                                            </div>
+                                            <ValidationMessage For="@(() => changePasswordModel.NewPassword)" class="text-danger small mt-1" />
+                                        </div>
+
+                                        <div class="mb-4">
+                                            <label class="form-label fw-bold small">تأكيد كلمة المرور الجديدة</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-solid fa-check-double text-success"></i></span>
+                                                <InputText type="password" @bind-Value="changePasswordModel.ConfirmNewPassword" class="form-control premium-input" />
+                                            </div>
+                                            <ValidationMessage For="@(() => changePasswordModel.ConfirmNewPassword)" class="text-danger small mt-1" />
+                                        </div>
+
+                                        <button type="submit" class="btn btn-primary-premium btn-lg rounded-pill px-5 shadow-lg" disabled="@isLoading">
+                                            @if (isLoading)
+                                            {
+                                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                                <span>جاري التغيير...</span>
+                                            }
+                                            else
+                                            {
+                                                <span>تغيير كلمة المرور <i class="fa-solid fa-shield-check ms-2"></i></span>
+                                            }
+                                        </button>
+                                    </EditForm>
                                 </div>
+                            </div>
+
                             </div>
                         </div>
                     </div>
@@ -378,6 +419,7 @@
 
     private UpdateProfileRequest model = new();
     private UpdateProviderProfileRequest providerModel = new();
+    private ChangeMyPasswordRequest changePasswordModel = new();
     private bool isLoading = false;
     private bool showImageInput = false;
     private List<GovernorateDto> governorates = new();
@@ -547,6 +589,34 @@
         {
             Console.WriteLine(ex.Message);
             await JS.InvokeVoidAsync("alert", "حدث خطأ أثناء حفظ بيانات العمل");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleChangePasswordSubmit()
+    {
+        isLoading = true;
+        try
+        {
+            var result = await AuthService.ChangePassword(changePasswordModel);
+            if (result.Success)
+            {
+                await JS.InvokeVoidAsync("alert", "تم تغيير كلمة المرور بنجاح");
+                changePasswordModel = new ChangeMyPasswordRequest(); // Reset form
+            }
+            else
+            {
+                var errors = result.Errors != null ? string.Join("\n", result.Errors) : result.Message;
+                await JS.InvokeVoidAsync("alert", errors ?? "فشل تغيير كلمة المرور");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            await JS.InvokeVoidAsync("alert", "حدث خطأ أثناء تغيير كملة المرور");
         }
         finally
         {

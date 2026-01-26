@@ -54,7 +54,8 @@
                     <tr>
                         <th class="ps-4" style="width: 80px;">إجراءات</th>
                         <th class="ps-4">المستخدم</th>
-                        <th>الدور</th>
+                        <th>الدور والهاتف</th>
+                        <th>المدينة</th>
                         <th>الحالة</th>
                         <th>تاريخ الانضمام</th>
                     </tr>
@@ -87,6 +88,12 @@
                                                 تغيير كلمة المرور
                                             </button>
                                         </li>
+                                        <li>
+                                            <button class="dropdown-item py-2" @onclick="() => OpenViewDetails(user)">
+                                                <i class="fa-solid fa-circle-info me-2 text-success"></i>
+                                                عرض التفاصيل الكاملة
+                                            </button>
+                                        </li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
                                             <button class="dropdown-item py-2 text-danger" @onclick="() => ConfirmDelete(user)">
@@ -99,16 +106,10 @@
                             </td>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    @if (!string.IsNullOrEmpty(user.ProfileImageUrl))
-                                    {
-                                        <img src="@user.ProfileImageUrl" class="avatar-circle me-3" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" />
-                                    }
-                                    else
-                                    {
-                                        <div class="avatar-circle me-3">
-                                            @user.FullName.Substring(0, Math.Min(2, user.FullName.Length)).ToUpper()
-                                        </div>
-                                    }
+                                    <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(user.FullName, user.Gender, user.ProfileImageUrl)" 
+                                         class="avatar-circle me-3" 
+                                         style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" 
+                                         alt="@user.FullName" />
                                     <div>
                                         <div class="fw-bold">@user.FullName</div>
                                         <div class="small text-muted">@user.Email</div>
@@ -118,6 +119,19 @@
                             <td>
                                 <div class="small fw-bold">@user.PhoneNumber</div>
                                 <span class="badge rounded-pill @GetRoleBadgeClass(user.Role)">@GetRoleName(user.Role)</span>
+                            </td>
+                            <td>
+                                <div class="small text-muted">
+                                    @if (user.CityId.HasValue)
+                                    {
+                                        var city = cities.FirstOrDefault(c => c.Id == user.CityId.Value);
+                                        <span>@(city?.NameAr ?? "غير محدد")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">غير محدد</span>
+                                    }
+                                </div>
                             </td>
                             <td>
                                 <div class="form-check form-switch p-0">
@@ -211,9 +225,9 @@
 <!-- Edit User Modal -->
 @if (selectedUser != null && showEditModal)
 {
-    <div class="modal-overlay">
-        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop" style="max-width: 550px; max-height: 90vh; overflow-y: auto;">
-            <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="modal-overlay" @onclick="() => showEditModal = false">
+        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop" style="max-width: 650px; max-height: 85vh; overflow-y: auto;" @onclick:stopPropagation="true">
+            <div class="d-flex justify-content-between align-items-center mb-4 sticky-top bg-white pb-3" style="margin: -1rem -1rem 1rem -1rem; padding: 1rem 1rem 0.5rem 1rem; border-bottom: 1px solid #e9ecef;">
                 <h5 class="fw-bold mb-0">تعديل بيانات المستخدم</h5>
                 <button class="btn-close" @onclick="() => showEditModal = false"></button>
             </div>
@@ -221,7 +235,7 @@
             <div class="row g-3">
                 <div class="col text-center mb-3">
                     <div class="position-relative d-inline-block">
-                        <img src="@(string.IsNullOrEmpty(editUserModel.ProfileImageUrl) ? "https://i.pravatar.cc/150" : editUserModel.ProfileImageUrl)" 
+                        <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(editUserModel.FullName, editUserModel.Gender, editUserModel.ProfileImageUrl)" 
                              class="rounded-circle border border-4 border-white shadow-sm" width="100" height="100" style="object-fit: cover;" />
                         <button class="btn btn-sm btn-primary rounded-circle position-absolute bottom-0 end-0" @onclick="() => showImageEdit = !showImageEdit">
                             <i class="fa-solid fa-camera"></i>
@@ -262,11 +276,65 @@
                     </select>
                 </div>
 
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">الجنس</label>
+                    <select class="form-select rounded-pill px-4" @bind="editUserModel.Gender">
+                        <option value="">غير محدد</option>
+                        <option value="Male">ذكر</option>
+                        <option value="Female">أنثى</option>
+                    </select>
+                </div>
+
                 <div class="col-md-6 d-flex align-items-end mb-2">
                     <div class="form-check form-switch w-100 bg-light p-2 rounded-pill ps-5">
                         <input class="form-check-input ms-1" type="checkbox" @bind="editUserModel.IsActive" id="activeSwitch">
                         <label class="form-check-label small fw-bold" for="activeSwitch">حساب نشط</label>
                     </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">المدينة</label>
+                    <select class="form-select rounded-pill px-4" @bind="editUserModel.CityId">
+                        <option value="">اختر المدينة...</option>
+                        @foreach (var city in cities)
+                        {
+                            <option value="@city.Id">@city.NameAr</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label small fw-bold">نبذة (Bio)</label>
+                    <textarea class="form-control rounded-4 px-4" rows="3" @bind="editUserModel.Bio"></textarea>
+                </div>
+
+                 <div class="col-12 mt-3">
+                    <h6 class="fw-bold border-bottom pb-2">روابط التواصل الاجتماعي</h6>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label x-small text-muted">الموقع الإلكتروني</label>
+                    <input type="text" class="form-control rounded-pill px-4 bg-light small" @bind="editUserModel.WebsiteUrl">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label x-small text-muted">فيسبوك</label>
+                    <input type="text" class="form-control rounded-pill px-4 bg-light small" @bind="editUserModel.FacebookUrl">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label x-small text-muted">انستجرام</label>
+                    <input type="text" class="form-control rounded-pill px-4 bg-light small" @bind="editUserModel.InstagramUrl">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label x-small text-muted">تويتر (X)</label>
+                    <input type="text" class="form-control rounded-pill px-4 bg-light small" @bind="editUserModel.TwitterUrl">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label x-small text-muted">لينكد إن</label>
+                    <input type="text" class="form-control rounded-pill px-4 bg-light small" @bind="editUserModel.LinkedInUrl">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label x-small text-muted">تيك توك</label>
+                    <input type="text" class="form-control rounded-pill px-4 bg-light small" @bind="editUserModel.TikTokUrl">
                 </div>
             </div>
 
@@ -314,6 +382,129 @@
             <div class="d-flex gap-2">
                 <button class="btn btn-primary flex-grow-1 rounded-pill" @onclick="SavePermissions">حفظ </button>
                 <button class="btn btn-light flex-grow-1 rounded-pill" @onclick="() => showPermissionsModal = false">إلغاء</button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- View User Details Modal -->
+@if (selectedUser != null && showDetailsModal)
+{
+    <div class="modal-overlay" @onclick="() => showDetailsModal = false">
+        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop" style="max-width: 600px; max-height: 85vh; overflow-y: auto;" @onclick:stopPropagation="true">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0 text-success">
+                    <i class="fa-solid fa-id-card me-2"></i>تفاصيل @selectedUser.FullName
+                </h5>
+                <button class="btn-close" @onclick="() => showDetailsModal = false"></button>
+            </div>
+            
+            <div class="row g-3">
+                <!-- Bio -->
+                @if (!string.IsNullOrEmpty(selectedUser.Bio))
+                {
+                    <div class="col-12">
+                        <div class="p-3 bg-light rounded-3">
+                            <label class="small fw-bold text-muted mb-2">النبذة التعريفية</label>
+                            <p class="mb-0">@selectedUser.Bio</p>
+                        </div>
+                    </div>
+                }
+
+                <!-- Social Media Links -->
+                <div class="col-12">
+                    <h6 class="fw-bold border-bottom pb-2 mb-3">روابط التواصل الاجتماعي</h6>
+                    <div class="row g-2">
+                        @if (!string.IsNullOrEmpty(selectedUser.WebsiteUrl))
+                        {
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center p-2 bg-light rounded-3">
+                                    <i class="fa-solid fa-globe text-primary me-2"></i>
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <small class="text-muted d-block">الموقع</small>
+                                        <a href="@selectedUser.WebsiteUrl" target="_blank" class="small text-truncate d-block">@selectedUser.WebsiteUrl</a>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(selectedUser.FacebookUrl))
+                        {
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center p-2 bg-light rounded-3">
+                                    <i class="fa-brands fa-facebook text-primary me-2"></i>
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <small class="text-muted d-block">فيسبوك</small>
+                                        <a href="@selectedUser.FacebookUrl" target="_blank" class="small text-truncate d-block">@selectedUser.FacebookUrl</a>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(selectedUser.InstagramUrl))
+                        {
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center p-2 bg-light rounded-3">
+                                    <i class="fa-brands fa-instagram text-danger me-2"></i>
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <small class="text-muted d-block">انستجرام</small>
+                                        <span class="small">@@@selectedUser.InstagramUrl</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(selectedUser.TwitterUrl))
+                        {
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center p-2 bg-light rounded-3">
+                                    <i class="fa-brands fa-x-twitter text-dark me-2"></i>
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <small class="text-muted d-block">تويتر</small>
+                                        <span class="small">@@@selectedUser.TwitterUrl</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(selectedUser.LinkedInUrl))
+                        {
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center p-2 bg-light rounded-3">
+                                    <i class="fa-brands fa-linkedin text-primary me-2"></i>
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <small class="text-muted d-block">لينكد إن</small>
+                                        <a href="@selectedUser.LinkedInUrl" target="_blank" class="small text-truncate d-block">@selectedUser.LinkedInUrl</a>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(selectedUser.TikTokUrl))
+                        {
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center p-2 bg-light rounded-3">
+                                    <i class="fa-brands fa-tiktok text-dark me-2"></i>
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <small class="text-muted d-block">تيك توك</small>
+                                        <span class="small">@@@selectedUser.TikTokUrl</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    @if (string.IsNullOrEmpty(selectedUser.WebsiteUrl) && 
+                         string.IsNullOrEmpty(selectedUser.FacebookUrl) && 
+                         string.IsNullOrEmpty(selectedUser.InstagramUrl) &&
+                         string.IsNullOrEmpty(selectedUser.TwitterUrl) &&
+                         string.IsNullOrEmpty(selectedUser.LinkedInUrl) &&
+                         string.IsNullOrEmpty(selectedUser.TikTokUrl))
+                    {
+                        <div class="col-12 text-center py-3">
+                            <i class="fa-solid fa-link-slash text-muted opacity-25 fs-3 mb-2"></i>
+                            <p class="text-muted small mb-0">لا توجد روابط تواصل اجتماعي</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button class="btn btn-light w-100 rounded-pill" @onclick="() => showDetailsModal = false">إغلاق</button>
             </div>
         </div>
     </div>
@@ -407,6 +598,12 @@
         from { transform: scale(0.8); opacity: 0; }
         to { transform: scale(1); opacity: 1; }
     }
+
+    .sticky-top {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
 </style>
 
 @code {
@@ -416,6 +613,7 @@
     
     private UserDto? selectedUser;
     private bool showPermissionsModal = false;
+    private bool showDetailsModal = false;
     
     // Add New User Modal
     private bool showAddUserModal = false;
@@ -450,9 +648,25 @@
     }
 
     private IEnumerable<UserDto> FilteredUsers => users
-        .Where(u => (string.IsNullOrEmpty(SearchTerm) || u.FullName.Contains(SearchTerm) || u.Email.Contains(SearchTerm)) &&
+        .Where(u => (string.IsNullOrEmpty(SearchTerm) || 
+                    (u.FullName?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) || 
+                    (u.Email?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false)) &&
                     (string.IsNullOrEmpty(SelectedRole) || u.Role == SelectedRole) &&
-                    (State.UserRole == "SuperAdmin" || u.Role != "SuperAdmin")); // Safety filtering
+                    IsValidUserToShow(u));
+
+    private bool IsValidUserToShow(UserDto u)
+    {
+        // specific logic: SuperAdmin sees all. SystemAdmin triggers safety check.
+        if (State.UserRole == "SuperAdmin") return true;
+        
+        // SystemAdmin should not manage SuperAdmin, but can see User and SystemAdmin
+        if (State.UserRole == "SystemAdmin")
+        {
+            return u.Role != "SuperAdmin";
+        }
+        
+        return true;
+    }
 
     private string GetRoleBadgeClass(string role) => role switch
     {
@@ -553,6 +767,12 @@
         // Show success toast
     }
 
+    private void OpenViewDetails(UserDto user)
+    {
+        selectedUser = user;
+        showDetailsModal = true;
+    }
+
     private bool showEditModal = false;
     private bool showPasswordModal = false;
     private bool showNewPassword = false;
@@ -602,7 +822,16 @@
             PhoneNumber = user.PhoneNumber,
             Role = user.Role,
             IsActive = user.IsActive,
-            ProfileImageUrl = user.ProfileImageUrl
+            ProfileImageUrl = user.ProfileImageUrl,
+            Gender = user.Gender,
+            CityId = user.CityId,
+            Bio = user.Bio,
+            WebsiteUrl = user.WebsiteUrl,
+            InstagramUrl = user.InstagramUrl,
+            TwitterUrl = user.TwitterUrl,
+            FacebookUrl = user.FacebookUrl,
+            LinkedInUrl = user.LinkedInUrl,
+            TikTokUrl = user.TikTokUrl
         };
         showEditModal = true;
     }

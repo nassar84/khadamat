@@ -79,4 +79,11 @@ public class AuthService : IAuthService
         var result = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
         return result!;
     }
+
+    public async Task<ApiResponse<bool>> ChangePassword(ChangeMyPasswordRequest request)
+    {
+        var response = await _httpClient.PostAsJsonAsync("api/v1/auth/change-password", request);
+        var result = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
+        return result!;
+    }
 }

@@ -271,4 +271,22 @@ public class AuthService : IAuthService
         var result = await _userManager.UpdateAsync(user);
         return result.Succeeded;
     }
+
+    public async Task<ApiResponse<bool>> ChangePasswordAsync(ChangeMyPasswordRequest request)
+    {
+        var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return ApiResponse<bool>.Fail("غير مصرح");
+
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null) return ApiResponse<bool>.Fail("المستخدم غير موجود");
+
+        var result = await _userManager.ChangePasswordAsync(user, request.OldPassword, request.NewPassword);
+        
+        if (!result.Succeeded)
+        {
+            return ApiResponse<bool>.Fail("فشل تغيير كلمة المرور", result.Errors.Select(e => e.Description).ToList());
+        }
+
+        return ApiResponse<bool>.Succeed(true, "تم تغيير كلمة المرور بنجاح");
+    }
 }

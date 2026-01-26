@@ -333,10 +333,117 @@ public class ApiClient
         var response = await _http.PostAsync($"api/v1/admin/services/{id}/reject", null);
         return response.IsSuccessStatusCode;
     }
+
+    // Posts
+    public async Task<List<PostDto>> GetProviderPostsAsync(int providerId)
+    {
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<PostDto>>>($"api/v1/posts/provider/{providerId}");
+        return response?.Data ?? new List<PostDto>();
+    }
+
+    public async Task<bool> CreatePostAsync(CreatePostRequest request)
+    {
+        var response = await _http.PostAsJsonAsync("api/v1/posts", request);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeletePostAsync(int id)
+    {
+        var response = await _http.DeleteAsync($"api/v1/posts/{id}");
+        return response.IsSuccessStatusCode;
+    }
+
+    // Reviews (My Ratings/Comments)
+    public async Task<List<MyReviewDto>> GetMyReviewsAsync()
+    {
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<MyReviewDto>>>("api/v1/reviews/my");
+        return response?.Data ?? new List<MyReviewDto>();
+    }
+
+    public async Task<bool> CreateReviewAsync(CreateReviewRequest request)
+    {
+        var response = await _http.PostAsJsonAsync("api/v1/reviews", request);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeleteReviewAsync(int id)
+    {
+        var response = await _http.DeleteAsync($"api/v1/reviews/{id}");
+        return response.IsSuccessStatusCode;
+    }
+
+    // Favorites
+    public async Task<List<ServiceDto>> GetMyFavoritesAsync()
+    {
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<ServiceDto>>>("api/v1/favorites");
+        return response?.Data ?? new List<ServiceDto>();
+    }
+
+    public async Task<bool> ToggleFavoriteAsync(int serviceId)
+    {
+        var response = await _http.PostAsync($"api/v1/favorites/toggle/{serviceId}", null);
+        return response.IsSuccessStatusCode;
+    }
+
+    // Comments
+    public async Task<List<MyCommentDto>> GetMyCommentsAsync()
+    {
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<MyCommentDto>>>("api/v1/comments/my");
+        return response?.Data ?? new List<MyCommentDto>();
+    }
+
+    public async Task<bool> CreateCommentAsync(CreateCommentRequest request)
+    {
+        var response = await _http.PostAsJsonAsync("api/v1/comments", request);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeleteCommentAsync(int id)
+    {
+        var response = await _http.DeleteAsync($"api/v1/comments/{id}");
+        return response.IsSuccessStatusCode;
+    }
 }
 
-// Temporary DTO for Ad until it is standardized in Application project if not there
+// DTOs for Client usage
+public class CreatePostRequest
+{
+    public string Content { get; set; } = string.Empty;
+    public string? ImageUrl { get; set; }
+}
 
+public class CreateReviewRequest
+{
+    public int ServiceId { get; set; }
+    public int Rating { get; set; }
+    public string Comment { get; set; } = string.Empty;
+}
+
+public class MyReviewDto
+{
+    public int Id { get; set; }
+    public int ServiceId { get; set; }
+    public string ServiceName { get; set; } = string.Empty;
+    public int Rating { get; set; }
+    public string Comment { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+}
+
+public class CreateCommentRequest
+{
+    public int PostId { get; set; }
+    public string Text { get; set; } = string.Empty;
+}
+
+public class MyCommentDto
+{
+    public int Id { get; set; }
+    public int PostId { get; set; }
+    public string PostContentSnippet { get; set; } = string.Empty;
+    public string ProviderName { get; set; } = string.Empty;
+    public string Text { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+}
 
 public class LoginDto { public string Email { get; set; } = ""; public string Password { get; set; } = ""; }
 public class AuthResponseDto { public string Token { get; set; } = ""; public string RefreshToken { get; set; } = ""; public string FullName { get; set; } = ""; }

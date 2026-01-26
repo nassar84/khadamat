@@ -58,4 +58,13 @@ public class AuthController : ControllerBase
         if (!result.Success) return BadRequest(result);
         return Ok(result);
     }
+
+    [Authorize]
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangeMyPasswordRequest request)
+    {
+        var result = await _authService.ChangePasswordAsync(request);
+        if (!result.Success) return BadRequest(result);
+        return Ok(result);
+    }
 }

@@ -11,8 +11,10 @@
             @foreach (var cat in categories.Concat(categories))
             {
                 <div class="category-item d-flex flex-column align-items-center" @onclick="() => OnCategorySelected(cat)">
-                    <div class="category-shape-wrapper">
-                        <span class="fs-4">@cat.Icon</span>
+                    <div class="category-shape-wrapper p-0">
+                        <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetCategoryImage(cat.Name)" 
+                             class="w-100 h-100 object-fit-cover" alt="@cat.Name" 
+                             style="opacity: 0.85;" />
                     </div>
                     <span class="category-name-small">@cat.Name</span>
                 </div>

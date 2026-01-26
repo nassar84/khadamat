@@ -42,6 +42,19 @@ public class LoginRequest
     public string Password { get; set; } = string.Empty;
 }
 
+public class ChangeMyPasswordRequest
+{
+    [Required(ErrorMessage = "كلمة المرور الحالية مطلوبة")]
+    public string OldPassword { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "كلمة المرور الجديدة مطلوبة")]
+    [MinLength(6, ErrorMessage = "كلمة المرور يجب أن لا تقل عن 6 أحرف")]
+    public string NewPassword { get; set; } = string.Empty;
+
+    [Compare("NewPassword", ErrorMessage = "كلمة المرور الجديدة غير متطابقة")]
+    public string ConfirmNewPassword { get; set; } = string.Empty;
+}
+
 public class AuthResponse
 {
     public string Id { get; set; } = string.Empty;

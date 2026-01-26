@@ -18,17 +18,25 @@
             <NavLink class="nav-link" href="/admin" Match="NavLinkMatch.All" @onclick="CloseSidebar">
                 <i class="fas fa-chart-line"></i> لوحة التحكم
             </NavLink>
+
+            <!-- Management Group -->
+            <div class="nav-group-label text-muted x-small fw-bold mt-3 mb-2 px-3">الإدارة</div>
+            
             <NavLink class="nav-link" href="/admin/users" @onclick="CloseSidebar">
                 <i class="fas fa-users"></i> المستخدمين
             </NavLink>
-             <NavLink class="nav-link" href="/admin/services" @onclick="CloseSidebar">
-                <i class="fas fa-briefcase"></i> الخدمات
-            </NavLink>
              <NavLink class="nav-link" href="/admin/approvals/providers" @onclick="CloseSidebar">
-                <i class="fas fa-user-check"></i> اعتماد مقدمي الخدمة
+                <i class="fas fa-user-check"></i> اعتماد المزودين
+            </NavLink>
+
+            <!-- Services Group -->
+            <div class="nav-group-label text-muted x-small fw-bold mt-3 mb-2 px-3">الخدمات</div>
+            
+             <NavLink class="nav-link" href="/admin/services" @onclick="CloseSidebar">
+                <i class="fas fa-briefcase"></i> إدارة الخدمات
             </NavLink>
              <NavLink class="nav-link" href="/admin/approvals/services" @onclick="CloseSidebar">
-                <i class="fas fa-clipboard-check"></i> اعتماد الخدمات
+                <i class="fas fa-clipboard-check"></i> طلبات الخدمات
             </NavLink>
              <NavLink class="nav-link" href="/admin/categories" @onclick="CloseSidebar">
                 <i class="fas fa-th-large"></i> التصنيفات
@@ -36,22 +44,30 @@
              <NavLink class="nav-link" href="/admin/locations" @onclick="CloseSidebar">
                 <i class="fas fa-map-marker-alt"></i> المناطق
             </NavLink>
-             <NavLink class="nav-link" href="/admin/ads" @onclick="CloseSidebar">
-                <i class="fas fa-ad"></i> الإعلانات
-            </NavLink>
-             <NavLink class="nav-link" href="/admin/reports" @onclick="CloseSidebar">
-                <i class="fas fa-file-alt"></i> التقارير
-            </NavLink>
-             <NavLink class="nav-link" href="/admin/logs" @onclick="CloseSidebar">
-                <i class="fas fa-history"></i> سجل النشاط
-            </NavLink>
-             <NavLink class="nav-link" href="/admin/settings" @onclick="CloseSidebar">
-                <i class="fas fa-cogs"></i> الإعدادات
-            </NavLink>
-             <NavLink class="nav-link" href="/admin/subscriptions" @onclick="CloseSidebar">
-                <i class="fas fa-credit-card"></i> الاشتراكات
-            </NavLink>
-             <NavLink class="nav-link" href="/" @onclick="CloseSidebar">
+
+            <!-- System Group (SuperAdmin Only) -->
+            <AuthorizeView Roles="SuperAdmin">
+                <div class="nav-group-label text-muted x-small fw-bold mt-3 mb-2 px-3">النظام</div>
+                
+                <NavLink class="nav-link" href="/admin/ads" @onclick="CloseSidebar">
+                    <i class="fas fa-ad"></i> الإعلانات
+                </NavLink>
+                 <NavLink class="nav-link" href="/admin/reports" @onclick="CloseSidebar">
+                    <i class="fas fa-file-alt"></i> التقارير
+                </NavLink>
+                 <NavLink class="nav-link" href="/admin/logs" @onclick="CloseSidebar">
+                    <i class="fas fa-history"></i> سجل النشاط
+                </NavLink>
+                 <NavLink class="nav-link" href="/admin/subscriptions" @onclick="CloseSidebar">
+                    <i class="fas fa-credit-card"></i> الاشتراكات
+                </NavLink>
+                 <NavLink class="nav-link" href="/admin/settings" @onclick="CloseSidebar">
+                    <i class="fas fa-cogs"></i> الإعدادات
+                </NavLink>
+            </AuthorizeView>
+            
+             <div class="mt-auto"></div>
+             <NavLink class="nav-link text-primary" href="/" @onclick="CloseSidebar">
                 <i class="fas fa-home"></i> العودة للموقع
             </NavLink>
              <button class="nav-link btn-logout" @onclick="HandleLogout">

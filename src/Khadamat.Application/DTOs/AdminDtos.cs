@@ -14,11 +14,22 @@ public class UserDto
     public string FullName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string? PhoneNumber { get; set; }
+    public int? CityId { get; set; }
     public string Role { get; set; } = string.Empty;
     public bool IsActive { get; set; }
     public bool IsVerified { get; set; }
     public string? ProfileImageUrl { get; set; }
+    public string? Gender { get; set; } // "Male", "Female", or null
     public DateTime CreatedAt { get; set; }
+
+    // Enhanced Fields
+    public string? Bio { get; set; }
+    public string? WebsiteUrl { get; set; }
+    public string? InstagramUrl { get; set; }
+    public string? TwitterUrl { get; set; }
+    public string? FacebookUrl { get; set; }
+    public string? LinkedInUrl { get; set; }
+    public string? TikTokUrl { get; set; }
 }
 
 public class PendingProviderDto
