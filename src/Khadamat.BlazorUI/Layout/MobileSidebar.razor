@@ -3,6 +3,7 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 @inject Khadamat.BlazorUI.Services.Auth.IAuthService AuthService
+@inject Khadamat.Shared.Interfaces.IShareService ShareService
 
 <div class="sidebar-overlay @(State.IsSidebarOpen ? "show" : "")" @onclick="CloseSidebar"></div>
 
@@ -38,6 +39,31 @@
                                 <i class="fa-solid fa-arrows-rotate"></i>
                                 <span>تحديث التطبيق</span>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="menu-section">
+                        <h6 class="section-title">نشاطي</h6>
+                        <div class="menu-items">
+                            <div class="menu-item @GetActiveClass("client/favorites")" @onclick='() => NavigateTo("/client/favorites")'>
+                                <i class="fa-solid fa-heart text-danger"></i>
+                                <span>المفضلة</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("client/myratings")" @onclick='() => NavigateTo("/client/myratings")'>
+                                <i class="fa-solid fa-star text-warning"></i>
+                                <span>تقييماتي</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("client/mycomments")" @onclick='() => NavigateTo("/client/mycomments")'>
+                                <i class="fa-solid fa-comment text-primary"></i>
+                                <span>تعليقاتي</span>
+                            </div>
+                            @if (State.IsProvider)
+                            {
+                                <div class="menu-item @GetActiveClass("provider/myposts")" @onclick='() => NavigateTo("/provider/myposts")'>
+                                    <i class="fa-solid fa-newspaper text-info"></i>
+                                    <span>إدارة المنشورات</span>
+                                </div>
+                            }
                         </div>
                     </div>
 
@@ -123,6 +149,11 @@
     </div>
 
     <div class="sidebar-bottom">
+        <div class="d-flex flex-column gap-2 mb-3 px-3">
+             <button class="btn btn-outline-primary btn-sm rounded-pill w-100" @onclick="ShareApp">
+                <i class="fa-solid fa-share-nodes me-2"></i> شارك التطبيق
+             </button>
+        </div>
         <div class="app-version">إصدار 1.0.0</div>
     </div>
 </aside>
@@ -419,6 +450,11 @@
     {
         var currentPath = new Uri(Navigation.Uri).AbsolutePath.Trim('/');
         return currentPath == path.Trim('/') ? "active" : "";
+    }
+
+    private async Task ShareApp()
+    {
+        await ShareService.ShareTextAsync("حمل تطبيق خدمات الرائع الآن! منصتك المثالية لكل ما تحتاجه.", "مشاركة تطبيق خدمات");
     }
 
     private void ToggleProviderMode()

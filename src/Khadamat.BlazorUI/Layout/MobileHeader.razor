@@ -2,6 +2,7 @@
 @using Khadamat.BlazorUI.State
 @inject AppState State
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 <header class="mobile-header-premium">
     <div class="header-glass-content">
@@ -38,6 +39,25 @@
                 </NotAuthorized>
             </AuthorizeView>
             
+            <div class="theme-switcher-mobile me-2">
+                <button class="icon-btn-minimal" @onclick="ToggleThemeMenu">
+                    <i class="fa-solid fa-palette"></i>
+                </button>
+                @if (isThemeMenuOpen)
+                {
+                    <div class="theme-popover-mobile animate-up">
+                        <div class="theme-grid-mobile">
+                            <button class="theme-dot-mobile default @(State.CurrentTheme == "default" ? "active" : "")" @onclick='() => HandleSetTheme("default")'></button>
+                            <button class="theme-dot-mobile sunset @(State.CurrentTheme == "sunset" ? "active" : "")" @onclick='() => HandleSetTheme("sunset")'></button>
+                            <button class="theme-dot-mobile ocean @(State.CurrentTheme == "ocean" ? "active" : "")" @onclick='() => HandleSetTheme("ocean")'></button>
+                            <button class="theme-dot-mobile forest @(State.CurrentTheme == "forest" ? "active" : "")" @onclick='() => HandleSetTheme("forest")'></button>
+                            <button class="theme-dot-mobile lavender @(State.CurrentTheme == "lavender" ? "active" : "")" @onclick='() => HandleSetTheme("lavender")'></button>
+                            <button class="theme-dot-mobile royal @(State.CurrentTheme == "royal" ? "active" : "")" @onclick='() => HandleSetTheme("royal")'></button>
+                        </div>
+                    </div>
+                }
+            </div>
+
             <div class="icon-btn-minimal" @onclick='() => Navigation.NavigateTo("/notifications")'>
                 <i class="fa-solid fa-bell"></i>
                 @if (State.NotificationCount > 0)
@@ -241,9 +261,57 @@
         right: auto;
         left: 20px;
     }
+    .theme-switcher-mobile {
+        position: relative;
+    }
+
+    .theme-popover-mobile {
+        position: absolute;
+        top: 110%;
+        right: 0;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 12px;
+        border-radius: 18px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        z-index: 1001;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        min-width: 150px;
+    }
+
+    .theme-grid-mobile {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+
+    .theme-dot-mobile {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    .theme-dot-mobile:active { transform: scale(0.9); }
+    .theme-dot-mobile.active { border-color: var(--theme-primary); transform: scale(1.1); }
+
+    .theme-dot-mobile.default { background: linear-gradient(135deg, #8e2de2, #4a00e0); }
+    .theme-dot-mobile.sunset { background: linear-gradient(135deg, #ff4e50, #f9d423); }
+    .theme-dot-mobile.ocean { background: linear-gradient(135deg, #00c6ff, #0072ff); }
+    .theme-dot-mobile.forest { background: linear-gradient(135deg, #00f260, #0575e6); }
+    .theme-dot-mobile.lavender { background: linear-gradient(135deg, #bf5af2, #5e5ce6); }
+    .theme-dot-mobile.royal { background: linear-gradient(135deg, #f093fb, #f5576c); }
+
+    .animate-up { animation: slideUp 0.3s ease-out; }
+    @@keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 
 @code {
+    private bool isThemeMenuOpen = false;
+
     protected override void OnInitialized()
     {
         State.OnChange += OnStateChange;
@@ -261,10 +329,20 @@
 
     private void ToggleSidebar()
     {
-        Console.WriteLine($"ANTIGRAVITY_LOG: Toggling sidebar. Current state: {State.IsSidebarOpen}");
         State.IsSidebarOpen = !State.IsSidebarOpen;
         State.TriggerStateChanged();
-        Console.WriteLine($"ANTIGRAVITY_LOG: Sidebar toggled to: {State.IsSidebarOpen}");
+    }
+
+    private void ToggleThemeMenu()
+    {
+        isThemeMenuOpen = !isThemeMenuOpen;
+    }
+
+    private async Task HandleSetTheme(string theme)
+    {
+        State.SetTheme(theme);
+        await JS.InvokeVoidAsync("document.body.setAttribute", "data-theme", theme);
+        isThemeMenuOpen = false;
     }
 
     private void HandleSearch(ChangeEventArgs e)

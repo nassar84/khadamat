@@ -8,6 +8,9 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
+@inject Khadamat.Shared.Interfaces.IShareService ShareService
+@inject Khadamat.Shared.Interfaces.IPhoneService PhoneService
+@inject Khadamat.Shared.Interfaces.ILocationService LocationService
 
 <div class="service-details-page pb-5">
     @if (service == null)
@@ -117,6 +120,9 @@
                                     {
                                         <span>@service.Location</span>
                                     }
+                                    <button class="btn btn-sm btn-icon text-white ms-2" @onclick="OpenMap" title="عرض على الخريطة">
+                                        <i class="fa-solid fa-map-location-dot"></i>
+                                    </button>
                                 </div>
                                 @if (!string.IsNullOrEmpty(service.WorkHours))
                                 {
@@ -580,24 +586,28 @@
 
     private async Task ShareService()
     {
-        await JS.InvokeVoidAsync("navigator.share", new { 
-            title = service?.Title, 
-            text = service?.Description, 
-            url = Navigation.Uri 
-        });
+        await ShareService.ShareLinkAsync(Navigation.Uri, service?.Title ?? "خدمة");
     }
 
-    private void ContactWhatsApp()
+    private async Task ContactWhatsApp()
     {
-        var wp = service?.WhatsApp ?? "";
-        if (string.IsNullOrEmpty(wp)) wp = "201000000000"; // Fallback
-        Navigation.NavigateTo($"https://wa.me/{wp}?text=بخصوص خدمتك: {service?.Title}");
+        var wp = service?.WhatsApp ?? "201000000000";
+        await PhoneService.OpenWhatsAppChatAsync(wp, $"بخصوص خدمتك: {service?.Title}");
     }
 
-    private void CallProvider()
+    private async Task CallProvider()
     {
         if (!string.IsNullOrEmpty(service?.Phone1))
-            Navigation.NavigateTo($"tel:{service.Phone1}");
+            await PhoneService.MakePhoneCallAsync(service.Phone1);
+    }
+
+    private async Task OpenMap()
+    {
+        if (service != null)
+        {
+            var loc = !string.IsNullOrEmpty(service.Location) ? service.Location : $"{service.CityName}, {service.GovernorateName}";
+            await LocationService.OpenMapsNavigationAsync(0, 0, loc);
+        }
     }
 
     private void JoinTelegram()
