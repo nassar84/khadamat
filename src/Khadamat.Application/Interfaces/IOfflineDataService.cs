@@ -1,6 +1,6 @@
 using Khadamat.Application.DTOs;
 
-namespace Khadamat.Shared.Interfaces;
+namespace Khadamat.Application.Interfaces;
 
 public interface IOfflineDataService
 {

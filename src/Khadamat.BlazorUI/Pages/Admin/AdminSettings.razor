@@ -1,0 +1,233 @@
+@page "/admin/branding"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+@inject Khadamat.BlazorUI.State.AppState AppState
+@inject IJSRuntime JS
+@attribute [Authorize(Roles = "SuperAdmin")]
+
+<div class="container-fluid p-4">
+    <div class="glass-card p-4 animate-up">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold mb-1">إعدادات النظام (Super Admin)</h2>
+                <p class="text-muted">تحكم في هوية التطبيق الأساسية والإعدادات العالمية.</p>
+            </div>
+            <i class="fa-solid fa-gears fs-1 text-primary opacity-50"></i>
+        </div>
+
+        @if (isLoading)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2">جاري تحميل الإعدادات...</p>
+            </div>
+        }
+        else if (settings != null)
+        {
+            <div class="row g-4">
+                <!-- Identity Section -->
+                <div class="col-12 col-md-6">
+                    <div class="section-card p-3 rounded-4 bg-light border">
+                        <h5 class="fw-bold mb-3"><i class="fa-solid fa-fingerprint me-2 text-primary"></i> الهوية التجارية</h5>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">اسم التطبيق</label>
+                            <input @bind="settings.ApplicationName" class="form-control rounded-3" placeholder="أدخل اسم التطبيق" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">رابط الشعار (Logo URL)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-link"></i></span>
+                                <input @bind="settings.LogoUrl" class="form-control border-start-0 rounded-end-3" placeholder="https://..." />
+                            </div>
+                            @if (!string.IsNullOrEmpty(settings.LogoUrl))
+                            {
+                                <div class="mt-2 p-2 border rounded-3 bg-white text-center">
+                                    <img src="@settings.LogoUrl" style="max-height: 50px;" alt="Logo Preview" />
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Theme Section -->
+                <div class="col-12 col-md-6">
+                    <div class="section-card p-3 rounded-4 bg-light border">
+                        <h5 class="fw-bold mb-3"><i class="fa-solid fa-palette me-2 text-primary"></i> الألوان والتنسيق</h5>
+                        
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label fw-bold">اللون الأساسي</label>
+                                <div class="d-flex gap-2">
+                                    <input type="color" @bind="settings.PrimaryColor" class="form-control form-control-color border-0 rounded-circle" style="width: 45px; height: 45px;" />
+                                    <input @bind="settings.PrimaryColor" class="form-control rounded-3" />
+                                </div>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label fw-bold">اللون الثانوي</label>
+                                <div class="d-flex gap-2">
+                                    <input type="color" @bind="settings.SecondaryColor" class="form-control form-control-color border-0 rounded-circle" style="width: 45px; height: 45px;" />
+                                    <input @bind="settings.SecondaryColor" class="form-control rounded-3" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">رسالة الترحيب</label>
+                            <textarea @bind="settings.WelcomeMessage" class="form-control rounded-3" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact & Maintenance Section -->
+                <div class="col-12">
+                    <div class="section-card p-3 rounded-4 bg-light border">
+                        <h5 class="fw-bold mb-3"><i class="fa-solid fa-screwdriver-wrench me-2 text-primary"></i> التواصل والصيانة</h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">بريد التواصل</label>
+                                <input @bind="settings.ContactEmail" class="form-control rounded-3" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">هاتف التواصل</label>
+                                <input @bind="settings.ContactPhone" class="form-control rounded-3" />
+                            </div>
+                        </div>
+
+                        <div class="form-check form-switch mt-3 py-2 px-4 rounded-3 border bg-white d-flex justify-content-between align-items-center">
+                            <div>
+                                <label class="form-check-label fw-bold mb-0">وضع الصيانة (Maintenance Mode)</label>
+                                <p class="text-muted small mb-0">عند تفعيله، لن يتمكن المستخدمون العاديون من استخدام التطبيق.</p>
+                            </div>
+                            <input class="form-check-input fs-4" type="checkbox" @bind="settings.IsMaintenanceMode">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="col-12 text-end mt-4">
+                    <button class="btn btn-light rounded-pill px-5 me-2" @onclick="LoadSettings">إعادة تعيين</button>
+                    <button class="btn btn-primary-premium rounded-pill px-5 py-2 shadow" @onclick="SaveSettings" disabled="@isSaving">
+                        @if (isSaving)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        حفظ التغييرات
+                    </button>
+                </div>
+            </div>
+        }
+        
+        @if (!string.IsNullOrEmpty(statusMessage))
+        {
+            <div class="alert @(isSuccess ? "alert-success" : "alert-danger") mt-4 animate-pop rounded-4 shadow-sm">
+                @statusMessage
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .section-card {
+        transition: transform 0.3s ease;
+    }
+    .section-card:hover {
+        transform: translateY(-5px);
+    }
+</style>
+
+@code {
+    private AppSettingsDto? settings;
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private string statusMessage = "";
+    private bool isSuccess = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSettings();
+    }
+
+    private async Task LoadSettings()
+    {
+        isLoading = true;
+        statusMessage = "";
+        StateHasChanged();
+
+        var result = await Api.GetSettingsAsync();
+        if (result?.Success == true)
+        {
+            settings = result.Data;
+            // Update AppState for real-time preview if needed
+            await UpdateAppState();
+        }
+        else
+        {
+            statusMessage = "فشل تحميل الإعدادات.";
+            isSuccess = false;
+        }
+
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task SaveSettings()
+    {
+        if (settings == null) return;
+        
+        isSaving = true;
+        statusMessage = "";
+        
+        var request = new UpdateAppSettingsRequest
+        {
+            ApplicationName = settings.ApplicationName,
+            LogoUrl = settings.LogoUrl,
+            PrimaryColor = settings.PrimaryColor,
+            SecondaryColor = settings.SecondaryColor,
+            ContactEmail = settings.ContactEmail,
+            ContactPhone = settings.ContactPhone,
+            IsMaintenanceMode = settings.IsMaintenanceMode,
+            WelcomeMessage = settings.WelcomeMessage
+        };
+
+        var result = await Api.UpdateSettingsAsync(request);
+        if (result?.Success == true)
+        {
+            statusMessage = "تم حفظ الإعدادات بنجاح وتطبيقها على جميع أجزاء النظام.";
+            isSuccess = true;
+            await UpdateAppState();
+        }
+        else
+        {
+            statusMessage = "حدث خطأ أثناء حفظ الإعدادات.";
+            isSuccess = false;
+        }
+
+        isSaving = false;
+        StateHasChanged();
+    }
+
+    private async Task UpdateAppState()
+    {
+        if (settings != null)
+        {
+            AppState.AppName = settings.ApplicationName;
+            AppState.AppLogo = settings.LogoUrl;
+            AppState.PrimaryColor = settings.PrimaryColor;
+            AppState.SecondaryColor = settings.SecondaryColor;
+            AppState.TriggerStateChanged();
+
+            try
+            {
+                await JS.InvokeVoidAsync("applyThemeColors", AppState.PrimaryColor, AppState.SecondaryColor);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error applying theme colors: {ex.Message}");
+            }
+        }
+    }
+}

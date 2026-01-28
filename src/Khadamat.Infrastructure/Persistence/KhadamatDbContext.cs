@@ -29,7 +29,7 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<AuditLog> AuditLogs { get; set; }
     public DbSet<Governorate> Governorates { get; set; }
     public DbSet<City> Cities { get; set; }
-
+    public DbSet<AppSettings> AppSettings { get; set; }
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -45,6 +45,7 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<City>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<Ad>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<AdImage>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<ApplicationUser>().HasQueryFilter(u => !u.IsDeleted);
 
         // Configure relationships and constraints
         builder.Entity<Governorate>().HasMany(g => g.Cities).WithOne(c => c.Governorate).HasForeignKey(c => c.GovernorateId);

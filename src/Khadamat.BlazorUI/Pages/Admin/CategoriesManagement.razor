@@ -72,9 +72,68 @@
     </div>
 </div>
 
+<!-- Category Edit/Add Modal -->
+@if (showModal)
+{
+    <div class="modal-overlay">
+        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop" style="max-width: 500px;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0">@(isEditing ? "تعديل" : "إضافة") @(modalNode?.Level == 0 ? "تصنيف رئيسي" : modalNode?.Level == 1 ? "تصنيف فرعي" : "تخصص")</h5>
+                <button class="btn-close" @onclick="() => showModal = false"></button>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label small fw-bold">الاسم</label>
+                    <input type="text" class="form-control rounded-pill px-4" @bind="modalName">
+                </div>
+
+                @if (modalNode?.Level == 0 || (modalNode == null))
+                {
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">الأيقونة (FontAwesome)</label>
+                        <input type="text" class="form-control rounded-pill px-4" @bind="modalIcon">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">اللون (Hex)</label>
+                        <input type="color" class="form-control form-control-color w-100 rounded-pill" @bind="modalColor">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-bold">رابط الصورة (اختياري)</label>
+                        <input type="text" class="form-control rounded-pill px-4" @bind="modalImageUrl">
+                    </div>
+                }
+                
+                <div class="col-12">
+                    <label class="form-label small fw-bold">الترتيب</label>
+                    <input type="number" class="form-control rounded-pill px-4" @bind="modalOrder">
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button class="btn btn-primary flex-grow-1 rounded-pill" @onclick="SaveModal">حفظ</button>
+                <button class="btn btn-light flex-grow-1 rounded-pill" @onclick="() => showModal = false">إلغاء</button>
+            </div>
+        </div>
+    </div>
+}
+
 <style>
     .tree-container {
         max-width: 800px;
+    }
+    .modal-overlay {
+        position: fixed; inset: 0; z-index: 2000;
+        background: rgba(0,0,0,0.4);
+        backdrop-filter: blur(5px);
+        display: flex; align-items: center; justify-content: center;
+    }
+    .animate-pop {
+        animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @@keyframes pop {
+        from { transform: scale(0.8); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
     }
 </style>
 
@@ -124,41 +183,77 @@
         isLoading = false;
     }
 
-    private async Task AddItem(CategoryNode? parent)
-    {
-        string promptMsg = parent == null ? "اسم التصنيف الرئيسي:" : (parent.Level == 0 ? "اسم التصنيف الفرعي:" : "اسم التخصص:");
-        var name = await JS.InvokeAsync<string>("prompt", promptMsg);
-        
-        if (string.IsNullOrEmpty(name)) return;
+    private bool showModal = false;
+    private bool isEditing = false;
+    private CategoryNode? modalNode;
+    private CategoryNode? modalParentNode;
+    private string modalName = "";
+    private string modalIcon = "fa-solid fa-layer-group";
+    private string modalColor = "#6366f1";
+    private string modalImageUrl = "";
+    private int modalOrder = 0;
 
-        if (parent == null)
-        {
-            await Api.CreateMainCategoryAsync(new MainCategoryDto { Name = name, Icon = "fa-solid fa-layer-group", Color = "#6366f1" });
-        }
-        else if (parent.Level == 0)
-        {
-            await Api.CreateCategoryAsync(new CategoryDto { Name = name, MainCategoryId = parent.Id });
-        }
-        else if (parent.Level == 1)
-        {
-            await Api.CreateSubCategoryAsync(new SubCategoryDto { Name = name, CategoryId = parent.Id });
-        }
-        
-        await LoadTree();
+    private void AddItem(CategoryNode? parent)
+    {
+        modalParentNode = parent;
+        modalNode = parent == null ? new CategoryNode { Level = 0 } : new CategoryNode { Level = parent.Level + 1 };
+        isEditing = false;
+        modalName = "";
+        modalIcon = "fa-solid fa-layer-group";
+        modalColor = "#6366f1";
+        modalImageUrl = "";
+        modalOrder = 0;
+        showModal = true;
     }
 
     private async Task EditItem(CategoryNode node)
     {
-        var name = await JS.InvokeAsync<string>("prompt", "تعديل الاسم:", node.Name);
-        if (string.IsNullOrEmpty(name)) return;
+        modalNode = node;
+        isEditing = true;
+        modalName = node.Name;
+        modalOrder = 0; // Tree nodes don't have order yet in memory, skip for now or fetch deep
 
         if (node.Level == 0)
-            await Api.UpdateMainCategoryAsync(node.Id, new MainCategoryDto { Id = node.Id, Name = name, Icon = "fa-solid fa-layer-group", Color = "#6366f1" });
-        else if (node.Level == 1)
-            await Api.UpdateCategoryAsync(node.Id, new CategoryDto { Id = node.Id, Name = name, MainCategoryId = node.ParentId ?? 0 });
-        else
-            await Api.UpdateSubCategoryAsync(node.Id, new SubCategoryDto { Id = node.Id, Name = name, CategoryId = node.ParentId ?? 0 });
+        {
+            // For main categories, we might want to fetch more details
+            var allMain = await Api.GetMainCategoriesAsync();
+            var detailed = allMain.FirstOrDefault(m => m.Id == node.Id);
+            if (detailed != null)
+            {
+                modalIcon = detailed.Icon;
+                modalColor = detailed.Color;
+                modalImageUrl = detailed.ImageUrl ?? "";
+                modalOrder = detailed.Order;
+            }
+        }
+        
+        showModal = true;
+    }
 
+    private async Task SaveModal()
+    {
+        if (string.IsNullOrWhiteSpace(modalName)) return;
+
+        if (isEditing)
+        {
+            if (modalNode!.Level == 0)
+                await Api.UpdateMainCategoryAsync(modalNode.Id, new MainCategoryDto { Id = modalNode.Id, Name = modalName, Icon = modalIcon, Color = modalColor, Order = modalOrder, ImageUrl = modalImageUrl });
+            else if (modalNode.Level == 1)
+                await Api.UpdateCategoryAsync(modalNode.Id, new CategoryDto { Id = modalNode.Id, Name = modalName, MainCategoryId = modalNode.ParentId ?? 0 });
+            else
+                await Api.UpdateSubCategoryAsync(modalNode.Id, new SubCategoryDto { Id = modalNode.Id, Name = modalName, CategoryId = modalNode.ParentId ?? 0 });
+        }
+        else
+        {
+            if (modalNode!.Level == 0)
+                await Api.CreateMainCategoryAsync(new MainCategoryDto { Name = modalName, Icon = modalIcon, Color = modalColor, Order = modalOrder, ImageUrl = modalImageUrl });
+            else if (modalNode.Level == 1)
+                await Api.CreateCategoryAsync(new CategoryDto { Name = modalName, MainCategoryId = modalParentNode!.Id });
+            else
+                await Api.CreateSubCategoryAsync(new SubCategoryDto { Name = modalName, CategoryId = modalParentNode!.Id });
+        }
+
+        showModal = false;
         await LoadTree();
     }
 

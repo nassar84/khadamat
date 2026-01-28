@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Khadamat.Application.DTOs;
 using Khadamat.Application.Interfaces;
 using System.Threading.Tasks;
+using System.Security.Claims;
 
 namespace Khadamat.WebAPI.Controllers;
 
@@ -27,6 +28,14 @@ public class AuthController : ControllerBase
         return Challenge(properties, provider);
     }
 
+    [HttpPost("external-token-login")]
+    public async Task<IActionResult> ExternalTokenLogin([FromBody] ExternalTokenLoginRequest request)
+    {
+        var result = await _authService.ExternalTokenLoginAsync(request.Provider, request.Token);
+        if (!result.Success) return BadRequest(result);
+        return Ok(result);
+    }
+
     [HttpGet("external-login-callback")]
     public async Task<IActionResult> ExternalLoginCallback(string redirectUrl, string? remoteError = null)
     {
@@ -41,12 +50,22 @@ public class AuthController : ControllerBase
             return Redirect($"{redirectUrl}?error=failed_to_get_external_login_info");
         }
 
-        var email = info.Principal.FindFirstValue(System.Security.Claims.ClaimTypes.Email);
-        var name = info.Principal.FindFirstValue(System.Security.Claims.ClaimTypes.Name);
+        var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+        var name = info.Principal.FindFirstValue(ClaimTypes.Name);
         var provider = info.LoginProvider;
         var providerUserId = info.ProviderKey;
 
-        var result = await _authService.ExternalLoginCallbackAsync(email!, name!, provider, providerUserId);
+        // Extract Profile Image
+        var imageUrl = info.Principal.FindFirstValue("picture") 
+                       ?? info.Principal.FindFirstValue("urn:google:picture")
+                       ?? info.Principal.FindFirstValue(ClaimTypes.Uri); // Sometimes mapped here
+
+        if (string.IsNullOrEmpty(imageUrl) && provider == "Facebook")
+        {
+             imageUrl = $"https://graph.facebook.com/{providerUserId}/picture?type=large";
+        }
+
+        var result = await _authService.ExternalLoginCallbackAsync(email!, name!, provider, providerUserId, imageUrl);
 
         if (result.Success)
         {

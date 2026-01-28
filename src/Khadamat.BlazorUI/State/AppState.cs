@@ -1,4 +1,5 @@
 using System;
+using Khadamat.BlazorUI.Helpers;
 
 namespace Khadamat.BlazorUI.State;
 
@@ -18,12 +19,24 @@ public class AppState
         set { _userToken = value; NotifyStateChanged(); } 
     }
 
-    public string UserName { get; set; } = "أحمد محمد";
-    public string UserRole { get; set; } = "مستخدم";
-    public string UserImageUrl { get; set; } = "https://i.pravatar.cc/150?u=antigravity";
+    public string UserName { get; set; } = string.Empty;
+    public string UserRole { get; set; } = string.Empty;
+    
+    private string _userImageUrl = string.Empty;
+    public string UserImageUrl 
+    { 
+        get => string.IsNullOrEmpty(_userImageUrl) ? DefaultImages.DefaultAvatar : _userImageUrl;
+        set => _userImageUrl = value;
+    }
     public bool IsProvider { get; set; }
     public int NotificationCount { get; set; } = 3;
-    // UI State
+
+    // Global Settings
+    public string AppName { get; set; } = "خدمات";
+    public string AppLogo { get; set; } = "";
+    public string PrimaryColor { get; set; } = "#6366f1";
+    public string SecondaryColor { get; set; } = "#a855f7";
+   // UI State
     public bool IsSidebarOpen { get; set; }
     public bool IsProviderMode { get; set; } // If true, show dashboard. If false, show client UI.
     

@@ -4,6 +4,7 @@ using Khadamat.Application.DTOs;
 using Khadamat.Application.Common.Models;
 using Microsoft.AspNetCore.Components.Authorization;
 using Khadamat.BlazorUI.State;
+using Khadamat.BlazorUI.Helpers;
 
 namespace Khadamat.BlazorUI.Services.Auth;
 
@@ -68,7 +69,7 @@ public class AuthService : IAuthService
         if (response?.Success == true && response.Data != null)
         {
             var p = response.Data;
-            _appState.UpdateUserStatus(p.UserName, p.Roles.FirstOrDefault() ?? "User", p.IsProvider, p.ImageUrl ?? "https://i.pravatar.cc/150");
+            _appState.UpdateUserStatus(p.UserName, p.Roles.FirstOrDefault() ?? "User", p.IsProvider, DefaultImages.GetUserAvatar(p.UserName, p.Gender, p.ImageUrl));
             _appState.CityId = p.CityId;
             _appState.GovernorateId = p.GovernorateId;
             _appState.PhoneNumber = p.PhoneNumber;

@@ -37,10 +37,36 @@ public static class MauiProgram
 #endif
 
         // Configure HttpClient for API
-        // TODO: Update this to your actual API URL
-        var apiBaseUrl = DeviceInfo.Platform == DevicePlatform.Android 
-            ? "http://10.0.2.2:5144" // Android emulator localhost
-            : "http://localhost:5144"; // iOS simulator
+        // Detect if running on emulator or physical device
+        string apiBaseUrl;
+        
+        if (DeviceInfo.Platform == DevicePlatform.Android)
+        {
+            // Check if running on emulator or physical device
+            var isEmulator = DeviceInfo.DeviceType == DeviceType.Virtual;
+            
+            if (isEmulator)
+            {
+                // Android emulator - use special IP that maps to host machine's localhost
+                apiBaseUrl = "http://10.0.2.2:5144";
+            }
+            else
+            {
+                // Physical Android device - use your PC's actual IP address
+                // Make sure your phone and PC are on the same WiFi network
+                apiBaseUrl = "http://10.102.2.2:5144";
+            }
+        }
+        else if (DeviceInfo.Platform == DevicePlatform.iOS)
+        {
+            // iOS simulator can use localhost
+            apiBaseUrl = "http://localhost:5144";
+        }
+        else
+        {
+            // Fallback for other platforms
+            apiBaseUrl = "http://localhost:5144";
+        }
         
         builder.Services.AddScoped(sp => new HttpClient
         {
@@ -64,8 +90,9 @@ public static class MauiProgram
         builder.Services.AddSingleton<IFilePickerService, FilePickerService>();
         builder.Services.AddSingleton<ISecureStorageService, MauiSecureStorageService>();
         builder.Services.AddSingleton<IExternalAuthService, MauiExternalAuthService>();
-        builder.Services.AddSingleton<Khadamat.Shared.Interfaces.IOfflineDataService, LocalDataService>();
+        builder.Services.AddSingleton<Khadamat.Application.Interfaces.IOfflineDataService, LocalDataService>();
         builder.Services.AddSingleton<IBiometricService, MauiBiometricService>();
+        builder.Services.AddSingleton<IMobileAuthService, MobileAuthService>();
         builder.Services.AddSingleton<SyncService>();
         // Blazored LocalStorage
         builder.Services.AddBlazoredLocalStorage();

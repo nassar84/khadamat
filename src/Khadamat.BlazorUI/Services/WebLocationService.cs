@@ -12,11 +12,17 @@ public class WebLocationService : ILocationService
         _js = js;
     }
 
-    public Task<(double Latitude, double Longitude)> GetCurrentLocationAsync()
+    public Task<DeviceLocation?> GetCurrentLocationAsync()
     {
-        // Simple mock or return (0,0)
-        return Task.FromResult((0.0, 0.0));
+        // Simple mock
+        return Task.FromResult<DeviceLocation?>(null);
     }
+
+    public Task<bool> IsLocationEnabledAsync() => Task.FromResult(true);
+
+    public Task<bool> RequestLocationPermissionAsync() => Task.FromResult(true);
+
+    public double CalculateDistance(double lat1, double lon1, double lat2, double lon2) => 0;
 
     public async Task OpenMapsNavigationAsync(double destinationLat, double destinationLong, string destinationAddress = "")
     {

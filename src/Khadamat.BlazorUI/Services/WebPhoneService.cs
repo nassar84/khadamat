@@ -22,8 +22,15 @@ public class WebPhoneService : IPhoneService
         await _js.InvokeVoidAsync("location.assign", $"sms:{phoneNumber}?body={Uri.EscapeDataString(message)}");
     }
 
-    public async Task OpenWhatsAppChatAsync(string phoneNumber, string message)
+    public async Task OpenWhatsAppChatAsync(string phoneNumber, string? message = null)
     {
-        await _js.InvokeVoidAsync("location.assign", $"https://wa.me/{phoneNumber}?text={Uri.EscapeDataString(message)}");
+        var url = string.IsNullOrEmpty(message) 
+            ? $"https://wa.me/{phoneNumber}"
+            : $"https://wa.me/{phoneNumber}?text={Uri.EscapeDataString(message)}";
+        await _js.InvokeVoidAsync("location.assign", url);
     }
+
+    public bool CanMakePhoneCalls => true;
+
+    public Task<bool> IsWhatsAppInstalledAsync() => Task.FromResult(true);
 }

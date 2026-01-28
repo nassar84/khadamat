@@ -8,6 +8,14 @@
         android:label="خدمات"
         android:theme="@style/Maui.SplashTheme"
         android:usesCleartextTraffic="true">
+        <activity android:name="microsoft.maui.authentication.WebAuthenticatorCallbackActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="khadamat" />
+            </intent-filter>
+        </activity>
     </application>
     
     <!-- Biometrics -->

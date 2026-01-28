@@ -6,10 +6,10 @@ namespace Khadamat.MobileApp.Services;
 
 public class SyncService
 {
-    private readonly Khadamat.Shared.Interfaces.IOfflineDataService _localData;
+    private readonly Khadamat.Application.Interfaces.IOfflineDataService _localData;
     private readonly ApiClient _api;
 
-    public SyncService(Khadamat.Shared.Interfaces.IOfflineDataService localData, ApiClient api)
+    public SyncService(Khadamat.Application.Interfaces.IOfflineDataService localData, ApiClient api)
     {
         _localData = localData;
         _api = api;

@@ -31,6 +31,9 @@ public class RegisterRequest
     [Required(ErrorMessage = "الرجاء اختيار المدينة")]
     [Range(1, int.MaxValue, ErrorMessage = "الرجاء اختيار المدينة")]
     public int CityId { get; set; }
+
+    public string? Gender { get; set; } // "Male" or "Female"
+    public string? ProfileImageBase64 { get; set; }
 }
 
 public class LoginRequest
@@ -88,6 +91,7 @@ public class AuthResponse
     public string? FacebookUrl { get; set; }
     public string? LinkedInUrl { get; set; }
     public string? TikTokUrl { get; set; }
+    public string? Gender { get; set; }
 }
 
 public class UpdateProfileRequest
@@ -113,6 +117,7 @@ public class UpdateProfileRequest
     public string? FacebookUrl { get; set; }
     public string? LinkedInUrl { get; set; }
     public string? TikTokUrl { get; set; }
+    public string? Gender { get; set; }
 }
 
 public class RefreshTokenRequest
@@ -139,4 +144,12 @@ public class CreateUserDto
     public string? PhoneNumber { get; set; }
     public int? CityId { get; set; }
     public string Role { get; set; } = "User";
+}
+
+public class ExternalTokenLoginRequest
+{
+    [Required]
+    public string Provider { get; set; } = string.Empty;
+    [Required]
+    public string Token { get; set; } = string.Empty;
 }

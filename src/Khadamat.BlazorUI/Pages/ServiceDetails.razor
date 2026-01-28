@@ -8,7 +8,7 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
-@inject Khadamat.Shared.Interfaces.IShareService ShareService
+@inject Khadamat.Shared.Interfaces.IShareService DeviceShareService
 @inject Khadamat.Shared.Interfaces.IPhoneService PhoneService
 @inject Khadamat.Shared.Interfaces.ILocationService LocationService
 
@@ -586,7 +586,7 @@
 
     private async Task ShareService()
     {
-        await ShareService.ShareLinkAsync(Navigation.Uri, service?.Title ?? "خدمة");
+        await DeviceShareService.ShareLinkAsync(Navigation.Uri, service?.Title ?? "خدمة");
     }
 
     private async Task ContactWhatsApp()

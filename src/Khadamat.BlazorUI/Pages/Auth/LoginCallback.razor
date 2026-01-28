@@ -1,70 +1,79 @@
 @page "/login-callback"
-@using Khadamat.BlazorUI.Services.Auth
-@inject IAuthService AuthService
 @inject NavigationManager Navigation
+@inject Khadamat.BlazorUI.Services.Auth.IAuthService AuthService
 @inject Khadamat.BlazorUI.State.AppState AppState
 
-<div class="d-flex flex-column align-items-center justify-content-center vh-100 bg-light">
-    <div class="glass-card p-5 text-center">
-        <div class="spinner-border text-primary mb-4" role="status" style="width: 3rem; height: 3rem;"></div>
-        <h4 class="fw-bold">جاري إتمام تسجيل الدخول...</h4>
-        <p class="text-muted">الرجاء الانتظار قليلاً</p>
+<div class="d-flex flex-column align-items-center justify-content-center vh-100">
+    <div class="spinner-border text-primary mb-3" role="status">
+        <span class="visually-hidden">Loading...</span>
     </div>
+    <h4 class="text-muted">جاري تسجيل الدخول...</h4>
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger mt-3">
+            @errorMessage
+            <br />
+            <a href="/login" class="btn btn-sm btn-outline-danger mt-2">العودة لتسجيل الدخول</a>
+        </div>
+    }
 </div>
 
 @code {
-    [SupplyParameterFromQuery]
-    public string? Token { get; set; }
-
-    [SupplyParameterFromQuery]
-    public string? RefreshToken { get; set; }
-
-    [SupplyParameterFromQuery]
-    public string? Error { get; set; }
+    private string errorMessage = "";
 
     protected override async Task OnInitializedAsync()
     {
-        if (!string.IsNullOrEmpty(Error))
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var queryRaw = uri.Query.TrimStart('?');
+        var queryDict = new Dictionary<string, string>();
+        
+        if (!string.IsNullOrEmpty(queryRaw))
         {
-            // Redirect back to login with error
-            Navigation.NavigateTo($"/login?error={Uri.EscapeDataString(Error)}");
+            foreach (var part in queryRaw.Split('&'))
+            {
+                var kvp = part.Split(new[] { '=' }, 2);
+                if (kvp.Length == 2)
+                {
+                    queryDict[Uri.UnescapeDataString(kvp[0])] = Uri.UnescapeDataString(kvp[1]);
+                }
+            }
+        }
+
+        if (queryDict.TryGetValue("error", out var error))
+        {
+            errorMessage = $"فشل تسجيل الدخول: {error}";
             return;
         }
 
-        if (!string.IsNullOrEmpty(Token))
+        queryDict.TryGetValue("token", out var token);
+        queryDict.TryGetValue("refreshToken", out var refreshToken);
+
+        if (!string.IsNullOrEmpty(token) && !string.IsNullOrEmpty(refreshToken))
         {
             try
             {
-                // In a real app, AuthService should have a method to handle manual token injection
-                // For now, we can use a trick or add a method.
-                var success = await AuthService.LoginWithToken(Token, RefreshToken ?? "");
-                
+                var success = await AuthService.LoginWithToken(token, refreshToken);
                 if (success)
                 {
-                    // Fetch profile to sync AppState
-                    var profile = await AuthService.GetProfileAsync();
-                    if (profile != null)
-                    {
-                        AppState.UserName = profile.UserName;
-                        AppState.UserRole = profile.Roles.FirstOrDefault()?.ToString() ?? "Client";
-                    }
+                    // Fetch profile to update AppState
+                    await AuthService.GetProfileAsync();
                     
-                    Navigation.NavigateTo("/");
+                    Navigation.NavigateTo("/", forceLoad: true);
                 }
                 else
                 {
-                    Navigation.NavigateTo("/login?error=invalid_token");
+                    errorMessage = "فشل التحقق من التوكن.";
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
-                Navigation.NavigateTo("/login?error=processing_error");
+                errorMessage = "حدث خطأ غير متوقع.";
+                Console.WriteLine(ex);
             }
         }
         else
         {
-             Navigation.NavigateTo("/login");
+            errorMessage = "لم يتم العثور على توكن تسجيل الدخول.";
         }
     }
 }

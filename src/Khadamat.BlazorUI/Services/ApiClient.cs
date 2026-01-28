@@ -16,6 +16,28 @@ public class ApiClient
         _http = http;
     }
 
+    public async Task<T?> PostAsync<T>(string url, object data)
+    {
+        var response = await _http.PostAsJsonAsync(url, data);
+        if (response.IsSuccessStatusCode)
+            return await response.Content.ReadFromJsonAsync<T>();
+        return default;
+    }
+
+    // Settings
+    public async Task<ApiResponse<AppSettingsDto>> GetSettingsAsync()
+    {
+        return await _http.GetFromJsonAsync<ApiResponse<AppSettingsDto>>("api/v1/settings") 
+               ?? ApiResponse<AppSettingsDto>.Fail("Failed to fetch settings");
+    }
+
+    public async Task<ApiResponse<bool>> UpdateSettingsAsync(UpdateAppSettingsRequest request)
+    {
+        var response = await _http.PutAsJsonAsync("api/v1/settings", request);
+        return await response.Content.ReadFromJsonAsync<ApiResponse<bool>>() 
+               ?? ApiResponse<bool>.Fail("Failed to update settings");
+    }
+ 
     // Services
     public async Task<PaginatedResult<ServiceDto>> GetServicesAsync(string? search = null, int? subCategoryId = null, string? userId = null, bool? isApproved = true, int page = 1, int pageSize = 10)
     {

@@ -2,10 +2,7 @@
 @inject IJSRuntime JS
 
 <div class="category-slider-container mb-5">
-    <div class="d-flex justify-content-between align-items-center mb-3 px-1">
-        <h5 class="fw-bold mb-0">🗂️ التصنيفات الرئيسية</h5>
-        <a href="categories" class="text-primary text-decoration-none fw-bold small">عرض الكل</a>
-    </div>
+    <!-- Header removed -->
 
     @if (Categories == null)
     {
@@ -38,40 +35,48 @@
     .category-slider-container {
         width: 100%;
         overflow: hidden;
+        position: relative;
     }
 
     .native-scroller {
         overflow-x: auto;
         overflow-y: hidden;
         -webkit-overflow-scrolling: touch;
-        padding-bottom: 10px;
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none; /* IE/Edge */
+        padding-bottom: 20px;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        cursor: grab;
+        user-select: none;
+    }
+
+    .native-scroller:active {
+        cursor: grabbing;
     }
 
     .native-scroller::-webkit-scrollbar {
-        display: none; /* Chrome/Safari/Brave */
+        display: none;
     }
 
     .scroller-inner {
         display: flex;
-        gap: 12px;
-        padding: 5px 2px;
+        gap: 15px;
+        padding: 5px 15px;
     }
 
     .simple-cat-card {
         background: white;
         border-radius: 20px;
-        padding: 15px 10px;
+        padding: 15px 5px;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 10px;
+        justify-content: center;
+        gap: 12px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         border: 1px solid rgba(0, 0, 0, 0.03);
         transition: transform 0.2s;
-        height: 110px;
-        min-width: 105px; /* Fixed width for cards in scroller */
+        height: 120px;
+        min-width: 110px;
         flex-shrink: 0;
         cursor: pointer;
     }
@@ -82,14 +87,14 @@
     }
 
     .icon-circle {
-        width: 50px;
-        height: 50px;
+        width: 55px;
+        height: 55px;
         background: var(--theme-light, rgba(99, 102, 241, 0.1));
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.5rem;
+        font-size: 1.8rem;
     }
 
     .cat-name {
@@ -97,12 +102,48 @@
         font-size: 0.85rem;
         color: #334155;
         text-align: center;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        white-space: normal; /* Allow wrap */
+        line-height: 1.2;
         width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 35px; /* Fixed height for 2 lines */
     }
 </style>
+
+<script>
+    // Simple drag to scroll script
+    (function() {
+        const slider = document.querySelector('.native-scroller');
+        if(!slider) return;
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        slider.addEventListener('mousedown', (e) => {
+            isDown = true;
+            slider.classList.add('active');
+            startX = e.pageX - slider.offsetLeft;
+            scrollLeft = slider.scrollLeft;
+        });
+        slider.addEventListener('mouseleave', () => {
+            isDown = false;
+            slider.classList.remove('active');
+        });
+        slider.addEventListener('mouseup', () => {
+            isDown = false;
+            slider.classList.remove('active');
+        });
+        slider.addEventListener('mousemove', (e) => {
+            if(!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - slider.offsetLeft;
+            const walk = (x - startX) * 2; //scroll-fast
+            slider.scrollLeft = scrollLeft - walk;
+        });
+    })();
+</script>
 
 @code {
     [Parameter] public List<MainCategoryDto>? Categories { get; set; }

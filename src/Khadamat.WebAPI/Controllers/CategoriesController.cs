@@ -32,6 +32,7 @@ public class CategoriesController : ControllerBase
                 Id = c.Id, 
                 Name = c.Name, 
                 Icon = c.Icon, 
+                ImageUrl = c.ImageUrl,
                 Color = c.Color, 
                 Order = c.Order 
             })
@@ -137,7 +138,7 @@ public class CategoriesController : ControllerBase
         var category = await _context.MainCategories.FindAsync(id);
         if (category == null) return NotFound(ApiResponse<bool>.Fail("Not found"));
         
-        category.Update(dto.Name, dto.Icon, dto.Color, dto.Order);
+        category.Update(dto.Name, dto.Icon, dto.Color, dto.Order, dto.ImageUrl);
         await _context.SaveChangesAsync();
         return Ok(ApiResponse<bool>.Succeed(true));
     }

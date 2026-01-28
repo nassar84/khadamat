@@ -7,8 +7,15 @@
 <div class="app-sidebar @(IsCollapsed ? "collapsed" : "") d-none d-lg-flex">
     <div class="sidebar-header">
         <div class="logo-box">
-            <i class="fa-solid fa-bolt-lightning logo-icon"></i>
-            <span class="logo-text">خدمات</span>
+            @if (!string.IsNullOrEmpty(State.AppLogo))
+            {
+                <img src="@State.AppLogo" class="logo-img" alt="Logo" style="height: 32px; width: auto;" />
+            }
+            else
+            {
+                <i class="fa-solid fa-bolt-lightning logo-icon"></i>
+            }
+            <span class="logo-text">@State.AppName</span>
         </div>
         <button class="collapse-btn" @onclick="ToggleCollapse">
             <i class="fa-solid @(IsCollapsed ? "fa-chevron-left" : "fa-chevron-right")"></i>
@@ -17,18 +24,13 @@
 
     <div class="sidebar-content">
         <div class="menu-section">
-            <div class="section-label">الرئيسية</div>
             <NavLink class="menu-item" href="/" Match="NavLinkMatch.All">
                 <i class="fa-solid fa-house"></i>
                 <span class="item-label">الرئيسية</span>
             </NavLink>
             <NavLink class="menu-item" href="/services">
                 <i class="fa-solid fa-briefcase"></i>
-                <span class="item-label">الخدمات</span>
-            </NavLink>
-            <NavLink class="menu-item" href="/categories">
-                <i class="fa-solid fa-layer-group"></i>
-                <span class="item-label">التصنيفات</span>
+                <span class="item-label">استكشاف الخدمات</span>
             </NavLink>
         </div>
 
@@ -36,10 +38,6 @@
             <Authorized>
                 <div class="menu-section">
                     <div class="section-label">حسابي</div>
-                    <NavLink class="menu-item" href="/dashboard">
-                        <i class="fa-solid fa-gauge"></i>
-                        <span class="item-label">لوحة التحكم</span>
-                    </NavLink>
                     <NavLink class="menu-item" href="/profile">
                         <i class="fa-solid fa-user"></i>
                         <span class="item-label">الملف الشخصي</span>
@@ -54,73 +52,43 @@
                     </NavLink>
                 </div>
 
-                <AuthorizeView Roles="User,SystemAdmin,SuperAdmin" Context="providerContext">
+                @if (State.IsProvider)
+                {
                     <div class="menu-section">
                         <div class="section-label">مزود الخدمة</div>
                         <NavLink class="menu-item" href="/provider/dashboard">
                             <i class="fa-solid fa-chart-line"></i>
                             <span class="item-label">لوحة المزود</span>
                         </NavLink>
-                        <NavLink class="menu-item" href="/provider/myservices">
-                            <i class="fa-solid fa-list-check"></i>
-                            <span class="item-label">خدماتي</span>
-                        </NavLink>
                     </div>
-                </AuthorizeView>
+                }
 
                 <AuthorizeView Roles="SystemAdmin,SuperAdmin" Context="adminContext">
                     <div class="menu-section">
                         <div class="section-label">الإدارة</div>
                         <NavLink class="menu-item" href="/admin">
-                            <i class="fa-solid fa-gauge"></i>
-                            <span class="item-label">لوحة التحكم</span>
+                            <i class="fa-solid fa-gauge-high"></i>
+                            <span class="item-label">لوحة المدير</span>
                         </NavLink>
-                        <NavLink class="menu-item" href="/admin/users">
-                            <i class="fa-solid fa-users-gear"></i>
-                            <span class="item-label">المستخدمين</span>
-                        </NavLink>
-                        <NavLink class="menu-item" href="/admin/approvals/providers">
-                            <i class="fa-solid fa-user-check"></i>
-                            <span class="item-label">اعتماد المزودين</span>
-                        </NavLink>
-                        <NavLink class="menu-item" href="/admin/services">
-                            <i class="fa-solid fa-briefcase"></i>
-                            <span class="item-label">اعتماد الخدمات</span>
-                        </NavLink>
-                        <NavLink class="menu-item" href="/admin/categories">
-                            <i class="fa-solid fa-layer-group"></i>
-                            <span class="item-label">التصنيفات</span>
-                        </NavLink>
-                        <NavLink class="menu-item" href="/admin/locationsmanagement">
-                            <i class="fa-solid fa-map-location-dot"></i>
-                            <span class="item-label">المناطق والمدن</span>
-                        </NavLink>
-                        <NavLink class="menu-item" href="/admin/adsmanagement">
-                            <i class="fa-solid fa-rectangle-ad"></i>
-                            <span class="item-label">الإعلانات</span>
-                        </NavLink>
-                        
-                        <AuthorizeView Roles="SuperAdmin" Context="superContext">
-                            <NavLink class="menu-item" href="/admin/systemsettings">
-                                <i class="fa-solid fa-gears"></i>
-                                <span class="item-label">إعدادات النظام</span>
-                            </NavLink>
-                        </AuthorizeView>
                     </div>
                 </AuthorizeView>
             </Authorized>
         </AuthorizeView>
     </div>
 
-    <div class="sidebar-footer">
-        <div class="theme-info" @onclick='() => Navigation.NavigateTo("/profile")'>
-            <img src="@State.UserImageUrl" class="footer-avatar" />
-            <div class="footer-user-info">
-                <div class="footer-user-name">@State.UserName</div>
-                <div class="footer-user-role">@DisplayName</div>
+    <AuthorizeView>
+        <Authorized>
+            <div class="sidebar-footer">
+                <div class="theme-info" @onclick='() => Navigation.NavigateTo("/profile")'>
+                    <img src="@State.UserImageUrl" class="footer-avatar" />
+                    <div class="footer-user-info">
+                        <div class="footer-user-name">@State.UserName</div>
+                        <div class="footer-user-role">@DisplayName</div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
+        </Authorized>
+    </AuthorizeView>
 </div>
 
 <style>
@@ -325,7 +293,7 @@
             {
                 "SuperAdmin" => "مدير خارق",
                 "SystemAdmin" => "مدير نظام",
-                _ => "مستخدم"
+                _ => "عميل"
             };
         }
     }

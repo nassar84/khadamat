@@ -4,5 +4,6 @@ public enum UserRole
 {
     User = 0,
     SystemAdmin = 1,
-    SuperAdmin = 2
+    SuperAdmin = 2,
+    Client = 3
 }

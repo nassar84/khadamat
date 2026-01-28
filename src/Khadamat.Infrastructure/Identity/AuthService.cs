@@ -13,6 +13,9 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
+using Google.Apis.Auth;
+using System.Net.Http.Json;
+
 namespace Khadamat.Infrastructure.Identity;
 
 public class AuthService : IAuthService
@@ -21,17 +24,89 @@ public class AuthService : IAuthService
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IConfiguration _configuration;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IHttpClientFactory _httpClientFactory;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         IConfiguration configuration,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor,
+        IHttpClientFactory httpClientFactory)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _configuration = configuration;
         _httpContextAccessor = httpContextAccessor;
+        _httpClientFactory = httpClientFactory;
+    }
+
+    public async Task<ApiResponse<AuthResponse>> ExternalTokenLoginAsync(string provider, string token)
+    {
+        string email, name, providerUserId, imageUrl = null;
+
+        if (provider.Equals("Google", StringComparison.OrdinalIgnoreCase))
+        {
+            try
+            {
+                var payload = await GoogleJsonWebSignature.ValidateAsync(token, new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = new[] { _configuration["Authentication:Google:ClientId"] }
+                });
+
+                email = payload.Email;
+                name = payload.Name;
+                providerUserId = payload.Subject;
+                imageUrl = payload.Picture;
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<AuthResponse>.Fail("فشل التحقق من توكن جوجل: " + ex.Message);
+            }
+        }
+        else if (provider.Equals("Facebook", StringComparison.OrdinalIgnoreCase))
+        {
+            try
+            {
+                var client = _httpClientFactory.CreateClient();
+                var fbResponse = await client.GetFromJsonAsync<FacebookUserData>($"https://graph.facebook.com/me?fields=id,name,email,picture&access_token={token}");
+                
+                if (fbResponse == null || string.IsNullOrEmpty(fbResponse.id))
+                    return ApiResponse<AuthResponse>.Fail("فشل التحقق من توكن فيسبوك");
+
+                email = fbResponse.email ?? $"{fbResponse.id}@facebook.com"; // Fallback if email not shared
+                name = fbResponse.name;
+                providerUserId = fbResponse.id;
+                imageUrl = fbResponse.picture?.data?.url;
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<AuthResponse>.Fail("فشل الاتصال بفيسبوك: " + ex.Message);
+            }
+        }
+        else
+        {
+            return ApiResponse<AuthResponse>.Fail("مزود خدمة غير مدعوم");
+        }
+
+        return await ExternalLoginCallbackAsync(email, name, provider, providerUserId, imageUrl);
+    }
+
+    private class FacebookUserData
+    {
+        public string id { get; set; }
+        public string name { get; set; }
+        public string email { get; set; }
+        public FacebookPicture picture { get; set; }
+    }
+
+    private class FacebookPicture
+    {
+        public FacebookPictureData data { get; set; }
+    }
+
+    private class FacebookPictureData
+    {
+        public string url { get; set; }
     }
 
     public async Task<ApiResponse<AuthResponse>> RegisterAsync(RegisterRequest request)
@@ -60,11 +135,43 @@ public class AuthService : IAuthService
             FullName = request.FullName,
             PhoneNumber = request.PhoneNumber,
             CityId = request.CityId,
+            Gender = request.Gender,
             Role = role,
-            IsProvider = false, // All start as regular users, can become providers later by creating a profile
+            IsProvider = false, // All start as regular users
             CreatedAt = DateTime.UtcNow,
             IsActive = true
         };
+
+        // Handle Profile Image
+        if (!string.IsNullOrEmpty(request.ProfileImageBase64))
+        {
+            try 
+            {
+                var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "users");
+                if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
+
+                var fileName = $"{Guid.NewGuid()}.jpg"; // Assume JPG for simplicity or detect mime
+                var filePath = Path.Combine(folderPath, fileName);
+                var imageBytes = Convert.FromBase64String(request.ProfileImageBase64);
+                
+                await File.WriteAllBytesAsync(filePath, imageBytes);
+                user.ProfileImageUrl = $"/uploads/users/{fileName}";
+            }
+            catch (Exception ex)
+            {
+                // Fallback or log error
+                Console.WriteLine($"Error saving profile image: {ex.Message}");
+            }
+        }
+        
+        if (string.IsNullOrEmpty(user.ProfileImageUrl))
+        {
+            // Default based on gender
+            if (request.Gender == "Female")
+                user.ProfileImageUrl = "https://cdn-icons-png.flaticon.com/512/6997/6997662.png"; // Placeholder female
+            else
+                user.ProfileImageUrl = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"; // Placeholder male
+        }
 
         var result = await _userManager.CreateAsync(user, request.Password);
 
@@ -145,6 +252,7 @@ public class AuthService : IAuthService
         user.FacebookUrl = request.FacebookUrl;
         user.LinkedInUrl = request.LinkedInUrl;
         user.TikTokUrl = request.TikTokUrl;
+        user.Gender = request.Gender;
 
         var result = await _userManager.UpdateAsync(user);
         if (!result.Succeeded)
@@ -195,7 +303,8 @@ public class AuthService : IAuthService
             TwitterUrl = user.TwitterUrl,
             FacebookUrl = user.FacebookUrl,
             LinkedInUrl = user.LinkedInUrl,
-            TikTokUrl = user.TikTokUrl
+            TikTokUrl = user.TikTokUrl,
+            Gender = user.Gender
         }, message);
     }
 
@@ -290,7 +399,7 @@ public class AuthService : IAuthService
         return ApiResponse<bool>.Succeed(true, "تم تغيير كلمة المرور بنجاح");
     }
 
-    public async Task<ApiResponse<AuthResponse>> ExternalLoginCallbackAsync(string email, string name, string provider, string providerUserId)
+    public async Task<ApiResponse<AuthResponse>> ExternalLoginCallbackAsync(string email, string name, string provider, string providerUserId, string? imageUrl = null)
     {
         var info = new UserLoginInfo(provider, providerUserId, provider);
         var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
@@ -303,22 +412,33 @@ public class AuthService : IAuthService
             {
                 user = new ApplicationUser
                 {
-                    UserName = email,
+                    UserName = email, // Or generate unique username base on name
                     Email = email,
                     FullName = name,
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow,
                     Role = UserRole.Client,
-                    EmailConfirmed = true
+                    EmailConfirmed = true,
+                    ProfileImageUrl = imageUrl,
+                    IsVerified = true // External providers usually verify email
                 };
 
                 var createResult = await _userManager.CreateAsync(user);
                 if (!createResult.Succeeded)
                 {
-                    return ApiResponse<AuthResponse>.Fail("فشل إنشاء مستخدم من خلال تسجيل الدخول الاجتماعي");
+                    return ApiResponse<AuthResponse>.Fail("فشل إنشاء مستخدم من خلال تسجيل الدخول الاجتماعي", createResult.Errors.Select(e => e.Description).ToList());
                 }
                 
                 await _userManager.AddToRoleAsync(user, UserRole.Client.ToString());
+            }
+            else
+            {
+                // Update existing user image if missing
+                if (string.IsNullOrEmpty(user.ProfileImageUrl) && !string.IsNullOrEmpty(imageUrl))
+                {
+                    user.ProfileImageUrl = imageUrl;
+                    await _userManager.UpdateAsync(user);
+                }
             }
 
             var addLoginResult = await _userManager.AddLoginAsync(user, info);

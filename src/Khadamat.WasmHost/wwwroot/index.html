@@ -107,6 +107,7 @@
         <a href="." class="reload">إعادة تحميل</a>
         <span class="dismiss">🗙</span>
     </div>
+    <script src="lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="_framework/blazor.webassembly.js"></script>
     <script>
@@ -131,6 +132,10 @@
                     forceToAxis: true,
                 },
             });
+        };
+        window.applyThemeColors = (primary, secondary) => {
+            if (primary) document.documentElement.style.setProperty('--primary-color', primary);
+            if (secondary) document.documentElement.style.setProperty('--secondary-color', secondary);
         };
     </script>
 </body>

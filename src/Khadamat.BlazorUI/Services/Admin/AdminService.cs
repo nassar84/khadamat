@@ -35,12 +35,14 @@ public class AdminService : IAdminService
 
     public async Task ToggleUserStatus(string id)
     {
-        await _http.PostAsync($"api/v1/admin/users/{id}/toggle-status", null);
+        var response = await _http.PostAsync($"api/v1/admin/users/{id}/toggle-status", null);
+        response.EnsureSuccessStatusCode();
     }
 
     public async Task DeleteUser(string id)
     {
-        await _http.DeleteAsync($"api/v1/admin/users/{id}");
+        var response = await _http.DeleteAsync($"api/v1/admin/users/{id}");
+        response.EnsureSuccessStatusCode();
     }
 
     public async Task ApproveService(int id)
@@ -71,17 +73,25 @@ public class AdminService : IAdminService
 
     public async Task UpdateUser(string id, UserDto dto)
     {
-        await _http.PutAsJsonAsync($"api/v1/admin/users/{id}", dto);
+        var response = await _http.PutAsJsonAsync($"api/v1/admin/users/{id}", dto);
+        response.EnsureSuccessStatusCode();
     }
 
     public async Task UpdateUserRole(string id, string role)
     {
-        await _http.PostAsJsonAsync($"api/v1/admin/users/{id}/role", role);
+        var response = await _http.PostAsJsonAsync($"api/v1/admin/users/{id}/role", role);
+        response.EnsureSuccessStatusCode();
     }
 
     public async Task ChangePassword(ChangePasswordDto dto)
     {
         var response = await _http.PostAsJsonAsync("api/v1/admin/users/change-password", dto);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task UpdateService(int id, ServiceDto dto)
+    {
+        var response = await _http.PutAsJsonAsync($"api/v1/admin/services/{id}", dto);
         response.EnsureSuccessStatusCode();
     }
 }

@@ -4,23 +4,71 @@
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
 
-<div class="category-marquee-container">
-    <div class="scroll-track">
-        @if (categories != null)
+<div class="category-marquee-container" @ref="containerRef">
+    <div class="scroll-track" @ref="scrollTrackRef">
+        @if (categories != null && categories.Any())
         {
-            @foreach (var cat in categories.Concat(categories))
+            @* First set of categories *@
+            @foreach (var cat in categories)
             {
                 <div class="category-item d-flex flex-column align-items-center" @onclick="() => OnCategorySelected(cat)">
                     <div class="category-shape-wrapper p-0">
-                        <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetCategoryImage(cat.Name)" 
+                        @{
+                            var imageUrl = "";
+                            
+                            // Priority 1: Use ImageUrl if it exists and is a valid URL
+                            if (!string.IsNullOrEmpty(cat.ImageUrl) && (cat.ImageUrl.StartsWith("http") || cat.ImageUrl.StartsWith("/images") || cat.ImageUrl.StartsWith("images/")))
+                            {
+                                imageUrl = cat.ImageUrl;
+                            }
+                            // Priority 2: Use Icon if it's a URL (not an emoji)
+                            else if (!string.IsNullOrEmpty(cat.Icon) && (cat.Icon.StartsWith("http") || cat.Icon.StartsWith("/images") || cat.Icon.StartsWith("images/")))
+                            {
+                                imageUrl = cat.Icon;
+                            }
+                            // Priority 3: Use default category image based on name
+                            else
+                            {
+                                imageUrl = Khadamat.BlazorUI.Helpers.DefaultImages.GetCategoryImage(cat.Name);
+                            }
+                        }
+                        <img src="@imageUrl" 
                              class="w-100 h-100 object-fit-cover" alt="@cat.Name" 
-                             style="opacity: 0.85;" />
+                             style="opacity: 0.9; border-radius: 50%;" />
+                    </div>
+                    <span class="category-name-small">@cat.Name</span>
+                </div>
+            }
+            @* Second set for infinite loop *@
+            @foreach (var cat in categories)
+            {
+                <div class="category-item d-flex flex-column align-items-center" @onclick="() => OnCategorySelected(cat)">
+                    <div class="category-shape-wrapper p-0">
+                        @{
+                            var imageUrl = "";
+                            
+                            if (!string.IsNullOrEmpty(cat.ImageUrl) && (cat.ImageUrl.StartsWith("http") || cat.ImageUrl.StartsWith("/images") || cat.ImageUrl.StartsWith("images/")))
+                            {
+                                imageUrl = cat.ImageUrl;
+                            }
+                            else if (!string.IsNullOrEmpty(cat.Icon) && (cat.Icon.StartsWith("http") || cat.Icon.StartsWith("/images") || cat.Icon.StartsWith("images/")))
+                            {
+                                imageUrl = cat.Icon;
+                            }
+                            else
+                            {
+                                imageUrl = Khadamat.BlazorUI.Helpers.DefaultImages.GetCategoryImage(cat.Name);
+                            }
+                        }
+                        <img src="@imageUrl" 
+                             class="w-100 h-100 object-fit-cover" alt="@cat.Name" 
+                             style="opacity: 0.9; border-radius: 50%;" />
                     </div>
                     <span class="category-name-small">@cat.Name</span>
                 </div>
             }
         }
-        else
+        else if (categories == null)
         {
             @for (int i = 0; i < 10; i++)
             {
@@ -37,17 +85,27 @@
     .category-marquee-container {
         padding: 15px 0 25px 0;
         margin-bottom: 25px;
-        overflow-x: hidden;
+        overflow-x: auto;
         overflow-y: visible;
         width: 100%;
         position: relative;
+        cursor: grab;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+    }
+
+    .category-marquee-container::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Opera */
+    }
+
+    .category-marquee-container:active {
+        cursor: grabbing;
     }
 
     .scroll-track {
         display: flex;
         width: fit-content;
-        animation: marquee 30s linear infinite;
-        transition: animation-play-state 0.3s ease;
+        animation: marquee-infinite 20s linear infinite;
         padding: 10px 0;
     }
 
@@ -60,6 +118,7 @@
         padding: 8px;
         transition: transform 0.3s ease;
         cursor: pointer;
+        user-select: none;
     }
 
     .category-item:hover {
@@ -157,9 +216,28 @@
         text-overflow: ellipsis;
     }
 
+    /* Infinite loop animation - faster */
+    @@keyframes marquee-infinite {
+        0% {
+            transform: translateX(0);
+        }
+        100% {
+            transform: translateX(-50%);
+        }
+    }
+
     /* RTL Support */
     [dir="rtl"] .scroll-track {
-        animation: marquee-rtl 30s linear infinite;
+        animation: marquee-infinite-rtl 20s linear infinite;
+    }
+
+    @@keyframes marquee-infinite-rtl {
+        0% {
+            transform: translateX(0);
+        }
+        100% {
+            transform: translateX(50%);
+        }
     }
     
     .skeleton {
@@ -167,15 +245,37 @@
         background-size: 200% 100%;
         animation: loading 1.5s infinite;
     }
+
+    @@keyframes loading {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
 </style>
 
 @code {
     private List<MainCategoryDto>? categories;
+    private ElementReference containerRef;
+    private ElementReference scrollTrackRef;
 
     protected override void OnInitialized()
     {
         Console.WriteLine("ANTIGRAVITY_LOG: CategoryMarquee Initialized. Starting load...");
         _ = LoadCategoriesAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && categories != null && categories.Any())
+        {
+            try
+            {
+                await JS.InvokeVoidAsync("initCategoryDragScroll", containerRef);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error initializing drag scroll: {ex.Message}");
+            }
+        }
     }
 
     private async Task LoadCategoriesAsync()

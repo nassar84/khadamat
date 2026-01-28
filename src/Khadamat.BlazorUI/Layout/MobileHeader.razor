@@ -14,8 +14,15 @@
 
         <div class="header-center" @onclick='() => Navigation.NavigateTo("/")'>
             <div class="logo-wrapper-mobile">
-                <i class="fa-solid fa-bolt-lightning logo-icon-glow"></i>
-                <span class="logo-text-premium">خدمات</span>
+                @if (!string.IsNullOrEmpty(State.AppLogo))
+                {
+                    <img src="@State.AppLogo" class="logo-img-mobile" alt="Logo" style="height: 28px; width: auto;" />
+                }
+                else
+                {
+                    <i class="fa-solid fa-bolt-lightning logo-icon-glow"></i>
+                }
+                <span class="logo-text-premium">@State.AppName</span>
             </div>
         </div>
 

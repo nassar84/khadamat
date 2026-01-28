@@ -32,7 +32,8 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
                 return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
             }
 
-            _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
+            _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            Console.WriteLine("ANTIGRAVITY_LOG: HttpClient Authorization header set (Bearer)");
 
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt")));
         } catch (Exception ex) {
@@ -43,6 +44,9 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
 
     public void MarkUserAsAuthenticated(string token)
     {
+        Console.WriteLine("ANTIGRAVITY_LOG: MarkUserAsAuthenticated called");
+        _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        
         var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt"));
         var authState = Task.FromResult(new AuthenticationState(authenticatedUser));
         NotifyAuthenticationStateChanged(authState);
@@ -50,6 +54,9 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
 
     public void MarkUserAsLoggedOut()
     {
+        Console.WriteLine("ANTIGRAVITY_LOG: MarkUserAsLoggedOut called");
+        _http.DefaultRequestHeaders.Authorization = null;
+        
         var anonymousUser = new ClaimsPrincipal(new ClaimsIdentity());
         var authState = Task.FromResult(new AuthenticationState(anonymousUser));
         NotifyAuthenticationStateChanged(authState);

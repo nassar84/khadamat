@@ -3,7 +3,7 @@ using Khadamat.Application.DTOs;
 
 namespace Khadamat.MobileApp.Services;
 
-public class LocalDataService : Khadamat.Shared.Interfaces.IOfflineDataService
+public class LocalDataService : Khadamat.Application.Interfaces.IOfflineDataService
 {
     private SQLiteAsyncConnection? _database;
 

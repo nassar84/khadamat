@@ -29,7 +29,11 @@ public class AdminController : ControllerBase
         var currentUser = await _userManager.GetUserAsync(User);
         var isSuperAdmin = currentUser != null && await _userManager.IsInRoleAsync(currentUser, "SuperAdmin");
 
+        Console.WriteLine($"[GetAllUsers] Current User: {currentUser?.Email}, IsSuperAdmin: {isSuperAdmin}");
+
         var users = await _userManager.Users.ToListAsync();
+        Console.WriteLine($"[GetAllUsers] Total users in DB: {users.Count}");
+
         var userDtos = new List<UserDto>();
 
         foreach (var user in users)
@@ -37,12 +41,21 @@ public class AdminController : ControllerBase
             var roles = await _userManager.GetRolesAsync(user);
             var role = roles.FirstOrDefault() ?? "User";
 
-            // If requester is not SuperAdmin, hide SuperAdmin users
-            if (!isSuperAdmin && role == "SuperAdmin") continue;
+            Console.WriteLine($"[GetAllUsers] User: {user.Email}, Role: {role}");
+
+            // Restriction: SystemAdmin can only see/manage regular users and providers
+            // SuperAdmin can see everyone
+            // BUT: Always allow current user to see their own account
+            if (!isSuperAdmin && (role == "SuperAdmin" || role == "SystemAdmin") && user.Id != currentUser?.Id)
+            {
+                Console.WriteLine($"[GetAllUsers] Skipping {user.Email} - Admin account (not self)");
+                continue; // Skip admin accounts if current user is not SuperAdmin, unless it's themselves
+            }
 
             userDtos.Add(new UserDto
             {
                 Id = user.Id,
+                UserName = user.UserName ?? "",
                 FullName = user.FullName,
                 Email = user.Email ?? "",
                 PhoneNumber = user.PhoneNumber,
@@ -63,6 +76,7 @@ public class AdminController : ControllerBase
             });
         }
 
+        Console.WriteLine($"[GetAllUsers] Returning {userDtos.Count} users");
         return Ok(ApiResponse<List<UserDto>>.Succeed(userDtos));
     }
 
@@ -82,10 +96,9 @@ public class AdminController : ControllerBase
             return BadRequest(ApiResponse<bool>.Fail("البريد الإلكتروني مستخدم بالفعل"));
         }
 
-        // Only SuperAdmin can create SuperAdmin users
-        if (dto.Role == "SuperAdmin" && !User.IsInRole("SuperAdmin"))
+        if (!User.IsInRole("SuperAdmin") && (dto.Role == "SuperAdmin" || dto.Role == "SystemAdmin"))
         {
-            return Forbid("Only SuperAdmin can create SuperAdmin users.");
+            return Forbid("لا يمكنك إنشاء مستخدمين بصلاحيات إدارية.");
         }
 
         // Create new user
@@ -129,11 +142,17 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> UpdateUser(string id, [FromBody] UserDto dto)
     {
         var user = await _userManager.FindByIdAsync(id);
-        if (user == null) return NotFound();
+        if (user == null) return NotFound(ApiResponse<bool>.Fail("المستخدم غير موجود"));
+
+        var targetRoles = await _userManager.GetRolesAsync(user);
+        if (!User.IsInRole("SuperAdmin") && (targetRoles.Contains("SuperAdmin") || targetRoles.Contains("SystemAdmin")))
+        {
+            return Forbid("لا يمكنك تعديل بيانات هذا المستخدم.");
+        }
 
         user.FullName = dto.FullName;
         user.Email = dto.Email;
-        user.UserName = dto.Email; // Standard identity behavior
+        user.UserName = dto.UserName;
         user.PhoneNumber = dto.PhoneNumber;
         user.CityId = dto.CityId;
         user.IsActive = dto.IsActive;
@@ -149,7 +168,8 @@ public class AdminController : ControllerBase
         user.TikTokUrl = dto.TikTokUrl;
 
         var result = await _userManager.UpdateAsync(user);
-        if (!result.Succeeded) return BadRequest(result.Errors);
+        if (!result.Succeeded) 
+            return BadRequest(ApiResponse<bool>.Fail(string.Join(", ", result.Errors.Select(e => e.Description))));
 
         return Ok(ApiResponse<bool>.Succeed(true));
     }
@@ -160,10 +180,18 @@ public class AdminController : ControllerBase
         var user = await _userManager.FindByIdAsync(id);
         if (user == null) return NotFound();
 
-        // Check permissions: Only SuperAdmin can promote/demote to SuperAdmin
-        if (role == "SuperAdmin" && !User.IsInRole("SuperAdmin"))
+        var targetRoles = await _userManager.GetRolesAsync(user);
+        if (!User.IsInRole("SuperAdmin") && (targetRoles.Contains("SuperAdmin") || targetRoles.Contains("SystemAdmin")))
         {
-            return Forbid("Only SuperAdmin can manage SuperAdmin roles.");
+            return Forbid("لا يمكنك تعديل أدوار هذا المستخدم.");
+        }
+
+        if (role == "SuperAdmin" || role == "SystemAdmin")
+        {
+            if (!User.IsInRole("SuperAdmin"))
+            {
+                return Forbid("لا يمكنك تعيين أدوار إدارية.");
+            }
         }
 
         var currentRoles = await _userManager.GetRolesAsync(user);
@@ -189,11 +217,10 @@ public class AdminController : ControllerBase
         var user = await _userManager.FindByIdAsync(dto.UserId);
         if (user == null) return NotFound();
 
-        // Check permissions: Only SuperAdmin can change SuperAdmin passwords
-        var currentRoles = await _userManager.GetRolesAsync(user);
-        if (currentRoles.Contains("SuperAdmin") && !User.IsInRole("SuperAdmin"))
+        var targetRoles = await _userManager.GetRolesAsync(user);
+        if (!User.IsInRole("SuperAdmin") && (targetRoles.Contains("SuperAdmin") || targetRoles.Contains("SystemAdmin")))
         {
-            return Forbid("Only SuperAdmin can change SuperAdmin passwords.");
+            return Forbid("لا يمكنك تغيير كلمة مرور هذا المستخدم.");
         }
 
         // Use Remove/Add password to force update without needing current password
@@ -297,6 +324,20 @@ public class AdminController : ControllerBase
         var user = await _userManager.FindByIdAsync(id);
         if (user == null) return NotFound();
 
+
+        var targetRoles = await _userManager.GetRolesAsync(user);
+        if (!User.IsInRole("SuperAdmin") && (targetRoles.Contains("SuperAdmin") || targetRoles.Contains("SystemAdmin")))
+        {
+            return Forbid("لا يمكنك تغيير حالة هذا المستخدم.");
+        }
+
+        // Prevent toggling own status
+        var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (id == currentUserId)
+        {
+            return BadRequest(ApiResponse<bool>.Fail("لا يمكنك تعطيل حسابك الشخصي."));
+        }
+
         user.IsActive = !user.IsActive;
         await _userManager.UpdateAsync(user);
         return Ok(ApiResponse<bool>.Succeed(user.IsActive));
@@ -306,10 +347,30 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> DeleteUser(string id)
     {
         var user = await _userManager.FindByIdAsync(id);
-        if (user == null) return NotFound();
+        if (user == null) return NotFound(ApiResponse<bool>.Fail("المستخدم غير موجود"));
 
-        var result = await _userManager.DeleteAsync(user);
-        if (!result.Succeeded) return BadRequest(result.Errors);
+        var targetRoles = await _userManager.GetRolesAsync(user);
+        if (!User.IsInRole("SuperAdmin") && (targetRoles.Contains("SuperAdmin") || targetRoles.Contains("SystemAdmin")))
+        {
+            return Forbid("لا يمكنك حذف هذا المستخدم.");
+        }
+
+        // Prevent deleting own account
+        var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (id == currentUserId)
+        {
+            return BadRequest(ApiResponse<bool>.Fail("لا يمكنك حذف حسابك الشخصي."));
+        }
+
+        // Soft Delete
+        user.IsDeleted = true;
+        user.DeletedAt = DateTime.UtcNow;
+        user.DeletedBy = currentUserId;
+        user.IsActive = false; // Also de-activate
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded) 
+            return BadRequest(ApiResponse<bool>.Fail(string.Join(", ", result.Errors.Select(e => e.Description))));
         
         return Ok(ApiResponse<bool>.Succeed(true));
     }
@@ -331,9 +392,51 @@ public class AdminController : ControllerBase
         var service = await _context.Services.FindAsync(id);
         if (service == null) return NotFound();
 
-        // Use domain method for rejection before removal if needed, 
-        // or just remove. Sticking to removal as per previous implementation.
-        _context.Services.Remove(service);
+        // Soft Delete
+        service.Reject("تم الرفض أو الحذف بواسطة المدير");
+        // We set IsDeleted for soft delete as configured in DbContext
+        var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        
+        // Use reflection or just access property if base type is known. 
+        // Service inherits from BaseEntity which has IsDeleted.
+        service.IsDeleted = true;
+        service.DeletedAt = DateTime.UtcNow;
+        service.DeletedBy = currentUserId;
+
+        await _context.SaveChangesAsync();
+        return Ok(ApiResponse<bool>.Succeed(true));
+    }
+
+    [HttpPut("services/{id}")]
+    public async Task<IActionResult> UpdateService(int id, [FromBody] ServiceDto dto)
+    {
+        var service = await _context.Services.FindAsync(id);
+        if (service == null) return NotFound(ApiResponse<bool>.Fail("الخدمة غير موجودة"));
+
+        service.UpdateDetails(
+            dto.Title, 
+            dto.Description, 
+            dto.Address, 
+            dto.Price,
+            dto.Phone1,
+            dto.Phone2,
+            dto.WhatsApp,
+            dto.Facebook,
+            dto.Telegram,
+            dto.WorkDays,
+            dto.WorkHours
+        );
+
+        if (dto.CategoryId.HasValue || dto.SubCategoryId.HasValue)
+        {
+            service.SetCategory(dto.CategoryId, dto.SubCategoryId);
+        }
+
+        if (dto.CityId.HasValue)
+        {
+            service.UpdateLocation(dto.CityId);
+        }
+
         await _context.SaveChangesAsync();
         return Ok(ApiResponse<bool>.Succeed(true));
     }

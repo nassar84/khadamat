@@ -22,6 +22,11 @@ public class ApplicationUser : IdentityUser
     public string? LinkedInUrl { get; set; }
     public string? TikTokUrl { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    
+    // Soft Delete
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAt { get; set; }
+    public string? DeletedBy { get; set; }
 
     public int? CityId { get; set; }
     public virtual City? City { get; set; }

@@ -77,13 +77,25 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small">المدينة</label>
-                                <InputSelect @bind-Value="model.CityId" class="form-select premium-input">
-                                    <option value="0">اختر المدينة...</option>
-                                    @foreach (var city in cities)
-                                    {
-                                        <option value="@city.Id">@city.NameAr</option>
-                                    }
-                                </InputSelect>
+                                @if (isLoadingCities)
+                                {
+                                    <div class="input-group">
+                                        <select class="form-select premium-input" disabled>
+                                            <option>جاري التحميل...</option>
+                                        </select>
+                                        <span class="input-group-text bg-white border-0"><div class="spinner-border spinner-border-sm text-primary"></div></span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <InputSelect @bind-Value="model.CityId" class="form-select premium-input">
+                                        <option value="0">اختر المدينة...</option>
+                                        @foreach (var city in cities)
+                                        {
+                                            <option value="@city.Id">@city.NameAr</option>
+                                        }
+                                    </InputSelect>
+                                }
                             </div>
 
                             <div class="col-md-6">
@@ -210,6 +222,7 @@
     private bool isUploadingCert = false;
     private bool showSuccess = false;
     private string? errorMessage;
+    private bool isLoadingCities = false;
     
     private List<GovernorateDto> governorates = new();
     private List<CityDto> cities = new();
@@ -248,15 +261,27 @@
 
     private async Task OnGovernorateChanged(ChangeEventArgs e)
     {
-        if (int.TryParse(e.Value?.ToString(), out int val))
+        if (int.TryParse(e.Value?.ToString(), out int val) && val > 0)
         {
-            cities = await Api.GetCitiesAsync(val);
-            model.CityId = 0;
+            isLoadingCities = true;
+            StateHasChanged();
+            
+            try 
+            {
+                cities = await Api.GetCitiesAsync(val);
+            }
+            finally 
+            {
+                isLoadingCities = false;
+                model.CityId = 0;
+                StateHasChanged();
+            }
         }
         else
         {
             cities.Clear();
             model.CityId = 0;
+            StateHasChanged();
         }
     }
 

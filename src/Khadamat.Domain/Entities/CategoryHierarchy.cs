@@ -6,6 +6,7 @@ public class MainCategory : BaseEntity
 {
     public string Name { get; set; } = string.Empty;
     public string Icon { get; set; } = string.Empty;
+    public string? ImageUrl { get; set; }
     public string Color { get; set; } = string.Empty;
     public int Order { get; set; }
     
@@ -20,12 +21,13 @@ public class MainCategory : BaseEntity
         Order = order;
     }
 
-    public void Update(string name, string icon, string color, int order)
+    public void Update(string name, string icon, string color, int order, string? imageUrl = null)
     {
         Name = name;
         Icon = icon;
         Color = color;
         Order = order;
+        ImageUrl = imageUrl;
         UpdatedAt = System.DateTime.UtcNow;
     }
 }

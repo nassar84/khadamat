@@ -1,4 +1,5 @@
 ﻿@inherits LayoutComponentBase
+@implements IDisposable
 
 <div class="khadamat-app">
     <Sidebar />
@@ -7,9 +8,15 @@
         <Header />
         
         <main class="app-content">
-            <CategoryMarquee />
+            @if (ShowPromotionalContent)
+            {
+                <CategoryMarquee />
+            }
             <div class="content-wrapper">
-                <HeroAds />
+                @if (ShowHeroAds)
+                {
+                    <HeroAds />
+                }
                 @Body
             </div>
         </main>
@@ -49,12 +56,42 @@
     }
 </style>
 
+@inject NavigationManager Navigation
 @inject Khadamat.BlazorUI.Services.Auth.IAuthService AuthService
 @inject Khadamat.BlazorUI.State.AppState AppState
+@inject Khadamat.BlazorUI.Services.ApiClient Api
+@inject IJSRuntime JS
 
 @code {
+    private bool IsAdminPage => Navigation.Uri.Contains("/admin", StringComparison.OrdinalIgnoreCase);
+    private bool IsProfilePage => Navigation.Uri.Contains("/profile", StringComparison.OrdinalIgnoreCase) || Navigation.Uri.Contains("/settings", StringComparison.OrdinalIgnoreCase);
+    private bool IsProviderPage => Navigation.Uri.Contains("/provider/", StringComparison.OrdinalIgnoreCase);
+    private bool IsHomePage => Navigation.Uri.EndsWith("/") || Navigation.Uri.EndsWith("/index");
+
+    private bool ShowPromotionalContent => !IsAdminPage && !IsProfilePage && !IsProviderPage;
+    private bool ShowHeroAds => IsHomePage;
+
     protected override async Task OnInitializedAsync()
     {
+        Navigation.LocationChanged += HandleLocationChanged;
+        // Load global settings
+        try
+        {
+            var settingsResult = await Api.GetSettingsAsync();
+            if (settingsResult?.Success == true && settingsResult.Data != null)
+            {
+                AppState.AppName = settingsResult.Data.ApplicationName;
+                AppState.AppLogo = settingsResult.Data.LogoUrl;
+                AppState.PrimaryColor = settingsResult.Data.PrimaryColor;
+                AppState.SecondaryColor = settingsResult.Data.SecondaryColor;
+                AppState.TriggerStateChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading settings: {ex.Message}");
+        }
+
         if (AppState.IsAuthenticated && !AppState.IsProfileComplete)
         {
             try
@@ -74,5 +111,27 @@
                 Console.WriteLine($"Error syncing profile: {ex.Message}");
             }
         }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !string.IsNullOrEmpty(AppState.PrimaryColor))
+        {
+            try
+            {
+                await JS.InvokeVoidAsync("applyThemeColors", AppState.PrimaryColor, AppState.SecondaryColor);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error applying theme colors: {ex.Message}");
+            }
+        }
+    }
+
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e) => StateHasChanged();
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= HandleLocationChanged;
     }
 }

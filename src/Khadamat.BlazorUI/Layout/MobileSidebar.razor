@@ -49,40 +49,21 @@
                                 <i class="fa-solid fa-heart text-danger"></i>
                                 <span>المفضلة</span>
                             </div>
-                            <div class="menu-item @GetActiveClass("client/myratings")" @onclick='() => NavigateTo("/client/myratings")'>
-                                <i class="fa-solid fa-star text-warning"></i>
-                                <span>تقييماتي</span>
-                            </div>
-                            <div class="menu-item @GetActiveClass("client/mycomments")" @onclick='() => NavigateTo("/client/mycomments")'>
-                                <i class="fa-solid fa-comment text-primary"></i>
-                                <span>تعليقاتي</span>
-                            </div>
-                            @if (State.IsProvider)
-                            {
-                                <div class="menu-item @GetActiveClass("provider/myposts")" @onclick='() => NavigateTo("/provider/myposts")'>
-                                    <i class="fa-solid fa-newspaper text-info"></i>
-                                    <span>إدارة المنشورات</span>
-                                </div>
-                            }
                         </div>
                     </div>
 
                     <div class="menu-section">
-                        <h6 class="section-title">حسابي الشخصي</h6>
+                        <h6 class="section-title">الإعدادات</h6>
                         <div class="menu-items">
                             <div class="menu-item @GetActiveClass("profile")" @onclick='() => NavigateTo("/profile")'>
-                                <i class="fa-solid fa-user-astronaut"></i>
-                                <span>بروفيلي</span>
-                            </div>
-                            <div class="menu-item @GetActiveClass("settings")" @onclick='() => NavigateTo("/settings")'>
-                                <i class="fa-solid fa-sliders"></i>
-                                <span>الإعدادات</span>
+                                <i class="fa-solid fa-user-gear"></i>
+                                <span>الملف الشخصي</span>
                             </div>
 
                             <AuthorizeView Roles="Admin,SystemAdmin,SuperAdmin" Context="adminCtx">
                                 <div class="menu-item admin-link-premium" @onclick='() => NavigateTo("/admin")'>
                                     <i class="fa-solid fa-shield-halved"></i>
-                                    <span>لوحة التحكم (Admin)</span>
+                                    <span>لوحة المدير</span>
                                 </div>
                             </AuthorizeView>
                         </div>
@@ -112,8 +93,15 @@
             <NotAuthorized>
                 <div class="sidebar-top-guest">
                     <div class="logo-sidebar">
-                        <i class="fa-solid fa-bolt-lightning"></i>
-                        <span>خدمات</span>
+                        @if (!string.IsNullOrEmpty(State.AppLogo))
+                        {
+                            <img src="@State.AppLogo" class="logo-img" alt="Logo" style="height: 40px; width: auto;" />
+                        }
+                        else
+                        {
+                            <i class="fa-solid fa-bolt-lightning"></i>
+                        }
+                        <span>@State.AppName</span>
                     </div>
                 </div>
 

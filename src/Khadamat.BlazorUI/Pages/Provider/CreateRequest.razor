@@ -109,13 +109,25 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small">المدينة</label>
-                                <InputSelect @bind-Value="model.CityId" class="form-select premium-input">
-                                    <option value="">اختر المدينة...</option>
-                                    @foreach (var city in cities)
-                                    {
-                                        <option value="@city.Id">@city.NameAr</option>
-                                    }
-                                </InputSelect>
+                                @if (isLoadingCities)
+                                {
+                                    <div class="input-group">
+                                        <select class="form-select premium-input" disabled>
+                                            <option>جاري تحميل المدن...</option>
+                                        </select>
+                                        <span class="input-group-text bg-white border-0"><div class="spinner-border spinner-border-sm text-primary"></div></span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <InputSelect @bind-Value="model.CityId" class="form-select premium-input">
+                                        <option value="">اختر المدينة...</option>
+                                        @foreach (var city in cities)
+                                        {
+                                            <option value="@city.Id">@city.NameAr</option>
+                                        }
+                                    </InputSelect>
+                                }
                                 <ValidationMessage For="@(() => model.CityId)" class="text-danger small mt-1" />
                             </div>
 
@@ -410,6 +422,7 @@
     private AuthResponse? currentProfile;
     private bool showSuccess = false;
     private string? errorMessage;
+    private bool isLoadingCities = false;
 
     private List<MainCategoryDto> mainCategories = new();
     private List<CategoryDto> categories = new();
@@ -496,17 +509,29 @@
 
     private async Task OnGovernorateChanged(ChangeEventArgs e)
     {
-        if (int.TryParse(e.Value?.ToString(), out int val))
+        if (int.TryParse(e.Value?.ToString(), out int val) && val > 0)
         {
             selectedGovernorateId = val;
-            cities = await Api.GetCitiesAsync(selectedGovernorateId);
-            model.CityId = 0;
+            isLoadingCities = true;
+            StateHasChanged();
+            
+            try 
+            {
+                cities = await Api.GetCitiesAsync(selectedGovernorateId);
+            }
+            finally 
+            {
+                isLoadingCities = false;
+                model.CityId = null; 
+                StateHasChanged();
+            }
         }
         else
         {
             selectedGovernorateId = 0;
             cities.Clear();
-            model.CityId = 0;
+            model.CityId = null;
+            StateHasChanged();
         }
     }
 

@@ -143,13 +143,22 @@
                                             <label class="form-label fw-bold small">المدينة</label>
                                             <div class="input-group">
                                                 <span class="input-group-text bg-light border-0 rounded-start-4"><i class="fa-solid fa-city text-muted"></i></span>
-                                                <InputSelect @bind-Value="model.CityId" class="form-select premium-input">
-                                                    <option value="0">اختر المدينة...</option>
-                                                    @foreach (var city in cities)
-                                                    {
-                                                        <option value="@city.Id">@city.NameAr</option>
-                                                    }
-                                                </InputSelect>
+                                                @if (isLoadingCities)
+                                                {
+                                                    <select class="form-select premium-input" disabled>
+                                                        <option>جاري التحميل...</option>
+                                                    </select>
+                                                }
+                                                else
+                                                {
+                                                    <InputSelect @bind-Value="model.CityId" class="form-select premium-input">
+                                                        <option value="0">اختر المدينة...</option>
+                                                        @foreach (var city in cities)
+                                                        {
+                                                            <option value="@city.Id">@city.NameAr</option>
+                                                        }
+                                                    </InputSelect>
+                                                }
                                             </div>
                                             <ValidationMessage For="@(() => model.CityId)" class="text-danger small mt-1" />
                                         </div>
@@ -425,6 +434,7 @@
     private List<GovernorateDto> governorates = new();
     private List<CityDto> cities = new();
     private int selectedGovernorateId;
+    private bool isLoadingCities = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -520,17 +530,29 @@
 
     private async Task OnGovernorateChanged(ChangeEventArgs e)
     {
-        if (int.TryParse(e.Value?.ToString(), out int val))
+        if (int.TryParse(e.Value?.ToString(), out int val) && val > 0)
         {
             selectedGovernorateId = val;
-            cities = await Api.GetCitiesAsync(val);
-            model.CityId = 0;
+            isLoadingCities = true;
+            StateHasChanged();
+            
+            try 
+            {
+                cities = await Api.GetCitiesAsync(val);
+            }
+            finally 
+            {
+                isLoadingCities = false;
+                model.CityId = 0;
+                StateHasChanged();
+            }
         }
         else
         {
             selectedGovernorateId = 0;
             cities.Clear();
             model.CityId = 0;
+            StateHasChanged();
         }
     }
 

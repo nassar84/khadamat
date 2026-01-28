@@ -13,5 +13,6 @@ public interface IAuthService
     Task<ApiResponse<bool>> UpdateProfileAsync(UpdateProfileRequest request);
     Task<ApiResponse<bool>> ChangePasswordAsync(ChangeMyPasswordRequest request);
     Task<bool> SetUserIsProviderAsync(string userId, bool isProvider);
-    Task<ApiResponse<AuthResponse>> ExternalLoginCallbackAsync(string email, string name, string provider, string providerUserId);
+    Task<ApiResponse<AuthResponse>> ExternalLoginCallbackAsync(string email, string name, string provider, string providerUserId, string? imageUrl = null);
+    Task<ApiResponse<AuthResponse>> ExternalTokenLoginAsync(string provider, string token);
 }

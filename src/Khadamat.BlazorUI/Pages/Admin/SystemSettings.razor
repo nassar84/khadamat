@@ -1,7 +1,13 @@
-@page "/admin/settings"
+@page "/admin/systemsettings"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+@inject Khadamat.BlazorUI.State.AppState AppState
+@inject IJSRuntime JS
 @attribute [Authorize(Roles = "SuperAdmin")]
 
 <div class="px-3 pt-3 pb-5">
+    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <nav aria-label="breadcrumb">
@@ -10,61 +16,268 @@
                     <li class="breadcrumb-item active">إعدادات النظام</li>
                 </ol>
             </nav>
-            <h3 class="fw-bold mb-0">إعدادات النظام (Super Admin)</h3>
+            <h3 class="fw-bold mb-0">إعدادات النظام العامة</h3>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="glass-card p-4 h-100">
-                <h5 class="fw-bold mb-3"><i class="fa-solid fa-display me-2 text-primary"></i>هوية النظام</h5>
-                <div class="mb-3">
-                    <label class="form-label small">اسم النظام</label>
-                    <input type="text" class="form-control" value="خدمات">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label small">الشعار (Logo)</label>
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="p-3 bg-light rounded-3">
-                            <i class="fa-solid fa-bolt-lightning text-primary fs-3"></i>
-                        </div>
-                        <button class="btn btn-outline-primary btn-sm">تغيير الشعار</button>
+    @if (isLoading)
+    {
+         <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">جاري تحميل الإعدادات...</p>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <!-- General Settings -->
+            <div class="col-md-6 mb-4">
+                <div class="glass-card p-4 h-100">
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-server me-2 text-primary"></i>بيانات النظام</h5>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">اسم النظام / التطبيق</label>
+                        <input type="text" @bind="settings.ApplicationName" class="form-control rounded-pill px-4">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">رسالة الترحيب / الوصف</label>
+                        <textarea @bind="settings.WelcomeMessage" class="form-control rounded-3 px-4" rows="3" placeholder="أدخل رسالة ترحيبية تظهر للمستخدمين..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">رابط الشعار (Logo URL)</label>
+                        <input type="text" @bind="settings.LogoUrl" class="form-control rounded-pill px-4" placeholder="https://...">
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="col-md-6 mb-4">
-            <div class="glass-card p-4 h-100">
-                <h5 class="fw-bold mb-3"><i class="fa-solid fa-palette me-2 text-success"></i>المظهر والألوان</h5>
-                <p class="text-muted small">إدارة الثيمات الافتراضية والألوان الأساسية للمنصة.</p>
-                <button class="btn btn-outline-success w-100">إدارة القوالب</button>
+
+            <!-- Contact Info -->
+            <div class="col-md-6 mb-4">
+                <div class="glass-card p-4 h-100">
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-address-book me-2 text-success"></i>بيانات التواصل</h5>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">البريد الإلكتروني للدعم</label>
+                        <input type="email" @bind="settings.ContactEmail" class="form-control rounded-pill px-4" placeholder="support@example.com">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">رقم الهاتف للدعم</label>
+                        <input type="text" @bind="settings.ContactPhone" class="form-control rounded-pill px-4" placeholder="+20...">
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Features Control -->
+            <div class="col-md-6 mb-4">
+                <div class="glass-card p-4 h-100">
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-sliders me-2 text-info"></i>التحكم في الميزات</h5>
+                    
+                    <div class="form-check form-switch p-3 bg-light rounded-3 d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <label class="form-check-label fw-bold mb-0">السماح بالتسجيل</label>
+                            <div class="text-muted small">السماح للمستخدمين الجدد بإنشاء حسابات</div>
+                        </div>
+                        <input class="form-check-input fs-4" type="checkbox" @bind="settings.AllowUserRegistration">
+                    </div>
+
+                    <div class="form-check form-switch p-3 bg-light rounded-3 d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <label class="form-check-label fw-bold mb-0">التحقق من البريد الإلكتروني</label>
+                            <div class="text-muted small">طلب تأكيد البريد عند التسجيل</div>
+                        </div>
+                        <input class="form-check-input fs-4" type="checkbox" @bind="settings.RequireEmailVerification">
+                    </div>
+
+                    <div class="form-check form-switch p-3 bg-light rounded-3 d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <label class="form-check-label fw-bold mb-0">الموافقة التلقائية على التقييمات</label>
+                            <div class="text-muted small">نشر التقييمات مباشرة دون مراجعة</div>
+                        </div>
+                        <input class="form-check-input fs-4" type="checkbox" @bind="settings.EnableReviewAutoApproval">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">الحد الأقصى للخدمات لكل مزود</label>
+                        <input type="number" @bind="settings.MaxServicesPerProvider" class="form-control rounded-pill px-4" min="1" max="100">
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Control & Maintenance -->
+            <div class="col-md-6 mb-4">
+                <div class="glass-card p-4 h-100">
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-shield-halved me-2 text-warning"></i>التحكم والأمان</h5>
+                    
+                    <div class="form-check form-switch p-3 bg-light rounded-3 d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <label class="form-check-label fw-bold mb-0 text-danger">وضع الصيانة</label>
+                            <div class="text-muted small">عند تفعيله، سيتوقف التطبيق عن العمل للمستخدمين العاديين</div>
+                        </div>
+                        <input class="form-check-input fs-4" type="checkbox" @bind="settings.IsMaintenanceMode">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">اللون الأساسي (Primary)</label>
+                        <input type="color" @bind="settings.PrimaryColor" class="form-control form-control-color w-100 rounded-pill">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">اللون الثانوي (Secondary)</label>
+                        <input type="color" @bind="settings.SecondaryColor" class="form-control form-control-color w-100 rounded-pill">
+                    </div>
+                    
+                    <div class="mt-4 pt-3 border-top">
+                        <h6 class="fw-bold small mb-2 text-muted">روابط سريعة</h6>
+                        <a href="/admin/usersmanagement?role=SystemAdmin" class="btn btn-outline-dark w-100 btn-sm mb-2">
+                            <i class="fa-solid fa-users-gear me-2"></i>إدارة مدراء النظام
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Social Media Links -->
+            <div class="col-md-6 mb-4">
+                <div class="glass-card p-4 h-100">
+                    <h5 class="fw-bold mb-3"><i class="fa-brands fa-facebook me-2 text-primary"></i>روابط التواصل الاجتماعي</h5>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold"><i class="fa-brands fa-facebook me-2"></i>Facebook</label>
+                        <input type="text" @bind="settings.FacebookUrl" class="form-control rounded-pill px-4" placeholder="https://facebook.com/...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold"><i class="fa-brands fa-twitter me-2"></i>Twitter</label>
+                        <input type="text" @bind="settings.TwitterUrl" class="form-control rounded-pill px-4" placeholder="https://twitter.com/...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold"><i class="fa-brands fa-instagram me-2"></i>Instagram</label>
+                        <input type="text" @bind="settings.InstagramUrl" class="form-control rounded-pill px-4" placeholder="https://instagram.com/...">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Legal Documents -->
+            <div class="col-md-6 mb-4">
+                <div class="glass-card p-4 h-100">
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-gavel me-2 text-secondary"></i>المستندات القانونية</h5>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">الشروط والأحكام</label>
+                        <textarea @bind="settings.TermsAndConditions" class="form-control rounded-3 px-4" rows="4" placeholder="أدخل نص الشروط والأحكام..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">سياسة الخصوصية</label>
+                        <textarea @bind="settings.PrivacyPolicy" class="form-control rounded-3 px-4" rows="4" placeholder="أدخل نص سياسة الخصوصية..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="col-12 text-end mb-4">
+                <button class="btn btn-primary-premium px-5 rounded-pill shadow" @onclick="SaveSettings" disabled="@isSaving">
+                    @if (isSaving) { <span class="spinner-border spinner-border-sm me-2"></span> }
+                    <i class="fa-solid fa-save me-2"></i>حفظ جميع التغييرات
+                </button>
             </div>
         </div>
 
-        <div class="col-md-6 mb-4">
-            <div class="glass-card p-4 h-100">
-                <h5 class="fw-bold mb-3"><i class="fa-solid fa-database me-2 text-warning"></i>التخزين والملفات</h5>
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="small">نوع التخزين</span>
-                    <span class="badge bg-light text-dark">محلي (Local)</span>
-                </div>
-                <div class="progress mb-3" style="height: 8px;">
-                    <div class="progress-bar bg-warning" style="width: 45%"></div>
-                </div>
-                <button class="btn btn-outline-warning w-100 btn-sm">إدارة مساحة التخزين</button>
+        @if (!string.IsNullOrEmpty(statusMessage))
+        {
+            <div class="alert @(isSuccess ? "alert-success" : "alert-danger") mt-3 animate-pop">
+                @statusMessage
             </div>
-        </div>
-
-        <div class="col-md-6 mb-4">
-            <div class="glass-card p-4 h-100">
-                <h5 class="fw-bold mb-3"><i class="fa-solid fa-user-shield me-2 text-danger"></i>مدراء النظام</h5>
-                <p class="text-muted small">إدارة حسابات (System Admin) وتحديد صلاحياتهم.</p>
-                <a href="/admin/usersmanagement?role=SystemAdmin" class="btn btn-outline-danger w-100">إدارة المدراء</a>
-            </div>
-        </div>
-    </div>
+        }
+    }
 </div>
 
-@code {}
+@code {
+    private AppSettingsDto settings = new();
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private string statusMessage = "";
+    private bool isSuccess = false;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSettings();
+    }
+
+    private async Task LoadSettings()
+    {
+        isLoading = true;
+        try
+        {
+            var response = await Api.GetSettingsAsync();
+            if (response.Success && response.Data != null)
+            {
+                settings = response.Data;
+            }
+            else
+            {
+                statusMessage = "فشل تحميل الإعدادات.";
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = "حدث خطأ أثناء الاتصال بالخادم.";
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task SaveSettings()
+    {
+        isSaving = true;
+        statusMessage = "";
+        
+        var request = new UpdateAppSettingsRequest
+        {
+            ApplicationName = settings.ApplicationName,
+            LogoUrl = settings.LogoUrl,
+            PrimaryColor = settings.PrimaryColor,
+            SecondaryColor = settings.SecondaryColor,
+            ContactEmail = settings.ContactEmail,
+            ContactPhone = settings.ContactPhone,
+            IsMaintenanceMode = settings.IsMaintenanceMode,
+            WelcomeMessage = settings.WelcomeMessage,
+            AllowUserRegistration = settings.AllowUserRegistration,
+            RequireEmailVerification = settings.RequireEmailVerification,
+            MaxServicesPerProvider = settings.MaxServicesPerProvider,
+            EnableReviewAutoApproval = settings.EnableReviewAutoApproval,
+            FacebookUrl = settings.FacebookUrl,
+            TwitterUrl = settings.TwitterUrl,
+            InstagramUrl = settings.InstagramUrl,
+            TermsAndConditions = settings.TermsAndConditions,
+            PrivacyPolicy = settings.PrivacyPolicy
+        };
+
+        try
+        {
+            var response = await Api.UpdateSettingsAsync(request);
+            if (response.Success)
+            {
+                isSuccess = true;
+                statusMessage = "تم حفظ الإعدادات بنجاح.";
+                
+                // Update AppState
+                AppState.AppName = settings.ApplicationName;
+                AppState.AppLogo = settings.LogoUrl;
+                AppState.PrimaryColor = settings.PrimaryColor;
+                AppState.SecondaryColor = settings.SecondaryColor;
+                AppState.TriggerStateChanged();
+            }
+            else
+            {
+                isSuccess = false;
+                statusMessage = response.Message ?? "فشل الحفظ.";
+            }
+        }
+        catch (Exception ex)
+        {
+            isSuccess = false;
+            statusMessage = "حدث خطأ غير متوقع.";
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+}

@@ -60,13 +60,22 @@
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
                         <label class="form-label fw-bold">المدينة</label>
-                        <select class="form-select rounded-3 border-0 bg-light" @bind="model.CityId" @bind:after="StateHasChanged">
-                            <option value="">اختر المدينة</option>
-                            @foreach (var city in cities)
-                            {
-                                <option value="@city.Id">@city.NameAr</option>
-                            }
-                        </select>
+                        @if (isLoadingCities)
+                        {
+                            <select class="form-select rounded-3 border-0 bg-light" disabled>
+                                <option>جاري التحميل...</option>
+                            </select>
+                        }
+                        else
+                        {
+                            <select class="form-select rounded-3 border-0 bg-light" @bind="model.CityId" @bind:after="StateHasChanged">
+                                <option value="">اختر المدينة</option>
+                                @foreach (var city in cities)
+                                {
+                                    <option value="@city.Id">@city.NameAr</option>
+                                }
+                            </select>
+                        }
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-bold">المنطقة (اختياري)</label>
@@ -234,6 +243,7 @@
     private bool isSaving = false;
     private string? mainImageUrl;
     private string? YouTubeUrl;
+    private bool isLoadingCities = false;
 
     private List<MainCategoryDto> mainCategories = new();
     private List<SubCategoryDto> subCategories = new();
@@ -328,10 +338,29 @@
     
     private async Task OnGovernorateChanged(ChangeEventArgs e)
     {
-        if (int.TryParse(e.Value?.ToString(), out int val))
+        if (int.TryParse(e.Value?.ToString(), out int val) && val > 0)
         {
             selectedGovernorateId = val;
-            await LoadCities();
+            isLoadingCities = true;
+            StateHasChanged();
+            
+            try 
+            {
+                await LoadCities();
+            }
+            finally 
+            {
+                isLoadingCities = false;
+                model.CityId = null;
+                StateHasChanged();
+            }
+        }
+        else
+        {
+            selectedGovernorateId = 0;
+            cities.Clear();
+            model.CityId = null;
+            StateHasChanged();
         }
     }
     

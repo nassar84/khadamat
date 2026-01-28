@@ -1,5 +1,6 @@
 using Khadamat.Application.DTOs;
 using Khadamat.Shared.Interfaces;
+using Khadamat.Application.Interfaces;
 using Blazored.LocalStorage;
 
 namespace Khadamat.BlazorUI.Services;

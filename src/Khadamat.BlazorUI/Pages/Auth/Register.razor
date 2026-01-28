@@ -19,6 +19,24 @@
                 <div class="col-12 mb-2">
                     <ValidationSummary class="alert alert-danger glass-card border-danger text-danger list-unstyled py-2 px-3 small" />
                 </div>
+                
+                <!-- Profile Image Upload with Preview -->
+                <div class="col-12 mb-4 text-center">
+                    <div class="position-relative d-inline-block">
+                        <div class="profile-upload-circle" style="background-image: url('@(previewImage ?? "https://via.placeholder.com/150")');">
+                            @if (string.IsNullOrEmpty(previewImage))
+                            {
+                                <i class="fas fa-camera text-secondary fa-2x"></i>
+                            }
+                        </div>
+                        <label for="profileUpload" class="upload-btn">
+                            <i class="fas fa-plus"></i>
+                        </label>
+                        <InputFile OnChange="OnInputFileChange" id="profileUpload" class="d-none" accept="image/*" />
+                    </div>
+                    <div class="small text-muted mt-2">صورة الشخصية (اختياري)</div>
+                </div>
+
                 <div class="col-md-12 mb-3">
                     <label class="form-label">الاسم الكامل</label>
                     <div class="input-group">
@@ -27,9 +45,28 @@
                     </div>
                     <ValidationMessage For="@(() => registerModel.FullName)" />
                 </div>
+                
+                <!-- Gender Selection -->
+                <div class="col-md-12 mb-3">
+                    <label class="form-label d-block">الجنس</label>
+                    <div class="d-flex gap-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="gender" id="genderMale" value="Male" 
+                                   checked="@(registerModel.Gender == "Male")" 
+                                   @onchange="@(() => registerModel.Gender = "Male")">
+                            <label class="form-check-label" for="genderMale">ذكر</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="gender" id="genderFemale" value="Female" 
+                                   checked="@(registerModel.Gender == "Female")" 
+                                   @onchange="@(() => registerModel.Gender = "Female")">
+                            <label class="form-check-label" for="genderFemale">أنثى</label>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">اسم المستخدم (للدخول)</label>
+                    <label class="form-label">اسم المستخدم</label>
                     <div class="input-group">
                          <span class="input-group-text glass-input-addon"><i class="fas fa-at"></i></span>
                          <InputText @bind-Value="registerModel.UserName" class="form-control glass-input" placeholder="username" />
@@ -50,7 +87,7 @@
                     <label class="form-label">رقم الهاتف</label>
                     <div class="input-group">
                          <span class="input-group-text glass-input-addon"><i class="fas fa-phone"></i></span>
-                         <InputText @bind-Value="registerModel.PhoneNumber" class="form-control glass-input" placeholder="01xxxxxxxxx" />
+                         <InputText @bind-Value="registerModel.PhoneNumber" type="tel" class="form-control glass-input" placeholder="01xxxxxxxxx" pattern="[0-9]*" />
                     </div>
                      <ValidationMessage For="@(() => registerModel.PhoneNumber)" />
                 </div>
@@ -66,14 +103,26 @@
                 </div>
 
                  <div class="col-md-6 mb-3">
-                     <label class="form-label">المدينة</label>
-                     <InputSelect @bind-Value="registerModel.CityId" class="form-select glass-input" disabled="@(cities.Count == 0)">
-                        <option value="0">اختر المدينة...</option>
-                        @foreach(var city in cities) {
-                            <option value="@city.Id">@city.NameAr</option>
-                        }
-                     </InputSelect>
-                     <ValidationMessage For="@(() => registerModel.CityId)" />
+                      <label class="form-label">المدينة</label>
+                      @if (isLoadingCities)
+                      {
+                          <div class="input-group">
+                              <select class="form-select glass-input" disabled>
+                                  <option>جاري التحميل...</option>
+                              </select>
+                              <span class="input-group-text glass-input-addon"><div class="spinner-border spinner-border-sm text-primary"></div></span>
+                          </div>
+                      }
+                      else
+                      {
+                          <InputSelect @bind-Value="registerModel.CityId" class="form-select glass-input" disabled="@(cities.Count == 0 && SelectedGovernorateId == 0)">
+                             <option value="0">اختر المدينة...</option>
+                             @foreach(var city in cities) {
+                                 <option value="@city.Id">@city.NameAr</option>
+                             }
+                          </InputSelect>
+                      }
+                      <ValidationMessage For="@(() => registerModel.CityId)" />
                 </div>
 
                 <div class="col-md-6 mb-3">
@@ -129,6 +178,19 @@
                 else { <span>تسجيل حساب <i class="fas fa-user-plus ms-2"></i></span> }
             </button>
             
+            <!-- Social Login -->
+            <div class="text-center mt-4">
+                <p class="text-muted small mb-3">أو قم بالتسجيل عبر</p>
+                <div class="d-flex justify-content-center gap-3">
+                     <a href="http://localhost:5144/api/v1/auth/external-login?provider=Google&redirectUrl=http://localhost:5028/login-callback" class="btn btn-outline-danger rounded-circle p-2" style="width: 45px; height: 45px;">
+                        <i class="fab fa-google"></i>
+                    </a>
+                    <a href="http://localhost:5144/api/v1/auth/external-login?provider=Facebook&redirectUrl=http://localhost:5028/login-callback" class="btn btn-outline-primary rounded-circle p-2" style="width: 45px; height: 45px;">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                </div>
+            </div>
+
             <div class="text-center mt-4">
                 <a href="/login" class="text-dark fw-bold text-decoration-none hover-highlight">
                     لديك حساب بالفعل؟ <span class="text-primary">تسجيل الدخول</span>
@@ -178,8 +240,6 @@
         border-left: 1px solid rgba(255, 255, 255, 0.6);
         border-right: none;
         border-radius: 0 10px 10px 0 !important;
-        /* Wait, in RTL: Addon is Right. Input is Left. */
-        /* Addon: Radius Right 10px. Input: Radius Left 10px. */
     }
     
     [dir="rtl"] .input-group > :not(:first-child):not(.dropdown-menu):not(.valid-tooltip):not(.valid-feedback):not(.invalid-tooltip):not(.invalid-feedback) {
@@ -195,17 +255,53 @@
         border-top-right-radius: 10px !important;
         border-bottom-right-radius: 10px !important;
     }
+    .profile-upload-circle {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background-color: #f1f5f9;
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        border: 3px solid white;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        position: relative;
+    }
+
+    .upload-btn {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: var(--theme-primary);
+        color: white;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: transform 0.2s;
+        border: 2px solid white;
+    }
+
+    .upload-btn:hover {
+        transform: scale(1.1);
+    }
 </style>
 
 @code {
-
-
     private Khadamat.Application.DTOs.RegisterRequest registerModel = new();
     private string confirmPassword = "";
     private bool isBusy = false;
     private string errorMessage = "";
     private List<string> apiErrors = new();
     private bool passwordsMatch => string.IsNullOrEmpty(registerModel.Password) || registerModel.Password == confirmPassword;
+    private string? previewImage;
+    private bool isLoadingCities = false;
 
     private List<Khadamat.Application.DTOs.GovernorateDto> governorates = new();
     private List<Khadamat.Application.DTOs.CityDto> cities = new();
@@ -214,6 +310,7 @@
     protected override async Task OnInitializedAsync()
     {
         registerModel.UserType = "User";
+        registerModel.Gender = "Male"; // Default
         
         try 
         {
@@ -225,13 +322,59 @@
         }
     }
 
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            try 
+            {
+                if (file.Size > 5120000) // 5MB
+                {
+                    errorMessage = "حجم الصورة كبير جداً (أقصى حد 5 ميجا)";
+                    return;
+                }
+
+                var buffer = new byte[file.Size];
+                await file.OpenReadStream(5120000).ReadAsync(buffer);
+                registerModel.ProfileImageBase64 = Convert.ToBase64String(buffer);
+                
+                previewImage = $"data:{file.ContentType};base64,{registerModel.ProfileImageBase64}";
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error uploading file: {ex.Message}");
+                errorMessage = "حدث خطأ أثناء رفع الصورة";
+            }
+        }
+    }
+
     private async Task OnGovernorateChanged(ChangeEventArgs e)
     {
-        if (int.TryParse(e.Value?.ToString(), out int govId))
+        if (int.TryParse(e.Value?.ToString(), out int govId) && govId > 0)
         {
             SelectedGovernorateId = govId;
-            cities = await ApiClient.GetCitiesAsync(govId);
-            registerModel.CityId = 0; // Reset city
+            isLoadingCities = true;
+            StateHasChanged();
+            
+            try 
+            {
+                cities = await ApiClient.GetCitiesAsync(govId);
+            }
+            finally 
+            {
+                isLoadingCities = false;
+                registerModel.CityId = 0; // Reset city
+                StateHasChanged();
+            }
+        }
+        else
+        {
+            SelectedGovernorateId = 0;
+            cities.Clear();
+            registerModel.CityId = 0;
+            StateHasChanged();
         }
     }
 
