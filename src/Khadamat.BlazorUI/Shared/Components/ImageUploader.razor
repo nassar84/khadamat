@@ -1,0 +1,125 @@
+@using Microsoft.AspNetCore.Components.Forms
+
+<div class="image-uploader-container @ContainerClass">
+    <div class="image-preview-wrapper rounded-4 border-dashed position-relative overflow-hidden d-flex align-items-center justify-content-center bg-light" 
+         style="height: @(Height); width: @(Width); @(string.IsNullOrEmpty(ImageUrl) ? "" : $"background: url('{ImageUrl}') center/cover;")">
+        
+        @if (string.IsNullOrEmpty(ImageUrl))
+        {
+            <div class="text-center text-muted animate-fade-in">
+                <i class="fa-solid fa-cloud-arrow-up fs-2 mb-2"></i>
+                <div class="small fw-bold">@PickerLabel</div>
+                <div class="x-small">@AcceptedFormatsText</div>
+            </div>
+        }
+        else if (!ReadOnly)
+        {
+            <div class="image-overlay position-absolute inset-0 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center opacity-0 hover-opacity-100 transition-all">
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-sm btn-light rounded-pill px-3 shadow-sm" @onclick="TriggerFilePicker">
+                        تغيير
+                    </button>
+                    <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm" @onclick="ClearImage">
+                        حذف
+                    </button>
+                </div>
+            </div>
+        }
+
+        @if (!ReadOnly)
+        {
+            <InputFile id="@Id" class="position-absolute top-0 start-0 opacity-0 w-100 h-100 cursor-pointer" 
+                       OnChange="OnInputFileChange" accept="image/*" />
+        }
+    </div>
+    
+    @if (!ReadOnly && ShowUrlInput)
+    {
+        <div class="mt-2 animate-fade-in">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white border-0"><i class="fa-solid fa-link text-muted"></i></span>
+                <input type="text" class="form-control border-0 bg-white small" 
+                       placeholder="أو أدخل رابط الصورة هنا..." 
+                       value="@ImageUrl" 
+                       @onchange="OnUrlInputChanged" />
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .border-dashed {
+        border: 2px dashed rgba(0,0,0,0.1);
+        transition: all 0.3s;
+    }
+    .image-preview-wrapper:hover {
+        border-color: var(--primary, #6366f1);
+        background-color: rgba(99, 102, 241, 0.05);
+    }
+    .hover-opacity-100:hover {
+        opacity: 1 !important;
+    }
+    .cursor-pointer {
+        cursor: pointer;
+    }
+    .inset-0 { top: 0; left: 0; right: 0; bottom: 0; }
+    .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+    @@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+</style>
+
+@code {
+    [Parameter] public string? ImageUrl { get; set; }
+    [Parameter] public EventCallback<string?> ImageUrlChanged { get; set; }
+    
+    [Parameter] public string Id { get; set; } = Guid.NewGuid().ToString();
+    [Parameter] public string Height { get; set; } = "200px";
+    [Parameter] public string Width { get; set; } = "100%";
+    [Parameter] public string PickerLabel { get; set; } = "رفع صورة";
+    [Parameter] public string AcceptedFormatsText { get; set; } = "PNG, JPG (800x600)";
+    [Parameter] public bool ReadOnly { get; set; } = false;
+    [Parameter] public bool ShowUrlInput { get; set; } = true;
+    [Parameter] public string ContainerClass { get; set; } = "";
+
+    [Inject] private IJSRuntime JS { get; set; } = default!;
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            // For real apps, you'd upload this to a server.
+            // For now, we simulate by creating a temporary URL or just assigning a random mock image
+            // to show it works.
+            
+            // In a real scenario:
+            // var result = await FileService.Upload(file);
+            // ImageUrl = result.Url;
+            
+            // Simulation:
+            var randomId = Random.Shared.Next(1000);
+            await UpdateImageUrl($"https://picsum.photos/seed/{randomId}/800/600");
+        }
+    }
+
+    private async Task OnUrlInputChanged(ChangeEventArgs e)
+    {
+        await UpdateImageUrl(e.Value?.ToString());
+    }
+
+    private async Task ClearImage()
+    {
+        await UpdateImageUrl(null);
+    }
+
+    private async Task UpdateImageUrl(string? url)
+    {
+        ImageUrl = url;
+        await ImageUrlChanged.InvokeAsync(url);
+    }
+
+    private async Task TriggerFilePicker()
+    {
+        // Programmatically click the input if needed, though stretching the link is usually enough.
+        // Since InputFile is stretched over the area, it handles itself.
+    }
+}

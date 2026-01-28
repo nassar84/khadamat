@@ -1,0 +1,85 @@
+@if (Show)
+{
+    <div class="modal-overlay animate-fade-in" @onclick="Cancel">
+        <div class="glass-card p-4 rounded-4 shadow-lg animate-pop text-center" style="max-width: 400px; width: 90%;" @onclick:stopPropagation="true">
+            <div class="icon-wrapper mb-3 mx-auto @IconBgClass">
+                <i class="@IconClass fs-2"></i>
+            </div>
+            
+            <h5 class="fw-bold mb-2">@Title</h5>
+            <p class="text-muted small mb-4">@Message</p>
+            
+            <div class="d-flex gap-2">
+                <button class="btn @ConfirmBtnClass flex-grow-1 rounded-pill py-2 shadow-sm" @onclick="Confirm" disabled="@IsProcessing">
+                    @if (IsProcessing)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                    }
+                    @ConfirmText
+                </button>
+                <button class="btn btn-light flex-grow-1 rounded-pill py-2" @onclick="Cancel" disabled="@IsProcessing">
+                    @CancelText
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .modal-overlay {
+        position: fixed; inset: 0; z-index: 3000;
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(8px);
+        display: flex; align-items: center; justify-content: center;
+    }
+    .icon-wrapper {
+        width: 70px; height: 70px;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 50%;
+    }
+    .icon-danger { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+    .icon-warning { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+    .icon-info { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
+    .icon-success { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+
+    .animate-fade-in { animation: fadeInConfirm 0.2s ease-out; }
+    .animate-pop { animation: popConfirm 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+    @@keyframes fadeInConfirm { from { opacity: 0; } to { opacity: 1; } }
+    @@keyframes popConfirm { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+</style>
+
+@code {
+    [Parameter] public bool Show { get; set; }
+    [Parameter] public string Title { get; set; } = "تأكيد الإجراء";
+    [Parameter] public string Message { get; set; } = "هل أنت متأكد من رغبتك في تنفيذ هذا الإجراء؟";
+    [Parameter] public string ConfirmText { get; set; } = "تأكيد";
+    [Parameter] public string CancelText { get; set; } = "إلغاء";
+    [Parameter] public string Type { get; set; } = "danger"; // danger, warning, info, success
+    [Parameter] public bool IsProcessing { get; set; } = false;
+
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private string IconClass => Type switch
+    {
+        "danger" => "fa-solid fa-triangle-exclamation",
+        "warning" => "fa-solid fa-circle-exclamation",
+        "info" => "fa-solid fa-circle-info",
+        "success" => "fa-solid fa-circle-check",
+        _ => "fa-solid fa-circle-question"
+    };
+
+    private string IconBgClass => $"icon-{Type}";
+    
+    private string ConfirmBtnClass => Type switch
+    {
+        "danger" => "btn-danger",
+        "warning" => "btn-warning",
+        "success" => "btn-success",
+        _ => "btn-primary"
+    };
+
+    private async Task Confirm() => await OnConfirm.InvokeAsync();
+    private async Task Cancel() => await OnCancel.InvokeAsync();
+}

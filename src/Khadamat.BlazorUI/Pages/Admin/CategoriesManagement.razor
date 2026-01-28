@@ -2,6 +2,7 @@
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
 @using Khadamat.BlazorUI.Components.Common
+@using Khadamat.BlazorUI.Shared.Components
 @inject ApiClient Api
 @inject IJSRuntime JS
 
@@ -72,74 +73,36 @@
     </div>
 </div>
 
-<!-- Category Edit/Add Modal -->
-@if (showModal)
+<!-- Shared Category Form -->
+<CategoryForm Show="showModal" 
+              IsEditing="isEditing" 
+              Model="categoryModel" 
+              OnSave="HandleSave" 
+              OnCancel="() => showModal = false" />
+
+<!-- Shared Confirm Dialog -->
+@if (showDeleteConfirm && nodeToDelete != null)
 {
-    <div class="modal-overlay">
-        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop" style="max-width: 500px;">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="fw-bold mb-0">@(isEditing ? "تعديل" : "إضافة") @(modalNode?.Level == 0 ? "تصنيف رئيسي" : modalNode?.Level == 1 ? "تصنيف فرعي" : "تخصص")</h5>
-                <button class="btn-close" @onclick="() => showModal = false"></button>
-            </div>
-
-            <div class="row g-3">
-                <div class="col-12">
-                    <label class="form-label small fw-bold">الاسم</label>
-                    <input type="text" class="form-control rounded-pill px-4" @bind="modalName">
-                </div>
-
-                @if (modalNode?.Level == 0 || (modalNode == null))
-                {
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold">الأيقونة (FontAwesome)</label>
-                        <input type="text" class="form-control rounded-pill px-4" @bind="modalIcon">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold">اللون (Hex)</label>
-                        <input type="color" class="form-control form-control-color w-100 rounded-pill" @bind="modalColor">
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label small fw-bold">رابط الصورة (اختياري)</label>
-                        <input type="text" class="form-control rounded-pill px-4" @bind="modalImageUrl">
-                    </div>
-                }
-                
-                <div class="col-12">
-                    <label class="form-label small fw-bold">الترتيب</label>
-                    <input type="number" class="form-control rounded-pill px-4" @bind="modalOrder">
-                </div>
-            </div>
-
-            <div class="d-flex gap-2 mt-4">
-                <button class="btn btn-primary flex-grow-1 rounded-pill" @onclick="SaveModal">حفظ</button>
-                <button class="btn btn-light flex-grow-1 rounded-pill" @onclick="() => showModal = false">إلغاء</button>
-            </div>
-        </div>
-    </div>
+    <ConfirmDialog Show="true" 
+                   Title="حذف التصنيف" 
+                   Message="@($"هل أنت متأكد من حذف {nodeToDelete.Name}؟ سيتم حذف جميع التصنيفات التابعة له أيضاً.")"
+                   OnConfirm="HandleDeleteConfirm"
+                   OnCancel="() => { showDeleteConfirm = false; nodeToDelete = null; }" />
 }
-
-<style>
-    .tree-container {
-        max-width: 800px;
-    }
-    .modal-overlay {
-        position: fixed; inset: 0; z-index: 2000;
-        background: rgba(0,0,0,0.4);
-        backdrop-filter: blur(5px);
-        display: flex; align-items: center; justify-content: center;
-    }
-    .animate-pop {
-        animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    @@keyframes pop {
-        from { transform: scale(0.8); opacity: 0; }
-        to { transform: scale(1); opacity: 1; }
-    }
-</style>
 
 @code {
     private List<CategoryNode> treeNodes = new();
     private bool isLoading = true;
+
+    // Modal State
+    private bool showModal = false;
+    private bool isEditing = false;
+    private CategoryNode? modalNode;
+    private CategoryForm.CategoryFormModel categoryModel = new();
+
+    // Delete State
+    private bool showDeleteConfirm = false;
+    private CategoryNode? nodeToDelete;
 
     public class CategoryNode
     {
@@ -150,59 +113,44 @@
         public List<CategoryNode> Children { get; set; } = new();
     }
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadTree();
-    }
+    protected override async Task OnInitializedAsync() => await LoadTree();
 
     private async Task LoadTree()
     {
         isLoading = true;
         treeNodes.Clear();
-        
-        var mainCats = await Api.GetMainCategoriesAsync();
-        foreach (var mc in mainCats)
+        try 
         {
-            var mcNode = new CategoryNode { Id = mc.Id, Name = mc.Name, Level = 0 };
-            
-            var cats = await Api.GetCategoriesByMainIdAsync(mc.Id);
-            foreach (var cat in cats)
+            var mainCats = await Api.GetMainCategoriesAsync();
+            foreach (var mc in mainCats)
             {
-                var catNode = new CategoryNode { Id = cat.Id, Name = cat.Name, Level = 1, ParentId = mc.Id };
-                
-                var subs = await Api.GetSubCategoriesByCategoryIdAsync(cat.Id);
-                foreach (var sub in subs)
+                var mcNode = new CategoryNode { Id = mc.Id, Name = mc.Name, Level = 0 };
+                var cats = await Api.GetCategoriesByMainIdAsync(mc.Id);
+                foreach (var cat in cats)
                 {
-                    catNode.Children.Add(new CategoryNode { Id = sub.Id, Name = sub.Name, Level = 2, ParentId = cat.Id });
+                    var catNode = new CategoryNode { Id = cat.Id, Name = cat.Name, Level = 1, ParentId = mc.Id };
+                    var subs = await Api.GetSubCategoriesByCategoryIdAsync(cat.Id);
+                    foreach (var sub in subs)
+                    {
+                        catNode.Children.Add(new CategoryNode { Id = sub.Id, Name = sub.Name, Level = 2, ParentId = cat.Id });
+                    }
+                    mcNode.Children.Add(catNode);
                 }
-                mcNode.Children.Add(catNode);
+                treeNodes.Add(mcNode);
             }
-            treeNodes.Add(mcNode);
         }
-        
-        isLoading = false;
+        finally { isLoading = false; }
     }
-
-    private bool showModal = false;
-    private bool isEditing = false;
-    private CategoryNode? modalNode;
-    private CategoryNode? modalParentNode;
-    private string modalName = "";
-    private string modalIcon = "fa-solid fa-layer-group";
-    private string modalColor = "#6366f1";
-    private string modalImageUrl = "";
-    private int modalOrder = 0;
 
     private void AddItem(CategoryNode? parent)
     {
-        modalParentNode = parent;
-        modalNode = parent == null ? new CategoryNode { Level = 0 } : new CategoryNode { Level = parent.Level + 1 };
+        modalNode = parent == null ? new CategoryNode { Level = 0 } : new CategoryNode { Level = parent.Level + 1, ParentId = parent.Id };
         isEditing = false;
-        modalName = "";
-        modalIcon = "fa-solid fa-layer-group";
-        modalColor = "#6366f1";
-        modalImageUrl = "";
-        modalOrder = 0;
+        categoryModel = new CategoryForm.CategoryFormModel 
+        { 
+            Level = modalNode.Level, 
+            ParentId = modalNode.ParentId 
+        };
         showModal = true;
     }
 
@@ -210,61 +158,75 @@
     {
         modalNode = node;
         isEditing = true;
-        modalName = node.Name;
-        modalOrder = 0; // Tree nodes don't have order yet in memory, skip for now or fetch deep
+        categoryModel = new CategoryForm.CategoryFormModel
+        {
+            Id = node.Id,
+            Name = node.Name,
+            ParentId = node.ParentId
+        };
 
         if (node.Level == 0)
         {
-            // For main categories, we might want to fetch more details
-            var allMain = await Api.GetMainCategoriesAsync();
-            var detailed = allMain.FirstOrDefault(m => m.Id == node.Id);
+            var detailed = (await Api.GetMainCategoriesAsync()).FirstOrDefault(m => m.Id == node.Id);
             if (detailed != null)
             {
-                modalIcon = detailed.Icon;
-                modalColor = detailed.Color;
-                modalImageUrl = detailed.ImageUrl ?? "";
-                modalOrder = detailed.Order;
+                categoryModel.Icon = detailed.Icon;
+                categoryModel.Color = detailed.Color;
+                categoryModel.ImageUrl = detailed.ImageUrl;
+                categoryModel.Order = detailed.Order;
             }
         }
-        
         showModal = true;
     }
 
-    private async Task SaveModal()
+    private async Task HandleSave(CategoryForm.CategoryFormModel model)
     {
-        if (string.IsNullOrWhiteSpace(modalName)) return;
-
         if (isEditing)
         {
             if (modalNode!.Level == 0)
-                await Api.UpdateMainCategoryAsync(modalNode.Id, new MainCategoryDto { Id = modalNode.Id, Name = modalName, Icon = modalIcon, Color = modalColor, Order = modalOrder, ImageUrl = modalImageUrl });
+                await Api.UpdateMainCategoryAsync(model.Id, new MainCategoryDto { Id = model.Id, Name = model.Name, Icon = model.Icon, Color = model.Color, Order = model.Order, ImageUrl = model.ImageUrl });
             else if (modalNode.Level == 1)
-                await Api.UpdateCategoryAsync(modalNode.Id, new CategoryDto { Id = modalNode.Id, Name = modalName, MainCategoryId = modalNode.ParentId ?? 0 });
+                await Api.UpdateCategoryAsync(model.Id, new CategoryDto { Id = model.Id, Name = model.Name, MainCategoryId = model.ParentId ?? 0 });
             else
-                await Api.UpdateSubCategoryAsync(modalNode.Id, new SubCategoryDto { Id = modalNode.Id, Name = modalName, CategoryId = modalNode.ParentId ?? 0 });
+                await Api.UpdateSubCategoryAsync(model.Id, new SubCategoryDto { Id = model.Id, Name = model.Name, CategoryId = model.ParentId ?? 0 });
         }
         else
         {
             if (modalNode!.Level == 0)
-                await Api.CreateMainCategoryAsync(new MainCategoryDto { Name = modalName, Icon = modalIcon, Color = modalColor, Order = modalOrder, ImageUrl = modalImageUrl });
+                await Api.CreateMainCategoryAsync(new MainCategoryDto { Name = model.Name, Icon = model.Icon, Color = model.Color, Order = model.Order, ImageUrl = model.ImageUrl });
             else if (modalNode.Level == 1)
-                await Api.CreateCategoryAsync(new CategoryDto { Name = modalName, MainCategoryId = modalParentNode!.Id });
+                await Api.CreateCategoryAsync(new CategoryDto { Name = model.Name, MainCategoryId = modalNode.ParentId ?? 0 });
             else
-                await Api.CreateSubCategoryAsync(new SubCategoryDto { Name = modalName, CategoryId = modalParentNode!.Id });
+                await Api.CreateSubCategoryAsync(new SubCategoryDto { Name = model.Name, CategoryId = modalNode.ParentId ?? 0 });
         }
 
         showModal = false;
         await LoadTree();
     }
 
-    private async Task DeleteItem(CategoryNode node)
+    private void DeleteItem(CategoryNode node)
     {
-        if (!await JS.InvokeAsync<bool>("confirm", $"هل أنت متأكد من حذف {node.Name}؟")) return;
+        nodeToDelete = node;
+        showDeleteConfirm = true;
+    }
 
-        if (node.Level == 0) await Api.DeleteMainCategoryAsync(node.Id);
-        else if (node.Level == 1) await Api.DeleteCategoryAsync(node.Id);
-        else await Api.DeleteSubCategoryAsync(node.Id);
-
-        await LoadTree();
+    private async Task HandleDeleteConfirm()
+    {
+        if (nodeToDelete == null) return;
+        try 
+        {
+            if (nodeToDelete.Level == 0) await Api.DeleteMainCategoryAsync(nodeToDelete.Id);
+            else if (nodeToDelete.Level == 1) await Api.DeleteCategoryAsync(nodeToDelete.Id);
+            else await Api.DeleteSubCategoryAsync(nodeToDelete.Id);
+            
+            showDeleteConfirm = false;
+            nodeToDelete = null;
+            await LoadTree();
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "خطأ في الحذف: " + ex.Message);
+        }
     }
 }
+

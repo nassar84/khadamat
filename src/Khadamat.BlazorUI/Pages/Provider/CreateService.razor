@@ -3,446 +3,189 @@
 @using Khadamat.Application.DTOs
 @using Khadamat.Application.Features.Services.Commands
 @using Khadamat.BlazorUI.Services
+@using Khadamat.BlazorUI.Shared.Components
 @inject ApiClient Api
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 
 <div class="px-3 pt-3 pb-5">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-1">
-                    <li class="breadcrumb-item"><a href="/provider/providerdashboard" class="text-decoration-none text-muted">لوحة المزود</a></li>
-                    <li class="breadcrumb-item active">@(Id == 0 ? "إضافة خدمة جديدة" : "تعديل الخدمة")</li>
-                </ol>
-            </nav>
-            <h3 class="fw-bold mb-0">@(Id == 0 ? "إضافة خدمة جديدة" : $"تعديل: {serviceTitle}")</h3>
-        </div>
-        <button class="btn btn-light rounded-pill px-4 shadow-sm" @onclick="GoBack">
-            إلغاء
-        </button>
+    <div class="mb-4">
+         <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="/provider/providerdashboard" class="text-decoration-none text-muted">لوحة المزود</a></li>
+                <li class="breadcrumb-item active">@(Id == 0 ? "إضافة خدمة جديدة" : "تعديل الخدمة")</li>
+            </ol>
+        </nav>
+        <h3 class="fw-bold mb-0 text-primary">@(Id == 0 ? "إضافة خدمة جديدة" : $"تعديل: {serviceTitle}")</h3>
     </div>
 
-    <div class="row g-4">
-        <!-- Main Form -->
-        <div class="col-12 col-lg-8">
-            <div class="glass-card p-4 rounded-4 shadow-sm animate-up">
-                <div class="mb-4">
-                    <label class="form-label fw-bold">اسم الخدمة</label>
-                    <input type="text" class="form-control form-control-lg rounded-3 border-0 bg-light" 
-                           placeholder="مثال: سباك محترف وصيانة عامة" @bind="model.Title" />
-                </div>
-
-                <div class="mb-4">
-                    <label class="form-label fw-bold">وصف الخدمة</label>
-                    <textarea class="form-control rounded-3 border-0 bg-light" rows="5" 
-                              placeholder="اشرح بالتفصيل ما تقدمه في هذه الخدمة..." @bind="model.Description"></textarea>
-                </div>
-
-                <div class="row g-3 mb-4">
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">السعر التقريبي (ج.م)</label>
-                        <input type="number" class="form-control rounded-3 border-0 bg-light" @bind="model.Price" />
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">المحافظة</label>
-                        <select class="form-select rounded-3 border-0 bg-light" @onchange="OnGovernorateChanged">
-                            <option value="">اختر المحافظة</option>
-                            @foreach (var gov in governorates)
-                            {
-                                <option value="@gov.Id" selected="@(selectedGovernorateId == gov.Id)">@gov.NameAr</option>
-                            }
-                        </select>
-                    </div>
-                </div>
-
-                <div class="row g-3 mb-4">
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">المدينة</label>
-                        @if (isLoadingCities)
-                        {
-                            <select class="form-select rounded-3 border-0 bg-light" disabled>
-                                <option>جاري التحميل...</option>
-                            </select>
-                        }
-                        else
-                        {
-                            <select class="form-select rounded-3 border-0 bg-light" @bind="model.CityId" @bind:after="StateHasChanged">
-                                <option value="">اختر المدينة</option>
-                                @foreach (var city in cities)
-                                {
-                                    <option value="@city.Id">@city.NameAr</option>
-                                }
-                            </select>
-                        }
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">المنطقة (اختياري)</label>
-                        <input type="text" class="form-control rounded-3 border-0 bg-light" 
-                               placeholder="مثال: مدينة نصر" @bind="model.Location" />
-                    </div>
-                </div>
-
-                <div class="mb-4">
-                    <label class="form-label fw-bold">العنوان التفصيلي</label>
-                    <input type="text" class="form-control rounded-3 border-0 bg-light" 
-                           placeholder="مثال: 123 شارع السلام، بجانب المسجد الكبير" @bind="model.Address" />
-                </div>
-
-                <div class="row g-3 mb-4">
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">التصنيف الرئيسي <span class="text-danger">*</span></label>
-                        <select class="form-select rounded-3 border-0 bg-light" @onchange="OnMainCategoryChanged">
-                            <option value="">اختر التصنيف</option>
-                            @foreach (var mc in mainCategories)
-                            {
-                                <option value="@mc.Id" selected="@(selectedMainCategoryId == mc.Id)">@mc.Name</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">القسم <span class="text-danger">*</span></label>
-                        <select class="form-select rounded-3 border-0 bg-light" @onchange="OnCategoryChanged">
-                            <option value="">اختر القسم</option>
-                            @foreach (var c in categories)
-                            {
-                                <option value="@c.Id" selected="@(selectedCategoryId == c.Id)">@c.Name</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold">التصنيف الفرعي</label>
-                        <select class="form-select rounded-3 border-0 bg-light" @bind="model.SubCategoryId" @bind:after="StateHasChanged">
-                            <option value="">اختر التصنيف الفرعي</option>
-                            @foreach (var sc in subCategories)
-                            {
-                                <option value="@sc.Id">@sc.Name</option>
-                            }
-                        </select>
-                    </div>
-                </div>
-
-                <hr class="my-4 opacity-25">
-                <h6 class="fw-bold mb-3"><i class="fa-solid fa-address-book text-primary me-2"></i> معلومات التواصل</h6>
-                
-                <div class="row g-3 mb-4">
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold small">رقم الهاتف 1</label>
-                        <input type="text" class="form-control rounded-3 border-0 bg-light" @bind="model.Phone1" placeholder="010XXXXXXXX" />
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold small">رقم واتساب</label>
-                        <input type="text" class="form-control rounded-3 border-0 bg-light" @bind="model.WhatsApp" placeholder="2010XXXXXXXX" />
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold small">رابط فيسبوك</label>
-                        <input type="text" class="form-control rounded-3 border-0 bg-light" @bind="model.Facebook" placeholder="https://facebook.com/..." />
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold small">رابط تيليجرام</label>
-                        <input type="text" class="form-control rounded-3 border-0 bg-light" @bind="model.Telegram" placeholder="https://t.me/..." />
-                    </div>
-                </div>
-
-                <hr class="my-4 opacity-25">
-                <h6 class="fw-bold mb-3"><i class="fa-solid fa-clock text-primary me-2"></i> أوقات العمل</h6>
-                <div class="row g-3 mb-4">
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold small">أيام العمل</label>
-                        <input type="text" class="form-control rounded-3 border-0 bg-light" @bind="model.WorkDays" placeholder="مثال: من السبت للخميس" />
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold small">ساعات العمل</label>
-                        <input type="text" class="form-control rounded-3 border-0 bg-light" @bind="model.WorkHours" placeholder="مثال: 9 ص - 10 م" />
-                    </div>
-                </div>
-
-                <div class="mb-4">
-                    <label class="form-label fw-bold">فيديو يوتيوب (اختياري)</label>
-                    <div class="input-group shadow-sm rounded-3 overflow-hidden">
-                        <span class="input-group-text border-0 bg-white"><i class="fa-brands fa-youtube text-danger"></i></span>
-                        <input type="text" class="form-control border-0 bg-white" 
-                               placeholder="https://www.youtube.com/watch?v=..." @bind="YouTubeUrl" />
-                    </div>
-                    <div class="form-text x-small">أضف رابط فيديو يوتيوب لعرضه في صفحة الخدمة</div>
-                </div>
-            </div>
+    @if(isLoadingData)
+    {
+         <div class="text-center p-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">جاري تحميل البيانات...</p>
         </div>
-
-        <!-- Sidebar / Media -->
-        <div class="col-12 col-lg-4">
-            <div class="glass-card p-4 rounded-4 shadow-sm mb-4 animate-up" style="animation-delay: 0.1s;">
-                <h6 class="fw-bold mb-3">الصورة الأساسية</h6>
-                <div class="image-upload-placeholder rounded-4 d-flex flex-column align-items-center justify-content-center border-dashed position-relative overflow-hidden" 
-                     style="height: 200px; @(string.IsNullOrEmpty(mainImageUrl) ? "" : $"background: url('{mainImageUrl}') center/cover;")">
-                    
-                    @if (string.IsNullOrEmpty(mainImageUrl))
-                    {
-                        <i class="fa-solid fa-cloud-arrow-up fs-2 text-muted mb-2"></i>
-                        <span class="small text-muted">اضغط لرفع صورة</span>
-                    }
-                    else
-                    {
-                        <div class="image-overlay position-absolute inset-0 bg-dark bg-opacity-25 d-flex align-items-center justify-content-center opacity-0 hover-opacity-100 transition-all">
-                            <button class="btn btn-sm btn-light rounded-pill px-3" @onclick="() => mainImageUrl = null" @onclick:stopPropagation="true">تغيير</button>
-                        </div>
-                    }
-                    <button class="stretched-link border-0 bg-transparent" @onclick="SimulateUpload"></button>
-                </div>
-                <div class="form-text x-small mt-2 text-center">يفضل استخدام صور عالية الجودة بحجم 800x600 بكسل</div>
-            </div>
-
-            <div class="glass-card p-4 rounded-4 shadow-sm animate-up" style="animation-delay: 0.2s;">
-                <h6 class="fw-bold mb-3">نصائح للقبول</h6>
-                <ul class="list-unstyled x-small text-muted mb-0">
-                    <li class="mb-2"><i class="fa-solid fa-circle-check text-success me-2"></i> استخدم عنواناً واضحاً وجذاباً</li>
-                    <li class="mb-2"><i class="fa-solid fa-circle-check text-success me-2"></i> أضف وصفاً دقيقاً لخبراتك</li>
-                    <li class="mb-2"><i class="fa-solid fa-circle-check text-success me-2"></i> ارفع صوراً حقيقية لأعمالك السابقة</li>
-                    <li class="mb-0"><i class="fa-solid fa-circle-check text-success me-2"></i> تأكد من تحديد الموقع بدقة</li>
-                </ul>
-            </div>
-
-            <button class="btn btn-primary-premium w-100 rounded-pill py-3 mt-4 shadow-lg animate-up" 
-                    style="animation-delay: 0.3s;" @onclick="SaveService" disabled="@isSaving">
-                @if (isSaving)
-                {
-                    <span class="spinner-border spinner-border-sm me-2"></span>
-                    <span>جاري الحفظ...</span>
-                }
-                else
-                {
-                    <i class="fa-solid fa-upload me-2"></i>
-                    <span>@(Id == 0 ? "نشر الخدمة الآن" : "حفظ التغييرات الجديدة")</span>
-                }
-            </button>
-        </div>
-    </div>
+    }
+    else
+    {
+        <ServiceForm Model="@model" 
+                     MainCategories="@mainCategories" 
+                     Governorates="@governorates"
+                     IsSaving="@isSaving"
+                     ShowTitle="false"
+                     Id="@Id"
+                     OnSave="SaveChanges"
+                     OnCancel="GoBack"
+                     OnUploadImage="SimulateUpload" /> 
+    }
 </div>
-
-<style>
-    .border-dashed {
-        border: 2px dashed rgba(0,0,0,0.1);
-        transition: all 0.3s;
-    }
-    .image-upload-placeholder:hover {
-        border-color: var(--primary);
-        background-color: rgba(99, 102, 241, 0.05);
-    }
-    .hover-opacity-100:hover {
-        opacity: 1 !important;
-    }
-    .inset-0 { top: 0; left: 0; right: 0; bottom: 0; }
-</style>
 
 @code {
     [Parameter] public int Id { get; set; }
     
-    private CreateServiceCommand model = new();
+    private ServiceForm.ServiceFormModel model = new();
     private string? serviceTitle;
     private bool isSaving = false;
-    private string? mainImageUrl;
-    private string? YouTubeUrl;
-    private bool isLoadingCities = false;
+    private bool isLoadingData = true;
 
     private List<MainCategoryDto> mainCategories = new();
-    private List<SubCategoryDto> subCategories = new();
-    private int selectedMainCategoryId;
-    
     private List<GovernorateDto> governorates = new();
-    private List<CityDto> cities = new();
-    private int selectedGovernorateId;
 
     protected override async Task OnInitializedAsync()
     {
-        mainCategories = await Api.GetMainCategoriesAsync();
-        governorates = await Api.GetGovernoratesAsync();
-
-        if (Id != 0)
+        isLoadingData = true;
+        try 
         {
-            var service = await Api.GetServiceByIdAsync(Id);
-            if (service != null)
+            mainCategories = await Api.GetMainCategoriesAsync();
+            governorates = await Api.GetGovernoratesAsync();
+    
+            if (Id != 0)
             {
-                serviceTitle = service.Title;
-                model = new CreateServiceCommand
+                var service = await Api.GetServiceByIdAsync(Id);
+                if (service != null)
                 {
-                    Title = service.Title,
-                    Description = service.Description,
-                    Address = service.Address,
-                    Price = service.Price,
-                    Location = service.Location,
-                    SubCategoryId = service.SubCategoryId,
-                    CityId = service.CityId,
-                    Images = service.Images,
-                    Phone1 = service.Phone1,
-                    Phone2 = service.Phone2,
-                    WhatsApp = service.WhatsApp,
-                    Facebook = service.Facebook,
-                    Telegram = service.Telegram,
-                    WorkDays = service.WorkDays,
-                    WorkHours = service.WorkHours
-                };
-                mainImageUrl = service.Images.FirstOrDefault();
-                YouTubeUrl = service.YouTubeUrl;
-                
-                // Set selected main category based on subcategory
-                selectedMainCategoryId = service.MainCategoryId;
-                if (selectedMainCategoryId != 0)
-                {
-                    categories = await Api.GetCategoriesByMainIdAsync(selectedMainCategoryId);
-                    
-                    if (service.CategoryId.HasValue)
+                    serviceTitle = service.Title;
+                    model = new ServiceForm.ServiceFormModel
                     {
-                        selectedCategoryId = service.CategoryId.Value;
-                        // model.CategoryId is not in CreateServiceCommand initialization above, let's ensure it maps if needed or just handle via selectedCategoryId logic
-                        model.CategoryId = selectedCategoryId;
-                        subCategories = await Api.GetSubCategoriesByCategoryIdAsync(selectedCategoryId);
-                    }
+                        Title = service.Title,
+                        Description = service.Description,
+                        Price = service.Price,
+                        Address = service.Address,
+                        CityId = service.CityId,
+                        Location = service.Location,
+                        CategoryId = service.CategoryId,
+                        SubCategoryId = service.SubCategoryId,
+                        Phone1 = service.Phone1,
+                        WhatsApp = service.WhatsApp,
+                        Facebook = service.Facebook,
+                        Telegram = service.Telegram,
+                        WorkDays = service.WorkDays,
+                        WorkHours = service.WorkHours,
+                        YouTubeUrl = service.YouTubeUrl,
+                        Images = service.Images ?? new List<string>()
+                    };
                 }
-                
-                // Set selected governorate and load cities
-                if (service.GovernorateId.HasValue)
-                {
-                    selectedGovernorateId = service.GovernorateId.Value;
-                    await LoadCities();
-                }
             }
         }
-    }
-
-    private List<CategoryDto> categories = new();
-    private int selectedCategoryId;
-
-    private async Task OnMainCategoryChanged(ChangeEventArgs e)
-    {
-        if (int.TryParse(e.Value?.ToString(), out int val))
+        catch (Exception ex)
         {
-            selectedMainCategoryId = val;
-            categories = await Api.GetCategoriesByMainIdAsync(selectedMainCategoryId);
-            selectedCategoryId = 0;
-            subCategories.Clear();
-            model.SubCategoryId = null;
+            Console.WriteLine(ex);
         }
-    }
-
-    private async Task OnCategoryChanged(ChangeEventArgs e)
-    {
-        if (int.TryParse(e.Value?.ToString(), out int val))
+        finally
         {
-            selectedCategoryId = val;
-            model.CategoryId = val;
-            subCategories = await Api.GetSubCategoriesByCategoryIdAsync(selectedCategoryId);
-            model.SubCategoryId = null; // Reset subcategory when category changes
-        }
-    }
-    
-    private async Task OnGovernorateChanged(ChangeEventArgs e)
-    {
-        if (int.TryParse(e.Value?.ToString(), out int val) && val > 0)
-        {
-            selectedGovernorateId = val;
-            isLoadingCities = true;
-            StateHasChanged();
-            
-            try 
-            {
-                await LoadCities();
-            }
-            finally 
-            {
-                isLoadingCities = false;
-                model.CityId = null;
-                StateHasChanged();
-            }
-        }
-        else
-        {
-            selectedGovernorateId = 0;
-            cities.Clear();
-            model.CityId = null;
-            StateHasChanged();
-        }
-    }
-    
-    private async Task LoadCities()
-    {
-        if (selectedGovernorateId != 0)
-        {
-            cities = await Api.GetCitiesAsync(selectedGovernorateId);
-        }
-        else
-        {
-            cities.Clear();
+            isLoadingData = false;
         }
     }
 
     private void SimulateUpload()
     {
         // Mock image upload
-        mainImageUrl = $"https://picsum.photos/800/600?random={Random.Shared.Next(100)}";
+        var randomImg = $"https://picsum.photos/800/600?random={Random.Shared.Next(100)}";
+        model.Images.Insert(0, randomImg);
+        // Force update? ServiceForm handles binding, but list mutation might not trigger UI update inside child unless we call StateHasChanged or replace list.
+        // Better to create new list reference to trigger change detection in child
+        model.Images = new List<string>(model.Images); 
     }
 
-    private async Task SaveService()
+    private async Task SaveChanges(ServiceForm.ServiceFormModel submittedModel)
     {
-        var errors = new List<string>();
-        if (string.IsNullOrWhiteSpace(model.Title)) errors.Add("اسم الخدمة");
-        if (selectedMainCategoryId == 0) errors.Add("التصنيف الرئيسي");
-        
-        // Ensure CategoryId is set correctly
-        model.CategoryId = selectedCategoryId != 0 ? selectedCategoryId : null;
-        if (model.CategoryId == null && model.SubCategoryId == null) errors.Add("القسم / التصنيف الفرعي");
-
-        if (errors.Any())
+         // Validation
+        if (submittedModel.CategoryId == null && submittedModel.SubCategoryId == null)
         {
-            var msg = "يرجى إكمال البيانات التالية: " + string.Join("، ", errors);
-            await JS.InvokeVoidAsync("alert", msg);
-            return;
+             await JS.InvokeVoidAsync("alert", "يرجى اختيار القسم والتصنيف");
+             return;
         }
 
         isSaving = true;
         try
         {
-            // Update model with simulation results
-            if (!string.IsNullOrEmpty(mainImageUrl))
-            {
-                model = model with { Images = new List<string> { mainImageUrl } };
-            }
-
             if (Id == 0)
             {
-                var result = await Api.CreateServiceAsync(model);
+                var createCommand = new CreateServiceCommand
+                {
+                    Title = submittedModel.Title,
+                    Description = submittedModel.Description,
+                    Address = submittedModel.Address,
+                    Price = submittedModel.Price,
+                    Location = submittedModel.Location,
+                    CategoryId = submittedModel.CategoryId, // Can be null in Model but CreateCommand might need logic
+                    SubCategoryId = submittedModel.SubCategoryId,
+                    CityId = submittedModel.CityId,
+                    Images = submittedModel.Images,
+                    Phone1 = submittedModel.Phone1,
+                    Phone2 = null, // Form doesn't have phone 2 yet
+                    WhatsApp = submittedModel.WhatsApp,
+                    Facebook = submittedModel.Facebook,
+                    Telegram = submittedModel.Telegram,
+                    WorkDays = submittedModel.WorkDays,
+                    WorkHours = submittedModel.WorkHours,
+                    YouTubeUrl = submittedModel.YouTubeUrl
+                };
+
+                var result = await Api.CreateServiceAsync(createCommand);
                 if (result.HasValue)
                 {
+                    await JS.InvokeVoidAsync("alert", "تم إضافة الخدمة بنجاح");
                     Navigation.NavigateTo("/provider/myservices");
+                }
+                else 
+                {
+                     await JS.InvokeVoidAsync("alert", "فشل إضافة الخدمة");
                 }
             }
             else
             {
-                var updateModel = new UpdateServiceCommand
+                var updateCommand = new UpdateServiceCommand
                 {
                     Id = Id,
-                    Title = model.Title,
-                    Description = model.Description,
-                    Address = model.Address,
-                    Price = model.Price,
-                    Location = model.Location,
-                    CategoryId = model.CategoryId,
-                    SubCategoryId = model.SubCategoryId,
-                    Images = model.Images,
-                    YouTubeUrl = YouTubeUrl,
-                    Phone1 = model.Phone1,
-                    Phone2 = model.Phone2,
-                    WhatsApp = model.WhatsApp,
-                    Facebook = model.Facebook,
-                    Telegram = model.Telegram,
-                    WorkDays = model.WorkDays,
-                    WorkHours = model.WorkHours,
-                    CityId = model.CityId
+                    Title = submittedModel.Title,
+                    Description = submittedModel.Description,
+                    Address = submittedModel.Address,
+                    Price = submittedModel.Price,
+                    Location = submittedModel.Location,
+                    CategoryId = submittedModel.CategoryId,
+                    SubCategoryId = submittedModel.SubCategoryId,
+                    CityId = submittedModel.CityId,
+                    Images = submittedModel.Images,
+                    Phone1 = submittedModel.Phone1,
+                    Phone2 = null, 
+                    WhatsApp = submittedModel.WhatsApp,
+                    Facebook = submittedModel.Facebook,
+                    Telegram = submittedModel.Telegram,
+                    WorkDays = submittedModel.WorkDays,
+                    WorkHours = submittedModel.WorkHours,
+                    YouTubeUrl = submittedModel.YouTubeUrl
                 };
-                var result = await Api.UpdateServiceAsync(Id, updateModel);
+
+                var result = await Api.UpdateServiceAsync(Id, updateCommand);
                 if (result)
                 {
+                    await JS.InvokeVoidAsync("alert", "تم تعديل الخدمة بنجاح");
                     Navigation.NavigateTo("/provider/myservices");
+                }
+                else 
+                {
+                     await JS.InvokeVoidAsync("alert", "فشل تعديل الخدمة");
                 }
             }
         }

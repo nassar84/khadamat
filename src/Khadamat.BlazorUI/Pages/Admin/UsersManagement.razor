@@ -4,6 +4,7 @@
 @using Khadamat.BlazorUI.Services
 @using Khadamat.BlazorUI.Services.Admin
 @using Khadamat.BlazorUI.State
+@using Khadamat.BlazorUI.Shared.Components
 @inject ApiClient Api
 @inject IAdminService AdminService
 @inject NavigationManager Navigation
@@ -129,229 +130,20 @@
     </div>
 </div>
 
-<!-- Add New User Modal -->
-@if (showAddUserModal)
-{
-    <div class="modal-overlay">
-        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop" style="max-width: 550px; max-height: 90vh; overflow-y: auto;">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="fw-bold mb-0">إضافة مستخدم جديد</h5>
-                <button class="btn-close" @onclick="() => showAddUserModal = false"></button>
-            </div>
-            
-            @if (!string.IsNullOrEmpty(addUserError))
-            {
-                <div class="alert alert-danger small border-0 mb-3">@addUserError</div>
-            }
-
-            <div class="row g-3">
-                <div class="col-md-12">
-                    <label class="form-label small fw-bold">الاسم الكامل</label>
-                    <input type="text" class="form-control rounded-pill px-4" @bind="newUserModel.FullName" placeholder="أدخل الاسم الكامل">
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label small fw-bold">البريد الإلكتروني</label>
-                    <input type="email" class="form-control rounded-pill px-4" @bind="newUserModel.Email" placeholder="example@domain.com">
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label small fw-bold">رقم الهاتف</label>
-                    <input type="text" class="form-control rounded-pill px-4" @bind="newUserModel.PhoneNumber" placeholder="01xxxxxxxxx">
-                </div>
-
-                <div class="col-md-12">
-                    <label class="form-label small fw-bold">كلمة المرور</label>
-                    <input type="password" class="form-control rounded-pill px-4" @bind="newUserModel.Password" placeholder="أدخل كلمة المرور">
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label small fw-bold">الدور الوظيفي</label>
-                    <select class="form-select rounded-pill px-4" @bind="newUserModel.Role">
-                        <option value="User">مستخدم</option>
-                        @if (CurrentUserRole == "SuperAdmin")
-                        {
-                            <option value="SystemAdmin">مدير نظام</option>
-                            <option value="SuperAdmin">مدير خارق</option>
-                        }
-                    </select>
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label small fw-bold">المحافظة</label>
-                    <select class="form-select rounded-pill px-4" @onchange="OnAddUserGovernorateChanged">
-                        <option value="">اختر المحافظة...</option>
-                        @foreach (var gov in governorates)
-                        {
-                            <option value="@gov.Id">@gov.NameAr</option>
-                        }
-                    </select>
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label small fw-bold">المدينة</label>
-                    <select class="form-select rounded-pill px-4" @bind="newUserModel.CityId">
-                        <option value="">اختر المدينة...</option>
-                        @foreach (var city in filteredCities)
-                        {
-                            <option value="@city.Id">@city.NameAr</option>
-                        }
-                    </select>
-                </div>
-            </div>
-
-            <div class="d-flex gap-2 mt-4">
-                <button class="btn btn-primary flex-grow-1 rounded-pill" @onclick="SaveNewUser" disabled="@isSaving">
-                    @if (isSaving) { <span class="spinner-border spinner-border-sm me-2"></span> }
-                    إنشاء الحساب
-                </button>
-                <button class="btn btn-light flex-grow-1 rounded-pill" @onclick="() => showAddUserModal = false" disabled="@isSaving">إلغاء</button>
-            </div>
-        </div>
-    </div>
-}
+<!-- Shared User Form Component -->
+<UserForm Show="showUserForm" 
+          Mode="@userFormMode" 
+          User="selectedUser" 
+          Governorates="governorates" 
+          Cities="cities" 
+          CurrentUserRole="@CurrentUserRole" 
+          IsSaving="isSaving" 
+          ErrorMessage="@formErrorMessage"
+          OnSave="HandleUserFormSave" 
+          OnCancel="CloseUserForm" />
 
 <!-- Edit User Modal -->
-@if (selectedUser != null && showEditModal)
-{
-    <div class="modal-overlay" @onclick="() => showEditModal = false">
-        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop" style="max-width: 650px; max-height: 85vh; overflow-y: auto;" @onclick:stopPropagation="true">
-            <div class="d-flex justify-content-between align-items-center mb-4 sticky-top bg-white pb-3" style="margin: -1rem -1rem 1rem -1rem; padding: 1rem 1rem 0.5rem 1rem; border-bottom: 1px solid #e9ecef;">
-                <h5 class="fw-bold mb-0">تعديل بيانات المستخدم</h5>
-                <button class="btn-close" @onclick="() => showEditModal = false"></button>
-            </div>
-            
-            <div class="row g-3">
-                <div class="col text-center mb-3">
-                    <div class="position-relative d-inline-block">
-                        <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(editUserModel.FullName, editUserModel.Gender, editUserModel.ProfileImageUrl)" 
-                             class="rounded-circle border border-4 border-white shadow-sm" width="100" height="100" style="object-fit: cover;" />
-                        <button class="btn btn-sm btn-primary rounded-circle position-absolute bottom-0 end-0" @onclick="() => showImageEdit = !showImageEdit">
-                            <i class="fa-solid fa-camera"></i>
-                        </button>
-                    </div>
-                    @if (showImageEdit)
-                    {
-                        <div class="mt-2 animate-fade-in">
-                            <input type="text" class="form-control form-control-sm rounded-pill" @bind="editUserModel.ProfileImageUrl" placeholder="رابط الصورة الجديد..." />
-                        </div>
-                    }
-                </div>
 
-                <div class="col-md-6">
-                    <label class="form-label small fw-bold">الاسم الكامل</label>
-                    <input type="text" class="form-control rounded-pill px-4" @bind="editUserModel.FullName">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label small fw-bold">اسم المستخدم</label>
-                    <input type="text" class="form-control rounded-pill px-4" @bind="editUserModel.UserName">
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label small fw-bold">البريد الإلكتروني</label>
-                    <input type="email" class="form-control rounded-pill px-4" @bind="editUserModel.Email">
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label small fw-bold">رقم الهاتف</label>
-                    <input type="text" class="form-control rounded-pill px-4" @bind="editUserModel.PhoneNumber">
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label small fw-bold">الدور الوظيفي</label>
-                    <select class="form-select rounded-pill px-4" @bind="editUserModel.Role">
-                        <option value="User">مستخدم</option>
-                        @if (CurrentUserRole == "SuperAdmin")
-                        {
-                            <option value="SystemAdmin">مدير نظام</option>
-                            <option value="SuperAdmin">مدير خارق</option>
-                        }
-                    </select>
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label small fw-bold">الجنس</label>
-                    <select class="form-select rounded-pill px-4" @bind="editUserModel.Gender">
-                        <option value="">غير محدد</option>
-                        <option value="Male">ذكر</option>
-                        <option value="Female">أنثى</option>
-                    </select>
-                </div>
-
-                <div class="col-md-6 d-flex align-items-end mb-2">
-                    <div class="form-check form-switch w-100 bg-light p-2 rounded-pill ps-5">
-                        <input class="form-check-input ms-1" type="checkbox" @bind="editUserModel.IsActive" id="activeSwitch">
-                        <label class="form-check-label small fw-bold" for="activeSwitch">حساب نشط</label>
-                    </div>
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label small fw-bold">المحافظة</label>
-                    <select class="form-select rounded-pill px-4" @onchange="OnEditUserGovernorateChanged" value="@selectedEditGovernorateId">
-                        <option value="">اختر المحافظة...</option>
-                        @foreach (var gov in governorates)
-                        {
-                            <option value="@gov.Id">@gov.NameAr</option>
-                        }
-                    </select>
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label small fw-bold">المدينة</label>
-                    <select class="form-select rounded-pill px-4" @bind="editUserModel.CityId">
-                        <option value="">اختر المدينة...</option>
-                        @foreach (var city in editFilteredCities)
-                        {
-                            <option value="@city.Id">@city.NameAr</option>
-                        }
-                    </select>
-                </div>
-
-                <div class="col-12">
-                    <label class="form-label small fw-bold">نبذة (Bio)</label>
-                    <textarea class="form-control rounded-4 px-4" rows="3" @bind="editUserModel.Bio"></textarea>
-                </div>
-
-                 <div class="col-12 mt-3">
-                    <h6 class="fw-bold border-bottom pb-2">روابط التواصل الاجتماعي</h6>
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label x-small text-muted">الموقع الإلكتروني</label>
-                    <input type="text" class="form-control rounded-pill px-4 bg-light small" @bind="editUserModel.WebsiteUrl">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label x-small text-muted">فيسبوك</label>
-                    <input type="text" class="form-control rounded-pill px-4 bg-light small" @bind="editUserModel.FacebookUrl">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label x-small text-muted">انستجرام</label>
-                    <input type="text" class="form-control rounded-pill px-4 bg-light small" @bind="editUserModel.InstagramUrl">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label x-small text-muted">تويتر (X)</label>
-                    <input type="text" class="form-control rounded-pill px-4 bg-light small" @bind="editUserModel.TwitterUrl">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label x-small text-muted">لينكد إن</label>
-                    <input type="text" class="form-control rounded-pill px-4 bg-light small" @bind="editUserModel.LinkedInUrl">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label x-small text-muted">تيك توك</label>
-                    <input type="text" class="form-control rounded-pill px-4 bg-light small" @bind="editUserModel.TikTokUrl">
-                </div>
-            </div>
-
-            <div class="d-flex gap-2 mt-4">
-                <button class="btn btn-primary flex-grow-1 rounded-pill" @onclick="SaveUserChanges" disabled="@isSaving">
-                    @if (isSaving) { <span class="spinner-border spinner-border-sm me-2"></span> }
-                    حفظ التغييرات
-                </button>
-                <button class="btn btn-light flex-grow-1 rounded-pill" @onclick="() => showEditModal = false" disabled="@isSaving">إلغاء</button>
-            </div>
-        </div>
-    </div>
-}
 
 
 <!-- Permissions Modal -->
@@ -392,149 +184,7 @@
 }
 
 <!-- View User Details Modal -->
-@if (selectedUser != null && showDetailsModal)
-{
-    <div class="modal-overlay" @onclick="() => showDetailsModal = false">
-        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop" style="max-width: 600px; max-height: 85vh; overflow-y: auto;" @onclick:stopPropagation="true">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="fw-bold mb-0 text-success">
-                    <i class="fa-solid fa-id-card me-2"></i>تفاصيل @selectedUser.FullName
-                </h5>
-                <button class="btn-close" @onclick="() => showDetailsModal = false"></button>
-            </div>
-            
-            <div class="row g-3">
-                <!-- User Basic Info -->
-                <div class="col-12">
-                    <div class="d-flex align-items-center p-3 bg-light rounded-4 mb-2">
-                        <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(selectedUser.FullName, selectedUser.Gender, selectedUser.ProfileImageUrl)" 
-                             class="rounded-circle me-3" width="60" height="60" style="object-fit: cover;" />
-                        <div>
-                            <div class="fw-bold fs-5">@selectedUser.FullName</div>
-                            <div class="small text-muted">@selectedUser.Email</div>
-                            <span class="badge rounded-pill @GetRoleBadgeClass(selectedUser.Role) mt-1">@GetRoleName(selectedUser.Role)</span>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="col-md-6">
-                    <div class="p-3 bg-white border rounded-4">
-                        <small class="text-muted d-block">إسم المستخدم</small>
-                        <div class="fw-bold">@(selectedUser.UserName ?? "---")</div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="p-3 bg-white border rounded-4">
-                        <small class="text-muted d-block">رقم الهاتف</small>
-                        <div class="fw-bold">@(selectedUser.PhoneNumber ?? "---")</div>
-                    </div>
-                </div>
-
-                <!-- Bio -->
-                <div class="col-12">
-                    <div class="p-3 bg-light rounded-4">
-                        <label class="small fw-bold text-muted mb-2">النبذة التعريفية</label>
-                        <p class="mb-0">@(string.IsNullOrEmpty(selectedUser.Bio) ? "لا توجد نبذة تعريفية متاحة." : selectedUser.Bio)</p>
-                    </div>
-                </div>
-
-                <!-- Social Media Links -->
-                <div class="col-12">
-                    <h6 class="fw-bold border-bottom pb-2 mb-3">روابط التواصل الاجتماعي</h6>
-                    <div class="row g-2">
-                        @if (!string.IsNullOrEmpty(selectedUser.WebsiteUrl))
-                        {
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center p-2 bg-light rounded-3">
-                                    <i class="fa-solid fa-globe text-primary me-2"></i>
-                                    <div class="flex-grow-1 overflow-hidden">
-                                        <small class="text-muted d-block">الموقع</small>
-                                        <a href="@selectedUser.WebsiteUrl" target="_blank" class="small text-truncate d-block">@selectedUser.WebsiteUrl</a>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                        @if (!string.IsNullOrEmpty(selectedUser.FacebookUrl))
-                        {
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center p-2 bg-light rounded-3">
-                                    <i class="fa-brands fa-facebook text-primary me-2"></i>
-                                    <div class="flex-grow-1 overflow-hidden">
-                                        <small class="text-muted d-block">فيسبوك</small>
-                                        <a href="@selectedUser.FacebookUrl" target="_blank" class="small text-truncate d-block">@selectedUser.FacebookUrl</a>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                        @if (!string.IsNullOrEmpty(selectedUser.InstagramUrl))
-                        {
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center p-2 bg-light rounded-3">
-                                    <i class="fa-brands fa-instagram text-danger me-2"></i>
-                                    <div class="flex-grow-1 overflow-hidden">
-                                        <small class="text-muted d-block">انستجرام</small>
-                                        <span class="small">@(selectedUser.InstagramUrl?.StartsWith("@") == true ? selectedUser.InstagramUrl : "@" + selectedUser.InstagramUrl)</span>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                        @if (!string.IsNullOrEmpty(selectedUser.TwitterUrl))
-                        {
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center p-2 bg-light rounded-3">
-                                    <i class="fa-brands fa-x-twitter text-dark me-2"></i>
-                                    <div class="flex-grow-1 overflow-hidden">
-                                        <small class="text-muted d-block">تويتر</small>
-                                        <span class="small">@(selectedUser.TwitterUrl?.StartsWith("@") == true ? selectedUser.TwitterUrl : "@" + selectedUser.TwitterUrl)</span>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                        @if (!string.IsNullOrEmpty(selectedUser.LinkedInUrl))
-                        {
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center p-2 bg-light rounded-3">
-                                    <i class="fa-brands fa-linkedin text-primary me-2"></i>
-                                    <div class="flex-grow-1 overflow-hidden">
-                                        <small class="text-muted d-block">لينكد إن</small>
-                                        <a href="@selectedUser.LinkedInUrl" target="_blank" class="small text-truncate d-block">@selectedUser.LinkedInUrl</a>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                        @if (!string.IsNullOrEmpty(selectedUser.TikTokUrl))
-                        {
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center p-2 bg-light rounded-3">
-                                    <i class="fa-brands fa-tiktok text-dark me-2"></i>
-                                    <div class="flex-grow-1 overflow-hidden">
-                                        <small class="text-muted d-block">تيك توك</small>
-                                        <span class="small">@(selectedUser.TikTokUrl?.StartsWith("@") == true ? selectedUser.TikTokUrl : "@" + selectedUser.TikTokUrl)</span>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                        @if (string.IsNullOrEmpty(selectedUser.WebsiteUrl) && 
-                             string.IsNullOrEmpty(selectedUser.FacebookUrl) && 
-                             string.IsNullOrEmpty(selectedUser.InstagramUrl) &&
-                             string.IsNullOrEmpty(selectedUser.TwitterUrl) &&
-                             string.IsNullOrEmpty(selectedUser.LinkedInUrl) &&
-                             string.IsNullOrEmpty(selectedUser.TikTokUrl))
-                        {
-                            <div class="col-12 text-center py-2">
-                                <p class="text-muted small mb-0">لا توجد روابط تواصل اجتماعي متاحة.</p>
-                            </div>
-                        }
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-4">
-                <button class="btn btn-light w-100 rounded-pill" @onclick="() => showDetailsModal = false">إغلاق</button>
-            </div>
-        </div>
-    </div>
-}
 
 <!-- Change Password Modal -->
 @if (selectedUser != null && showPasswordModal)
@@ -667,6 +317,15 @@
     }
 </style>
 
+@if (showDeleteConfirm && userToDelete != null)
+{
+    <ConfirmDialog Show="true" 
+                   Title="حذف المستخدم" 
+                   Message="@($"هل أنت متأكد من حذف المستخدم {userToDelete.FullName}؟ لا يمكن التراجع عن هذا الإجراء.")"
+                   OnConfirm="HandleDeleteConfirm"
+                   OnCancel="() => { showDeleteConfirm = false; userToDelete = null; }" />
+}
+
 @code {
     private List<UserDto> users = new();
     private string SearchTerm { get; set; } = "";
@@ -674,19 +333,27 @@
     private string SelectedStatus { get; set; } = "";
     private string CurrentUserRole { get; set; } = "";
     private List<GovernorateDto> governorates = new();
-    private List<CityDto> filteredCities = new();
-    private List<CityDto> editFilteredCities = new();
-    private int? selectedEditGovernorateId;
+    private List<CityDto> cities = new();
+    private bool isLoading = true;
     
+    // User Form State
+    private bool showUserForm = false;
+    private string userFormMode = "View"; // "Create", "Edit", "View"
     private UserDto? selectedUser;
-    private bool showPermissionsModal = false;
-    private bool showDetailsModal = false;
-    
-    // Add New User Modal
-    private bool showAddUserModal = false;
-    private CreateUserDto newUserModel = new();
-    private string addUserError = string.Empty;
+    private bool isSaving = false;
+    private string formErrorMessage = "";
 
+    // Password State
+    private bool showPasswordModal = false;
+    private bool showNewPassword = false;
+    private string newPassword = "";
+
+    // Delete State
+    private bool showDeleteConfirm = false;
+    private UserDto? userToDelete;
+
+    // Permissions State
+    private bool showPermissionsModal = false;
     private List<PermissionModel> AvailablePermissions = new()
     {
         new() { Id = "edit_service_info", Name = "تعديل بيانات الخدمة", Description = "تعديل الاسم والوصف والموقع والسعر", IsGranted = true },
@@ -698,87 +365,33 @@
     [CascadingParameter]
     private Task<AuthenticationState> authStateTask { get; set; } = default!;
 
-    private List<CityDto> cities = new();
-
-    private string? openDropdownUserId;
-
-    private void ToggleDropdown(string userId)
-    {
-        if (openDropdownUserId == userId)
-            openDropdownUserId = null;
-        else
-            openDropdownUserId = userId;
-    }
-
     protected override async Task OnInitializedAsync()
     {
-        Console.WriteLine("ANTIGRAVITY_LOG: UsersManagement Initialized");
-        var authState = await authStateTask;
-        CurrentUserRole = authState.User.FindFirst(c => c.Type == System.Security.Claims.ClaimTypes.Role || c.Type == "role")?.Value ?? "";
-        
-        // Load Location Data (Public)
+        isLoading = true;
         try 
         {
-            governorates = await Api.GetGovernoratesAsync();
-            Console.WriteLine($"ANTIGRAVITY_LOG: Loaded {governorates.Count} governorates");
+            var authState = await authStateTask;
+            CurrentUserRole = authState.User.FindFirst(c => c.Type == System.Security.Claims.ClaimTypes.Role || c.Type == "role")?.Value ?? "";
             
-            cities = await Api.GetCitiesAsync(); 
-            Console.WriteLine($"ANTIGRAVITY_LOG: Loaded {cities.Count} cities");
+            // Parallel loading
+            var govTask = Api.GetGovernoratesAsync();
+            var cityTask = Api.GetCitiesAsync();
+            var userTask = AdminService.GetAllUsers();
+
+            await Task.WhenAll(govTask, cityTask, userTask);
+
+            governorates = govTask.Result;
+            cities = cityTask.Result;
+            users = userTask.Result;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"ANTIGRAVITY_LOG_ERROR: Error loading location data: {ex.Message}");
+            Console.WriteLine($"Error loading users management data: {ex.Message}");
         }
-
-        // Load Users Data (Authorized)
-        try
+        finally
         {
-            users = await AdminService.GetAllUsers();
-            Console.WriteLine($"ANTIGRAVITY_LOG: Loaded {users.Count} users");
+            isLoading = false;
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"ANTIGRAVITY_LOG_ERROR: Error loading users data: {ex.Message}");
-            // Optional: Redirect to login if 401? Or show error in UI.
-        }
-    }
-
-    private void OnAddUserGovernorateChanged(ChangeEventArgs e)
-    {
-        var govIdStr = e.Value?.ToString();
-        Console.WriteLine($"ANTIGRAVITY_LOG: OnAddUserGovernorateChanged called with raw value: '{govIdStr}'");
-        if (int.TryParse(govIdStr, out var govId))
-        {
-            filteredCities = cities.Where(c => c.GovernorateId == govId).ToList();
-            Console.WriteLine($"ANTIGRAVITY_LOG: Filtered {filteredCities.Count} cities for gov {govId}");
-        }
-        else
-        {
-            filteredCities = new();
-            Console.WriteLine("ANTIGRAVITY_LOG: Cleared filteredCities");
-        }
-        newUserModel.CityId = null;
-        StateHasChanged();
-    }
-
-    private void OnEditUserGovernorateChanged(ChangeEventArgs e)
-    {
-        var govIdStr = e.Value?.ToString();
-        Console.WriteLine($"ANTIGRAVITY_LOG: OnEditUserGovernorateChanged called with raw value: '{govIdStr}'");
-        if (int.TryParse(govIdStr, out var govId))
-        {
-            selectedEditGovernorateId = govId;
-            editFilteredCities = cities.Where(c => c.GovernorateId == govId).ToList();
-            Console.WriteLine($"ANTIGRAVITY_LOG: Filtered {editFilteredCities.Count} editCities for gov {govId}");
-        }
-        else
-        {
-            selectedEditGovernorateId = null;
-            editFilteredCities = new();
-            Console.WriteLine("ANTIGRAVITY_LOG: Cleared editFilteredCities");
-        }
-        editUserModel.CityId = null;
-        StateHasChanged();
     }
 
     private IEnumerable<UserDto> FilteredUsers => users
@@ -787,15 +400,7 @@
                     (u.Email?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (u.UserName?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false)) &&
                     (string.IsNullOrEmpty(SelectedRole) || u.Role == SelectedRole) &&
-                    (string.IsNullOrEmpty(SelectedStatus) || (SelectedStatus == "active" ? u.IsActive : !u.IsActive)) &&
-                    IsValidUserToShow(u));
-
-    private bool IsValidUserToShow(UserDto u)
-    {
-        // The server-side AdminController already filters users by role correctly.
-        // We only show what the server gives us, plus any UI filters.
-        return true;
-    }
+                    (string.IsNullOrEmpty(SelectedStatus) || (SelectedStatus == "active" ? u.IsActive : !u.IsActive)));
 
     private string GetRoleBadgeClass(string role) => role switch
     {
@@ -816,100 +421,107 @@
         try
         {
             await AdminService.ToggleUserStatus(user.Id);
-            user.IsActive = !user.IsActive; // Optimistic update, but API returns state too so we could use that.
+            user.IsActive = !user.IsActive; 
         }
-        catch { /* Handle error */ }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "خطأ في تغيير الحالة: " + ex.Message);
+        }
     }
 
     private void AddNewUser() 
     {
-        newUserModel = new CreateUserDto { Role = "User" };
-        addUserError = string.Empty;
-        showAddUserModal = true;
+        selectedUser = null;
+        formErrorMessage = "";
+        userFormMode = "Create";
+        showUserForm = true;
     }
 
-    private async Task SaveNewUser()
+    private void OpenEditUser(UserDto user)
     {
-        addUserError = string.Empty;
+        selectedUser = user;
+        formErrorMessage = "";
+        userFormMode = "Edit";
+        showUserForm = true;
+    }
+
+    private void OpenViewDetails(UserDto user)
+    {
+        selectedUser = user;
+        userFormMode = "View";
+        showUserForm = true;
+    }
+
+    private void CloseUserForm() => showUserForm = false;
+
+    private async Task HandleUserFormSave(UserForm.UserFormModel model)
+    {
+        formErrorMessage = "";
         isSaving = true;
 
         try
         {
-            // Basic validation
-            if (string.IsNullOrWhiteSpace(newUserModel.FullName))
+            if (userFormMode == "Create")
             {
-                addUserError = "الاسم الكامل مطلوب";
-                return;
-            }
-            if (string.IsNullOrWhiteSpace(newUserModel.Email))
-            {
-                addUserError = "البريد الإلكتروني مطلوب";
-                return;
-            }
-            if (string.IsNullOrWhiteSpace(newUserModel.Password) || newUserModel.Password.Length < 6)
-            {
-                addUserError = "كلمة المرور يجب أن تكون 6 أحرف على الأقل";
-                return;
-            }
+                var createDto = new CreateUserDto
+                {
+                    FullName = model.FullName,
+                    Email = model.Email,
+                    Password = model.Password,
+                    Role = model.Role,
+                    PhoneNumber = model.PhoneNumber,
+                    CityId = model.CityId
+                };
 
-            var createdUser = await AdminService.CreateUser(newUserModel);
-            if (createdUser != null)
-            {
-                users.Add(createdUser);
-                showAddUserModal = false;
-                await JS.InvokeVoidAsync("alert", $"تم إضافة المستخدم {createdUser.FullName} بنجاح");
+                var createdUser = await AdminService.CreateUser(createDto);
+                if (createdUser != null)
+                {
+                    users.Insert(0, createdUser);
+                    showUserForm = false;
+                    await JS.InvokeVoidAsync("alert", $"تم إضافة المستخدم {createdUser.FullName} بنجاح");
+                }
             }
-        }
-        catch (HttpRequestException ex)
-        {
-            // Try to extract error message from response
-            addUserError = ex.Message.Contains("already") || ex.Message.Contains("مستخدم") 
-                ? "البريد الإلكتروني مستخدم بالفعل" 
-                : "حدث خطأ أثناء إضافة المستخدم";
+            else if (userFormMode == "Edit" && selectedUser != null)
+            {
+                var updateDto = new UserDto
+                {
+                     Id = model.Id,
+                     FullName = model.FullName,
+                     UserName = model.UserName,
+                     Email = model.Email,
+                     PhoneNumber = model.PhoneNumber,
+                     Role = model.Role,
+                     IsActive = model.IsActive,
+                     CityId = model.CityId,
+                     Gender = model.Gender,
+                     ProfileImageUrl = model.ProfileImageUrl,
+                     Bio = model.Bio,
+                     WebsiteUrl = model.WebsiteUrl,
+                     InstagramUrl = model.InstagramUrl,
+                     TwitterUrl = model.TwitterUrl,
+                     FacebookUrl = model.FacebookUrl,
+                     LinkedInUrl = model.LinkedInUrl,
+                     TikTokUrl = model.TikTokUrl
+                };
+
+                await AdminService.UpdateUser(selectedUser.Id, updateDto);
+                
+                // Update Local Instance
+                var index = users.FindIndex(u => u.Id == selectedUser.Id);
+                if (index != -1) users[index] = updateDto;
+
+                showUserForm = false;
+            }
         }
         catch (Exception ex)
         {
-            addUserError = "حدث خطأ غير متوقع: " + ex.Message;
+            formErrorMessage = "خطأ في الحفظ: " + ex.Message;
         }
         finally
         {
             isSaving = false;
         }
     }
-    
-    private void ClearFilters()
-    {
-        SearchTerm = "";
-        SelectedRole = "";
-        SelectedStatus = "";
-    }
-
-    private void OpenPermissions(UserDto user)
-    {
-        selectedUser = user;
-        showPermissionsModal = true;
-    }
-
-    private void SavePermissions()
-    {
-        // Save logic
-        showPermissionsModal = false;
-        // Show success toast
-    }
-
-    private void OpenViewDetails(UserDto user)
-    {
-        selectedUser = user;
-        showDetailsModal = true;
-    }
-
-    private bool showEditModal = false;
-    private bool showPasswordModal = false;
-    private bool showNewPassword = false;
-    private string newPassword = "";
-    private bool showImageEdit = false;
-    private bool isSaving = false;
-    private UserDto editUserModel = new();
 
     private void OpenChangePassword(UserDto user)
     {
@@ -940,107 +552,46 @@
         }
     }
 
-    private void OpenEditUser(UserDto user)
+    private void ConfirmDelete(UserDto user) 
     {
-        selectedUser = user;
-        showImageEdit = false;
-        
-        // Find governorate for the selected user's city
-        if (user.CityId.HasValue)
-        {
-            var city = cities.FirstOrDefault(c => c.Id == user.CityId.Value);
-            if (city != null)
-            {
-                selectedEditGovernorateId = city.GovernorateId;
-                editFilteredCities = cities.Where(c => c.GovernorateId == selectedEditGovernorateId).ToList();
-            }
-        }
-        else
-        {
-            selectedEditGovernorateId = null;
-            editFilteredCities = new();
-        }
-
-        editUserModel = new UserDto
-        {
-            Id = user.Id,
-            UserName = user.UserName,
-            FullName = user.FullName,
-            Email = user.Email,
-            PhoneNumber = user.PhoneNumber,
-            Role = user.Role,
-            IsActive = user.IsActive,
-            ProfileImageUrl = user.ProfileImageUrl,
-            Gender = user.Gender,
-            CityId = user.CityId,
-            Bio = user.Bio,
-            WebsiteUrl = user.WebsiteUrl,
-            InstagramUrl = user.InstagramUrl,
-            TwitterUrl = user.TwitterUrl,
-            FacebookUrl = user.FacebookUrl,
-            LinkedInUrl = user.LinkedInUrl,
-            TikTokUrl = user.TikTokUrl
-        };
-        showEditModal = true;
+        userToDelete = user;
+        showDeleteConfirm = true;
     }
 
-    private async Task SaveUserChanges()
+    private async Task HandleDeleteConfirm()
     {
-        if (selectedUser == null) return;
+        if (userToDelete == null) return;
         
-        isSaving = true;
-        try
+        try 
         {
-            // Update details
-            await AdminService.UpdateUser(selectedUser.Id, editUserModel);
-            
-            // Update role if changed
-            if (selectedUser.Role != editUserModel.Role)
-            {
-                await AdminService.UpdateUserRole(selectedUser.Id, editUserModel.Role);
-            }
-
-            // Sync UI (In-place update)
-            selectedUser.FullName = editUserModel.FullName;
-            selectedUser.UserName = editUserModel.UserName;
-            selectedUser.Email = editUserModel.Email;
-            selectedUser.PhoneNumber = editUserModel.PhoneNumber;
-            selectedUser.Role = editUserModel.Role;
-            selectedUser.CityId = editUserModel.CityId;
-            selectedUser.IsActive = editUserModel.IsActive;
-            selectedUser.Gender = editUserModel.Gender;
-            selectedUser.ProfileImageUrl = editUserModel.ProfileImageUrl;
-            selectedUser.Bio = editUserModel.Bio;
-            selectedUser.WebsiteUrl = editUserModel.WebsiteUrl;
-            selectedUser.InstagramUrl = editUserModel.InstagramUrl;
-            selectedUser.FacebookUrl = editUserModel.FacebookUrl;
-            selectedUser.TwitterUrl = editUserModel.TwitterUrl;
-            selectedUser.LinkedInUrl = editUserModel.LinkedInUrl;
-            selectedUser.TikTokUrl = editUserModel.TikTokUrl;
-            
-            showEditModal = false;
+            await AdminService.DeleteUser(userToDelete.Id);
+            users.Remove(userToDelete);
+            showDeleteConfirm = false;
+            userToDelete = null;
         }
         catch (Exception ex)
         {
-            await JS.InvokeVoidAsync("alert", "خطأ في حفظ البيانات: " + ex.Message);
-        }
-        finally
-        {
-            isSaving = false;
+            await JS.InvokeVoidAsync("alert", "خطأ في الحذف: " + ex.Message);
         }
     }
 
-    private void OpenChangeRole(UserDto user) => OpenEditUser(user);
-
-    private async Task ConfirmDelete(UserDto user) 
+    private void ClearFilters()
     {
-        // Both roles can delete now
+        SearchTerm = "";
+        SelectedRole = "";
+        SelectedStatus = "";
+    }
 
-        if (await JS.InvokeAsync<bool>("confirm", $"هل أنت متأكد من حذف المستخدم {user.FullName}؟"))
-        {
-            await AdminService.DeleteUser(user.Id);
-            users.Remove(user);
-        }
+    private void OpenPermissions(UserDto user)
+    {
+        selectedUser = user;
+        showPermissionsModal = true;
+    }
+
+    private void SavePermissions()
+    {
+        showPermissionsModal = false;
+        // logic...
     }
 
     public class PermissionModel

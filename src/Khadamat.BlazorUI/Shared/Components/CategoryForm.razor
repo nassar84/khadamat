@@ -1,0 +1,96 @@
+@using Khadamat.Application.DTOs
+
+@if (Show)
+{
+    <div class="modal-overlay" @onclick="Cancel">
+        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop" style="max-width: 500px;" @onclick:stopPropagation="true">
+            <div class="d-flex justify-content-between align-items-center mb-4 sticky-top bg-white pb-3" style="margin: -1rem -1rem 1rem -1rem; padding: 1rem 1rem 0.5rem 1rem; border-bottom: 1px solid #e9ecef;">
+                <h5 class="fw-bold mb-0 text-primary">
+                    <i class="@GetIcon() me-2"></i>
+                    @(IsEditing ? "تعديل" : "إضافة") @GetTitle()
+                </h5>
+                <button class="btn-close" @onclick="Cancel"></button>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label small fw-bold">الاسم</label>
+                    <input type="text" class="form-control rounded-pill px-4" @bind="Model.Name" placeholder="أدخل الاسم">
+                </div>
+
+                @if (Model.Level == 0)
+                {
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">الأيقونة (FontAwesome)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0"><i class="@Model.Icon"></i></span>
+                            <input type="text" class="form-control rounded-pill-end border-0 bg-light px-3" @bind="Model.Icon" placeholder="fa-solid fa-...">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">اللون المميز</label>
+                        <input type="color" class="form-control form-control-color w-100 rounded-pill border-0 bg-light p-1" @bind="Model.Color" style="height: 38px;">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-bold">صورة التصنيف</label>
+                        <ImageUploader @bind-ImageUrl="Model.ImageUrl" Height="150px" PickerLabel="اختر صورة للتصنيف" />
+                    </div>
+                }
+                
+                <div class="col-12">
+                    <label class="form-label small fw-bold">ترتيب العرض</label>
+                    <input type="number" class="form-control rounded-pill px-4" @bind="Model.Order">
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button class="btn btn-primary-premium flex-grow-1 rounded-pill" @onclick="Save" disabled="@(string.IsNullOrWhiteSpace(Model.Name))">
+                    حفظ التغييرات
+                </button>
+                <button class="btn btn-light flex-grow-1 rounded-pill" @onclick="Cancel">إلغاء</button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .rounded-pill-end { border-top-right-radius: 50rem !important; border-bottom-right-radius: 50rem !important; }
+</style>
+
+@code {
+    [Parameter] public bool Show { get; set; }
+    [Parameter] public bool IsEditing { get; set; }
+    [Parameter] public CategoryFormModel Model { get; set; } = new();
+
+    [Parameter] public EventCallback<CategoryFormModel> OnSave { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    public class CategoryFormModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public int Level { get; set; }
+        public string Icon { get; set; } = "fa-solid fa-layer-group";
+        public string Color { get; set; } = "#6366f1";
+        public string? ImageUrl { get; set; }
+        public int Order { get; set; }
+        public int? ParentId { get; set; }
+    }
+
+    private string GetTitle() => Model.Level switch
+    {
+        0 => "تصنيف رئيسي",
+        1 => "قسم فرعي",
+        _ => "تخصص"
+    };
+
+    private string GetIcon() => Model.Level switch
+    {
+        0 => "fa-solid fa-layer-group",
+        1 => "fa-solid fa-folder",
+        _ => "fa-solid fa-tag"
+    };
+
+    private async Task Save() => await OnSave.InvokeAsync(Model);
+    private async Task Cancel() => await OnCancel.InvokeAsync();
+}

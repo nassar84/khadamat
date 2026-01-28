@@ -1,0 +1,316 @@
+@using Khadamat.Application.DTOs
+@using Khadamat.Application.Features.Services.Commands
+@using System.ComponentModel.DataAnnotations
+
+<div class="row g-4">
+    <!-- Main Form -->
+    <div class="col-12 col-lg-8">
+        <div class="glass-card p-4 rounded-4 shadow-sm animate-up">
+            @if(ShowTitle) {
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                     <h5 class="fw-bold mb-0">@(Id == 0 ? "إضافة خدمة جديدة" : $"تعديل: {Model.Title}")</h5>
+                     @if(OnCancel.HasDelegate)
+                     {
+                        <button class="btn btn-light rounded-pill px-4 shadow-sm" @onclick="Cancel">إلغاء</button>
+                     }
+                </div>
+            }
+
+            <EditForm Model="@Model" OnValidSubmit="HandleSubmit">
+                <DataAnnotationsValidator />
+                
+                <div class="mb-4">
+                    <label class="form-label fw-bold">اسم الخدمة <span class="text-danger">*</span></label>
+                    <InputText class="form-control form-control-lg rounded-3 border-0 bg-light" 
+                           placeholder="مثال: سباك محترف وصيانة عامة" @bind-Value="Model.Title" disabled="@ReadOnly" />
+                    <ValidationMessage For="@(() => Model.Title)" class="text-danger small" />
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">وصف الخدمة</label>
+                    <InputTextArea class="form-control rounded-3 border-0 bg-light" rows="5" 
+                               placeholder="اشرح بالتفصيل ما تقدمه في هذه الخدمة..." @bind-Value="Model.Description" disabled="@ReadOnly" />
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">السعر التقريبي (ج.م)</label>
+                        <InputNumber class="form-control rounded-3 border-0 bg-light" @bind-Value="Model.Price" disabled="@ReadOnly" />
+                    </div>
+                </div>
+
+                <LocationSelector Governorates="@Governorates" 
+                                  @bind-CityId="Model.CityId" 
+                                  ReadOnly="@ReadOnly"
+                                  Class="rounded-3 border-0 bg-light" />
+
+                <div class="row g-3 mb-4 mt-1">
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">المنطقة (اختياري)</label>
+                        <InputText class="form-control rounded-3 border-0 bg-light" 
+                               placeholder="مثال: مدينة نصر" @bind-Value="Model.Location" disabled="@ReadOnly" />
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">العنوان التفصيلي</label>
+                    <InputText class="form-control rounded-3 border-0 bg-light" 
+                           placeholder="مثال: 123 شارع السلام، بجانب المسجد الكبير" @bind-Value="Model.Address" disabled="@ReadOnly" />
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">التصنيف الرئيسي <span class="text-danger">*</span></label>
+                        <select class="form-select rounded-3 border-0 bg-light" @onchange="OnMainCategoryChanged" value="@selectedMainCategoryId" disabled="@ReadOnly">
+                            <option value="">اختر التصنيف</option>
+                            @foreach (var mc in MainCategories)
+                            {
+                                <option value="@mc.Id">@mc.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">القسم <span class="text-danger">*</span></label>
+                        <select class="form-select rounded-3 border-0 bg-light" @onchange="OnCategoryChanged" value="@selectedCategoryId" disabled="@ReadOnly">
+                            <option value="">اختر القسم</option>
+                            @foreach (var c in filteredCategories)
+                            {
+                                <option value="@c.Id">@c.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">التصنيف الفرعي</label>
+                        <InputSelect class="form-select rounded-3 border-0 bg-light" @bind-Value="Model.SubCategoryId" disabled="@ReadOnly">
+                            <option value="">اختر التصنيف الفرعي</option>
+                            @foreach (var sc in filteredSubCategories)
+                            {
+                                <option value="@sc.Id">@sc.Name</option>
+                            }
+                        </InputSelect>
+                    </div>
+                </div>
+
+                <hr class="my-4 opacity-25">
+                <h6 class="fw-bold mb-3"><i class="fa-solid fa-address-book text-primary me-2"></i> معلومات التواصل</h6>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small">رقم الهاتف 1</label>
+                        <InputText class="form-control rounded-3 border-0 bg-light" @bind-Value="Model.Phone1" placeholder="010XXXXXXXX" disabled="@ReadOnly" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small">رقم واتساب</label>
+                        <InputText class="form-control rounded-3 border-0 bg-light" @bind-Value="Model.WhatsApp" placeholder="2010XXXXXXXX" disabled="@ReadOnly" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small">رابط فيسبوك</label>
+                        <InputText class="form-control rounded-3 border-0 bg-light" @bind-Value="Model.Facebook" placeholder="https://facebook.com/..." disabled="@ReadOnly" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small">رابط تيليجرام</label>
+                        <InputText class="form-control rounded-3 border-0 bg-light" @bind-Value="Model.Telegram" placeholder="https://t.me/..." disabled="@ReadOnly" />
+                    </div>
+                </div>
+
+                <hr class="my-4 opacity-25">
+                <h6 class="fw-bold mb-3"><i class="fa-solid fa-clock text-primary me-2"></i> أوقات العمل</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small">أيام العمل</label>
+                        <InputText class="form-control rounded-3 border-0 bg-light" @bind-Value="Model.WorkDays" placeholder="مثال: من السبت للخميس" disabled="@ReadOnly" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small">ساعات العمل</label>
+                        <InputText class="form-control rounded-3 border-0 bg-light" @bind-Value="Model.WorkHours" placeholder="مثال: 9 ص - 10 م" disabled="@ReadOnly" />
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">فيديو يوتيوب (اختياري)</label>
+                    <div class="input-group shadow-sm rounded-3 overflow-hidden">
+                        <span class="input-group-text border-0 bg-white"><i class="fa-brands fa-youtube text-danger"></i></span>
+                        <InputText class="form-control border-0 bg-white" 
+                               placeholder="https://www.youtube.com/watch?v=..." @bind-Value="Model.YouTubeUrl" disabled="@ReadOnly" />
+                    </div>
+                    <div class="form-text x-small">أضف رابط فيديو يوتيوب لعرضه في صفحة الخدمة</div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+
+    <!-- Sidebar / Media -->
+    <div class="col-12 col-lg-4">
+        <div class="glass-card p-4 rounded-4 shadow-sm mb-4 animate-up" style="animation-delay: 0.1s;">
+            <h6 class="fw-bold mb-3">الصورة الأساسية</h6>
+            <ImageUploader ImageUrl="@(Model.Images.FirstOrDefault())" 
+                           ImageUrlChanged="OnMainImageChanged"
+                           ReadOnly="@ReadOnly"
+                           Height="200px"
+                           PickerLabel="رفع صورة الخدمة"
+                           ShowUrlInput="!ReadOnly"
+                           Class="rounded-4 border-light shadow-sm" />
+            <div class="form-text x-small mt-2 text-center">يفضل استخدام صور عالية الجودة بحجم 800x600 بكسل</div>
+        </div>
+
+        @if (!ReadOnly)
+        {
+            <div class="glass-card p-4 rounded-4 shadow-sm animate-up" style="animation-delay: 0.2s;">
+                <h6 class="fw-bold mb-3">نصائح للقبول</h6>
+                <ul class="list-unstyled x-small text-muted mb-0">
+                    <li class="mb-2"><i class="fa-solid fa-circle-check text-success me-2"></i> استخدم عنواناً واضحاً وجذاباً</li>
+                    <li class="mb-2"><i class="fa-solid fa-circle-check text-success me-2"></i> أضف وصفاً دقيقاً لخبراتك</li>
+                    <li class="mb-2"><i class="fa-solid fa-circle-check text-success me-2"></i> ارفع صوراً حقيقية لأعمالك السابقة</li>
+                    <li class="mb-0"><i class="fa-solid fa-circle-check text-success me-2"></i> تأكد من تحديد الموقع بدقة</li>
+                </ul>
+            </div>
+
+            <button class="btn btn-primary-premium w-100 rounded-pill py-3 mt-4 shadow-lg animate-up" 
+                    style="animation-delay: 0.3s;" @onclick="SubmitForm" disabled="@IsSaving">
+                @if (IsSaving)
+                {
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    <span>جاري الحفظ...</span>
+                }
+                else
+                {
+                    <i class="fa-solid fa-upload me-2"></i>
+                    <span>@(Id == 0 ? "نشر الخدمة الآن" : "حفظ التغييرات الجديدة")</span>
+                }
+            </button>
+        }
+    </div>
+</div>
+
+<style>
+    .border-dashed {
+        border: 2px dashed rgba(0,0,0,0.1);
+        transition: all 0.3s;
+    }
+    .image-upload-placeholder:hover {
+        border-color: var(--primary);
+        background-color: rgba(99, 102, 241, 0.05);
+    }
+    .hover-opacity-100:hover {
+        opacity: 1 !important;
+    }
+    .inset-0 { top: 0; left: 0; right: 0; bottom: 0; }
+</style>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    [Parameter] public ServiceFormModel Model { get; set; } = new();
+    [Parameter] public bool ReadOnly { get; set; } = false;
+    [Parameter] public bool ShowTitle { get; set; } = false;
+    
+    // Dropdown Data Sources
+    [Parameter] public List<MainCategoryDto> MainCategories { get; set; } = new();
+    [Parameter] public List<GovernorateDto> Governorates { get; set; } = new();
+    
+    // State/Loading
+    [Parameter] public bool IsSaving { get; set; }
+    
+    // Events
+    [Parameter] public EventCallback<ServiceFormModel> OnSave { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    
+    // Dependencies for fetching dependent dropdowns
+    [Inject] public ApiClient Api { get; set; } = default!;
+
+    // Internal State
+    private int selectedMainCategoryId;
+    private int selectedCategoryId;
+    private List<CategoryDto> filteredCategories = new();
+    private List<SubCategoryDto> filteredSubCategories = new();
+
+    // Model for the form - flattened for easier binding
+    public class ServiceFormModel
+    {
+         [Required(ErrorMessage = "اسم الخدمة مطلوب")]
+         public string Title { get; set; } = string.Empty;
+         
+         public string Description { get; set; } = string.Empty;
+         public decimal? Price { get; set; }
+         public string Address { get; set; } = string.Empty;
+         
+         public int? CityId { get; set; }
+         public string Location { get; set; } = string.Empty;
+         
+         public int? CategoryId { get; set; }
+         public int? SubCategoryId { get; set; }
+         
+         public string? Phone1 { get; set; }
+         public string? WhatsApp { get; set; }
+         public string? Facebook { get; set; }
+         public string? Telegram { get; set; }
+         
+         public string? WorkDays { get; set; }
+         public string? WorkHours { get; set; }
+         
+         public string? YouTubeUrl { get; set; }
+         public List<string> Images { get; set; } = new();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Model.CategoryId.HasValue && selectedCategoryId != Model.CategoryId.Value)
+        {
+             selectedCategoryId = Model.CategoryId.Value;
+             filteredSubCategories = await Api.GetSubCategoriesByCategoryIdAsync(selectedCategoryId);
+             
+             var cat = await Api.GetCategoryByIdAsync(selectedCategoryId);
+             if (cat != null) 
+             {
+                 selectedMainCategoryId = cat.MainCategoryId;
+                 filteredCategories = await Api.GetCategoriesByMainIdAsync(selectedMainCategoryId);
+             }
+        }
+    }
+
+    private async Task OnMainCategoryChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int val))
+        {
+            selectedMainCategoryId = val;
+            filteredCategories = await Api.GetCategoriesByMainIdAsync(selectedMainCategoryId);
+            
+            selectedCategoryId = 0;
+            Model.CategoryId = null;
+            filteredSubCategories.Clear();
+            Model.SubCategoryId = null;
+        }
+    }
+
+    private async Task OnCategoryChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int val))
+        {
+            selectedCategoryId = val;
+            Model.CategoryId = val;
+            filteredSubCategories = await Api.GetSubCategoriesByCategoryIdAsync(selectedCategoryId);
+            Model.SubCategoryId = null; 
+        }
+    }
+
+    // Instead of internal simulation, we can expose an event or just do the simulation here if allowed.
+    // The previous page did simulation internally.
+   
+    private void OnMainImageChanged(string? url)
+    {
+        Model.Images.Clear();
+        if (!string.IsNullOrEmpty(url)) Model.Images.Add(url);
+    }
+
+    private void SubmitForm() => HandleSubmit(); // Triggered by button
+    
+    private async Task HandleSubmit()
+    {
+        if (Model.CategoryId == null && Model.SubCategoryId == null) 
+        {
+             // Custom validation if needed
+        }
+        await OnSave.InvokeAsync(Model);
+    }
+    
+    private async Task Cancel() => await OnCancel.InvokeAsync();
+}

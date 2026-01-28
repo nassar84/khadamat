@@ -60,6 +60,26 @@ public class LocationsController : ControllerBase
         return Ok(ApiResponse<IEnumerable<CityDto>>.Succeed(cities));
     }
 
+    [HttpGet("cities/{id}")]
+    public async Task<ActionResult<ApiResponse<CityDto>>> GetCity(int id)
+    {
+        var city = await _context.Cities.FindAsync(id);
+        if (city == null) return NotFound(ApiResponse<CityDto>.Fail("City not found"));
+
+        var dto = new CityDto
+        {
+            Id = city.Id,
+            GovernorateId = city.GovernorateId,
+            NameAr = city.City_Name_AR,
+            NameEn = city.City_Name_EN,
+            DisplayOrder = city.DisplayOrder,
+            Approved = city.Approved,
+            CreatedAt = city.CreatedAt
+        };
+        
+        return Ok(ApiResponse<CityDto>.Succeed(dto));
+    }
+
     [HttpGet("cities")]
     public async Task<ActionResult<ApiResponse<IEnumerable<CityDto>>>> GetAllCities()
     {

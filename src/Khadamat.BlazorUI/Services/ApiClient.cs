@@ -188,6 +188,12 @@ public class ApiClient
         return response?.Data ?? new List<CityDto>();
     }
 
+    public async Task<CityDto?> GetCityByIdAsync(int id)
+    {
+        var response = await _http.GetFromJsonAsync<ApiResponse<CityDto>>($"api/v1/locations/cities/{id}");
+        return response?.Data;
+    }
+
     public async Task<bool> CreateGovernorateAsync(GovernorateDto dto)
     {
         var response = await _http.PostAsJsonAsync("api/v1/locations/governorates", dto);

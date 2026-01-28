@@ -1,0 +1,131 @@
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <label class="form-label small fw-bold">المحافظة</label>
+        <select class="form-select @Class" @onchange="OnGovernorateChanged" value="@selectedGovernorateId" disabled="@ReadOnly">
+            <option value="">اختر المحافظة...</option>
+            @foreach (var gov in Governorates)
+            {
+                <option value="@gov.Id">@gov.NameAr</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-6">
+        <label class="form-label small fw-bold">المدينة</label>
+        @if (isLoadingCities)
+        {
+             <select class="form-select @Class" disabled>
+                <option>جاري التحميل...</option>
+            </select>
+        }
+        else
+        {
+            <select class="form-select @Class" @onchange="OnCityChangedHandler" value="@CityId" disabled="@ReadOnly">
+                <option value="">اختر المدينة...</option>
+                @foreach (var city in filteredCities)
+                {
+                    <option value="@city.Id">@city.NameAr</option>
+                }
+            </select>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<GovernorateDto> Governorates { get; set; } = new();
+    [Parameter] public int? CityId { get; set; }
+    [Parameter] public EventCallback<int?> CityIdChanged { get; set; }
+    [Parameter] public bool ReadOnly { get; set; }
+    [Parameter] public string Class { get; set; } = "rounded-pill px-4";
+
+    private int? selectedGovernorateId;
+    private List<CityDto> filteredCities = new();
+    private bool isLoadingCities = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // When CityId changes (e.g. initial load), we need to set the governorate
+        if (CityId.HasValue)
+        {
+             // If we already have the correct governorate selected, do nothing
+             // Check if current city lists contains the CityId
+             if (filteredCities.Any(c => c.Id == CityId.Value)) 
+             {
+                 return;
+             }
+
+             // Otherwise we need to fetch info
+             try 
+             {
+                 var city = await Api.GetCityByIdAsync(CityId.Value);
+                 if (city != null && city.GovernorateId != selectedGovernorateId)
+                 {
+                     selectedGovernorateId = city.GovernorateId;
+                     await LoadCities();
+                 }
+             }
+             catch
+             {
+                 // Handle error or ignore
+             }
+        }
+    }
+
+    private async Task OnGovernorateChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int val) && val > 0)
+        {
+            selectedGovernorateId = val;
+            await LoadCities();
+            await UpdateCity(null);
+        }
+        else
+        {
+            selectedGovernorateId = null;
+            filteredCities.Clear();
+            await UpdateCity(null);
+        }
+    }
+
+    private async Task OnCityChangedHandler(ChangeEventArgs e)
+    {
+         if (int.TryParse(e.Value?.ToString(), out int val) && val > 0)
+         {
+             await UpdateCity(val);
+         }
+         else
+         {
+             await UpdateCity(null);
+         }
+    }
+
+    private async Task UpdateCity(int? cityId)
+    {
+        CityId = cityId;
+        await CityIdChanged.InvokeAsync(cityId);
+    }
+    
+    private async Task LoadCities()
+    {
+        if (selectedGovernorateId.HasValue)
+        {
+            isLoadingCities = true;
+            try 
+            {
+                filteredCities = await Api.GetCitiesAsync(selectedGovernorateId.Value);
+            }
+            finally
+            {
+                isLoadingCities = false;
+            }
+        }
+        else
+        {
+            filteredCities.Clear();
+        }
+    }
+}
