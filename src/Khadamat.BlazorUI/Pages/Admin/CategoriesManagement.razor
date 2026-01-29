@@ -173,7 +173,7 @@
                 categoryModel.Icon = detailed.Icon;
                 categoryModel.Color = detailed.Color;
                 categoryModel.ImageUrl = detailed.ImageUrl;
-                categoryModel.Order = detailed.Order;
+                categoryModel.DisplayOrder = detailed.DisplayOrder;
             }
         }
         showModal = true;
@@ -184,7 +184,7 @@
         if (isEditing)
         {
             if (modalNode!.Level == 0)
-                await Api.UpdateMainCategoryAsync(model.Id, new MainCategoryDto { Id = model.Id, Name = model.Name, Icon = model.Icon, Color = model.Color, Order = model.Order, ImageUrl = model.ImageUrl });
+                await Api.UpdateMainCategoryAsync(model.Id, new MainCategoryDto { Id = model.Id, Name = model.Name, Icon = model.Icon, Color = model.Color, DisplayOrder = model.DisplayOrder, ImageUrl = model.ImageUrl });
             else if (modalNode.Level == 1)
                 await Api.UpdateCategoryAsync(model.Id, new CategoryDto { Id = model.Id, Name = model.Name, MainCategoryId = model.ParentId ?? 0 });
             else
@@ -193,7 +193,7 @@
         else
         {
             if (modalNode!.Level == 0)
-                await Api.CreateMainCategoryAsync(new MainCategoryDto { Name = model.Name, Icon = model.Icon, Color = model.Color, Order = model.Order, ImageUrl = model.ImageUrl });
+                await Api.CreateMainCategoryAsync(new MainCategoryDto { Name = model.Name, Icon = model.Icon, Color = model.Color, DisplayOrder = model.DisplayOrder, ImageUrl = model.ImageUrl });
             else if (modalNode.Level == 1)
                 await Api.CreateCategoryAsync(new CategoryDto { Name = model.Name, MainCategoryId = modalNode.ParentId ?? 0 });
             else

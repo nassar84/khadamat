@@ -8,10 +8,7 @@
         <Header />
         
         <main class="app-content">
-            @if (ShowPromotionalContent)
-            {
-                <CategoryMarquee />
-            }
+
             <div class="content-wrapper">
                 @if (ShowHeroAds)
                 {
@@ -42,8 +39,14 @@
         display: flex;
         flex-direction: column;
         min-height: 100vh;
-        overflow-y: auto;
         position: relative;
+        max-width: calc(100% - 280px); /* Account for sidebar width */
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .khadamat-app.collapsed .app-main-view {
+        max-width: calc(100% - 80px);
     }
 
     @@media (max-width: 991px) {
@@ -52,6 +55,7 @@
         }
         .app-main-view {
             width: 100%;
+            max-width: 100%;
         }
     }
 </style>

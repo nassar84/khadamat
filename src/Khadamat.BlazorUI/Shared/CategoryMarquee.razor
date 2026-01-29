@@ -4,117 +4,100 @@
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
 
-<div class="category-marquee-container" @ref="containerRef">
-    <div class="scroll-track" @ref="scrollTrackRef">
-        @if (categories != null && categories.Any())
-        {
-            @* First set of categories *@
-            @foreach (var cat in categories)
+<div class="category-marquee-container @(categories == null ? "loading" : "")" @ref="containerRef">
+    <div class="swiper categories-swiper h-100">
+        <div class="swiper-wrapper align-items-center">
+            @if (categories != null && categories.Any())
             {
-                <div class="category-item d-flex flex-column align-items-center" @onclick="() => OnCategorySelected(cat)">
-                    <div class="category-shape-wrapper p-0">
-                        @{
-                            var imageUrl = "";
-                            
-                            // Priority 1: Use ImageUrl if it exists and is a valid URL
-                            if (!string.IsNullOrEmpty(cat.ImageUrl) && (cat.ImageUrl.StartsWith("http") || cat.ImageUrl.StartsWith("/images") || cat.ImageUrl.StartsWith("images/")))
-                            {
-                                imageUrl = cat.ImageUrl;
-                            }
-                            // Priority 2: Use Icon if it's a URL (not an emoji)
-                            else if (!string.IsNullOrEmpty(cat.Icon) && (cat.Icon.StartsWith("http") || cat.Icon.StartsWith("/images") || cat.Icon.StartsWith("images/")))
-                            {
-                                imageUrl = cat.Icon;
-                            }
-                            // Priority 3: Use default category image based on name
-                            else
-                            {
-                                imageUrl = Khadamat.BlazorUI.Helpers.DefaultImages.GetCategoryImage(cat.Name);
-                            }
-                        }
-                        <img src="@imageUrl" 
-                             class="w-100 h-100 object-fit-cover" alt="@cat.Name" 
-                             style="opacity: 0.9; border-radius: 50%;" />
+                @foreach (var cat in categories)
+                {
+                    <div class="swiper-slide w-auto">
+                        <div class="category-item d-flex flex-column align-items-center" @onclick="() => OnCategorySelected(cat)">
+                            <div class="category-shape-wrapper p-0">
+                                @{
+                                    var imageUrl = "";
+                                    
+                                    if (!string.IsNullOrEmpty(cat.ImageUrl) && (cat.ImageUrl.StartsWith("http") || cat.ImageUrl.StartsWith("/images") || cat.ImageUrl.StartsWith("images/")))
+                                    {
+                                        imageUrl = cat.ImageUrl;
+                                    }
+                                    else if (!string.IsNullOrEmpty(cat.Icon) && (cat.Icon.StartsWith("http") || cat.Icon.StartsWith("/images") || cat.Icon.StartsWith("images/")))
+                                    {
+                                        imageUrl = cat.Icon;
+                                    }
+                                    else
+                                    {
+                                        imageUrl = Khadamat.BlazorUI.Helpers.DefaultImages.GetCategoryImage(cat.Name);
+                                    }
+                                }
+                                <img src="@imageUrl" 
+                                     class="w-100 h-100 object-fit-cover" alt="@cat.Name" 
+                                     style="opacity: 0.9; border-radius: 50%;" />
+                            </div>
+                            <span class="category-name-small">@cat.Name</span>
+                        </div>
                     </div>
-                    <span class="category-name-small">@cat.Name</span>
-                </div>
+                }
             }
-            @* Second set for infinite loop *@
-            @foreach (var cat in categories)
+            else if (categories == null)
             {
-                <div class="category-item d-flex flex-column align-items-center" @onclick="() => OnCategorySelected(cat)">
-                    <div class="category-shape-wrapper p-0">
-                        @{
-                            var imageUrl = "";
-                            
-                            if (!string.IsNullOrEmpty(cat.ImageUrl) && (cat.ImageUrl.StartsWith("http") || cat.ImageUrl.StartsWith("/images") || cat.ImageUrl.StartsWith("images/")))
-                            {
-                                imageUrl = cat.ImageUrl;
-                            }
-                            else if (!string.IsNullOrEmpty(cat.Icon) && (cat.Icon.StartsWith("http") || cat.Icon.StartsWith("/images") || cat.Icon.StartsWith("images/")))
-                            {
-                                imageUrl = cat.Icon;
-                            }
-                            else
-                            {
-                                imageUrl = Khadamat.BlazorUI.Helpers.DefaultImages.GetCategoryImage(cat.Name);
-                            }
-                        }
-                        <img src="@imageUrl" 
-                             class="w-100 h-100 object-fit-cover" alt="@cat.Name" 
-                             style="opacity: 0.9; border-radius: 50%;" />
+                @for (int i = 0; i < 10; i++)
+                {
+                    <div class="swiper-slide w-auto">
+                        <div class="category-item d-flex flex-column align-items-center">
+                            <div class="category-shape-wrapper skeleton"></div>
+                            <div class="skeleton rounded-pill mt-2" style="width: 40px; height: 10px;"></div>
+                        </div>
                     </div>
-                    <span class="category-name-small">@cat.Name</span>
-                </div>
+                }
             }
-        }
-        else if (categories == null)
-        {
-            @for (int i = 0; i < 10; i++)
-            {
-                <div class="category-item d-flex flex-column align-items-center">
-                    <div class="category-shape-wrapper skeleton"></div>
-                    <div class="skeleton rounded-pill mt-2" style="width: 40px; height: 10px;"></div>
-                </div>
-            }
-        }
+        </div>
     </div>
 </div>
 
 <style>
     .category-marquee-container {
-        padding: 15px 0 25px 0;
-        margin-bottom: 25px;
+        padding: 5px 0 10px 0;
+        margin-bottom: 25px; /* Added gap between marquee and ads/content */
         overflow-x: auto;
         overflow-y: visible;
         width: 100%;
-        position: relative;
-        cursor: grab;
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none; /* IE and Edge */
+        position: sticky;
+        top: 85px; /* Sticky below Desktop Header */
+        z-index: 990; 
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    /* Mobile Headers vary, we'll try to stick below them */
+    @@media (max-width: 991px) {
+        .category-marquee-container {
+            top: 75px; /* Sticky below Mobile Header */
+            padding: 2px 0 8px 0;
+        }
+        .category-shape-wrapper {
+            width: 55px !important;
+            height: 55px !important;
+        }
+        .category-name-small {
+            font-size: 0.75rem !important;
+            margin-top: 4px;
+        }
     }
 
     .category-marquee-container::-webkit-scrollbar {
-        display: none; /* Chrome, Safari, Opera */
+        display: none;
     }
 
     .category-marquee-container:active {
         cursor: grabbing;
     }
 
-    .scroll-track {
-        display: flex;
-        width: fit-content;
-        animation: marquee-infinite 20s linear infinite;
-        padding: 10px 0;
-    }
-
-    .scroll-track:hover {
-        animation-play-state: paused;
-    }
-
     .category-item {
-        margin: 0 18px;
         padding: 8px;
         transition: transform 0.3s ease;
         cursor: pointer;
@@ -216,28 +199,17 @@
         text-overflow: ellipsis;
     }
 
-    /* Infinite loop animation - faster */
-    @@keyframes marquee-infinite {
-        0% {
-            transform: translateX(0);
-        }
-        100% {
-            transform: translateX(-50%);
-        }
+    /* Swiper custom styles */
+    .swiper-slide {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0 10px;
     }
 
-    /* RTL Support */
-    [dir="rtl"] .scroll-track {
-        animation: marquee-infinite-rtl 20s linear infinite;
-    }
-
-    @@keyframes marquee-infinite-rtl {
-        0% {
-            transform: translateX(0);
-        }
-        100% {
-            transform: translateX(50%);
-        }
+    .category-marquee-container.loading {
+        opacity: 0.6;
+        pointer-events: none;
     }
     
     .skeleton {
@@ -255,7 +227,6 @@
 @code {
     private List<MainCategoryDto>? categories;
     private ElementReference containerRef;
-    private ElementReference scrollTrackRef;
 
     protected override void OnInitialized()
     {
@@ -265,15 +236,15 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && categories != null && categories.Any())
+        if (categories != null && categories.Any())
         {
             try
             {
-                await JS.InvokeVoidAsync("initCategoryDragScroll", containerRef);
+                await JS.InvokeVoidAsync("initCategoriesSlider");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error initializing drag scroll: {ex.Message}");
+                Console.WriteLine($"Error initializing swiper: {ex.Message}");
             }
         }
     }
@@ -282,7 +253,21 @@
     {
         try
         {
-            categories = await Api.GetMainCategoriesAsync();
+            var results = await Api.GetMainCategoriesAsync();
+            if (results != null && results.Any())
+            {
+                // To ensure infinite loop works with few items, we duplicate them
+                var duplicated = new List<MainCategoryDto>();
+                while (duplicated.Count < 12)
+                {
+                    duplicated.AddRange(results);
+                }
+                categories = duplicated;
+            }
+            else
+            {
+                categories = new();
+            }
             await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)

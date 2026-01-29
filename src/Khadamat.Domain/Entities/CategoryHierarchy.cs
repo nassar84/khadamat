@@ -8,25 +8,25 @@ public class MainCategory : BaseEntity
     public string Icon { get; set; } = string.Empty;
     public string? ImageUrl { get; set; }
     public string Color { get; set; } = string.Empty;
-    public int Order { get; set; }
+    public int DisplayOrder { get; set; }
     
     public virtual ICollection<Category> Categories { get; set; } = new List<Category>();
 
     public MainCategory() { }
-    public MainCategory(string name, string icon, string color, int order)
+    public MainCategory(string name, string icon, string color, int displayOrder)
     {
         Name = name;
         Icon = icon;
         Color = color;
-        Order = order;
+        DisplayOrder = displayOrder;
     }
 
-    public void Update(string name, string icon, string color, int order, string? imageUrl = null)
+    public void Update(string name, string icon, string color, int displayOrder, string? imageUrl = null)
     {
         Name = name;
         Icon = icon;
         Color = color;
-        Order = order;
+        DisplayOrder = displayOrder;
         ImageUrl = imageUrl;
         UpdatedAt = System.DateTime.UtcNow;
     }

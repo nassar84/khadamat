@@ -26,7 +26,7 @@ public class CategoriesController : ControllerBase
     public async Task<ActionResult<ApiResponse<IEnumerable<MainCategoryDto>>>> GetMainCategories()
     {
         var categories = await _context.MainCategories
-            .OrderBy(c => c.Order)
+            .OrderBy(c => c.DisplayOrder)
             .Select(c => new MainCategoryDto 
             { 
                 Id = c.Id, 
@@ -34,7 +34,7 @@ public class CategoriesController : ControllerBase
                 Icon = c.Icon, 
                 ImageUrl = c.ImageUrl,
                 Color = c.Color, 
-                Order = c.Order 
+                DisplayOrder = c.DisplayOrder 
             })
             .ToListAsync();
         
@@ -125,7 +125,7 @@ public class CategoriesController : ControllerBase
     [Authorize(Policy = "RequireAdmin")]
     public async Task<ActionResult<ApiResponse<int>>> CreateMainCategory(MainCategoryDto dto)
     {
-        var category = new MainCategory(dto.Name, dto.Icon, dto.Color, dto.Order);
+        var category = new MainCategory(dto.Name, dto.Icon, dto.Color, dto.DisplayOrder);
         _context.MainCategories.Add(category);
         await _context.SaveChangesAsync();
         return Ok(ApiResponse<int>.Succeed(category.Id));
@@ -138,7 +138,7 @@ public class CategoriesController : ControllerBase
         var category = await _context.MainCategories.FindAsync(id);
         if (category == null) return NotFound(ApiResponse<bool>.Fail("Not found"));
         
-        category.Update(dto.Name, dto.Icon, dto.Color, dto.Order, dto.ImageUrl);
+        category.Update(dto.Name, dto.Icon, dto.Color, dto.DisplayOrder, dto.ImageUrl);
         await _context.SaveChangesAsync();
         return Ok(ApiResponse<bool>.Succeed(true));
     }

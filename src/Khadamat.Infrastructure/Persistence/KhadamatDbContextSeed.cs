@@ -25,17 +25,17 @@ public static class KhadamatDbContextSeed
         {
             var mainCategories = new List<MainCategory>
             {
-                new MainCategory { Name = "صحة", Icon = "🏥", Color = "medical", Order = 1 },
-                new MainCategory { Name = "تعليم", Icon = "🎓", Color = "education", Order = 2 },
-                new MainCategory { Name = "متاجر", Icon = "🏪", Color = "stores", Order = 3 },
-                new MainCategory { Name = "ماكولات ومشروبات", Icon = "🍲", Color = "food", Order = 4 },
-                new MainCategory { Name = "مكاتب", Icon = "🏢", Color = "offices", Order = 5 },
-                new MainCategory { Name = "حرفيون", Icon = "🛠️", Color = "crafts", Order = 6 },
-                new MainCategory { Name = "تسوق اون لين", Icon = "🛒", Color = "online", Order = 7 },
-                new MainCategory { Name = "مواصلات", Icon = "🚗", Color = "transport", Order = 8 },
-                new MainCategory { Name = "صيانة سيارات", Icon = "🔧", Color = "auto", Order = 9 },
-                new MainCategory { Name = "خدمات حكومية", Icon = "🏛️", Color = "gov", Order = 10 },
-                new MainCategory { Name = "خدمات اخرى", Icon = "✨", Color = "other", Order = 11 }
+                new MainCategory { Name = "صحة", Icon = "🏥", Color = "medical", DisplayOrder = 1 },
+                new MainCategory { Name = "تعليم", Icon = "🎓", Color = "education", DisplayOrder = 2 },
+                new MainCategory { Name = "متاجر", Icon = "🏪", Color = "stores", DisplayOrder = 3 },
+                new MainCategory { Name = "ماكولات ومشروبات", Icon = "🍲", Color = "food", DisplayOrder = 4 },
+                new MainCategory { Name = "مكاتب", Icon = "🏢", Color = "offices", DisplayOrder = 5 },
+                new MainCategory { Name = "حرفيون", Icon = "🛠️", Color = "crafts", DisplayOrder = 6 },
+                new MainCategory { Name = "تسوق اون لين", Icon = "🛒", Color = "online", DisplayOrder = 7 },
+                new MainCategory { Name = "مواصلات", Icon = "🚗", Color = "transport", DisplayOrder = 8 },
+                new MainCategory { Name = "صيانة سيارات", Icon = "🔧", Color = "auto", DisplayOrder = 9 },
+                new MainCategory { Name = "خدمات حكومية", Icon = "🏛️", Color = "gov", DisplayOrder = 10 },
+                new MainCategory { Name = "خدمات اخرى", Icon = "✨", Color = "other", DisplayOrder = 11 }
             };
 
             await context.MainCategories.AddRangeAsync(mainCategories);
@@ -83,7 +83,7 @@ public static class KhadamatDbContextSeed
         ad1.Approve();
 
         var ad2 = new Ad("خصومات الصيانة", "وفر 30% على صيانة التكييفات اليوم!", now.AddDays(-1), now.AddMonths(1), "Image");
-        ad2.UpdateDetails(ad1.Title, ad1.Description, ad1.StartDate, ad1.EndDate, placement: "Slider"); // Note: there's a typo in seed code using ad1.Title for ad2, I'll fix it while I'm here
+        ad2.UpdateDetails(ad2.Title, ad2.Description, ad2.StartDate, ad2.EndDate, placement: "Slider"); // Note: there's a typo in seed code using ad1.Title for ad2, I'll fix it while I'm here
         ad2.SetMainImage("hero-gradient-1");
         ad2.Approve();
 

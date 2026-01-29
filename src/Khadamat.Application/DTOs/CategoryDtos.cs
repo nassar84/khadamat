@@ -9,7 +9,7 @@ public class MainCategoryDto
     public string Icon { get; set; } = string.Empty;
     public string? ImageUrl { get; set; }
     public string Color { get; set; } = string.Empty;
-    public int Order { get; set; }
+    public int DisplayOrder { get; set; }
 }
 
 public class CategoryDto

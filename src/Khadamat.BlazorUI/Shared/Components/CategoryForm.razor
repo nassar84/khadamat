@@ -39,7 +39,7 @@
                 
                 <div class="col-12">
                     <label class="form-label small fw-bold">ترتيب العرض</label>
-                    <input type="number" class="form-control rounded-pill px-4" @bind="Model.Order">
+                    <input type="number" class="form-control rounded-pill px-4" @bind="Model.DisplayOrder">
                 </div>
             </div>
 
@@ -73,7 +73,7 @@
         public string Icon { get; set; } = "fa-solid fa-layer-group";
         public string Color { get; set; } = "#6366f1";
         public string? ImageUrl { get; set; }
-        public int Order { get; set; }
+        public int DisplayOrder { get; set; }
         public int? ParentId { get; set; }
     }
 
