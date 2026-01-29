@@ -158,6 +158,12 @@
                                                             <option value="@city.Id">@city.NameAr</option>
                                                         }
                                                     </InputSelect>
+                                                    @if (selectedGovernorateId > 0 && cities.Count == 0)
+                                                    {
+                                                        <div class="text-danger small mt-1">
+                                                            <i class="fa-solid fa-triangle-exclamation me-1"></i> لا توجد مدن متاحة
+                                                        </div>
+                                                    }
                                                 }
                                             </div>
                                             <ValidationMessage For="@(() => model.CityId)" class="text-danger small mt-1" />
