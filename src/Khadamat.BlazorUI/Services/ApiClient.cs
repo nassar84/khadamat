@@ -47,7 +47,15 @@ public class ApiClient
         if (!string.IsNullOrEmpty(userId)) url += $"&userId={Uri.EscapeDataString(userId)}";
         if (isApproved.HasValue) url += $"&isApproved={isApproved}";
         
-        return await _http.GetFromJsonAsync<PaginatedResult<ServiceDto>>(url) ?? new PaginatedResult<ServiceDto>(new List<ServiceDto>(), 0, page, pageSize);
+        try
+        {
+            return await _http.GetFromJsonAsync<PaginatedResult<ServiceDto>>(url) ?? new PaginatedResult<ServiceDto>(new List<ServiceDto>(), 0, page, pageSize);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching services: {ex.Message}");
+            return new PaginatedResult<ServiceDto>(new List<ServiceDto>(), 0, page, pageSize);
+        }
     }
 
     public async Task<PaginatedResult<ServiceDto>> GetMyServicesAsync(int page = 1)
@@ -86,32 +94,67 @@ public class ApiClient
     // Categories
     public async Task<List<MainCategoryDto>> GetMainCategoriesAsync()
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<List<MainCategoryDto>>>("api/v1/categories/main");
-        return response?.Data ?? new List<MainCategoryDto>();
+        try 
+        {
+            var response = await _http.GetFromJsonAsync<ApiResponse<List<MainCategoryDto>>>("api/v1/categories/main");
+            return response?.Data ?? new List<MainCategoryDto>();
+        }
+        catch
+        {
+            return new List<MainCategoryDto>();
+        }
     }
 
     public async Task<List<CategoryDto>> GetCategoriesByMainIdAsync(int mainId)
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<List<CategoryDto>>>($"api/v1/categories/main/{mainId}/categories");
-        return response?.Data ?? new List<CategoryDto>();
+        try
+        {
+            var response = await _http.GetFromJsonAsync<ApiResponse<List<CategoryDto>>>($"api/v1/categories/main/{mainId}/categories");
+            return response?.Data ?? new List<CategoryDto>();
+        }
+        catch
+        {
+            return new List<CategoryDto>();
+        }
     }
 
     public async Task<CategoryDto?> GetCategoryByIdAsync(int id)
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<CategoryDto>>($"api/v1/categories/categories/{id}");
-        return response?.Data;
+        try
+        {
+            var response = await _http.GetFromJsonAsync<ApiResponse<CategoryDto>>($"api/v1/categories/categories/{id}");
+            return response?.Data;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     public async Task<SubCategoryDto?> GetSubCategoryByIdAsync(int id)
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<SubCategoryDto>>($"api/v1/categories/subcategories/{id}");
-        return response?.Data;
+        try
+        {
+            var response = await _http.GetFromJsonAsync<ApiResponse<SubCategoryDto>>($"api/v1/categories/subcategories/{id}");
+            return response?.Data;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     public async Task<List<SubCategoryDto>> GetSubCategoriesByCategoryIdAsync(int catId)
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<List<SubCategoryDto>>>($"api/v1/categories/{catId}/subcategories");
-        return response?.Data ?? new List<SubCategoryDto>();
+        try
+        {
+            var response = await _http.GetFromJsonAsync<ApiResponse<List<SubCategoryDto>>>($"api/v1/categories/{catId}/subcategories");
+            return response?.Data ?? new List<SubCategoryDto>();
+        }
+        catch
+        {
+            return new List<SubCategoryDto>();
+        }
     }
 
     // Category Management
@@ -178,8 +221,16 @@ public class ApiClient
 
     public async Task<List<CityDto>> GetCitiesAsync(int governorateId)
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<List<CityDto>>>($"api/v1/locations/governorates/{governorateId}/cities");
-        return response?.Data ?? new List<CityDto>();
+        try
+        {
+            var response = await _http.GetFromJsonAsync<ApiResponse<List<CityDto>>>($"api/v1/locations/governorates/{governorateId}/cities");
+            return response?.Data ?? new List<CityDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching cities: {ex.Message}");
+            return new List<CityDto>();
+        }
     }
 
     public async Task<List<CityDto>> GetCitiesAsync()

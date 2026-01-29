@@ -57,7 +57,11 @@
                         </div>
                         <div class="user-meta d-none d-md-flex">
                             <span class="user-name-txt">@context.User.Identity?.Name</span>
-                            <span class="user-role-txt">@(State.IsProvider ? "مزود خدمة" : "عميل")</span>
+                            <span class="user-role-txt">
+                                @(context.User.IsInRole("SuperAdmin") ? "مدير خارق" : 
+                                  context.User.IsInRole("SystemAdmin") ? "مدير نظام" : 
+                                  State.IsProvider ? "مزود خدمة" : "عميل")
+                            </span>
                         </div>
                         <i class="fa-solid fa-chevron-down ms-2 chevron-icon @(isUserMenuOpen ? "rotate" : "")"></i>
                     </div>

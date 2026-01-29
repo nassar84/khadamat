@@ -77,9 +77,12 @@
 
     private async Task OnGovernorateChanged(ChangeEventArgs e)
     {
+        Console.WriteLine($"[LocationSelector] Governorate changed: {e.Value}");
+        
         if (int.TryParse(e.Value?.ToString(), out int val) && val > 0)
         {
             selectedGovernorateId = val;
+            Console.WriteLine($"[LocationSelector] Loading cities for governorate: {val}");
             await LoadCities();
             await UpdateCity(null);
         }
@@ -114,18 +117,28 @@
         if (selectedGovernorateId.HasValue)
         {
             isLoadingCities = true;
+            StateHasChanged(); // Force UI update to show loading state
             try 
             {
+                Console.WriteLine($"[LocationSelector] Fetching cities for governorate {selectedGovernorateId.Value}");
                 filteredCities = await Api.GetCitiesAsync(selectedGovernorateId.Value);
+                Console.WriteLine($"[LocationSelector] Loaded {filteredCities.Count} cities");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[LocationSelector] Error loading cities: {ex.Message}");
+                filteredCities = new List<CityDto>();
             }
             finally
             {
                 isLoadingCities = false;
+                StateHasChanged(); // Force UI update after loading cities
             }
         }
         else
         {
             filteredCities.Clear();
+            StateHasChanged();
         }
     }
 }
