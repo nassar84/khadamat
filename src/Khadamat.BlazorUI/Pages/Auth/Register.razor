@@ -360,7 +360,14 @@
             
             try 
             {
+                Console.WriteLine($"[Register] Loading cities for governorate {govId}...");
                 cities = await ApiClient.GetCitiesAsync(govId);
+                Console.WriteLine($"[Register] Loaded {cities.Count} cities.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Register] Error loading cities: {ex.Message}");
+                cities = new List<Khadamat.Application.DTOs.CityDto>();
             }
             finally 
             {

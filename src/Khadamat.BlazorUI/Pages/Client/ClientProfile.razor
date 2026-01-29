@@ -365,7 +365,13 @@
             
             try 
             {
+                Console.WriteLine($"[ClientProfile] Loading cities for governorate {govId}...");
                 await LoadCities(govId);
+                Console.WriteLine($"[ClientProfile] Loaded cities.");
+            }
+            catch (Exception ex)
+            {
+                 Console.WriteLine($"[ClientProfile] Error in OnGovernorateChanged: {ex.Message}");
             }
             finally 
             {
