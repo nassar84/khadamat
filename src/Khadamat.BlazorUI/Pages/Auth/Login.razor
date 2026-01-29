@@ -13,7 +13,7 @@
         <p>مرحباً بعودتك! الرجاء إدخال بياناتك</p>
     </div>
 
-    <EditForm Model="@loginRequest" OnValidSubmit="HandleLogin">
+    <EditForm Model="@loginRequest" OnValidSubmit="HandleLogin" autocomplete="off">
         <DataAnnotationsValidator />
         
         @if (!string.IsNullOrEmpty(errorMessage))
@@ -23,13 +23,13 @@
 
         <div class="form-group">
             <label>اسم المستخدم</label>
-            <InputText @bind-Value="loginRequest.UserName" class="form-control glass-input" placeholder="اسم المستخدم" />
+            <InputText @bind-Value="loginRequest.UserName" class="form-control glass-input" placeholder="اسم المستخدم" autocomplete="off" />
             <ValidationMessage For="@(() => loginRequest.UserName)" />
         </div>
 
         <div class="form-group">
             <label>كلمة المرور</label>
-            <InputText @bind-Value="loginRequest.Password" type="password" class="form-control glass-input" placeholder="••••••••" />
+            <InputText @bind-Value="loginRequest.Password" type="password" class="form-control glass-input" placeholder="••••••••" autocomplete="new-password" />
             <ValidationMessage For="@(() => loginRequest.Password)" />
         </div>
 

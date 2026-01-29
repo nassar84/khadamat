@@ -534,11 +534,22 @@
         {
             selectedGovernorateId = val;
             isLoadingCities = true;
-            StateHasChanged();
+            StateHasChanged(); // Force UI to show loading
             
             try 
             {
                 cities = await Api.GetCitiesAsync(val);
+                Console.WriteLine($"[UserSettings] Loaded {cities.Count} cities for governorate {val}");
+                if (cities.Count == 0)
+                {
+                     // Fallback or alert if needed, but for now just log
+                     Console.WriteLine("[UserSettings] Warning: API returned 0 cities.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[UserSettings] Error loading cities: {ex.Message}");
+                cities = new List<CityDto>();
             }
             finally 
             {
