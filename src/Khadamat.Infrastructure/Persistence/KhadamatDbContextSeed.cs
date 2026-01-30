@@ -61,10 +61,7 @@ public static class KhadamatDbContextSeed
         }
 
         // 7. Seed Locations
-        if (!await context.Governorates.AnyAsync())
-        {
-            await SeedLocationsAsync(context);
-        }
+        await SeedLocationsAsync(context);
 
         // 8. Seed Ads
         if (!await context.Ads.AnyAsync())
@@ -492,29 +489,77 @@ public static class KhadamatDbContextSeed
 
     private static async Task SeedLocationsAsync(KhadamatDbContext context)
     {
-        var governorate = new Governorate
+        // Helper to get or create governorate
+        async Task<Governorate> GetOrCreateGov(string nameAr, string nameEn, int order)
         {
-            Governorate_Name_AR = "القاهرة",
-            Governorate_Name_EN = "Cairo",
-            DisplayOrder = 1,
-            Approved = true,
-            UserCreated = "system"
-        };
-        
-        await context.Governorates.AddAsync(governorate);
-        await context.SaveChangesAsync();
+            var gov = await context.Governorates.FirstOrDefaultAsync(g => g.Governorate_Name_AR == nameAr || g.Governorate_Name_EN == nameEn);
+            if (gov == null)
+            {
+                gov = new Governorate { Governorate_Name_AR = nameAr, Governorate_Name_EN = nameEn, DisplayOrder = order, Approved = true, UserCreated = "system" };
+                context.Governorates.Add(gov);
+                await context.SaveChangesAsync();
+            }
+            return gov;
+        }
 
-        var city = new City
+        // Helper to add cities if they don't exist
+        async Task AddCitiesIfMissing(int govId, (string ar, string en, int order)[] cityData)
         {
-            GovernorateId = governorate.Id,
-            City_Name_AR = "القاهرة",
-            City_Name_EN = "Cairo",
-            DisplayOrder = 1,
-            Approved = true,
-            UserCreated = "system"
-        };
-        
-        await context.Cities.AddAsync(city);
-        await context.SaveChangesAsync();
+            foreach (var c in cityData)
+            {
+                if (!await context.Cities.AnyAsync(city => city.GovernorateId == govId && (city.City_Name_AR == c.ar || city.City_Name_EN == c.en)))
+                {
+                    context.Cities.Add(new City { 
+                        GovernorateId = govId, 
+                        City_Name_AR = c.ar, 
+                        City_Name_EN = c.en, 
+                        Approved = true, 
+                        UserCreated = "system", 
+                        DisplayOrder = c.order 
+                    });
+                }
+            }
+            await context.SaveChangesAsync();
+        }
+
+        // 1. Cairo
+        var cairo = await GetOrCreateGov("القاهرة", "Cairo", 1);
+        await AddCitiesIfMissing(cairo.Id, new[] {
+            ("مدينة نصر", "Nasr City", 1),
+            ("مصر الجديدة", "Heliopolis", 2),
+            ("المعادي", "Maadi", 3),
+            ("التجمع الخامس", "Fifth Settlement", 4),
+            ("الرحاب", "Rehab", 5),
+            ("مدينتي", "Madinaty", 6),
+            ("الشروق", "Shorouk", 7),
+            ("العبور", "Obour", 8),
+            ("المقطم", "Mokattam", 9),
+            ("وسط البلد", "Downtown", 10)
+        });
+
+        // 2. Giza
+        var giza = await GetOrCreateGov("الجيزة", "Giza", 2);
+        await AddCitiesIfMissing(giza.Id, new[] {
+            ("6 أكتوبر", "6th of October", 1),
+            ("الشيخ زايد", "Sheikh Zayed", 2),
+            ("المهندسين", "Mohandessin", 3),
+            ("الدقي", "Dokki", 4),
+            ("الهرم", "Haram", 5),
+            ("فيصل", "Faisal", 6),
+            ("حدائق الأهرام", "Hadayek Al Ahram", 7),
+            ("إمبابة", "Imbaba", 8)
+        });
+
+        // 3. Alexandria
+        var alex = await GetOrCreateGov("الإسكندرية", "Alexandria", 3);
+        await AddCitiesIfMissing(alex.Id, new[] {
+            ("سموحة", "Smouha", 1),
+            ("ميامي", "Miami", 2),
+            ("المنتزه", "Montaza", 3),
+            ("سيدي جابر", "Sidi Gaber", 4),
+            ("العجمي", "Agami", 5),
+            ("محطة الرمل", "Mahtet El Raml", 6),
+            ("المعمورة", "Maamoura", 7)
+        });
     }
 }
