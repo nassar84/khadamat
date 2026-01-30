@@ -1,6 +1,6 @@
 @using Microsoft.AspNetCore.Components.Forms
 
-<div class="image-uploader-container @ContainerClass">
+<div class="image-uploader-container @Class">
     <div class="image-preview-wrapper rounded-4 border-dashed position-relative overflow-hidden d-flex align-items-center justify-content-center bg-light" 
          style="height: @(Height); width: @(Width); @(string.IsNullOrEmpty(ImageUrl) ? "" : $"background: url('{ImageUrl}') center/cover;")">
         
@@ -78,7 +78,7 @@
     [Parameter] public string AcceptedFormatsText { get; set; } = "PNG, JPG (800x600)";
     [Parameter] public bool ReadOnly { get; set; } = false;
     [Parameter] public bool ShowUrlInput { get; set; } = true;
-    [Parameter] public string ContainerClass { get; set; } = "";
+    [Parameter] public string Class { get; set; } = "";
 
     [Inject] private IJSRuntime JS { get; set; } = default!;
 

@@ -245,12 +245,6 @@
         bottom: -20px;
         transform: rotate(-15deg);
     }
-
-    .skeleton {
-        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-        background-size: 200% 100%;
-        animation: loading 1.5s infinite;
-    }
 </style>
 
 @code {
@@ -268,28 +262,28 @@
     {
         try 
         {
-            Console.WriteLine("ANTIGRAVITY_LOG: Fetching services from API...");
-            var servicesResult = await Api.GetServicesAsync();
+            // Parallel loading for maximum speed
+            var servicesTask = Api.GetServicesAsync();
+            var categoriesTask = Api.GetMainCategoriesAsync();
+
+            await Task.WhenAll(servicesTask, categoriesTask);
+
+            var servicesResult = servicesTask.Result;
             featuredServices = servicesResult.Items.Take(6).ToList();
             nearbyServices = servicesResult.Items.Skip(1).Take(4).ToList();
+            mainCategories = categoriesTask.Result;
             
-            // Save to offline storage
-            await OfflineData.SaveServicesAsync(servicesResult.Items);
-
-            Console.WriteLine("ANTIGRAVITY_LOG: Fetching categories...");
-            mainCategories = await Api.GetMainCategoriesAsync();
-            
-            Console.WriteLine("ANTIGRAVITY_LOG: Data load complete!");
+            // Save to offline storage as a background task
+            _ = OfflineData.SaveServicesAsync(servicesResult.Items);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"ANTIGRAVITY_LOG: API Error: {ex.Message}. Trying offline storage...");
+            Console.WriteLine($"API Error: {ex.Message}. Trying offline storage...");
             var offlineServices = await OfflineData.GetServicesAsync();
             if (offlineServices.Any())
             {
                 featuredServices = offlineServices.Take(6).ToList();
                 nearbyServices = offlineServices.Skip(1).Take(4).ToList();
-                Console.WriteLine("ANTIGRAVITY_LOG: Loaded from offline storage successfully.");
             }
             else
             {

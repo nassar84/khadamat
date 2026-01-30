@@ -1,0 +1,211 @@
+@page "/user/my-services"
+@using Khadamat.Application.DTOs
+@using Khadamat.Application.Common.Models
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+@inject NavigationManager Navigation
+@using Khadamat.BlazorUI.Services.Auth
+@inject IAuthService AuthService
+
+<div class="px-3 pt-3 pb-5">
+    @if (profile != null && (!profile.IsProvider || !profile.IsVerified))
+    {
+        <div class="glass-card p-5 text-center rounded-4 shadow-sm border-warning-subtle animate-up">
+            <div class="mb-4">
+                <i class="fa-solid fa-user-shield text-warning display-4"></i>
+            </div>
+            <h4 class="fw-bold mb-3">حسابك غير مكتمل أو قيد الانتظار</h4>
+            <p class="text-muted mb-4 mx-auto" style="max-width: 500px;">
+                لكي تتمكن من إضافة خدماتك والظهور للعملاء، يجب عليك أولاً إكمال بيانات ملفك الشخصي والتقدم بطلب انضمام كمزود خدمة ليتم مراجعته من قبل الإدارة.
+            </p>
+            <div class="d-flex justify-content-center gap-2">
+                <button class="btn btn-primary-premium rounded-pill px-5 shadow" @onclick='() => Navigation.NavigateTo("/provider/apply")'>
+                    <i class="fa-solid fa-id-card me-2"></i> إكمال ملفي والتقديم الآن
+                </button>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold mb-0">خدماتي</h3>
+                <p class="text-muted small">الخدمات التي قمت بإنشائها</p>
+            </div>
+            @if (profile != null && profile.IsVerified)
+            {
+                <button class="btn btn-primary-premium rounded-pill px-4" @onclick='() => Navigation.NavigateTo("/provider/createservice")'>
+                    <i class="fa-solid fa-plus me-2"></i> إضافة خدمة
+                </button>
+            }
+        </div>
+
+        @if (isDemoMode)
+        {
+            <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+                <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                <div>
+                    <strong>وضع العرض التجريبي:</strong> فشل الاتصال بالخادم، يتم عرض بيانات وهمية للمعاينة.
+                </div>
+            </div>
+        }
+
+        @if (isLoading)
+        {
+            <div class="row g-4 mt-2">
+                @for (int i = 0; i < 3; i++)
+                {
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="glass-card p-0 overflow-hidden border-0 shadow-sm h-100">
+                            <div class="skeleton" style="height: 180px;"></div>
+                            <div class="p-3">
+                                <div class="skeleton skeleton-title"></div>
+                                <div class="skeleton skeleton-text" style="width: 80%;"></div>
+                                <div class="d-flex gap-2 mt-3">
+                                    <div class="skeleton flex-grow-1" style="height: 32px; border-radius: 20px;"></div>
+                                    <div class="skeleton skeleton-circle" style="width: 32px; height: 32px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else if (services == null || !services.Any())
+        {
+            <div class="glass-card p-5 text-center">
+                <i class="fa-solid fa-briefcase display-1 text-muted opacity-25 mb-3"></i>
+                <h5>لا توجد خدمات حالياً</h5>
+                <p class="text-muted">لم تقم بإضافة أي خدمات بعد.</p>
+                @if (profile != null && profile.IsVerified)
+                {
+                    <button class="btn btn-primary rounded-pill px-5 mt-3" @onclick='() => Navigation.NavigateTo("/provider/createservice")'>أضف خدمة جديدة</button>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="row g-4">
+                @foreach (var s in services)
+                {
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="glass-card p-0 overflow-hidden border-0 shadow-sm h-100 animate-up">
+                            <div class="position-relative">
+                                <img src="@(s.Images != null && s.Images.Any() ? s.Images.First() : "/images/default-service.jpg")" class="w-100 object-fit-cover" style="height: 180px;" onerror="this.src='/images/default-service.jpg'" />
+                                <div class="position-absolute top-0 end-0 m-2">
+                                    <span class="badge @(s.IsApproved ? "bg-success" : "bg-warning text-dark") rounded-pill">
+                                        @(s.IsApproved ? "مقبول" : "قيد المراجعة")
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="p-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="fw-bold mb-0 text-truncate" style="max-width: 70%;">@s.Title</h6>
+                                    <div class="text-primary fw-bold">@s.Price?.ToString("N0") <small class="x-small">ج.م</small></div>
+                                </div>
+                                <div class="x-small text-muted mb-3">
+                                    <i class="fa-solid fa-layer-group me-1"></i> @s.SubCategoryName
+                                    <span class="mx-2">|</span>
+                                    <i class="fa-solid fa-location-dot me-1"></i> @(s.CityName ?? "غير محدد")
+                                </div>
+                                
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-outline-primary btn-sm flex-grow-1 rounded-pill" @onclick='() => Navigation.NavigateTo($"/provider/editservice/{s.Id}")'>
+                                        <i class="fa-solid fa-pen-to-square me-1"></i> تعديل
+                                    </button>
+                                    <button class="btn btn-light btn-sm rounded-circle" @onclick='() => Navigation.NavigateTo($"/service/{s.Id}")' title="عرض">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private List<ServiceDto>? services;
+    private bool isLoading = true;
+    private bool isDemoMode = false;
+    private Khadamat.Application.DTOs.AuthResponse? profile;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        isDemoMode = false;
+        try
+        {
+            // 1. Load Profile
+            var profileResult = await AuthService.GetProfileAsync();
+            if (profileResult.Success && profileResult.Data != null) 
+            {
+                profile = profileResult.Data;
+
+                // 2. Only try to load services if verified provider
+                if (profile.IsProvider && profile.IsVerified)
+                {
+                    try 
+                    {
+                        var result = await Api.GetMyServicesAsync();
+                        services = result.Items;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Services Load Error: {ex.Message}");
+                        isDemoMode = true;
+                        services = GetMockServices();
+                    }
+                }
+                else
+                {
+                    services = new List<ServiceDto>();
+                    isDemoMode = false; 
+                }
+            }
+            else 
+            {
+                throw new Exception("Auth profile not reachable");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"General Page Error: {ex.Message}");
+            isDemoMode = true;
+            services = GetMockServices();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private List<ServiceDto> GetMockServices()
+    {
+        return new List<ServiceDto>
+        {
+            new ServiceDto 
+            { 
+                Id = 101, 
+                Title = "تصميم شعارات وهويات بصرية", 
+                Price = 1500, 
+                SubCategoryName = "تصميم جرافيك", 
+                CityName = "الرياض", 
+                IsApproved = true,
+                Images = new List<string> { "https://placehold.co/600x400/6366f1/ffffff?text=Design" } 
+            },
+            new ServiceDto 
+            { 
+                Id = 102, 
+                Title = "صيانة مكيفات سبليت", 
+                Price = 200, 
+                SubCategoryName = "تكييف وتبريد", 
+                CityName = "جدة", 
+                IsApproved = false,
+                Images = new List<string> { "https://placehold.co/600x400/f43f5e/ffffff?text=AC+Fix" } 
+            }
+        };
+    }
+}

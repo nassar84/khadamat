@@ -39,13 +39,17 @@ public class ApiClient
     }
  
     // Services
-    public async Task<PaginatedResult<ServiceDto>> GetServicesAsync(string? search = null, int? subCategoryId = null, string? userId = null, bool? isApproved = true, int page = 1, int pageSize = 10)
+    public async Task<PaginatedResult<ServiceDto>> GetServicesAsync(string? search = null, int? categoryId = null, int? subCategoryId = null, int? governorateId = null, int? cityId = null, string? userId = null, bool? isApproved = true, string? sortBy = "latest", int page = 1, int pageSize = 10)
     {
         var url = $"api/v1/services?page={page}&pageSize={pageSize}";
         if (!string.IsNullOrEmpty(search)) url += $"&search={Uri.EscapeDataString(search)}";
+        if (categoryId.HasValue) url += $"&categoryId={categoryId}";
         if (subCategoryId.HasValue) url += $"&subCategoryId={subCategoryId}";
+        if (governorateId.HasValue) url += $"&governorateId={governorateId}";
+        if (cityId.HasValue) url += $"&cityId={cityId}";
         if (!string.IsNullOrEmpty(userId)) url += $"&userId={Uri.EscapeDataString(userId)}";
         if (isApproved.HasValue) url += $"&isApproved={isApproved}";
+        if (!string.IsNullOrEmpty(sortBy)) url += $"&sortBy={sortBy}";
         
         try
         {

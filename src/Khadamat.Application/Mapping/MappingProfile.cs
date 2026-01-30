@@ -18,7 +18,9 @@ public class MappingProfile : Profile
             .ForMember(d => d.Images, opt => opt.MapFrom(s => !string.IsNullOrEmpty(s.ImageUrl) ? new List<string> { s.ImageUrl } : new List<string>()))
             .ForMember(d => d.WorkDays, opt => opt.MapFrom(s => s.Work_Days))
             .ForMember(d => d.WorkHours, opt => opt.MapFrom(s => s.Work_Houers))
-            .ForMember(d => d.IsApproved, opt => opt.MapFrom(s => s.Approved));
+            .ForMember(d => d.IsApproved, opt => opt.MapFrom(s => s.Approved))
+            .ForMember(d => d.Rating, opt => opt.MapFrom(s => s.Ratings.Any() ? s.Ratings.Average(r => r.Stars) : 0))
+            .ForMember(d => d.RatersCount, opt => opt.MapFrom(s => s.Ratings.Count));
             
         CreateMap<Post, PostDto>()
             .ForMember(d => d.LikesCount, opt => opt.MapFrom(s => s.Likes.Count));

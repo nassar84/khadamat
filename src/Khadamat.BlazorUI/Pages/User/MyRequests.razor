@@ -1,0 +1,95 @@
+@page "/user/my-requests"
+@inject NavigationManager Navigation
+
+<div class="px-3 pt-3 pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-0">طلباتي</h3>
+            <p class="text-muted small">متابعة حالة الطلبات التي قدمتها للمهنيين</p>
+        </div>
+        <button class="btn btn-primary-premium rounded-pill px-4" @onclick='() => Navigation.NavigateTo("/")'>
+            <i class="fa-solid fa-magnifying-glass me-2"></i> طلب جديد
+        </button>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="d-flex justify-content-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+    }
+    else if (requests == null || !requests.Any())
+    {
+        <div class="glass-card p-5 text-center">
+            <i class="fa-solid fa-clipboard-list display-1 text-muted opacity-25 mb-3"></i>
+            <h5>لا توجد طلبات جارية</h5>
+            <p class="text-muted">لم تقم بتقديم أي طلبات خدمات مؤخراً.</p>
+            <button class="btn btn-primary rounded-pill px-5 mt-3" @onclick='() => Navigation.NavigateTo("/categories")'>تصفح الخدمات</button>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex flex-column gap-3">
+            @foreach (var r in requests)
+            {
+                <div class="glass-card p-3 animate-up">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="d-flex gap-3">
+                            <div class="bg-light rounded p-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                <i class="fa-solid @r.Icon text-primary fs-4"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1">@r.Title</h6>
+                                <p class="text-muted small mb-2">@r.ProviderName • @r.Date.ToShortDateString()</p>
+                                <span class="badge @GetStatusBadge(r.Status)">@r.StatusText</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-secondary rounded-pill">التفاصيل</button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<RequestMock>? requests;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Mock API Call
+        await Task.Delay(1000);
+        
+        // Uncomment to test empty state
+        // requests = new List<RequestMock>();
+
+        requests = new List<RequestMock>
+        {
+            new RequestMock { Title = "صيانة تكييف سبليت", ProviderName = "شركة التبريد الحديثة", Date = DateTime.Now.AddDays(-2), Status = "Pending", StatusText = "في انتظار الموافقة", Icon = "fa-snowflake" },
+            new RequestMock { Title = "سباكة حمام رئيسي", ProviderName = "أحمد محمد للسباكة", Date = DateTime.Now.AddDays(-5), Status = "InProgress", StatusText = "جاري التنفيذ", Icon = "fa-faucet" },
+            new RequestMock { Title = "تنظيف مفروشات", ProviderName = "خدمات النظافة الذهبية", Date = DateTime.Now.AddDays(-10), Status = "Completed", StatusText = "مكتمل", Icon = "fa-broom" }
+        };
+        
+        isLoading = false;
+    }
+
+    private string GetStatusBadge(string status) => status switch
+    {
+        "Pending" => "bg-warning text-dark",
+        "InProgress" => "bg-info text-dark",
+        "Completed" => "bg-success",
+        "Cancelled" => "bg-danger",
+        _ => "bg-secondary"
+    };
+
+    public class RequestMock
+    {
+        public string Title { get; set; } = "";
+        public string ProviderName { get; set; } = "";
+        public DateTime Date { get; set; }
+        public string Status { get; set; } = "";
+        public string StatusText { get; set; } = "";
+        public string Icon { get; set; } = "";
+    }
+}

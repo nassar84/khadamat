@@ -96,5 +96,6 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<SubscriptionPlan>()
             .Property(sp => sp.Price)
             .HasPrecision(18, 2);
+        builder.Entity<Rating>().ToTable("Ratings");
     }
 }

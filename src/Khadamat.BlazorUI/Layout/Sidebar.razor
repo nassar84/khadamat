@@ -42,13 +42,21 @@
                         <i class="fa-solid fa-user"></i>
                         <span class="item-label">الملف الشخصي</span>
                     </NavLink>
+                    <NavLink class="menu-item" href="/user/my-services">
+                        <i class="fa-solid fa-briefcase"></i>
+                        <span class="item-label">خدماتي</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/user/my-requests">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                        <span class="item-label">طلباتي</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/user/messages">
+                        <i class="fa-solid fa-envelope"></i>
+                        <span class="item-label">رسائلي</span>
+                    </NavLink>
                     <NavLink class="menu-item" href="/client/favorites">
                         <i class="fa-solid fa-heart"></i>
                         <span class="item-label">المفضلة</span>
-                    </NavLink>
-                    <NavLink class="menu-item" href="/provider/messages">
-                        <i class="fa-solid fa-message"></i>
-                        <span class="item-label">الرسائل</span>
                     </NavLink>
                 </div>
 
@@ -173,6 +181,12 @@
         padding: 10px 15px;
         overflow-y: auto;
         overflow-x: hidden;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+    }
+
+    .sidebar-content::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, and Opera */
     }
 
     .menu-section {

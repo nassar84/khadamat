@@ -4,6 +4,7 @@
 @inject IJSRuntime JSRuntime
 @inject IAuthService AuthService
 @inject NavigationManager Navigation
+@implements IDisposable
 
 <header class="app-header-premium">
     <div class="header-start">
@@ -23,7 +24,7 @@
 
     <div class="header-end">
         <!-- Theme Toggle -->
-        <div class="theme-minimal-toggle" @onclick="ToggleThemeMenu">
+        <div id="themeToggle" class="theme-minimal-toggle" @onclick="ToggleThemeMenu">
             <i class="fa-solid fa-palette"></i>
             <div class="theme-popover @(isThemeMenuOpen ? "show" : "")">
                  <div class="theme-grid-minimal">
@@ -49,7 +50,7 @@
         <!-- User Dropdown -->
         <AuthorizeView>
             <Authorized>
-                <div class="user-dropdown-wrapper">
+                <div id="userDropdown" class="user-dropdown-wrapper">
                     <div class="user-trigger" @onclick="ToggleUserMenu">
                         <div class="avatar-wrapper">
                             <img src="@State.UserImageUrl" class="header-avatar-img" alt="User" />
@@ -114,6 +115,32 @@
     </div>
 </header>
 <CategoryMarquee />
+@if (isUserMenuOpen || isThemeMenuOpen)
+{
+    <div class="menu-backdrop" @onclick="CloseMenus"></div>
+}
+
+<style>
+    .menu-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 900;
+        cursor: default;
+        background: transparent;
+    }
+    
+    .user-glass-menu, .theme-popover {
+        z-index: 1002 !important; 
+    }
+    
+    .user-dropdown-wrapper, .theme-minimal-toggle {
+        position: relative;
+        z-index: 1003 !important;
+    }
+</style>
 
 @code {
     private bool isThemeMenuOpen = false;
@@ -137,6 +164,8 @@
         State.OnChange -= StateHasChanged;
     }
 
+
+
     private void ToggleThemeMenu() 
     {
         isThemeMenuOpen = !isThemeMenuOpen;
@@ -154,6 +183,8 @@
         isThemeMenuOpen = false;
         isUserMenuOpen = false;
     }
+
+
 
     private async Task HandleSetTheme(string theme)
     {

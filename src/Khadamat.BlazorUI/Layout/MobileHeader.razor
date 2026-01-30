@@ -46,7 +46,7 @@
                 </NotAuthorized>
             </AuthorizeView>
             
-            <div class="theme-switcher-mobile me-2">
+            <div id="mobileThemeToggle" class="theme-switcher-mobile me-2">
                 <button class="icon-btn-minimal" @onclick="ToggleThemeMenu">
                     <i class="fa-solid fa-palette"></i>
                 </button>
@@ -325,6 +325,14 @@
         State.OnChange += OnStateChange;
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await SetupClickOutsideHandler();
+        }
+    }
+
     private async void OnStateChange()
     {
         await InvokeAsync(StateHasChanged);
@@ -333,6 +341,25 @@
     public void Dispose()
     {
         State.OnChange -= OnStateChange;
+    }
+
+    private async Task SetupClickOutsideHandler()
+    {
+        await JS.InvokeVoidAsync("eval", @"
+            if (!window.mobileHeaderClickHandlerAdded) {
+                window.mobileHeaderClickHandlerAdded = true;
+                document.addEventListener('click', function(event) {
+                    const themeToggle = document.getElementById('mobileThemeToggle');
+                    
+                    if (themeToggle && !themeToggle.contains(event.target)) {
+                        const themeMenu = themeToggle.querySelector('.theme-popover-mobile');
+                        if (themeMenu) {
+                            themeMenu.remove();
+                        }
+                    }
+                });
+            }
+        ");
     }
 
     private void ToggleSidebar()

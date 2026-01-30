@@ -6,8 +6,12 @@
 
 <div class="px-3 pt-3 pb-5">
     <!-- Header with Search/Filter -->
-    <div class="d-flex align-items-center mb-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
         <h3 class="fw-bold mb-0 gradient-text">استكشف الخدمات</h3>
+        <button class="btn btn-filter-icon" @onclick="ToggleFilters">
+            <i class="fa-solid fa-sliders"></i>
+            <span class="ms-1 d-none d-md-inline">الفلاتر</span>
+        </button>
     </div>
 
     <div class="mb-4">
@@ -15,11 +19,37 @@
     </div>
 
     <div class="d-flex gap-2 mb-4 overflow-auto py-1 no-scrollbar">
-        <button class="btn btn-filter active">الكل</button>
-        <button class="btn btn-filter">الأعلى تقييماً</button>
-        <button class="btn btn-filter">الأحدث</button>
-        <button class="btn btn-filter">الأقل سعراً</button>
+        <button class="btn btn-filter @(currentFilter == "" ? "active" : "")" @onclick='() => ApplyFilter("")'>الكل</button>
+        <button class="btn btn-filter @(currentFilter == "rating" ? "active" : "")" @onclick='() => ApplyFilter("rating")'>الأعلى تقييماً</button>
+        <button class="btn btn-filter @(currentFilter == "latest" ? "active" : "")" @onclick='() => ApplyFilter("latest")'>الأحدث</button>
+        <button class="btn btn-filter @(currentFilter == "price-asc" ? "active" : "")" @onclick='() => ApplyFilter("price-asc")'>الأقل سعراً</button>
     </div>
+
+    <!-- Active Filters Display -->
+    @if (selectedCategoryId.HasValue || selectedGovId.HasValue || selectedCityId.HasValue)
+    {
+        <div class="mb-3 d-flex flex-wrap gap-2 animate-fade-in">
+            @if (selectedCategoryName != null)
+            {
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2">
+                    @selectedCategoryName <i class="fa-solid fa-xmark ms-2 cursor-pointer" @onclick="() => { selectedCategoryId = null; selectedCategoryName = null; LoadServices(); }"></i>
+                </span>
+            }
+            @if (selectedGovName != null)
+            {
+                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-3 py-2">
+                    @selectedGovName <i class="fa-solid fa-xmark ms-2 cursor-pointer" @onclick="() => { selectedGovId = null; selectedGovName = null; selectedCityId = null; LoadServices(); }"></i>
+                </span>
+            }
+            @if (selectedCityName != null)
+            {
+                <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-3 py-2">
+                    @selectedCityName <i class="fa-solid fa-xmark ms-2 cursor-pointer" @onclick="() => { selectedCityId = null; selectedCityName = null; LoadServices(); }"></i>
+                </span>
+            }
+            <button class="btn btn-link btn-sm text-muted p-0 ms-auto" @onclick="ClearAllFilters">مسح الكل</button>
+        </div>
+    }
 
     <!-- Services List -->
     <div class="row g-3">
@@ -27,9 +57,10 @@
         {
             @if (!services.Any())
             {
-                <div class="col-12 text-center py-5 opacity-50 bg-light rounded-4">
+                <div class="col-12 text-center py-5 opacity-50 bg-light rounded-4 animate-fade-in">
                     <i class="fa-solid fa-ghost fs-1 mb-3"></i>
                     <p>لم نجد أي خدمات تطابق بحثك</p>
+                    <button class="btn btn-sm btn-outline-primary" @onclick="ClearAllFilters">إعادة ضبط البحث</button>
                 </div>
             }
             else
@@ -44,12 +75,85 @@
         }
         else
         {
-            <div class="col-12">
-                <LoadingSpinner Message="جاري تحميل الخدمات..." />
-            </div>
+            @for (int i = 0; i < 4; i++)
+            {
+                <div class="col-12 col-md-6">
+                    <div class="glass-card p-0 overflow-hidden border-0 shadow-sm" style="height: 120px;">
+                        <div class="d-flex h-100">
+                            <div class="skeleton" style="width: 120px; height: 100%;"></div>
+                            <div class="p-3 flex-grow-1">
+                                <div class="skeleton skeleton-title"></div>
+                                <div class="skeleton skeleton-text" style="width: 40%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
         }
     </div>
 </div>
+
+<!-- Filters Drawer Overlay -->
+@if (showFilters)
+{
+    <div class="drawer-overlay @(isFilterClosing ? "fade-out" : "fade-in")" @onclick="ToggleFilters">
+        <div class="drawer-content @(isFilterClosing ? "slide-out-left" : "slide-in-left")" @onclick:stopPropagation>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="fw-bold mb-0">تصفية النتائج</h4>
+                <button class="btn-close" @onclick="ToggleFilters"></button>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold">التصنيف</label>
+                <select class="form-select custom-select" @onchange="OnCategoryChanged">
+                    <option value="">كل التصنيفات</option>
+                    @if (categories != null)
+                    {
+                        @foreach (var cat in categories)
+                        {
+                            <option value="@cat.Id" selected="@(selectedCategoryId == cat.Id)">@cat.Name</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold">المحافظة</label>
+                <select class="form-select custom-select" @onchange="OnGovChanged">
+                    <option value="">كل المحافظات</option>
+                    @if (governorates != null)
+                    {
+                        @foreach (var gov in governorates)
+                        {
+                            <option value="@gov.Id" selected="@(selectedGovId == gov.Id)">@gov.NameAr</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            @if (cities != null && cities.Any())
+            {
+                <div class="mb-4 animate-fade-in">
+                    <label class="form-label fw-bold">المدينة</label>
+                    <select class="form-select custom-select" @onchange="OnCityChanged">
+                        <option value="">كل المدن</option>
+                        @foreach (var city in cities)
+                        {
+                            <option value="@city.Id" selected="@(selectedCityId == city.Id)">@city.NameAr</option>
+                        }
+                    </select>
+                </div>
+            }
+
+            <div class="mt-auto pt-4 border-top">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary flex-grow-1 py-2 rounded-3 fw-bold" @onclick="ApplyAdvancedFilters">تطبيق</button>
+                    <button class="btn btn-outline-secondary py-2 rounded-3" @onclick="ClearAllFilters">إعادة ضبط</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 <style>
     .btn-filter {
@@ -63,31 +167,126 @@
         transition: all 0.3s ease;
     }
     .btn-filter.active {
-        background: var(--primary);
+        background: var(--theme-primary);
         color: white;
-        border-color: var(--primary);
+        border-color: var(--theme-primary);
         box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+    }
+    .btn-filter-icon {
+        background: white;
+        border: 1px solid rgba(0,0,0,0.05);
+        color: #1e293b;
+        border-radius: 12px;
+        padding: 0.5rem 1rem;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .btn-filter-icon:hover {
+        background: #f8fafc;
+        border-color: var(--theme-primary);
+        color: var(--theme-primary);
     }
     .no-scrollbar::-webkit-scrollbar {
         display: none;
     }
+    .cursor-pointer { cursor: pointer; }
+
+    /* Drawer Styles */
+    .drawer-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(4px);
+        z-index: 1050;
+        display: flex;
+        justify-content: flex-end;
+    }
+    .drawer-content {
+        width: 100%;
+        max-width: 350px;
+        background: white;
+        height: 100%;
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+    }
+    .custom-select {
+        border-radius: 12px;
+        padding: 0.75rem;
+        border: 1px solid #e2e8f0;
+        background-color: #f8fafc;
+    }
+    .custom-select:focus {
+        border-color: var(--theme-primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    /* Animations */
+    .fade-in { animation: fadeIn 0.3s forwards; }
+    .fade-out { animation: fadeOut 0.3s forwards; }
+    .slide-in-left { animation: slideInLeft 0.3s forwards; }
+    .slide-out-left { animation: slideOutLeft 0.3s forwards; }
+    @@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @@keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+    @@keyframes slideInLeft { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+    @@keyframes slideOutLeft { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+    .animate-fade-in { animation: fadeIn 0.5s ease-out; }
 </style>
 
 @code {
     private List<ServiceDto>? services;
+    private List<GovernorateDto>? governorates;
+    private List<CityDto>? cities;
+    private List<CategoryDto>? categories;
+
     private string? currentSearch;
+    private string currentFilter = "";
+    private bool showFilters = false;
+    private bool isFilterClosing = false;
+
+    // Filter values
+    private int? selectedCategoryId;
+    private string? selectedCategoryName;
+    private int? selectedGovId;
+    private string? selectedGovName;
+    private int? selectedCityId;
+    private string? selectedCityName;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadServices();
+        var servicesTask = LoadServices();
+        var initialDataTask = LoadInitialData();
+        await Task.WhenAll(servicesTask, initialDataTask);
     }
 
-    private async Task LoadServices(string? search = null)
+    private async Task LoadInitialData()
+    {
+        governorates = await Api.GetGovernoratesAsync();
+        // Just for simplicity, getting all categories or from main
+        var mainCats = await Api.GetMainCategoriesAsync();
+        if (mainCats.Any())
+        {
+            var firstMain = mainCats.First();
+            categories = await Api.GetCategoriesByMainIdAsync(firstMain.Id);
+        }
+    }
+
+    private async Task LoadServices()
     {
         try
         {
             services = null;
-            var result = await Api.GetServicesAsync(search: search);
+            var result = await Api.GetServicesAsync(
+                search: currentSearch, 
+                categoryId: selectedCategoryId,
+                governorateId: selectedGovId,
+                cityId: selectedCityId,
+                sortBy: currentFilter == "" ? "latest" : currentFilter
+            );
             services = result.Items;
         }
         catch (Exception ex)
@@ -95,6 +294,7 @@
             Console.WriteLine($"Error loading services: {ex.Message}");
             services = new();
         }
+        StateHasChanged();
     }
 
     private void OnServiceSelected(ServiceDto service)
@@ -105,6 +305,98 @@
     private async Task HandleSearch(string term)
     {
         currentSearch = term;
-        await LoadServices(term);
+        await LoadServices();
+    }
+
+    private async Task ApplyFilter(string filter)
+    {
+        currentFilter = filter;
+        await LoadServices();
+    }
+
+    private async Task ToggleFilters()
+    {
+        if (showFilters)
+        {
+            isFilterClosing = true;
+            StateHasChanged();
+            await Task.Delay(300);
+            showFilters = false;
+            isFilterClosing = false;
+        }
+        else
+        {
+            showFilters = true;
+        }
+        StateHasChanged();
+    }
+
+    private async Task OnGovChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int id))
+        {
+            selectedGovId = id;
+            selectedGovName = governorates?.FirstOrDefault(g => g.Id == id)?.NameAr;
+            cities = await Api.GetCitiesAsync(id);
+            selectedCityId = null;
+            selectedCityName = null;
+        }
+        else
+        {
+            selectedGovId = null;
+            selectedGovName = null;
+            cities = null;
+            selectedCityId = null;
+            selectedCityName = null;
+        }
+    }
+
+    private void OnCityChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int id))
+        {
+            selectedCityId = id;
+            selectedCityName = cities?.FirstOrDefault(c => c.Id == id)?.NameAr;
+        }
+        else
+        {
+            selectedCityId = null;
+            selectedCityName = null;
+        }
+    }
+
+    private void OnCategoryChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int id))
+        {
+            selectedCategoryId = id;
+            selectedCategoryName = categories?.FirstOrDefault(c => c.Id == id)?.Name;
+        }
+        else
+        {
+            selectedCategoryId = null;
+            selectedCategoryName = null;
+        }
+    }
+
+    private async Task ApplyAdvancedFilters()
+    {
+        await ToggleFilters();
+        await LoadServices();
+    }
+
+    private async Task ClearAllFilters()
+    {
+        selectedCategoryId = null;
+        selectedCategoryName = null;
+        selectedGovId = null;
+        selectedGovName = null;
+        selectedCityId = null;
+        selectedCityName = null;
+        currentSearch = null;
+        currentFilter = "";
+        cities = null;
+        await LoadServices();
+        if (showFilters) await ToggleFilters();
     }
 }

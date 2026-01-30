@@ -138,6 +138,48 @@
             if (secondary) document.documentElement.style.setProperty('--secondary-color', secondary);
         };
     </script>
+    <script>
+        window.setupHeaderClickHandler = (dotNetHelper) => {
+            if (window.headerClickHandler) {
+                document.removeEventListener('click', window.headerClickHandler);
+            }
+            
+            window.headerClickHandler = (event) => {
+                const themeToggle = document.getElementById('themeToggle');
+                const userDropdown = document.getElementById('userDropdown');
+                const mobileThemeToggle = document.getElementById('mobileThemeToggle');
+                
+                // Desktop Theme Menu
+                if (themeToggle && !themeToggle.contains(event.target)) {
+                    // Check if it's open before calling into Blazor to avoid unnecessary traffic
+                    const themeMenu = themeToggle.querySelector('.theme-popover');
+                    if (themeMenu && themeMenu.classList.contains('show')) {
+                        dotNetHelper.invokeMethodAsync('CloseThemeMenu');
+                    }
+                }
+                
+                // Desktop User Menu
+                if (userDropdown && !userDropdown.contains(event.target)) {
+                    const userMenu = userDropdown.querySelector('.user-glass-menu');
+                    if (userMenu && userMenu.classList.contains('show')) {
+                        dotNetHelper.invokeMethodAsync('CloseUserMenu');
+                    }
+                }
+
+                // Mobile Theme Menu (if applicable)
+                 if (mobileThemeToggle && !mobileThemeToggle.contains(event.target)) {
+                        const themeMenu = mobileThemeToggle.querySelector('.theme-popover-mobile');
+                        if (themeMenu) {
+                             // For mobile we might strictly rely on CSS or this helper if we pass the reference correctly
+                             // But MobileHeader is a different component. We will handle it separately or merge.
+                             // For now, let's focus on Desktop Header which uses this helper.
+                        }
+                 }
+            };
+
+            document.addEventListener('click', window.headerClickHandler);
+        };
+    </script>
 </body>
 
 </html>

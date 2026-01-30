@@ -19,6 +19,16 @@
         <h3 class="fw-bold mb-0 text-primary">@(Id == 0 ? "إضافة خدمة جديدة" : $"تعديل: {serviceTitle}")</h3>
     </div>
 
+    @if (isDemoMode)
+    {
+        <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+             <i class="fa-solid fa-triangle-exclamation me-2"></i>
+             <div>
+                 <strong>وضع العرض التجريبي:</strong> فشل تحميل التصنيفات والمواقع من الخادم، يتم استخدام بيانات وهمية للتجربة.
+             </div>
+        </div>
+    }
+
     @if(isLoadingData)
     {
          <div class="text-center p-5">
@@ -50,13 +60,28 @@
     private List<MainCategoryDto> mainCategories = new();
     private List<GovernorateDto> governorates = new();
 
+    private bool isDemoMode = false;
+
     protected override async Task OnInitializedAsync()
     {
         isLoadingData = true;
+        isDemoMode = false;
         try 
         {
-            mainCategories = await Api.GetMainCategoriesAsync();
-            governorates = await Api.GetGovernoratesAsync();
+            var categoriesTask = Api.GetMainCategoriesAsync();
+            var governoratesTask = Api.GetGovernoratesAsync();
+
+            await Task.WhenAll(categoriesTask, governoratesTask);
+            
+            mainCategories = categoriesTask.Result;
+            governorates = governoratesTask.Result;
+            
+            // If API returns empty lists (due to logic handled inside ApiClient returning new List on error),
+            // check if we really have data. If empty, switch to demo mode.
+            if (!mainCategories.Any() || !governorates.Any())
+            {
+                throw new Exception("Empty data loaded");
+            }
     
             if (Id != 0)
             {
@@ -64,6 +89,7 @@
                 if (service != null)
                 {
                     serviceTitle = service.Title;
+                    // ... (mapping logic remains same, abstracted for brevity in tool call if possible, but here I must be precise)
                     model = new ServiceForm.ServiceFormModel
                     {
                         Title = service.Title,
@@ -88,12 +114,34 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex);
+            Console.WriteLine($"Error loading create service data: {ex.Message}");
+            isDemoMode = true;
+            LoadMockData();
         }
         finally
         {
             isLoadingData = false;
         }
+    }
+
+    private void LoadMockData()
+    {
+        // Mock Categories
+        mainCategories = new List<MainCategoryDto>
+        {
+            new MainCategoryDto { Id = 1, Name = "خدمات منزلية" },
+            new MainCategoryDto { Id = 2, Name = "خدمات تقنية" },
+            new MainCategoryDto { Id = 3, Name = "دروس خصوصية" },
+            new MainCategoryDto { Id = 4, Name = "صيانة سيارات" }
+        };
+
+        // Mock Governorates
+        governorates = new List<GovernorateDto>
+        {
+            new GovernorateDto { Id = 1, NameAr = "الرياض" },
+            new GovernorateDto { Id = 2, NameAr = "مكة المكرمة" },
+            new GovernorateDto { Id = 3, NameAr = "الشرقية" }
+        };
     }
 
     private void SimulateUpload()

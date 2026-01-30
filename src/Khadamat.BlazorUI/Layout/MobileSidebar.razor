@@ -45,6 +45,18 @@
                     <div class="menu-section">
                         <h6 class="section-title">نشاطي</h6>
                         <div class="menu-items">
+                            <div class="menu-item @GetActiveClass("user/my-services")" @onclick='() => NavigateTo("/user/my-services")'>
+                                <i class="fa-solid fa-briefcase"></i>
+                                <span>خدماتي</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("user/my-requests")" @onclick='() => NavigateTo("/user/my-requests")'>
+                                <i class="fa-solid fa-clipboard-list"></i>
+                                <span>طلباتي</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("user/messages")" @onclick='() => NavigateTo("/user/messages")'>
+                                <i class="fa-solid fa-envelope"></i>
+                                <span>رسائلي</span>
+                            </div>
                             <div class="menu-item @GetActiveClass("client/favorites")" @onclick='() => NavigateTo("/client/favorites")'>
                                 <i class="fa-solid fa-heart text-danger"></i>
                                 <span>المفضلة</span>
@@ -250,6 +262,12 @@
         flex: 1;
         overflow-y: auto;
         padding: 20px;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+    }
+
+    .menu-sections-wrapper::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, and Opera */
     }
 
     .menu-section {

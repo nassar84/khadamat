@@ -1,0 +1,97 @@
+@page "/user/messages"
+@inject NavigationManager Navigation
+
+<div class="h-100 d-flex flex-column pb-5">
+    <div class="px-3 pt-3 mb-2">
+        <h3 class="fw-bold mb-0">الرسائل</h3>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="d-flex justify-content-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+    }
+    else if (conversations == null || !conversations.Any())
+    {
+        <div class="d-flex flex-column align-items-center justify-content-center flex-grow-1 p-5 text-center text-muted">
+            <i class="fa-regular fa-comments display-1 mb-3 opacity-25"></i>
+            <h5>لا توجد رسائل</h5>
+            <p>ابدأ محادثة مع مزودي الخدمات للاستفسار عن خدماتهم</p>
+        </div>
+    }
+    else
+    {
+        <div class="flex-grow-1 overflow-auto px-3">
+            <div class="d-flex flex-column gap-2">
+                @foreach (var chat in conversations)
+                {
+                    <div class="glass-card p-3 d-flex align-items-center gap-3 cursor-pointer hover-bg" @onclick="() => OpenChat(chat.Id)">
+                        <div class="position-relative">
+                            <img src="@chat.Avatar" class="rounded-circle border" style="width: 50px; height: 50px; object-fit: cover;" />
+                            @if (chat.IsOnline)
+                            {
+                                <div class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle" style="width: 12px; height: 12px;"></div>
+                            }
+                        </div>
+                        <div class="flex-grow-1 overflow-hidden">
+                            <div class="d-flex justify-content-between align-items-baseline mb-1">
+                                <h6 class="fw-bold mb-0 text-truncate">@chat.Name</h6>
+                                <small class="text-muted" style="font-size: 0.75rem;">@chat.LastMessageTime</small>
+                            </div>
+                            <p class="text-muted small mb-0 text-truncate @(chat.UnreadCount > 0 ? "fw-bold text-dark" : "")">@chat.LastMessage</p>
+                        </div>
+                        @if (chat.UnreadCount > 0)
+                        {
+                            <div class="badge bg-primary rounded-pill">@chat.UnreadCount</div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .hover-bg:hover {
+        background-color: rgba(var(--theme-primary-rgb), 0.05);
+    }
+    .cursor-pointer {
+        cursor: pointer;
+    }
+</style>
+
+@code {
+    private List<ConversationMock>? conversations;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(800);
+        
+        conversations = new List<ConversationMock>
+        {
+            new ConversationMock { Id = 1, Name = "أحمد محمد (سباك)", Avatar = "https://ui-avatars.com/api/?name=Ahmed+Mohamed&background=random", LastMessage = "تمام يا فندم، هكون عندك الساعة 5", LastMessageTime = "10:30 ص", UnreadCount = 2, IsOnline = true },
+            new ConversationMock { Id = 2, Name = "مركز الصيانة المعتمد", Avatar = "https://ui-avatars.com/api/?name=Support&background=0D8ABC&color=fff", LastMessage = "تم استلام طلبك وجاري مراجعته", LastMessageTime = "أمس", UnreadCount = 0, IsOnline = false },
+            new ConversationMock { Id = 3, Name = "ندى للتصميم", Avatar = "https://ui-avatars.com/api/?name=Nada+Design&background=ff0000&color=fff", LastMessage = "ممكن تفاصيل أكتر عن المشروع؟", LastMessageTime = "منذ يومين", UnreadCount = 0, IsOnline = false }
+        };
+        
+        isLoading = false;
+    }
+
+    private void OpenChat(int id)
+    {
+        // Navigation.NavigateTo($"/user/messages/{id}");
+    }
+
+    public class ConversationMock
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public string Avatar { get; set; } = "";
+        public string LastMessage { get; set; } = "";
+        public string LastMessageTime { get; set; } = "";
+        public int UnreadCount { get; set; }
+        public bool IsOnline { get; set; }
+    }
+}

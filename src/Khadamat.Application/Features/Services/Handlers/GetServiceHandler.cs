@@ -30,14 +30,24 @@ public class GetServiceHandler : IRequestHandler<Queries.GetServiceQuery, Pagina
         Expression<Func<Service, bool>> filter = s => 
             (!request.IsApproved.HasValue || s.Approved == request.IsApproved.Value) &&
             (string.IsNullOrEmpty(search) || s.Name.ToLower().Contains(search) || s.Description.ToLower().Contains(search)) &&
+            (!request.CategoryId.HasValue || s.CategoryId == request.CategoryId) &&
             (!request.SubCategoryId.HasValue || s.SubCategoryId == request.SubCategoryId) &&
-            (string.IsNullOrEmpty(request.Location) || s.Address == request.Location);
+            (!request.CityId.HasValue || s.CityId == request.CityId) &&
+            (!request.GovernorateId.HasValue || s.City.GovernorateId == request.GovernorateId) &&
+            (string.IsNullOrEmpty(request.Location) || s.Address.Contains(request.Location));
         
         // Includes for mapping
         string includes = "Category,SubCategory,City,City.Governorate";
 
+        Func<IQueryable<Service>, IOrderedQueryable<Service>> orderBy = request.SortBy switch
+        {
+            "price-asc" => q => q.OrderBy(s => s.Price ?? decimal.MaxValue),
+            "rating" => q => q.OrderByDescending(s => s.Ratings.Any() ? s.Ratings.Average(r => (double?)r.Stars) : 0),
+            _ => q => q.OrderByDescending(s => s.CreatedAt)
+        };
+
         var pagedItems = await _repository.GetPagedAsync(request.Page, request.PageSize, filter, 
-            orderBy: q => q.OrderByDescending(s => s.CreatedAt), 
+            orderBy: orderBy, 
             includeProperties: includes);
             
         var totalCount = await _repository.CountAsync(filter);
