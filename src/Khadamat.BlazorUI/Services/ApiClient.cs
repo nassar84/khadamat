@@ -449,6 +449,11 @@ public class ApiClient
         return response.IsSuccessStatusCode;
     }
 
+    public async Task<bool> AddReviewAsync(int serviceId, int rating, string comment)
+    {
+        return await CreateReviewAsync(new CreateReviewRequest { ServiceId = serviceId, Rating = rating, Comment = comment });
+    }
+
     public async Task<bool> DeleteReviewAsync(int id)
     {
         var response = await _http.DeleteAsync($"api/v1/reviews/{id}");
