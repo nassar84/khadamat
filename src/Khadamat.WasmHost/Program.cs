@@ -38,5 +38,6 @@ builder.Services.AddScoped<Khadamat.Shared.Interfaces.IExternalAuthService, Khad
 builder.Services.AddScoped<Khadamat.Shared.Interfaces.IBiometricService, Khadamat.BlazorUI.Services.WebBiometricService>();
 builder.Services.AddScoped<Khadamat.Application.Interfaces.IOfflineDataService, Khadamat.BlazorUI.Services.WebOfflineDataService>();
 builder.Services.AddScoped<Khadamat.Shared.Interfaces.ILocationService, Khadamat.BlazorUI.Services.WebLocationService>();
+builder.Services.AddScoped<Khadamat.BlazorUI.Services.SignalRClientService>();
 
 await builder.Build().RunAsync();

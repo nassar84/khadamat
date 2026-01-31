@@ -65,9 +65,19 @@
                 }
             </div>
 
-            <div class="icon-btn-minimal" @onclick='() => Navigation.NavigateTo("/notifications")'>
+            <!-- Messages -->
+            <div class="icon-btn-minimal" @onclick='() => Navigation.NavigateTo("/user/messages")'>
+                <i class="fa-solid fa-envelope"></i>
+                @if (State.HasUnreadMessages)
+                {
+                    <span class="badge-dot danger"></span>
+                }
+            </div>
+
+            <!-- Notifications -->
+            <div class="icon-btn-minimal" @onclick='() => Navigation.NavigateTo("/user/notifications")'>
                 <i class="fa-solid fa-bell"></i>
-                @if (State.NotificationCount > 0)
+                @if (State.HasUnreadNotifications)
                 {
                     <span class="badge-dot"></span>
                 }
@@ -228,6 +238,7 @@
         border-radius: 50%;
         border: 2px solid white;
     }
+    .badge-dot.danger { background: #f43f5e; box-shadow: 0 0 5px rgba(244, 63, 94, 0.5); }
 
     .mobile-search-bar {
         background: transparent;

@@ -1,0 +1,146 @@
+@page "/user/notifications"
+@attribute [Authorize]
+@inject ApiClient Api
+@inject AppState State
+@inject NavigationManager Navigation
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 animate-fade-in text-end">
+        <div>
+             <h2 class="fw-bold mb-0">مركز التنبيهات</h2>
+             <p class="text-muted">تابع آخر التحديثات والرسائل الخاصة بحسابك</p>
+        </div>
+        <button class="btn btn-light rounded-pill px-4 shadow-sm" @onclick="MarkAllAsRead">
+            <i class="fas fa-check-double me-2"></i> تحديد الكل كمقروء
+        </button>
+    </div>
+
+    <div class="glass-card shadow-lg border-0 rounded-4 overflow-hidden animate-up">
+        @if (notifications == null)
+        {
+            <div class="p-5 text-center">
+                <div class="spinner-border text-primary"></div>
+                <p class="mt-3 text-muted">جاري تحميل التنبيهات...</p>
+            </div>
+        }
+        else if (!notifications.Any())
+        {
+            <div class="p-5 text-center">
+                <i class="far fa-bell-slash display-1 opacity-25 mb-4 d-block"></i>
+                <h4 class="fw-bold">لا توجد تنبيهات حالياً</h4>
+                <p class="text-muted">عندما يصلك أي تنبيه جديد سيظهر هنا</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var n in notifications)
+            {
+                <div class="notification-item p-4 d-flex border-bottom @(n.IsRead ? "read" : "unread") cursor-pointer" @onclick="() => HandleNotificationClick(n)">
+                    <div class="type-icon-wrapper me-4 @n.Type.ToLower()">
+                         <i class="@GetIcon(n.Type)"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h5 class="fw-bold mb-1">@n.Title</h5>
+                            <span class="smaller text-muted">@n.CreatedAt.ToString("g")</span>
+                        </div>
+                        <p class="mb-0 text-muted">@n.Message</p>
+                    </div>
+                    @if (!n.IsRead)
+                    {
+                        <div class="ms-3 unread-dot"></div>
+                    }
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<style>
+    .notification-item {
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .notification-item:hover {
+        background-color: #f1f5f9;
+        transform: scale(1.005);
+    }
+    
+    .notification-item.unread {
+        background-color: #f0f4ff;
+    }
+    
+    .unread-dot {
+        width: 12px;
+        height: 12px;
+        background-color: #6366f1;
+        border-radius: 50%;
+        align-self: center;
+        box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+    }
+    
+    .type-icon-wrapper {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+    
+    .type-icon-wrapper.system { background: #fee2e2; color: #ef4444; }
+    .type-icon-wrapper.message { background: #e0e7ff; color: #6366f1; }
+    .type-icon-wrapper.order { background: #fef3c7; color: #f59e0b; }
+    .type-icon-wrapper.admin { background: #dcfce7; color: #10b981; }
+</style>
+
+@code {
+    private List<NotificationDto>? notifications;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadNotifications();
+        State.HasUnreadNotifications = false;
+        State.TriggerStateChanged();
+    }
+
+    private async Task LoadNotifications()
+    {
+        notifications = await Api.GetMyNotificationsAsync();
+    }
+
+    private async Task MarkAllAsRead()
+    {
+        var success = await Api.MarkAllNotificationsAsReadAsync();
+        if (success)
+        {
+            await LoadNotifications();
+        }
+    }
+
+    private async Task HandleNotificationClick(NotificationDto n)
+    {
+        if (!n.IsRead)
+        {
+            await Api.MarkNotificationAsReadAsync(n.Id);
+            n.IsRead = true;
+        }
+        
+        if (!string.IsNullOrEmpty(n.RelatedLink))
+        {
+            Navigation.NavigateTo(n.RelatedLink);
+        }
+    }
+
+    private string GetIcon(string type) => type.ToLower() switch
+    {
+        "system" => "fas fa-cog",
+        "message" => "fas fa-envelope",
+        "order" => "fas fa-shopping-bag",
+        "admin" => "fas fa-shield-alt",
+        _ => "fas fa-bell"
+    };
+}

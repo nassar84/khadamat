@@ -73,11 +73,28 @@ public static class KhadamatDbContextSeed
 
     private static async Task SeedUsersAsync(UserManager<ApplicationUser> userManager)
     {
+        // System Admin
         if (await userManager.FindByEmailAsync("admin@khadamat.com") == null)
         {
             var admin = new ApplicationUser { UserName = "Admin", Email = "admin@khadamat.com", FullName = "System Admin", Role = UserRole.SystemAdmin, EmailConfirmed = true };
             await userManager.CreateAsync(admin, "Admin@123");
             await userManager.AddToRoleAsync(admin, "SystemAdmin");
+        }
+
+        // Super Admin
+        if (await userManager.FindByNameAsync("SuperAdmin") == null)
+        {
+            var superAdmin = new ApplicationUser { UserName = "SuperAdmin", Email = "superadmin@khadamat.com", FullName = "Super Admin User", Role = UserRole.SuperAdmin, EmailConfirmed = true };
+            await userManager.CreateAsync(superAdmin, "Admin@123");
+            await userManager.AddToRoleAsync(superAdmin, "SuperAdmin");
+        }
+
+        // Regular User
+        if (await userManager.FindByNameAsync("RegularUser") == null)
+        {
+            var regularUser = new ApplicationUser { UserName = "RegularUser", Email = "regular@khadamat.com", FullName = "Regular User", Role = UserRole.User, EmailConfirmed = true };
+            await userManager.CreateAsync(regularUser, "Admin@123");
+            await userManager.AddToRoleAsync(regularUser, "User");
         }
     }
 

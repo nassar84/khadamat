@@ -153,6 +153,10 @@
                                         <span>اتصال</span>
                                     </button>
                                 }
+                                <button class="btn btn-primary-premium w-100 mt-2 py-3" @onclick="StartChat">
+                                    <i class="fa-solid fa-message fs-4"></i>
+                                    <span>مراسلة فورية</span>
+                                </button>
                                 <div class="d-flex gap-2 w-100 mt-2">
                                     @if (!string.IsNullOrEmpty(service.Telegram))
                                     {
@@ -812,5 +816,13 @@
         if (url.Contains("youtu.be/"))
             return url.Replace("youtu.be/", "youtube.com/embed/");
         return url;
+    }
+
+    private void StartChat()
+    {
+        if (service?.UserId != null)
+        {
+            Navigation.NavigateTo($"/user/messages/{service.UserId}");
+        }
     }
 }

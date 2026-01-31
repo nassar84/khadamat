@@ -14,10 +14,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddSignalR();
 
 // Clean Architecture Layers
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
+builder.Services.AddScoped<Khadamat.Application.Interfaces.INotificationNotifier, Khadamat.WebAPI.Services.SignalRNotificationNotifier>();
 
 // Authorization Policies
 builder.Services.AddAuthorization(options =>
@@ -39,9 +41,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAll",
         builder =>
         {
-            builder.AllowAnyOrigin()
+            builder.WithOrigins("http://localhost:5028", "https://localhost:7082", "http://localhost:5144") // Adjust for dev/prod
                    .AllowAnyMethod()
-                   .AllowAnyHeader();
+                   .AllowAnyHeader()
+                   .AllowCredentials();
         });
 });
 
@@ -88,6 +91,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<Khadamat.WebAPI.Hubs.NotificationHub>("/notificationHub");
+app.MapHub<Khadamat.WebAPI.Hubs.ChatHub>("/chatHub");
 
 // Fallback to index.html for SPA-like behavior
 app.MapFallbackToFile("index.html");

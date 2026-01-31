@@ -8,24 +8,66 @@
 @inject IAuthService AuthService
 
 <div class="px-3 pt-3 pb-5">
-    @if (profile != null && (!profile.IsProvider || !profile.IsVerified))
+    @if (profile != null)
     {
-        <div class="glass-card p-5 text-center rounded-4 shadow-sm border-warning-subtle animate-up">
-            <div class="mb-4">
-                <i class="fa-solid fa-user-shield text-warning display-4"></i>
+        bool isProfileComplete = !string.IsNullOrEmpty(profile.FullName) && 
+                                !string.IsNullOrEmpty(profile.PhoneNumber) && 
+                                profile.CityId.HasValue && profile.CityId > 0;
+
+        @if (!isProfileComplete)
+        {
+            <div class="glass-card p-5 text-center rounded-4 shadow-sm border-warning-subtle animate-up">
+                <div class="mb-4">
+                    <i class="fa-solid fa-user-pen text-warning display-4"></i>
+                </div>
+                <h4 class="fw-bold mb-3">أكمل بيانات ملفك الشخصي</h4>
+                <p class="text-muted mb-4 mx-auto" style="max-width: 500px;">
+                    لكي تتمكن من البدء، يجب عليك أولاً إكمال البيانات الأساسية في ملفك الشخصي (الاسم، رقم الهاتف، والمدينة).
+                </p>
+                <div class="d-flex justify-content-center gap-2">
+                    <button class="btn btn-primary-premium rounded-pill px-5 shadow" @onclick='() => Navigation.NavigateTo("/profile")'>
+                        <i class="fa-solid fa-user-gear me-2"></i> إكمال البيانات الآن
+                    </button>
+                </div>
             </div>
-            <h4 class="fw-bold mb-3">حسابك غير مكتمل أو قيد الانتظار</h4>
-            <p class="text-muted mb-4 mx-auto" style="max-width: 500px;">
-                لكي تتمكن من إضافة خدماتك والظهور للعملاء، يجب عليك أولاً إكمال بيانات ملفك الشخصي والتقدم بطلب انضمام كمزود خدمة ليتم مراجعته من قبل الإدارة.
-            </p>
-            <div class="d-flex justify-content-center gap-2">
-                <button class="btn btn-primary-premium rounded-pill px-5 shadow" @onclick='() => Navigation.NavigateTo("/provider/apply")'>
-                    <i class="fa-solid fa-id-card me-2"></i> إكمال ملفي والتقديم الآن
-                </button>
+        }
+        else if (!profile.IsProvider)
+        {
+            <div class="glass-card p-5 text-center rounded-4 shadow-sm border-primary-subtle animate-up">
+                <div class="mb-4">
+                    <i class="fa-solid fa-briefcase text-primary display-4"></i>
+                </div>
+                <h4 class="fw-bold mb-3">انضم إلينا كمزود خدمة</h4>
+                <p class="text-muted mb-4 mx-auto" style="max-width: 500px;">
+                    لقد أكملت بياناتك الشخصية بنجاح! الآن يمكنك البدء في تقديم خدماتك والظهور لآلاف العملاء من خلال الانضمام كـ مزود خدمة.
+                </p>
+                <div class="d-flex justify-content-center gap-2">
+                    <button class="btn btn-primary-premium rounded-pill px-5 shadow" @onclick='() => Navigation.NavigateTo("/provider/apply")'>
+                        <i class="fa-solid fa-id-card me-2"></i> التقديم كمزود خدمة
+                    </button>
+                </div>
             </div>
-        </div>
+        }
+        else if (!profile.IsVerified)
+        {
+            <div class="glass-card p-5 text-center rounded-4 shadow-sm border-info-subtle animate-up">
+                <div class="mb-4">
+                    <i class="fa-solid fa-hourglass-half text-info display-4"></i>
+                </div>
+                <h4 class="fw-bold mb-3">طلبك قيد المراجعة</h4>
+                <p class="text-muted mb-4 mx-auto" style="max-width: 500px;">
+                    شكراً لطلبك الانضمام! فريق الإدارة يقوم حالياً بمراجعة بياناتك ومستنداتك. سيتم تفعيل حسابك فور الانتهاء من المراجعة.
+                </p>
+                <div class="d-flex justify-content-center gap-2">
+                    <button class="btn btn-outline-secondary rounded-pill px-5" disabled>
+                        <i class="fa-solid fa-check me-2"></i> جاري التدقيق...
+                    </button>
+                </div>
+            </div>
+        }
     }
-    else
+    
+    @if (profile != null && profile.IsProvider && profile.IsVerified)
     {
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>

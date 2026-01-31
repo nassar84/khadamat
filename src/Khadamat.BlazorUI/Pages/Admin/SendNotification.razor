@@ -1,0 +1,207 @@
+@page "/admin/send-notification"
+@attribute [Authorize(Roles = "SystemAdmin,SuperAdmin")]
+@inject ApiClient Api
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 text-end">
+        <div>
+            <h2 class="fw-bold mb-0">إرسال تنبيهات النظام</h2>
+            <p class="text-muted">أرسل إشعارات فورية للمستخدمين أو مجموعات مخصصة</p>
+        </div>
+        <button class="btn btn-outline-secondary rounded-pill" @onclick='() => Navigation.NavigateTo("/admin")'>
+            <i class="fas fa-arrow-right me-2"></i> العودة للوحة الإدارة
+        </button>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-7">
+            <div class="glass-card p-4 shadow-sm h-100">
+                <h5 class="fw-bold mb-4 border-bottom pb-2">محتوى الإشعار</h5>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">عنوان الإشعار</label>
+                    <input type="text" class="form-control premium-input" @bind="request.Title" placeholder="مثلاً: صيانة مجدولة، عرض جديد..." />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">نص الرسالة</label>
+                    <textarea class="form-control premium-input" rows="5" @bind="request.Message" placeholder="اكتب تفاصيل التنبيه هنا..."></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">رابط متعلق (اختياري)</label>
+                    <input type="text" class="form-control premium-input" @bind="request.RelatedLink" placeholder="الرابط الذي سيتم توجيه المستخدم إليه عند الضغط" />
+                </div>
+
+                <button class="btn btn-primary-premium w-100 py-3 rounded-pill shadow" @onclick="HandleSubmit" disabled="@isSubmitting">
+                    @if (isSubmitting)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                    }
+                    <i class="fas fa-paper-plane me-2"></i> إرسال الآن
+                </button>
+            </div>
+        </div>
+
+        <div class="col-lg-5 mt-4 mt-lg-0">
+            <div class="glass-card p-4 shadow-sm h-100">
+                <h5 class="fw-bold mb-4 border-bottom pb-2">خيارات الاستهداف</h5>
+
+                <!-- Target Type Selector -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold d-block">إرسال إلى:</label>
+                    <div class="btn-group w-100 shadow-sm rounded-pill overflow-hidden" role="group">
+                        <input type="radio" class="btn-check" name="targetType" id="targetAll" @onclick='() => SetTarget("All")' checked="@(targetType == "All")">
+                        <label class="btn btn-outline-primary" for="targetAll">الكل</label>
+
+                        <input type="radio" class="btn-check" name="targetType" id="targetRole" @onclick='() => SetTarget("Role")' checked="@(targetType == "Role")">
+                        <label class="btn btn-outline-primary" for="targetRole">حسب الدور</label>
+
+                        <input type="radio" class="btn-check" name="targetType" id="targetLocation" @onclick='() => SetTarget("Location")' checked="@(targetType == "Location")">
+                        <label class="btn btn-outline-primary" for="targetLocation">الموقع</label>
+
+                        <input type="radio" class="btn-check" name="targetType" id="targetCategory" @onclick='() => SetTarget("Category")' checked="@(targetType == "Category")">
+                        <label class="btn btn-outline-primary" for="targetCategory">الأقسام</label>
+                    </div>
+                </div>
+
+                @if (targetType == "Role")
+                {
+                    <div class="mb-3 animate-fade-in">
+                        <label class="form-label">اختر الدور المستهدف</label>
+                        <select class="form-select premium-input" @bind="request.TargetRole">
+                            <option value="">-- اختر --</option>
+                            <option value="User">المستخدمين (العملاء)</option>
+                            <option value="Provider">مزودي الخدمة</option>
+                            <option value="SystemAdmin">المديرين</option>
+                        </select>
+                    </div>
+                }
+
+                @if (targetType == "Location")
+                {
+                    <div class="animate-fade-in">
+                        <div class="mb-3">
+                            <label class="form-label">المحافظة</label>
+                            <select class="form-select premium-input" @onchange="OnGovernorateChange">
+                                <option value="">كل المحافظات</option>
+                                @foreach (var gov in governorates ?? new())
+                                {
+                                    <option value="@gov.Id">@gov.NameAr</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">المدينة</label>
+                            <select class="form-select premium-input" @bind="request.CityId">
+                                <option value="">كل المدن</option>
+                                @foreach (var city in cities ?? new())
+                                {
+                                    <option value="@city.Id">@city.NameAr</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                }
+
+                @if (targetType == "Category")
+                {
+                    <div class="mb-3 animate-fade-in">
+                        <label class="form-label">القسم الرئيسي (لمزودي الخدمة فقط)</label>
+                        <select class="form-select premium-input" @bind="request.MainCategoryId">
+                            <option value="">كل الأقسام</option>
+                            @foreach (var cat in mainCategories ?? new())
+                            {
+                                <option value="@cat.Id">@cat.Name</option>
+                            }
+                        </select>
+                    </div>
+                }
+
+                <div class="alert alert-info py-2 small mt-auto">
+                    <i class="fas fa-info-circle me-1"></i>
+                    سيتم إرسال هذا التنبيه كإشعار فوري وتخزينه في مركز التنبيهات الخاص بالمستخدمين المستهدفين.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private SendNotificationRequest request = new();
+    private string targetType = "All";
+    private bool isSubmitting = false;
+
+    private List<GovernorateDto>? governorates;
+    private List<CityDto>? cities;
+    private List<MainCategoryDto>? mainCategories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        governorates = await Api.GetGovernoratesAsync();
+        mainCategories = await Api.GetMainCategoriesAsync();
+    }
+
+    private void SetTarget(string type)
+    {
+        targetType = type;
+        // Reset specific filters when target type changes
+        request.TargetRole = null;
+        request.GovernorateId = null;
+        request.CityId = null;
+        request.MainCategoryId = null;
+    }
+
+    private async Task OnGovernorateChange(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int govId))
+        {
+            request.GovernorateId = govId;
+            cities = await Api.GetCitiesAsync(govId);
+        }
+        else
+        {
+            request.GovernorateId = null;
+            cities = null;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (string.IsNullOrEmpty(request.Title) || string.IsNullOrEmpty(request.Message))
+        {
+            await JS.InvokeVoidAsync("alert", "يرجى ملء العنوان ونص الرسالة");
+            return;
+        }
+
+        isSubmitting = true;
+        try
+        {
+            var success = await Api.SendAdminNotificationAsync(
+                request.UserId, 
+                request.Title, 
+                request.Message, 
+                request.RelatedLink,
+                request.TargetRole,
+                request.GovernorateId,
+                request.CityId,
+                request.MainCategoryId);
+            if (success)
+            {
+                 await JS.InvokeVoidAsync("alert", "تم إرسال التنبيه بنجاح!");
+                 request = new();
+                 targetType = "All";
+            }
+            else
+            {
+                 await JS.InvokeVoidAsync("alert", "حدث خطأ أثناء الإرسال");
+            }
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+}

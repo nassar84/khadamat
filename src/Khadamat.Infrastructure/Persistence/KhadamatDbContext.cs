@@ -26,6 +26,7 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<AdImage> AdImages { get; set; }
     public DbSet<Favorite> Favorites { get; set; }
     public DbSet<Message> Messages { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
     public DbSet<Governorate> Governorates { get; set; }
     public DbSet<City> Cities { get; set; }

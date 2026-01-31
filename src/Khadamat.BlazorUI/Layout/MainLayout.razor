@@ -64,6 +64,7 @@
 @inject Khadamat.BlazorUI.Services.Auth.IAuthService AuthService
 @inject Khadamat.BlazorUI.State.AppState AppState
 @inject Khadamat.BlazorUI.Services.ApiClient Api
+@inject Khadamat.BlazorUI.Services.SignalRClientService SignalRService
 @inject IJSRuntime JS
 
 @code {
@@ -96,6 +97,13 @@
             Console.WriteLine($"Error loading settings: {ex.Message}");
         }
 
+
+
+        if (AppState.IsAuthenticated)
+        {
+             await SignalRService.StartAsync();
+        }
+
         if (AppState.IsAuthenticated && !AppState.IsProfileComplete)
         {
             try
@@ -108,6 +116,8 @@
                     AppState.CityId = profile.Data.CityId;
                     AppState.GovernorateId = profile.Data.GovernorateId;
                     AppState.PhoneNumber = profile.Data.PhoneNumber;
+                    
+                    // Start SignalR if not started? (Already called above based on IsAuthenticated)
                 }
             }
             catch (Exception ex)
@@ -137,5 +147,6 @@
     public void Dispose()
     {
         Navigation.LocationChanged -= HandleLocationChanged;
+        _ = SignalRService.StopAsync();
     }
 }

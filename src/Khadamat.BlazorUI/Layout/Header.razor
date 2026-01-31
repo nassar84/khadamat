@@ -38,10 +38,19 @@
             </div>
         </div>
 
+        <!-- Messages -->
+        <div class="icon-action-btn message-btn" @onclick='() => Navigation.NavigateTo("/user/messages")'>
+            <i class="fa-solid fa-envelope"></i>
+            @if (State.HasUnreadMessages)
+            {
+                <span class="pulse-badge danger">!</span>
+            }
+        </div>
+
         <!-- Notifications -->
-        <div class="icon-action-btn notification-btn">
+        <div class="icon-action-btn notification-btn" @onclick='() => Navigation.NavigateTo("/user/notifications")'>
             <i class="fa-solid fa-bell"></i>
-            @if (State.NotificationCount > 0)
+            @if (State.HasUnreadNotifications)
             {
                 <span class="pulse-badge">@State.NotificationCount</span>
             }

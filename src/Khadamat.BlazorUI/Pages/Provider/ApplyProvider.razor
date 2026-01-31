@@ -1,4 +1,5 @@
 @page "/provider/apply"
+@attribute [Authorize]
 @layout Khadamat.BlazorUI.Layout.MainLayout
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
@@ -229,11 +230,9 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (!AppState.IsAuthenticated)
-        {
-            Navigation.NavigateTo("/login?returnUrl=/provider/apply");
-            return;
-        }
+        // Enforce profile completeness via built-in checks or handled post-initialization
+        // Manual auth check removed to rely on [Authorize] attribute which correctly handles persistence
+
 
         try 
         {

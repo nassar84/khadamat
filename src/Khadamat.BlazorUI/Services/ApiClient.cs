@@ -491,7 +491,62 @@ public class ApiClient
         var response = await _http.DeleteAsync($"api/v1/comments/{id}");
         return response.IsSuccessStatusCode;
     }
+    // Notifications
+    public async Task<List<NotificationDto>> GetMyNotificationsAsync()
+    {
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<NotificationDto>>>("api/v1/notifications");
+        return response?.Data ?? new List<NotificationDto>();
+    }
+
+    public async Task<bool> MarkNotificationAsReadAsync(int id)
+    {
+        var response = await _http.PostAsync($"api/v1/notifications/{id}/read", null);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> MarkAllNotificationsAsReadAsync()
+    {
+        var response = await _http.PostAsync("api/v1/notifications/read-all", null);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> SendAdminNotificationAsync(string? userId, string title, string message, string? link = null, string? role = null, int? govId = null, int? cityId = null, int? catId = null)
+    {
+        var request = new { 
+            UserId = userId, 
+            Title = title, 
+            Message = message, 
+            RelatedLink = link,
+            TargetRole = role,
+            GovernorateId = govId,
+            CityId = cityId,
+            MainCategoryId = catId
+        };
+        var response = await _http.PostAsJsonAsync("api/v1/notifications/send", request);
+        return response.IsSuccessStatusCode;
+    }
+
+    // Messages
+    public async Task<List<ConversationDto>> GetConversationsAsync()
+    {
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<ConversationDto>>>("api/v1/messages");
+        return response?.Data ?? new List<ConversationDto>();
+    }
+
+    public async Task<List<MessageDto>> GetMessagesAsync(string userId)
+    {
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<MessageDto>>>($"api/v1/messages/{userId}");
+        return response?.Data ?? new List<MessageDto>();
+    }
+
+    public async Task<bool> SendMessageAsync(string receiverId, string content)
+    {
+        var request = new { ReceiverId = receiverId, Content = content };
+        var response = await _http.PostAsJsonAsync("api/v1/messages", request);
+        return response.IsSuccessStatusCode;
+    }
 }
+
 
 // DTOs for Client usage
 public class CreatePostRequest

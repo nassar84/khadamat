@@ -30,6 +30,8 @@ public class AppState
     }
     public bool IsProvider { get; set; }
     public int NotificationCount { get; set; } = 3;
+    public bool HasUnreadNotifications { get; set; }
+    public bool HasUnreadMessages { get; set; }
 
     // Global Settings
     public string AppName { get; set; } = "خدمات";
