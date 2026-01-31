@@ -31,7 +31,8 @@ public class AdminController : ControllerBase
 
         Console.WriteLine($"[GetAllUsers] Current User: {currentUser?.Email}, IsSuperAdmin: {isSuperAdmin}");
 
-        var users = await _userManager.Users.ToListAsync();
+        // Filter out deleted users explicitly (UserManager.Users doesn't respect global query filters)
+        var users = await _userManager.Users.Where(u => !u.IsDeleted).ToListAsync();
         Console.WriteLine($"[GetAllUsers] Total users in DB: {users.Count}");
 
         var userDtos = new List<UserDto>();
