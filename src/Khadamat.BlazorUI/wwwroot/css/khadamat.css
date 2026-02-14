@@ -1198,8 +1198,8 @@ body::after {
 .user-glass-menu {
     position: absolute !important;
     top: calc(100% + 15px);
-    right: 0;
-    /* Changed to right for RTL consistency */
+    inset-inline-end: 0;
+    /* Respects RTL document direction */
     background: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);

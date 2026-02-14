@@ -1,0 +1,241 @@
+@page "/provider/plans"
+@attribute [Authorize]
+@layout Khadamat.BlazorUI.Layout.MainLayout
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<div class="plans-page pb-5">
+    <div class="header-banner text-white py-5 text-center mb-5" style="background: linear-gradient(135deg, #4f46e5, #0ea5e9);">
+        <div class="container animate-fade-in">
+            <i class="fa-solid fa-gem fs-1 mb-3 floating"></i>
+            <h1 class="fw-bold h2">باقات الاشتراك</h1>
+            <p class="opacity-75">اختر الباقة المناسبة لاحتياجاتك وابدأ في تنمية أعمالك</p>
+        </div>
+    </div>
+
+    <div class="container">
+        @if (currentSubscription != null)
+        {
+            <div class="alert alert-info rounded-4 border-0 shadow-sm mb-5 d-flex align-items-center animate-up">
+                <div class="me-4 ms-2">
+                    <i class="fa-solid fa-circle-info fs-2 text-info"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h5 class="fw-bold mb-1">أنت مشترك حالياً في: @currentSubscription.PlanName</h5>
+                    <p class="mb-0 opacity-75">
+                         تاريخ انتهاء الاشتراك: @currentSubscription.EndDate.ToString("yyyy/MM/dd") 
+                         (@(currentSubscription.DaysRemainingCount > 0 ? $"متبقي {currentSubscription.DaysRemainingCount} يوم" : "منتهي"))
+                    </p>
+                </div>
+                <div class="ms-3">
+                    <span class="badge @(currentSubscription.IsActive ? "bg-success" : "bg-danger") rounded-pill px-3">
+                        @(currentSubscription.IsActive ? "نشط" : "غير نشط")
+                    </span>
+                </div>
+            </div>
+        }
+
+        @if (isLoading)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-3 text-muted">جاري تحميل الباقات...</p>
+            </div>
+        }
+        else
+        {
+            <div class="row g-4 justify-content-center">
+                @foreach (var plan in plans)
+                {
+                    <div class="col-lg-4 col-md-6">
+                        <div class="plan-card glass-card h-100 p-4 p-xl-5 text-center position-relative overflow-hidden @(plan.IsFeatured ? "featured" : "") animate-up">
+                            @if (plan.IsFeatured)
+                            {
+                                <div class="featured-badge">الأكثر شيوعاً</div>
+                            }
+
+                            <div class="plan-icon mb-4">
+                                <i class="@GetPlanIcon(plan.Name) fs-1 text-primary-gradient"></i>
+                            </div>
+
+                            <h3 class="fw-bold mb-2">@plan.Name</h3>
+                            <div class="plan-price mb-4">
+                                <span class="h1 fw-bold">@plan.Price.ToString("N0")</span>
+                                <span class="text-muted"> ج.م / @GetDurationText(plan.DurationInDays)</span>
+                            </div>
+
+                            <ul class="list-unstyled text-start mb-5 plan-features">
+                                <li class="mb-3">
+                                    <i class="fa-solid fa-check text-success me-2"></i>
+                                    إضافة حتى <strong>@plan.MaxServices</strong> خدمة
+                                </li>
+                                <li class="mb-3">
+                                    <i class="fa-solid fa-check text-success me-2"></i>
+                                    تواصل مباشر مع العملاء
+                                </li>
+                                <li class="mb-3">
+                                    <i class="fa-solid fa-check text-success me-2"></i>
+                                    إحصائيات متقدمة لخدماتك
+                                </li>
+                                @if (plan.IsFeatured)
+                                {
+                                    <li class="mb-3">
+                                        <i class="fa-solid fa-star text-warning me-2"></i>
+                                        <strong>تمييز خدماتك في الصفحة الرئيسية</strong>
+                                    </li>
+                                }
+                            </ul>
+
+                            <button class="btn @(plan.IsFeatured ? "btn-primary-gradient" : "btn-outline-primary") w-100 rounded-pill py-3 fw-bold mt-auto" 
+                                    disabled="@(isSubscribing || currentSubscription?.PlanId == plan.Id)"
+                                    @onclick="() => HandleSubscribe(plan)">
+                                @if (isSubscribing && selectedPlanId == plan.Id)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                    <span>جاري الاشتراك...</span>
+                                }
+                                else if (currentSubscription?.PlanId == plan.Id)
+                                {
+                                    <i class="fa-solid fa-check me-2"></i> <span>باقتك الحالية</span>
+                                }
+                                else
+                                {
+                                    <span>اشترك الآن</span>
+                                }
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .plans-page { background-color: #f8fafc; min-height: 100vh; }
+    .plan-card {
+        border: 2px solid transparent;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .plan-card:hover {
+        transform: translateY(-15px);
+        border-color: rgba(79, 70, 229, 0.2);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+    }
+    .plan-card.featured {
+        border-color: #4f46e5;
+        background: white;
+    }
+    .featured-badge {
+        position: absolute;
+        top: 20px;
+        right: -35px;
+        background: #4f46e5;
+        color: white;
+        padding: 5px 40px;
+        transform: rotate(45deg);
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+    .text-primary-gradient {
+        background: linear-gradient(135deg, #4f46e5, #0ea5e9);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .btn-primary-gradient {
+        background: linear-gradient(135deg, #4f46e5, #0ea5e9);
+        border: none;
+        color: white;
+    }
+    .btn-primary-gradient:hover {
+        opacity: 0.9;
+        transform: scale(1.02);
+    }
+    .plan-features li { display: flex; align-items: center; }
+    .floating { animation: float 3s ease-in-out infinite; }
+    @@keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+</style>
+
+@code {
+    private List<SubscriptionPlanDto> plans = new();
+    private ProviderSubscriptionDto? currentSubscription;
+    private bool isLoading = true;
+    private bool isSubscribing = false;
+    private int selectedPlanId = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        try
+        {
+            plans = await Api.GetSubscriptionPlansAsync();
+            currentSubscription = await Api.GetMySubscriptionAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleSubscribe(SubscriptionPlanDto plan)
+    {
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"هل أنت متأكد من الرغبة في الاشتراك في {plan.Name} مقابل {plan.Price:N0} ج.م؟");
+        if (!confirmed) return;
+
+        selectedPlanId = plan.Id;
+        isSubscribing = true;
+        try
+        {
+            var result = await Api.SubscribeAsync(plan.Id);
+            if (result.Success)
+            {
+                await LoadData();
+                await JS.InvokeVoidAsync("alert", "تم الاشتراك بنجاح! شكراً لثقتك.");
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", result.Message);
+            }
+        }
+        catch (Exception)
+        {
+            await JS.InvokeVoidAsync("alert", "حدث خطأ غير متوقع.");
+        }
+        finally
+        {
+            isSubscribing = false;
+        }
+    }
+
+    private string GetPlanIcon(string name) => name switch
+    {
+        var n when n.Contains("مجانية") || n.Contains("تجريبية") => "fa-solid fa-leaf",
+        var n when n.Contains("أساسية") => "fa-solid fa-bicycle",
+        var n when n.Contains("مميزة") || n.Contains("Premium") => "fa-solid fa-rocket",
+        var n when n.Contains("سنوية") || n.Contains("محترفين") => "fa-solid fa-crown",
+        _ => "fa-solid fa-box"
+    };
+
+    private string GetDurationText(int days) => days switch
+    {
+        30 => "شهرياً",
+        90 => "ربع سنوي",
+        365 => "سنوياً",
+        _ => $"{days} يوم"
+    };
+}

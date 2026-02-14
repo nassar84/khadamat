@@ -188,7 +188,21 @@ public class AuthService : IAuthService
 
     public async Task<ApiResponse<AuthResponse>> LoginAsync(LoginRequest request)
     {
+        // Try finding by username (default behavior is usually case-insensitive if configured in Identity options, but let's be explicit)
         var user = await _userManager.FindByNameAsync(request.UserName);
+        
+        // If not found by username, try finding by email (common alternative login)
+        if (user == null && request.UserName.Contains("@"))
+        {
+            user = await _userManager.FindByEmailAsync(request.UserName);
+        }
+
+        // Final fallback: manually search to ensure case-insensitivity if Identity options are strict
+        if (user == null)
+        {
+            user = await _userManager.Users.FirstOrDefaultAsync(u => u.UserName.ToLower() == request.UserName.ToLower());
+        }
+
         if (user == null)
             return ApiResponse<AuthResponse>.Fail("بيانات الاعتماد غير صالحة.");
 

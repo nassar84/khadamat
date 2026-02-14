@@ -545,6 +545,130 @@ public class ApiClient
         var response = await _http.PostAsJsonAsync("api/v1/messages", request);
         return response.IsSuccessStatusCode;
     }
+
+    // Subscriptions
+    public async Task<List<SubscriptionPlanDto>> GetSubscriptionPlansAsync()
+    {
+        try
+        {
+            return await _http.GetFromJsonAsync<List<SubscriptionPlanDto>>("api/v1/subscriptions/plans") 
+                   ?? new List<SubscriptionPlanDto>();
+        }
+        catch
+        {
+            return new List<SubscriptionPlanDto>();
+        }
+    }
+
+    public async Task<ProviderSubscriptionDto?> GetMySubscriptionAsync()
+    {
+        try
+        {
+            var response = await _http.GetAsync("api/v1/subscriptions/my-subscription");
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<ProviderSubscriptionDto>();
+            }
+        }
+        catch { }
+        return null;
+    }
+
+    public async Task<ApiResponse<bool>> SubscribeAsync(int planId)
+    {
+        var response = await _http.PostAsJsonAsync("api/v1/subscriptions/subscribe", new SubscribeRequest { PlanId = planId });
+        return await response.Content.ReadFromJsonAsync<ApiResponse<bool>>() 
+               ?? ApiResponse<bool>.Fail("فشل الاشتراك في الباقة");
+    }
+
+    // Service Requests
+    public async Task<List<ServiceRequestDto>> GetMyRequestsAsync()
+    {
+        try
+        {
+            var response = await _http.GetFromJsonAsync<List<ServiceRequestDto>>("api/v1/requests/my-requests");
+            return response ?? new List<ServiceRequestDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching requests: {ex.Message}");
+            return new List<ServiceRequestDto>();
+        }
+    }
+
+    public async Task<ApiResponse<int>> CreateRequestAsync(CreateServiceRequestDto dto)
+    {
+        try
+        {
+            var response = await _http.PostAsJsonAsync("api/v1/requests", dto);
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<ApiResponse<int>>() 
+                       ?? ApiResponse<int>.Fail("فشل في إنشاء الطلب");
+            }
+            return ApiResponse<int>.Fail("فشل في إنشاء الطلب");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating request: {ex.Message}");
+            return ApiResponse<int>.Fail(ex.Message);
+        }
+    }
+
+    public async Task<List<ServiceRequestDto>> GetProviderRequestsAsync()
+    {
+        try
+        {
+            var response = await _http.GetFromJsonAsync<List<ServiceRequestDto>>("api/v1/requests/provider-requests");
+            return response ?? new List<ServiceRequestDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching provider requests: {ex.Message}");
+            return new List<ServiceRequestDto>();
+        }
+    }
+
+    public async Task<ApiResponse<bool>> UpdateRequestStatusAsync(int requestId, Khadamat.Domain.Enums.RequestStatus status, string? notes = null)
+    {
+        try
+        {
+            var command = new { Status = status, ProviderNotes = notes };
+            var response = await _http.PutAsJsonAsync($"api/v1/requests/{requestId}/status", command);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<ApiResponse<bool>>() 
+                       ?? ApiResponse<bool>.Fail("فشل في تحديث حالة الطلب");
+            }
+            return ApiResponse<bool>.Fail("فشل في تحديث حالة الطلب");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating request status: {ex.Message}");
+            return ApiResponse<bool>.Fail(ex.Message);
+        }
+    }
+
+    public async Task<ApiResponse<bool>> CancelRequestAsync(int requestId)
+    {
+        try
+        {
+            var response = await _http.PutAsync($"api/v1/requests/my-requests/{requestId}/cancel", null);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<ApiResponse<bool>>() 
+                       ?? ApiResponse<bool>.Fail("فشل في إلغاء الطلب");
+            }
+            return ApiResponse<bool>.Fail("فشل في إلغاء الطلب");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error canceling request: {ex.Message}");
+            return ApiResponse<bool>.Fail(ex.Message);
+        }
+    }
 }
 
 

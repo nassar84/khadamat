@@ -1,0 +1,187 @@
+@page "/provider/incoming-requests"
+@using Khadamat.Application.DTOs
+@using Khadamat.Domain.Enums
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+@inject NavigationManager Navigation
+
+<div class="px-3 pt-3 pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-0">الطلبات الواردة</h3>
+            <p class="text-muted small">إدارة طلبات العملاء للخدمات التي تقدمها</p>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="d-flex justify-content-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+    }
+    else if (requests == null || !requests.Any())
+    {
+        <div class="glass-card p-5 text-center">
+            <i class="fa-solid fa-inbox display-1 text-muted opacity-25 mb-3"></i>
+            <h5>لا توجد طلبات واردة</h5>
+            <p class="text-muted">لم يتم تقديم أي طلبات لخدماتك حتى الآن.</p>
+        </div>
+    }
+    else
+    {
+        <!-- Filter Tabs -->
+        <div class="glass-card p-2 mb-3 d-flex gap-2 overflow-auto">
+            <button class="btn btn-sm @(filterStatus == null ? "btn-primary" : "btn-light")" @onclick="() => SetFilter(null)">
+                الكل (@requests.Count)
+            </button>
+            <button class="btn btn-sm @(filterStatus == RequestStatus.Pending ? "btn-warning text-dark" : "btn-light")" @onclick="() => SetFilter(RequestStatus.Pending)">
+                قيد الانتظار (@requests.Count(r => r.Status == RequestStatus.Pending))
+            </button>
+            <button class="btn btn-sm @(filterStatus == RequestStatus.Accepted ? "btn-info" : "btn-light")" @onclick="() => SetFilter(RequestStatus.Accepted)">
+                مقبولة (@requests.Count(r => r.Status == RequestStatus.Accepted))
+            </button>
+            <button class="btn btn-sm @(filterStatus == RequestStatus.InProgress ? "btn-primary" : "btn-light")" @onclick="() => SetFilter(RequestStatus.InProgress)">
+                جارية (@requests.Count(r => r.Status == RequestStatus.InProgress))
+            </button>
+        </div>
+
+        <div class="d-flex flex-column gap-3">
+            @foreach (var r in FilteredRequests)
+            {
+                <div class="glass-card p-3 animate-up">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="d-flex gap-3 flex-grow-1">
+                            <div class="bg-light rounded p-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                <i class="fa-solid @r.ServiceIcon text-primary fs-4"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="fw-bold mb-1">@r.ServiceTitle</h6>
+                                <p class="text-muted small mb-2">طلب من عميل • @r.RequestedAt.ToString("dd/MM/yyyy")</p>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <span class="badge @GetStatusBadge(r.Status)">@r.StatusText</span>
+                                    @if (r.PreferredDate.HasValue)
+                                    {
+                                        <span class="text-muted x-small">
+                                            <i class="fa-solid fa-calendar me-1"></i>
+                                            التاريخ المفضل: @r.PreferredDate.Value.ToString("dd/MM/yyyy")
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(r.Notes))
+                    {
+                        <div class="alert alert-info mb-3 small">
+                            <strong><i class="fa-solid fa-note-sticky me-1"></i> ملاحظات العميل:</strong>
+                            <p class="mb-0 mt-1">@r.Notes</p>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(r.ProviderNotes))
+                    {
+                        <div class="alert alert-secondary mb-3 small">
+                            <strong><i class="fa-solid fa-comment me-1"></i> ملاحظاتك:</strong>
+                            <p class="mb-0 mt-1">@r.ProviderNotes</p>
+                        </div>
+                    }
+
+                    <div class="d-flex gap-2 flex-wrap">
+                        @if (r.Status == RequestStatus.Pending)
+                        {
+                            <button class="btn btn-success btn-sm rounded-pill" @onclick="() => UpdateStatus(r.Id, RequestStatus.Accepted)">
+                                <i class="fa-solid fa-check me-1"></i> قبول
+                            </button>
+                            <button class="btn btn-danger btn-sm rounded-pill" @onclick="() => UpdateStatus(r.Id, RequestStatus.Rejected)">
+                                <i class="fa-solid fa-times me-1"></i> رفض
+                            </button>
+                        }
+                        else if (r.Status == RequestStatus.Accepted)
+                        {
+                            <button class="btn btn-primary btn-sm rounded-pill" @onclick="() => UpdateStatus(r.Id, RequestStatus.InProgress)">
+                                <i class="fa-solid fa-play me-1"></i> بدء التنفيذ
+                            </button>
+                        }
+                        else if (r.Status == RequestStatus.InProgress)
+                        {
+                            <button class="btn btn-success btn-sm rounded-pill" @onclick="() => UpdateStatus(r.Id, RequestStatus.Completed)">
+                                <i class="fa-solid fa-check-double me-1"></i> إكمال
+                            </button>
+                        }
+                        
+                        <button class="btn btn-outline-secondary btn-sm rounded-pill" @onclick="() => ViewServiceDetails(r.ServiceId)">
+                            <i class="fa-solid fa-eye me-1"></i> عرض الخدمة
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<ServiceRequestDto>? requests;
+    private bool isLoading = true;
+    private RequestStatus? filterStatus = null;
+
+    private IEnumerable<ServiceRequestDto> FilteredRequests =>
+        filterStatus.HasValue 
+            ? requests?.Where(r => r.Status == filterStatus.Value) ?? Enumerable.Empty<ServiceRequestDto>()
+            : requests ?? Enumerable.Empty<ServiceRequestDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRequests();
+    }
+
+    private async Task LoadRequests()
+    {
+        isLoading = true;
+        try
+        {
+            requests = await Api.GetProviderRequestsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading provider requests: {ex.Message}");
+            requests = new List<ServiceRequestDto>();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void SetFilter(RequestStatus? status)
+    {
+        filterStatus = status;
+    }
+
+    private async Task UpdateStatus(int requestId, RequestStatus newStatus)
+    {
+        var result = await Api.UpdateRequestStatusAsync(requestId, newStatus);
+        
+        if (result.Success)
+        {
+            await LoadRequests();
+            StateHasChanged();
+        }
+    }
+
+    private string GetStatusBadge(RequestStatus status) => status switch
+    {
+        RequestStatus.Pending => "bg-warning text-dark",
+        RequestStatus.Accepted => "bg-info text-dark",
+        RequestStatus.InProgress => "bg-primary text-white",
+        RequestStatus.Completed => "bg-success",
+        RequestStatus.Cancelled => "bg-secondary",
+        RequestStatus.Rejected => "bg-danger",
+        _ => "bg-secondary"
+    };
+
+    private void ViewServiceDetails(int serviceId)
+    {
+        Navigation.NavigateTo($"/service/{serviceId}");
+    }
+}

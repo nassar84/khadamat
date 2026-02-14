@@ -153,7 +153,11 @@
                                         <span>اتصال</span>
                                     </button>
                                 }
-                                <button class="btn btn-primary-premium w-100 mt-2 py-3" @onclick="StartChat">
+                                <button class="btn btn-success w-100 mt-2 py-3 shadow-lg" @onclick="OpenRequestModal">
+                                    <i class="fa-solid fa-calendar-check fs-4"></i>
+                                    <span>طلب الخدمة</span>
+                                </button>
+                                <button class="btn btn-outline-primary w-100 mt-2 py-3" @onclick="StartChat">
                                     <i class="fa-solid fa-message fs-4"></i>
                                     <span>مراسلة فورية</span>
                                 </button>
@@ -183,11 +187,11 @@
 
         <!-- Content Tabs -->
         <div class="content-container mt-n4 position-relative z-2 px-3">
-            <div class="glass-card p-2 mb-3 d-flex justify-content-between rounded-4 overflow-auto text-nowrap">
-                <button class="btn btn-tab @(activeTab == "details" ? "active" : "")" @onclick='() => SetTab("details")'>التفاصيل</button>
-                <button class="btn btn-tab @(activeTab == "gallery" ? "active" : "")" @onclick='() => SetTab("gallery")'>معرض الصور</button>
-                <button class="btn btn-tab @(activeTab == "posts" ? "active" : "")" @onclick='() => SetTab("posts")'>المنشورات</button>
-                <button class="btn btn-tab @(activeTab == "reviews" ? "active" : "")" @onclick='() => SetTab("reviews")'>التقييمات</button>
+            <div class="glass-card p-2 mb-3 d-flex flex-wrap justify-content-between rounded-4 w-100 h-auto">
+                <button class="btn btn-tab flex-grow-1 @(activeTab == "details" ? "active" : "")" @onclick='() => SetTab("details")'>التفاصيل</button>
+                <button class="btn btn-tab flex-grow-1 @(activeTab == "gallery" ? "active" : "")" @onclick='() => SetTab("gallery")'>معرض الصور</button>
+                <button class="btn btn-tab flex-grow-1 @(activeTab == "posts" ? "active" : "")" @onclick='() => SetTab("posts")'>المنشورات</button>
+                <button class="btn btn-tab flex-grow-1 @(activeTab == "reviews" ? "active" : "")" @onclick='() => SetTab("reviews")'>التقييمات</button>
             </div>
 
             <div class="tab-content pb-5">
@@ -427,6 +431,43 @@
     </div>
 }
 
+<!-- Request Service Modal -->
+@if (showRequestModal)
+{
+    <div class="modal-overlay">
+        <div class="glass-card p-4 rounded-4 animate-pop" style="max-width: 500px; width: 90%;">
+            <h5 class="fw-bold text-center mb-3">طلب الخدمة</h5>
+            <p class="text-muted small text-center mb-4">@service?.Title</p>
+            
+            <div class="mb-3">
+                <label class="form-label fw-bold small">التاريخ المفضل (اختياري)</label>
+                <input type="date" @bind="requestPreferredDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label fw-bold small">ملاحظات إضافية (اختياري)</label>
+                <textarea @bind="requestNotes" class="form-control" rows="3" placeholder="أي تفاصيل إضافية تود إخبار مقدم الخدمة بها..."></textarea>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button class="btn btn-success flex-grow-1 rounded-pill" @onclick="SubmitRequest" disabled="@isSubmittingRequest">
+                    @if (isSubmittingRequest)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                    }
+                    إرسال الطلب
+                </button>
+                <button class="btn btn-light flex-grow-1 rounded-pill" @onclick="() => showRequestModal = false" disabled="@isSubmittingRequest">إلغاء</button>
+            </div>
+            
+            @if (!string.IsNullOrEmpty(requestError))
+            {
+                <div class="alert alert-danger mt-3 mb-0 small">@requestError</div>
+            }
+        </div>
+    </div>
+}
+
 <!-- Lightbox Modal -->
 @if (!string.IsNullOrEmpty(selectedImage))
 {
@@ -564,6 +605,13 @@
     private int? expandedPostId = null;
     private string newCommentText = "";
     private bool isPostingComment = false;
+
+    // Service Request
+    private bool showRequestModal = false;
+    private DateTime? requestPreferredDate;
+    private string requestNotes = "";
+    private bool isSubmittingRequest = false;
+    private string? requestError;
 
     protected override async Task OnInitializedAsync()
     {
@@ -823,6 +871,54 @@
         if (service?.UserId != null)
         {
             Navigation.NavigateTo($"/user/messages/{service.UserId}");
+        }
+    }
+
+    private void OpenRequestModal()
+    {
+        requestError = null;
+        requestNotes = "";
+        requestPreferredDate = null;
+        showRequestModal = true;
+    }
+
+    private async Task SubmitRequest()
+    {
+        if (service == null) return;
+
+        isSubmittingRequest = true;
+        requestError = null;
+
+        try
+        {
+            var dto = new CreateServiceRequestDto
+            {
+                ServiceId = service.Id,
+                Notes = requestNotes,
+                PreferredDate = requestPreferredDate
+            };
+
+            var result = await Api.CreateRequestAsync(dto);
+            
+            if (result.Success)
+            {
+                showRequestModal = false;
+                await JS.InvokeVoidAsync("alert", "تم إرسال طلبك بنجاح! يمكنك متابعة حالة الطلب من صفحة 'طلباتي'");
+                Navigation.NavigateTo("/user/my-requests");
+            }
+            else
+            {
+                requestError = result.Message ?? "حدث خطأ أثناء إرسال الطلب";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error submitting request: {ex.Message}");
+            requestError = "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.";
+        }
+        finally
+        {
+            isSubmittingRequest = false;
         }
     }
 }

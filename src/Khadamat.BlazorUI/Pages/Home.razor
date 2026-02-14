@@ -269,12 +269,15 @@
             await Task.WhenAll(servicesTask, categoriesTask);
 
             var servicesResult = servicesTask.Result;
-            featuredServices = servicesResult.Items.Take(6).ToList();
-            nearbyServices = servicesResult.Items.Skip(1).Take(4).ToList();
-            mainCategories = categoriesTask.Result;
+            featuredServices = servicesResult?.Items?.Take(6).ToList() ?? new();
+            nearbyServices = servicesResult?.Items?.Skip(1).Take(4).ToList() ?? new();
+            mainCategories = categoriesTask.Result ?? new();
             
             // Save to offline storage as a background task
-            _ = OfflineData.SaveServicesAsync(servicesResult.Items);
+            if (servicesResult?.Items != null)
+            {
+                _ = OfflineData.SaveServicesAsync(servicesResult.Items);
+            }
         }
         catch (Exception ex)
         {

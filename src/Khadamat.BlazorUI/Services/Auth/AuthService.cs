@@ -55,12 +55,13 @@ public class AuthService : IAuthService
         return result!;
     }
 
-    public async Task Logout()
+    public Task Logout()
     {
         _secureStorage.Remove("authToken");
         _secureStorage.Remove("refreshToken");
         ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsLoggedOut();
         _httpClient.DefaultRequestHeaders.Authorization = null;
+        return Task.CompletedTask;
     }
 
     public async Task<ApiResponse<AuthResponse>> GetProfileAsync()

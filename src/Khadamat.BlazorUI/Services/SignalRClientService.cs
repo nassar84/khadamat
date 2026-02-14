@@ -35,7 +35,7 @@ public class SignalRClientService
         _notificationHub = new HubConnectionBuilder()
             .WithUrl($"{_apiBaseUrl}/notificationHub", options =>
             {
-                options.AccessTokenProvider = () => Task.FromResult(token);
+            options.AccessTokenProvider = () => Task.FromResult<string?>(token);
             })
             .WithAutomaticReconnect()
             .Build();
@@ -50,7 +50,7 @@ public class SignalRClientService
         _chatHub = new HubConnectionBuilder()
             .WithUrl($"{_apiBaseUrl}/chatHub", options =>
             {
-                options.AccessTokenProvider = () => Task.FromResult(token);
+                options.AccessTokenProvider = () => Task.FromResult<string?>(token);
             })
             .WithAutomaticReconnect()
             .Build();

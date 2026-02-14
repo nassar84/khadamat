@@ -54,11 +54,29 @@ public static class KhadamatDbContextSeed
             {
                 await SeedAdsAsync(context);
             }
+
+            if (!await context.SubscriptionPlans.AnyAsync())
+            {
+                await SeedSubscriptionPlansAsync(context);
+            }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"SEED ERROR: {ex.Message}");
         }
+    }
+
+    private static async Task SeedSubscriptionPlansAsync(KhadamatDbContext context)
+    {
+        var plans = new List<SubscriptionPlan>
+        {
+            new SubscriptionPlan("الباقة التجريبية (مجانية)", 0, 30, 2, false),
+            new SubscriptionPlan("الباقة الأساسية", 150, 30, 10, false),
+            new SubscriptionPlan("الباقة المميزة (Premium)", 400, 30, 50, true),
+            new SubscriptionPlan("الباقة السنوية للمحترفين", 1500, 365, 100, true)
+        };
+        await context.SubscriptionPlans.AddRangeAsync(plans);
+        await context.SaveChangesAsync();
     }
 
     private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)

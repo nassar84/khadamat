@@ -1,9 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
  
    <PropertyGroup>
      <TargetFramework>net9.0</TargetFramework>
      <Nullable>enable</Nullable>
      <ImplicitUsings>enable</ImplicitUsings>
+     <OutputType>Exe</OutputType>
+     <BlazorEnableCompression>false</BlazorEnableCompression>
    </PropertyGroup>
  
    <ItemGroup>

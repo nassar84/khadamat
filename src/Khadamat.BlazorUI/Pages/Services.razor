@@ -32,19 +32,19 @@
             @if (selectedCategoryName != null)
             {
                 <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2">
-                    @selectedCategoryName <i class="fa-solid fa-xmark ms-2 cursor-pointer" @onclick="() => { selectedCategoryId = null; selectedCategoryName = null; LoadServices(); }"></i>
+                    @selectedCategoryName <i class="fa-solid fa-xmark ms-2 cursor-pointer" @onclick="async () => { selectedCategoryId = null; selectedCategoryName = null; await LoadServices(); }"></i>
                 </span>
             }
             @if (selectedGovName != null)
             {
                 <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-3 py-2">
-                    @selectedGovName <i class="fa-solid fa-xmark ms-2 cursor-pointer" @onclick="() => { selectedGovId = null; selectedGovName = null; selectedCityId = null; LoadServices(); }"></i>
+                    @selectedGovName <i class="fa-solid fa-xmark ms-2 cursor-pointer" @onclick="async () => { selectedGovId = null; selectedGovName = null; selectedCityId = null; await LoadServices(); }"></i>
                 </span>
             }
             @if (selectedCityName != null)
             {
                 <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-3 py-2">
-                    @selectedCityName <i class="fa-solid fa-xmark ms-2 cursor-pointer" @onclick="() => { selectedCityId = null; selectedCityName = null; LoadServices(); }"></i>
+                    @selectedCityName <i class="fa-solid fa-xmark ms-2 cursor-pointer" @onclick="async () => { selectedCityId = null; selectedCityName = null; await LoadServices(); }"></i>
                 </span>
             }
             <button class="btn btn-link btn-sm text-muted p-0 ms-auto" @onclick="ClearAllFilters">مسح الكل</button>

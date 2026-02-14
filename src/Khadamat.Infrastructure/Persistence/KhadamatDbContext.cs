@@ -31,12 +31,15 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Governorate> Governorates { get; set; }
     public DbSet<City> Cities { get; set; }
     public DbSet<AppSettings> AppSettings { get; set; }
+    public DbSet<ServiceRequest> ServiceRequests { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
 
         // Global Filter for Soft Delete
         builder.Entity<Service>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<ServiceRequest>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<ProviderProfile>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<Post>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<MainCategory>().HasQueryFilter(e => !e.IsDeleted);
@@ -98,5 +101,18 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
             .Property(sp => sp.Price)
             .HasPrecision(18, 2);
         builder.Entity<Rating>().ToTable("Ratings");
+
+        // ServiceRequest Relationships
+        builder.Entity<ServiceRequest>()
+            .HasOne(sr => sr.Service)
+            .WithMany()
+            .HasForeignKey(sr => sr.ServiceId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<ServiceRequest>()
+            .HasOne(sr => sr.Provider)
+            .WithMany()
+            .HasForeignKey(sr => sr.ProviderId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -1,5 +1,9 @@
 @page "/user/my-requests"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
 @inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 
 <div class="px-3 pt-3 pb-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -7,7 +11,7 @@
             <h3 class="fw-bold mb-0">طلباتي</h3>
             <p class="text-muted small">متابعة حالة الطلبات التي قدمتها للمهنيين</p>
         </div>
-        <button class="btn btn-primary-premium rounded-pill px-4" @onclick='() => Navigation.NavigateTo("/")'>
+        <button class="btn btn-primary-premium rounded-pill px-4" @onclick='() => Navigation.NavigateTo("/services")'>
             <i class="fa-solid fa-magnifying-glass me-2"></i> طلب جديد
         </button>
     </div>
@@ -24,7 +28,7 @@
             <i class="fa-solid fa-clipboard-list display-1 text-muted opacity-25 mb-3"></i>
             <h5>لا توجد طلبات جارية</h5>
             <p class="text-muted">لم تقم بتقديم أي طلبات خدمات مؤخراً.</p>
-            <button class="btn btn-primary rounded-pill px-5 mt-3" @onclick='() => Navigation.NavigateTo("/categories")'>تصفح الخدمات</button>
+            <button class="btn btn-primary rounded-pill px-5 mt-3" @onclick='() => Navigation.NavigateTo("/services")'>تصفح الخدمات</button>
         </div>
     }
     else
@@ -34,17 +38,41 @@
             {
                 <div class="glass-card p-3 animate-up">
                     <div class="d-flex justify-content-between align-items-start">
-                        <div class="d-flex gap-3">
+                        <div class="d-flex gap-3 flex-grow-1">
                             <div class="bg-light rounded p-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                                <i class="fa-solid @r.Icon text-primary fs-4"></i>
+                                <i class="fa-solid @r.ServiceIcon text-primary fs-4"></i>
                             </div>
-                            <div>
-                                <h6 class="fw-bold mb-1">@r.Title</h6>
-                                <p class="text-muted small mb-2">@r.ProviderName • @r.Date.ToShortDateString()</p>
-                                <span class="badge @GetStatusBadge(r.Status)">@r.StatusText</span>
+                            <div class="flex-grow-1">
+                                <h6 class="fw-bold mb-1">@r.ServiceTitle</h6>
+                                <p class="text-muted small mb-2">@r.ProviderName • @r.RequestedAt.ToShortDateString()</p>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <span class="badge @GetStatusBadge(r.Status)">@r.StatusText</span>
+                                    @if (r.PreferredDate.HasValue)
+                                    {
+                                        <span class="text-muted x-small">
+                                            <i class="fa-solid fa-calendar me-1"></i>
+                                            @r.PreferredDate.Value.ToString("dd/MM/yyyy")
+                                        </span>
+                                    }
+                                </div>
+                                @if (!string.IsNullOrEmpty(r.Notes))
+                                {
+                                    <p class="text-muted x-small mt-2 mb-0">
+                                        <i class="fa-solid fa-note-sticky me-1"></i>
+                                        @r.Notes
+                                    </p>
+                                }
                             </div>
                         </div>
-                        <button class="btn btn-sm btn-outline-secondary rounded-pill">التفاصيل</button>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-secondary rounded-pill" @onclick="() => ViewDetails(r.ServiceId)">التفاصيل</button>
+                            @if (r.Status == Khadamat.Domain.Enums.RequestStatus.Pending)
+                            {
+                                <button class="btn btn-sm btn-outline-danger rounded-pill" @onclick="() => CancelRequest(r.Id)">
+                                    <i class="fa-solid fa-times me-1"></i> إلغاء
+                                </button>
+                            }
+                        </div>
                     </div>
                 </div>
             }
@@ -53,43 +81,59 @@
 </div>
 
 @code {
-    private List<RequestMock>? requests;
+    private List<ServiceRequestDto>? requests;
     private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
-        // Mock API Call
-        await Task.Delay(1000);
-        
-        // Uncomment to test empty state
-        // requests = new List<RequestMock>();
-
-        requests = new List<RequestMock>
-        {
-            new RequestMock { Title = "صيانة تكييف سبليت", ProviderName = "شركة التبريد الحديثة", Date = DateTime.Now.AddDays(-2), Status = "Pending", StatusText = "في انتظار الموافقة", Icon = "fa-snowflake" },
-            new RequestMock { Title = "سباكة حمام رئيسي", ProviderName = "أحمد محمد للسباكة", Date = DateTime.Now.AddDays(-5), Status = "InProgress", StatusText = "جاري التنفيذ", Icon = "fa-faucet" },
-            new RequestMock { Title = "تنظيف مفروشات", ProviderName = "خدمات النظافة الذهبية", Date = DateTime.Now.AddDays(-10), Status = "Completed", StatusText = "مكتمل", Icon = "fa-broom" }
-        };
-        
-        isLoading = false;
+        await LoadRequests();
     }
 
-    private string GetStatusBadge(string status) => status switch
+    private async Task LoadRequests()
     {
-        "Pending" => "bg-warning text-dark",
-        "InProgress" => "bg-info text-dark",
-        "Completed" => "bg-success",
-        "Cancelled" => "bg-danger",
+        isLoading = true;
+        try
+        {
+            requests = await Api.GetMyRequestsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading requests: {ex.Message}");
+            requests = new List<ServiceRequestDto>();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private string GetStatusBadge(Khadamat.Domain.Enums.RequestStatus status) => status switch
+    {
+        Khadamat.Domain.Enums.RequestStatus.Pending => "bg-warning text-dark",
+        Khadamat.Domain.Enums.RequestStatus.Accepted => "bg-info text-dark",
+        Khadamat.Domain.Enums.RequestStatus.InProgress => "bg-primary text-white",
+        Khadamat.Domain.Enums.RequestStatus.Completed => "bg-success",
+        Khadamat.Domain.Enums.RequestStatus.Cancelled => "bg-secondary",
+        Khadamat.Domain.Enums.RequestStatus.Rejected => "bg-danger",
         _ => "bg-secondary"
     };
 
-    public class RequestMock
+    private void ViewDetails(int serviceId)
     {
-        public string Title { get; set; } = "";
-        public string ProviderName { get; set; } = "";
-        public DateTime Date { get; set; }
-        public string Status { get; set; } = "";
-        public string StatusText { get; set; } = "";
-        public string Icon { get; set; } = "";
+        Navigation.NavigateTo($"/service/{serviceId}");
+    }
+
+    private async Task CancelRequest(int requestId)
+    {
+        if (!await JSRuntime.InvokeAsync<bool>("confirm", "هل أنت متأكد من إلغاء هذا الطلب؟"))
+            return;
+
+        var result = await Api.CancelRequestAsync(requestId);
+        
+        if (result.Success)
+        {
+            await LoadRequests();
+            StateHasChanged();
+        }
     }
 }

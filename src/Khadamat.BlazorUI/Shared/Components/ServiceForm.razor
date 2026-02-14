@@ -301,7 +301,7 @@
         if (!string.IsNullOrEmpty(url)) Model.Images.Add(url);
     }
 
-    private void SubmitForm() => HandleSubmit(); // Triggered by button
+    private async Task SubmitForm() => await HandleSubmit(); // Triggered by button
     
     private async Task HandleSubmit()
     {

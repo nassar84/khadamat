@@ -3,9 +3,9 @@ namespace Khadamat.BlazorUI.Helpers;
 public static class DefaultImages
 {
     // User Avatars
-    public const string MaleAvatar = "https://ui-avatars.com/api/?name=User&background=4F46E5&color=fff&size=200&bold=true&format=svg";
-    public const string FemaleAvatar = "https://ui-avatars.com/api/?name=User&background=EC4899&color=fff&size=200&bold=true&format=svg";
-    public const string DefaultAvatar = "https://ui-avatars.com/api/?name=User&background=6B7280&color=fff&size=200&bold=true&format=svg";
+    public const string MaleAvatar = "https://ui-avatars.com/api/?name=User&background=4F46E5&color=fff&size=128&bold=true&format=png";
+    public const string FemaleAvatar = "https://ui-avatars.com/api/?name=User&background=EC4899&color=fff&size=128&bold=true&format=png";
+    public const string DefaultAvatar = "https://ui-avatars.com/api/?name=User&background=6B7280&color=fff&size=128&bold=true&format=png";
     
     // Services
     public const string DefaultService = "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&h=600&fit=crop&q=80";
@@ -48,7 +48,7 @@ public static class DefaultImages
             _ => "6B7280"                      // Gray
         };
 
-        return $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(initials)}&background={bgColor}&color=fff&size=200&bold=true&format=svg";
+        return $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(initials)}&background={bgColor}&color=fff&size=128&bold=true&format=png";
     }
 
     /// <summary>
@@ -239,7 +239,7 @@ public static class DefaultImages
         var initials = GetInitials(name);
         var color = colorHex ?? GenerateColorFromName(name);
         
-        return $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(initials)}&background={color}&color=fff&size=200&bold=true&format=svg";
+        return $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(initials)}&background={color}&color=fff&size=128&bold=true&format=png";
     }
 
     /// <summary>

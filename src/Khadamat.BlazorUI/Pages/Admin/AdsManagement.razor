@@ -5,17 +5,8 @@
 @inject ApiClient Api
 @inject IJSRuntime JS
 
-<div class="px-3 pt-3 pb-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-1">
-                    <li class="breadcrumb-item"><a href="/admin" class="text-decoration-none text-muted">لوحة المدير</a></li>
-                    <li class="breadcrumb-item active">إدارة الإعلانات</li>
-                </ol>
-            </nav>
-            <h3 class="fw-bold mb-0">إدارة الإعلانات الشاملة</h3>
-        </div>
+<div class="px-2 pb-5">
+    <div class="d-flex justify-content-end mb-4">
         <button class="btn btn-primary-premium rounded-pill px-4" @onclick="OpenAddModal">
             <i class="fa-solid fa-plus me-2"></i> إضافة إعلان جديد
         </button>

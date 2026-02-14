@@ -69,7 +69,30 @@
     
     @if (profile != null && profile.IsProvider && profile.IsVerified)
     {
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        @if (isLoadingServices)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary"></div>
+            </div>
+        }
+        else if ((services == null || services.Count == 0) && currentSubscription == null)
+        {
+            <div class="glass-card p-5 text-center animate-up border-0 rounded-4 shadow-sm mb-4">
+                <div class="mb-4">
+                    <i class="fa-solid fa-gem text-primary display-4"></i>
+                </div>
+                <h4 class="fw-bold mb-3">اختر باقة لتتمكن من إضافة خدماتك</h4>
+                <p class="text-muted mb-4 mx-auto" style="max-width: 500px;">
+                    لقد تم توثيق حسابك بنجاح! للبدء في إضافة خدماتك والظهور للعملاء، يرجى اختيار إحدى باقات الاشتراك المتاحة.
+                </p>
+                <button class="btn btn-primary-premium rounded-pill px-5 shadow" @onclick='() => Navigation.NavigateTo("/provider/plans")'>
+                    <i class="fa-solid fa-list-check me-2"></i> استعراض الباقات المتاحة
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h3 class="fw-bold mb-0">خدماتي</h3>
                 <p class="text-muted small">الخدمات التي قمت بإنشائها</p>
@@ -92,7 +115,7 @@
             </div>
         }
 
-        @if (isLoading)
+        @if (isLoadingServices)
         {
             <div class="row g-4 mt-2">
                 @for (int i = 0; i < 3; i++)
@@ -164,27 +187,35 @@
                     </div>
                 }
             </div>
+            }
         }
     }
 </div>
 
 @code {
     private List<ServiceDto>? services;
-    private bool isLoading = true;
+    private bool isLoadingServices = true;
     private bool isDemoMode = false;
     private Khadamat.Application.DTOs.AuthResponse? profile;
+    private ProviderSubscriptionDto? currentSubscription;
 
     protected override async Task OnInitializedAsync()
     {
-        isLoading = true;
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoadingServices = true;
         isDemoMode = false;
         try
         {
             // 1. Load Profile
             var profileResult = await AuthService.GetProfileAsync();
-            if (profileResult.Success && profileResult.Data != null) 
+            if (profileResult?.Success == true && profileResult.Data != null) 
             {
                 profile = profileResult.Data;
+                currentSubscription = await Api.GetMySubscriptionAsync();
 
                 // 2. Only try to load services if verified provider
                 if (profile.IsProvider && profile.IsVerified)
@@ -220,7 +251,7 @@
         }
         finally
         {
-            isLoading = false;
+            isLoadingServices = false;
         }
     }
 

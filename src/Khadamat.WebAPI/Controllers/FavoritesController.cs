@@ -29,8 +29,9 @@ public class FavoritesController : ControllerBase
 
         var favorites = await _context.Favorites
             .Include(f => f.Service)
-            .ThenInclude(s => s.SubCategory)
+                .ThenInclude(s => s.SubCategory)
             .Include(f => f.Service.City)
+            .Include(f => f.Service.Ratings)
             .Where(f => f.UserId == userId && f.ServiceId != null)
             .Select(f => f.Service)
             .ToListAsync();

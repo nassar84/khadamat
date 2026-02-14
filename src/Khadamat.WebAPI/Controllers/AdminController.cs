@@ -6,6 +6,7 @@ using Khadamat.Application.Common.Models;
 using Khadamat.Application.DTOs;
 using Khadamat.Infrastructure.Identity;
 using Khadamat.Infrastructure.Persistence;
+using Khadamat.Domain.Enums;
 
 namespace Khadamat.WebAPI.Controllers;
 
@@ -27,13 +28,15 @@ public class AdminController : ControllerBase
     public async Task<ActionResult<ApiResponse<List<UserDto>>>> GetAllUsers()
     {
         var currentUser = await _userManager.GetUserAsync(User);
-        var isSuperAdmin = currentUser != null && await _userManager.IsInRoleAsync(currentUser, "SuperAdmin");
+        var currentUserRoles = currentUser != null ? await _userManager.GetRolesAsync(currentUser) : new List<string>();
+        var currentUserRole = currentUserRoles.FirstOrDefault() ?? "Guest";
+        var isSuperAdmin = currentUserRole == "SuperAdmin";
 
-        Console.WriteLine($"[GetAllUsers] Current User: {currentUser?.Email}, IsSuperAdmin: {isSuperAdmin}");
+        Console.WriteLine($"[GetAllUsers] Current User: {currentUser?.Email}, Role: {currentUserRole}, IsSuperAdmin: {isSuperAdmin}");
 
         // Filter out deleted users explicitly (UserManager.Users doesn't respect global query filters)
         var users = await _userManager.Users.Where(u => !u.IsDeleted).ToListAsync();
-        Console.WriteLine($"[GetAllUsers] Total users in DB: {users.Count}");
+        Console.WriteLine($"[GetAllUsers] Total active users in DB: {users.Count}");
 
         var userDtos = new List<UserDto>();
 
@@ -42,15 +45,34 @@ public class AdminController : ControllerBase
             var roles = await _userManager.GetRolesAsync(user);
             var role = roles.FirstOrDefault() ?? "User";
 
-            Console.WriteLine($"[GetAllUsers] User: {user.Email}, Role: {role}");
+            // LOG ALL USERS BEFORE FILTERING (DEBUG)
+            Console.WriteLine($"[GetAllUsers] Processing ID: {user.Id}, Email: {user.Email}, Role in AspNetRoles: {role}, Role in User Property: {user.Role}");
 
-            // Restriction: SystemAdmin can only see/manage regular users and providers
-            // SuperAdmin can see everyone
-            // BUT: Always allow current user to see their own account
-            if (!isSuperAdmin && (role == "SuperAdmin" || role == "SystemAdmin") && user.Id != currentUser?.Id)
+            // Logic:
+            // 1. SuperAdmin sees EVERYONE.
+            // 2. SystemAdmin sees "User", "Provider", and THEMSELVES.
+            // 3. SystemAdmin should NOT see other "SystemAdmin" or "SuperAdmin".
+            
+            bool canSee = isSuperAdmin; // SuperAdmin sees all
+            
+            if (!canSee)
             {
-                Console.WriteLine($"[GetAllUsers] Skipping {user.Email} - Admin account (not self)");
-                continue; // Skip admin accounts if current user is not SuperAdmin, unless it's themselves
+                // If not super admin, we check if it's the user himself
+                if (user.Id == currentUser?.Id)
+                {
+                    canSee = true;
+                }
+                // Or if the target user is a regular User or a Provider
+                else if (role == "User" || role == "Provider" || user.Role == UserRole.User)
+                {
+                    canSee = true;
+                }
+            }
+
+            if (!canSee)
+            {
+                Console.WriteLine($"[GetAllUsers] Skipping {user.Email} (Role: {role}) - Access Denied for current requester role: {currentUserRole}");
+                continue;
             }
 
             userDtos.Add(new UserDto
@@ -77,7 +99,7 @@ public class AdminController : ControllerBase
             });
         }
 
-        Console.WriteLine($"[GetAllUsers] Returning {userDtos.Count} users");
+        Console.WriteLine($"[GetAllUsers] Final count of users allowed for {currentUser?.Email} (Role: {currentUserRole}): {userDtos.Count}");
         return Ok(ApiResponse<List<UserDto>>.Succeed(userDtos));
     }
 

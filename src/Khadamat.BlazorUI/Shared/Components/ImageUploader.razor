@@ -117,7 +117,7 @@
         await ImageUrlChanged.InvokeAsync(url);
     }
 
-    private async Task TriggerFilePicker()
+    private void TriggerFilePicker()
     {
         // Programmatically click the input if needed, though stretching the link is usually enough.
         // Since InputFile is stretched over the area, it handles itself.

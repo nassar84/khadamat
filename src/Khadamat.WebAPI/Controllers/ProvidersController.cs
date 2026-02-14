@@ -54,17 +54,33 @@ public class ProvidersController : ControllerBase
         return Ok(ApiResponse<int>.Succeed(profile.Id));
     }
 
-     [HttpGet("{userId}")]
-     public async Task<IActionResult> GetProfile(string userId)
-     {
-          var profile = await _context.ProviderProfiles
-              .Include(p => p.City)
-              .FirstOrDefaultAsync(p => p.UserId == userId);
-              
-          if (profile == null) return NotFound();
-          
-          return Ok(profile);
-     }
+    [HttpGet("{userId}")]
+    public async Task<IActionResult> GetProfile(string userId)
+    {
+        var profile = await _context.ProviderProfiles
+            .Include(p => p.City)
+            .FirstOrDefaultAsync(p => p.UserId == userId);
+
+        if (profile == null) return NotFound();
+
+        var dto = new ProviderProfileDto
+        {
+            Id = profile.Id,
+            UserId = profile.UserId,
+            BusinessName = profile.BusinessName,
+            Bio = profile.Bio,
+            Photo = profile.Photo,
+            ContactNumber = profile.ContactNumber,
+            WebsiteUrl = profile.WebsiteUrl,
+            InstagramUrl = profile.InstagramUrl,
+            TwitterUrl = profile.TwitterUrl,
+            Verified = profile.Verified,
+            CityId = profile.CityId,
+            CityName = profile.City?.City_Name_AR
+        };
+
+        return Ok(dto);
+    }
 
     [HttpPut("profile")]
     [Authorize]
