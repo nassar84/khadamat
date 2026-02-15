@@ -14,3 +14,55 @@
 @code {
 
 }
+
+<style>
+    .app-footer {
+        background: white;
+        padding: 30px 0;
+        border-top: 1px solid rgba(0,0,0,0.05);
+        margin-top: auto;
+    }
+    
+    .footer-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    
+    .copyright {
+        color: #64748b;
+        font-size: 0.9rem;
+        margin: 0;
+        font-weight: 500;
+    }
+    
+    .footer-links {
+        display: flex;
+        gap: 25px;
+    }
+    
+    .footer-links a {
+        color: #64748b;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: color 0.2s;
+        font-weight: 500;
+    }
+    
+    .footer-links a:hover {
+        color: var(--theme-primary);
+    }
+    
+    @@media (max-width: 768px) {
+        .footer-content {
+            flex-direction: column-reverse;
+            text-align: center;
+            padding-bottom: 80px; /* Space for mobile bottom nav */
+        }
+    }
+</style>

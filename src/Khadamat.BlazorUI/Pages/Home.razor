@@ -6,29 +6,10 @@
 @inject NavigationManager Navigation
 @inject Khadamat.BlazorUI.State.AppState AppState
 @inject Khadamat.Application.Interfaces.IOfflineDataService OfflineData
-@using Khadamat.BlazorUI.Components.Ads
-@using Khadamat.BlazorUI.Components.Category
 
 <div class="px-3">
-    <!-- Main Ad Slider -->
-    <AdsSlider />
-
-    <!-- New Updates Alert (Premium) -->
-    <div class="new-updates-alert animate-pop mb-4">
-        <div class="glow-blur"></div>
-        <div class="alert-content">
-            <div class="icon-box">
-                <i class="fa-solid fa-sparkles"></i>
-            </div>
-            <div class="text-box">
-                <h6>تحديثات الواجهة الجديدة (v1.1)</h6>
-                <p>استمتع بتصميم Glassmorphism المتطور وأدوات التحكم الإدارية الجديدة.</p>
-            </div>
-        </div>
-    </div>
-
-
-
+    <!-- Category Marquee -->
+    <CategoryMarquee />
 
     <!-- Featured Services (Horizontal Scroll) -->
     <div class="mb-5">
@@ -116,9 +97,9 @@
     }
 
     .provider-banner-card {
-        background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%);
-        border-radius: 24px;
-        padding: 25px;
+        background: linear-gradient(135deg, var(--theme-primary, #0f172a) 0%, var(--theme-secondary, #334155) 100%);
+        border-radius: 20px;
+        padding: 40px; /* Increased padding */
         color: white;
         display: flex;
         justify-content: space-between;
@@ -126,17 +107,21 @@
         cursor: pointer;
         position: relative;
         overflow: hidden;
-        box-shadow: 0 15px 30px var(--theme-glow);
-        transition: transform 0.3s ease;
+        box-shadow: 0 20px 40px -10px rgba(0,0,0,0.3); /* Stronger shadow */
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        margin-top: 40px;
+        margin-bottom: 20px;
+        border: 1px solid rgba(255,255,255,0.1);
     }
 
     .provider-banner-card:hover {
-        transform: translateY(-5px);
+        transform: translateY(-5px) scale(1.01);
+        box-shadow: 0 30px 60px -12px rgba(0,0,0,0.35);
     }
 
     .banner-content {
         z-index: 2;
-        max-width: 70%;
+        max-width: 65%;
     }
 
     .status-badge {
@@ -154,70 +139,6 @@
     .banner-content h3 {
         font-weight: 800;
         margin-bottom: 8px;
-    }
-
-    /* New Updates Alert Styles */
-    .new-updates-alert {
-        position: relative;
-        background: rgba(255, 255, 255, 0.6);
-        backdrop-filter: blur(15px);
-        border: 1px solid rgba(255, 255, 255, 0.4);
-        border-radius: 20px;
-        padding: 15px;
-        overflow: hidden;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-    }
-
-    .glow-blur {
-        position: absolute;
-        top: -20px;
-        right: -20px;
-        width: 60px;
-        height: 60px;
-        background: var(--theme-primary);
-        filter: blur(30px);
-        opacity: 0.3;
-        z-index: 0;
-    }
-
-    .alert-content {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        position: relative;
-        z-index: 1;
-    }
-
-    .icon-box {
-        width: 45px;
-        height: 45px;
-        background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 1.2rem;
-        box-shadow: 0 5px 15px var(--theme-glow);
-    }
-
-    .text-box h6 {
-        margin: 0;
-        font-weight: 900;
-        color: #1e293b;
-        font-size: 0.95rem;
-    }
-
-    .text-box p {
-        margin: 2px 0 0;
-        font-size: 0.8rem;
-        color: #64748b;
-        font-weight: 600;
-        line-height: 1.4;
-    }
-
-    .animate-pop {
-        animation: pop-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
     .banner-content p {
@@ -244,6 +165,17 @@
         left: -10px;
         bottom: -20px;
         transform: rotate(-15deg);
+    }
+
+    .skeleton {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+    }
+
+    @@keyframes loading {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
     }
 </style>
 
