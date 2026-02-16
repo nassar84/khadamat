@@ -61,7 +61,16 @@ using (var scope = app.Services.CreateScope())
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
         // Apply migrations automatically
-        context.Database.Migrate();
+        try 
+        {
+            context.Database.Migrate();
+        }
+        catch (Exception ex)
+        {
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            logger.LogWarning(ex, "Migration failed or tables already exist. Proceeding with seeding.");
+        }
+        
         // Seed data
         await KhadamatDbContextSeed.SeedAsync(context, userManager, roleManager);
     }
