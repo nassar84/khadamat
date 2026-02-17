@@ -30,6 +30,14 @@ builder.Services.AddScoped<SignalRClientService>();
 builder.Services.AddScoped<Khadamat.BlazorUI.Services.Auth.IAuthService, Khadamat.BlazorUI.Services.Auth.AuthService>();
 builder.Services.AddScoped<Khadamat.BlazorUI.Services.Admin.IAdminService, Khadamat.BlazorUI.Services.Admin.AdminService>();
 builder.Services.AddScoped<Khadamat.Application.Interfaces.IOfflineDataService, WebOfflineDataService>();
+
+// Register Web Implementations for Shared Interfaces
 builder.Services.AddScoped<WebShareService>();
+builder.Services.AddScoped<Khadamat.Shared.Interfaces.IShareService, WebShareService>();
+builder.Services.AddScoped<Khadamat.Shared.Interfaces.IPhoneService, WebPhoneService>();
+builder.Services.AddScoped<Khadamat.Shared.Interfaces.ILocationService, WebLocationService>();
+builder.Services.AddScoped<Khadamat.Shared.Interfaces.IExternalAuthService, WebExternalAuthService>();
+builder.Services.AddScoped<Khadamat.Shared.Interfaces.INotificationService, WebNotificationService>();
+builder.Services.AddScoped<Khadamat.Shared.Interfaces.IBiometricService, WebBiometricService>();
 
 await builder.Build().RunAsync();

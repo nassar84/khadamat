@@ -5,11 +5,11 @@
 @inject IAuthService AuthService
 @inject NavigationManager Navigation
 @implements IDisposable
-<header class="app-header-premium container-fluid">
-    <div class="h-100 px-4 d-flex align-items-center justify-content-between gap-4">
+<header class="app-header-premium container-fluid" style="display: block; padding: 0;">
+    <div class="header-inner-container h-100 mx-auto d-flex align-items-center justify-content-between gap-4" style="max-width: 1200px; padding: 0 20px;">
         
         <!-- Search Section (Expanded & Elegant) -->
-        <div class="flex-grow-1 d-flex align-items-center" style="max-width: 600px;">
+        <div class="header-search-section flex-grow-1 d-flex align-items-center" style="max-width: 600px;">
             <div class="search-container-glass w-100">
                 <i class="fa-solid fa-magnifying-glass search-icon opacity-50"></i>
                 <input type="text" placeholder="ابحث عن خدمة، تاجر، أو صنايعي..." class="search-input" />
@@ -18,7 +18,7 @@
         </div>
 
         <!-- Actions & Profile Section -->
-        <div class="d-flex align-items-center gap-2 gap-md-3">
+        <div class="header-actions-section d-flex align-items-center gap-2 gap-md-3">
             
             <!-- Theme Toggle -->
             <div id="themeToggle" class="icon-action-btn position-relative" @onclick="ToggleThemeMenu" title="تغيير الثيم">
@@ -93,13 +93,14 @@
                         </div>
                     </div>
                 </Authorized>
-                <NotAuthorized>
+                <NotAuthorized Context="notAuth">
                      <a href="login" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-sm">دخول</a>
                 </NotAuthorized>
             </AuthorizeView>
         </div>
     </div>
 </header>
+
 
 
 

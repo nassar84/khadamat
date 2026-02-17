@@ -5,99 +5,102 @@
 @inject ApiClient Api
 @inject NavigationManager Navigation
 
-<div class="px-3 pt-3">
-    <!-- Breadcrumbs -->
-    <BreadcrumbNav Items="breadcrumbItems" OnItemClick="HandleBreadcrumbClick" />
+<div>
+    <CategoryMarquee />
+    <div class="explore-content-inner px-3">
+        <!-- Breadcrumbs -->
+        <BreadcrumbNav Items="breadcrumbItems" OnItemClick="HandleBreadcrumbClick" />
 
-    <div class="mb-4">
-        <h3 class="fw-bold mb-4 gradient-text">
-            @if (Level == "main") { <span>التصنيفات في @Name</span> }
-            else if (Level == "category") { <span>الأنواع في @Name</span> }
-            else { <span>الخدمات في @Name</span> }
-        </h3>
+        <div class="mb-4">
+            <h3 class="fw-bold mb-4 gradient-text">
+                @if (Level == "main") { <span>التصنيفات في @Name</span> }
+                else if (Level == "category") { <span>الأنواع في @Name</span> }
+                else { <span>الخدمات في @Name</span> }
+            </h3>
 
-        <div class="row g-4">
-            @if (Level == "main")
-            {
-                @if (categories != null)
+            <div class="row g-4">
+                @if (Level == "main")
                 {
-                    @if (categories.Any())
+                    @if (categories != null)
                     {
-                        @foreach (var cat in categories)
+                        @if (categories.Any())
                         {
-                            <div class="col-6 col-md-4 col-lg-3">
-                                <div class="category-card p-3 rounded-4 shadow-sm border text-center h-100 animate-up" @onclick="() => ExploreCategory(cat)">
-                                    <div class="mb-3 mx-auto">
-                                        <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetCategoryImage(cat.Name)" 
-                                             class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" />
+                            @foreach (var cat in categories)
+                            {
+                                <div class="col-6 col-md-4 col-lg-3">
+                                    <div class="category-card p-3 rounded-4 shadow-sm border text-center h-100 animate-up" @onclick="() => ExploreCategory(cat)">
+                                        <div class="mb-3 mx-auto">
+                                            <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetCategoryImage(cat.Name)" 
+                                                 class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" />
+                                        </div>
+                                        <div class="fw-bold">@cat.Name</div>
                                     </div>
-                                    <div class="fw-bold">@cat.Name</div>
                                 </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="col-12 text-center py-5">
+                                <i class="fa-solid fa-folder-open fs-1 text-muted mb-3 opacity-50"></i>
+                                <p class="text-muted fw-bold">لا توجد تصنيفات في هذا القسم حالياً</p>
                             </div>
                         }
                     }
-                    else
-                    {
-                        <div class="col-12 text-center py-5">
-                            <i class="fa-solid fa-folder-open fs-1 text-muted mb-3 opacity-50"></i>
-                            <p class="text-muted fw-bold">لا توجد تصنيفات في هذا القسم حالياً</p>
-                        </div>
-                    }
+                    else { <LoadingSpinner Message="جاري تحميل التصنيفات..." /> }
                 }
-                else { <LoadingSpinner Message="جاري تحميل التصنيفات..." /> }
-            }
-            else if (Level == "category")
-            {
-                @if (subCategories != null)
+                else if (Level == "category")
                 {
-                    @if (subCategories.Any())
+                    @if (subCategories != null)
                     {
-                        @foreach (var sub in subCategories)
+                        @if (subCategories.Any())
                         {
-                            <div class="col-6 col-md-4 col-lg-3">
-                                <div class="category-card p-3 rounded-4 shadow-sm border text-center h-100 animate-up" @onclick="() => ExploreSubCategory(sub)">
-                                    <div class="mb-3 mx-auto">
-                                        <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(sub.Name)" 
-                                             class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" />
+                            @foreach (var sub in subCategories)
+                            {
+                                <div class="col-6 col-md-4 col-lg-3">
+                                    <div class="category-card p-3 rounded-4 shadow-sm border text-center h-100 animate-up" @onclick="() => ExploreSubCategory(sub)">
+                                        <div class="mb-3 mx-auto">
+                                            <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(sub.Name)" 
+                                                 class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" />
+                                        </div>
+                                        <div class="fw-bold">@sub.Name</div>
                                     </div>
-                                    <div class="fw-bold">@sub.Name</div>
                                 </div>
-                            </div>
+                            }
                         }
-                    }
-                    else
-                    {
-                        <div class="col-12 text-center py-5">
-                            <i class="fa-solid fa-layer-group fs-1 text-muted mb-3 opacity-50"></i>
-                            <p class="text-muted fw-bold">لا توجد أنواع في هذا التصنيف حالياً</p>
-                        </div>
-                    }
-                }
-                else { <LoadingSpinner Message="جاري تحميل الأنواع..." /> }
-            }
-            else if (Level == "subcategory")
-            {
-                @if (services != null)
-                {
-                    @if (services.Any())
-                    {
-                        @foreach (var service in services)
+                        else
                         {
-                            <div class="col-12 col-md-6 mb-3">
-                                <ServiceCard Service="service" OnClick='(s) => Navigation.NavigateTo($"/service/{s.Id}")' />
+                            <div class="col-12 text-center py-5">
+                                <i class="fa-solid fa-layer-group fs-1 text-muted mb-3 opacity-50"></i>
+                                <p class="text-muted fw-bold">لا توجد أنواع في هذا التصنيف حالياً</p>
                             </div>
                         }
                     }
-                    else
-                    {
-                        <div class="col-12 text-center py-5 opacity-50">
-                            <i class="fa-solid fa-magnifying-glass fs-1 mb-3"></i>
-                            <p>لا يوجد خدمات متاحة حالياً في هذا التصنيف</p>
-                        </div>
-                    }
+                    else { <LoadingSpinner Message="جاري تحميل الأنواع..." /> }
                 }
-                else { <LoadingSpinner Message="جاري تحميل الخدمات..." /> }
-            }
+                else if (Level == "subcategory")
+                {
+                    @if (services != null)
+                    {
+                        @if (services.Any())
+                        {
+                            @foreach (var service in services)
+                            {
+                                <div class="col-12 col-md-6 mb-3">
+                                    <ServiceCard Service="service" OnClick='(s) => Navigation.NavigateTo($"/service/{s.Id}")' />
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="col-12 text-center py-5 opacity-50">
+                                <i class="fa-solid fa-magnifying-glass fs-1 mb-3"></i>
+                                <p>لا يوجد خدمات متاحة حالياً في هذا التصنيف</p>
+                            </div>
+                        }
+                    }
+                    else { <LoadingSpinner Message="جاري تحميل الخدمات..." /> }
+                }
+            </div>
         </div>
     </div>
 </div>
