@@ -270,50 +270,14 @@
             }
             else
             {
-                // Fallback: Populate with default categories if API returns nothing
-                var defaults = new List<MainCategoryDto>
-                {
-                    new() { Id = 1, Name = "خدمات منزلية" },
-                    new() { Id = 2, Name = "بناء وتشييد" },
-                    new() { Id = 3, Name = "تقنية وصيانة" },
-                    new() { Id = 4, Name = "تعليم وتدريب" },
-                    new() { Id = 5, Name = "صحة ولياقة" },
-                    new() { Id = 6, Name = "نقل وشحن" },
-                    new() { Id = 7, Name = "صيانة سيارات" },
-                    new() { Id = 8, Name = "تنظيف" },
-                    new() { Id = 9, Name = "تجميل" },
-                    new() { Id = 10, Name = "ديكور" }
-                };
-
-                var duplicated = new List<MainCategoryDto>();
-                while (duplicated.Count < 12)
-                {
-                    duplicated.AddRange(defaults);
-                }
-                categories = duplicated;
+                categories = new List<MainCategoryDto>();
             }
             await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"ANTIGRAVITY_LOG: Error loading categories: {ex.Message}");
-            
-             // Fallback on error too
-            var defaults = new List<MainCategoryDto>
-            {
-                new() { Id = 1, Name = "خدمات منزلية" },
-                new() { Id = 2, Name = "بناء وتشييد" },
-                new() { Id = 3, Name = "تقنية وصيانة" },
-                new() { Id = 4, Name = "تعليم وتدريب" },
-                new() { Id = 5, Name = "صحة ولياقة" }
-            };
-            var duplicated = new List<MainCategoryDto>();
-            while (duplicated.Count < 12)
-            {
-                duplicated.AddRange(defaults);
-            }
-            categories = duplicated;
-            
+            categories = new List<MainCategoryDto>();
             await InvokeAsync(StateHasChanged);
         }
     }

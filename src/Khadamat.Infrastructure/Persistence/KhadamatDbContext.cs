@@ -57,6 +57,7 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<City>().HasMany(c => c.ProviderProfiles).WithOne(p => p.City).HasForeignKey(p => p.CityId);
         
         builder.Entity<MainCategory>().HasMany(m => m.Categories).WithOne(c => c.MainCategory).HasForeignKey(c => c.MainCategoryId);
+        builder.Entity<MainCategory>().Property(c => c.DisplayOrder).HasColumnName("Order");
         builder.Entity<Category>().HasMany(c => c.SubCategories).WithOne(s => s.Category).HasForeignKey(s => s.CategoryId);
         builder.Entity<Category>().HasMany(c => c.Services).WithOne(s => s.Category).HasForeignKey(s => s.CategoryId);
         builder.Entity<SubCategory>().HasMany(s => s.Services).WithOne(se => se.SubCategory).HasForeignKey(se => se.SubCategoryId);

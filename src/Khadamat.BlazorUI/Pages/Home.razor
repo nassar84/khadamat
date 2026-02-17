@@ -219,13 +219,13 @@
                 GenerateMockServices();
             }
             
-            mainCategories = categoriesTask.Result ?? new();
+            mainCategories = (await categoriesTask) ?? new();
         }
         catch (Exception ex)
         {
             Console.WriteLine($"API Error: {ex.Message}. Using Mock Data...");
             GenerateMockServices();
-            mainCategories = new();
+            mainCategories = new List<MainCategoryDto>();
         }
         finally
         {
