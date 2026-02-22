@@ -1,0 +1,81 @@
+@page "/privacy"
+@inject Khadamat.BlazorUI.State.AppState State
+
+<div class="container py-5" style="max-width:780px;">
+    <div class="mb-5 text-center animate-up">
+        <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-4 mb-3"
+             style="width:70px;height:70px;font-size:1.8rem;">
+            <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <h1 class="fw-bold mb-2">سياسة الخصوصية</h1>
+        <p class="text-muted">آخر تحديث: فبراير 2026</p>
+    </div>
+
+    <div class="glass-card p-4 p-md-5 shadow-sm lh-lg">
+        <section class="mb-5">
+            <h4 class="fw-bold text-primary mb-3"><i class="fa-solid fa-circle-info me-2"></i>مقدمة</h4>
+            <p>
+                يلتزم تطبيق <strong>@State.AppName</strong> بحماية خصوصية مستخدميه. توضح هذه السياسة كيفية جمع بياناتك الشخصية واستخدامها وتخزينها وحمايتها عند استخدامك لتطبيقنا.
+            </p>
+        </section>
+
+        <section class="mb-5">
+            <h4 class="fw-bold text-primary mb-3"><i class="fa-solid fa-database me-2"></i>ما البيانات التي نجمعها؟</h4>
+            <ul class="list-styled ps-4">
+                <li class="mb-2">معلومات الحساب: الاسم، البريد الإلكتروني، رقم الهاتف</li>
+                <li class="mb-2">بيانات الموقع الجغرافي (المحافظة والمدينة)</li>
+                <li class="mb-2">بيانات الاستخدام: الصفحات المزارة، الخدمات المفضلة، تاريخ الطلبات</li>
+                <li class="mb-2">معلومات الجهاز: نوع المتصفح، نظام التشغيل</li>
+            </ul>
+        </section>
+
+        <section class="mb-5">
+            <h4 class="fw-bold text-primary mb-3"><i class="fa-solid fa-gears me-2"></i>كيف نستخدم بياناتك؟</h4>
+            <ul class="list-styled ps-4">
+                <li class="mb-2">تشغيل الخدمة وتحسين تجربة المستخدم</li>
+                <li class="mb-2">التواصل معك بشأن طلباتك وحسابك</li>
+                <li class="mb-2">إرسال تنبيهات وإشعارات متعلقة بالخدمة</li>
+                <li class="mb-2">منع الاحتيال وضمان أمان المنصة</li>
+                <li class="mb-2">تحليل استخدام التطبيق لتحسينه</li>
+            </ul>
+        </section>
+
+        <section class="mb-5">
+            <h4 class="fw-bold text-primary mb-3"><i class="fa-solid fa-lock me-2"></i>حماية البيانات</h4>
+            <p>
+                نستخدم تشفير SSL لجميع الاتصالات، ونطبق أحدث معايير أمن المعلومات لحماية بياناتك من الوصول غير المصرح به أو الفقدان أو الإساءة.
+            </p>
+        </section>
+
+        <section class="mb-5">
+            <h4 class="fw-bold text-primary mb-3"><i class="fa-solid fa-share-nodes me-2"></i>مشاركة البيانات</h4>
+            <p>
+                لا نبيع بياناتك الشخصية لأطراف ثالثة. قد نشارك بعض البيانات مع مزودي الخدمات الضروريين لتشغيل المنصة (مثل خدمات السحابة) وفق اتفاقيات سرية صارمة.
+            </p>
+        </section>
+
+        <section class="mb-5">
+            <h4 class="fw-bold text-primary mb-3"><i class="fa-solid fa-user-check me-2"></i>حقوقك</h4>
+            <ul class="list-styled ps-4">
+                <li class="mb-2">الوصول إلى بياناتك الشخصية وتحديثها</li>
+                <li class="mb-2">طلب حذف حسابك وبياناتك</li>
+                <li class="mb-2">إلغاء الاشتراك في الرسائل التسويقية</li>
+                <li class="mb-2">تقديم شكوى لدى جهات الرقابة المختصة</li>
+            </ul>
+        </section>
+
+        <div class="alert alert-light border rounded-4 mt-4">
+            <i class="fa-solid fa-envelope me-2 text-primary"></i>
+            للاستفسارات المتعلقة بالخصوصية، تواصل معنا عبر: <a href="/contact" class="fw-bold">صفحة التواصل</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .list-styled li::marker { color: var(--theme-primary); }
+    .animate-up { animation: fadeInUp 0.5s both; }
+    @@keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+</style>

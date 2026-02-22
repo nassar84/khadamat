@@ -1,4 +1,327 @@
 @page "/provider/statistics"
-<h3>Statistics.razor</h3>
-@code {}
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@using Khadamat.BlazorUI.Services.Auth
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Provider")]
+@inject ApiClient Api
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
 
+<div class="px-3 pt-3 pb-5">
+
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h3 class="fw-bold mb-0">إحصائياتي</h3>
+            <p class="text-muted small mb-0">نظرة شاملة على أداء نشاطك التجاري</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 @(activePeriod=="week"?"active":"")"
+                    @onclick='() => SetPeriod("week")'>أسبوع</button>
+            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 @(activePeriod=="month"?"active":"")"
+                    @onclick='() => SetPeriod("month")'>شهر</button>
+            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 @(activePeriod=="year"?"active":"")"
+                    @onclick='() => SetPeriod("year")'>سنة</button>
+        </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="row g-3 mb-5">
+        <div class="col-6 col-md-3">
+            <div class="kpi-card glass-card p-4 text-center animate-up" style="--delay:0.05s">
+                <div class="kpi-icon bg-primary-soft text-primary mb-3">
+                    <i class="fa-solid fa-eye"></i>
+                </div>
+                <div class="kpi-value">@totalViews.ToString("N0")</div>
+                <div class="kpi-label text-muted">إجمالي المشاهدات</div>
+                <div class="kpi-change text-success mt-1">
+                    <i class="fa-solid fa-arrow-trend-up"></i> +12%
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card glass-card p-4 text-center animate-up" style="--delay:0.1s">
+                <div class="kpi-icon bg-success-soft text-success mb-3">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                </div>
+                <div class="kpi-value">@totalRequests.ToString("N0")</div>
+                <div class="kpi-label text-muted">إجمالي الطلبات</div>
+                <div class="kpi-change text-success mt-1">
+                    <i class="fa-solid fa-arrow-trend-up"></i> +8%
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card glass-card p-4 text-center animate-up" style="--delay:0.15s">
+                <div class="kpi-icon bg-warning-soft text-warning mb-3">
+                    <i class="fa-solid fa-star"></i>
+                </div>
+                <div class="kpi-value">@averageRating.ToString("F1")</div>
+                <div class="kpi-label text-muted">متوسط التقييم</div>
+                <div class="kpi-change text-muted mt-1">
+                    <i class="fa-solid fa-minus"></i> ثابت
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card glass-card p-4 text-center animate-up" style="--delay:0.2s">
+                <div class="kpi-icon bg-danger-soft text-danger mb-3">
+                    <i class="fa-solid fa-heart"></i>
+                </div>
+                <div class="kpi-value">@totalFavorites.ToString("N0")</div>
+                <div class="kpi-label text-muted">في المفضلة</div>
+                <div class="kpi-change text-success mt-1">
+                    <i class="fa-solid fa-arrow-trend-up"></i> +5%
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Services Performance Table -->
+    <div class="glass-card p-4 mb-4 animate-up" style="--delay:0.25s">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold mb-0"><i class="fa-solid fa-briefcase me-2 text-primary"></i>أداء الخدمات</h5>
+            <button class="btn btn-sm btn-outline-primary rounded-pill px-3"
+                    @onclick='() => Navigation.NavigateTo("/provider/myservices")'>
+                إدارة الخدمات <i class="fa-solid fa-arrow-left ms-1"></i>
+            </button>
+        </div>
+
+        @if (isLoading)
+        {
+            <div class="py-5 text-center">
+                <div class="spinner-border text-primary"></div>
+            </div>
+        }
+        else if (!myServices.Any())
+        {
+            <div class="text-center py-4 text-muted">
+                <i class="fa-solid fa-chart-bar fs-1 opacity-25 mb-3 d-block"></i>
+                <p>لا توجد خدمات لعرض إحصائياتها بعد</p>
+                <button class="btn btn-primary-premium rounded-pill px-4"
+                        @onclick='() => Navigation.NavigateTo("/provider/createservice")'>
+                    أضف خدمتك الأولى
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>الخدمة</th>
+                            <th class="text-center">المشاهدات</th>
+                            <th class="text-center">التقييم</th>
+                            <th class="text-center">السعر</th>
+                            <th class="text-center">الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in myServices)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <img src="@(s.Images?.FirstOrDefault() ?? "images/defaults/service-placeholder.jpg")"
+                                             class="rounded-3" width="48" height="48" style="object-fit:cover;" />
+                                        <div>
+                                            <div class="fw-bold small">@s.Title</div>
+                                            <div class="x-small text-muted">@s.CategoryName</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center fw-bold">@s.ViewsCount.ToString("N0")</td>
+                                <td class="text-center">
+                                    <span class="text-warning fw-bold">
+                                        <i class="fa-solid fa-star me-1"></i>@s.Rating.ToString("F1")
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    @if (s.Price.HasValue && s.Price > 0)
+                                    {
+                                        <span class="fw-bold text-primary">@s.Price?.ToString("N0") <small>ج.م</small></span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill">تفاوض</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    @if (s.IsApproved)
+                                    {
+                                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">معتمدة</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3">قيد المراجعة</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <!-- Reviews Summary -->
+    <div class="glass-card p-4 animate-up" style="--delay:0.3s">
+        <h5 class="fw-bold mb-4"><i class="fa-solid fa-comments me-2 text-primary"></i>آخر التقييمات</h5>
+        @if (!recentReviews.Any())
+        {
+            <div class="text-center py-4 text-muted">
+                <i class="fa-regular fa-star fs-1 opacity-25 mb-2 d-block"></i>
+                <p class="small">لا توجد تقييمات حتى الآن</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var r in recentReviews)
+            {
+                <div class="review-row d-flex gap-3 py-3 border-bottom">
+                    <div class="avatar-sm bg-light rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                         style="width:40px;height:40px;">
+                        <i class="fa-solid fa-user text-muted"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <span class="fw-bold small">@r.UserName</span>
+                            <div class="stars x-small text-warning">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <i class="fa-solid fa-star @(i <= r.Rating ? "text-warning" : "text-muted opacity-25")"></i>
+                                }
+                            </div>
+                        </div>
+                        <p class="small text-muted mb-0 mt-1">@r.Comment</p>
+                        <span class="x-small text-muted">@r.CreatedAt.ToString("dd MMM yyyy")</span>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<style>
+    .kpi-card {
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    }
+
+    .kpi-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        margin: 0 auto;
+    }
+
+    .kpi-value {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #0f172a;
+        line-height: 1;
+    }
+
+    .kpi-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-top: 4px;
+    }
+
+    .kpi-change {
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .bg-primary-soft { background: rgba(99, 102, 241, 0.1); }
+    .bg-success-soft { background: rgba(16, 185, 129, 0.1); }
+    .bg-warning-soft { background: rgba(245, 158, 11, 0.1); }
+    .bg-danger-soft  { background: rgba(239, 68, 68, 0.1); }
+
+    .btn-outline-secondary.active {
+        background: var(--theme-primary);
+        color: white;
+        border-color: var(--theme-primary);
+    }
+
+    .animate-up {
+        animation: fadeInUp 0.5s var(--delay, 0s) both;
+    }
+
+    @@keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+@code {
+    private bool isLoading = true;
+    private string activePeriod = "month";
+
+    private List<ServiceDto> myServices = new();
+    private List<ReviewDto> recentReviews = new();
+
+    // Aggregated KPIs (calculated from services)
+    private int totalViews    = 0;
+    private int totalRequests = 0;
+    private double averageRating  = 0;
+    private int totalFavorites = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadStats();
+    }
+
+    private async Task SetPeriod(string period)
+    {
+        activePeriod = period;
+        await LoadStats();
+    }
+
+    private async Task LoadStats()
+    {
+        isLoading = true;
+        try
+        {
+            var result = await Api.GetMyServicesAsync();
+            myServices = result?.Items ?? new();
+
+            if (myServices.Any())
+            {
+                totalViews    = myServices.Sum(s => s.ViewsCount);
+                averageRating = myServices.Where(s => s.Rating > 0).Select(s => s.Rating)
+                                           .DefaultIfEmpty(0).Average();
+                totalFavorites = myServices.Count(s => s.IsFavorite);
+            }
+
+            // Pull reviews from all services
+            recentReviews = myServices
+                .SelectMany(s => s.Reviews ?? new())
+                .OrderByDescending(r => r.CreatedAt)
+                .Take(5)
+                .ToList();
+
+            // Requests count from API
+            var requests = await Api.GetProviderRequestsAsync();
+            totalRequests = requests?.Count ?? 0;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Stats Error: " + ex.Message);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

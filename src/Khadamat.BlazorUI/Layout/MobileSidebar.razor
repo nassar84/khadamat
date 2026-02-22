@@ -90,6 +90,33 @@
                                     <i class="fa-solid fa-shuffle"></i>
                                     <span>@(State.IsProviderMode ? "التبديل للمستخدم العادي" : "التبديل للمهني/المزود")</span>
                                  </div>
+                                @if (State.IsProviderMode)
+                                {
+                                    <div class="menu-item @GetActiveClass("provider/dashboard")" @onclick='() => NavigateTo("/provider/dashboard")'>
+                                        <i class="fa-solid fa-gauge-high"></i>
+                                        <span>لوحة المزود</span>
+                                    </div>
+                                    <div class="menu-item @GetActiveClass("provider/myservices")" @onclick='() => NavigateTo("/provider/myservices")'>
+                                        <i class="fa-solid fa-briefcase"></i>
+                                        <span>خدماتي</span>
+                                    </div>
+                                    <div class="menu-item @GetActiveClass("provider/statistics")" @onclick='() => NavigateTo("/provider/statistics")'>
+                                        <i class="fa-solid fa-chart-line"></i>
+                                        <span>الإحصائيات</span>
+                                    </div>
+                                    <div class="menu-item @GetActiveClass("provider/createpost")" @onclick='() => NavigateTo("/provider/createpost")'>
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                        <span>منشور جديد</span>
+                                    </div>
+                                    <div class="menu-item @GetActiveClass("provider/subscription")" @onclick='() => NavigateTo("/provider/subscription")'>
+                                        <i class="fa-solid fa-gem"></i>
+                                        <span>اشتراكي</span>
+                                    </div>
+                                    <div class="menu-item @GetActiveClass("provider/settings")" @onclick='() => NavigateTo("/provider/settings")'>
+                                        <i class="fa-solid fa-sliders"></i>
+                                        <span>إعدادات المزود</span>
+                                    </div>
+                                }
                             </div>
                         </div>
                     }

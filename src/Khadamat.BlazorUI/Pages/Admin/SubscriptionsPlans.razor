@@ -1,25 +1,403 @@
 @page "/admin/subscriptions"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "SystemAdmin,SuperAdmin")]
+@inject ApiClient Api
+@inject IJSRuntime JS
 
-<div class="px-3 pt-3 pb-5">
-    <div class="glass-card p-5 text-center mt-4 animate-up">
-        <div class="mb-4">
-            <i class="fa-solid fa-crown text-warning display-1 opacity-25"></i>
+<div class="px-2 pb-5">
+
+    <!-- Page Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h3 class="fw-bold mb-0">إدارة خطط الاشتراك</h3>
+            <p class="text-muted small mb-0">إضافة وتعديل باقات الاشتراك للمزودين</p>
         </div>
-        <h2 class="fw-bold mb-3">خطط الاشتراكات</h2>
-        <p class="text-muted lead mb-4">قريباً.. سيتم تفعيل نظام الاشتراكات والباقات للمزودين.</p>
-        <div class="d-flex justify-content-center gap-3">
-            <div class="card border-0 shadow-sm p-3" style="width: 200px;">
-                <div class="h1 text-muted">Free</div>
-                <div class="small text-muted">الباقة المجانية</div>
+        <button class="btn btn-primary-premium rounded-pill px-4" @onclick="() => OpenModal(null)">
+            <i class="fa-solid fa-plus me-2"></i> خطة جديدة
+        </button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(feedback))
+    {
+        <div class="alert @(feedbackSuccess ? "alert-success" : "alert-danger") rounded-4 mb-4 animate-pop">
+            <i class="fa-solid @(feedbackSuccess ? "fa-circle-check" : "fa-circle-exclamation") me-2"></i>
+            @feedback
+        </div>
+    }
+
+    <!-- Plans Grid -->
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary"></div>
+        </div>
+    }
+    else if (!plans.Any())
+    {
+        <div class="glass-card p-5 text-center">
+            <i class="fa-solid fa-crown display-1 text-muted opacity-25 mb-3 d-block"></i>
+            <h5>لا توجد خطط اشتراك بعد</h5>
+            <p class="text-muted small">أضف خطتك الأولى لتتمكن المزودون من الاشتراك</p>
+            <button class="btn btn-primary-premium rounded-pill px-5 mt-2" @onclick="() => OpenModal(null)">
+                إضافة خطة
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var plan in plans)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="plan-card glass-card p-4 position-relative @(plan.IsFeatured ? "featured-plan" : "")">
+                        @if (plan.IsFeatured)
+                        {
+                            <div class="featured-ribbon">
+                                <i class="fa-solid fa-star me-1"></i> الأكثر شيوعاً
+                            </div>
+                        }
+
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h5 class="fw-bold mb-1">@plan.Name</h5>
+                                <span class="badge bg-light text-muted rounded-pill">@GetDurationText(plan.DurationInDays)</span>
+                            </div>
+                            <div class="plan-icon-circle @(plan.IsFeatured ? "bg-primary text-white" : "bg-light text-primary")">
+                                <i class="@GetPlanIcon(plan.Name)"></i>
+                            </div>
+                        </div>
+
+                        <div class="plan-price mb-3">
+                            <span class="fw-black fs-2 text-primary">@plan.Price.ToString("N0")</span>
+                            <span class="text-muted small"> ج.م</span>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="fa-solid fa-briefcase text-success small"></i>
+                                <span class="small">حتى <strong>@plan.MaxServices</strong> خدمة</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="fa-solid fa-calendar text-info small"></i>
+                                <span class="small">مدة @plan.DurationInDays يوم</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-star @(plan.IsFeatured ? "text-warning" : "text-muted opacity-50") small"></i>
+                                <span class="small @(plan.IsFeatured ? "" : "text-muted")">
+                                    @(plan.IsFeatured ? "تمييز في الصفحة الرئيسية" : "بدون تمييز")
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-primary rounded-pill flex-grow-1 btn-sm"
+                                    @onclick="() => OpenModal(plan)">
+                                <i class="fa-solid fa-pen me-1"></i> تعديل
+                            </button>
+                            <button class="btn btn-outline-danger rounded-pill btn-sm"
+                                    @onclick="() => DeletePlan(plan)">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Modal -->
+@if (showModal)
+{
+    <div class="modal-overlay" @onclick="CloseModal">
+        <div class="modal-card glass-card p-4 rounded-4 animate-pop" @onclick:stopPropagation>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0">
+                    @(editingPlan?.Id > 0 ? "تعديل الخطة" : "إضافة خطة جديدة")
+                </h5>
+                <button class="btn-close" @onclick="CloseModal"></button>
             </div>
-            <div class="card border-primary border-2 shadow-sm p-3" style="width: 200px;">
-                <div class="h1 text-primary">Pro</div>
-                <div class="small text-primary">الباقة الاحترافية</div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold">اسم الخطة</label>
+                <input type="text" class="form-control premium-input" @bind="editingPlan!.Name"
+                       placeholder="مثال: الخطة الاحترافية" />
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-6">
+                    <label class="form-label small fw-bold">السعر (ج.م)</label>
+                    <input type="number" class="form-control premium-input" @bind="editingPlan.Price"
+                           min="0" placeholder="0" />
+                </div>
+                <div class="col-6">
+                    <label class="form-label small fw-bold">مدة الاشتراك (يوم)</label>
+                    <input type="number" class="form-control premium-input" @bind="editingPlan.DurationInDays"
+                           min="1" placeholder="30" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold">الحد الأقصى للخدمات</label>
+                <input type="number" class="form-control premium-input" @bind="editingPlan.MaxServices"
+                       min="1" placeholder="5" />
+            </div>
+
+            <div class="form-check form-switch mb-4">
+                <input class="form-check-input" type="checkbox" id="featuredCheck"
+                       @bind="editingPlan.IsFeatured" />
+                <label class="form-check-label fw-bold small" for="featuredCheck">
+                    خطة مميزة (تظهر بشكل بارز)
+                </label>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-end">
+                <button class="btn btn-light rounded-pill px-4" @onclick="CloseModal">إلغاء</button>
+                <button class="btn btn-primary-premium rounded-pill px-4" @onclick="SavePlan"
+                        disabled="@isSaving">
+                    @if (isSaving)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                    }
+                    <span>@(editingPlan.Id > 0 ? "حفظ التعديلات" : "إضافة الخطة")</span>
+                </button>
             </div>
         </div>
     </div>
-</div>
+}
+
+<style>
+    .plan-card {
+        border: 2px solid transparent;
+        transition: all 0.3s;
+    }
+
+    .plan-card:hover {
+        transform: translateY(-6px);
+        border-color: rgba(99, 102, 241, 0.2);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    }
+
+    .plan-card.featured-plan {
+        border-color: var(--theme-primary);
+        background: linear-gradient(145deg, #fff 0%, rgba(var(--theme-primary-rgb), 0.03) 100%);
+    }
+
+    .featured-ribbon {
+        position: absolute;
+        top: -1px;
+        left: 16px;
+        background: var(--theme-primary);
+        color: white;
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 4px 16px;
+        border-radius: 0 0 12px 12px;
+    }
+
+    .plan-icon-circle {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+
+    .premium-input {
+        border: 2px solid #f1f5f9;
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 10px 14px;
+        transition: all 0.2s;
+    }
+
+    .premium-input:focus {
+        background: white;
+        border-color: var(--theme-primary);
+        box-shadow: 0 0 0 4px rgba(var(--theme-primary-rgb), 0.1);
+        outline: none;
+    }
+
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(6px);
+        z-index: 9000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+    }
+
+    .modal-card {
+        width: 100%;
+        max-width: 480px;
+        max-height: 90vh;
+        overflow-y: auto;
+        background: white;
+    }
+
+    .animate-pop { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    @@keyframes popIn {
+        from { transform: scale(0.9); opacity: 0; }
+        to   { transform: scale(1); opacity: 1; }
+    }
+</style>
 
 @code {
+    private List<SubscriptionPlanDto> plans = new();
+    private bool isLoading = true;
+    private bool showModal = false;
+    private SubscriptionPlanDto? editingPlan;
+    private bool isSaving = false;
+    private string? feedback;
+    private bool feedbackSuccess;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPlans();
+    }
+
+    private async Task LoadPlans()
+    {
+        isLoading = true;
+        try
+        {
+            plans = await Api.GetSubscriptionPlansAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Plans load error: " + ex.Message);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void OpenModal(SubscriptionPlanDto? plan)
+    {
+        editingPlan = plan != null
+            ? new SubscriptionPlanDto
+              {
+                  Id = plan.Id,
+                  Name = plan.Name,
+                  Price = plan.Price,
+                  DurationInDays = plan.DurationInDays,
+                  MaxServices = plan.MaxServices,
+                  IsFeatured = plan.IsFeatured
+              }
+            : new SubscriptionPlanDto { DurationInDays = 30, MaxServices = 5 };
+        showModal = true;
+        feedback = null;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        editingPlan = null;
+    }
+
+    private async Task SavePlan()
+    {
+        if (editingPlan == null) return;
+        if (string.IsNullOrWhiteSpace(editingPlan.Name))
+        {
+            ShowFeedback("يرجى إدخال اسم الخطة", false);
+            return;
+        }
+
+        isSaving = true;
+        try
+        {
+            bool success;
+            if (editingPlan.Id > 0)
+            {
+                // Update - use a PUT endpoint
+                var response = await Api.PostAsync<bool>($"api/v1/subscriptions/plans/{editingPlan.Id}", editingPlan);
+                success = response;
+            }
+            else
+            {
+                // Create
+                var response = await Api.PostAsync<bool>("api/v1/subscriptions/plans", editingPlan);
+                success = response;
+            }
+
+            if (success)
+            {
+                CloseModal();
+                await LoadPlans();
+                ShowFeedback(editingPlan.Id > 0 ? "تم تحديث الخطة بنجاح" : "تم إضافة الخطة بنجاح", true);
+            }
+            else
+            {
+                ShowFeedback("حدث خطأ أثناء الحفظ، يرجى المحاولة مرة أخرى", false);
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowFeedback("خطأ تقني: " + ex.Message, false);
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task DeletePlan(SubscriptionPlanDto plan)
+    {
+        if (!await JS.InvokeAsync<bool>("confirm", $"هل أنت متأكد من حذف خطة \"{plan.Name}\"؟"))
+            return;
+
+        try
+        {
+            var response = await Api.PostAsync<bool>($"api/v1/subscriptions/plans/{plan.Id}/delete", new { });
+            if (response)
+            {
+                plans.Remove(plan);
+                ShowFeedback("تم حذف الخطة بنجاح", true);
+            }
+            else
+            {
+                ShowFeedback("فشل حذف الخطة، يرجى المحاولة مرة أخرى", false);
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowFeedback("خطأ تقني: " + ex.Message, false);
+        }
+    }
+
+    private void ShowFeedback(string msg, bool success)
+    {
+        feedback = msg;
+        feedbackSuccess = success;
+        StateHasChanged();
+    }
+
+    private string GetPlanIcon(string name) => name switch
+    {
+        var n when n.Contains("مجانية") || n.Contains("تجريبية") => "fa-solid fa-leaf",
+        var n when n.Contains("أساسية") || n.Contains("مبتدئ") => "fa-solid fa-seedling",
+        var n when n.Contains("مميزة") || n.Contains("احترافية") => "fa-solid fa-rocket",
+        var n when n.Contains("سنوية") || n.Contains("محترفين") || n.Contains("ذهبية") => "fa-solid fa-crown",
+        _ => "fa-solid fa-gem"
+    };
+
+    private string GetDurationText(int days) => days switch
+    {
+        7 => "أسبوعية",
+        14 => "نصف شهرية",
+        30 => "شهرية",
+        90 => "ربع سنوية",
+        180 => "نصف سنوية",
+        365 => "سنوية",
+        _ => $"{days} يوم"
+    };
 }

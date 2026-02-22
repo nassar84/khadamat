@@ -1,33 +1,62 @@
+
 @page "/provider/dashboard"
+@using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Components.Provider
+@using Khadamat.BlazorUI.Services
+@using Khadamat.BlazorUI.State
 @inject NavigationManager Navigation
+@inject ApiClient Api
+@inject AppState AppState
 
 <div class="px-3 pt-3 pb-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold mb-0 gradient-text">لوحة المزود</h3>
-        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2">نشط</span>
+        <div>
+            <h3 class="fw-bold mb-0 gradient-text">لوحة المزود</h3>
+            <p class="text-muted x-small mb-0">مرحباً @AppState.UserName</p>
+        </div>
+        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2">
+            <i class="fa-solid fa-circle me-1" style="font-size:8px;"></i>نشط
+        </span>
     </div>
 
     <!-- Stats Grid -->
     <div class="row g-3 mb-4">
         <div class="col-6">
-            <StatsWidget Icon="fa-solid fa-eye" Label="المشاهدات" Value="1.2K" Color="primary" />
+            <StatsWidget Icon="fa-solid fa-eye" Label="المشاهدات" Value="@totalViews" Color="primary" />
         </div>
         <div class="col-6">
-            <StatsWidget Icon="fa-solid fa-star" Label="التقييم" Value="4.9" Color="warning" />
+            <StatsWidget Icon="fa-solid fa-star" Label="التقييم" Value="@avgRating" Color="warning" />
         </div>
         <div class="col-6">
-            <StatsWidget Icon="fa-solid fa-briefcase" Label="الطلبات" Value="+85" Color="success" />
+            <StatsWidget Icon="fa-solid fa-clipboard-check" Label="الطلبات" Value="@totalRequests" Color="success" />
         </div>
         <div class="col-6">
-            <StatsWidget Icon="fa-solid fa-coins" Label="الأرباح" Value="2500" Color="info" />
+            <StatsWidget Icon="fa-solid fa-briefcase" Label="الخدمات" Value="@totalServices" Color="info" />
         </div>
     </div>
 
     <!-- Subscription Status -->
-    <SubscriptionStatus PlanName="الخطة الاحترافية" DaysRemaining="15" IsActive="true" />
+    @if (subscription != null)
+    {
+        <SubscriptionStatus PlanName="@subscription.PlanName"
+                            DaysRemaining="@subscription.DaysRemainingCount"
+                            IsActive="@subscription.IsActive" />
+    }
+    else
+    {
+        <div class="glass-card p-3 mb-4 d-flex align-items-center justify-content-between border border-dashed">
+            <div class="d-flex align-items-center gap-2 text-muted">
+                <i class="fa-solid fa-gem text-primary"></i>
+                <span class="small">لا يوجد اشتراك نشط</span>
+            </div>
+            <button class="btn btn-sm btn-primary-premium rounded-pill px-3"
+                    @onclick='() => Navigation.NavigateTo("/provider/plans")'>
+                اشترك الآن
+            </button>
+        </div>
+    }
 
-    <!-- Actions -->
+    <!-- Quick Actions -->
     <h6 class="fw-bold mb-3 mt-4">إجراءات سريعة</h6>
     <div class="row g-3 mb-4">
         <div class="col-4 text-center" @onclick='() => Navigation.NavigateTo("/provider/createservice")'>
@@ -48,22 +77,42 @@
             </div>
             <div class="small fw-bold">إدارة الخدمات</div>
         </div>
+        <div class="col-4 text-center" @onclick='() => Navigation.NavigateTo("/provider/statistics")'>
+            <div class="action-btn bg-warning bg-opacity-10 text-warning mb-2 mx-auto">
+                <i class="fa-solid fa-chart-line fs-4"></i>
+            </div>
+            <div class="small fw-bold">الإحصائيات</div>
+        </div>
+        <div class="col-4 text-center" @onclick='() => Navigation.NavigateTo("/provider/subscription")'>
+            <div class="action-btn bg-danger bg-opacity-10 text-danger mb-2 mx-auto">
+                <i class="fa-solid fa-gem fs-4"></i>
+            </div>
+            <div class="small fw-bold">اشتراكي</div>
+        </div>
+        <div class="col-4 text-center" @onclick='() => Navigation.NavigateTo("/provider/settings")'>
+            <div class="action-btn bg-secondary bg-opacity-10 text-secondary mb-2 mx-auto">
+                <i class="fa-solid fa-gear fs-4"></i>
+            </div>
+            <div class="small fw-bold">الإعدادات</div>
+        </div>
     </div>
 
     <!-- Recent Messages -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h6 class="fw-bold mb-0">رسائل حديثة</h6>
-        <button class="btn btn-link text-primary p-0 small text-decoration-none" @onclick='() => Navigation.NavigateTo("/provider/messages")'>عرض الكل</button>
+        <button class="btn btn-link text-primary p-0 small text-decoration-none" @onclick='() => Navigation.NavigateTo("/user/messages")'>عرض الكل</button>
     </div>
     
     <div class="glass-container rounded-4 overflow-hidden border">
         @for (int i = 0; i < 3; i++)
         {
-            <div class="p-3 border-bottom d-flex gap-3 align-items-center list-item-hover">
-                <img src="https://i.pravatar.cc/150?u=@i" class="rounded-circle" width="45" height="45" />
-                <div class="flex-grow-1">
+            var idx = i;
+            <div class="p-3 border-bottom d-flex gap-3 align-items-center list-item-hover"
+                 @onclick='() => Navigation.NavigateTo("/user/messages")'>
+                <img src="https://i.pravatar.cc/150?u=@idx" class="rounded-circle" width="45" height="45" />
+                <div class="flex-grow1">
                     <div class="d-flex justify-content-between">
-                        <h6 class="fw-bold mb-0 small">عميل @(i+1)</h6>
+                        <h6 class="fw-bold mb-0 small">عميل @(idx+1)</h6>
                         <span class="text-muted x-small">10:30 ص</span>
                     </div>
                     <p class="text-muted mb-0 small text-truncate" style="max-width: 200px;">أريد الاستفسار عن تفاصيل الخدمة...</p>
@@ -82,20 +131,46 @@
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: transform 0.2s;
+        transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
-    .action-btn:hover {
-        transform: scale(1.1);
-    }
-    .list-item-hover {
-        cursor: pointer;
-        transition: background 0.2s;
-    }
-    .list-item-hover:hover {
-        background: rgba(0,0,0,0.02);
-    }
+    .action-btn:hover { transform: scale(1.15) translateY(-2px); }
+    .list-item-hover { cursor: pointer; transition: background 0.2s; }
+    .list-item-hover:hover { background: rgba(0,0,0,0.02); }
 </style>
 
 @code {
+    private ProviderSubscriptionDto? subscription;
+    private string totalViews    = "0";
+    private string avgRating     = "0.0";
+    private string totalRequests = "0";
+    private string totalServices = "0";
 
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var servicesTask     = Api.GetMyServicesAsync();
+            var subscriptionTask = Api.GetMySubscriptionAsync();
+            var requestsTask     = Api.GetProviderRequestsAsync();
+
+            await Task.WhenAll(servicesTask, subscriptionTask, requestsTask);
+
+            var services = servicesTask.Result?.Items ?? new();
+            subscription = subscriptionTask.Result;
+            var requests = requestsTask.Result ?? new();
+
+            totalServices = services.Count.ToString();
+            totalRequests = requests.Count.ToString();
+            totalViews    = services.Sum(s => s.ViewsCount).ToString("N0");
+            
+            var rated = services.Where(s => s.Rating > 0).ToList();
+            avgRating = rated.Any() ? rated.Average(s => s.Rating).ToString("F1") : "0.0";
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Dashboard load error: " + ex.Message);
+        }
+    }
 }
+

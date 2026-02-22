@@ -1,4 +1,172 @@
 @page "/provider/createpost"
-<h3>CreatePost.razor</h3>
-@code {}
+@using Khadamat.BlazorUI.Services
+@using Khadamat.BlazorUI.State
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Provider")]
+@inject ApiClient Api
+@inject AppState State
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
 
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="d-flex align-items-center mb-4">
+                <button class="btn btn-icon-glass me-3" @onclick='() => Navigation.NavigateTo("/provider/myposts")'>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+                <h3 class="fw-bold mb-0">إضافة منشور جديد</h3>
+            </div>
+
+            <div class="glass-card p-4 shadow-sm">
+                <EditForm Model="request" OnValidSubmit="HandleSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger small mb-3" />
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger rounded-4 small py-2 mb-4">
+                            <i class="fa-solid fa-circle-exclamation me-2"></i> @errorMessage
+                        </div>
+                    }
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-muted">محتوى المنشور</label>
+                        <InputTextArea @bind-Value="request.Content" class="form-control premium-input" rows="5" placeholder="اكتب ما يدور في ذهنك أو أعلن عن عرض جديد..." />
+                        <div class="text-end mt-1">
+                            <span class="x-small text-muted">@(request.Content?.Length ?? 0) / 1000</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-muted">رابط الصورة (اختياري)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0"><i class="fa-solid fa-image text-muted"></i></span>
+                            <InputText @bind-Value="request.ImageUrl" class="form-control premium-input" placeholder="https://example.com/image.jpg" />
+                        </div>
+                        <div class="form-text x-small">يمكنك وضع رابط صورة لأعمالك أو للعرض الخاص بك.</div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(request.ImageUrl))
+                    {
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-muted d-block">معاينة الصورة</label>
+                            <div class="preview-container rounded-4 overflow-hidden border">
+                                <img src="@request.ImageUrl" class="img-fluid" @onerror="OnImageError" />
+                            </div>
+                        </div>
+                    }
+
+                    <div class="d-grid mt-5">
+                        <button type="submit" class="btn btn-primary-premium py-3 rounded-pill fw-bold shadow-lg" disabled="@isSubmitting">
+                            @if (isSubmitting)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                <span>جاري النشر...</span>
+                            }
+                            else
+                            {
+                                <span>نشر المنشور <i class="fa-solid fa-paper-plane ms-2"></i></span>
+                            }
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .premium-input {
+        border: 2px solid transparent;
+        background: #f8fafc;
+        border-radius: 14px;
+        padding: 12px 18px;
+        transition: all 0.2s;
+    }
+
+    .premium-input:focus {
+        background: white;
+        border-color: var(--theme-primary);
+        box-shadow: 0 0 0 4px rgba(var(--theme-primary-rgb), 0.1);
+        outline: none;
+    }
+
+    .btn-icon-glass {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(0,0,0,0.05);
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .btn-icon-glass:hover {
+        background: white;
+        color: var(--theme-primary);
+        transform: translateY(-2px);
+    }
+
+    .preview-container {
+        max-height: 300px;
+        background: #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .preview-container img {
+        max-height: 300px;
+        width: auto;
+        object-fit: contain;
+    }
+</style>
+
+@code {
+    private CreatePostRequest request = new();
+    private bool isSubmitting = false;
+    private string? errorMessage;
+
+    private async Task HandleSubmit()
+    {
+        if (string.IsNullOrWhiteSpace(request.Content))
+        {
+            errorMessage = "يرجى كتابة محتوى للمنشور";
+            return;
+        }
+
+        isSubmitting = true;
+        errorMessage = null;
+
+        try
+        {
+            var success = await Api.CreatePostAsync(request);
+            if (success)
+            {
+                Navigation.NavigateTo("/provider/myposts");
+            }
+            else
+            {
+                errorMessage = "حدث خطأ أثناء النشر، يرجى المحاولة مرة أخرى";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "حدث خطأ تقني: " + ex.Message;
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void OnImageError()
+    {
+        // Handle image loading error if needed
+    }
+}

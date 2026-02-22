@@ -6,6 +6,7 @@
      <ImplicitUsings>enable</ImplicitUsings>
      <OutputType>Exe</OutputType>
      <BlazorEnableCompression>false</BlazorEnableCompression>
+     <StaticWebAssetProjectMode>Default</StaticWebAssetProjectMode>
    </PropertyGroup>
  
    <ItemGroup>

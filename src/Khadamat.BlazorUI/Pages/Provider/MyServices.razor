@@ -4,6 +4,7 @@
 @using Khadamat.BlazorUI.Services
 @inject ApiClient Api
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 <div class="px-3 pt-3 pb-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -11,7 +12,7 @@
             <h3 class="fw-bold mb-0">خدماتي</h3>
             <p class="text-muted small">إدارة جميع الخدمات التي تقدمها عبر المنصة</p>
         </div>
-        <button class="btn btn-primary-premium rounded-pill px-4" @onclick='() => Navigation.NavigateTo("/provider/create-request")'>
+        <button class="btn btn-primary-premium rounded-pill px-4" @onclick='() => Navigation.NavigateTo("/provider/createservice")'>
             <i class="fa-solid fa-plus me-2"></i> إضافة خدمة
         </button>
     </div>
@@ -28,7 +29,7 @@
             <i class="fa-solid fa-folder-open display-1 text-muted opacity-25 mb-3"></i>
             <h5>لم تقم بإضافة أي خدمات بعد</h5>
             <p class="text-muted">ابدأ بإضافة أول خدمة لك لتظهر للعملاء</p>
-            <button class="btn btn-primary rounded-pill px-5 mt-3" @onclick='() => Navigation.NavigateTo("/provider/create-request")'>أضف خدمتك الأولى</button>
+            <button class="btn btn-primary rounded-pill px-5 mt-3" @onclick='() => Navigation.NavigateTo("/provider/createservice")'>أضف خدمتك الأولى</button>
         </div>
     }
     else
@@ -78,12 +79,40 @@
 
 @code {
     private List<ServiceDto>? services;
+    private bool isDeleting = false;
 
     protected override async Task OnInitializedAsync()
+    {
+        await LoadServices();
+    }
+
+    private async Task LoadServices()
     {
         var result = await Api.GetMyServicesAsync();
         services = result.Items;
     }
 
-    private void ConfirmDelete(ServiceDto s) { /* Delete logic */ }
+    private async Task ConfirmDelete(ServiceDto s)
+    {
+        if (!await JS.InvokeAsync<bool>("confirm", $"هل أنت متأكد من حذف خدمة \"{s.Title}\"؟\nلا يمكن التراجع عن هذا الإجراء."))
+            return;
+
+        try
+        {
+            var success = await Api.DeleteServiceAsync(s.Id);
+            if (success)
+            {
+                services?.Remove(s);
+                StateHasChanged();
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", "فشل حذف الخدمة، يرجى المحاولة مرة أخرى.");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"خطأ: {ex.Message}");
+        }
+    }
 }

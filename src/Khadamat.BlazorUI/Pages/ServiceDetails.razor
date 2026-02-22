@@ -12,397 +12,334 @@
 @inject Khadamat.Shared.Interfaces.IPhoneService PhoneService
 @inject Khadamat.Shared.Interfaces.ILocationService LocationService
 
-<div class="service-details-page pb-5">
+<div class="service-v3-container">
     @if (service == null)
     {
         <div class="d-flex justify-content-center align-items-center vh-100">
-            <div class="spinner-border text-primary" role="status"></div>
+            <div class="premium-loader">
+                <div class="loader-circle"></div>
+                <div class="loader-circle"></div>
+                <div class="loader-circle"></div>
+            </div>
         </div>
     }
     else
     {
-        <!-- Hero & Main Info -->
-        <div class="hero-section position-relative">
-            <div class="hero-bg" style="background-image: url('@mainImage');"></div>
-            <div class="hero-overlay"></div>
-            
-            <div class="container-fluid position-relative z-1 pt-4 px-lg-5">
-                <!-- Header Actions -->
-                <div class="d-flex justify-content-between align-items-start mb-4">
-                    <button class="btn btn-glass-icon text-white" @onclick="GoBack">
-                        <i class="fa-solid fa-arrow-right"></i>
-                    </button>
-                    
-                    <div class="d-flex gap-2">
-                        @if (CanEdit)
-                        {
-                            <button class="btn btn-glass-icon text-warning" @onclick='() => OpenEdit("main")'>
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                        }
-                        <button class="btn btn-glass-icon @(service.IsFavorite ? "text-danger" : "text-white")" @onclick="ToggleFavorite">
-                            <i class="@(service.IsFavorite ? "fa-solid" : "fa-regular") fa-heart"></i>
+        <div class="container py-4">
+            <!-- Top Actions -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <button class="btn btn-glass-dark" @onclick="GoBack">
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+                <div class="d-flex gap-2">
+                    @if (CanEdit)
+                    {
+                        <button class="btn btn-glass-dark text-warning" @onclick='() => OpenEdit("main")'>
+                            <i class="fa-solid fa-pen"></i>
                         </button>
-                    </div>
-                </div>
-
-                <!-- Main Content Row: Side-by-Side on Desktop -->
-                <div class="row g-5 text-white">
-                    <!-- Left/Top: Image Gallery/Main Image -->
-                    <div class="col-12 col-lg-6">
-                        <div class="main-image-wrapper p-2 glass-morphism rounded-5 animate-up">
-                            <div class="main-image-container rounded-4 overflow-hidden shadow-lg position-relative">
-                                <img src="@mainImage" class="w-100 h-100 object-fit-cover" alt="@service.Title" />
-                                <div class="price-tag-floating">
-                                    <span class="fs-3 fw-bold">@service.Price?.ToString("N0")</span>
-                                    <span class="small opacity-75 ms-1">ج.م</span>
-                                </div>
-                            </div>
-                            <!-- Mini Gallery Preview -->
-                            <div class="mini-gallery mt-3 d-flex gap-2 overflow-auto no-scrollbar pb-1">
-                                @foreach (var img in service.Images.Take(4))
-                                {
-                                    <div class="mini-thumb rounded-3 overflow-hidden border border-white border-opacity-25" @onclick="() => selectedImage = img">
-                                        <img src="@img" class="w-100 h-100 object-fit-cover" />
-                                    </div>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Right/Bottom: Primary Details -->
-                    <div class="col-12 col-lg-6 d-flex flex-column justify-content-center py-lg-4">
-                        <div class="animate-up" style="animation-delay: 0.1s;">
-                            <nav aria-label="breadcrumb">
-                                <ol class="breadcrumb breadcrumb-dark mb-2">
-                                    <li class="breadcrumb-item"><a href="/categories">@service.MainCategoryName</a></li>
-                                    @if (!string.IsNullOrEmpty(service.CategoryName))
-                                    {
-                                        <li class="breadcrumb-item">@service.CategoryName</li>
-                                    }
-                                    @if (!string.IsNullOrEmpty(service.SubCategoryName))
-                                    {
-                                        <li class="breadcrumb-item active">@service.SubCategoryName</li>
-                                    }
-                                </ol>
-                            </nav>
-                            
-                            <h1 class="fw-bold mb-3 display-5">@service.Title</h1>
-                            
-                            <div class="d-flex flex-wrap align-items-center gap-4 mb-4">
-                                <div class="rating-badge-large">
-                                    <i class="fa-solid fa-star text-warning"></i>
-                                    <span class="fw-bold ms-1">@service.Rating.ToString("0.0")</span>
-                                    <span class="text-white-50 ms-2 small">(@service.RatersCount تقييم)</span>
-                                </div>
-                                <div class="vr bg-white opacity-25 d-none d-md-block"></div>
-                                <div class="provider-info-glass" @onclick='() => Navigation.NavigateTo("/provider/profile")'>
-                                    <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(service.ProviderName, null, service.ProviderPhoto)" class="avatar-sm" />
-                                    <div class="ms-2">
-                                        <div class="fw-bold small">@service.ProviderName</div>
-                                        <div class="x-small opacity-75">مزود موثوق</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="service-stats-pill d-flex gap-4 mb-4">
-                                <div class="stat-item">
-                                    <i class="fa-solid fa-location-dot me-2"></i> 
-                                    @if (!string.IsNullOrEmpty(service.CityName))
-                                    {
-                                        <span>@service.CityName</span>
-                                        @if (!string.IsNullOrEmpty(service.GovernorateName))
-                                        {
-                                            <span class="opacity-75"> - @service.GovernorateName</span>
-                                        }
-                                    }
-                                    else
-                                    {
-                                        <span>@service.Location</span>
-                                    }
-                                    <button class="btn btn-sm btn-icon text-white ms-2" @onclick="OpenMap" title="عرض على الخريطة">
-                                        <i class="fa-solid fa-map-location-dot"></i>
-                                    </button>
-                                </div>
-                                @if (!string.IsNullOrEmpty(service.WorkHours))
-                                {
-                                    <div class="stat-item">
-                                        <i class="fa-solid fa-clock me-2"></i> @service.WorkHours
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="stat-item">
-                                        <i class="fa-solid fa-bolt me-2"></i> استجابة سريعة
-                                    </div>
-                                }
-                            </div>
-
-                            <div class="action-stack d-flex gap-2 flex-wrap">
-                                @if (!string.IsNullOrEmpty(service.WhatsApp))
-                                {
-                                    <button class="btn btn-primary-premium flex-grow-1" @onclick="ContactWhatsApp">
-                                        <i class="fa-brands fa-whatsapp fs-4"></i>
-                                        <span>واتساب</span>
-                                    </button>
-                                }
-                                @if (!string.IsNullOrEmpty(service.Phone1))
-                                {
-                                    <button class="btn btn-glass-success flex-grow-1" @onclick="CallProvider">
-                                        <i class="fa-solid fa-phone fs-4"></i>
-                                        <span>اتصال</span>
-                                    </button>
-                                }
-                                <button class="btn btn-success w-100 mt-2 py-3 shadow-lg" @onclick="OpenRequestModal">
-                                    <i class="fa-solid fa-calendar-check fs-4"></i>
-                                    <span>طلب الخدمة</span>
-                                </button>
-                                <button class="btn btn-outline-primary w-100 mt-2 py-3" @onclick="StartChat">
-                                    <i class="fa-solid fa-message fs-4"></i>
-                                    <span>مراسلة فورية</span>
-                                </button>
-                                <div class="d-flex gap-2 w-100 mt-2">
-                                    @if (!string.IsNullOrEmpty(service.Telegram))
-                                    {
-                                        <button class="btn btn-glass-icon text-info" @onclick="JoinTelegram" title="تيليجرام">
-                                            <i class="fa-brands fa-telegram"></i>
-                                        </button>
-                                    }
-                                    @if (!string.IsNullOrEmpty(service.Facebook))
-                                    {
-                                        <button class="btn btn-glass-icon text-primary" @onclick="VisitFacebook" title="فيسبوك">
-                                            <i class="fa-brands fa-facebook"></i>
-                                        </button>
-                                    }
-                                    <button class="btn btn-glass-secondary px-4 flex-grow-1" @onclick="ShareService" title="مشاركة">
-                                        <i class="fa-solid fa-share-nodes me-2"></i> شارك الخدمة
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    }
+                    <button class="btn btn-glass-dark @(service.IsFavorite ? "text-danger" : "")" @onclick="ToggleFavorite">
+                        <i class="@(service.IsFavorite ? "fa-solid" : "fa-regular") fa-heart"></i>
+                    </button>
                 </div>
             </div>
-        </div>
 
-        <!-- Content Tabs -->
-        <div class="content-container mt-n4 position-relative z-2 px-3">
-            <div class="glass-card p-2 mb-3 d-flex flex-wrap justify-content-between rounded-4 w-100 h-auto">
-                <button class="btn btn-tab flex-grow-1 @(activeTab == "details" ? "active" : "")" @onclick='() => SetTab("details")'>التفاصيل</button>
-                <button class="btn btn-tab flex-grow-1 @(activeTab == "gallery" ? "active" : "")" @onclick='() => SetTab("gallery")'>معرض الصور</button>
-                <button class="btn btn-tab flex-grow-1 @(activeTab == "posts" ? "active" : "")" @onclick='() => SetTab("posts")'>المنشورات</button>
-                <button class="btn btn-tab flex-grow-1 @(activeTab == "reviews" ? "active" : "")" @onclick='() => SetTab("reviews")'>التقييمات</button>
-            </div>
-
-            <div class="tab-content pb-5">
-                @if (activeTab == "details")
-                {
-                    <div class="glass-card p-4 animate-up">
-                        <h5 class="fw-bold mb-3 text-primary">نبذة عن الخدمة</h5>
-                        <p class="text-muted leading-loose">@service.Description</p>
+            <!-- Main Info Row -->
+            <div class="row g-4 mb-5">
+                <!-- Physycal Right (Start in RTL): Image & Stats -->
+                <div class="col-12 col-md-5">
+                    <div class="main-image-v3 rounded-5 overflow-hidden shadow-lg position-relative mb-4">
+                        <img src="@mainImage" class="w-100 h-100 object-fit-cover" alt="@service.Title" />
                         
-                        <div class="mt-4">
-                            <h6 class="fw-bold mb-2"><i class="fa-solid fa-location-dot text-danger me-2"></i> الموقع بالتفصيل</h6>
-                            <p class="text-muted small">@service.Address</p>
-                            @if (!string.IsNullOrEmpty(service.CityName) || !string.IsNullOrEmpty(service.GovernorateName))
-                            {
-                                <p class="text-muted x-small">
-                                    @if (!string.IsNullOrEmpty(service.CityName))
-                                    {
-                                        <span><i class="fa-solid fa-map-pin me-1"></i> @service.CityName</span>
-                                    }
-                                    @if (!string.IsNullOrEmpty(service.GovernorateName))
-                                    {
-                                        <span class="ms-2"><i class="fa-solid fa-map-location-dot me-1"></i> @service.GovernorateName</span>
-                                    }
-                                </p>
-                            }
-                            else if (!string.IsNullOrEmpty(service.Location))
-                            {
-                                <p class="text-muted x-small">(@service.Location)</p>
-                            }
+                        <!-- Favorite Button Overlay -->
+                        <div class="position-absolute top-0 start-0 m-3 z-3">
+                            <button class="btn btn-glass-dark @(service.IsFavorite ? "text-danger" : "") shadow" @onclick="ToggleFavorite">
+                                <i class="@(service.IsFavorite ? "fa-solid" : "fa-regular") fa-heart"></i>
+                            </button>
                         </div>
 
-                        @if (!string.IsNullOrEmpty(service.WorkDays))
+                        @if (service.Images != null && service.Images.Count > 1)
                         {
-                            <div class="mt-4">
-                                <h6 class="fw-bold mb-2"><i class="fa-solid fa-calendar-days text-primary me-2"></i> أيام العمل</h6>
-                                <p class="text-muted small">@service.WorkDays</p>
-                                <p class="text-muted x-small">@service.WorkHours</p>
+                            <div class="gallery-preview-mini">
+                                @foreach (var img in service.Images.Take(3))
+                                {
+                                    <img src="@img" class="mini-img @(img == selectedImage ? "active" : "")" @onclick="() => selectedImage = img" />
+                                }
+                                @if (service.Images.Count > 3)
+                                {
+                                    <div class="more-imgs" @onclick='() => selectedImage = service.Images.Skip(3).FirstOrDefault()'>+@(service.Images.Count - 3)</div>
+                                }
                             </div>
                         }
+                    </div>
 
+                    <!-- Stats Box moved here (Below Image) -->
+                    <div class="stats-box-v3 p-4 rounded-5 shadow-sm border bg-white mb-4">
+                        <div class="row g-2 align-items-center text-center">
+                            <div class="col-4 border-start">
+                                <div class="x-small text-muted">السعر</div>
+                                <div class="fw-900 fs-5 text-gradient">@service.Price?.ToString("N0") ج.م</div>
+                            </div>
+                            <div class="col-4 border-start">
+                                <div class="x-small text-muted">التقييم</div>
+                                <div class="fw-900 fs-5">
+                                    @service.Rating.ToString("0.1") <i class="fa-solid fa-star text-warning small"></i>
+                                    <span class="raters-count-v3 d-block">(@service.RatersCount تقييم)</span>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="x-small text-muted">إعجاب</div>
+                                <div class="fw-900 fs-5 text-danger">
+                                     <i class="fa-solid fa-heart"></i> @(new Random(service.Id).Next(10, 100))
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="my-3 opacity-10" />
+                        <div class="d-flex justify-content-between x-small text-muted px-2">
+                            <span><i class="fa-solid fa-eye me-1"></i> @service.ViewsCount مشاهدة</span>
+                            <span><i class="fa-solid fa-calendar-alt me-1"></i> منذ @service.CreatedAt.ToString("yyyy/MM/dd")</span>
+                        </div>
+                    </div>
+
+                    <div class="contact-actions-v3 d-flex flex-column gap-2 mt-auto">
+                        <button class="btn btn-request-main w-100 py-3 shadow-lg" @onclick="OpenRequestModal">
+                            <i class="fa-solid fa-calendar-check fs-4"></i> طلب الخدمة الآن
+                        </button>
+                        
                         @if (!string.IsNullOrEmpty(service.YouTubeUrl))
                         {
-                            <div class="mt-4">
-                                <h6 class="fw-bold mb-3">فيديو توضيحي</h6>
-                                <div class="ratio ratio-16x9 rounded-4 overflow-hidden shadow-sm">
-                                    <iframe src="@GetEmbedUrl(service.YouTubeUrl)" allowfullscreen></iframe>
-                                </div>
-                            </div>
+                            <a href="@service.YouTubeUrl" target="_blank" class="btn btn-outline-danger w-100 rounded-4 py-2 mt-1">
+                                <i class="fa-brands fa-youtube me-1"></i> مشاهدة العرض المرئي
+                            </a>
                         }
                     </div>
-                }
-                else if (activeTab == "gallery")
-                {
-                    <div class="animate-up">
-                        @if (CanEdit)
-                        {
-                            <div class="mb-3 text-center">
-                                <button class="btn btn-outline-primary rounded-pill btn-sm" @onclick="AddImage">
-                                    <i class="fa-solid fa-plus me-1"></i> إضافة صورة
-                                </button>
-                            </div>
-                        }
-                        
-                        <div class="gallery-grid">
-                            @foreach (var img in service.Images)
+                </div>
+
+                <!-- Physycal Left (End in RTL): Details -->
+                <div class="col-12 col-md-7">
+                    <div class="details-content-v3 ps-md-3">
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            <span class="category-tag">@service.MainCategoryName</span>
+                            <span class="category-tag bg-indigo-light text-indigo">@service.CategoryName</span>
+                            @if (!string.IsNullOrEmpty(service.SubCategoryName))
                             {
-                                <div class="gallery-item rounded-3 overflow-hidden shadow-sm position-relative group">
-                                    <img src="@img" loading="lazy" @onclick="() => ViewImage(img)" />
-                                    @if (CanEdit)
+                                <span class="category-tag bg-purple-light text-purple">@service.SubCategoryName</span>
+                            }
+                        </div>
+                        <h1 class="fw-900 mb-2 display-5">@service.Title</h1>
+                        
+                        <!-- Description below title -->
+                        <div class="service-description-v3 mb-4">
+                            <p class="text-muted fs-5 leading-relaxed">@service.Description</p>
+                        </div>
+
+                        <div class="provider-strip mb-4" @onclick='() => Navigation.NavigateTo("/provider/profile")'>
+                            <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(service.ProviderName, null, service.ProviderPhoto)" class="provider-avatar" />
+                            <div class="ms-3">
+                                <div class="fw-bold fs-5">@service.ProviderName</div>
+                                <div class="text-primary small"><i class="fa-solid fa-circle-check"></i> مقدم خدمة موثوق</div>
+                            </div>
+                        </div>
+
+                        <div class="info-grid-v3 mb-4">
+                            <!-- Location: Governorate & City -->
+                            <div class="info-item-v3">
+                                <i class="fa-solid fa-location-dot text-danger"></i>
+                                <div>
+                                    <div class="fw-bold">الموقع</div>
+                                    <div class="small">@service.GovernorateName - @service.CityName</div>
+                                    <div class="x-small text-muted">@service.Address</div>
+                                </div>
+                            </div>
+
+                            <!-- Appointments -->
+                            <div class="info-item-v3">
+                                <i class="fa-solid fa-clock text-primary"></i>
+                                <div>
+                                    <div class="fw-bold">المواعيد</div>
+                                    <div class="small">@(string.IsNullOrEmpty(service.WorkDays) ? "متاح يومياً" : service.WorkDays)</div>
+                                    <div class="small text-muted">@service.WorkHours</div>
+                                </div>
+                            </div>
+
+                            <!-- Contact Numbers -->
+                            <div class="info-item-v3">
+                                <i class="fa-solid fa-phone text-success"></i>
+                                <div>
+                                    <div class="fw-bold">أرقام التواصل</div>
+                                    <div class="small">@service.Phone1</div>
+                                    @if (!string.IsNullOrEmpty(service.Phone2))
                                     {
-                                        <button class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2 opacity-0 group-hover-opacity" 
-                                                @onclick:stopPropagation="true" @onclick="() => RemoveImage(img)">
-                                            <i class="fa-solid fa-trash"></i>
-                                        </button>
+                                        <div class="small">@service.Phone2</div>
                                     }
                                 </div>
+                            </div>
+
+                            <!-- Social Links -->
+                            <div class="info-item-v3">
+                                <i class="fa-solid fa-share-nodes text-primary"></i>
+                                <div>
+                                    <div class="fw-bold">روابط التواصل</div>
+                                    <div class="d-flex gap-3 mt-1 social-links-v3">
+                                        @if (!string.IsNullOrEmpty(service.WhatsApp))
+                                        {
+                                            <a href="https://wa.me/@service.WhatsApp" target="_blank" title="واتساب" class="social-icon-btn whatsapp"><i class="fa-brands fa-whatsapp"></i></a>
+                                        }
+                                        @if (!string.IsNullOrEmpty(service.Telegram))
+                                        {
+                                            <a href="@service.Telegram" target="_blank" title="تليجرام" class="social-icon-btn telegram"><i class="fa-brands fa-telegram"></i></a>
+                                        }
+                                        @if (!string.IsNullOrEmpty(service.Facebook))
+                                        {
+                                            <a href="@service.Facebook" target="_blank" title="فيسبوك" class="social-icon-btn facebook"><i class="fa-brands fa-facebook"></i></a>
+                                        }
+                                        <button class="social-icon-btn share" @onclick="ShareService" title="مشاركة"><i class="fa-solid fa-share-alt"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="action-buttons-v3 d-flex gap-2 mb-4">
+                            @if (!string.IsNullOrEmpty(service.WhatsApp))
+                            {
+                                <button class="btn btn-whatsapp flex-grow-1" @onclick="ContactWhatsApp">
+                                    <i class="fa-brands fa-whatsapp me-1"></i> واتساب
+                                </button>
                             }
+                            <button class="btn btn-call flex-grow-1" @onclick="CallProvider">
+                                <i class="fa-solid fa-phone me-1"></i> اتصال
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Posts Section -->
+            <div class="mb-5 pt-4 border-top">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-900 mb-0 border-right-styled pe-3">أحدث المنشورات</h4>
+                    @if (CanEdit)
+                    {
+                        <button class="btn btn-primary btn-sm rounded-pill px-3" @onclick="() => showCreatePostBox = !showCreatePostBox">
+                            <i class="fa-solid @(showCreatePostBox ? "fa-xmark" : "fa-plus") me-1"></i>
+                            @(showCreatePostBox ? "إلغاء" : "منشور جديد")
+                        </button>
+                    }
+                </div>
+
+                @if (CanEdit && showCreatePostBox)
+                {
+                    <div class="glass-card-v3 p-4 mb-4 animate-pop">
+                        <label class="form-label fw-bold small">اكتب منشوراً جديداً لعملائك</label>
+                        <textarea @bind="newPostContent" class="form-control border-light mb-3" rows="3" placeholder="أخبر عملائك عن تخفيضاتك أو أعمالك الجديدة..."></textarea>
+                        <div class="d-flex justify-content-end">
+                            <button class="btn btn-primary rounded-pill px-4" @onclick="CreatePost" disabled="@isPostingPost">
+                                @if (isPostingPost)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                }
+                                <i class="fa-solid fa-paper-plane me-1"></i> نشر الآن
+                            </button>
                         </div>
                     </div>
                 }
-                else if (activeTab == "posts")
+
+                @if (service.Posts.Any())
                 {
-                    <div class="animate-up">
-                        @if (CanEdit)
+                    <div class="row g-4">
+                        @foreach (var post in service.Posts)
                         {
-                            <div class="glass-card p-3 mb-4">
-                                <textarea @bind="newPostContent" class="form-control border-0 bg-light mb-2" rows="2" placeholder="أكتب تحديثاً جديداً للعملاء..."></textarea>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <button class="btn btn-sm btn-icon text-muted"><i class="fa-solid fa-image"></i></button>
-                                    <button class="btn btn-primary btn-sm rounded-pill px-4" @onclick="CreatePost" disabled="@isPostingPost">
-                                        @if (isPostingPost)
-                                        {
-                                            <span class="spinner-border spinner-border-sm me-1"></span>
-                                        }
-                                        نشر
-                                    </button>
-                                </div>
-                            </div>
-                        }
-                        
-                        @if (service.Posts.Any())
-                        {
-                            @foreach (var post in service.Posts)
-                            {
-                                <div class="glass-card p-3 mb-3">
-                                    <div class="d-flex gap-2 mb-2">
-                                        <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(service.ProviderName, null, service.ProviderPhoto)" class="rounded-circle" width="40" height="40"/>
-                                        <div>
-                                            <h6 class="fw-bold mb-0 small">@service.ProviderName</h6>
-                                            <span class="text-muted x-small">@post.CreatedAt.ToString("dd MMM, hh:mm tt")</span>
-                                        </div>
+                            <div class="col-12 col-lg-6">
+                                <div class="glass-card-v3 p-4 h-100">
+                                    <div class="d-flex align-items-center gap-2 mb-3">
+                                        <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(service.ProviderName, null, service.ProviderPhoto)" class="rounded-circle" width="35" />
+                                        <div class="x-small fw-bold">@service.ProviderName</div>
+                                        <div class="ms-auto x-small text-muted">@post.CreatedAt.ToString("dd/MM")</div>
                                     </div>
-                                    <p class="mb-2 text-dark small">@post.Content</p>
+                                    <p class="mb-3 small">@post.Content</p>
                                     @if (!string.IsNullOrEmpty(post.ImageUrl))
                                     {
-                                        <img src="@post.ImageUrl" class="w-100 rounded-3 mb-2" />
+                                        <img src="@post.ImageUrl" class="w-100 rounded-4 mb-3" />
                                     }
-                                    <div class="border-top pt-2 mt-2 d-flex gap-3">
-                                        <button class="btn btn-sm text-muted p-0"><i class="fa-regular fa-heart"></i> @post.LikesCount</button>
-                                        <button class="btn btn-sm text-muted p-0" @onclick="() => ToggleComments(post.Id)">
-                                            <i class="fa-regular fa-comment"></i> تعليق (@(post.CommentsCount ?? 0))
-                                        </button>
+                                    <div class="d-flex gap-3 pt-3 border-top x-small">
+                                        <span><i class="fa-regular fa-heart"></i> @post.LikesCount</span>
+                                        <span class="cursor-pointer" @onclick="() => ToggleComments(post.Id)">
+                                            <i class="fa-regular fa-comment"></i> @(post.CommentsCount ?? 0) تعليقات
+                                        </span>
                                     </div>
-                                    
+
                                     @if (expandedPostId == post.Id)
                                     {
-                                        <div class="mt-3 pt-3 border-top">
-                                            <div class="d-flex gap-2 mb-3">
-                                                <input @bind-value="newCommentText" type="text" class="form-control form-control-sm" placeholder="اكتب تعليقاً..."/>
-                                                <button class="btn btn-primary btn-sm" @onclick="() => AddComment(post.Id)" disabled="@isPostingComment">
-                                                    @if (isPostingComment)
-                                                    {
-                                                        <span class="spinner-border spinner-border-sm"></span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <i class="fa-solid fa-paper-plane"></i>
-                                                    }
-                                                </button>
-                                            </div>
+                                        <div class="comments-section mt-3 pt-3 border-top animate-fade-in">
                                             @if (post.Comments != null && post.Comments.Any())
                                             {
-                                                <div class="comments-list">
+                                                <div class="comments-list mb-3">
                                                     @foreach (var comment in post.Comments)
                                                     {
-                                                        <div class="d-flex gap-2 mb-2 small">
-                                                            <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(comment.UserName, null, null)" class="rounded-circle" width="24" height="24"/>
-                                                            <div class="flex-grow-1">
-                                                                <div class="bg-light rounded-3 p-2">
-                                                                    <strong class="x-small">@comment.UserName</strong>
-                                                                    <p class="mb-0 x-small">@comment.Text</p>
-                                                                </div>
-                                                                <span class="text-muted" style="font-size: 0.7rem;">@comment.CreatedAt.ToString("dd/MM hh:mm tt")</span>
+                                                        <div class="comment-item mb-2 p-2 rounded-3 bg-light">
+                                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                <span class="fw-bold x-small">@comment.UserName</span>
+                                                                <span class="text-muted xx-small">@comment.CreatedAt.ToString("MM/dd HH:mm")</span>
                                                             </div>
+                                                            <div class="small">@comment.Text</div>
                                                         </div>
                                                     }
                                                 </div>
                                             }
+                                            else
+                                            {
+                                                <div class="text-center text-muted x-small py-2">لا توجد تعليقات بعد</div>
+                                            }
+
+                                            <div class="add-comment-box d-flex gap-2">
+                                                <input type="text" @bind="newCommentText" class="form-control form-control-sm rounded-pill" placeholder="أضف تعليقاً..." />
+                                                <button class="btn btn-primary btn-sm rounded-circle" @onclick="() => AddComment(post.Id)" disabled="@isPostingComment">
+                                                    <i class="fa-solid fa-paper-plane"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     }
                                 </div>
-                            }
-                        }
-                        else
-                        {
-                            <div class="text-center py-5 text-muted">
-                                <i class="fa-regular fa-newspaper fs-1 mb-3 opacity-50"></i>
-                                <p>لا توجد منشورات حتى الآن</p>
                             </div>
                         }
                     </div>
                 }
-                else if (activeTab == "reviews")
+                else
                 {
-                    <div class="animate-up">
-                        <div class="glass-card p-4 text-center mb-4">
-                            <h1 class="fw-bold mb-0 text-primary display-4">@service.Rating.ToString("0.0")</h1>
-                            <div class="text-warning mb-2">
-                                @for(int i=1; i<=5; i++) {
-                                    <i class="@(i <= Math.Round(service.Rating) ? "fa-solid" : "fa-regular") fa-star fs-4"></i>
-                                }
-                            </div>
-                            <p class="text-muted small">بناءً على @service.RatersCount تقييم</p>
-                            
-                            <button class="btn btn-outline-primary w-100 rounded-pill mt-2" @onclick="OpenRateModal">
-                                قيم الخدمة
-                            </button>
-                        </div>
+                    <div class="text-center py-5 bg-white rounded-5 border border-dashed">
+                        <div class="mb-3 opacity-25"><i class="fa-solid fa-newspaper fs-1"></i></div>
+                        <div class="text-muted">لا توجد منشورات حالياً</div>
+                    </div>
+                }
+            </div>
 
-                        @foreach (var review in service.Reviews)
-                        {
-                            <div class="glass-card p-3 mb-3">
-                                <div class="d-flex justify-content-between mb-2">
-                                    <div class="d-flex gap-2">
-                                        <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(review.UserName, null, review.UserAvatar)" class="rounded-circle" width="35" height="35" />
-                                        <div>
-                                            <h6 class="fw-bold mb-0 small">@review.UserName</h6>
-                                            <div class="text-warning x-small">
-                                                @for(int i=1; i<=5; i++) {
-                                                    <i class="@(i <= review.Rating ? "fa-solid" : "fa-regular") fa-star"></i>
-                                                }
-                                            </div>
-                                        </div>
+            <!-- Reviews List -->
+            <div class="mb-5">
+                <h4 class="fw-900 mb-4 border-right-styled pe-3">تقييمات العملاء</h4>
+                <div class="row g-4">
+                    @foreach (var review in service.Reviews)
+                    {
+                        <div class="col-12 col-md-6">
+                            <div class="glass-card-v3 p-4">
+                                <div class="d-flex justify-content-between mb-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(review.UserName, null, review.UserAvatar)" class="rounded-circle" width="35" />
+                                        <div class="fw-bold small">@review.UserName</div>
                                     </div>
-                                    <span class="text-muted x-small">@review.CreatedAt.ToString("dd/MM/yyyy")</span>
+                                    <div class="text-warning x-small">
+                                        @for(int i=1; i<=5; i++) {
+                                            <i class="@(i <= review.Rating ? "fa-solid" : "fa-regular") fa-star"></i>
+                                        }
+                                    </div>
                                 </div>
                                 <p class="text-muted small mb-0">@review.Comment</p>
                             </div>
-                        }
-                    </div>
-                }
+                        </div>
+                    }
+                </div>
+                <div class="text-center mt-4">
+                    <button class="btn btn-outline-primary rounded-pill px-5" @onclick="OpenRateModal">أضف تقييمك الخاص</button>
+                </div>
             </div>
         </div>
     }
@@ -480,107 +417,192 @@
 }
 
 <style>
-    .service-details-page {
+    .service-v3-container {
         min-height: 100vh;
         background: #f8fafc;
+        color: #1e293b;
+        font-family: 'Tajawal', sans-serif;
     }
-    .hero-section {
-        min-height: 400px;
-        padding-bottom: 50px;
-        overflow: hidden;
-    }
-    .hero-bg {
-        position: absolute;
-        top: 0; left: 0; width: 100%; height: 120%;
-        background-size: cover;
-        background-position: center;
-        filter: blur(20px) brightness(0.6);
-        z-index: 0;
-        mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
-        -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
-    }
-    .hero-overlay {
-        position: absolute;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.4), transparent 70%);
-        z-index: 0;
-    }
-    .btn-glass-icon {
-        width: 40px; height: 40px;
-        border-radius: 12px;
-        background: rgba(255,255,255,0.1);
+
+    /* Buttons */
+    .btn-glass-dark {
+        background: rgba(255, 255, 255, 0.8);
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(255,255,255,0.2);
-        display: flex; align-items: center; justify-content: center;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         transition: all 0.2s;
     }
-    .btn-glass-icon:hover { transform: scale(1.05); background: rgba(255,255,255,0.2); }
-    
-    .main-image-container {
-        aspect-ratio: 4/3;
-        border: 1px solid rgba(255,255,255,0.2);
-    }
+    .btn-glass-dark:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
 
-    .btn-glass {
-        background: rgba(255,255,255,0.1);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255,255,255,0.2);
-        color: white;
+    /* Image Box */
+    .main-image-v3 {
+        height: 400px;
+        background: #eee;
     }
-
-    .btn-tab {
-        border: none;
-        background: transparent;
-        padding: 8px 16px;
-        border-radius: 12px;
-        color: var(--text-main);
-        font-weight: 500;
-        transition: all 0.3s;
+    .gallery-preview-mini {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        display: flex;
+        gap: 8px;
+        z-index: 5;
     }
-    .btn-tab.active {
-        background: var(--primary-color);
-        color: white;
-        box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
-    }
-    
-    /* Masonry Gallery */
-    .gallery-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        grid-auto-rows: 140px;
-        gap: 12px;
-        grid-auto-flow: dense;
-    }
-    .gallery-item {
+    .mini-img {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        object-fit: cover;
+        border: 2px solid white;
         cursor: pointer;
         transition: transform 0.2s;
     }
-    .gallery-item img {
-        width: 100%; height: 100%; object-fit: cover;
+    .mini-img:hover { transform: scale(1.1); }
+    .more-imgs {
+        width: 50px; height: 50px;
+        background: rgba(0,0,0,0.5);
+        color: white;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        cursor: pointer;
     }
-    .gallery-item:nth-child(3n+1) { grid-row: span 2; }
-    .gallery-item:nth-child(4n) { grid-column: span 2; }
-    .gallery-item:hover { transform: scale(1.02); z-index: 2; }
+
+    /* Provider Content */
+    .category-tag {
+        display: inline-block;
+        background: #eff6ff;
+        color: #3b82f6;
+        padding: 4px 12px;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+    .provider-strip {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        background: white;
+        border-radius: 15px;
+        border: 1px solid #f1f5f9;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .provider-strip:hover { background: #f8fafc; }
+    .provider-avatar { width: 50px; height: 50px; border-radius: 12px; object-fit: cover; }
+
+    /* Info Grid */
+    .info-grid-v3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    @@media (max-width: 768px) { .info-grid-v3 { grid-template-columns: 1fr; } }
+    .info-item-v3 {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+    }
+    .info-item-v3 i { font-size: 1.2rem; margin-top: 3px; }
+
+    /* Actions */
+    .btn-whatsapp { background: #25d366; color: white; border-radius: 15px; padding: 12px; font-weight: 700; border: none; }
+    .btn-call { background: #3b82f6; color: white; border-radius: 15px; padding: 12px; font-weight: 700; border: none; }
+    .btn-request-main {
+        background: linear-gradient(135deg, #6366f1, #a855f7);
+        color: white;
+        border: none;
+        border-radius: 15px;
+        font-weight: 800;
+        transition: transform 0.2s;
+    }
+    .btn-request-main:hover { transform: translateY(-3px); }
+
+    /* Stats Box */
+    .stats-box-v3 { background: white; border-color: #f1f5f9 !important; }
+    .text-gradient {
+        background: linear-gradient(135deg, #10b981, #3b82f6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .raters-count-v3 { font-size: 0.75rem; color: #94a3b8; font-weight: 400; }
+
+    /* Content Cards */
+    .glass-card-v3 {
+        background: white;
+        border-radius: 20px;
+        border: 1px solid #f1f5f9;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    .border-right-styled { border-right: 4px solid #6366f1; }
     
-    .group-hover-opacity { transition: opacity 0.2s; }
-    .gallery-item:hover .group-hover-opacity { opacity: 1 !important; }
+    .cursor-pointer { cursor: pointer; }
 
-    .modal-overlay {
-        position: fixed; inset: 0; z-index: 2000;
-        background: rgba(0,0,0,0.6);
-        backdrop-filter: blur(5px);
-        display: flex; align-items: center; justify-content: center;
+    /* Category Tags Expanded */
+    .bg-indigo-light { background: #e0e7ff; }
+    .text-indigo { color: #4338ca; }
+    .bg-purple-light { background: #f3e8ff; }
+    .text-purple { color: #7e22ce; }
+
+    /* Social Icons v3 */
+    .social-links-v3 { display: flex; gap: 12px; }
+    .social-icon-btn {
+        width: 38px; height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        text-decoration: none;
+        transition: transform 0.2s;
+        border: none;
+    }
+    .social-icon-btn:hover { transform: translateY(-3px); color: white; opacity: 0.9; }
+    .social-icon-btn.whatsapp { background: #25d366; }
+    .social-icon-btn.telegram { background: #0088cc; }
+    .social-icon-btn.facebook { background: #1877f2; }
+    .social-icon-btn.share { background: #64748b; }
+
+    /* Loader */
+    .premium-loader { display: flex; gap: 10px; }
+    .loader-circle {
+        width: 15px; height: 15px;
+        border-radius: 50%;
+        background: #6366f1;
+        animation: pulse 1.5s infinite ease-in-out;
+    }
+    .loader-circle:nth-child(2) { animation-delay: 0.2s; }
+    .loader-circle:nth-child(3) { animation-delay: 0.4s; }
+
+    @@keyframes pulse {
+        0%, 100% { transform: scale(0.8); opacity: 0.5; }
+        50% { transform: scale(1.2); opacity: 1; }
+    }
+    .xx-small { font-size: 0.65rem; }
+    .border-dashed { border-style: dashed !important; }
+    
+    .animate-pop {
+        animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    @@keyframes pop {
+        from { transform: scale(0.95); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
     }
 
-    .lightbox-overlay {
-        position: fixed; inset: 0; z-index: 3000;
-        background: rgba(0,0,0,0.9);
-        backdrop-filter: blur(10px);
-        display: flex; align-items: center; justify-content: center;
+    .animate-fade-in {
+        animation: fadeIn 0.3s ease;
     }
-    .lightbox-img {
-        max-width: 90vw; max-height: 90vh;
-        object-fit: contain;
+
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
 </style>
 
@@ -600,6 +622,7 @@
     // Posts
     private string newPostContent = "";
     private bool isPostingPost = false;
+    private bool showCreatePostBox = false;
     
     // Comments
     private int? expandedPostId = null;
@@ -615,64 +638,42 @@
 
     protected override async Task OnInitializedAsync()
     {
-        try 
+        try
         {
-            // Try load from API
-            try 
-            {
-                service = await Api.GetServiceByIdAsync(Id);
-            }
-            catch 
-            { 
-                /* Ignore API error */ 
-            }
-            
-            // If API failed or returned null, use mock
-            if (service == null)
-            {
-                GenerateMockServiceSafe(Id);
-            }
-            else if (!service.Reviews.Any())
-            {
-                 PopulateDemoData();
-            }
+            service = await Api.GetServiceByIdAsync(Id);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
-            Console.WriteLine($"Critical Error in ServiceDetails: {ex}");
-            // Final fallback
-            service = new ServiceDto 
-            { 
-                Id = Id, 
-                Title = "Error Loading Service", 
-                Description = "Could not load service details.",
-                ProviderName = "System",
-                Images = new List<string>(),
-                Reviews = new List<ReviewDto>(),
-                Posts = new List<PostDto>()
-            };
-        }
-        finally
-        {
-            await InvokeAsync(StateHasChanged);
+            Console.WriteLine($"API Error in ServiceDetails: {ex.Message}");
         }
 
-        // Temporarily commented out auth check to debug "Authorizing..." freeze
-        /*
+        if (service == null)
+            GenerateMockServiceSafe(Id);
+
+        // Only fill truly missing fields — never overwrite real API data
+        EnsureRequiredFields();
+
+        // Auth check — non-blocking
         try
         {
             var authState = await AuthStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
             if (user.Identity?.IsAuthenticated == true)
             {
-               if (user.IsInRole("Admin")) CanEdit = true;
+                var profile = await AuthService.GetProfileAsync();
+                if (profile?.Success == true)
+                {
+                    var myUserId = profile.Data?.Id;
+                    CanEdit = user.IsInRole("Admin") ||
+                              user.IsInRole("SystemAdmin") ||
+                              (service?.UserId != null && service.UserId == myUserId);
+                }
             }
         }
         catch (Exception ex)
         {
-             Console.WriteLine($"Auth State Error: {ex.Message}");
+            Console.WriteLine($"Auth check error: {ex.Message}");
         }
-        */
     }
 
     private void GenerateMockServiceSafe(int id)
@@ -733,44 +734,23 @@
         };
     }
 
-    private void PopulateDemoData()
+    /// <summary>Only fills missing/empty fields — never overwrites real API data.</summary>
+    private void EnsureRequiredFields()
     {
         if (service == null) return;
-        
-        service.Rating = 4.8;
-        service.RatersCount = 124;
-        service.IsFavorite = false;
-        service.YouTubeUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
-        
-        // New Fields Demo Data
-        service.Phone1 = "01012345678";
-        service.WhatsApp = "201012345678";
-        service.Telegram = "https://t.me/khadamat_demo";
-        service.Facebook = "https://facebook.com/khadamat";
-        service.WorkDays = "السبت - الخميس";
-        service.WorkHours = "9:00 ص - 10:00 م";
-        service.Address = "123 شارع الثورة، مصر الجديدة، القاهرة";
 
-        service.Images = new List<string> 
-        {
-            service.Images.FirstOrDefault() ?? "https://picsum.photos/800/600?random=1",
-            "https://picsum.photos/400/600?random=2",
-            "https://picsum.photos/600/400?random=3",
-            "https://picsum.photos/400/400?random=4",
-            "https://picsum.photos/800/800?random=5",
-            "https://picsum.photos/600/800?random=6"
-        };
-        
-        service.Reviews = new List<ReviewDto>
-        {
-            new() { UserName = "أحمد محمد", Rating = 5, Comment = "خدمة ممتازة جداً وأنصح بها!", CreatedAt = DateTime.Now.AddDays(-2) },
-            new() { UserName = "سارة علي", Rating = 4, Comment = "جيدة ولكن السعر مرتفع قليلاً", CreatedAt = DateTime.Now.AddDays(-5) }
-        };
+        // Lists must never be null
+        service.Images  ??= new List<string>();
+        service.Reviews ??= new List<ReviewDto>();
+        service.Posts   ??= new List<PostDto>();
 
-        service.Posts = new List<PostDto>
-        {
-            new() { Content = "خصم خاص 20% لفترة محدودة بمناسبة شهر رمضان!", CreatedAt = DateTime.Now.AddHours(-5), LikesCount = 45, ImageUrl = "https://picsum.photos/600/300?random=10" }
-        };
+        // Add a placeholder image if none exist
+        if (!service.Images.Any())
+            service.Images.Add($"https://picsum.photos/seed/{service.Id}/800/600");
+
+        // Ensure location strings have a fallback
+        if (string.IsNullOrEmpty(service.GovernorateName)) service.GovernorateName = service.Location ?? "غير محدد";
+        if (string.IsNullOrEmpty(service.CityName)) service.CityName = "غير محدد";
     }
 
     private void SetTab(string tab) => activeTab = tab;
@@ -779,10 +759,19 @@
 
     private async Task ToggleFavorite()
     {
-        if (service != null)
+        if (service == null) return;
+        // Optimistic update
+        service.IsFavorite = !service.IsFavorite;
+        StateHasChanged();
+        try
         {
-            var success = await Api.ToggleFavoriteAsync(service.Id);
-            service.IsFavorite = success;
+            await Api.ToggleFavoriteAsync(service.Id);
+        }
+        catch
+        {
+            // Revert on failure
+            service.IsFavorite = !service.IsFavorite;
+            StateHasChanged();
         }
     }
 
