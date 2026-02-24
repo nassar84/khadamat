@@ -1457,23 +1457,111 @@ body[data-theme="glass"]::after {
     box-shadow: 0 15px 30px rgba(99, 102, 241, 0.3);
 }
 
+@@media (max-width: 991px) {
+    .app-header-premium {
+        height: 60px !important;
+        padding: 0 10px !important;
+        display: flex !important;
+        background: rgba(255, 255, 255, 0.95) !important;
+        border-bottom: 2px solid rgba(0, 0, 0, 0.05) !important;
+    }
+
+    .header-inner-container {
+        padding: 0 !important;
+        width: 100% !important;
+    }
+
+    .header-search-section {
+        display: none !important;
+    }
+
+    .header-actions-section {
+        width: 100% !important;
+        justify-content: space-around !important;
+        display: flex !important;
+        gap: 2px !important;
+        margin: 0 !important;
+    }
+
+    .icon-action-btn {
+        width: 44px !important;
+        height: 44px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        color: #475569 !important;
+    }
+
+    .icon-action-btn i {
+        font-size: 1.35rem !important;
+    }
+
+    .user-trigger {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .user-trigger img {
+        width: 40px !important;
+        height: 40px !important;
+        border: 2px solid white !important;
+    }
+}
+
 @@media (max-width: 768px) {
     .app-header-premium {
-        padding: 0 15px;
-        height: 75px;
+        padding: 0 10px;
+        height: 70px;
+        gap: 8px;
     }
 
-    .search-container-glass {
-        max-width: 40px;
-        padding: 10px;
+    .header-inner-container {
+        padding: 0 10px !important;
+        gap: 10px !important;
     }
 
-    .search-input,
+    .header-search-section {
+        max-width: 45px !important;
+        transition: max-width 0.3s ease;
+    }
+
+    .header-search-section:focus-within {
+        max-width: 200px !important;
+    }
+
+    .search-input {
+        display: none;
+    }
+
+    .header-search-section:focus-within .search-input {
+        display: block;
+    }
+
     .search-shortcut {
         display: none;
     }
 
     .header-center {
         display: none;
+    }
+
+    .header-actions-section {
+        gap: 8px !important;
+    }
+
+    .icon-action-btn {
+        width: 36px !important;
+        height: 36px !important;
+    }
+
+    .user-trigger {
+        padding: 2px !important;
+    }
+
+    .user-trigger img {
+        width: 36px !important;
+        height: 36px !important;
     }
 }
