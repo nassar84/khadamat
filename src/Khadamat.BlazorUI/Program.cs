@@ -11,9 +11,21 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-// Configure base address for HTTP client
+// Configure base address for HttpClient
 var apiBaseUrl = builder.Configuration["ApiUrl"] ?? "http://localhost:5144";
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseUrl) });
+
+// Register AuthenticationHandler
+builder.Services.AddScoped<Khadamat.BlazorUI.Services.Auth.AuthenticationHandler>();
+
+// Register HttpClient with AuthenticationHandler
+builder.Services.AddHttpClient("KhadamatAPI", client => 
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+})
+.AddHttpMessageHandler<Khadamat.BlazorUI.Services.Auth.AuthenticationHandler>();
+
+// Register the HttpClient as the default scoped service
+builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("KhadamatAPI"));
 
 // Add Blazored LocalStorage
 builder.Services.AddBlazoredLocalStorage();
@@ -30,6 +42,7 @@ builder.Services.AddScoped<SignalRClientService>();
 builder.Services.AddScoped<Khadamat.BlazorUI.Services.Auth.IAuthService, Khadamat.BlazorUI.Services.Auth.AuthService>();
 builder.Services.AddScoped<Khadamat.BlazorUI.Services.Admin.IAdminService, Khadamat.BlazorUI.Services.Admin.AdminService>();
 builder.Services.AddScoped<Khadamat.Application.Interfaces.IOfflineDataService, WebOfflineDataService>();
+
 
 // Register Web Implementations for Shared Interfaces
 builder.Services.AddScoped<WebShareService>();

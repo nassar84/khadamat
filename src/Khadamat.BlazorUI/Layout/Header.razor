@@ -11,9 +11,23 @@
         <!-- Search Section (Expanded & Elegant) -->
         <div class="header-search-section flex-grow-1 d-flex align-items-center" style="max-width: 600px;">
             <div class="search-container-glass w-100">
-                <i class="fa-solid fa-magnifying-glass search-icon opacity-50"></i>
-                <input type="text" placeholder="ابحث عن خدمة، تاجر، أو صنايعي..." class="search-input" />
-                <kbd class="search-shortcut d-none d-md-block">⌘K</kbd>
+                <i class="fa-solid fa-magnifying-glass search-icon opacity-50" 
+                   style="cursor:pointer;" @onclick="ExecuteSearch"></i>
+                <input type="text" 
+                       placeholder="ابحث عن خدمة، تاجر، أو صنايعي..." 
+                       class="search-input" 
+                       @bind="searchQuery"
+                       @bind:event="oninput"
+                       @onkeydown="OnSearchKeyDown" />
+                @if (!string.IsNullOrEmpty(searchQuery))
+                {
+                    <i class="fa-solid fa-xmark text-muted" style="cursor:pointer; font-size:0.85rem;" 
+                       @onclick="ClearSearch"></i>
+                }
+                else
+                {
+                    <kbd class="search-shortcut d-none d-md-block">⌘K</kbd>
+                }
             </div>
         </div>
 
@@ -23,14 +37,72 @@
             <!-- Theme Toggle -->
             <div id="themeToggle" class="icon-action-btn position-relative" @onclick="ToggleThemeMenu" title="تغيير الثيم">
                 <i class="fa-solid fa-palette text-secondary"></i>
-                <div class="theme-popover @(isThemeMenuOpen ? "show" : "")">
-                     <div class="theme-grid-minimal">
-                        <button class="theme-dot default @(State.CurrentTheme == "default" ? "active" : "")" @onclick='() => HandleSetTheme("default")'></button>
-                        <button class="theme-dot sunset @(State.CurrentTheme == "sunset" ? "active" : "")" @onclick='() => HandleSetTheme("sunset")'></button>
-                        <button class="theme-dot ocean @(State.CurrentTheme == "ocean" ? "active" : "")" @onclick='() => HandleSetTheme("ocean")'></button>
-                        <button class="theme-dot forest @(State.CurrentTheme == "forest" ? "active" : "")" @onclick='() => HandleSetTheme("forest")'></button>
-                        <button class="theme-dot lavender @(State.CurrentTheme == "lavender" ? "active" : "")" @onclick='() => HandleSetTheme("lavender")'></button>
-                        <button class="theme-dot royal @(State.CurrentTheme == "royal" ? "active" : "")" @onclick='() => HandleSetTheme("royal")'></button>
+                <div class="theme-popover @(isThemeMenuOpen ? "show" : "")" @onclick:stopPropagation="true">
+                    <div class="theme-popover-title">اختر الثيم</div>
+                    <div class="theme-grid-minimal">
+                        <button class="vial-btn @(State.CurrentTheme == "default" ? "active" : "")" @onclick='() => HandleSetTheme("default")' @onclick:stopPropagation="true" title="أزرق">
+                            <div class="vial-glass"><div class="vial-liquid liquid-default"><div class="vial-bubble"></div><div class="vial-bubble b2"></div></div><div class="vial-shimmer"></div></div>
+                        </button>
+                        <button class="vial-btn @(State.CurrentTheme == "sunset" ? "active" : "")" @onclick='() => HandleSetTheme("sunset")' @onclick:stopPropagation="true" title="غروب">
+                            <div class="vial-glass"><div class="vial-liquid liquid-sunset"><div class="vial-bubble"></div><div class="vial-bubble b2"></div></div><div class="vial-shimmer"></div></div>
+                        </button>
+                        <button class="vial-btn @(State.CurrentTheme == "ocean" ? "active" : "")" @onclick='() => HandleSetTheme("ocean")' @onclick:stopPropagation="true" title="مياه">
+                            <div class="vial-glass"><div class="vial-liquid liquid-ocean"><div class="vial-bubble"></div><div class="vial-bubble b2"></div></div><div class="vial-shimmer"></div></div>
+                        </button>
+                        <button class="vial-btn @(State.CurrentTheme == "forest" ? "active" : "")" @onclick='() => HandleSetTheme("forest")' @onclick:stopPropagation="true" title="غابة">
+                            <div class="vial-glass"><div class="vial-liquid liquid-forest"><div class="vial-bubble"></div><div class="vial-bubble b2"></div></div><div class="vial-shimmer"></div></div>
+                        </button>
+                        <button class="vial-btn @(State.CurrentTheme == "lavender" ? "active" : "")" @onclick='() => HandleSetTheme("lavender")' @onclick:stopPropagation="true" title="بنفسجي">
+                            <div class="vial-glass"><div class="vial-liquid liquid-lavender"><div class="vial-bubble"></div><div class="vial-bubble b2"></div></div><div class="vial-shimmer"></div></div>
+                        </button>
+                        <button class="vial-btn @(State.CurrentTheme == "royal" ? "active" : "")" @onclick='() => HandleSetTheme("royal")' @onclick:stopPropagation="true" title="وردي">
+                            <div class="vial-glass"><div class="vial-liquid liquid-royal"><div class="vial-bubble"></div><div class="vial-bubble b2"></div></div><div class="vial-shimmer"></div></div>
+                        </button>
+                        <button class="vial-btn @(State.CurrentTheme == "glass" ? "active" : "")" @onclick='() => HandleSetTheme("glass")' @onclick:stopPropagation="true" title="زجاج">
+                            <div class="vial-glass"><div class="vial-liquid liquid-glass"><div class="vial-bubble"></div><div class="vial-bubble b2"></div></div><div class="vial-shimmer"></div></div>
+                        </button>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="theme-section-divider"></div>
+
+                    <!-- Crystal Style (Image 1: Pink-Blue Glass) -->
+                    <div class="theme-style-label">🔮 كريستال</div>
+                    <div class="theme-grid-minimal">
+                        <button class="vial-btn crystal-btn @(State.CurrentTheme == "crystal" ? "active" : "")" @onclick='() => HandleSetTheme("crystal")' @onclick:stopPropagation="true" title="كريستال وردي">
+                            <div class="crystal-glass">
+                                <div class="crystal-panel pink"></div>
+                                <div class="crystal-panel blue"></div>
+                                <div class="crystal-shine"></div>
+                                <div class="crystal-shine s2"></div>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Candy Style (Image 2: Rainbow Jelly) -->
+                    <div class="theme-style-label">🍬 كاندي</div>
+                    <div class="theme-grid-minimal">
+                        <button class="vial-btn candy-btn @(State.CurrentTheme == "candy" ? "active" : "")" @onclick='() => HandleSetTheme("candy")' @onclick:stopPropagation="true" title="قوس قزح">
+                            <div class="candy-glass">
+                                <div class="candy-orb c1"></div>
+                                <div class="candy-orb c2"></div>
+                                <div class="candy-orb c3"></div>
+                                <div class="candy-shine"></div>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Fluffy Style (Image 3: Plush) -->
+                    <div class="theme-style-label">🧸 فلافي</div>
+                    <div class="theme-grid-minimal">
+                        <button class="vial-btn fluffy-btn @(State.CurrentTheme == "fluffy" ? "active" : "")" @onclick='() => HandleSetTheme("fluffy")' @onclick:stopPropagation="true" title="ناعم">
+                            <div class="fluffy-glass">
+                                <div class="fluff-ball fb1"></div>
+                                <div class="fluff-ball fb2"></div>
+                                <div class="fluff-ball fb3"></div>
+                                <div class="fluffy-shine"></div>
+                            </div>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -227,8 +299,12 @@
     .theme-popover {
         left: 50%;
         transform: translateX(-50%) translateY(10px);
-        width: 220px;
-        padding: 12px;
+        width: 280px;
+        padding: 16px;
+        max-height: 480px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0,0,0,0.1) transparent;
     }
 
     [dir="rtl"] .user-glass-menu {
@@ -258,36 +334,349 @@
 
     .width-20 { width: 20px; }
     
-    /* Theme Dots */
-    .theme-grid-minimal {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
+    /* Theme Popover Title */
+    .theme-popover-title {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 12px;
+        text-align: center;
     }
 
-    .theme-dot {
-        width: 100%;
-        aspect-ratio: 1;
-        border-radius: 10px; /* Slight square for modern look */
-        border: 2px solid transparent;
-        cursor: pointer;
-        transition: all 0.2s;
+    /* Liquid Glass Vial Buttons */
+    .theme-grid-minimal {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
     }
-    .theme-dot:hover { transform: scale(1.05); }
-    .theme-dot.active { border-color: #0f172a; transform: scale(0.95); }
-    
-    .default { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
-    .sunset { background: linear-gradient(135deg, #f59e0b, #ea580c); }
-    .ocean { background: linear-gradient(135deg, #0ea5e9, #0284c7); }
-    .forest { background: linear-gradient(135deg, #10b981, #059669); }
-    .lavender { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
-    .royal { background: linear-gradient(135deg, #e11d48, #be123c); }
+
+    .vial-btn {
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        outline: none;
+        transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .vial-btn:hover { transform: translateY(-4px) scale(1.08); }
+    .vial-btn.active .vial-glass {
+        box-shadow: 0 0 0 2.5px #0f172a, 0 6px 18px rgba(0,0,0,0.18);
+    }
+    .vial-btn.active { transform: scale(1.05); }
+
+    .vial-glass {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        /* Frosted glass bottle shell */
+        background: rgba(255,255,255,0.18);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1.5px solid rgba(255,255,255,0.75);
+        border-bottom: 1.5px solid rgba(255,255,255,0.3);
+        box-shadow:
+            0 4px 16px rgba(0,0,0,0.10),
+            inset 0 1px 0 rgba(255,255,255,0.9),
+            inset 0 -1px 0 rgba(0,0,0,0.04);
+        position: relative;
+        overflow: hidden;
+        transition: box-shadow 0.2s;
+    }
+
+    /* Colored liquid fill inside the glass */
+    .vial-liquid {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 68%;
+        border-radius: 0 0 12px 12px;
+        opacity: 0.82;
+        animation: liquidWave 3s ease-in-out infinite alternate;
+    }
+    @@keyframes liquidWave {
+        0%   { height: 65%; border-radius: 30% 40% 0 0 / 12px 12px 0 0; }
+        100% { height: 72%; border-radius: 40% 20% 0 0 / 10px 12px 0 0; }
+    }
+
+    /* Liquid colors */
+    .liquid-default  { background: linear-gradient(180deg, #60a5fa 0%, #2563eb 60%, #1d4ed8 100%); }
+    .liquid-sunset   { background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 40%, #ea580c 100%); }
+    .liquid-ocean    { background: linear-gradient(180deg, #38bdf8 0%, #0ea5e9 50%, #0284c7 100%); }
+    .liquid-forest   { background: linear-gradient(180deg, #34d399 0%, #10b981 50%, #059669 100%); }
+    .liquid-lavender { background: linear-gradient(180deg, #a78bfa 0%, #8b5cf6 50%, #7c3aed 100%); }
+    .liquid-royal    { background: linear-gradient(180deg, #fb7185 0%, #e11d48 50%, #be123c 100%); }
+    .liquid-glass    { background: linear-gradient(180deg, rgba(253,210,239,0.9) 0%, rgba(161,196,253,0.85) 100%); backdrop-filter: blur(4px); }
+
+    /* Floating bubbles inside liquid */
+    .vial-bubble {
+        position: absolute;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.55);
+        bottom: 6px;
+        left: 30%;
+        animation: bubbleRise 2.4s ease-in-out infinite;
+    }
+    .vial-bubble.b2 {
+        width: 3px;
+        height: 3px;
+        left: 55%;
+        animation-delay: 1.1s;
+        animation-duration: 1.9s;
+    }
+    @@keyframes bubbleRise {
+        0%   { transform: translateY(0) scale(1); opacity: 0.7; }
+        80%  { opacity: 0.5; }
+        100% { transform: translateY(-28px) scale(0.6); opacity: 0; }
+    }
+
+    /* Glass shimmer highlight (top reflection) */
+    .vial-shimmer {
+        position: absolute;
+        top: 5px;
+        left: 7px;
+        width: 12px;
+        height: 18px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.55);
+        filter: blur(3px);
+        pointer-events: none;
+    }
+
+    /* ===== DIVIDERS & LABELS ===== */
+    .theme-section-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(0,0,0,0.08), transparent);
+        margin: 12px 0 8px;
+    }
+    .theme-style-label {
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 8px;
+        text-align: center;
+    }
+
+    /* ===== CRYSTAL BUTTON (Image 1: Pink-Blue Glass Panels) ===== */
+    .crystal-glass {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1.5px solid rgba(255,255,255,0.85);
+        box-shadow:
+            0 4px 20px rgba(249,168,212,0.25),
+            inset 0 1px 0 rgba(255,255,255,1),
+            inset 0 -1px 0 rgba(147,197,253,0.2);
+        position: relative;
+        overflow: hidden;
+        transition: box-shadow 0.2s;
+    }
+    .crystal-panel {
+        position: absolute;
+        border-radius: 8px;
+    }
+    .crystal-panel.pink {
+        top: 4px; left: 4px; right: 16px; bottom: 16px;
+        background: linear-gradient(135deg, rgba(249,168,212,0.7) 0%, rgba(251,207,232,0.5) 100%);
+        border: 1px solid rgba(255,255,255,0.6);
+        backdrop-filter: blur(4px);
+    }
+    .crystal-panel.blue {
+        bottom: 4px; right: 4px; left: 16px; top: 16px;
+        background: linear-gradient(135deg, rgba(147,197,253,0.65) 0%, rgba(191,219,254,0.5) 100%);
+        border: 1px solid rgba(255,255,255,0.6);
+        backdrop-filter: blur(4px);
+    }
+    .crystal-shine {
+        position: absolute;
+        top: 3px; left: 5px;
+        width: 14px; height: 6px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.9);
+        filter: blur(2px);
+        pointer-events: none;
+    }
+    .crystal-shine.s2 {
+        top: 10px; left: 10px;
+        width: 8px; height: 3px;
+        opacity: 0.6;
+    }
+    .crystal-btn.active .crystal-glass {
+        box-shadow: 0 0 0 2.5px #f9a8d4, 0 6px 20px rgba(249,168,212,0.4);
+    }
+
+    /* ===== CANDY BUTTON (Image 2: Rainbow Jelly Orbs) ===== */
+    .candy-glass {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        background: rgba(255,255,255,0.12);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1.5px solid rgba(255,255,255,0.75);
+        box-shadow:
+            0 4px 16px rgba(192,132,252,0.2),
+            inset 0 1px 0 rgba(255,255,255,0.9);
+        position: relative;
+        overflow: hidden;
+        transition: box-shadow 0.2s;
+    }
+    .candy-orb {
+        position: absolute;
+        border-radius: 50%;
+        animation: candyFloat 2.5s ease-in-out infinite alternate;
+    }
+    .candy-orb.c1 {
+        width: 18px; height: 18px;
+        top: 4px; left: 4px;
+        background: radial-gradient(circle at 35% 35%, #c084fc, #7c3aed);
+        box-shadow: 0 2px 6px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.5);
+    }
+    .candy-orb.c2 {
+        width: 14px; height: 14px;
+        top: 6px; right: 5px;
+        background: radial-gradient(circle at 35% 35%, #fbbf24, #d97706);
+        box-shadow: 0 2px 5px rgba(217,119,6,0.4), inset 0 1px 0 rgba(255,255,255,0.5);
+        animation-delay: 0.4s;
+    }
+    .candy-orb.c3 {
+        width: 16px; height: 16px;
+        bottom: 5px; right: 6px;
+        background: radial-gradient(circle at 35% 35%, #34d399, #059669);
+        box-shadow: 0 2px 5px rgba(5,150,105,0.35), inset 0 1px 0 rgba(255,255,255,0.5);
+        animation-delay: 0.8s;
+    }
+    @@keyframes candyFloat {
+        0%   { transform: translateY(0) scale(1); }
+        100% { transform: translateY(-2px) scale(1.04); }
+    }
+    .candy-shine {
+        position: absolute;
+        top: 3px; left: 6px;
+        width: 10px; height: 5px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.8);
+        filter: blur(2px);
+        pointer-events: none;
+    }
+    .candy-btn.active .candy-glass {
+        box-shadow: 0 0 0 2.5px #c084fc, 0 6px 18px rgba(192,132,252,0.45);
+    }
+
+    /* ===== FLUFFY BUTTON (Image 3: Plush/Fur Texture) ===== */
+    .fluffy-glass {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1.5px solid rgba(255,255,255,0.75);
+        box-shadow:
+            0 4px 16px rgba(244,114,182,0.2),
+            inset 0 1px 0 rgba(255,255,255,0.9);
+        position: relative;
+        overflow: hidden;
+        transition: box-shadow 0.2s;
+    }
+    .fluff-ball {
+        position: absolute;
+        border-radius: 50%;
+        /* Fuzzy gradient to simulate plush */
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .fluff-ball.fb1 {
+        width: 22px; height: 22px;
+        top: 2px; left: 2px;
+        background: radial-gradient(circle at 30% 25%,
+            #fda4af 0%,
+            #f43f5e 45%,
+            #be123c 100%);
+        filter: blur(0.5px);
+    }
+    .fluff-ball.fb2 {
+        width: 18px; height: 18px;
+        bottom: 3px; left: 5px;
+        background: radial-gradient(circle at 30% 25%,
+            #bfdbfe 0%,
+            #60a5fa 50%,
+            #2563eb 100%);
+        filter: blur(0.5px);
+    }
+    .fluff-ball.fb3 {
+        width: 16px; height: 16px;
+        top: 6px; right: 4px;
+        background: radial-gradient(circle at 30% 25%,
+            #fef08a 0%,
+            #fbbf24 50%,
+            #d97706 100%);
+        filter: blur(0.5px);
+    }
+    /* Fluff texture overlay using repeating radial gradients */
+    .fluff-ball::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background-image:
+            radial-gradient(ellipse 2px 3px at 25% 30%, rgba(255,255,255,0.5) 0%, transparent 60%),
+            radial-gradient(ellipse 1.5px 2px at 60% 20%, rgba(255,255,255,0.4) 0%, transparent 60%),
+            radial-gradient(ellipse 2px 2.5px at 40% 60%, rgba(255,255,255,0.35) 0%, transparent 60%),
+            radial-gradient(ellipse 1px 2px at 70% 55%, rgba(255,255,255,0.3) 0%, transparent 60%);
+    }
+    .fluffy-shine {
+        position: absolute;
+        top: 4px; left: 8px;
+        width: 10px; height: 5px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.75);
+        filter: blur(2.5px);
+        pointer-events: none;
+    }
+    .fluffy-btn.active .fluffy-glass {
+        box-shadow: 0 0 0 2.5px #f472b6, 0 6px 18px rgba(244,114,182,0.45);
+    }
 </style>
 
 @code {
     private bool isThemeMenuOpen = false;
     private bool isUserMenuOpen = false;
     private string DisplayName => State.IsProvider ? "مزود خدمة" : "عميل";
+    
+    // Search
+    private string searchQuery = "";
+    
+    private void OnSearchKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" || e.Key == "NumpadEnter")
+            ExecuteSearch();
+    }
+    
+    private void ExecuteSearch()
+    {
+        var q = searchQuery?.Trim();
+        if (!string.IsNullOrEmpty(q))
+            Navigation.NavigateTo($"/search?q={Uri.EscapeDataString(q)}");
+    }
+    
+    private void ClearSearch()
+    {
+        searchQuery = "";
+    }
+
 
     protected override void OnInitialized()
     {
@@ -298,7 +687,9 @@
     {
         if (firstRender)
         {
-            await JSRuntime.InvokeVoidAsync("document.body.setAttribute", "data-theme", State.CurrentTheme);
+            try {
+                await JSRuntime.InvokeVoidAsync("setBodyTheme", State.CurrentTheme);
+            } catch { } // Ignore cache issues where js function is missing
         }
     }
 
@@ -332,7 +723,7 @@
     private async Task HandleSetTheme(string theme)
     {
         State.SetTheme(theme);
-        await JSRuntime.InvokeVoidAsync("document.body.setAttribute", "data-theme", theme);
+        await JSRuntime.InvokeVoidAsync("setBodyTheme", theme);
         isThemeMenuOpen = false;
     }
 

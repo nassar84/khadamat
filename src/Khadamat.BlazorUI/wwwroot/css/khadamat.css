@@ -74,6 +74,107 @@
     --theme-glow: rgba(245, 87, 108, 0.5);
 }
 
+/* Theme: Glass (Ultra Clear Frosted Glass over Vibrant Background) */
+[data-theme="glass"] {
+    --theme-primary: #ffb6c1;
+    /* Soft pink */
+    --theme-secondary: #add8e6;
+    /* Soft blue */
+    --theme-accent: #ffffff;
+    --theme-light: rgba(255, 255, 255, 0.4);
+    --theme-glow: rgba(255, 255, 255, 0.5);
+
+    --glass-bg: rgba(255, 255, 255, 0.15);
+    --glass-border: rgba(255, 255, 255, 0.5);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+    --glass-blur: 24px;
+}
+
+/* Theme: Crystal (Pink-Blue Glass Panels — Image 1) */
+[data-theme="crystal"] {
+    --theme-primary: #f9a8d4;
+    --theme-secondary: #93c5fd;
+    --theme-accent: #ffffff;
+    --theme-light: rgba(249, 168, 212, 0.2);
+    --theme-glow: rgba(147, 197, 253, 0.5);
+
+    --glass-bg: rgba(255, 255, 255, 0.25);
+    --glass-border: rgba(255, 255, 255, 0.7);
+    --glass-shadow: 0 8px 32px 0 rgba(249, 168, 212, 0.15);
+    --glass-blur: 28px;
+}
+
+/* Glass background override for Crystal */
+body[data-theme="crystal"] {
+    background: linear-gradient(135deg, #fce7f3 0%, #dbeafe 50%, #fce7f3 100%) !important;
+}
+
+body[data-theme="crystal"]::before {
+    background: #f9a8d4 !important;
+}
+
+body[data-theme="crystal"]::after {
+    background: #93c5fd !important;
+}
+
+/* Theme: Candy (Rainbow Jelly — Image 2) */
+[data-theme="candy"] {
+    --theme-primary: #c084fc;
+    --theme-secondary: #fbbf24;
+    --theme-accent: #34d399;
+    --theme-light: rgba(192, 132, 252, 0.2);
+    --theme-glow: rgba(192, 132, 252, 0.6);
+
+    --glass-bg: rgba(255, 255, 255, 0.2);
+    --glass-border: rgba(255, 255, 255, 0.6);
+    --glass-shadow: 0 8px 32px 0 rgba(192, 132, 252, 0.2);
+    --glass-blur: 20px;
+}
+
+/* Candy background */
+body[data-theme="candy"] {
+    background: linear-gradient(135deg, #fdf4ff 0%, #fefce8 25%, #f0fdf4 50%, #eff6ff 75%, #fdf4ff 100%) !important;
+}
+
+body[data-theme="candy"]::before {
+    background: #c084fc !important;
+    opacity: 0.12 !important;
+}
+
+body[data-theme="candy"]::after {
+    background: #fbbf24 !important;
+    opacity: 0.10 !important;
+}
+
+/* Theme: Fluffy (Warm Plush — Image 3) */
+[data-theme="fluffy"] {
+    --theme-primary: #f472b6;
+    --theme-secondary: #fde68a;
+    --theme-accent: #5eead4;
+    --theme-light: rgba(244, 114, 182, 0.2);
+    --theme-glow: rgba(244, 114, 182, 0.55);
+
+    --glass-bg: rgba(255, 255, 255, 0.2);
+    --glass-border: rgba(255, 255, 255, 0.65);
+    --glass-shadow: 0 8px 32px 0 rgba(244, 114, 182, 0.18);
+    --glass-blur: 22px;
+}
+
+/* Fluffy background */
+body[data-theme="fluffy"] {
+    background: linear-gradient(135deg, #fdf2f8 0%, #fefce8 40%, #f0fdfa 100%) !important;
+}
+
+body[data-theme="fluffy"]::before {
+    background: #f472b6 !important;
+    opacity: 0.10 !important;
+}
+
+body[data-theme="fluffy"]::after {
+    background: #fde68a !important;
+    opacity: 0.10 !important;
+}
+
 /* ===== GLOBAL & LAYOUT ===== */
 * {
     margin: 0;
@@ -135,6 +236,32 @@ body::after {
     100% {
         transform: translate(30px, 30px);
     }
+}
+
+/* Glass Theme Overrides for App background */
+body[data-theme="glass"] {
+    background: url('../images/themes/glass_bg.png') no-repeat center center fixed !important;
+    background-size: cover !important;
+}
+
+body[data-theme="glass"]::before,
+body[data-theme="glass"]::after {
+    display: none !important;
+}
+
+/* Enhancing existing cards for Glass Theme */
+[data-theme="glass"] .glass-card,
+[data-theme="glass"] .service-card,
+[data-theme="glass"] .search-container-glass,
+[data-theme="glass"] .app-header-premium,
+[data-theme="glass"] .chips-container .category-chip {
+    background: rgba(255, 255, 255, 0.25) !important;
+    backdrop-filter: blur(28px) !important;
+    -webkit-backdrop-filter: blur(28px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.7) !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.7) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1), inset 0 2px 10px rgba(255, 255, 255, 0.4) !important;
 }
 
 

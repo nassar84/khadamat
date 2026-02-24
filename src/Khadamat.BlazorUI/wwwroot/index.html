@@ -16,7 +16,7 @@
 
     <!-- UI Frameworks/Libraries -->
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.rtl.min.css" />
-    <link rel="stylesheet" href="css/khadamat.css?v=2026" />
+    <link rel="stylesheet" href="css/khadamat.css?v=2029" />
     <link rel="stylesheet" href="css/app.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
@@ -223,6 +223,20 @@
             if (secondaryColor) {
                 document.documentElement.style.setProperty('--theme-secondary', secondaryColor);
             }
+        };
+
+        // Theme helpers for Blazor interop
+        window.setBodyTheme = (theme) => {
+            document.body.setAttribute('data-theme', theme || 'default');
+        };
+
+        window.getBodyTheme = () => {
+            return document.body.getAttribute('data-theme') || 'default';
+        };
+
+        window.focusElement = (id) => {
+            const el = document.getElementById(id);
+            if (el) el.focus();
         };
     </script>
 </body>

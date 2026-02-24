@@ -99,7 +99,7 @@
             </div>
             @if (profile != null && profile.IsVerified)
             {
-                <button class="btn btn-primary-premium rounded-pill px-4" @onclick='() => Navigation.NavigateTo("/provider/createservice")'>
+                <button class="btn btn-primary-premium rounded-pill px-4" @onclick='() => Navigation.NavigateTo("/provider/create-service")'>
                     <i class="fa-solid fa-plus me-2"></i> إضافة خدمة
                 </button>
             }
@@ -144,7 +144,7 @@
                 <p class="text-muted">لم تقم بإضافة أي خدمات بعد.</p>
                 @if (profile != null && profile.IsVerified)
                 {
-                    <button class="btn btn-primary rounded-pill px-5 mt-3" @onclick='() => Navigation.NavigateTo("/provider/createservice")'>أضف خدمة جديدة</button>
+                    <button class="btn btn-primary rounded-pill px-5 mt-3" @onclick='() => Navigation.NavigateTo("/provider/create-service")'>أضف خدمة جديدة</button>
                 }
             </div>
         }
@@ -175,7 +175,7 @@
                                 </div>
                                 
                                 <div class="d-flex gap-2">
-                                    <button class="btn btn-outline-primary btn-sm flex-grow-1 rounded-pill" @onclick='() => Navigation.NavigateTo($"/provider/editservice/{s.Id}")'>
+                                     <button class="btn btn-outline-primary btn-sm flex-grow-1 rounded-pill" @onclick='() => Navigation.NavigateTo($"/provider/edit-service/{s.Id}")'>
                                         <i class="fa-solid fa-pen-to-square me-1"></i> تعديل
                                     </button>
                                     <button class="btn btn-light btn-sm rounded-circle" @onclick='() => Navigation.NavigateTo($"/service/{s.Id}")' title="عرض">

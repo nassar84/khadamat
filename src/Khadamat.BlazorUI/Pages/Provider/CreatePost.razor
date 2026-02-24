@@ -1,4 +1,4 @@
-@page "/provider/createpost"
+@page "/provider/create-post"
 @using Khadamat.BlazorUI.Services
 @using Khadamat.BlazorUI.State
 @using Microsoft.AspNetCore.Authorization
@@ -12,7 +12,7 @@
     <div class="row justify-content-center">
         <div class="col-12 col-lg-8">
             <div class="d-flex align-items-center mb-4">
-                <button class="btn btn-icon-glass me-3" @onclick='() => Navigation.NavigateTo("/provider/myposts")'>
+                <button class="btn btn-icon-glass me-3" @onclick='() => Navigation.NavigateTo("/provider/my-posts")'>
                     <i class="fa-solid fa-arrow-right"></i>
                 </button>
                 <h3 class="fw-bold mb-0">إضافة منشور جديد</h3>
@@ -148,7 +148,7 @@
             var success = await Api.CreatePostAsync(request);
             if (success)
             {
-                Navigation.NavigateTo("/provider/myposts");
+                Navigation.NavigateTo("/provider/my-posts");
             }
             else
             {

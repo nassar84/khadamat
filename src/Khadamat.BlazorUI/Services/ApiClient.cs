@@ -95,6 +95,12 @@ public class ApiClient
         return response.IsSuccessStatusCode;
     }
 
+    public async Task<bool> DeleteServiceAsync(int id)
+    {
+        var response = await _http.DeleteAsync($"api/v1/services/{id}");
+        return response.IsSuccessStatusCode;
+    }
+
     // Categories
     public async Task<List<MainCategoryDto>> GetMainCategoriesAsync()
     {

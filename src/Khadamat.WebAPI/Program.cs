@@ -19,6 +19,9 @@ builder.Services.AddSignalR();
 // Clean Architecture Layers
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
+
+// Register MediatR for Infrastructure (contains Request handlers)
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Khadamat.Infrastructure.DependencyInjection).Assembly));
 builder.Services.AddScoped<Khadamat.Application.Interfaces.INotificationNotifier, Khadamat.WebAPI.Services.SignalRNotificationNotifier>();
 
 // Authorization Policies
