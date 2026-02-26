@@ -179,7 +179,9 @@
         }
 
         var allMainCats = await Api.GetMainCategoriesAsync();
-        var marketMain = allMainCats.FirstOrDefault(c => c.Name == "متجر السلع");
+        // Use color "marketplace" first as it's more reliable
+        var marketMain = allMainCats.FirstOrDefault(c => c.Color == "marketplace" || c.Name.Contains("متجر") || c.Name.ToLower().Contains("market") || c.Name.Contains("متاجر"));
+        
         if (marketMain != null)
             marketplaceCategories = await Api.GetCategoriesByMainIdAsync(marketMain.Id);
 
