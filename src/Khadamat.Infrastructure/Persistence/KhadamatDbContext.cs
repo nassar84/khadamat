@@ -32,6 +32,9 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<City> Cities { get; set; }
     public DbSet<AppSettings> AppSettings { get; set; }
     public DbSet<ServiceRequest> ServiceRequests { get; set; }
+    public DbSet<MarketplaceItem> MarketplaceItems { get; set; }
+    public DbSet<MarketplaceImage> MarketplaceImages { get; set; }
+    public DbSet<Payment> Payments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -50,6 +53,8 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<Ad>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<AdImage>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<ApplicationUser>().HasQueryFilter(u => !u.IsDeleted);
+        builder.Entity<MarketplaceItem>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<MarketplaceImage>().HasQueryFilter(e => !e.IsDeleted);
 
         // Configure relationships and constraints
         builder.Entity<Governorate>().HasMany(g => g.Cities).WithOne(c => c.Governorate).HasForeignKey(c => c.GovernorateId);
@@ -115,5 +120,56 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
             .WithMany()
             .HasForeignKey(sr => sr.ProviderId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Marketplace Configuration
+        builder.Entity<MarketplaceItem>()
+            .HasOne(m => m.Category)
+            .WithMany()
+            .HasForeignKey(m => m.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<MarketplaceItem>()
+            .HasOne(m => m.SubCategory)
+            .WithMany()
+            .HasForeignKey(m => m.SubCategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<MarketplaceItem>()
+            .HasOne(m => m.City)
+            .WithMany()
+            .HasForeignKey(m => m.CityId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<MarketplaceItem>()
+            .HasMany(m => m.Images)
+            .WithOne(i => i.MarketplaceItem)
+            .HasForeignKey(i => i.MarketplaceItemId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<MarketplaceItem>()
+            .HasOne<ApplicationUser>()
+            .WithMany(u => u.MarketplaceItems)
+            .HasForeignKey(m => m.SellerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<MarketplaceItem>()
+            .Property(m => m.Price)
+            .HasPrecision(18, 2);
+
+        builder.Entity<Favorite>()
+            .HasOne(f => f.MarketplaceItem)
+            .WithMany()
+            .HasForeignKey(f => f.MarketplaceItemId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Payment>()
+            .Property(p => p.Amount)
+            .HasPrecision(18, 2);
+
+        builder.Entity<Payment>()
+            .HasOne(p => p.MarketplaceItem)
+            .WithMany()
+            .HasForeignKey(p => p.MarketplaceItemId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

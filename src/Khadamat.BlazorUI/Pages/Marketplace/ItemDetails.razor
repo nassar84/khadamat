@@ -1,0 +1,580 @@
+@page "/marketplace/item/{Id:int}"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@using Khadamat.BlazorUI.Helpers
+@using Microsoft.AspNetCore.Authorization
+@inject ApiClient Api
+@inject NavigationManager Navigation
+@inject WebPhoneService Phone
+@inject AuthenticationStateProvider AuthProvider
+
+<div class="item-details-page py-4">
+    <div class="container">
+        @if (item == null)
+        {
+            @if (isLoading)
+            {
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2 text-muted">جاري تحميل المنتج...</p>
+                </div>
+            }
+            else
+            {
+                <div class="not-found-card text-center p-5">
+                    <i class="fa-solid fa-box-open fa-3x text-muted opacity-25 mb-3"></i>
+                    <h4>المنتج غير موجود</h4>
+                    <p class="text-muted">ربما تم حذف هذا الإعلان أو لم يعد متاحاً</p>
+                    <a href="/marketplace" class="btn btn-primary rounded-pill px-4 mt-2">
+                        <i class="fa-solid fa-arrow-right me-2"></i>العودة للمتجر
+                    </a>
+                </div>
+            }
+        }
+        else
+        {
+            <!-- Back Button -->
+            <button class="btn btn-sm btn-ghost mb-3" @onclick="GoBack">
+                <i class="fa-solid fa-arrow-right me-1"></i> العودة
+            </button>
+
+            <div class="row g-4">
+                <!-- Image Gallery -->
+                <div class="col-lg-7">
+                    <div class="gallery-card-glass p-2">
+                        <div class="main-image-viewport">
+                            <img src="@activeImageUrl" alt="@item.Title" class="main-img" />
+                            @if (item.ItemStatus == "Sold")
+                            {
+                                <div class="sold-overlay">
+                                    <div class="sold-badge">
+                                        <i class="fa-solid fa-check-circle me-2"></i>تم البيع
+                                    </div>
+                                </div>
+                            }
+                            @if (item.IsFeatured)
+                            {
+                                <div class="featured-tag">
+                                    <i class="fa-solid fa-star me-1"></i>مميز
+                                </div>
+                            }
+                        </div>
+                        @if (item.Images.Count > 1)
+                        {
+                            <div class="thumbnails-bar d-flex gap-2 mt-2 px-1">
+                                @foreach (var img in item.Images)
+                                {
+                                    <div class="thumb @(activeImageUrl == img.ImageUrl ? "active" : "")"
+                                         @onclick="() => activeImageUrl = img.ImageUrl">
+                                        <img src="@img.ImageUrl" alt="thumb" />
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Description -->
+                    <div class="description-card-glass mt-4 p-4">
+                        <h5 class="fw-bold mb-3">
+                            <i class="fa-solid fa-align-right me-2 text-primary opacity-50"></i>الوصف
+                        </h5>
+                        <div class="description-text">
+                            @item.Description
+                        </div>
+
+                        <!-- Tags / Details -->
+                        <div class="detail-tags mt-4 d-flex flex-wrap gap-2">
+                            <span class="detail-tag">
+                                <i class="fa-solid fa-tag me-1 text-primary"></i>@item.CategoryName
+                            </span>
+                            @if (!string.IsNullOrEmpty(item.SubCategoryName))
+                            {
+                                <span class="detail-tag">
+                                    <i class="fa-solid fa-list me-1 text-success"></i>@item.SubCategoryName
+                                </span>
+                            }
+                            <span class="detail-tag @(item.Condition == "New" ? "tag-new" : "tag-used")">
+                                @(item.Condition == "New" ? "🆕 جديد" : "♻️ مستعمل")
+                            </span>
+                            @if (!string.IsNullOrEmpty(item.CityName))
+                            {
+                                <span class="detail-tag">
+                                    <i class="fa-solid fa-location-dot me-1 text-danger"></i>@item.CityName
+                                </span>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info Sidebar -->
+                <div class="col-lg-5">
+                    <div class="sticky-sidebar">
+                        <!-- Price & Info Card -->
+                        <div class="info-card-glass p-4 mb-4">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <span class="badge bg-light text-dark rounded-pill px-3 py-2">
+                                    @(item.Condition == "New" ? "🆕 جديد" : "♻️ مستعمل")
+                                </span>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <span class="text-muted small">
+                                        <i class="fa-regular fa-clock me-1"></i>
+                                        @item.CreatedAt.ToRelativeTime()
+                                    </span>
+                                    <!-- Favorite Button -->
+                                    @if (isAuthenticated)
+                                    {
+                                        <button class="btn btn-fav @(isFavorite ? "fav-active" : "")" @onclick="ToggleFavorite">
+                                            <i class="fa-@(isFavorite ? "solid" : "regular") fa-heart"></i>
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+
+                            <h2 class="fw-bold mb-3">@item.Title</h2>
+                            <div class="price-display mb-4">
+                                <span class="price-value">@item.Price.ToString("N0")</span>
+                                <span class="price-currency">@item.Currency</span>
+                            </div>
+
+                            <div class="stats-row mb-4">
+                                <div class="stat-item">
+                                    <i class="fa-solid fa-eye"></i>
+                                    <span>@item.ViewsCount مشاهدة</span>
+                                </div>
+                                @if (!string.IsNullOrEmpty(item.CityName))
+                                {
+                                    <div class="stat-item">
+                                        <i class="fa-solid fa-location-dot"></i>
+                                        <span>@item.CityName</span>
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Seller Owner Actions -->
+                            @if (isOwner)
+                            {
+                                <div class="owner-actions mb-3 p-3 rounded-4" style="background: rgba(59,130,246,0.05); border: 1px dashed rgba(59,130,246,0.3);">
+                                    <p class="text-primary small fw-bold mb-2">
+                                        <i class="fa-solid fa-pen-to-square me-1"></i>أنت صاحب هذا الإعلان
+                                    </p>
+                                    <div class="d-flex gap-2">
+                                        <a href="/marketplace/edit/@item.Id" class="btn btn-sm btn-primary rounded-3 flex-grow-1">
+                                            <i class="fa-solid fa-pen me-1"></i>تعديل
+                                        </a>
+                                        @if (item.ItemStatus == "Available")
+                                        {
+                                            <button class="btn btn-sm btn-success rounded-3 flex-grow-1" @onclick="MarkAsSold">
+                                                <i class="fa-solid fa-check me-1"></i>تم البيع
+                                            </button>
+                                        }
+                                        <a href="/marketplace/my-listings" class="btn btn-sm btn-outline-secondary rounded-3">
+                                            <i class="fa-solid fa-list"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                            else if (item.ItemStatus == "Available")
+                            {
+                                <!-- Contact Actions for Buyers -->
+                                <div class="action-buttons d-grid gap-2">
+                                    <button class="btn btn-primary btn-lg rounded-pill shadow-sm" @onclick="CallSeller">
+                                        <i class="fa-solid fa-phone me-2"></i>اتصل بالبائع
+                                    </button>
+                                    <button class="btn btn-outline-dark rounded-pill" @onclick="ChatWithSeller">
+                                        <i class="fa-solid fa-comment-dots me-2"></i>مراسلة
+                                    </button>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-secondary rounded-4 text-center fw-bold">
+                                    <i class="fa-solid fa-ban me-2"></i>هذا المنتج لم يعد متاحاً
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Seller Card -->
+                        @if (!string.IsNullOrEmpty(item.SellerName))
+                        {
+                            <div class="seller-card-glass p-4">
+                                <h6 class="fw-bold mb-3">
+                                    <i class="fa-solid fa-user me-2 text-primary opacity-50"></i>البائع
+                                </h6>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="seller-avatar">
+                                        @(item.SellerName.Length > 0 ? item.SellerName[0].ToString() : "؟")
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold">@item.SellerName</div>
+                                        <div class="text-muted small">
+                                            <i class="fa-solid fa-shield-check text-success me-1"></i>عضو موثق
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(item.ContactPhone) && !isOwner)
+                                        {
+                                            <div class="mt-1">
+                                                <a class="text-muted small text-decoration-none" href="tel:@item.ContactPhone">
+                                                    <i class="fa-solid fa-phone me-1"></i>@item.ContactPhone
+                                                </a>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Safety Tips -->
+                        <div class="safety-card p-3 mt-4">
+                            <h6 class="fw-bold mb-2 small">
+                                <i class="fa-solid fa-shield-halved me-2 text-warning"></i>نصائح الأمان
+                            </h6>
+                            <ul class="safety-list mb-0">
+                                <li>تقابل مع البائع في مكان عام</li>
+                                <li>افحص السلعة قبل الدفع</li>
+                                <li>تجنب الدفع المسبق</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@if (showToast)
+{
+    <div class="toast-notify">
+        <i class="fa-solid fa-check-circle me-2"></i>@toastMessage
+    </div>
+}
+
+<style>
+    .item-details-page {
+        background: #f8fafc;
+        min-height: 100vh;
+    }
+
+    .btn-ghost {
+        background: transparent;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        color: #64748b;
+        transition: all 0.2s;
+    }
+    .btn-ghost:hover { background: white; color: #1e293b; }
+
+    .gallery-card-glass, .description-card-glass, .info-card-glass, .seller-card-glass {
+        background: white;
+        border-radius: 24px;
+        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    }
+
+    .main-image-viewport {
+        aspect-ratio: 4/3;
+        border-radius: 18px;
+        overflow: hidden;
+        background: #f8fafc;
+        position: relative;
+    }
+
+    .main-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        transition: transform 0.4s;
+    }
+
+    .main-img:hover { transform: scale(1.02); }
+
+    .sold-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.55);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(3px);
+    }
+
+    .sold-badge {
+        background: rgba(255,255,255,0.15);
+        border: 2px solid rgba(255,255,255,0.3);
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: 50px;
+        font-size: 1.5rem;
+        font-weight: 800;
+        backdrop-filter: blur(4px);
+    }
+
+    .featured-tag {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        background: #fbbf24;
+        color: #000;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .thumbnails-bar { overflow-x: auto; padding-bottom: 5px; }
+
+    .thumb {
+        width: 75px;
+        height: 75px;
+        border-radius: 12px;
+        overflow: hidden;
+        cursor: pointer;
+        border: 2px solid transparent;
+        flex-shrink: 0;
+        transition: border-color 0.2s;
+    }
+
+    .thumb.active { border-color: var(--theme-primary, #3b82f6); }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+    .price-display {
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
+    }
+
+    .price-value {
+        font-size: 2.2rem;
+        font-weight: 900;
+        color: var(--theme-primary, #3b82f6);
+        line-height: 1;
+    }
+
+    .price-currency {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--theme-primary, #3b82f6);
+        opacity: 0.7;
+    }
+
+    .stats-row {
+        display: flex;
+        gap: 1.5rem;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        color: #64748b;
+        font-size: 0.85rem;
+    }
+
+    .btn-fav {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(239, 68, 68, 0.08);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+        transition: all 0.2s;
+        padding: 0;
+    }
+
+    .btn-fav:hover, .btn-fav.fav-active {
+        background: #ef4444;
+        color: white;
+        border-color: #ef4444;
+        transform: scale(1.1);
+    }
+
+    .detail-tags { }
+    .detail-tag {
+        background: #f1f5f9;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        color: #475569;
+    }
+
+    .tag-new { background: rgba(16, 185, 129, 0.1); color: #059669; }
+    .tag-used { background: rgba(100, 116, 139, 0.1); color: #64748b; }
+
+    .description-text {
+        white-space: pre-line;
+        line-height: 1.9;
+        color: #475569;
+        font-size: 0.95rem;
+    }
+
+    .seller-avatar {
+        width: 52px;
+        height: 52px;
+        background: linear-gradient(135deg, var(--theme-primary, #3b82f6), #6366f1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: white;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+
+    .sticky-sidebar { position: sticky; top: 20px; }
+
+    .safety-card {
+        background: rgba(245, 158, 11, 0.05);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        border-radius: 16px;
+    }
+
+    .safety-list {
+        list-style: none;
+        padding: 0;
+        font-size: 0.82rem;
+        color: #64748b;
+    }
+
+    .safety-list li {
+        padding: 2px 0;
+        padding-right: 1rem;
+        position: relative;
+    }
+
+    .safety-list li::before {
+        content: "✓";
+        position: absolute;
+        right: 0;
+        color: #f59e0b;
+        font-weight: 700;
+    }
+
+    .not-found-card {
+        background: white;
+        border-radius: 24px;
+        border: 2px dashed #e2e8f0;
+    }
+
+    .toast-notify {
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #10b981;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        z-index: 99999;
+        box-shadow: 0 10px 30px rgba(16,185,129,0.3);
+        animation: slideUpFade 0.3s ease;
+        white-space: nowrap;
+    }
+
+    @@keyframes slideUpFade {
+        from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+        to { transform: translateX(-50%) translateY(0); opacity: 1; }
+    }
+</style>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private MarketplaceItemDto? item;
+    private bool isLoading = true;
+    private bool isAuthenticated = false;
+    private bool isOwner = false;
+    private bool isFavorite = false;
+    private string activeImageUrl = "";
+    private string currentUserId = "";
+
+    private bool showToast = false;
+    private string toastMessage = "";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        // Check auth
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
+        currentUserId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
+
+        item = await Api.GetMarketplaceItemByIdAsync(Id);
+
+        if (item != null)
+        {
+            activeImageUrl = item.Images.FirstOrDefault()?.ImageUrl
+                ?? "/images/defaults/default-product.png";
+
+            // Check if current user is owner
+            isOwner = isAuthenticated && item.SellerId == currentUserId;
+
+            // Check if item is favorited
+            if (isAuthenticated && !isOwner)
+            {
+                isFavorite = await Api.IsMarketplaceFavoriteAsync(Id);
+            }
+        }
+
+        isLoading = false;
+    }
+
+    private async Task ToggleFavorite()
+    {
+        if (!isAuthenticated)
+        {
+            Navigation.NavigateTo("/auth/login");
+            return;
+        }
+        await Api.ToggleMarketplaceFavoriteAsync(Id);
+        isFavorite = !isFavorite;
+        ShowToast(isFavorite ? "تمت الإضافة للمفضلة ❤️" : "تمت الإزالة من المفضلة");
+    }
+
+    private async Task CallSeller()
+    {
+        if (item != null && !string.IsNullOrEmpty(item.ContactPhone))
+        {
+            await Phone.MakePhoneCallAsync(item.ContactPhone);
+        }
+    }
+
+    private void ChatWithSeller()
+    {
+        if (item != null)
+        {
+            Navigation.NavigateTo($"/messages/{item.SellerId}");
+        }
+    }
+
+    private async Task MarkAsSold()
+    {
+        if (item == null) return;
+        var success = await Api.MarkMarketplaceItemAsSoldAsync(item.Id);
+        if (success)
+        {
+            item.ItemStatus = "Sold";
+            ShowToast("تم تحديث الحالة إلى 'تم البيع'");
+            StateHasChanged();
+        }
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/marketplace");
+    }
+
+    private async void ShowToast(string message)
+    {
+        toastMessage = message;
+        showToast = true;
+        StateHasChanged();
+        await Task.Delay(3000);
+        showToast = false;
+        StateHasChanged();
+    }
+}

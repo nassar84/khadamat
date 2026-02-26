@@ -33,7 +33,8 @@ public static class KhadamatDbContextSeed
                     new MainCategory { Name = "مواصلات", Icon = "🚗", Color = "transport", DisplayOrder = 8 },
                     new MainCategory { Name = "صيانة سيارات", Icon = "🔧", Color = "auto", DisplayOrder = 9 },
                     new MainCategory { Name = "خدمات حكومية", Icon = "🏛️", Color = "gov", DisplayOrder = 10 },
-                    new MainCategory { Name = "خدمات اخرى", Icon = "✨", Color = "other", DisplayOrder = 11 }
+                    new MainCategory { Name = "متجر السلع", Icon = "🛍️", Color = "marketplace", DisplayOrder = 11 },
+                    new MainCategory { Name = "خدمات اخرى", Icon = "✨", Color = "other", DisplayOrder = 12 }
                 };
                 await context.MainCategories.AddRangeAsync(mainCategories);
                 await context.SaveChangesAsync();
@@ -42,6 +43,7 @@ public static class KhadamatDbContextSeed
             if (!await context.Categories.AnyAsync())
             {
                 await SeedCategoriesAndSubCategoriesAsync(context);
+                await SeedMarketplaceCategoriesAsync(context);
             }
 
             await SeedLocationsAsync(context);
@@ -237,6 +239,41 @@ public static class KhadamatDbContextSeed
             context.Messages.Add(new Message(sender.Id, receiver.Id, "مرحباً، أود الاستفسار عن تفاصيل الخدمة المتاحة لديكم."));
         }
         await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedMarketplaceCategoriesAsync(KhadamatDbContext context)
+    {
+        var marketMain = await context.MainCategories.FirstOrDefaultAsync(m => m.Name == "متجر السلع");
+        if (marketMain == null) return;
+
+        var marketplaceData = new Dictionary<string, List<string>>
+        {
+            { "الأثاث", new List<string> { "غرف نوم", "غرف معيشة", "سفرة وطاولات", "كراسي ومكاتب", "أثاث مكتبي", "أثاث أطفال", "أثاث خارجي", "أثاث مستعمل", "أثاث جديد" } },
+            { "الأجهزة الإلكترونية", new List<string> { "موبايلات", "تابلت", "لابتوب", "كمبيوتر مكتبي", "شاشات", "طابعات", "كاميرات", "سماعات", "أجهزة ألعاب" } },
+            { "الأجهزة المنزلية", new List<string> { "ثلاجات", "غسالات", "بوتاجازات", "ميكروويف", "تكييفات", "مراوح", "سخانات", "أجهزة مطبخ صغيرة" } },
+            { "السيارات والمركبات", new List<string> { "سيارات", "موتوسيكلات", "دراجات", "قطع غيار", "إكسسوارات سيارات" } },
+            { "الحيوانات الأليفة", new List<string> { "كلاب", "قطط", "طيور", "أسماك", "أدوات الحيوانات", "طعام الحيوانات" } },
+            { "الملابس والأزياء", new List<string> { "ملابس رجالي", "ملابس نسائي", "ملابس أطفال", "أحذية", "شنط", "إكسسوارات", "ساعات" } },
+            { "ألعاب وأطفال", new List<string> { "ألعاب أطفال", "عربيات أطفال", "سرير أطفال", "ملابس أطفال", "أدوات تعليمية" } },
+            { "أدوات رياضية", new List<string> { "أجهزة رياضية منزلية", "أثقال", "أدوات جيم", "دراجات رياضية", "ملابس رياضية" } },
+            { "كتب وأدوات تعليمية", new List<string> { "كتب مدرسية", "كتب جامعية", "روايات", "أدوات مكتبية" } },
+            { "أدوات منزلية", new List<string> { "أدوات مطبخ", "أدوات ديكور", "سجاد", "ستائر", "إضاءة" } },
+            { "أدوات ومعدات", new List<string> { "أدوات كهربائية", "أدوات يدوية", "معدات صناعية" } },
+            { "أشياء متنوعة", new List<string> { "أخرى" } }
+        };
+
+        foreach (var categoryPair in marketplaceData)
+        {
+            var category = new Category { Name = categoryPair.Key, MainCategoryId = marketMain.Id };
+            await context.Categories.AddAsync(category);
+            await context.SaveChangesAsync();
+
+            foreach (var subName in categoryPair.Value)
+            {
+                await context.SubCategories.AddAsync(new SubCategory { Name = subName, CategoryId = category.Id });
+            }
+            await context.SaveChangesAsync();
+        }
     }
 
     private static async Task SeedCategoriesAndSubCategoriesAsync(KhadamatDbContext context)

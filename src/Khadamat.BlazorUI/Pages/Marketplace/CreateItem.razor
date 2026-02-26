@@ -1,0 +1,293 @@
+@page "/marketplace/create"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject ApiClient Api
+@inject NavigationManager Navigation
+
+<div class="create-item-page py-4">
+    <div class="container container-sm">
+        <div class="form-card-glass p-4 p-md-5">
+            <div class="text-center mb-5">
+                <div class="icon-circle mb-3">
+                    <i class="fa-solid fa-tag text-primary"></i>
+                </div>
+                <h2 class="fw-bold">عرض سلعة جديدة</h2>
+                <p class="text-muted">املأ البيانات التالية لعرض سلعتك في المتجر</p>
+            </div>
+
+            <EditForm Model="model" OnValidSubmit="HandleSubmit">
+                <DataAnnotationsValidator />
+                
+                <div class="row g-4">
+                    <!-- Title -->
+                    <div class="col-12">
+                        <label class="form-label fw-bold">ما الذي تبيعه؟</label>
+                        <InputText @bind-Value="model.Title" class="form-control form-control-lg bg-light border-0 rounded-4" placeholder="مثلاً: آيفون 13 برو ماكس بحالة ممتازة" />
+                        <ValidationMessage For="@(() => model.Title)" class="text-danger small mt-1" />
+                    </div>
+
+                    <!-- Categories -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">القسم الرئيسي</label>
+                        <InputSelect @bind-Value="model.CategoryId" @bind-Value:after="OnCategoryChanged" class="form-select form-control-lg bg-light border-0 rounded-4">
+                            <option value="0">اختر التصنيف...</option>
+                            @foreach (var cat in marketplaceCategories)
+                            {
+                                <option value="@cat.Id">@cat.Name</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => model.CategoryId)" class="text-danger small mt-1" />
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">القسم الفرعي</label>
+                        <InputSelect @bind-Value="model.SubCategoryId" disabled="@(!subcategories.Any())" class="form-select form-control-lg bg-light border-0 rounded-4">
+                            <option value="">-- القسم الفرعي --</option>
+                            @foreach (var sub in subcategories)
+                            {
+                                <option value="@sub.Id">@sub.Name</option>
+                            }
+                        </InputSelect>
+                    </div>
+
+                    <!-- Locations -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">المحافظة</label>
+                        <InputSelect @bind-Value="selectedGovernorateId" @bind-Value:after="OnGovernorateChanged" class="form-select form-control-lg bg-light border-0 rounded-4">
+                            <option value="0">اختر المحافظة...</option>
+                            @foreach (var gov in governorates)
+                            {
+                                <option value="@gov.Id">@gov.NameAr</option>
+                            }
+                        </InputSelect>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">المدينة</label>
+                        <InputSelect @bind-Value="model.CityId" disabled="@(!cities.Any())" class="form-select form-control-lg bg-light border-0 rounded-4">
+                            <option value="">اختر المدينة...</option>
+                            @foreach (var city in cities)
+                            {
+                                <option value="@city.Id">@city.NameAr</option>
+                            }
+                        </InputSelect>
+                    </div>
+
+                    <!-- Price & Condition -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">السعر (ج.م)</label>
+                        <InputNumber @bind-Value="model.Price" class="form-control form-control-lg bg-light border-0 rounded-4" placeholder="0.00" />
+                        <ValidationMessage For="@(() => model.Price)" class="text-danger small mt-1" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">حالة السلعة</label>
+                        <div class="d-flex gap-2">
+                            <button type="button" class='btn w-50 rounded-4 @(model.Condition == "Used" ? "btn-dark" : "btn-light")' @onclick='() => model.Condition = "Used"'>مستعمل</button>
+                            <button type="button" class='btn w-50 rounded-4 @(model.Condition == "New" ? "btn-dark" : "btn-light")' @onclick='() => model.Condition = "New"'>جديد</button>
+                        </div>
+                    </div>
+
+                    <!-- Contact Phone -->
+                    <div class="col-12">
+                        <label class="form-label fw-bold">رقم التواصل</label>
+                        <InputText @bind-Value="model.ContactPhone" class="form-control form-control-lg bg-light border-0 rounded-4" placeholder="01xxxxxxxxx" />
+                        <ValidationMessage For="@(() => model.ContactPhone)" class="text-danger small mt-1" />
+                    </div>
+
+                    <!-- Description -->
+                    <div class="col-12">
+                        <label class="form-label fw-bold">وصف السلعة</label>
+                        <InputTextArea @bind-Value="model.Description" class="form-control bg-light border-0 rounded-4" rows="4" placeholder="اكتب تفاصيل أكثر عن السلعة، الميزات، العيوب إن وجدت..." />
+                        <ValidationMessage For="@(() => model.Description)" class="text-danger small mt-1" />
+                    </div>
+
+                    <!-- Photos -->
+                    <div class="col-12">
+                        <label class="form-label fw-bold">الصور</label>
+                        <div class="photo-upload-area">
+                            <label for="item-photos" class="upload-trigger d-flex flex-column align-items-center justify-content-center border-dashed rounded-4 p-4 text-muted cursor-pointer">
+                                <i class="fa-solid fa-camera fa-2x mb-2 opacity-50"></i>
+                                <span class="small">بإمكانك إضافة حتى 5 صور</span>
+                                <InputFile id="item-photos" OnChange="HandleFileSelected" multiple accept="image/*" class="d-none" />
+                            </label>
+
+                            @if (previews.Any())
+                            {
+                                <div class="d-flex flex-wrap gap-2 mt-3">
+                                    @foreach (var p in previews)
+                                    {
+                                        <div class="preview-item position-relative">
+                                            <img src="@p" class="rounded-3 shadow-sm" />
+                                            <button type="button" class="btn-close-sm" @onclick='() => RemovePhoto(p)'><i class="fa-solid fa-xmark"></i></button>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="col-12">
+                            <div class="alert alert-danger rounded-4 py-2 small">@errorMessage</div>
+                        </div>
+                    }
+
+                    <div class="col-12 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill shadow-sm" disabled="@isSubmitting">
+                            @if (isSubmitting)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            انشر الإعلان الآن
+                        </button>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+<style>
+    .create-item-page {
+        background: #f8fafc;
+        min-height: 100vh;
+    }
+
+    .container-sm { max-width: 700px; }
+
+    .form-card-glass {
+        background: white;
+        border-radius: 32px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.05);
+        border: 1px solid rgba(0,0,0,0.02);
+    }
+
+    .icon-circle {
+        width: 70px;
+        height: 70px;
+        background: rgba(59, 130, 246, 0.1);
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+    }
+
+    .border-dashed { border: 2px dashed #e2e8f0; }
+
+    .x-small { font-size: 0.75rem; }
+    
+    .form-control:focus {
+        box-shadow: none;
+        background: #f1f5f9 !important;
+    }
+</style>
+
+@code {
+    private CreateMarketplaceItemRequest model = new();
+    private List<CategoryDto> marketplaceCategories = new();
+    private List<SubCategoryDto> subcategories = new();
+    private List<GovernorateDto> governorates = new();
+    private List<CityDto> cities = new();
+    private int selectedGovernorateId;
+    
+    private bool isSubmitting = false;
+    private string? errorMessage;
+    private List<string> previews = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var allMainCats = await Api.GetMainCategoriesAsync();
+        var marketMain = allMainCats.FirstOrDefault(c => c.Name.Contains("متجر") || c.Name.ToLower().Contains("market"));
+        
+        if (marketMain != null)
+        {
+            marketplaceCategories = await Api.GetCategoriesByMainIdAsync(marketMain.Id);
+        }
+        
+        governorates = await Api.GetGovernoratesAsync();
+    }
+
+    private async Task OnCategoryChanged()
+    {
+        model.SubCategoryId = null;
+        if (model.CategoryId > 0)
+        {
+            subcategories = await Api.GetSubCategoriesByCategoryIdAsync(model.CategoryId);
+        }
+        else
+        {
+            subcategories.Clear();
+        }
+    }
+
+    private async Task OnGovernorateChanged()
+    {
+        model.CityId = null;
+        if (selectedGovernorateId > 0)
+        {
+            cities = await Api.GetCitiesAsync(selectedGovernorateId);
+        }
+        else
+        {
+            cities.Clear();
+        }
+    }
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        var files = e.GetMultipleFiles(5);
+        foreach (var file in files)
+        {
+            if (previews.Count >= 5) break;
+
+            var format = "image/png";
+            var resizedImage = await file.RequestImageFileAsync(format, 800, 600);
+            var buffer = new byte[resizedImage.Size];
+            await resizedImage.OpenReadStream().ReadAsync(buffer);
+            var base64Data = Convert.ToBase64String(buffer);
+            var dataUrl = $"data:{format};base64,{base64Data}";
+            
+            previews.Add(dataUrl);
+            model.Images.Add(base64Data);
+        }
+    }
+
+    private void RemovePhoto(string url)
+    {
+        var index = previews.IndexOf(url);
+        if (index != -1)
+        {
+            previews.RemoveAt(index);
+            model.Images.RemoveAt(index);
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (model.CategoryId == 0)
+        {
+            errorMessage = "يرجى اختيار التصنيف";
+            return;
+        }
+
+        isSubmitting = true;
+        errorMessage = null;
+
+        var result = await Api.CreateMarketplaceItemAsync(model);
+        if (result != null)
+        {
+            Navigation.NavigateTo($"/marketplace/item/{result.Id}");
+        }
+        else
+        {
+            errorMessage = "فشل في حفظ السلعة، يرجى المحاولة لاحقاً";
+        }
+        
+        isSubmitting = false;
+    }
+}

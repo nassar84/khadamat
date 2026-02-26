@@ -55,6 +55,48 @@
         </div>
     </div>
 
+    <!-- Marketplace Announcement (Premium Ad Style) -->
+    <div class="mb-5">
+        <div class="marketplace-announcement-banner p-4 rounded-5 position-relative overflow-hidden mb-4 shadow-lg" @onclick='() => Navigation.NavigateTo("/marketplace")'>
+            <div class="announcement-glass-overlay"></div>
+            <div class="row align-items-center position-relative z-1">
+                <div class="col-8">
+                    <span class="badge bg-danger rounded-pill mb-2 px-3 animate-pulse">جديد 🔥</span>
+                    <h3 class="fw-bold text-white mb-1">متجر خدمات (Marketplace)</h3>
+                    <p class="text-white-50 mb-3">بيع، اشترِ، وتصفح أفضل العروض في منطقتك بكل سهولة وأمان.</p>
+                    <button class="btn btn-outline-light rounded-pill px-4 fw-bold">تصفح المتجر الآن <i class="fa-solid fa-arrow-left ms-2"></i></button>
+                </div>
+                <div class="col-4 text-center">
+                    <div class="announcement-icon-wrapper">
+                        <i class="fa-solid fa-store fa-5x text-white opacity-50"></i>
+                        <div class="floating-price-tag">
+                            <i class="fa-solid fa-tag"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (latestMarketItems != null && latestMarketItems.Any())
+        {
+            <div class="d-flex gap-3 overflow-auto pb-2 scroll-hide">
+                @foreach (var item in latestMarketItems)
+                {
+                    <div class="market-item-mini" @onclick='() => Navigation.NavigateTo($"/marketplace/item/{item.Id}")'>
+                        <div class="mini-img-wrapper">
+                            <img src="@(item.Images.FirstOrDefault()?.ImageUrl ?? "images/defaults/default-product.png")" />
+                            <span class="mini-price">@item.Price.ToString("N0") ج.م</span>
+                        </div>
+                        <div class="p-2">
+                             <div class="text-truncate small fw-bold">@item.Title</div>
+                             <div class="text-muted extra-small"><i class="fa-solid fa-location-dot me-1"></i> @item.CityName</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
     <!-- Nearby Services Section -->
     <div class="mb-5">
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -180,12 +222,118 @@
         0% { background-position: 200% 0; }
         100% { background-position: -200% 0; }
     }
+
+    .market-section-card {
+        background: #fff;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+    .market-bg-glow {
+        position: absolute;
+        width: 150px;
+        height: 150px;
+        background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+        top: -50px;
+        right: -30px;
+        z-index: 0;
+    }
+    .market-item-mini {
+        min-width: 140px;
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid #f1f5f9;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    .market-item-mini:hover { transform: scale(1.05); }
+    .mini-img-wrapper {
+        aspect-ratio: 1/1;
+        position: relative;
+        overflow: hidden;
+    }
+    .mini-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+    .mini-price {
+        position: absolute;
+        bottom: 5px;
+        left: 5px;
+        background: rgba(15, 23, 42, 0.8);
+        color: white;
+        font-size: 0.65rem;
+        padding: 2px 6px;
+        border-radius: 8px;
+    }
+    .extra-small { font-size: 0.7rem; }
+    .scroll-hide::-webkit-scrollbar { display: none; }
+    .scroll-hide { scrollbar-width: none; }
+
+    /* Premium Marketplace Announcement */
+    .marketplace-announcement-banner {
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        min-height: 200px;
+    }
+
+    .marketplace-announcement-banner:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .announcement-glass-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.3), transparent 70%);
+        z-index: 0;
+    }
+
+    .announcement-icon-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+
+    .floating-price-tag {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background: var(--theme-primary);
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        box-shadow: 0 4px 15px var(--theme-glow);
+        animation: float 3s ease-in-out infinite;
+    }
+
+    .animate-pulse {
+        animation: pulse 2s infinite;
+    }
+
+    @@keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    @@keyframes float {
+        0% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0); }
+    }
 </style>
 
 @code {
     private List<ServiceDto>? featuredServices;
     private List<ServiceDto>? nearbyServices;
     private List<MainCategoryDto>? mainCategories;
+    private List<MarketplaceItemDto>? latestMarketItems;
 
     protected override void OnInitialized()
     {
@@ -200,10 +348,12 @@
             // Parallel loading for maximum speed
             var servicesTask = Api.GetServicesAsync();
             var categoriesTask = Api.GetMainCategoriesAsync();
+            var marketTask = Api.GetLatestMarketplaceItemsAsync(6);
 
-            await Task.WhenAll(servicesTask, categoriesTask);
+            await Task.WhenAll(servicesTask, categoriesTask, marketTask);
 
             var servicesResult = servicesTask.Result;
+            latestMarketItems = marketTask.Result;
             
             if (servicesResult?.Items != null && servicesResult.Items.Any())
             {

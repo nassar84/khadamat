@@ -1,0 +1,353 @@
+@page "/marketplace"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+@inject NavigationManager Navigation
+
+<div class="marketplace-page py-4">
+    <div class="container">
+        <!-- Header & Search -->
+        <!-- Header & Search -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
+            <div>
+                <h2 class="fw-bold mb-1">المتجر (الماركت بليس)</h2>
+                <p class="text-muted small mb-0">بيع وشراء المنتجات الجديدة والمستعملة بكل سهولة</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="/marketplace/create" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                    <i class="fa-solid fa-plus me-2"></i> عرض سلعة للبيع
+                </a>
+            </div>
+        </div>
+
+        <!-- Featured Section -->
+        @if (featuredItems != null && featuredItems.Any())
+        {
+            <div class="featured-section mb-5">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="section-icon me-2"><i class="fa-solid fa-star text-warning"></i></div>
+                    <h4 class="fw-bold mb-0">منتجات مميزة</h4>
+                </div>
+                <div class="row g-3">
+                    @foreach (var item in featuredItems)
+                    {
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <div class="market-item-card featured-border" @onclick='() => Navigation.NavigateTo($"/marketplace/item/{item.Id}")'>
+                                <div class="featured-badge">مميز</div>
+                                <div class="item-badge">@(item.Condition == "New" ? "جديد" : "مستعمل")</div>
+                                <div class="item-image-container">
+                                    <img src="@(item.Images.FirstOrDefault()?.ImageUrl ?? "images/defaults/default-product.png")" alt="@item.Title" />
+                                </div>
+                                <div class="item-details p-3">
+                                    <h6 class="text-truncate fw-bold mb-1">@item.Title</h6>
+                                    <div class="item-price mb-2">@item.Price.ToString("N0") @item.Currency</div>
+                                    <div class="d-flex justify-content-between align-items-center mt-auto">
+                                        <span class="small text-muted"><i class="fa-solid fa-location-dot me-1"></i> @item.CityName</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Filters Bar -->
+        <div class="filters-card-glass p-3 mb-4">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="search-box-glass">
+                        <i class="fa-solid fa-magnifying-glass opacity-50"></i>
+                        <input type="text" class="form-control border-0 bg-transparent" placeholder="ابحث عن منتج..." @bind="searchQuery" @bind:event="oninput" @onkeyup="HandleKeyUp" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select border-0 bg-light-glass rounded-3" @bind="selectedCategoryId">
+                        <option value="">جميع التصنيفات</option>
+                        @foreach (var cat in marketplaceCategories)
+                        {
+                            <option value="@cat.Id">@cat.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select border-0 bg-light-glass rounded-3" @bind="selectedCityId">
+                        <option value="">جميع المدن</option>
+                        @foreach (var city in cities)
+                        {
+                            <option value="@city.Id">@city.NameAr</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-dark w-100 rounded-3" @onclick="Search">بحث</button>
+                </div>
+            </div>
+        </div>
+
+        @if (isLoading)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2 text-muted">جاري تحميل المنتجات...</p>
+            </div>
+        }
+        else if (items == null || !items.Any())
+        {
+            <div class="no-results-card text-center py-5">
+                <i class="fa-solid fa-box-open fa-3x mb-3 text-muted opacity-25"></i>
+                <h4 class="text-muted">لا توجد منتجات معروضة حالياً</h4>
+                <p class="text-muted small">كن أول من يعرض سلعة في هذا التصنيف!</p>
+                <a href="/marketplace/create" class="btn btn-outline-primary rounded-pill mt-2">عرض سلعة للبيع</a>
+            </div>
+        }
+        else
+        {
+            <div class="row g-4">
+                @foreach (var item in items)
+                {
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="market-item-card @(item.IsPromoted ? "promoted-border" : "")" @onclick='() => Navigation.NavigateTo($"/marketplace/item/{item.Id}")'>
+                            @if (item.IsPromoted)
+                            {
+                                <div class="promoted-badge">إعلان</div>
+                            }
+                            <div class="item-badge">@(item.Condition == "New" ? "جديد" : "مستعمل")</div>
+                            <div class="item-image-container">
+                                <img src="@(item.Images.FirstOrDefault()?.ImageUrl ?? "images/defaults/default-product.png")" alt="@item.Title" />
+                            </div>
+                            <div class="item-details p-3">
+                                <h6 class="text-truncate fw-bold mb-1">@item.Title</h6>
+                                <div class="item-price mb-2">@item.Price.ToString("N0") @item.Currency</div>
+                                <div class="d-flex justify-content-between align-items-center mt-auto">
+                                    <span class="small text-muted"><i class="fa-solid fa-location-dot me-1"></i> @item.CityName</span>
+                                    <span class="small text-muted">@item.CreatedAt.ToString("dd/MM")</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            
+            @if (hasMore)
+            {
+                <div class="text-center mt-5">
+                    <button class="btn btn-outline-primary rounded-pill px-5" @onclick="LoadMore" disabled="@isLoadingMore">
+                        @if (isLoadingMore)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        تحميل المزيد
+                    </button>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<style>
+    .marketplace-page {
+        min-height: 100vh;
+        background: #f8fafc;
+    }
+
+    .filters-card-glass {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    }
+
+    .bg-light-glass {
+        background: rgba(241, 245, 249, 0.8) !important;
+    }
+
+    .search-box-glass {
+        background: rgba(241, 245, 249, 0.8);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        padding: 0 15px;
+    }
+
+    .market-item-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        cursor: pointer;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid rgba(0,0,0,0.03);
+        position: relative;
+    }
+
+    .market-item-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+    }
+
+    .item-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(15, 23, 42, 0.7);
+        backdrop-filter: blur(4px);
+        color: white;
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        z-index: 2;
+    }
+
+    .item-image-container {
+        aspect-ratio: 1/1;
+        overflow: hidden;
+        background: #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .item-image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .item-price {
+        color: var(--theme-primary, #3b82f6);
+        font-weight: 800;
+        font-size: 1.1rem;
+    }
+
+    .item-details h6 {
+        font-size: 0.95rem;
+        color: #1e293b;
+    }
+
+    .featured-border {
+        border: 2px solid #fbbf24 !important;
+        box-shadow: 0 4px 15px rgba(251, 191, 36, 0.1);
+    }
+
+    .promoted-border {
+        border: 1px dashed var(--theme-primary, #3b82f6) !important;
+    }
+
+    .featured-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: #fbbf24;
+        color: #000;
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        z-index: 2;
+    }
+
+    .promoted-badge {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        background: rgba(59, 130, 246, 0.1);
+        color: var(--theme-primary, #3b82f6);
+        padding: 1px 8px;
+        border-radius: 4px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        z-index: 2;
+    }
+
+    .section-icon {
+        width: 32px;
+        height: 32px;
+        background: rgba(251, 191, 36, 0.1);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+
+@code {
+    private List<MarketplaceItemDto> items = new();
+    private List<MarketplaceItemDto> featuredItems = new();
+    private List<CategoryDto> marketplaceCategories = new();
+    private List<CityDto> cities = new();
+    
+    private bool isLoading = true;
+    private bool isLoadingMore = false;
+    private bool hasMore = true;
+    private int currentPage = 1;
+    
+    private string searchQuery = "";
+    private int? selectedCategoryId;
+    private int? selectedCityId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+        featuredItems = await Api.GetFeaturedMarketplaceItemsAsync();
+        
+        var allMainCats = await Api.GetMainCategoriesAsync();
+        var marketMain = allMainCats.FirstOrDefault(c => c.Name.Contains("متجر") || c.Name.ToLower().Contains("market"));
+        
+        if (marketMain != null)
+        {
+            marketplaceCategories = await Api.GetCategoriesByMainIdAsync(marketMain.Id);
+        }
+        cities = await Api.GetCitiesAsync();
+    }
+
+    private async Task LoadData(bool append = false)
+    {
+        if (append) isLoadingMore = true;
+        else {
+            isLoading = true;
+            items.Clear();
+            currentPage = 1;
+        }
+
+        var results = await Api.SearchMarketplaceItemsAsync(
+            searchQuery, 
+            selectedCategoryId, 
+            selectedCityId, 
+            null, null, null, 
+            currentPage, 12);
+
+        if (append)
+        {
+            items.AddRange(results);
+        }
+        else
+        {
+            items = results.ToList();
+        }
+
+        hasMore = results.Count == 12;
+        isLoading = false;
+        isLoadingMore = false;
+    }
+
+    private async Task HandleKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await Search();
+    }
+
+    private async Task Search()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadMore()
+    {
+        currentPage++;
+        await LoadData(true);
+    }
+}

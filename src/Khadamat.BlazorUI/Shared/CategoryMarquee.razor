@@ -63,7 +63,7 @@
         overflow-y: visible;
         width: 100%;
         position: sticky;
-        top: 85px; /* Sticky below Desktop Header */
+        top: 72px; /* Sticky exactly below Header */
         z-index: 990; 
         background: rgba(255, 255, 255, 0.7);
         backdrop-filter: blur(20px);
@@ -76,7 +76,7 @@
     /* Mobile Headers vary, we'll try to stick below them */
     @@media (max-width: 991px) {
         .category-marquee-container {
-            top: 75px; /* Sticky below Mobile Header */
+            top: 60px; /* Sticky below Mobile Header which is shorter */
             padding: 2px 0 8px 0;
         }
         .category-shape-wrapper {
@@ -260,26 +260,48 @@
             var results = await Api.GetMainCategoriesAsync();
             if (results != null && results.Any())
             {
-                // To ensure infinite loop works with few items, we duplicate them
-                var duplicated = new List<MainCategoryDto>();
-                while (duplicated.Count < 12)
-                {
-                    duplicated.AddRange(results);
-                }
-                categories = duplicated;
+                PopulateCategories(results);
             }
             else
             {
-                categories = new List<MainCategoryDto>();
+                GenerateMockCategories();
             }
-            await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"ANTIGRAVITY_LOG: Error loading categories: {ex.Message}");
-            categories = new List<MainCategoryDto>();
+            GenerateMockCategories();
+        }
+        finally
+        {
             await InvokeAsync(StateHasChanged);
         }
+    }
+
+    private void PopulateCategories(List<MainCategoryDto> results)
+    {
+        // To ensure infinite loop works with few items, we duplicate them
+        var duplicated = new List<MainCategoryDto>();
+        while (duplicated.Count < 12)
+        {
+            duplicated.AddRange(results);
+        }
+        categories = duplicated;
+    }
+
+    private void GenerateMockCategories()
+    {
+        var mockList = new List<MainCategoryDto>
+        {
+            new MainCategoryDto { Id = 1, Name = "صنايعية", Icon = "🛠️", Color = "crafts" },
+            new MainCategoryDto { Id = 2, Name = "صيانة", Icon = "🔧", Color = "maintenance" },
+            new MainCategoryDto { Id = 3, Name = "تعليم", Icon = "🎓", Color = "education" },
+            new MainCategoryDto { Id = 4, Name = "صحة", Icon = "🏥", Color = "health" },
+            new MainCategoryDto { Id = 5, Name = "توصيل", Icon = "🚗", Color = "delivery" },
+            new MainCategoryDto { Id = 6, Name = "تنظيف", Icon = "🧹", Color = "cleaning" },
+            new MainCategoryDto { Id = 7, Name = "المتجر", Icon = "🛍️", Color = "marketplace" }
+        };
+        PopulateCategories(mockList);
     }
 
     private void OnCategorySelected(MainCategoryDto category)

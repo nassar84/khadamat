@@ -31,6 +31,15 @@
             </div>
         </div>
 
+        <!-- Desktop Navigation -->
+        <nav class="d-none d-lg-flex align-items-center gap-4 me-auto">
+            <NavLink href="/" class="nav-link-premium" Match="NavLinkMatch.All">الرئيسية</NavLink>
+            <NavLink href="/explore" class="nav-link-premium">استكشف</NavLink>
+            <NavLink href="/marketplace" class="nav-link-premium nav-link-marketplace-premium">
+                <i class="fa-solid fa-basket-shopping me-1 icon-pulse"></i> المتجر
+            </NavLink>
+        </nav>
+
         <!-- Actions & Profile Section -->
         <div class="header-actions-section d-flex align-items-center gap-2 gap-md-3">
             
@@ -231,7 +240,82 @@
         color: #94a3b8;
         font-weight: 400;
     }
-    
+
+    .nav-link-premium {
+        color: #64748b;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+        padding: 5px 0;
+        position: relative;
+    }
+
+    .nav-link-premium:hover, .nav-link-premium.active {
+        color: var(--theme-primary);
+    }
+
+    .nav-link-premium.active::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--theme-primary);
+        border-radius: 2px;
+    }
+
+    /* Premium Marketplace Button */
+    .nav-link-marketplace-premium {
+        background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800 !important;
+        padding: 5px 12px !important;
+        border-radius: 10px;
+        position: relative;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .nav-link-marketplace-premium:hover {
+        transform: scale(1.1) translateY(-1px);
+        filter: drop-shadow(0 0 8px rgba(255, 8, 68, 0.4));
+    }
+
+    .nav-link-marketplace-premium i {
+        background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 1.1rem;
+        vertical-align: middle;
+    }
+
+    .icon-pulse {
+        animation: premiumPulse 2s infinite;
+        display: inline-block;
+    }
+
+    @@keyframes premiumPulse {
+        0% { transform: scale(1); filter: brightness(1); }
+        50% { transform: scale(1.2) rotate(5deg); filter: brightness(1.3); }
+        100% { transform: scale(1); filter: brightness(1); }
+    }
+
+    .nav-link-marketplace-premium::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(255, 8, 68, 0.1), rgba(255, 177, 153, 0.1));
+        border-radius: 10px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        z-index: -1;
+    }
+
+    .nav-link-marketplace-premium:hover::before {
+        opacity: 1;
+    }    
     .icon-action-btn {
         width: 42px;
         height: 42px;

@@ -21,6 +21,7 @@ public class AppState
 
     public string UserName { get; set; } = string.Empty;
     public string UserRole { get; set; } = string.Empty;
+    public string UserId { get; set; } = string.Empty;
     
     private string _userImageUrl = string.Empty;
     public string UserImageUrl 
@@ -66,12 +67,13 @@ public class AppState
 
     public void SetTheme(string themeName) => CurrentTheme = themeName;
 
-    public void UpdateUserStatus(string userName, string userRole, bool isProvider, string imageUrl)
+    public void UpdateUserStatus(string userName, string userRole, bool isProvider, string imageUrl, string userId = "")
     {
         UserName = userName;
         UserRole = userRole;
         IsProvider = isProvider;
         UserImageUrl = imageUrl;
+        UserId = userId;
         NotifyStateChanged();
     }
 

@@ -4,6 +4,7 @@ using Khadamat.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Khadamat.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(KhadamatDbContext))]
-    partial class KhadamatDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260224124255_AddMarketplace")]
+    partial class AddMarketplace
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -528,9 +531,6 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("MarketplaceItemId")
-                        .HasColumnType("int");
-
                     b.Property<int?>("ProviderId")
                         .HasColumnType("int");
 
@@ -548,8 +548,6 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("MarketplaceItemId");
 
                     b.HasIndex("ProviderId");
 
@@ -810,16 +808,7 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("FeaturedUntil")
-                        .HasColumnType("datetime2");
-
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsFeatured")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsPromoted")
                         .HasColumnType("bit");
 
                     b.Property<string>("ItemStatus")
@@ -829,9 +818,6 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.Property<decimal>("Price")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime?>("PromotedUntil")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("SellerId")
                         .IsRequired()
@@ -953,68 +939,6 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Notifications");
-                });
-
-            modelBuilder.Entity("Khadamat.Domain.Entities.Payment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Currency")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("DeletedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ExternalTransactionId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<int?>("MarketplaceItemId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PaymentType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MarketplaceItemId");
-
-                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("Khadamat.Domain.Entities.Post", b =>
@@ -1845,11 +1769,6 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Khadamat.Domain.Entities.Favorite", b =>
                 {
-                    b.HasOne("Khadamat.Domain.Entities.MarketplaceItem", "MarketplaceItem")
-                        .WithMany()
-                        .HasForeignKey("MarketplaceItemId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("Khadamat.Domain.Entities.ProviderProfile", "Provider")
                         .WithMany()
                         .HasForeignKey("ProviderId");
@@ -1857,8 +1776,6 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.HasOne("Khadamat.Domain.Entities.Service", "Service")
                         .WithMany()
                         .HasForeignKey("ServiceId");
-
-                    b.Navigation("MarketplaceItem");
 
                     b.Navigation("Provider");
 
@@ -1920,16 +1837,6 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.Navigation("City");
 
                     b.Navigation("SubCategory");
-                });
-
-            modelBuilder.Entity("Khadamat.Domain.Entities.Payment", b =>
-                {
-                    b.HasOne("Khadamat.Domain.Entities.MarketplaceItem", "MarketplaceItem")
-                        .WithMany()
-                        .HasForeignKey("MarketplaceItemId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("MarketplaceItem");
                 });
 
             modelBuilder.Entity("Khadamat.Domain.Entities.Post", b =>

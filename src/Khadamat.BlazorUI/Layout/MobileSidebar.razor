@@ -35,6 +35,10 @@
                                 <i class="fa-solid fa-grid-2"></i>
                                 <span>التصنيفات</span>
                             </div>
+                            <div class="menu-item @GetActiveClass("marketplace")" @onclick='() => NavigateTo("/marketplace")'>
+                                <i class="fa-solid fa-store"></i>
+                                <span>المتجر</span>
+                            </div>
                             <div class="menu-item" @onclick="RefreshApp">
                                 <i class="fa-solid fa-arrows-rotate"></i>
                                 <span>تحديث التطبيق</span>
@@ -60,6 +64,10 @@
                             <div class="menu-item @GetActiveClass("client/favorites")" @onclick='() => NavigateTo("/client/favorites")'>
                                 <i class="fa-solid fa-heart text-danger"></i>
                                 <span>المفضلة</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("marketplace/my-listings")" @onclick='() => NavigateTo("/marketplace/my-listings")'>
+                                <i class="fa-solid fa-box-open" style="color: #7c3aed;"></i>
+                                <span>إعلاناتي</span>
                             </div>
                         </div>
                     </div>

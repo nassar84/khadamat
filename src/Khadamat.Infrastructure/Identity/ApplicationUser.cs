@@ -34,6 +34,9 @@ public class ApplicationUser : IdentityUser
     // Unified Account: One-to-One link to ProviderProfile
     public virtual ProviderProfile? ProviderProfile { get; set; }
 
+    // Marketplace Listings
+    public virtual ICollection<MarketplaceItem> MarketplaceItems { get; set; } = new List<MarketplaceItem>();
+
     // Refresh Token Support
     public string? RefreshToken { get; set; }
     public DateTime? RefreshTokenExpiryTime { get; set; }

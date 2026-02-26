@@ -1,0 +1,213 @@
+@page "/marketplace/edit/{Id:int}"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject ApiClient Api
+@inject NavigationManager Navigation
+
+<div class="edit-item-page py-4">
+    <div class="container container-sm">
+        @if (isLoading)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary"></div>
+                <p class="mt-2 text-muted">جاري تحميل البيانات...</p>
+            </div>
+        }
+        else if (model == null)
+        {
+            <div class="alert alert-warning text-center rounded-4">
+                الإعلان غير موجود أو ليس لديك صلاحية تعديله.
+                <a href="/marketplace/my-listings" class="alert-link">العودة لإعلاناتي</a>
+            </div>
+        }
+        else
+        {
+            <div class="form-card-glass p-4 p-md-5">
+                <div class="d-flex align-items-center justify-content-between mb-5">
+                    <div>
+                        <h2 class="fw-bold mb-1">تعديل الإعلان</h2>
+                        <p class="text-muted mb-0">قم بتحديث بيانات سلعتك</p>
+                    </div>
+                    <a href="/marketplace/my-listings" class="btn btn-light rounded-pill px-3">
+                        <i class="fa-solid fa-arrow-right me-1"></i>
+                    </a>
+                </div>
+
+                <EditForm Model="model" OnValidSubmit="HandleSubmit">
+                    <DataAnnotationsValidator />
+
+                    <div class="row g-4">
+                        <!-- Title -->
+                        <div class="col-12">
+                            <label class="form-label fw-bold">اسم السلعة</label>
+                            <InputText @bind-Value="model.Title" class="form-control form-control-lg bg-light border-0 rounded-4"
+                                       placeholder="مثلاً: آيفون 13 برو ماكس بحالة ممتازة" />
+                            <ValidationMessage For="@(() => model.Title)" class="text-danger small" />
+                        </div>
+
+                        <!-- Category & City -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">التصنيف</label>
+                            <InputSelect @bind-Value="model.CategoryId" class="form-select form-control-lg bg-light border-0 rounded-4">
+                                <option value="0">اختر التصنيف...</option>
+                                @foreach (var cat in marketplaceCategories)
+                                {
+                                    <option value="@cat.Id">@cat.Name</option>
+                                }
+                            </InputSelect>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">المدينة</label>
+                            <InputSelect @bind-Value="model.CityId" class="form-select form-control-lg bg-light border-0 rounded-4">
+                                <option value="">اختر المدينة...</option>
+                                @foreach (var city in cities)
+                                {
+                                    <option value="@city.Id">@city.NameAr</option>
+                                }
+                            </InputSelect>
+                        </div>
+
+                        <!-- Price & Condition -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">السعر (ج.م)</label>
+                            <InputNumber @bind-Value="model.Price" class="form-control form-control-lg bg-light border-0 rounded-4" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">حالة السلعة</label>
+                            <div class="d-flex gap-2">
+                                <button type="button"
+                                        class='btn w-50 rounded-4 @(model.Condition == "Used" ? "btn-dark" : "btn-light")'
+                                        @onclick='() => model.Condition = "Used"'>مستعمل</button>
+                                <button type="button"
+                                        class='btn w-50 rounded-4 @(model.Condition == "New" ? "btn-dark" : "btn-light")'
+                                        @onclick='() => model.Condition = "New"'>جديد</button>
+                            </div>
+                        </div>
+
+                        <!-- Contact -->
+                        <div class="col-12">
+                            <label class="form-label fw-bold">رقم التواصل</label>
+                            <InputText @bind-Value="model.ContactPhone"
+                                       class="form-control form-control-lg bg-light border-0 rounded-4"
+                                       placeholder="01xxxxxxxxx" />
+                        </div>
+
+                        <!-- Description -->
+                        <div class="col-12">
+                            <label class="form-label fw-bold">وصف السلعة</label>
+                            <InputTextArea @bind-Value="model.Description"
+                                           class="form-control bg-light border-0 rounded-4"
+                                           rows="5"
+                                           placeholder="اكتب تفاصيل أكثر عن السلعة..." />
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="col-12">
+                                <div class="alert alert-danger rounded-4 py-2 small">@errorMessage</div>
+                            </div>
+                        }
+
+                        <div class="col-12 d-flex gap-3">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill flex-grow-1 shadow-sm" disabled="@isSubmitting">
+                                @if (isSubmitting)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                }
+                                حفظ التعديلات
+                            </button>
+                            <a href="/marketplace/my-listings" class="btn btn-light btn-lg rounded-pill px-4">
+                                إلغاء
+                            </a>
+                        </div>
+                    </div>
+                </EditForm>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .edit-item-page {
+        background: #f8fafc;
+        min-height: 100vh;
+    }
+
+    .container-sm { max-width: 700px; }
+
+    .form-card-glass {
+        background: white;
+        border-radius: 32px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.05);
+        border: 1px solid rgba(0,0,0,0.02);
+    }
+</style>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private CreateMarketplaceItemRequest? model;
+    private List<CategoryDto> marketplaceCategories = new();
+    private List<CityDto> cities = new();
+    private bool isLoading = true;
+    private bool isSubmitting = false;
+    private string? errorMessage;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        isLoading = true;
+
+        var item = await Api.GetMarketplaceItemByIdAsync(Id);
+
+        if (item != null)
+        {
+            model = new CreateMarketplaceItemRequest
+            {
+                Title = item.Title,
+                Description = item.Description,
+                Price = item.Price,
+                CategoryId = item.CategoryId,
+                SubCategoryId = item.SubCategoryId,
+                CityId = item.CityId,
+                ContactPhone = item.ContactPhone,
+                Condition = item.Condition
+            };
+        }
+
+        var allMainCats = await Api.GetMainCategoriesAsync();
+        var marketMain = allMainCats.FirstOrDefault(c => c.Name == "متجر السلع");
+        if (marketMain != null)
+            marketplaceCategories = await Api.GetCategoriesByMainIdAsync(marketMain.Id);
+
+        cities = await Api.GetCitiesAsync();
+        isLoading = false;
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (model == null || model.CategoryId == 0)
+        {
+            errorMessage = "يرجى اختيار التصنيف";
+            return;
+        }
+
+        isSubmitting = true;
+        errorMessage = null;
+
+        var success = await Api.UpdateMarketplaceItemAsync(Id, model);
+        isSubmitting = false;
+
+        if (success)
+        {
+            Navigation.NavigateTo($"/marketplace/item/{Id}");
+        }
+        else
+        {
+            errorMessage = "فشل في حفظ التعديلات، يرجى المحاولة لاحقاً";
+        }
+    }
+}

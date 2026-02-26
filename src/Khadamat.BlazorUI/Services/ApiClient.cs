@@ -10,10 +10,12 @@ namespace Khadamat.BlazorUI.Services;
 public class ApiClient
 {
     private readonly HttpClient _http;
+    private readonly Khadamat.BlazorUI.State.AppState _appState;
     
-    public ApiClient(HttpClient http)
+    public ApiClient(HttpClient http, Khadamat.BlazorUI.State.AppState appState)
     {
         _http = http;
+        _appState = appState;
     }
 
     public async Task<T?> PostAsync<T>(string url, object data)
@@ -674,6 +676,126 @@ public class ApiClient
             Console.WriteLine($"Error canceling request: {ex.Message}");
             return ApiResponse<bool>.Fail(ex.Message);
         }
+    }
+
+    // Marketplace
+    public async Task<List<MarketplaceItemDto>> GetLatestMarketplaceItemsAsync(int count = 10)
+    {
+        try
+        {
+            return await _http.GetFromJsonAsync<List<MarketplaceItemDto>>($"api/Marketplace/latest?count={count}") ?? new List<MarketplaceItemDto>();
+        }
+        catch { return new List<MarketplaceItemDto>(); }
+    }
+
+    public async Task<List<MarketplaceItemDto>> GetFeaturedMarketplaceItemsAsync(int count = 6)
+    {
+        try
+        {
+            return await _http.GetFromJsonAsync<List<MarketplaceItemDto>>($"api/Marketplace/featured?count={count}") ?? new List<MarketplaceItemDto>();
+        }
+        catch { return new List<MarketplaceItemDto>(); }
+    }
+
+    public async Task<List<MarketplaceItemDto>> SearchMarketplaceItemsAsync(string? q = null, int? categoryId = null, int? cityId = null, string? condition = null, decimal? minPrice = null, decimal? maxPrice = null, int page = 1, int pageSize = 12)
+    {
+        try
+        {
+            var url = $"api/Marketplace/search?page={page}&pageSize={pageSize}";
+            if (!string.IsNullOrEmpty(q)) url += $"&q={Uri.EscapeDataString(q)}";
+            if (categoryId.HasValue) url += $"&categoryId={categoryId}";
+            if (cityId.HasValue) url += $"&cityId={cityId}";
+            if (!string.IsNullOrEmpty(condition)) url += $"&condition={condition}";
+            if (minPrice.HasValue) url += $"&minPrice={minPrice}";
+            if (maxPrice.HasValue) url += $"&maxPrice={maxPrice}";
+
+            return await _http.GetFromJsonAsync<List<MarketplaceItemDto>>(url) ?? new List<MarketplaceItemDto>();
+        }
+        catch { return new List<MarketplaceItemDto>(); }
+    }
+
+    public async Task<MarketplaceItemDto?> GetMarketplaceItemByIdAsync(int id)
+    {
+        try
+        {
+            return await _http.GetFromJsonAsync<MarketplaceItemDto>($"api/Marketplace/{id}");
+        }
+        catch { return null; }
+    }
+
+    public async Task<MarketplaceItemDto?> CreateMarketplaceItemAsync(CreateMarketplaceItemRequest request)
+    {
+        var response = await _http.PostAsJsonAsync("api/Marketplace", request);
+        if (response.IsSuccessStatusCode)
+            return await response.Content.ReadFromJsonAsync<MarketplaceItemDto>();
+        return null;
+    }
+
+    public async Task<bool> UpdateMarketplaceItemAsync(int id, CreateMarketplaceItemRequest request)
+    {
+        var response = await _http.PutAsJsonAsync($"api/Marketplace/{id}", request);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeleteMarketplaceItemAsync(int id)
+    {
+        var response = await _http.DeleteAsync($"api/Marketplace/{id}");
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> MarkMarketplaceItemAsSoldAsync(int id)
+    {
+        var response = await _http.PostAsync($"api/Marketplace/{id}/sold", null);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> ToggleMarketplaceFavoriteAsync(int id)
+    {
+        var response = await _http.PostAsync($"api/Marketplace/{id}/favorite", null);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> IsMarketplaceFavoriteAsync(int id)
+    {
+        try
+        {
+            return await _http.GetFromJsonAsync<bool>($"api/Marketplace/{id}/is-favorite");
+        }
+        catch { return false; }
+    }
+
+    // Admin Marketplace
+    public async Task<bool> ApproveMarketplaceItemAsync(int id, string? notes = null)
+    {
+        var response = await _http.PostAsync($"api/Marketplace/{id}/approve?notes={Uri.EscapeDataString(notes ?? "")}", null);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> RejectMarketplaceItemAsync(int id, string? notes = null)
+    {
+        var response = await _http.PostAsync($"api/Marketplace/{id}/reject?notes={Uri.EscapeDataString(notes ?? "")}", null);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> SetMarketplaceItemFeaturedAsync(int id, int days = 7)
+    {
+        var response = await _http.PostAsync($"api/Marketplace/{id}/set-featured?days={days}", null);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> SetMarketplaceItemPromotedAsync(int id, int days = 7)
+    {
+        var response = await _http.PostAsync($"api/Marketplace/{id}/set-promoted?days={days}", null);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<List<MarketplaceItemDto>> GetMyMarketplaceItemsAsync()
+    {
+        try
+        {
+            return await _http.GetFromJsonAsync<List<MarketplaceItemDto>>("api/Marketplace/my-items") ?? new List<MarketplaceItemDto>();
+        }
+        catch { return new List<MarketplaceItemDto>(); }
     }
 }
 

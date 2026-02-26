@@ -65,6 +65,11 @@
                 }
             </div>
 
+            <!-- Marketplace -->
+            <div class="icon-btn-minimal marketplace-mobile-premium" @onclick='() => Navigation.NavigateTo("/marketplace")'>
+                <i class="fa-solid fa-basket-shopping icon-pulse"></i>
+            </div>
+
             <!-- Messages -->
             <div class="icon-btn-minimal" @onclick='() => Navigation.NavigateTo("/user/messages")'>
                 <i class="fa-solid fa-envelope"></i>
@@ -152,6 +157,24 @@
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         letter-spacing: -0.5px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .logo-text-premium::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 50%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        animation: shimmer 3s infinite;
+    }
+
+    @@keyframes shimmer {
+        0% { left: -100%; }
+        100% { left: 200%; }
     }
 
     .user-profile-header-premium {
@@ -213,6 +236,22 @@
         font-size: 1.1rem;
         position: relative;
         margin-right: 5px;
+    }
+
+    .marketplace-mobile-premium {
+        color: #f43f5e !important;
+        background: rgba(244, 63, 94, 0.1);
+        border-radius: 10px;
+    }
+
+    .icon-pulse {
+        animation: pulse-icon 2s infinite;
+    }
+
+    @@keyframes pulse-icon {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); }
     }
 
     .btn-login-minimal {
