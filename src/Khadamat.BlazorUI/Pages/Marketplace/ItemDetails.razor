@@ -59,7 +59,7 @@
                                 </div>
                             }
                         </div>
-                        @if (item.Images.Count > 1)
+                        @if (item.Images != null && item.Images.Count > 1)
                         {
                             <div class="thumbnails-bar d-flex gap-2 mt-2 px-1">
                                 @foreach (var img in item.Images)
@@ -202,7 +202,7 @@
                                 </h6>
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="seller-avatar">
-                                        @(item.SellerName.Length > 0 ? item.SellerName[0].ToString() : "؟")
+                                        @(item.SellerName?.Length > 0 ? item.SellerName[0].ToString() : "؟")
                                     </div>
                                     <div>
                                         <div class="fw-bold">@item.SellerName</div>
@@ -507,7 +507,7 @@
 
         if (item != null)
         {
-            activeImageUrl = item.Images.FirstOrDefault()?.ImageUrl
+            activeImageUrl = item.Images?.FirstOrDefault()?.ImageUrl
                 ?? "/images/defaults/default-product.png";
 
             // Check if current user is owner

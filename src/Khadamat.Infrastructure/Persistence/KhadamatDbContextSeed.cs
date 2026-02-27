@@ -43,6 +43,10 @@ public static class KhadamatDbContextSeed
             if (!await context.Categories.AnyAsync())
             {
                 await SeedCategoriesAndSubCategoriesAsync(context);
+            }
+
+            if (!await context.MarketplaceCategories.AnyAsync())
+            {
                 await SeedMarketplaceCategoriesAsync(context);
             }
 
@@ -61,11 +65,52 @@ public static class KhadamatDbContextSeed
             {
                 await SeedSubscriptionPlansAsync(context);
             }
+
+            if (!await context.MarketplaceItems.AnyAsync())
+            {
+                await SeedMarketplaceItemsAsync(context);
+            }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"SEED ERROR: {ex.Message}");
         }
+    }
+
+    private static async Task SeedMarketplaceItemsAsync(KhadamatDbContext context)
+    {
+        var users = await context.Users.Take(5).ToListAsync();
+        var subCats = await context.MarketplaceSubCategories.Take(10).ToListAsync();
+        var cities = await context.Cities.Take(2).ToListAsync();
+
+        if (!users.Any() || !subCats.Any()) return;
+
+        var random = new Random();
+        for (int i = 1; i <= 10; i++)
+        {
+            var user = users[random.Next(users.Count)];
+            var subCat = subCats[random.Next(subCats.Count)];
+            var city = cities.Any() ? cities[random.Next(cities.Count)] : null;
+
+            var item = new MarketplaceItem(
+                $"سلعة تجريبية {i}",
+                $"وصف السلعة التجريبية رقم {i}. هذه السلعة مخصصة للاختبار فقط.",
+                random.Next(100, 5000),
+                user.Id,
+                subCat.CategoryId,
+                "01000000000",
+                subCat.Id,
+                city?.Id,
+                i % 2 == 0 ? "New" : "Used"
+            );
+
+            if (i <= 4) item.Approve(); // Approve some items
+            if (i == 1 || i == 5) item.SetFeatured(7);
+            if (i == 2 || i == 6) item.SetPromoted(7);
+
+            context.MarketplaceItems.Add(item);
+        }
+        await context.SaveChangesAsync();
     }
 
     private static async Task SeedSubscriptionPlansAsync(KhadamatDbContext context)
@@ -243,9 +288,6 @@ public static class KhadamatDbContextSeed
 
     private static async Task SeedMarketplaceCategoriesAsync(KhadamatDbContext context)
     {
-        var marketMain = await context.MainCategories.FirstOrDefaultAsync(m => m.Name == "متجر السلع");
-        if (marketMain == null) return;
-
         var marketplaceData = new Dictionary<string, List<string>>
         {
             { "الأثاث", new List<string> { "غرف نوم", "غرف معيشة", "سفرة وطاولات", "كراسي ومكاتب", "أثاث مكتبي", "أثاث أطفال", "أثاث خارجي", "أثاث مستعمل", "أثاث جديد" } },
@@ -262,15 +304,17 @@ public static class KhadamatDbContextSeed
             { "أشياء متنوعة", new List<string> { "أخرى" } }
         };
 
+        int displayOrder = 1;
         foreach (var categoryPair in marketplaceData)
         {
-            var category = new Category { Name = categoryPair.Key, MainCategoryId = marketMain.Id };
-            await context.Categories.AddAsync(category);
+            var category = new MarketplaceCategory { Name = categoryPair.Key, DisplayOrder = displayOrder++ };
+            await context.MarketplaceCategories.AddAsync(category);
             await context.SaveChangesAsync();
 
+            int subOrder = 1;
             foreach (var subName in categoryPair.Value)
             {
-                await context.SubCategories.AddAsync(new SubCategory { Name = subName, CategoryId = category.Id });
+                await context.MarketplaceSubCategories.AddAsync(new MarketplaceSubCategory { Name = subName, CategoryId = category.Id, DisplayOrder = subOrder++ });
             }
             await context.SaveChangesAsync();
         }

@@ -47,14 +47,24 @@
                             <ValidationMessage For="@(() => model.Title)" class="text-danger small" />
                         </div>
 
-                        <!-- Category & City -->
                         <div class="col-md-6">
                             <label class="form-label fw-bold">التصنيف</label>
-                            <InputSelect @bind-Value="model.CategoryId" class="form-select form-control-lg bg-light border-0 rounded-4">
+                            <InputSelect TValue="int" Value="model.CategoryId" ValueChanged="OnCategoryChanged" ValueExpression="() => model.CategoryId" class="form-select form-control-lg bg-light border-0 rounded-4">
                                 <option value="0">اختر التصنيف...</option>
                                 @foreach (var cat in marketplaceCategories)
                                 {
                                     <option value="@cat.Id">@cat.Name</option>
+                                }
+                            </InputSelect>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">القسم الفرعي</label>
+                            <InputSelect @bind-Value="model.SubCategoryId" disabled="@(!subcategories.Any())" class="form-select form-control-lg bg-light border-0 rounded-4">
+                                <option value="">-- القسم الفرعي --</option>
+                                @foreach (var sub in subcategories)
+                                {
+                                    <option value="@sub.Id">@sub.Name</option>
                                 }
                             </InputSelect>
                         </div>
@@ -80,10 +90,10 @@
                             <label class="form-label fw-bold">حالة السلعة</label>
                             <div class="d-flex gap-2">
                                 <button type="button"
-                                        class='btn w-50 rounded-4 @(model.Condition == "Used" ? "btn-dark" : "btn-light")'
+                                        class='btn w-50 rounded-4 py-2 @(model.Condition == "Used" ? "btn-primary shadow-sm fw-bold" : "btn-outline-secondary bg-white")'
                                         @onclick='() => model.Condition = "Used"'>مستعمل</button>
                                 <button type="button"
-                                        class='btn w-50 rounded-4 @(model.Condition == "New" ? "btn-dark" : "btn-light")'
+                                        class='btn w-50 rounded-4 py-2 @(model.Condition == "New" ? "btn-primary shadow-sm fw-bold" : "btn-outline-secondary bg-white")'
                                         @onclick='() => model.Condition = "New"'>جديد</button>
                             </div>
                         </div>
@@ -151,7 +161,8 @@
     [Parameter] public int Id { get; set; }
 
     private CreateMarketplaceItemRequest? model;
-    private List<CategoryDto> marketplaceCategories = new();
+    private List<MarketplaceCategoryDto> marketplaceCategories = new();
+    private List<MarketplaceSubCategoryDto> subcategories = new();
     private List<CityDto> cities = new();
     private bool isLoading = true;
     private bool isSubmitting = false;
@@ -176,17 +187,33 @@
                 ContactPhone = item.ContactPhone,
                 Condition = item.Condition
             };
+
+            if (model.CategoryId > 0)
+            {
+                subcategories = await Api.GetMarketplaceSubCategoriesAsync(model.CategoryId);
+            }
         }
 
-        var allMainCats = await Api.GetMainCategoriesAsync();
-        // Use color "marketplace" first as it's more reliable
-        var marketMain = allMainCats.FirstOrDefault(c => c.Color == "marketplace" || c.Name.Contains("متجر") || c.Name.ToLower().Contains("market") || c.Name.Contains("متاجر"));
-        
-        if (marketMain != null)
-            marketplaceCategories = await Api.GetCategoriesByMainIdAsync(marketMain.Id);
-
+        marketplaceCategories = await Api.GetMarketplaceCategoriesAsync();
         cities = await Api.GetCitiesAsync();
         isLoading = false;
+    }
+
+    private async Task OnCategoryChanged(int categoryId)
+    {
+        if (model != null)
+        {
+            model.CategoryId = categoryId;
+            model.SubCategoryId = null;
+            if (categoryId > 0)
+            {
+                subcategories = await Api.GetMarketplaceSubCategoriesAsync(categoryId);
+            }
+            else
+            {
+                subcategories.Clear();
+            }
+        }
     }
 
     private async Task HandleSubmit()

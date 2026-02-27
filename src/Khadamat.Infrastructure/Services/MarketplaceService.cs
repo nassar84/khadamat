@@ -69,6 +69,8 @@ public class MarketplaceService : IMarketplaceService
     public async Task<IReadOnlyList<MarketplaceItemDto>> SearchItemsAsync(
         string? query, 
         int? categoryId, 
+        int? subCategoryId,
+        int? governorateId,
         int? cityId, 
         string? condition, 
         decimal? minPrice, 
@@ -100,6 +102,16 @@ public class MarketplaceService : IMarketplaceService
         if (categoryId.HasValue)
         {
             dbQuery = dbQuery.Where(m => m.CategoryId == categoryId.Value);
+        }
+
+        if (subCategoryId.HasValue)
+        {
+            dbQuery = dbQuery.Where(m => m.SubCategoryId == subCategoryId.Value);
+        }
+
+        if (governorateId.HasValue && !cityId.HasValue)
+        {
+            dbQuery = dbQuery.Where(m => m.City != null && m.City.GovernorateId == governorateId.Value);
         }
 
         if (cityId.HasValue)
@@ -296,6 +308,46 @@ public class MarketplaceService : IMarketplaceService
 
         item.SetPromoted(days);
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<IReadOnlyList<MarketplaceCategoryDto>> GetCategoriesAsync()
+    {
+        var categories = await _context.MarketplaceCategories
+            .Include(c => c.SubCategories)
+            .OrderBy(c => c.DisplayOrder)
+            .ToListAsync();
+
+        return categories.Select(c => new MarketplaceCategoryDto
+        {
+            Id = c.Id,
+            Name = c.Name,
+            Icon = c.Icon,
+            ImageUrl = c.ImageUrl,
+            DisplayOrder = c.DisplayOrder,
+            SubCategories = c.SubCategories.Select(s => new MarketplaceSubCategoryDto
+            {
+                Id = s.Id,
+                CategoryId = s.CategoryId,
+                Name = s.Name,
+                DisplayOrder = s.DisplayOrder
+            }).OrderBy(s => s.DisplayOrder).ToList()
+        }).ToList();
+    }
+
+    public async Task<IReadOnlyList<MarketplaceSubCategoryDto>> GetSubCategoriesAsync(int categoryId)
+    {
+        var subCategories = await _context.MarketplaceSubCategories
+            .Where(s => s.CategoryId == categoryId)
+            .OrderBy(s => s.DisplayOrder)
+            .ToListAsync();
+
+        return subCategories.Select(s => new MarketplaceSubCategoryDto
+        {
+            Id = s.Id,
+            CategoryId = s.CategoryId,
+            Name = s.Name,
+            DisplayOrder = s.DisplayOrder
+        }).ToList();
     }
 
     private MarketplaceItemDto MapToDto(MarketplaceItem item, string? sellerName = null)

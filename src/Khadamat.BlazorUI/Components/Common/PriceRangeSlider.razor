@@ -1,0 +1,119 @@
+@using Microsoft.AspNetCore.Components.Web
+
+<div class="price-range-slider">
+    <div class="slider-track" style="background: @TrackBackground"></div>
+    <input type="range" 
+           min="@Min" 
+           max="@Max" 
+           step="@Step" 
+           value="@LowValue" 
+           @oninput="OnLowInput" 
+           class="range-input" />
+    <input type="range" 
+           min="@Min" 
+           max="@Max" 
+           step="@Step" 
+           value="@HighValue" 
+           @oninput="OnHighInput" 
+           class="range-input" />
+    
+    <div class="d-flex justify-content-between mt-2 small text-muted">
+        <span>@LowValue.ToString("N0") ج.م</span>
+        <span>@HighValue.ToString("N0") ج.م</span>
+    </div>
+</div>
+
+<style>
+    .price-range-slider {
+        position: relative;
+        width: 100%;
+        height: 40px;
+        padding-top: 15px;
+    }
+
+    .slider-track {
+        position: absolute;
+        height: 6px;
+        width: 100%;
+        background: #e2e8f0;
+        border-radius: 3px;
+        top: 22px;
+        z-index: 1;
+    }
+
+    .range-input {
+        position: absolute;
+        width: 100%;
+        height: 6px;
+        top: 22px;
+        background: none;
+        pointer-events: none;
+        -webkit-appearance: none;
+        appearance: none;
+        z-index: 2;
+        margin: 0;
+    }
+
+    .range-input::-webkit-slider-thumb {
+        height: 18px;
+        width: 18px;
+        border-radius: 50%;
+        background: var(--theme-primary, #3b82f6);
+        pointer-events: auto;
+        -webkit-appearance: none;
+        cursor: pointer;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        display: block;
+    }
+
+    .range-input::-moz-range-thumb {
+        height: 18px;
+        width: 18px;
+        border-radius: 50%;
+        background: var(--theme-primary, #3b82f6);
+        pointer-events: auto;
+        cursor: pointer;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+</style>
+
+@code {
+    [Parameter] public decimal Min { get; set; } = 0;
+    [Parameter] public decimal Max { get; set; } = 100000;
+    [Parameter] public decimal Step { get; set; } = 100;
+    [Parameter] public decimal LowValue { get; set; }
+    [Parameter] public decimal HighValue { get; set; }
+    [Parameter] public EventCallback<decimal> LowValueChanged { get; set; }
+    [Parameter] public EventCallback<decimal> HighValueChanged { get; set; }
+
+    private string TrackBackground => GetTrackBackground();
+
+    private async Task OnLowInput(ChangeEventArgs e)
+    {
+        if (decimal.TryParse(e.Value?.ToString(), out var val))
+        {
+            if (val > HighValue) val = HighValue;
+            LowValue = val;
+            await LowValueChanged.InvokeAsync(LowValue);
+        }
+    }
+
+    private async Task OnHighInput(ChangeEventArgs e)
+    {
+        if (decimal.TryParse(e.Value?.ToString(), out var val))
+        {
+            if (val < LowValue) val = LowValue;
+            HighValue = val;
+            await HighValueChanged.InvokeAsync(HighValue);
+        }
+    }
+
+    private string GetTrackBackground()
+    {
+        var lowPerc = ((LowValue - Min) / (Max - Min)) * 100;
+        var highPerc = ((HighValue - Min) / (Max - Min)) * 100;
+        return $"linear-gradient(to right, #e2e8f0 {lowPerc}%, var(--theme-primary, #3b82f6) {lowPerc}%, var(--theme-primary, #3b82f6) {highPerc}%, #e2e8f0 {highPerc}%)";
+    }
+}

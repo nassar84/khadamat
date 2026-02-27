@@ -50,3 +50,20 @@ public class CreateMarketplaceItemRequest
     public string Condition { get; set; } = "Used"; // New, Used
     public List<string> Images { get; set; } = new(); // Base64 strings
 }
+public class MarketplaceCategoryDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? Icon { get; set; }
+    public string? ImageUrl { get; set; }
+    public int DisplayOrder { get; set; }
+    public List<MarketplaceSubCategoryDto> SubCategories { get; set; } = new();
+}
+
+public class MarketplaceSubCategoryDto
+{
+    public int Id { get; set; }
+    public int CategoryId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public int DisplayOrder { get; set; }
+}

@@ -697,21 +697,27 @@ public class ApiClient
         catch { return new List<MarketplaceItemDto>(); }
     }
 
-    public async Task<List<MarketplaceItemDto>> SearchMarketplaceItemsAsync(string? q = null, int? categoryId = null, int? cityId = null, string? condition = null, decimal? minPrice = null, decimal? maxPrice = null, int page = 1, int pageSize = 12)
+    public async Task<List<MarketplaceItemDto>> SearchMarketplaceItemsAsync(string? q = null, int? categoryId = null, int? subCategoryId = null, int? governorateId = null, int? cityId = null, string? condition = null, decimal? minPrice = null, decimal? maxPrice = null, int page = 1, int pageSize = 12)
     {
         try
         {
             var url = $"api/Marketplace/search?page={page}&pageSize={pageSize}";
             if (!string.IsNullOrEmpty(q)) url += $"&q={Uri.EscapeDataString(q)}";
-            if (categoryId.HasValue) url += $"&categoryId={categoryId}";
-            if (cityId.HasValue) url += $"&cityId={cityId}";
+            if (categoryId.HasValue && categoryId > 0) url += $"&categoryId={categoryId}";
+            if (subCategoryId.HasValue && subCategoryId > 0) url += $"&subCategoryId={subCategoryId}";
+            if (governorateId.HasValue && governorateId > 0) url += $"&governorateId={governorateId}";
+            if (cityId.HasValue && cityId > 0) url += $"&cityId={cityId}";
             if (!string.IsNullOrEmpty(condition)) url += $"&condition={condition}";
-            if (minPrice.HasValue) url += $"&minPrice={minPrice}";
-            if (maxPrice.HasValue) url += $"&maxPrice={maxPrice}";
+            if (minPrice.HasValue && minPrice > 0) url += $"&minPrice={minPrice}";
+            if (maxPrice.HasValue && maxPrice > 0) url += $"&maxPrice={maxPrice}";
 
             return await _http.GetFromJsonAsync<List<MarketplaceItemDto>>(url) ?? new List<MarketplaceItemDto>();
         }
-        catch { return new List<MarketplaceItemDto>(); }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error searching marketplace: {ex.Message}");
+            return new List<MarketplaceItemDto>();
+        }
     }
 
     public async Task<MarketplaceItemDto?> GetMarketplaceItemByIdAsync(int id)
@@ -725,10 +731,21 @@ public class ApiClient
 
     public async Task<MarketplaceItemDto?> CreateMarketplaceItemAsync(CreateMarketplaceItemRequest request)
     {
-        var response = await _http.PostAsJsonAsync("api/Marketplace", request);
-        if (response.IsSuccessStatusCode)
-            return await response.Content.ReadFromJsonAsync<MarketplaceItemDto>();
-        return null;
+        try 
+        {
+            var response = await _http.PostAsJsonAsync("api/Marketplace", request);
+            if (response.IsSuccessStatusCode)
+                return await response.Content.ReadFromJsonAsync<MarketplaceItemDto>();
+            
+            var error = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"CreateMarketplaceItem Error: {response.StatusCode} - {error}");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"CreateMarketplaceItem Exception: {ex.Message}");
+            return null;
+        }
     }
 
     public async Task<bool> UpdateMarketplaceItemAsync(int id, CreateMarketplaceItemRequest request)
@@ -796,6 +813,32 @@ public class ApiClient
             return await _http.GetFromJsonAsync<List<MarketplaceItemDto>>("api/Marketplace/my-items") ?? new List<MarketplaceItemDto>();
         }
         catch { return new List<MarketplaceItemDto>(); }
+    }
+
+    public async Task<List<MarketplaceCategoryDto>> GetMarketplaceCategoriesAsync()
+    {
+        try
+        {
+            return await _http.GetFromJsonAsync<List<MarketplaceCategoryDto>>("api/Marketplace/categories") ?? new List<MarketplaceCategoryDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching marketplace categories: {ex.Message}");
+            return new List<MarketplaceCategoryDto>();
+        }
+    }
+
+    public async Task<List<MarketplaceSubCategoryDto>> GetMarketplaceSubCategoriesAsync(int categoryId)
+    {
+        try
+        {
+            return await _http.GetFromJsonAsync<List<MarketplaceSubCategoryDto>>($"api/Marketplace/categories/{categoryId}/subcategories") ?? new List<MarketplaceSubCategoryDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching marketplace subcategories: {ex.Message}");
+            return new List<MarketplaceSubCategoryDto>();
+        }
     }
 }
 

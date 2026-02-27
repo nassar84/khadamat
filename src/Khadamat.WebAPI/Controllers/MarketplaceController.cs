@@ -35,14 +35,25 @@ public class MarketplaceController : ControllerBase
     [HttpGet("featured")]
     public async Task<IActionResult> GetFeatured([FromQuery] int count = 6)
     {
-        var items = await _marketplaceService.GetFeaturedItemsAsync(count);
-        return Ok(items);
+        try
+        {
+            var items = await _marketplaceService.GetFeaturedItemsAsync(count);
+            return Ok(items);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"MARKETPLACE ERROR (Featured): {ex.Message}");
+            Console.WriteLine(ex.StackTrace);
+            return StatusCode(500, ex.Message);
+        }
     }
 
     [HttpGet("search")]
     public async Task<IActionResult> Search(
         [FromQuery] string? q,
         [FromQuery] int? categoryId,
+        [FromQuery] int? subCategoryId,
+        [FromQuery] int? governorateId,
         [FromQuery] int? cityId,
         [FromQuery] string? condition,
         [FromQuery] decimal? minPrice,
@@ -51,7 +62,7 @@ public class MarketplaceController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 12)
     {
-        var items = await _marketplaceService.SearchItemsAsync(q, categoryId, cityId, condition, minPrice, maxPrice, sellerId, page, pageSize);
+        var items = await _marketplaceService.SearchItemsAsync(q, categoryId, subCategoryId, governorateId, cityId, condition, minPrice, maxPrice, sellerId, page, pageSize);
         return Ok(items);
     }
 
@@ -84,8 +95,20 @@ public class MarketplaceController : ControllerBase
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-        var item = await _marketplaceService.CreateItemAsync(request, userId);
-        return CreatedAtAction(nameof(GetItem), new { id = item.Id }, item);
+        try
+        {
+            var item = await _marketplaceService.CreateItemAsync(request, userId);
+            return CreatedAtAction(nameof(GetItem), new { id = item.Id }, item);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Create error: {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"Inner error: {ex.InnerException.Message}");
+            }
+            return BadRequest(ex.Message);
+        }
     }
 
     [Authorize]
@@ -131,7 +154,7 @@ public class MarketplaceController : ControllerBase
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-        var items = await _marketplaceService.SearchItemsAsync(null, null, null, null, null, null, userId, page, pageSize);
+        var items = await _marketplaceService.SearchItemsAsync(null, null, null, null, null, null, null, null, userId, page, pageSize);
         return Ok(items);
     }
 
@@ -184,5 +207,28 @@ public class MarketplaceController : ControllerBase
     {
         await _marketplaceService.SetPromotedAsync(id, days);
         return Ok();
+    }
+
+    [HttpGet("categories")]
+    public async Task<IActionResult> GetCategories()
+    {
+        try
+        {
+            var categories = await _marketplaceService.GetCategoriesAsync();
+            return Ok(categories);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"MARKETPLACE ERROR (Categories): {ex.Message}");
+            Console.WriteLine(ex.StackTrace);
+            return StatusCode(500, ex.Message);
+        }
+    }
+
+    [HttpGet("categories/{categoryId}/subcategories")]
+    public async Task<IActionResult> GetSubCategories(int categoryId)
+    {
+        var subCategories = await _marketplaceService.GetSubCategoriesAsync(categoryId);
+        return Ok(subCategories);
     }
 }

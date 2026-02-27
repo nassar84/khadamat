@@ -34,6 +34,8 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ServiceRequest> ServiceRequests { get; set; }
     public DbSet<MarketplaceItem> MarketplaceItems { get; set; }
     public DbSet<MarketplaceImage> MarketplaceImages { get; set; }
+    public DbSet<MarketplaceCategory> MarketplaceCategories { get; set; }
+    public DbSet<MarketplaceSubCategory> MarketplaceSubCategories { get; set; }
     public DbSet<Payment> Payments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -55,6 +57,8 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<ApplicationUser>().HasQueryFilter(u => !u.IsDeleted);
         builder.Entity<MarketplaceItem>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<MarketplaceImage>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<MarketplaceCategory>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<MarketplaceSubCategory>().HasQueryFilter(e => !e.IsDeleted);
 
         // Configure relationships and constraints
         builder.Entity<Governorate>().HasMany(g => g.Cities).WithOne(c => c.Governorate).HasForeignKey(c => c.GovernorateId);
@@ -122,15 +126,21 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
             .OnDelete(DeleteBehavior.Restrict);
 
         // Marketplace Configuration
+        builder.Entity<MarketplaceCategory>()
+            .HasMany(c => c.SubCategories)
+            .WithOne(s => s.Category)
+            .HasForeignKey(s => s.CategoryId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.Entity<MarketplaceItem>()
             .HasOne(m => m.Category)
-            .WithMany()
+            .WithMany(c => c.Items)
             .HasForeignKey(m => m.CategoryId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.Entity<MarketplaceItem>()
             .HasOne(m => m.SubCategory)
-            .WithMany()
+            .WithMany(s => s.Items)
             .HasForeignKey(m => m.SubCategoryId)
             .OnDelete(DeleteBehavior.Restrict);
 

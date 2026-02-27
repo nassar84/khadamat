@@ -1,6 +1,7 @@
 @page "/marketplace"
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
+@using Khadamat.BlazorUI.Components.Common
 @inject ApiClient Api
 @inject NavigationManager Navigation
 
@@ -55,34 +56,90 @@
         <!-- Filters Bar -->
         <div class="filters-card-glass p-3 mb-4">
             <div class="row g-3">
-                <div class="col-md-4">
+                <div class="col-md-8">
                     <div class="search-box-glass">
                         <i class="fa-solid fa-magnifying-glass opacity-50"></i>
                         <input type="text" class="form-control border-0 bg-transparent" placeholder="ابحث عن منتج..." @bind="searchQuery" @bind:event="oninput" @onkeyup="HandleKeyUp" />
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <select class="form-select border-0 bg-light-glass rounded-3" @bind="selectedCategoryId">
-                        <option value="">جميع التصنيفات</option>
-                        @foreach (var cat in marketplaceCategories)
-                        {
-                            <option value="@cat.Id">@cat.Name</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <select class="form-select border-0 bg-light-glass rounded-3" @bind="selectedCityId">
-                        <option value="">جميع المدن</option>
-                        @foreach (var city in cities)
-                        {
-                            <option value="@city.Id">@city.NameAr</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <button class="btn btn-dark w-100 rounded-3" @onclick="Search">بحث</button>
+                <div class="col-md-4 d-flex gap-2">
+                    <button class="btn btn-outline-secondary rounded-3" @onclick="ToggleAdvancedFilters">
+                        <i class="fa-solid fa-sliders"></i> فلاتر متقدمة
+                    </button>
+                    <button class="btn btn-dark flex-grow-1 rounded-3" @onclick="Search">بحث سريع</button>
                 </div>
             </div>
+
+            @if (showAdvancedFilters)
+            {
+                <div class="row g-3 mt-1 pt-3 border-top">
+                    <div class="col-md-3">
+                        <label class="small text-muted mb-1" style="font-size: 0.75rem;">القسم الرئيسي</label>
+                        <select class="form-select border-0 bg-light-glass rounded-3" @bind="selectedCategoryId" @bind:after="OnCategoryChanged">
+                            <option value="0">جميع التصنيفات</option>
+                            @foreach (var cat in marketplaceCategories)
+                            {
+                                <option value="@cat.Id">@cat.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="small text-muted mb-1" style="font-size: 0.75rem;">القسم الفرعي</label>
+                        <select class="form-select border-0 bg-light-glass rounded-3" @bind="selectedSubCategoryId" disabled="@(!subcategories.Any())">
+                            <option value="0">@(isFetchingSubCategories ? "جاري التحميل..." : "-- الكل --")</option>
+                            @foreach (var sub in subcategories)
+                            {
+                                <option value="@sub.Id">@sub.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="small text-muted mb-1" style="font-size: 0.75rem;">المحافظة</label>
+                        <select class="form-select border-0 bg-light-glass rounded-3" @bind="selectedGovernorateId" @bind:after="OnGovernorateChanged">
+                            <option value="0">جميع المحافظات</option>
+                            @foreach (var gov in governorates)
+                            {
+                                <option value="@gov.Id">@gov.NameAr</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="small text-muted mb-1" style="font-size: 0.75rem;">المدينة</label>
+                        <select class="form-select border-0 bg-light-glass rounded-3" @bind="selectedCityId" disabled="@(!cities.Any())">
+                            <option value="0">@(isFetchingCities ? "جاري التحميل..." : "-- الكل --")</option>
+                            @foreach (var city in cities)
+                            {
+                                <option value="@city.Id">@city.NameAr</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="small text-muted mb-1" style="font-size: 0.75rem;">حالة السلعة</label>
+                        <select class="form-select border-0 bg-light-glass rounded-3" @bind="selectedCondition">
+                            <option value="">أي حالة</option>
+                            <option value="New">جديد</option>
+                            <option value="Used">مستعمل</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="small text-muted mb-1" style="font-size: 0.75rem;">نطاق السعر (ج.م)</label>
+                        <Khadamat.BlazorUI.Components.Common.PriceRangeSlider 
+                            Min="0" 
+                            Max="100000" 
+                            Step="100" 
+                            @bind-LowValue="minPriceSafe" 
+                            @bind-HighValue="maxPriceSafe" />
+                    </div>
+
+                    <div class="col-md-6 d-flex align-items-end justify-content-end gap-2 text-start">
+                        <button class="btn btn-outline-danger rounded-3 px-4" @onclick="ClearFilters">مسح</button>
+                        <button class="btn btn-primary rounded-3 px-5 shadow-sm" @onclick="Search">تطبيق الفلاتر</button>
+                    </div>
+                </div>
+            }
         </div>
 
         @if (isLoading)
@@ -114,7 +171,7 @@
                             }
                             <div class="item-badge">@(item.Condition == "New" ? "جديد" : "مستعمل")</div>
                             <div class="item-image-container">
-                                <img src="@(item.Images.FirstOrDefault()?.ImageUrl ?? "images/defaults/default-product.png")" alt="@item.Title" />
+                                <img src="@(item.Images?.FirstOrDefault()?.ImageUrl ?? "images/defaults/default-product.png")" alt="@item.Title" />
                             </div>
                             <div class="item-details p-3">
                                 <h6 class="text-truncate fw-bold mb-1">@item.Title</h6>
@@ -278,32 +335,96 @@
 @code {
     private List<MarketplaceItemDto> items = new();
     private List<MarketplaceItemDto> featuredItems = new();
-    private List<CategoryDto> marketplaceCategories = new();
+    private List<MarketplaceCategoryDto> marketplaceCategories = new();
+    private List<MarketplaceSubCategoryDto> subcategories = new();
+    private List<GovernorateDto> governorates = new();
     private List<CityDto> cities = new();
     
     private bool isLoading = true;
     private bool isLoadingMore = false;
     private bool hasMore = true;
     private int currentPage = 1;
+    private bool showAdvancedFilters = false;
     
+    // Filters
     private string searchQuery = "";
     private int? selectedCategoryId;
+    private int? selectedSubCategoryId;
+    private int? selectedGovernorateId;
     private int? selectedCityId;
+    private string? selectedCondition;
+    private decimal? minPrice;
+    private decimal? maxPrice;
+    
+    private bool isFetchingSubCategories = false;
+    private bool isFetchingCities = false;
+
+    private decimal minPriceSafe {
+        get => minPrice ?? 0;
+        set { minPrice = value; }
+    }
+    
+    private decimal maxPriceSafe {
+        get => maxPrice ?? 100000;
+        set { maxPrice = value; }
+    }
 
     protected override async Task OnInitializedAsync()
     {
         await LoadData();
         featuredItems = await Api.GetFeaturedMarketplaceItemsAsync();
-        
-        var allMainCats = await Api.GetMainCategoriesAsync();
-        // Use color "marketplace" first as it's more reliable
-        var marketMain = allMainCats.FirstOrDefault(c => c.Color == "marketplace" || c.Name.Contains("متجر") || c.Name.ToLower().Contains("market") || c.Name.Contains("متاجر"));
-        
-        if (marketMain != null)
+        marketplaceCategories = await Api.GetMarketplaceCategoriesAsync();
+        governorates = await Api.GetGovernoratesAsync();
+    }
+
+    private void ToggleAdvancedFilters()
+    {
+        showAdvancedFilters = !showAdvancedFilters;
+    }
+
+    private async Task OnCategoryChanged()
+    {
+        selectedSubCategoryId = null;
+        if (selectedCategoryId.HasValue && selectedCategoryId.Value > 0)
         {
-            marketplaceCategories = await Api.GetCategoriesByMainIdAsync(marketMain.Id);
+            isFetchingSubCategories = true;
+            subcategories = await Api.GetMarketplaceSubCategoriesAsync(selectedCategoryId.Value);
+            isFetchingSubCategories = false;
         }
-        cities = await Api.GetCitiesAsync();
+        else
+        {
+            subcategories.Clear();
+        }
+    }
+
+    private async Task OnGovernorateChanged()
+    {
+        selectedCityId = null;
+        if (selectedGovernorateId.HasValue && selectedGovernorateId.Value > 0)
+        {
+            isFetchingCities = true;
+            cities = await Api.GetCitiesAsync(selectedGovernorateId.Value);
+            isFetchingCities = false;
+        }
+        else
+        {
+            cities.Clear();
+        }
+    }
+
+    private async Task ClearFilters()
+    {
+        searchQuery = "";
+        selectedCategoryId = null;
+        selectedSubCategoryId = null;
+        selectedGovernorateId = null;
+        selectedCityId = null;
+        selectedCondition = null;
+        minPrice = null;
+        maxPrice = null;
+        subcategories.Clear();
+        cities.Clear();
+        await LoadData();
     }
 
     private async Task LoadData(bool append = false)
@@ -318,8 +439,12 @@
         var results = await Api.SearchMarketplaceItemsAsync(
             searchQuery, 
             selectedCategoryId, 
+            selectedSubCategoryId,
+            selectedGovernorateId,
             selectedCityId, 
-            null, null, null, 
+            selectedCondition, 
+            minPrice, 
+            maxPrice, 
             currentPage, 12);
 
         if (append)

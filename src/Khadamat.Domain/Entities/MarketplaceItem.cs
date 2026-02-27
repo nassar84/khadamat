@@ -35,8 +35,8 @@ public class MarketplaceItem : BaseEntity
     public DateTime? PromotedUntil { get; private set; }
 
     // Navigation Properties
-    public virtual Category Category { get; private set; } = null!;
-    public virtual SubCategory? SubCategory { get; private set; }
+    public virtual MarketplaceCategory Category { get; private set; } = null!;
+    public virtual MarketplaceSubCategory? SubCategory { get; private set; }
     public virtual City? City { get; private set; }
     public virtual ICollection<MarketplaceImage> Images { get; private set; } = new List<MarketplaceImage>();
 
