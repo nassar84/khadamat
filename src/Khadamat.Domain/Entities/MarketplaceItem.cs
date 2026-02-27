@@ -27,6 +27,10 @@ public class MarketplaceItem : BaseEntity
     public bool Approved { get; private set; }
     public int ViewsCount { get; private set; }
     public string? AdminNotes { get; private set; }
+    public DateTime? ListedAt { get; private set; }     // تاريخ عرض السلعة فعلياً (بعد الموافقة)
+    public DateTime? StartDate { get; private set; }
+    public DateTime? EndDate { get; private set; }
+    public DateTime? SoldDate { get; private set; }
     
     // Monetization
     public bool IsFeatured { get; private set; }
@@ -39,6 +43,7 @@ public class MarketplaceItem : BaseEntity
     public virtual MarketplaceSubCategory? SubCategory { get; private set; }
     public virtual City? City { get; private set; }
     public virtual ICollection<MarketplaceImage> Images { get; private set; } = new List<MarketplaceImage>();
+    public virtual ICollection<MarketplaceItemView> ItemViews { get; private set; } = new List<MarketplaceItemView>();
 
     // Constructor for EF Core
     protected MarketplaceItem() { }
@@ -102,19 +107,51 @@ public class MarketplaceItem : BaseEntity
     public void MarkAsSold()
     {
         ItemStatus = "Sold";
+        SoldDate = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
     }
 
     public void MarkAsAvailable()
     {
         ItemStatus = "Available";
+        SoldDate = null;
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void Approve(string? notes = null)
+    public void MarkAsExpired()
+    {
+        ItemStatus = "Expired";
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void MarkAsCancelled()
+    {
+        ItemStatus = "Cancelled";
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Lock()
+    {
+        ItemStatus = "Locked";
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void CheckAndExpire()
+    {
+        if (Approved && ItemStatus == "Available" && EndDate.HasValue && EndDate.Value < DateTime.UtcNow)
+        {
+            MarkAsExpired();
+        }
+    }
+
+    public void Approve(DateTime? startDate = null, DateTime? endDate = null, string? notes = null, int defaultListingDays = 30)
     {
         Approved = true;
         AdminNotes = notes;
+        ListedAt = DateTime.UtcNow;
+        StartDate = startDate ?? DateTime.UtcNow;
+        EndDate = endDate ?? DateTime.UtcNow.AddDays(defaultListingDays);
+        ItemStatus = "Available";
         UpdatedAt = DateTime.UtcNow;
     }
 

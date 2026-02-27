@@ -6,334 +6,777 @@
 @inject ApiClient Api
 @inject NavigationManager Navigation
 
-<div class="marketplace-admin-page px-3 py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<PageTitle>إدارة المتجر - لوحة التحكم</PageTitle>
+
+<div class="marketplace-admin px-2 px-md-3 py-4">
+
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
         <div>
-            <h3 class="fw-bold mb-0">
-                <i class="fa-solid fa-store me-2 text-primary"></i> إدارة السوق
+            <h3 class="fw-bold mb-1">
+                <span class="store-icon-wrap me-2">
+                    <i class="fa-solid fa-store store-anim text-primary"></i>
+                </span>إدارة إعلانات المتجر
             </h3>
-            <p class="text-muted small mb-0">مراجعة وإدارة إعلانات البيع والشراء</p>
+            <p class="text-muted small mb-0">مراجعة وإدارة إعلانات البيع، الموافقة، التحكم في المدة والحالة</p>
         </div>
-        <div class="d-flex gap-2">
-            <span class="badge bg-danger-soft text-danger rounded-pill px-3 py-2">
-                <i class="fa-solid fa-clock me-1"></i> @pendingItems.Count بانتظار الموافقة
-            </span>
+        <div class="d-flex gap-2 align-items-center">
+            <button class="btn btn-outline-primary rounded-pill btn-sm" @onclick="LoadData">
+                <i class="fa-solid fa-rotate me-1"></i> تحديث
+            </button>
         </div>
     </div>
 
-    <!-- Filter Tabs -->
-    <div class="filter-tabs mb-4 d-flex gap-2 flex-wrap">
-        <button class="btn @(activeTab == "pending" ? "btn-primary" : "btn-outline-secondary") rounded-pill px-4"
-                @onclick='() => SetTab("pending")'>
-            <i class="fa-solid fa-clock me-1"></i> بانتظار الموافقة
-            @if (pendingItems.Any())
-            {
-                <span class="badge bg-danger ms-1">@pendingItems.Count</span>
-            }
-        </button>
-        <button class="btn @(activeTab == "approved" ? "btn-primary" : "btn-outline-secondary") rounded-pill px-4"
-                @onclick='() => SetTab("approved")'>
-            <i class="fa-solid fa-check me-1"></i> مقبولة
-        </button>
-        <button class="btn @(activeTab == "featured" ? "btn-primary" : "btn-outline-secondary") rounded-pill px-4"
-                @onclick='() => SetTab("featured")'>
-            <i class="fa-solid fa-star me-1"></i> مميزة
-        </button>
-        <button class="btn @(activeTab == "all" ? "btn-primary" : "btn-outline-secondary") rounded-pill px-4"
-                @onclick='() => SetTab("all")'>
-            <i class="fa-solid fa-list me-1"></i> جميع الإعلانات
-        </button>
+    <!-- Stats Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-sm-4 col-md-2">
+            <div class="admin-stat-card p-3 rounded-4 text-center cursor-pointer @(activeTab=="all" ? "stat-active" : "")" @onclick='() => SetTab("all")'>
+                <div class="stat-num text-primary fw-bold">@allItems.Count</div>
+                <div class="stat-label">الكل</div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-2">
+            <div class="admin-stat-card p-3 rounded-4 text-center cursor-pointer @(activeTab=="pending" ? "stat-active" : "")" @onclick='() => SetTab("pending")'>
+                <div class="stat-num text-warning fw-bold">@allItems.Count(i => !i.Approved)</div>
+                <div class="stat-label">بانتظار المراجعة</div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-2">
+            <div class="admin-stat-card p-3 rounded-4 text-center cursor-pointer @(activeTab=="active" ? "stat-active" : "")" @onclick='() => SetTab("active")'>
+                <div class="stat-num text-success fw-bold">@allItems.Count(i => i.ItemStatus == "Available")</div>
+                <div class="stat-label">نشط</div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-2">
+            <div class="admin-stat-card p-3 rounded-4 text-center cursor-pointer @(activeTab=="sold" ? "stat-active" : "")" @onclick='() => SetTab("sold")'>
+                <div class="stat-num text-secondary fw-bold">@allItems.Count(i => i.ItemStatus == "Sold")</div>
+                <div class="stat-label">تم البيع</div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-2">
+            <div class="admin-stat-card p-3 rounded-4 text-center cursor-pointer @(activeTab=="expired" ? "stat-active" : "")" @onclick='() => SetTab("expired")'>
+                <div class="stat-num text-danger fw-bold">@allItems.Count(i => i.ItemStatus == "Expired" || i.IsExpired)</div>
+                <div class="stat-label">منتهي</div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-4 col-md-2">
+            <div class="admin-stat-card p-3 rounded-4 text-center cursor-pointer @(activeTab=="locked" ? "stat-active" : "")" @onclick='() => SetTab("locked")'>
+                <div class="stat-num text-warning fw-bold">@allItems.Count(i => i.ItemStatus == "Locked")</div>
+                <div class="stat-label">مقفل</div>
+            </div>
+        </div>
     </div>
 
+    <!-- Search & Filter Bar -->
+    <div class="search-filter-bar p-3 rounded-4 mb-4">
+        <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-4">
+                <input type="text" class="form-control rounded-3" placeholder="🔍 بحث بالعنوان أو اسم البائع..."
+                       @bind="searchQuery" @bind:event="oninput" @onkeyup="OnSearchChanged" />
+            </div>
+            <div class="col-6 col-md-2">
+                <select class="form-select rounded-3" @bind="filterStatus" @bind:after="ApplyFilter">
+                    <option value="">كل الحالات</option>
+                    <option value="Available">نشط</option>
+                    <option value="Sold">تم البيع</option>
+                    <option value="Expired">منتهي</option>
+                    <option value="Locked">مقفل</option>
+                    <option value="Cancelled">ملغي</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <select class="form-select rounded-3" @bind="filterCondition" @bind:after="ApplyFilter">
+                    <option value="">كل الحالات</option>
+                    <option value="New">جديد</option>
+                    <option value="Used">مستعمل</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <select class="form-select rounded-3" @bind="filterFeatured" @bind:after="ApplyFilter">
+                    <option value="">كل الإعلانات</option>
+                    <option value="featured">مميزة فقط</option>
+                    <option value="not_featured">غير مميزة</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-2 text-end">
+                <button class="btn btn-outline-secondary rounded-3 w-100" @onclick="ResetFilters">
+                    <i class="fa-solid fa-filter-circle-xmark me-1"></i> مسح
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading -->
     @if (isLoading)
     {
         <div class="text-center py-5">
             <div class="spinner-border text-primary" role="status"></div>
-            <p class="mt-2 text-muted">جاري تحميل البيانات...</p>
+            <p class="mt-3 text-muted">جاري تحميل الإعلانات...</p>
         </div>
     }
     else if (!displayedItems.Any())
     {
-        <div class="empty-state text-center py-5">
-            <div class="empty-icon mb-3">
-                <i class="fa-solid fa-box-open fa-3x text-muted opacity-25"></i>
-            </div>
+        <div class="empty-box text-center py-5">
+            <i class="fa-solid fa-box-open fa-3x text-muted opacity-25 mb-3 d-block"></i>
             <h5 class="text-muted">لا توجد إعلانات في هذا القسم</h5>
+            <p class="text-muted small">@(searchQuery.Length > 0 ? "جرب تغيير كلمات البحث" : "لا توجد إعلانات بعد")</p>
         </div>
     }
     else
     {
-        <div class="row g-3">
-            @foreach (var item in displayedItems)
-            {
-                <div class="col-12 col-md-6 col-xl-4">
-                    <div class="item-admin-card card border-0 shadow-sm rounded-4 overflow-hidden">
-                        <!-- Image & Status Bar -->
-                        <div class="card-img-top position-relative" style="height: 180px; background: #f8f9fa;">
-                            <img src="@(item.Images.FirstOrDefault()?.ImageUrl ?? "/images/defaults/default-product.png")"
-                                 alt="@item.Title"
-                                 class="w-100 h-100"
-                                 style="object-fit: cover;" />
-                            <div class="position-absolute top-0 start-0 p-2 d-flex gap-1">
-                                @if (item.IsFeatured)
-                                {
-                                    <span class="badge bg-warning text-dark"><i class="fa-solid fa-star me-1"></i>مميز</span>
-                                }
-                                @if (item.IsPromoted)
-                                {
-                                    <span class="badge bg-info text-dark"><i class="fa-solid fa-bullhorn me-1"></i>مروّج</span>
-                                }
-                            </div>
-                            <div class="position-absolute top-0 end-0 p-2">
-                                <span class="badge @(item.Condition == "New" ? "bg-success" : "bg-secondary")">
-                                    @(item.Condition == "New" ? "جديد" : "مستعمل")
-                                </span>
-                            </div>
-                        </div>
+        <!-- Items Table -->
+        <div class="admin-table-card rounded-4 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-3">الإعلان</th>
+                            <th>البائع</th>
+                            <th>السعر</th>
+                            <th>الحالة</th>
+                            <th>المدة</th>
+                            <th>المشاهدات</th>
+                            <th class="text-center pe-3">إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in displayedItems)
+                        {
+                            <tr class="@(item.ItemStatus == "Locked" ? "table-warning-row" : "")">
+                                <!-- Item Info -->
+                                <td class="ps-3" style="min-width:220px;">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="item-thumb">
+                                            <img src="@(item.Images.FirstOrDefault()?.ImageUrl ?? "/images/defaults/default-product.png")"
+                                                 alt="@item.Title" />
+                                            @if (item.ItemStatus == "Sold")
+                                            {
+                                                <div class="thumb-overlay"><i class="fa-solid fa-handshake"></i></div>
+                                            }
+                                            else if (item.ItemStatus == "Locked")
+                                            {
+                                                <div class="thumb-overlay thumb-locked"><i class="fa-solid fa-lock"></i></div>
+                                            }
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold small text-truncate" style="max-width:160px;" title="@item.Title">@item.Title</div>
+                                            <div class="text-muted x-small">@item.CategoryName</div>
+                                            <div class="d-flex gap-1 mt-1 flex-wrap">
+                                                @if (item.IsFeatured)
+                                                {
+                                                    <span class="badge bg-warning text-dark" style="font-size:0.6rem;">⭐ مميز</span>
+                                                }
+                                                @if (item.IsPromoted)
+                                                {
+                                                    <span class="badge bg-info text-dark" style="font-size:0.6rem;">📣 مروّج</span>
+                                                }
+                                                <span class="badge @(item.Condition == "New" ? "bg-success-subtle text-success" : "bg-secondary-subtle text-secondary")" style="font-size:0.6rem;">
+                                                    @(item.Condition == "New" ? "جديد" : "مستعمل")
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
 
-                        <div class="card-body p-3">
-                            <h6 class="fw-bold text-truncate mb-1">@item.Title</h6>
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="text-primary fw-bold">@item.Price.ToString("N0") @item.Currency</span>
-                                <span class="text-muted small">
-                                    <i class="fa-solid fa-eye me-1"></i>@item.ViewsCount
-                                </span>
-                            </div>
-                            <div class="text-muted small mb-3">
-                                <i class="fa-solid fa-layer-group me-1"></i>@item.CategoryName
-                                @if (!string.IsNullOrEmpty(item.CityName))
-                                {
-                                    <span class="ms-2"><i class="fa-solid fa-location-dot me-1"></i>@item.CityName</span>
-                                }
-                            </div>
-                            <div class="text-muted x-small mb-3">
-                                <i class="fa-regular fa-calendar me-1"></i> @item.CreatedAt.ToString("dd/MM/yyyy HH:mm")
-                            </div>
-
-                            <!-- Action Buttons -->
-                            <div class="d-flex flex-wrap gap-2">
-                                <button class="btn btn-sm btn-outline-primary rounded-3 flex-grow-1"
-                                        @onclick="() => ViewItem(item.Id)">
-                                    <i class="fa-solid fa-eye me-1"></i>عرض
-                                </button>
-
-                                @if (activeTab == "pending")
-                                {
-                                    <button class="btn btn-sm btn-success rounded-3 flex-grow-1"
-                                            @onclick="() => ApproveItem(item)">
-                                        <i class="fa-solid fa-check me-1"></i>قبول
-                                    </button>
-                                    <button class="btn btn-sm btn-danger rounded-3 flex-grow-1"
-                                            @onclick="() => OpenRejectModal(item)">
-                                        <i class="fa-solid fa-xmark me-1"></i>رفض
-                                    </button>
-                                }
-                                else
-                                {
-                                    @if (!item.IsFeatured)
+                                <!-- Seller -->
+                                <td style="min-width:140px;">
+                                    <div class="fw-bold small">@item.SellerName</div>
+                                    @if (!string.IsNullOrEmpty(item.CityName))
                                     {
-                                        <button class="btn btn-sm btn-warning rounded-3"
-                                                @onclick="() => SetFeatured(item)">
-                                            <i class="fa-solid fa-star"></i>
-                                        </button>
+                                        <div class="text-muted x-small"><i class="fa-solid fa-location-dot me-1"></i>@item.CityName</div>
                                     }
-                                    <button class="btn btn-sm btn-outline-danger rounded-3"
-                                            @onclick="() => OpenRejectModal(item)">
-                                        <i class="fa-solid fa-ban"></i>
-                                    </button>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
+                                    <div class="text-muted x-small">
+                                        <i class="fa-regular fa-calendar me-1"></i>@item.CreatedAt.ToString("dd/MM/yy")
+                                    </div>
+                                </td>
+
+                                <!-- Price -->
+                                <td>
+                                    <span class="price-badge">@item.Price.ToString("N0")</span>
+                                    <div class="text-muted x-small">@item.Currency</div>
+                                </td>
+
+                                <!-- Status -->
+                                <td>
+                                    <span class="status-pill @GetAdminStatusClass(item)">
+                                        <i class="@GetAdminStatusIcon(item) me-1"></i>@GetAdminStatusLabel(item)
+                                    </span>
+                                    @if (!item.Approved)
+                                    {
+                                        <div class="x-small text-warning mt-1">
+                                            <i class="fa-solid fa-clock me-1"></i>بانتظار الموافقة
+                                        </div>
+                                    }
+                                    else if (item.ListedAt.HasValue)
+                                    {
+                                        <div class="x-small text-success mt-1">
+                                            <i class="fa-solid fa-circle-check me-1"></i>عُرض @item.ListedAt.Value.ToString("dd/MM/yy")
+                                        </div>
+                                    }
+                                </td>
+
+                                <!-- Duration -->
+                                <td style="min-width:130px;">
+                                    @if (item.StartDate.HasValue && item.EndDate.HasValue)
+                                    {
+                                        var daysLeft = item.DaysRemaining ?? 0;
+                                        var totalDays = Math.Max(1,(item.EndDate.Value - item.StartDate.Value).TotalDays);
+                                        var passed = (DateTime.UtcNow - item.StartDate.Value).TotalDays;
+                                        var pct = (int)Math.Min(100, Math.Max(0, (passed / totalDays) * 100));
+                                        <div class="x-small text-muted mb-1">
+                                            @item.StartDate.Value.ToString("dd/MM/yy") ← @item.EndDate.Value.ToString("dd/MM/yy")
+                                        </div>
+                                        <div class="progress" style="height:5px;border-radius:5px;">
+                                            <div class="progress-bar @(pct>80?"bg-danger":pct>55?"bg-warning":"bg-success")"
+                                                 style="width:@pct%"></div>
+                                        </div>
+                                        <div class="x-small @(daysLeft<=5?"text-danger fw-bold":"text-muted") mt-1">
+                                            @(daysLeft==0 ? "ينتهي اليوم!" : $"{daysLeft} يوم متبقي")
+                                        </div>
+                                    }
+                                    else if (item.EndDate.HasValue)
+                                    {
+                                        <div class="x-small text-muted">حتى @item.EndDate.Value.ToString("dd/MM/yy")</div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted x-small">—</span>
+                                    }
+                                </td>
+
+                                <!-- Views -->
+                                <td>
+                                    <div class="d-flex align-items-center gap-1 text-muted small">
+                                        <i class="fa-solid fa-eye"></i>
+                                        <span>@item.ViewsCount</span>
+                                    </div>
+                                    @if (item.SoldDate.HasValue)
+                                    {
+                                        <div class="x-small text-secondary mt-1">
+                                            <i class="fa-solid fa-handshake me-1"></i>@item.SoldDate.Value.ToString("dd/MM/yy")
+                                        </div>
+                                    }
+                                </td>
+
+                                <!-- Actions -->
+                                <td class="pe-3 text-center" style="min-width:170px;">
+                                    <div class="d-flex gap-1 flex-wrap justify-content-center">
+                                        <!-- View -->
+                                        @{ var itemUrl = $"/marketplace/item/{item.Id}"; }
+                                        <button class="btn btn-xs btn-outline-primary rounded-3"
+                                                @onclick="() => Navigation.NavigateTo(itemUrl)"
+                                                title="عرض">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </button>
+
+                                        <!-- Approve (if not approved yet) -->
+                                        @if (!item.Approved)
+                                        {
+                                            <button class="btn btn-xs btn-success rounded-3"
+                                                    @onclick="() => OpenApproveModal(item)"
+                                                    title="موافقة">
+                                                <i class="fa-solid fa-check"></i>
+                                            </button>
+                                            <button class="btn btn-xs btn-danger rounded-3"
+                                                    @onclick="() => OpenRejectModal(item)"
+                                                    title="رفض">
+                                                <i class="fa-solid fa-xmark"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <!-- Change Status -->
+                                            <button class="btn btn-xs btn-outline-secondary rounded-3"
+                                                    @onclick="() => OpenStatusModal(item)"
+                                                    title="تغيير الحالة">
+                                                <i class="fa-solid fa-sliders"></i>
+                                            </button>
+
+                                            <!-- Feature toggle -->
+                                            @if (!item.IsFeatured)
+                                            {
+                                                <button class="btn btn-xs btn-outline-warning rounded-3"
+                                                        @onclick="() => OpenFeaturedModal(item)"
+                                                        title="تمييز">
+                                                    <i class="fa-solid fa-star"></i>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-xs btn-warning rounded-3"
+                                                        title="مميز بالفعل">
+                                                    <i class="fa-solid fa-star"></i>
+                                                </button>
+                                            }
+
+                                            <!-- Lock/Unlock -->
+                                            @if (item.ItemStatus == "Locked")
+                                            {
+                                                <button class="btn btn-xs btn-outline-success rounded-3"
+                                                        @onclick='() => AdminChangeStatus(item, "Available")'
+                                                        title="إلغاء القفل">
+                                                    <i class="fa-solid fa-lock-open"></i>
+                                                </button>
+                                            }
+                                            else if (item.ItemStatus == "Available")
+                                            {
+                                                <button class="btn btn-xs btn-outline-danger rounded-3"
+                                                        @onclick='() => AdminChangeStatus(item, "Locked")'
+                                                        title="إيقاف/قفل">
+                                                    <i class="fa-solid fa-lock"></i>
+                                                </button>
+                                            }
+
+                                            <!-- Edit Dates -->
+                                            <button class="btn btn-xs btn-outline-info rounded-3"
+                                                    @onclick="() => OpenEditDatesModal(item)"
+                                                    title="تعديل المدة">
+                                                <i class="fa-solid fa-calendar-pen"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="text-muted small mt-2 text-end">
+            عرض @displayedItems.Count من @allItems.Count إعلان
         </div>
     }
 </div>
 
+<!-- ============ MODALS ============ -->
+
+<!-- Approve Modal -->
+@if (showApproveModal && selectedItem != null)
+{
+    <div class="modal-overlay" @onclick="CloseModals">
+        <div class="modal-box" @onclick:stopPropagation>
+            <div class="modal-box-header">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="modal-icon-wrap bg-success-subtle">
+                        <i class="fa-solid fa-check text-success"></i>
+                    </div>
+                    <h5 class="fw-bold mb-0">الموافقة على الإعلان</h5>
+                </div>
+                <button class="btn btn-sm btn-light rounded-circle" @onclick="CloseModals">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-box-body">
+                <div class="item-preview-card mb-4">
+                    <div class="d-flex gap-3 align-items-center">
+                        <img src="@(selectedItem.Images.FirstOrDefault()?.ImageUrl ?? "/images/defaults/default-product.png")"
+                             class="rounded-3" width="60" height="60" style="object-fit:cover;" />
+                        <div>
+                            <div class="fw-bold">@selectedItem.Title</div>
+                            <div class="text-muted small">@selectedItem.SellerName · @selectedItem.Price.ToString("N0") @selectedItem.Currency</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label fw-bold small">تاريخ بداية العرض</label>
+                        <input type="date" class="form-control rounded-3"
+                               @bind="approveStartDate" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label fw-bold small">تاريخ انتهاء العرض</label>
+                        <input type="date" class="form-control rounded-3"
+                               @bind="approveEndDate" min="@approveStartDate.ToString("yyyy-MM-dd")" />
+                        <div class="text-muted x-small mt-1">
+                            المدة الافتراضية: @defaultListingDays يوM
+                            <a href="#" @onclick="SetDefaultDates" @onclick:preventDefault class="ms-1">تعيين</a>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-bold small">ملاحظات (اختياري)</label>
+                        <textarea class="form-control rounded-3" rows="2" placeholder="ملاحظات للسجل..." @bind="approveNotes"></textarea>
+                    </div>
+                </div>
+
+                <div class="duration-preview mt-3 p-2 rounded-3" style="background:#f0fdf4;border:1px solid #bbf7d0;">
+                    <i class="fa-solid fa-calendar-check text-success me-2"></i>
+                    مدة العرض: <strong>@((approveEndDate - approveStartDate).Days) يوم</strong>
+                    من <strong>@approveStartDate.ToString("dd/MM/yyyy")</strong>
+                    إلى <strong>@approveEndDate.ToString("dd/MM/yyyy")</strong>
+                </div>
+            </div>
+            <div class="modal-box-footer">
+                <button class="btn btn-light rounded-pill px-4" @onclick="CloseModals">إلغاء</button>
+                <button class="btn btn-success rounded-pill px-4" @onclick="ConfirmApprove" disabled="@isActionLoading">
+                    @if (isActionLoading) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                    <i class="fa-solid fa-check me-1"></i> موافقة ونشر
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 <!-- Reject Modal -->
 @if (showRejectModal && selectedItem != null)
 {
-    <div class="modal-overlay" @onclick="CloseModal">
-        <div class="modal-dialog-custom" @onclick:stopPropagation>
-            <div class="modal-header-custom">
-                <h5 class="fw-bold mb-0">
-                    <i class="fa-solid fa-ban me-2 text-danger"></i>
-                    رفض الإعلان
-                </h5>
-                <button class="btn btn-sm btn-light rounded-circle" @onclick="CloseModal">
+    <div class="modal-overlay" @onclick="CloseModals">
+        <div class="modal-box" @onclick:stopPropagation>
+            <div class="modal-box-header">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="modal-icon-wrap bg-danger-subtle">
+                        <i class="fa-solid fa-ban text-danger"></i>
+                    </div>
+                    <h5 class="fw-bold mb-0">رفض الإعلان</h5>
+                </div>
+                <button class="btn btn-sm btn-light rounded-circle" @onclick="CloseModals">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            <div class="modal-body-custom">
-                <p class="text-muted mb-3">الإعلان: <strong>@selectedItem.Title</strong></p>
-                <label class="form-label fw-bold">سبب الرفض (اختياري)</label>
+            <div class="modal-box-body">
+                <div class="item-preview-card mb-4">
+                    <div class="d-flex gap-3 align-items-center">
+                        <img src="@(selectedItem.Images.FirstOrDefault()?.ImageUrl ?? "/images/defaults/default-product.png")"
+                             class="rounded-3" width="60" height="60" style="object-fit:cover;" />
+                        <div>
+                            <div class="fw-bold">@selectedItem.Title</div>
+                            <div class="text-muted small">@selectedItem.SellerName</div>
+                        </div>
+                    </div>
+                </div>
+                <label class="form-label fw-bold small">سبب الرفض <span class="text-muted">(اختياري)</span></label>
                 <textarea class="form-control rounded-3" rows="3"
-                          placeholder="مثلاً: المنتج ينتهك سياسة المنصة..."
+                          placeholder="مثلاً: الإعلان ينتهك سياسة المنصة، لقطات غير واضحة..."
                           @bind="rejectNotes"></textarea>
             </div>
-            <div class="modal-footer-custom d-flex gap-2 justify-content-end">
-                <button class="btn btn-light rounded-pill px-4" @onclick="CloseModal">إلغاء</button>
+            <div class="modal-box-footer">
+                <button class="btn btn-light rounded-pill px-4" @onclick="CloseModals">إلغاء</button>
                 <button class="btn btn-danger rounded-pill px-4" @onclick="ConfirmReject" disabled="@isActionLoading">
                     @if (isActionLoading) { <span class="spinner-border spinner-border-sm me-1"></span> }
-                    تأكيد الرفض
+                    <i class="fa-solid fa-ban me-1"></i> رفض الإعلان
                 </button>
             </div>
         </div>
     </div>
 }
 
-<!-- Set Featured Modal -->
-@if (showFeaturedModal && selectedItem != null)
+<!-- Status Change Modal -->
+@if (showStatusModal && selectedItem != null)
 {
-    <div class="modal-overlay" @onclick="CloseModal">
-        <div class="modal-dialog-custom" @onclick:stopPropagation>
-            <div class="modal-header-custom">
-                <h5 class="fw-bold mb-0">
-                    <i class="fa-solid fa-star me-2 text-warning"></i>
-                    تمييز الإعلان
-                </h5>
-                <button class="btn btn-sm btn-light rounded-circle" @onclick="CloseModal">
+    <div class="modal-overlay" @onclick="CloseModals">
+        <div class="modal-box" @onclick:stopPropagation>
+            <div class="modal-box-header">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="modal-icon-wrap bg-primary-subtle">
+                        <i class="fa-solid fa-sliders text-primary"></i>
+                    </div>
+                    <h5 class="fw-bold mb-0">تغيير حالة الإعلان</h5>
+                </div>
+                <button class="btn btn-sm btn-light rounded-circle" @onclick="CloseModals">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            <div class="modal-body-custom">
-                <p class="text-muted mb-3">الإعلان: <strong>@selectedItem.Title</strong></p>
-                <label class="form-label fw-bold">مدة التمييز</label>
-                <select class="form-select rounded-3" @bind="featuredDays">
-                    <option value="7">7 أيام</option>
-                    <option value="14">14 يوم</option>
-                    <option value="30">30 يوم</option>
-                    <option value="90">90 يوم</option>
-                </select>
+            <div class="modal-box-body">
+                <div class="item-preview-card mb-4">
+                    <div class="fw-bold">@selectedItem.Title</div>
+                    <div class="text-muted small">الحالة الحالية:
+                        <span class="badge @GetAdminStatusClass(selectedItem) ms-1">@GetAdminStatusLabel(selectedItem)</span>
+                    </div>
+                </div>
+
+                <label class="form-label fw-bold small">الحالة الجديدة</label>
+                <div class="status-options-grid">
+                    @foreach (var s in new[] {
+                        ("Available", "نشط", "fa-solid fa-circle-check", "success"),
+                        ("Sold", "تم البيع", "fa-solid fa-handshake", "secondary"),
+                        ("Expired", "منتهي", "fa-solid fa-clock-rotate-left", "danger"),
+                        ("Locked", "مقفل", "fa-solid fa-lock", "warning"),
+                        ("Cancelled", "ملغي", "fa-solid fa-ban", "dark")
+                    })
+                    {
+                        <div class="status-option @(newStatus == s.Item1 ? $"selected border-{s.Item4}" : "")"
+                             @onclick="() => newStatus = s.Item1">
+                            <i class="@s.Item3 text-@s.Item4 me-2"></i>
+                            <span class="fw-bold">@s.Item2</span>
+                        </div>
+                    }
+                </div>
             </div>
-            <div class="modal-footer-custom d-flex gap-2 justify-content-end">
-                <button class="btn btn-light rounded-pill px-4" @onclick="CloseModal">إلغاء</button>
-                <button class="btn btn-warning text-dark rounded-pill px-4" @onclick="ConfirmSetFeatured" disabled="@isActionLoading">
+            <div class="modal-box-footer">
+                <button class="btn btn-light rounded-pill px-4" @onclick="CloseModals">إلغاء</button>
+                <button class="btn btn-primary rounded-pill px-4" @onclick="ConfirmStatusChange" disabled="@(isActionLoading || string.IsNullOrEmpty(newStatus))">
                     @if (isActionLoading) { <span class="spinner-border spinner-border-sm me-1"></span> }
-                    تأكيد التمييز
+                    <i class="fa-solid fa-check me-1"></i> تطبيق الحالة
                 </button>
             </div>
         </div>
     </div>
 }
 
-@if (showSuccessToast)
+<!-- Edit Dates Modal -->
+@if (showEditDatesModal && selectedItem != null)
 {
-    <div class="toast-success-custom">
-        <i class="fa-solid fa-check-circle me-2"></i> @toastMessage
+    <div class="modal-overlay" @onclick="CloseModals">
+        <div class="modal-box" @onclick:stopPropagation>
+            <div class="modal-box-header">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="modal-icon-wrap bg-info-subtle">
+                        <i class="fa-solid fa-calendar-pen text-info"></i>
+                    </div>
+                    <h5 class="fw-bold mb-0">تعديل مدة الإعلان</h5>
+                </div>
+                <button class="btn btn-sm btn-light rounded-circle" @onclick="CloseModals">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-box-body">
+                <div class="item-preview-card mb-4">
+                    <div class="fw-bold">@selectedItem.Title</div>
+                    @if (selectedItem.EndDate.HasValue)
+                    {
+                        <div class="text-muted small">
+                            الفترة الحالية: @selectedItem.StartDate?.ToString("dd/MM/yyyy") — @selectedItem.EndDate.Value.ToString("dd/MM/yyyy")
+                        </div>
+                    }
+                </div>
+                <div class="row g-3">
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label fw-bold small">تاريخ البداية</label>
+                        <input type="date" class="form-control rounded-3" @bind="approveStartDate" />
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label fw-bold small">تاريخ الانتهاء</label>
+                        <input type="date" class="form-control rounded-3"
+                               @bind="approveEndDate"
+                               min="@approveStartDate.ToString("yyyy-MM-dd")" />
+                    </div>
+                </div>
+                <div class="duration-preview mt-3 p-2 rounded-3" style="background:#eff6ff;border:1px solid #bfdbfe;">
+                    <i class="fa-solid fa-calendar-days text-primary me-2"></i>
+                    المدة الجديدة: <strong>@((approveEndDate - approveStartDate).Days) يوم</strong>
+                </div>
+                <div class="alert alert-warning small mt-3 rounded-3">
+                    <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                    تعديل التاريخ سيؤثر على ظهور الإعلان تلقائياً. إذا انتهى التاريخ الجديد في الماضي، سيُعامل الإعلان كمنتهٍ.
+                </div>
+            </div>
+            <div class="modal-box-footer">
+                <button class="btn btn-light rounded-pill px-4" @onclick="CloseModals">إلغاء</button>
+                <button class="btn btn-info text-white rounded-pill px-4" @onclick="ConfirmEditDates" disabled="@isActionLoading">
+                    @if (isActionLoading) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                    <i class="fa-solid fa-save me-1"></i> حفظ التغييرات
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Featured Modal -->
+@if (showFeaturedModal && selectedItem != null)
+{
+    <div class="modal-overlay" @onclick="CloseModals">
+        <div class="modal-box" @onclick:stopPropagation>
+            <div class="modal-box-header">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="modal-icon-wrap" style="background:#fef3c7;">
+                        <i class="fa-solid fa-star text-warning"></i>
+                    </div>
+                    <h5 class="fw-bold mb-0">تمييز الإعلان</h5>
+                </div>
+                <button class="btn btn-sm btn-light rounded-circle" @onclick="CloseModals">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-box-body">
+                <div class="item-preview-card mb-4">
+                    <div class="fw-bold">@selectedItem.Title</div>
+                    <div class="text-muted small">@selectedItem.SellerName</div>
+                </div>
+                <label class="form-label fw-bold small">مدة التمييز</label>
+                <div class="days-picker d-flex gap-2 flex-wrap">
+                    @foreach (var d in new[] { 7, 14, 30, 60, 90 })
+                    {
+                        <button class="btn @(featuredDays == d ? "btn-warning text-dark" : "btn-outline-secondary") rounded-pill px-3"
+                                @onclick="() => featuredDays = d">
+                            @d يوم
+                        </button>
+                    }
+                </div>
+                <div class="duration-preview mt-3 p-2 rounded-3" style="background:#fffbeb;border:1px solid #fde68a;">
+                    <i class="fa-solid fa-star text-warning me-2"></i>
+                    سيُميَّز الإعلان حتى <strong>@DateTime.Today.AddDays(featuredDays).ToString("dd/MM/yyyy")</strong>
+                </div>
+            </div>
+            <div class="modal-box-footer">
+                <button class="btn btn-light rounded-pill px-4" @onclick="CloseModals">إلغاء</button>
+                <button class="btn btn-warning text-dark rounded-pill px-4" @onclick="ConfirmFeatured" disabled="@isActionLoading">
+                    @if (isActionLoading) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                    <i class="fa-solid fa-star me-1"></i> تمييز الإعلان
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Toast -->
+@if (showToast)
+{
+    <div class="admin-toast @(toastSuccess ? "toast-ok" : "toast-err")">
+        <i class="fa-solid @(toastSuccess ? "fa-check-circle" : "fa-circle-exclamation") me-2"></i>@toastMsg
     </div>
 }
 
 <style>
-    .marketplace-admin-page {
-        min-height: 100vh;
-        background: #f8fafc;
-    }
+    .marketplace-admin { min-height: 100vh; background: #f8fafc; }
 
-    .badge.bg-danger-soft {
-        background: rgba(239, 68, 68, 0.1) !important;
-    }
-
-    .filter-tabs .btn {
-        font-size: 0.85rem;
+    .admin-stat-card {
+        background: white;
+        border: 1px solid rgba(0,0,0,0.06);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
         transition: all 0.2s;
     }
+    .admin-stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.07); }
+    .stat-active { border-color: var(--theme-primary, #3b82f6) !important; box-shadow: 0 4px 20px rgba(59,130,246,0.12) !important; }
+    .stat-num { font-size: 1.5rem; line-height: 1; }
+    .stat-label { font-size: 0.7rem; color: #94a3b8; margin-top: 4px; }
 
-    .item-admin-card {
-        transition: transform 0.2s, box-shadow 0.2s;
+    .search-filter-bar { background: white; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
+
+    .admin-table-card { background: white; border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 4px 20px rgba(0,0,0,0.04); }
+    .admin-table-card thead { background: #f8fafc; }
+    .admin-table-card thead th { font-size: 0.78rem; font-weight: 700; color: #64748b; padding: 0.85rem 0.75rem; border-bottom: 2px solid #e2e8f0; }
+    .admin-table-card tbody tr { transition: background 0.15s; }
+    .admin-table-card tbody tr:hover { background: #f8fafc; }
+    .table-warning-row { background: rgba(245,158,11,0.04) !important; }
+
+    .item-thumb {
+        width: 52px; height: 52px; border-radius: 10px; overflow: hidden;
+        flex-shrink: 0; position: relative;
     }
-
-    .item-admin-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.08) !important;
+    .item-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .thumb-overlay {
+        position: absolute; inset: 0; background: rgba(0,0,0,0.5);
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 1rem;
     }
+    .thumb-locked { background: rgba(245,158,11,0.7); }
 
+    .price-badge { font-weight: 800; color: var(--theme-primary, #3b82f6); font-size: 0.9rem; }
+
+    .status-pill {
+        display: inline-flex; align-items: center;
+        padding: 3px 10px; border-radius: 20px;
+        font-size: 0.7rem; font-weight: 700;
+    }
+    .pill-available { background: rgba(16,185,129,0.12); color: #059669; }
+    .pill-sold      { background: rgba(100,116,139,0.12); color: #475569; }
+    .pill-expired   { background: rgba(239,68,68,0.12);  color: #dc2626; }
+    .pill-locked    { background: rgba(245,158,11,0.15); color: #b45309; }
+    .pill-cancelled { background: rgba(148,163,184,0.15); color: #64748b; }
+    .pill-pending   { background: rgba(99,102,241,0.12); color: #4f46e5; }
+
+    .btn-xs { padding: 0.2rem 0.5rem; font-size: 0.75rem; line-height: 1.4; }
+    .x-small { font-size: 0.72rem; }
+    .cursor-pointer { cursor: pointer; }
+
+    /* Modal Styles */
     .modal-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.5);
-        backdrop-filter: blur(4px);
-        z-index: 9999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(5px); z-index: 9999;
+        display: flex; align-items: center; justify-content: center;
         animation: fadeIn 0.2s ease;
     }
-
-    .modal-dialog-custom {
-        background: white;
-        border-radius: 20px;
-        width: 100%;
-        max-width: 480px;
-        margin: 1rem;
-        overflow: hidden;
-        animation: slideUp 0.25s ease;
+    .modal-box {
+        background: white; border-radius: 24px;
+        width: 100%; max-width: 520px; margin: 1rem;
+        overflow: hidden; animation: slideUp 0.25s ease;
+        box-shadow: 0 25px 60px rgba(0,0,0,0.15);
+    }
+    .modal-box-header {
+        padding: 1.25rem 1.5rem; border-bottom: 1px solid #f1f5f9;
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    .modal-box-body { padding: 1.5rem; }
+    .modal-box-footer {
+        padding: 1rem 1.5rem; border-top: 1px solid #f1f5f9;
+        display: flex; justify-content: flex-end; gap: 0.5rem;
+    }
+    .modal-icon-wrap {
+        width: 40px; height: 40px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1rem;
     }
 
-    .modal-header-custom {
-        padding: 1.25rem 1.5rem;
-        border-bottom: 1px solid #f1f5f9;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+    .item-preview-card {
+        padding: 0.85rem; background: #f8fafc;
+        border-radius: 12px; border: 1px solid #e2e8f0;
     }
 
-    .modal-body-custom {
-        padding: 1.5rem;
-    }
+    .duration-preview { font-size: 0.82rem; }
 
-    .modal-footer-custom {
-        padding: 1rem 1.5rem;
-        border-top: 1px solid #f1f5f9;
+    /* Status option grid */
+    .status-options-grid { display: flex; flex-direction: column; gap: 0.4rem; }
+    .status-option {
+        display: flex; align-items: center; padding: 0.65rem 1rem;
+        border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer;
+        transition: all 0.15s; font-size: 0.85rem;
     }
+    .status-option:hover { background: #f8fafc; }
+    .status-option.selected { background: #f8fafc; }
 
-    .empty-state {
-        background: white;
-        border-radius: 20px;
-        padding: 3rem;
+    .days-picker { margin-top: 0.5rem; }
+
+    /* Toast */
+    .admin-toast {
+        position: fixed; bottom: 2rem; left: 50%;
+        transform: translateX(-50%); padding: 0.75rem 1.5rem;
+        border-radius: 50px; font-weight: 600; z-index: 99999;
+        animation: slideUpFade 0.3s ease; white-space: nowrap;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     }
+    .toast-ok  { background: #10b981; color: white; }
+    .toast-err { background: #ef4444; color: white; }
 
-    .toast-success-custom {
-        position: fixed;
-        bottom: 2rem;
-        left: 50%;
-        transform: translateX(-50%);
-        background: #10b981;
-        color: white;
-        padding: 0.75rem 1.5rem;
-        border-radius: 50px;
-        font-weight: 600;
-        z-index: 99999;
-        box-shadow: 0 10px 30px rgba(16,185,129,0.3);
-        animation: slideUpFade 0.3s ease, fadeOut 0.5s 2.5s ease forwards;
-    }
+    .empty-box { background: white; border-radius: 20px; border: 2px dashed #e2e8f0; }
 
-    @@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @@keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @@keyframes fadeIn    { from { opacity: 0; } to { opacity: 1; } }
+    @@keyframes slideUp   { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     @@keyframes slideUpFade { from { transform: translateX(-50%) translateY(20px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
-    @@keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
-
-    .x-small { font-size: 0.75rem; }
 </style>
 
 @code {
     private List<MarketplaceItemDto> allItems = new();
-    private List<MarketplaceItemDto> pendingItems = new();
     private List<MarketplaceItemDto> displayedItems = new();
 
-    private string activeTab = "pending";
+    private string activeTab = "all";
+    private string searchQuery = "";
+    private string filterStatus = "";
+    private string filterCondition = "";
+    private string filterFeatured = "";
+
     private bool isLoading = true;
     private bool isActionLoading = false;
+    private int defaultListingDays = 30;
 
+    // Modals
+    private bool showApproveModal = false;
     private bool showRejectModal = false;
+    private bool showStatusModal = false;
+    private bool showEditDatesModal = false;
     private bool showFeaturedModal = false;
+
     private MarketplaceItemDto? selectedItem;
     private string rejectNotes = "";
+    private string approveNotes = "";
+    private DateTime approveStartDate = DateTime.Today;
+    private DateTime approveEndDate = DateTime.Today.AddDays(30);
+    private string newStatus = "";
     private int featuredDays = 7;
 
-    private bool showSuccessToast = false;
-    private string toastMessage = "";
+    // Toast
+    private bool showToast = false;
+    private bool toastSuccess = true;
+    private string toastMsg = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -343,51 +786,89 @@
     private async Task LoadData()
     {
         isLoading = true;
+        StateHasChanged();
 
-        // Load pending (unapproved) items
-        // We use a broad search but filter locally since API might not filter by approved=false
-        var pending = await Api.SearchMarketplaceItemsAsync(pageSize: 100);
-        // For now we load all and add pending simulator
-        allItems = await Api.SearchMarketplaceItemsAsync(pageSize: 50);
-        pendingItems = new List<MarketplaceItemDto>(); // Real pending comes from admin API
+        // Load settings first
+        var settings = await Api.GetMarketplaceSettingsAsync();
+        if (settings != null) defaultListingDays = settings.DefaultListingDays;
 
-        // Load via admin search if available (no sellerId = all items, approved items only for now)
-        // In a full implementation, we'd have a dedicated admin endpoint
-        allItems = await Api.GetLatestMarketplaceItemsAsync(50);
-        pendingItems = allItems.Where(i => !i.IsFeatured).Take(5).ToList(); // Simulated
+        // Load ALL items via admin endpoint (includes pending/unapproved)
+        allItems = await Api.GetAllMarketplaceItemsAdminAsync(300);
 
-        SetTab(activeTab);
+        ApplyFilter();
         isLoading = false;
     }
 
     private void SetTab(string tab)
     {
         activeTab = tab;
-        displayedItems = tab switch
+        filterStatus = tab switch
         {
-            "pending" => pendingItems,
-            "approved" => allItems.Where(i => !i.IsFeatured && !i.IsPromoted).ToList(),
-            "featured" => allItems.Where(i => i.IsFeatured || i.IsPromoted).ToList(),
-            _ => allItems
+            "active"  => "Available",
+            "sold"    => "Sold",
+            "expired" => "Expired",
+            "locked"  => "Locked",
+            "pending" => "__pending__",
+            _         => ""
         };
+        ApplyFilter();
     }
 
-    private void ViewItem(int id)
-    {
-        Navigation.NavigateTo($"/marketplace/item/{id}", true);
-    }
+    private void OnSearchChanged() => ApplyFilter();
 
-    private async Task ApproveItem(MarketplaceItemDto item)
+    private void ApplyFilter()
     {
-        isActionLoading = true;
-        var success = await Api.ApproveMarketplaceItemAsync(item.Id);
-        if (success)
+        var result = allItems.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(searchQuery))
         {
-            pendingItems.Remove(item);
-            ShowToast("تم قبول الإعلان بنجاح ✓");
-            SetTab(activeTab);
+            var q = searchQuery.ToLower();
+            result = result.Where(i =>
+                i.Title.ToLower().Contains(q) ||
+                i.SellerName.ToLower().Contains(q) ||
+                i.CategoryName.ToLower().Contains(q));
         }
-        isActionLoading = false;
+
+        if (filterStatus == "__pending__")
+        {
+            // Items not yet approved/listed
+            result = result.Where(i => !i.Approved);
+        }
+        else if (!string.IsNullOrEmpty(filterStatus))
+        {
+            result = result.Where(i => i.ItemStatus == filterStatus);
+        }
+
+        if (!string.IsNullOrEmpty(filterCondition))
+            result = result.Where(i => i.Condition == filterCondition);
+
+        if (filterFeatured == "featured")
+            result = result.Where(i => i.IsFeatured);
+        else if (filterFeatured == "not_featured")
+            result = result.Where(i => !i.IsFeatured);
+
+        displayedItems = result.OrderByDescending(i => i.CreatedAt).ToList();
+        StateHasChanged();
+    }
+
+    private void ResetFilters()
+    {
+        searchQuery = "";
+        filterStatus = "";
+        filterCondition = "";
+        filterFeatured = "";
+        activeTab = "all";
+        ApplyFilter();
+    }
+
+    // ===== Modal Openers =====
+    private void OpenApproveModal(MarketplaceItemDto item)
+    {
+        selectedItem = item;
+        approveStartDate = DateTime.Today;
+        approveEndDate = DateTime.Today.AddDays(defaultListingDays);
+        approveNotes = "";
+        showApproveModal = true;
     }
 
     private void OpenRejectModal(MarketplaceItemDto item)
@@ -395,6 +876,59 @@
         selectedItem = item;
         rejectNotes = "";
         showRejectModal = true;
+    }
+
+    private void OpenStatusModal(MarketplaceItemDto item)
+    {
+        selectedItem = item;
+        newStatus = item.ItemStatus;
+        showStatusModal = true;
+    }
+
+    private void OpenEditDatesModal(MarketplaceItemDto item)
+    {
+        selectedItem = item;
+        approveStartDate = item.StartDate?.ToLocalTime().Date ?? DateTime.Today;
+        approveEndDate = item.EndDate?.ToLocalTime().Date ?? DateTime.Today.AddDays(defaultListingDays);
+        showEditDatesModal = true;
+    }
+
+    private void OpenFeaturedModal(MarketplaceItemDto item)
+    {
+        selectedItem = item;
+        featuredDays = 7;
+        showFeaturedModal = true;
+    }
+
+    private void SetDefaultDates()
+    {
+        approveStartDate = DateTime.Today;
+        approveEndDate = DateTime.Today.AddDays(defaultListingDays);
+    }
+
+    // ===== Actions =====
+    private async Task ConfirmApprove()
+    {
+        if (selectedItem == null) return;
+        isActionLoading = true;
+        var success = await Api.ApproveMarketplaceItemWithDatesAsync(
+            selectedItem.Id,
+            approveStartDate,
+            approveEndDate,
+            approveNotes);
+        if (success)
+        {
+            selectedItem.ListedAt = DateTime.UtcNow;
+            selectedItem.StartDate = approveStartDate;
+            selectedItem.EndDate = approveEndDate;
+            selectedItem.ItemStatus = "Available";
+            selectedItem.Approved = true;
+            ShowToast($"✅ تم قبول الإعلان ونشره حتى {approveEndDate:dd/MM/yyyy}", true);
+            ApplyFilter();
+        }
+        else ShowToast("فشل قبول الإعلان", false);
+        isActionLoading = false;
+        CloseModals();
     }
 
     private async Task ConfirmReject()
@@ -405,50 +939,155 @@
         if (success)
         {
             allItems.Remove(selectedItem);
-            pendingItems.Remove(selectedItem);
-            ShowToast("تم رفض الإعلان");
-            SetTab(activeTab);
+            ShowToast("تم رفض الإعلان", true);
+            ApplyFilter();
         }
+        else ShowToast("فشل رفض الإعلان", false);
         isActionLoading = false;
-        CloseModal();
+        CloseModals();
     }
 
-    private void SetFeatured(MarketplaceItemDto item)
+    private async Task ConfirmStatusChange()
     {
-        selectedItem = item;
-        featuredDays = 7;
-        showFeaturedModal = true;
+        if (selectedItem == null || string.IsNullOrEmpty(newStatus)) return;
+        isActionLoading = true;
+        var success = await Api.ChangeMarketplaceItemStatusAsync(selectedItem.Id, newStatus);
+        if (success)
+        {
+            var old = selectedItem.ItemStatus;
+            selectedItem.ItemStatus = newStatus;
+            ShowToast($"تم تغيير الحالة إلى '{GetStatusName(newStatus)}'", true);
+            ApplyFilter();
+        }
+        else ShowToast("فشل تغيير الحالة", false);
+        isActionLoading = false;
+        CloseModals();
     }
 
-    private async Task ConfirmSetFeatured()
+    private async Task ConfirmEditDates()
+    {
+        if (selectedItem == null) return;
+        isActionLoading = true;
+        // Re-approve with new dates (admin action)
+        var success = await Api.ApproveMarketplaceItemWithDatesAsync(
+            selectedItem.Id,
+            approveStartDate,
+            approveEndDate,
+            null);
+        if (success)
+        {
+            selectedItem.StartDate = approveStartDate;
+            selectedItem.EndDate = approveEndDate;
+            ShowToast($"✅ تم تحديث مدة الإعلان حتى {approveEndDate:dd/MM/yyyy}", true);
+            ApplyFilter();
+        }
+        else ShowToast("فشل تحديث المدة", false);
+        isActionLoading = false;
+        CloseModals();
+    }
+
+    private async Task ConfirmFeatured()
     {
         if (selectedItem == null) return;
         isActionLoading = true;
         var success = await Api.SetMarketplaceItemFeaturedAsync(selectedItem.Id, featuredDays);
         if (success)
         {
-            ShowToast($"تم تمييز الإعلان لمدة {featuredDays} أيام ✓");
-            await LoadData();
+            selectedItem.IsFeatured = true;
+            ShowToast($"⭐ تم تمييز الإعلان لمدة {featuredDays} أيام", true);
         }
+        else ShowToast("فشل تمييز الإعلان", false);
         isActionLoading = false;
-        CloseModal();
+        CloseModals();
     }
 
-    private void CloseModal()
+    private async Task AdminChangeStatus(MarketplaceItemDto item, string status)
     {
+        var success = await Api.ChangeMarketplaceItemStatusAsync(item.Id, status);
+        if (success)
+        {
+            item.ItemStatus = status;
+            ShowToast($"تم تغيير حالة الإعلان إلى '{GetStatusName(status)}'", true);
+            ApplyFilter();
+            StateHasChanged();
+        }
+        else ShowToast("فشل تغيير الحالة", false);
+    }
+
+    private void CloseModals()
+    {
+        showApproveModal = false;
         showRejectModal = false;
+        showStatusModal = false;
+        showEditDatesModal = false;
         showFeaturedModal = false;
         selectedItem = null;
-        rejectNotes = "";
     }
 
-    private async void ShowToast(string message)
+    // ===== Helpers =====
+    private string GetAdminStatusLabel(MarketplaceItemDto item)
     {
-        toastMessage = message;
-        showSuccessToast = true;
+        if (!item.Approved) return "قيد المراجعة";
+        if (item.IsExpired && item.ItemStatus == "Available") return "منتهي";
+        return item.ItemStatus switch
+        {
+            "Available"  => "نشط",
+            "Sold"       => "تم البيع",
+            "Expired"    => "منتهي",
+            "Locked"     => "مقفل",
+            "Cancelled"  => "ملغي",
+            _            => item.ItemStatus
+        };
+    }
+
+    private string GetAdminStatusIcon(MarketplaceItemDto item)
+    {
+        if (!item.Approved) return "fa-solid fa-hourglass-half";
+        if (item.IsExpired && item.ItemStatus == "Available") return "fa-solid fa-clock-rotate-left";
+        return item.ItemStatus switch
+        {
+            "Available"  => "fa-solid fa-circle-check",
+            "Sold"       => "fa-solid fa-handshake",
+            "Expired"    => "fa-solid fa-clock-rotate-left",
+            "Locked"     => "fa-solid fa-lock",
+            "Cancelled"  => "fa-solid fa-ban",
+            _            => "fa-solid fa-circle"
+        };
+    }
+
+    private string GetAdminStatusClass(MarketplaceItemDto item)
+    {
+        if (!item.Approved) return "status-pill pill-pending";
+        if (item.IsExpired && item.ItemStatus == "Available") return "status-pill pill-expired";
+        return item.ItemStatus switch
+        {
+            "Available"  => "status-pill pill-available",
+            "Sold"       => "status-pill pill-sold",
+            "Expired"    => "status-pill pill-expired",
+            "Locked"     => "status-pill pill-locked",
+            "Cancelled"  => "status-pill pill-cancelled",
+            _            => "status-pill pill-pending"
+        };
+    }
+
+    private string GetStatusName(string s) => s switch
+    {
+        "Available"  => "نشط",
+        "Sold"       => "تم البيع",
+        "Expired"    => "منتهي",
+        "Locked"     => "مقفل",
+        "Cancelled"  => "ملغي",
+        _            => s
+    };
+
+    private async void ShowToast(string message, bool success)
+    {
+        toastMsg = message;
+        toastSuccess = success;
+        showToast = true;
         StateHasChanged();
-        await Task.Delay(3000);
-        showSuccessToast = false;
+        await Task.Delay(3500);
+        showToast = false;
         StateHasChanged();
     }
 }

@@ -25,28 +25,45 @@
         @if (items.Any())
         {
             <div class="row g-3 mb-4">
-                <div class="col-6 col-md-3">
-                    <div class="stat-mini-card text-center p-3 rounded-4">
+                <div class="col-6 col-sm-4 col-md-2">
+                    <div class="stat-mini-card text-center p-3 rounded-4 cursor-pointer @(activeFilter == "All" ? "stat-active" : "")"
+                         @onclick='() => SetFilter("All")'>
                         <div class="stat-value text-primary fw-bold fs-4">@items.Count</div>
-                        <div class="stat-label text-muted small">إجمالي الإعلانات</div>
+                        <div class="stat-label text-muted small">الكل</div>
                     </div>
                 </div>
-                <div class="col-6 col-md-3">
-                    <div class="stat-mini-card text-center p-3 rounded-4">
+                <div class="col-6 col-sm-4 col-md-2">
+                    <div class="stat-mini-card text-center p-3 rounded-4 cursor-pointer @(activeFilter == "Available" ? "stat-active" : "")"
+                         @onclick='() => SetFilter("Available")'>
                         <div class="stat-value text-success fw-bold fs-4">@items.Count(i => i.ItemStatus == "Available")</div>
-                        <div class="stat-label text-muted small">متاحة</div>
+                        <div class="stat-label text-muted small">نشط</div>
                     </div>
                 </div>
-                <div class="col-6 col-md-3">
-                    <div class="stat-mini-card text-center p-3 rounded-4">
+                <div class="col-6 col-sm-4 col-md-2">
+                    <div class="stat-mini-card text-center p-3 rounded-4 cursor-pointer @(activeFilter == "Sold" ? "stat-active" : "")"
+                         @onclick='() => SetFilter("Sold")'>
                         <div class="stat-value text-secondary fw-bold fs-4">@items.Count(i => i.ItemStatus == "Sold")</div>
-                        <div class="stat-label text-muted small">تم بيعها</div>
+                        <div class="stat-label text-muted small">تم البيع</div>
                     </div>
                 </div>
-                <div class="col-6 col-md-3">
+                <div class="col-6 col-sm-4 col-md-2">
+                    <div class="stat-mini-card text-center p-3 rounded-4 cursor-pointer @(activeFilter == "Expired" ? "stat-active" : "")"
+                         @onclick='() => SetFilter("Expired")'>
+                        <div class="stat-value text-danger fw-bold fs-4">@items.Count(i => i.ItemStatus == "Expired" || i.IsExpired)</div>
+                        <div class="stat-label text-muted small">منتهي</div>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4 col-md-2">
+                    <div class="stat-mini-card text-center p-3 rounded-4 cursor-pointer @(activeFilter == "Locked" ? "stat-active" : "")"
+                         @onclick='() => SetFilter("Locked")'>
+                        <div class="stat-value text-warning fw-bold fs-4">@items.Count(i => i.ItemStatus == "Locked")</div>
+                        <div class="stat-label text-muted small">مقفل</div>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4 col-md-2">
                     <div class="stat-mini-card text-center p-3 rounded-4">
                         <div class="stat-value text-info fw-bold fs-4">@items.Sum(i => i.ViewsCount)</div>
-                        <div class="stat-label text-muted small">إجمالي المشاهدات</div>
+                        <div class="stat-label text-muted small">المشاهدات</div>
                     </div>
                 </div>
             </div>
@@ -79,81 +96,193 @@
         else
         {
             <!-- Items List -->
-            <div class="row g-3">
-                @foreach (var item in items)
-                {
-                    <div class="col-12 col-md-6 col-lg-4">
-                        <div class="listing-card position-relative h-100">
-                            <!-- Status Badge -->
-                            <div class="status-ribbon @GetStatusClass(item.ItemStatus)">
-                                @GetStatusLabel(item.ItemStatus)
-                            </div>
-
-                            @if (item.IsFeatured)
-                            {
-                                <div class="featured-pill">
-                                    <i class="fa-solid fa-star me-1"></i>مميز
-                                </div>
-                            }
-
-                            <!-- Product Image -->
-                            <div class="listing-image"
-                                 @onclick='() => Navigation.NavigateTo($"/marketplace/item/{item.Id}")'>
-                                <img src="@(item.Images.FirstOrDefault()?.ImageUrl ?? "/images/defaults/default-product.png")"
-                                     alt="@item.Title" />
-                            </div>
-
-                            <div class="listing-body p-3">
-                                <h6 class="fw-bold text-truncate mb-1 cursor-pointer"
-                                    @onclick='() => Navigation.NavigateTo($"/marketplace/item/{item.Id}")'>
-                                    @item.Title
-                                </h6>
-                                <div class="listing-price mb-2">@item.Price.ToString("N0") @item.Currency</div>
-
-                                <div class="d-flex gap-3 text-muted small mb-3">
-                                    <span>
-                                        <i class="fa-solid fa-eye me-1"></i>@item.ViewsCount
-                                    </span>
-                                    <span>
-                                        <i class="fa-regular fa-calendar me-1"></i>@item.CreatedAt.ToString("dd/MM/yyyy")
-                                    </span>
-                                    <span>
-                                        @(item.Condition == "New" ? "جديد" : "مستعمل")
-                                    </span>
+            var filtered = GetFilteredItems();
+            @if (!filtered.Any())
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="fa-solid fa-filter fa-2x opacity-25 mb-3 d-block"></i>
+                    لا توجد إعلانات بهذه الحالة
+                </div>
+            }
+            else
+            {
+                <div class="row g-3">
+                    @foreach (var item in filtered)
+                    {
+                        <div class="col-12 col-md-6 col-xl-4">
+                            <div class="listing-card position-relative h-100">
+                                <!-- Status Badge -->
+                                <div class="status-ribbon @GetStatusClass(item)">
+                                    <i class="@GetStatusIcon(item) me-1"></i>@GetStatusLabel(item)
                                 </div>
 
-                                <!-- Action Buttons -->
-                                <div class="d-flex gap-2">
-                                    @if (item.ItemStatus == "Available")
+                                @if (item.IsFeatured)
+                                {
+                                    <div class="featured-pill">
+                                        <i class="fa-solid fa-star me-1"></i>مميز
+                                    </div>
+                                }
+
+                                <!-- Product Image -->
+                                <div class="listing-image"
+                                     @onclick='() => Navigation.NavigateTo($"/marketplace/item/{item.Id}")'>
+                                    <img src="@(item.Images.FirstOrDefault()?.ImageUrl ?? "/images/defaults/default-product.png")"
+                                         alt="@item.Title" />
+                                    @if (item.ItemStatus == "Sold")
                                     {
-                                        <button class="btn btn-sm btn-outline-success rounded-3 flex-grow-1"
-                                                @onclick="() => MarkSold(item)">
-                                            <i class="fa-solid fa-check me-1"></i>تم البيع
-                                        </button>
+                                        <div class="sold-watermark">تم البيع</div>
                                     }
-                                    else
+                                    else if (item.ItemStatus == "Locked")
                                     {
-                                        <button class="btn btn-sm btn-outline-primary rounded-3 flex-grow-1"
-                                                @onclick="() => MarkAvailable(item)">
-                                            <i class="fa-solid fa-rotate me-1"></i>إعادة نشر
-                                        </button>
+                                        <div class="locked-watermark"><i class="fa-solid fa-lock me-1"></i>مقفل</div>
+                                    }
+                                </div>
+
+                                <div class="listing-body p-3">
+                                    <h6 class="fw-bold text-truncate mb-1 cursor-pointer"
+                                        @onclick='() => Navigation.NavigateTo($"/marketplace/item/{item.Id}")'>
+                                        @item.Title
+                                    </h6>
+                                    <div class="listing-price mb-2">@item.Price.ToString("N0") @item.Currency</div>
+
+                                    <!-- Dates & Views -->
+                                    <div class="listing-meta mb-2">
+                                        <div class="meta-row">
+                                            <span class="meta-item">
+                                                <i class="fa-solid fa-eye text-primary opacity-60"></i>
+                                                @item.ViewsCount مشاهدة
+                                            </span>
+                                            <span class="meta-item">
+                                                <i class="fa-regular fa-calendar text-muted"></i>
+                                                @item.CreatedAt.ToString("dd/MM/yyyy")
+                                            </span>
+                                        </div>
+                                        @if (item.ListedAt.HasValue)
+                                        {
+                                            <div class="meta-row mt-1">
+                                                <span class="meta-item text-success">
+                                                    <i class="fa-solid fa-circle-check"></i>
+                                                    عُرض: @item.ListedAt.Value.ToString("dd/MM/yyyy")
+                                                </span>
+                                                @if (item.SoldDate.HasValue)
+                                                {
+                                                    <span class="meta-item text-secondary">
+                                                        <i class="fa-solid fa-handshake"></i>
+                                                        بيع: @item.SoldDate.Value.ToString("dd/MM/yyyy")
+                                                    </span>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+
+                                    <!-- Duration Progress Bar -->
+                                    @if (item.StartDate.HasValue && item.EndDate.HasValue && item.ItemStatus == "Available")
+                                    {
+                                        var totalDays = (item.EndDate.Value - item.StartDate.Value).TotalDays;
+                                        var passedDays = (DateTime.UtcNow - item.StartDate.Value).TotalDays;
+                                        var progressPct = Math.Min(100, Math.Max(0, (passedDays / totalDays) * 100));
+                                        var daysLeft = item.DaysRemaining ?? 0;
+
+                                        <div class="duration-bar mb-3">
+                                            <div class="d-flex justify-content-between small mb-1">
+                                                <span class="text-muted">مدة الإعلان</span>
+                                                <span class="@(daysLeft <= 5 ? "text-danger fw-bold" : "text-success fw-bold")">
+                                                    @if (daysLeft == 0)
+                                                    { <text>ينتهي اليوم!</text> }
+                                                    else
+                                                    { <text>@daysLeft يوم متبقي</text> }
+                                                </span>
+                                            </div>
+                                            <div class="progress" style="height: 6px; border-radius: 10px;">
+                                                <div class="progress-bar @(progressPct > 80 ? "bg-danger" : progressPct > 50 ? "bg-warning" : "bg-success")"
+                                                     style="width: @progressPct.ToString("F0")%"></div>
+                                            </div>
+                                            <div class="text-muted" style="font-size:0.7rem; margin-top:2px;">
+                                                ينتهي @item.EndDate.Value.ToString("dd/MM/yyyy")
+                                            </div>
+                                        </div>
+                                    }
+                                    else if (item.ItemStatus == "Expired" || (item.EndDate.HasValue && item.EndDate.Value < DateTime.UtcNow))
+                                    {
+                                        <div class="alert alert-danger py-1 px-2 small mb-3 rounded-3">
+                                            <i class="fa-solid fa-clock-rotate-left me-1"></i>
+                                            انتهى الإعلان @item.EndDate?.ToString("dd/MM/yyyy")
+                                        </div>
                                     }
 
-                                    <button class="btn btn-sm btn-outline-secondary rounded-3"
-                                            @onclick='() => Navigation.NavigateTo($"/marketplace/edit/{item.Id}")'>
-                                        <i class="fa-solid fa-pen"></i>
-                                    </button>
-
-                                    <button class="btn btn-sm btn-outline-danger rounded-3"
-                                            @onclick="() => ConfirmDelete(item)">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
+                                    <!-- Action Buttons -->
+                                    <div class="action-grid">
+                                        @if (item.ItemStatus == "Available")
+                                        {
+                                            <button class="btn btn-sm btn-success rounded-3 w-100 mb-1"
+                                                    @onclick="() => MarkSold(item)">
+                                                <i class="fa-solid fa-check me-1"></i>تم البيع
+                                            </button>
+                                            <div class="d-flex gap-1">
+                                                <button class="btn btn-sm btn-outline-warning rounded-3 flex-grow-1"
+                                                        @onclick="() => ConfirmLock(item)"
+                                                        title="قفل الإعلان">
+                                                    <i class="fa-solid fa-lock me-1"></i>قفل
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-secondary rounded-3 flex-grow-1"
+                                                        @onclick='() => Navigation.NavigateTo($"/marketplace/edit/{item.Id}")'
+                                                        title="تعديل">
+                                                    <i class="fa-solid fa-pen"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger rounded-3"
+                                                        @onclick="() => ConfirmDelete(item)"
+                                                        title="حذف">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        }
+                                        else if (item.ItemStatus == "Locked")
+                                        {
+                                            <button class="btn btn-sm btn-outline-success rounded-3 w-100 mb-1"
+                                                    @onclick="() => ReActivate(item)">
+                                                <i class="fa-solid fa-lock-open me-1"></i>إلغاء القفل
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger rounded-3 w-100"
+                                                    @onclick="() => ConfirmDelete(item)">
+                                                <i class="fa-solid fa-trash me-1"></i>حذف
+                                            </button>
+                                        }
+                                        else if (item.ItemStatus == "Sold")
+                                        {
+                                            <button class="btn btn-sm btn-outline-primary rounded-3 w-100 mb-1"
+                                                    @onclick="() => ReActivate(item)">
+                                                <i class="fa-solid fa-rotate me-1"></i>إعادة إتاحة
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger rounded-3 w-100"
+                                                    @onclick="() => ConfirmDelete(item)">
+                                                <i class="fa-solid fa-trash me-1"></i>حذف
+                                            </button>
+                                        }
+                                        else if (item.ItemStatus == "Expired" || (item.EndDate.HasValue && item.EndDate.Value < DateTime.UtcNow))
+                                        {
+                                            <div class="text-muted small text-center p-2 rounded-3" style="background: rgba(0,0,0,0.03);">
+                                                <i class="fa-solid fa-info-circle me-1"></i>
+                                                تواصل مع الدعم لتجديد الإعلان
+                                            </div>
+                                            <button class="btn btn-sm btn-outline-danger rounded-3 w-100 mt-1"
+                                                    @onclick="() => ConfirmDelete(item)">
+                                                <i class="fa-solid fa-trash me-1"></i>حذف
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-sm btn-outline-secondary rounded-3 w-100"
+                                                    @onclick="() => ConfirmDelete(item)">
+                                                <i class="fa-solid fa-trash me-1"></i>حذف
+                                            </button>
+                                        }
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                }
-            </div>
+                    }
+                </div>
+            }
         }
     </div>
 </div>
@@ -175,6 +304,29 @@
                 <button class="btn btn-danger rounded-pill flex-grow-1" @onclick="DeleteItem" disabled="@isActionLoading">
                     @if (isActionLoading) { <span class="spinner-border spinner-border-sm me-1"></span> }
                     حذف
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Lock Confirm Modal -->
+@if (itemToLock != null)
+{
+    <div class="modal-overlay" @onclick="CancelLock">
+        <div class="confirm-dialog" @onclick:stopPropagation>
+            <div class="text-center mb-4">
+                <div class="confirm-icon text-warning mb-3" style="background: rgba(245,158,11,0.1);">
+                    <i class="fa-solid fa-lock fa-2x text-warning"></i>
+                </div>
+                <h5 class="fw-bold">قفل الإعلان</h5>
+                <p class="text-muted">سيتم إخفاء الإعلان مؤقتاً من المتجر. يمكنك إلغاء القفل في أي وقت.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-light rounded-pill flex-grow-1" @onclick="CancelLock">إلغاء</button>
+                <button class="btn btn-warning rounded-pill flex-grow-1" @onclick="LockItem" disabled="@isActionLoading">
+                    @if (isActionLoading) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                    <i class="fa-solid fa-lock me-1"></i>قفل
                 </button>
             </div>
         </div>
@@ -207,6 +359,11 @@
         box-shadow: 0 8px 20px rgba(0,0,0,0.06);
     }
 
+    .stat-active {
+        border-color: var(--theme-primary, #3b82f6) !important;
+        box-shadow: 0 4px 20px rgba(59,130,246,0.15) !important;
+    }
+
     .listing-card {
         background: white;
         border-radius: 20px;
@@ -228,6 +385,7 @@
         overflow: hidden;
         cursor: pointer;
         background: #f1f5f9;
+        position: relative;
     }
 
     .listing-image img {
@@ -237,15 +395,43 @@
         transition: transform 0.3s;
     }
 
-    .listing-image:hover img {
-        transform: scale(1.05);
+    .listing-image:hover img { transform: scale(1.05); }
+
+    .sold-watermark, .locked-watermark {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        font-weight: 800;
+        letter-spacing: 1px;
     }
 
+    .sold-watermark {
+        background: rgba(0,0,0,0.5);
+        color: white;
+        backdrop-filter: blur(2px);
+    }
+
+    .locked-watermark {
+        background: rgba(245,158,11,0.75);
+        color: white;
+        backdrop-filter: blur(2px);
+    }
+
+    .listing-body { flex: 1; display: flex; flex-direction: column; }
+    .action-grid { margin-top: auto; }
+
     .listing-price {
-        font-size: 1.2rem;
+        font-size: 1.15rem;
         font-weight: 800;
         color: var(--theme-primary, #3b82f6);
     }
+
+    .listing-meta { font-size: 0.78rem; }
+    .meta-row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .meta-item { display: flex; align-items: center; gap: 0.3rem; color: #64748b; }
 
     .status-ribbon {
         position: absolute;
@@ -260,7 +446,10 @@
 
     .ribbon-available { background: #10b981; color: white; }
     .ribbon-sold { background: #64748b; color: white; }
-    .ribbon-pending { background: #f59e0b; color: white; }
+    .ribbon-expired { background: #ef4444; color: white; }
+    .ribbon-locked { background: #f59e0b; color: white; }
+    .ribbon-pending { background: #6366f1; color: white; }
+    .ribbon-cancelled { background: #94a3b8; color: white; }
 
     .featured-pill {
         position: absolute;
@@ -274,6 +463,8 @@
         font-weight: 700;
         z-index: 2;
     }
+
+    .duration-bar { border-radius: 8px; background: #f8fafc; padding: 0.4rem 0.5rem; border: 1px solid #e2e8f0; }
 
     .empty-state-card {
         background: white;
@@ -348,8 +539,10 @@
     private List<MarketplaceItemDto> items = new();
     private bool isLoading = true;
     private bool isActionLoading = false;
+    private string activeFilter = "All";
 
     private MarketplaceItemDto? itemToDelete;
+    private MarketplaceItemDto? itemToLock;
 
     private bool showToast = false;
     private bool toastIsSuccess = true;
@@ -367,20 +560,64 @@
         isLoading = false;
     }
 
-    private string GetStatusLabel(string status) => status switch
+    private void SetFilter(string filter)
     {
-        "Available" => "متاح",
-        "Sold" => "تم البيع",
-        "Cancelled" => "ملغي",
-        _ => status
-    };
+        activeFilter = filter;
+    }
 
-    private string GetStatusClass(string status) => status switch
+    private List<MarketplaceItemDto> GetFilteredItems()
     {
-        "Available" => "ribbon-available",
-        "Sold" => "ribbon-sold",
-        _ => "ribbon-pending"
-    };
+        return activeFilter switch
+        {
+            "Available" => items.Where(i => i.ItemStatus == "Available").ToList(),
+            "Sold"      => items.Where(i => i.ItemStatus == "Sold").ToList(),
+            "Expired"   => items.Where(i => i.ItemStatus == "Expired" || i.IsExpired).ToList(),
+            "Locked"    => items.Where(i => i.ItemStatus == "Locked").ToList(),
+            _           => items
+        };
+    }
+
+    private string GetStatusLabel(MarketplaceItemDto item)
+    {
+        if (item.IsExpired && item.ItemStatus == "Available") return "منتهي";
+        return item.ItemStatus switch
+        {
+            "Available"  => "نشط",
+            "Sold"       => "تم البيع",
+            "Expired"    => "منتهي",
+            "Locked"     => "مقفل",
+            "Cancelled"  => "ملغي",
+            _            => item.ItemStatus
+        };
+    }
+
+    private string GetStatusIcon(MarketplaceItemDto item)
+    {
+        if (item.IsExpired && item.ItemStatus == "Available") return "fa-solid fa-clock-rotate-left";
+        return item.ItemStatus switch
+        {
+            "Available"  => "fa-solid fa-circle-check",
+            "Sold"       => "fa-solid fa-handshake",
+            "Expired"    => "fa-solid fa-clock-rotate-left",
+            "Locked"     => "fa-solid fa-lock",
+            "Cancelled"  => "fa-solid fa-ban",
+            _            => "fa-solid fa-circle"
+        };
+    }
+
+    private string GetStatusClass(MarketplaceItemDto item)
+    {
+        if (item.IsExpired && item.ItemStatus == "Available") return "ribbon-expired";
+        return item.ItemStatus switch
+        {
+            "Available"  => "ribbon-available",
+            "Sold"       => "ribbon-sold",
+            "Expired"    => "ribbon-expired",
+            "Locked"     => "ribbon-locked",
+            "Cancelled"  => "ribbon-cancelled",
+            _            => "ribbon-pending"
+        };
+    }
 
     private async Task MarkSold(MarketplaceItemDto item)
     {
@@ -388,16 +625,49 @@
         if (success)
         {
             item.ItemStatus = "Sold";
-            ShowToast("تم تحديث حالة المنتج إلى 'تم البيع'", true);
+            item.SoldDate = DateTime.UtcNow;
+            ShowToast("تم تحديث حالة الإعلان إلى 'تم البيع' ✅", true);
+            StateHasChanged();
         }
         else ShowToast("فشل تحديث الحالة", false);
     }
 
-    private async Task MarkAvailable(MarketplaceItemDto item)
+    private async Task ReActivate(MarketplaceItemDto item)
     {
-        ShowToast("سيتم إعادة نشر المنتج قريباً", true);
-        await Task.CompletedTask;
-        // TODO: Add dedicated API endpoint for re-listing
+        var success = await Api.ChangeMarketplaceItemStatusAsync(item.Id, "Available");
+        if (success)
+        {
+            item.ItemStatus = "Available";
+            ShowToast("تم إعادة تفعيل الإعلان ✅", true);
+            StateHasChanged();
+        }
+        else ShowToast("فشل تحديث الحالة", false);
+    }
+
+    private void ConfirmLock(MarketplaceItemDto item)
+    {
+        itemToLock = item;
+    }
+
+    private void CancelLock()
+    {
+        itemToLock = null;
+    }
+
+    private async Task LockItem()
+    {
+        if (itemToLock == null) return;
+        isActionLoading = true;
+        var success = await Api.LockMarketplaceItemAsync(itemToLock.Id);
+        isActionLoading = false;
+        if (success)
+        {
+            itemToLock.ItemStatus = "Locked";
+            ShowToast("تم قفل الإعلان مؤقتاً 🔒", true);
+            StateHasChanged();
+        }
+        else ShowToast("فشل قفل الإعلان", false);
+        itemToLock = null;
     }
 
     private void ConfirmDelete(MarketplaceItemDto item)
@@ -434,7 +704,7 @@
         toastIsSuccess = success;
         showToast = true;
         StateHasChanged();
-        await Task.Delay(3000);
+        await Task.Delay(3500);
         showToast = false;
         StateHasChanged();
     }

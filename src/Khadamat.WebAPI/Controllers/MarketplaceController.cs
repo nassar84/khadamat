@@ -62,7 +62,7 @@ public class MarketplaceController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 12)
     {
-        var items = await _marketplaceService.SearchItemsAsync(q, categoryId, subCategoryId, governorateId, cityId, condition, minPrice, maxPrice, sellerId, page, pageSize);
+        var items = await _marketplaceService.SearchItemsAsync(q, categoryId, subCategoryId, governorateId, cityId, condition, minPrice, maxPrice, sellerId, sortBy: "date_desc", page, pageSize);
         return Ok(items);
     }
 
@@ -154,7 +154,7 @@ public class MarketplaceController : ControllerBase
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-        var items = await _marketplaceService.SearchItemsAsync(null, null, null, null, null, null, null, null, userId, page, pageSize);
+        var items = await _marketplaceService.SearchItemsAsync(null, null, null, null, null, null, null, null, userId, sortBy: "date_desc", page, pageSize);
         return Ok(items);
     }
 
@@ -178,11 +178,59 @@ public class MarketplaceController : ControllerBase
 
     // Admin Endpoints
     [Authorize(Policy = "RequireAdmin")]
-    [HttpPost("{id}/approve")]
-    public async Task<IActionResult> Approve(int id, [FromQuery] string? notes)
+    [HttpGet("admin/items")]
+    public async Task<IActionResult> GetAllItemsAdmin([FromQuery] int page = 1, [FromQuery] int pageSize = 200)
     {
-        await _marketplaceService.ApproveItemAsync(id, notes);
+        var items = await _marketplaceService.GetAllItemsAdminAsync(page, pageSize);
+        return Ok(items);
+    }
+
+    [Authorize(Policy = "RequireAdmin")]
+    [HttpPost("{id}/approve")]
+    public async Task<IActionResult> Approve(int id, [FromQuery] string? notes, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
+    {
+        await _marketplaceService.ApproveItemAsync(id, startDate, endDate, notes);
         return Ok();
+    }
+
+    // Owner / Admin Status Control
+    [Authorize]
+    [HttpPost("{id}/change-status")]
+    public async Task<IActionResult> ChangeStatus(int id, [FromBody] ChangeMarketplaceItemStatusRequest request)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        bool isAdmin = User.IsInRole("SystemAdmin") || User.IsInRole("SuperAdmin") || User.IsInRole("Admin");
+
+        try
+        {
+            await _marketplaceService.ChangeItemStatusAsync(id, request.Status, userId, isAdmin);
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [Authorize]
+    [HttpPost("{id}/lock")]
+    public async Task<IActionResult> LockItem(int id)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+        var isAdmin = User.IsInRole("SystemAdmin") || User.IsInRole("SuperAdmin") || User.IsInRole("Admin");
+
+        try
+        {
+            await _marketplaceService.LockItemAsync(id, userId, isAdmin);
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     [Authorize(Policy = "RequireAdmin")]
@@ -207,6 +255,13 @@ public class MarketplaceController : ControllerBase
     {
         await _marketplaceService.SetPromotedAsync(id, days);
         return Ok();
+    }
+
+    [HttpGet("settings")]
+    public async Task<IActionResult> GetSettings()
+    {
+        var settings = await _marketplaceService.GetMarketplaceSettingsAsync();
+        return Ok(settings);
     }
 
     [HttpGet("categories")]

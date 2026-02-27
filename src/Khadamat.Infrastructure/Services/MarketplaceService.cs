@@ -76,6 +76,7 @@ public class MarketplaceService : IMarketplaceService
         decimal? minPrice, 
         decimal? maxPrice, 
         string? sellerId = null,
+        string? sortBy = "date_desc",
         int page = 1, 
         int pageSize = 12)
     {
@@ -134,9 +135,29 @@ public class MarketplaceService : IMarketplaceService
             dbQuery = dbQuery.Where(m => m.Price <= maxPrice.Value);
         }
 
-        var items = await dbQuery
-            .OrderByDescending(m => m.IsPromoted)
-            .ThenByDescending(m => m.CreatedAt)
+        IOrderedQueryable<MarketplaceItem> orderedQuery;
+        
+        switch (sortBy?.ToLower())
+        {
+            case "price_asc":
+                orderedQuery = dbQuery.OrderByDescending(m => m.IsPromoted).ThenBy(m => m.Price);
+                break;
+            case "price_desc":
+                orderedQuery = dbQuery.OrderByDescending(m => m.IsPromoted).ThenByDescending(m => m.Price);
+                break;
+            case "views_desc":
+                orderedQuery = dbQuery.OrderByDescending(m => m.IsPromoted).ThenByDescending(m => m.ViewsCount);
+                break;
+            case "date_asc":
+                orderedQuery = dbQuery.OrderByDescending(m => m.IsPromoted).ThenBy(m => m.CreatedAt);
+                break;
+            case "date_desc":
+            default:
+                orderedQuery = dbQuery.OrderByDescending(m => m.IsPromoted).ThenByDescending(m => m.CreatedAt);
+                break;
+        }
+
+        var items = await orderedQuery
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -243,12 +264,62 @@ public class MarketplaceService : IMarketplaceService
 
     public async Task MarkAsSoldAsync(int id, string sellerId)
     {
+        await ChangeItemStatusAsync(id, "Sold", sellerId);
+    }
+
+    public async Task ChangeItemStatusAsync(int id, string status, string actorId, bool isAdmin = false)
+    {
         var item = await _context.MarketplaceItems.FindAsync(id);
         if (item == null) throw new BusinessRuleException("Item not found");
-        if (item.SellerId != sellerId) throw new BusinessRuleException("Unauthorized");
+        if (!isAdmin && item.SellerId != actorId)
+            throw new BusinessRuleException("Unauthorized");
 
-        item.MarkAsSold();
+        switch (status)
+        {
+            case "Available":
+                item.MarkAsAvailable();
+                break;
+            case "Sold":
+                item.MarkAsSold();
+                break;
+            case "Expired":
+                item.MarkAsExpired();
+                break;
+            case "Cancelled":
+                item.MarkAsCancelled();
+                break;
+            case "Locked":
+                item.Lock();
+                break;
+            default:
+                throw new BusinessRuleException("Invalid status");
+        }
         await _context.SaveChangesAsync();
+    }
+
+    public async Task LogItemViewAsync(int id, string userId)
+    {
+        var view = await _context.MarketplaceItemViews
+            .FirstOrDefaultAsync(v => v.MarketplaceItemId == id && v.UserId == userId);
+
+        if (view == null)
+        {
+            _context.MarketplaceItemViews.Add(new MarketplaceItemView
+            {
+                MarketplaceItemId = id,
+                UserId = userId,
+                ViewedAt = DateTime.UtcNow
+            });
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task<int> GetItemViewsCountAsync(int id, string sellerId)
+    {
+        var item = await _context.MarketplaceItems.FindAsync(id);
+        if (item == null || item.SellerId != sellerId) return 0;
+        
+        return await _context.MarketplaceItemViews.CountAsync(v => v.MarketplaceItemId == id);
     }
 
     public async Task ToggleFavoriteAsync(int id, string userId)
@@ -274,12 +345,16 @@ public class MarketplaceService : IMarketplaceService
             .AnyAsync(f => f.MarketplaceItemId == id && f.UserId == userId);
     }
 
-    public async Task ApproveItemAsync(int id, string? adminNotes = null)
+    public async Task ApproveItemAsync(int id, DateTime? startDate = null, DateTime? endDate = null, string? adminNotes = null)
     {
         var item = await _context.MarketplaceItems.FindAsync(id);
         if (item == null) return;
 
-        item.Approve(adminNotes);
+        // Get marketplace settings for default duration
+        var settings = await _context.AppSettings.FirstOrDefaultAsync();
+        int defaultDays = settings?.MarketplaceDefaultListingDays ?? 30;
+
+        item.Approve(startDate, endDate, adminNotes, defaultDays);
         await _context.SaveChangesAsync();
     }
 
@@ -350,6 +425,50 @@ public class MarketplaceService : IMarketplaceService
         }).ToList();
     }
 
+    public async Task<MarketplaceSettingsDto> GetMarketplaceSettingsAsync()
+    {
+        var settings = await _context.AppSettings.FirstOrDefaultAsync();
+        return new MarketplaceSettingsDto
+        {
+            DefaultListingDays = settings?.MarketplaceDefaultListingDays ?? 30,
+            MaxListingsPerUser = settings?.MarketplaceMaxListingsPerUser ?? 10,
+            RequireApproval = settings?.MarketplaceRequireApproval ?? true,
+            AutoExpire = settings?.MarketplaceAutoExpire ?? true
+        };
+    }
+
+    public async Task LockItemAsync(int id, string actorId, bool isAdmin = false)
+    {
+        var item = await _context.MarketplaceItems.FindAsync(id);
+        if (item == null) throw new BusinessRuleException("Item not found");
+        if (!isAdmin && item.SellerId != actorId)
+            throw new BusinessRuleException("Unauthorized");
+
+        item.Lock();
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<int> GetActiveListingsCountForUserAsync(string userId)
+    {
+        return await _context.MarketplaceItems
+            .CountAsync(m => m.SellerId == userId && m.ItemStatus == "Available" && m.Approved);
+    }
+
+    public async Task<IReadOnlyList<MarketplaceItemDto>> GetAllItemsAdminAsync(int page = 1, int pageSize = 200)
+    {
+        var items = await _context.MarketplaceItems
+            .Include(m => m.Category)
+            .Include(m => m.Images)
+            .Include(m => m.City)
+            .Where(m => !m.IsDeleted)
+            .OrderByDescending(m => m.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return await EnrichWithSellerNamesAsync(items);
+    }
+
     private MarketplaceItemDto MapToDto(MarketplaceItem item, string? sellerName = null)
     {
         return new MarketplaceItemDto
@@ -376,6 +495,11 @@ public class MarketplaceService : IMarketplaceService
             FeaturedUntil = item.FeaturedUntil,
             PromotedUntil = item.PromotedUntil,
             CreatedAt = item.CreatedAt,
+            ListedAt = item.ListedAt,
+            StartDate = item.StartDate,
+            EndDate = item.EndDate,
+            SoldDate = item.SoldDate,
+            Approved = item.Approved,
             Images = item.Images.Select(i => new MarketplaceImageDto
             {
                 Id = i.Id,

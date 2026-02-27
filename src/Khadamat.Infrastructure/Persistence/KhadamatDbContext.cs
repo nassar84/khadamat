@@ -34,6 +34,7 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ServiceRequest> ServiceRequests { get; set; }
     public DbSet<MarketplaceItem> MarketplaceItems { get; set; }
     public DbSet<MarketplaceImage> MarketplaceImages { get; set; }
+    public DbSet<MarketplaceItemView> MarketplaceItemViews { get; set; }
     public DbSet<MarketplaceCategory> MarketplaceCategories { get; set; }
     public DbSet<MarketplaceSubCategory> MarketplaceSubCategories { get; set; }
     public DbSet<Payment> Payments { get; set; }
@@ -160,6 +161,12 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
             .HasOne<ApplicationUser>()
             .WithMany(u => u.MarketplaceItems)
             .HasForeignKey(m => m.SellerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<MarketplaceItemView>()
+            .HasOne(v => v.MarketplaceItem)
+            .WithMany(m => m.ItemViews)
+            .HasForeignKey(v => v.MarketplaceItemId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<MarketplaceItem>()

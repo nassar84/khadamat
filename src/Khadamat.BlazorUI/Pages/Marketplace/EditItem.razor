@@ -218,11 +218,7 @@
 
     private async Task HandleSubmit()
     {
-        if (model == null || model.CategoryId == 0)
-        {
-            errorMessage = "يرجى اختيار التصنيف";
-            return;
-        }
+        if (model == null) return;
 
         isSubmitting = true;
         errorMessage = null;

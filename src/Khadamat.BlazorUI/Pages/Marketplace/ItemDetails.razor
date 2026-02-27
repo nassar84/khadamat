@@ -150,14 +150,75 @@
                                 }
                             </div>
 
+                            <!-- Listing Timeline for Owner -->
+                            @if (isOwner)
+                            {
+                                <div class="listing-timeline mb-3 p-3 rounded-4" style="background:#f8fafc; border:1px solid #e2e8f0;">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fa-solid fa-timeline text-primary me-2"></i>
+                                        <span class="fw-bold small">سجل الإعلان</span>
+                                    </div>
+                                    <div class="timeline-entries">
+                                        <div class="timeline-entry">
+                                            <span class="tl-dot tl-created"></span>
+                                            <div class="tl-content">
+                                                <div class="tl-label">تاريخ الإنشاء</div>
+                                                <div class="tl-date">@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                                            </div>
+                                        </div>
+                                        @if (item.ListedAt.HasValue)
+                                        {
+                                            <div class="timeline-entry">
+                                                <span class="tl-dot tl-listed"></span>
+                                                <div class="tl-content">
+                                                    <div class="tl-label">تاريخ العرض في المتجر</div>
+                                                    <div class="tl-date text-success fw-bold">@item.ListedAt.Value.ToString("dd/MM/yyyy HH:mm")</div>
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (item.EndDate.HasValue)
+                                        {
+                                            <div class="timeline-entry">
+                                                <span class="tl-dot @(item.IsExpired ? "tl-expired" : "tl-end")"></span>
+                                                <div class="tl-content">
+                                                    <div class="tl-label">@(item.IsExpired ? "انتهى الإعلان" : "ينتهي الإعلان")</div>
+                                                    <div class="tl-date @(item.IsExpired ? "text-danger" : (item.DaysRemaining <= 5 ? "text-warning fw-bold" : "text-muted"))">
+                                                        @item.EndDate.Value.ToString("dd/MM/yyyy")
+                                                        @if (!item.IsExpired && item.DaysRemaining.HasValue)
+                                                        {
+                                                            <span class="badge ms-2 @(item.DaysRemaining <= 5 ? "bg-danger" : "bg-success")" style="font-size:0.65rem;">
+                                                                @(item.DaysRemaining == 0 ? "ينتهي اليوم" : $"{item.DaysRemaining} يوم")
+                                                            </span>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (item.SoldDate.HasValue)
+                                        {
+                                            <div class="timeline-entry">
+                                                <span class="tl-dot tl-sold"></span>
+                                                <div class="tl-content">
+                                                    <div class="tl-label">تاريخ البيع</div>
+                                                    <div class="tl-date text-secondary fw-bold">@item.SoldDate.Value.ToString("dd/MM/yyyy")</div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
                             <!-- Seller Owner Actions -->
                             @if (isOwner)
                             {
                                 <div class="owner-actions mb-3 p-3 rounded-4" style="background: rgba(59,130,246,0.05); border: 1px dashed rgba(59,130,246,0.3);">
                                     <p class="text-primary small fw-bold mb-2">
                                         <i class="fa-solid fa-pen-to-square me-1"></i>أنت صاحب هذا الإعلان
+                                        <span class="badge ms-2 @GetOwnerStatusBadgeClass()" style="font-size:0.65rem;">
+                                            @GetOwnerStatusLabel()
+                                        </span>
                                     </p>
-                                    <div class="d-flex gap-2">
+                                    <div class="d-flex gap-2 flex-wrap">
                                         <a href="/marketplace/edit/@item.Id" class="btn btn-sm btn-primary rounded-3 flex-grow-1">
                                             <i class="fa-solid fa-pen me-1"></i>تعديل
                                         </a>
@@ -165,6 +226,15 @@
                                         {
                                             <button class="btn btn-sm btn-success rounded-3 flex-grow-1" @onclick="MarkAsSold">
                                                 <i class="fa-solid fa-check me-1"></i>تم البيع
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning rounded-3" @onclick="LockItem" title="قفل الإعلان مؤقتاً">
+                                                <i class="fa-solid fa-lock"></i>
+                                            </button>
+                                        }
+                                        else if (item.ItemStatus == "Locked" || item.ItemStatus == "Sold")
+                                        {
+                                            <button class="btn btn-sm btn-outline-success rounded-3 flex-grow-1" @onclick="ReactivateItem">
+                                                <i class="fa-solid fa-rotate me-1"></i>إعادة إتاحة
                                             </button>
                                         }
                                         <a href="/marketplace/my-listings" class="btn btn-sm btn-outline-secondary rounded-3">
@@ -477,6 +547,22 @@
         from { transform: translateX(-50%) translateY(20px); opacity: 0; }
         to { transform: translateX(-50%) translateY(0); opacity: 1; }
     }
+
+    /* Timeline Styles */
+    .timeline-entries { display: flex; flex-direction: column; gap: 0.5rem; }
+    .timeline-entry { display: flex; align-items: flex-start; gap: 0.6rem; }
+    .tl-dot {
+        width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+        margin-top: 4px;
+    }
+    .tl-content { flex: 1; }
+    .tl-label { font-size: 0.72rem; color: #94a3b8; }
+    .tl-date { font-size: 0.8rem; color: #334155; }
+    .tl-created { background: #6366f1; }
+    .tl-listed { background: #10b981; }
+    .tl-end { background: #3b82f6; }
+    .tl-expired { background: #ef4444; }
+    .tl-sold { background: #64748b; }
 </style>
 
 @code {
@@ -558,10 +644,55 @@
         if (success)
         {
             item.ItemStatus = "Sold";
+            item.SoldDate = DateTime.UtcNow;
             ShowToast("تم تحديث الحالة إلى 'تم البيع'");
             StateHasChanged();
         }
     }
+
+    private async Task LockItem()
+    {
+        if (item == null) return;
+        var success = await Api.LockMarketplaceItemAsync(item.Id);
+        if (success)
+        {
+            item.ItemStatus = "Locked";
+            ShowToast("تم قفل الإعلان مؤقتاً 🔒");
+            StateHasChanged();
+        }
+    }
+
+    private async Task ReactivateItem()
+    {
+        if (item == null) return;
+        var success = await Api.ChangeMarketplaceItemStatusAsync(item.Id, "Available");
+        if (success)
+        {
+            item.ItemStatus = "Available";
+            ShowToast("تم إعادة تفعيل الإعلان ✅");
+            StateHasChanged();
+        }
+    }
+
+    private string GetOwnerStatusLabel() => item?.ItemStatus switch
+    {
+        "Available" => "نشط",
+        "Sold"      => "تم البيع",
+        "Expired"   => "منتهي",
+        "Locked"    => "مقفل",
+        "Cancelled" => "ملغي",
+        _           => ""
+    };
+
+    private string GetOwnerStatusBadgeClass() => item?.ItemStatus switch
+    {
+        "Available" => "bg-success",
+        "Sold"      => "bg-secondary",
+        "Expired"   => "bg-danger",
+        "Locked"    => "bg-warning text-dark",
+        "Cancelled" => "bg-light text-dark",
+        _           => "bg-secondary"
+    };
 
     private void GoBack()
     {

@@ -766,6 +766,23 @@ public class ApiClient
         return response.IsSuccessStatusCode;
     }
 
+    public async Task<bool> ChangeMarketplaceItemStatusAsync(int id, string status)
+    {
+        try
+        {
+            var request = new { Status = status };
+            var response = await _http.PostAsJsonAsync($"api/Marketplace/{id}/change-status", request);
+            return response.IsSuccessStatusCode;
+        }
+        catch { return false; }
+    }
+
+    public async Task<bool> LockMarketplaceItemAsync(int id)
+    {
+        var response = await _http.PostAsync($"api/Marketplace/{id}/lock", null);
+        return response.IsSuccessStatusCode;
+    }
+
     public async Task<bool> ToggleMarketplaceFavoriteAsync(int id)
     {
         var response = await _http.PostAsync($"api/Marketplace/{id}/favorite", null);
@@ -782,10 +799,45 @@ public class ApiClient
     }
 
     // Admin Marketplace
+    public async Task<List<MarketplaceItemDto>> GetAllMarketplaceItemsAdminAsync(int pageSize = 300)
+    {
+        try
+        {
+            return await _http.GetFromJsonAsync<List<MarketplaceItemDto>>($"api/Marketplace/admin/items?pageSize={pageSize}") ?? new List<MarketplaceItemDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"GetAllMarketplaceItemsAdmin error: {ex.Message}");
+            return new List<MarketplaceItemDto>();
+        }
+    }
+
+    public async Task<MarketplaceSettingsDto?> GetMarketplaceSettingsAsync()
+    {
+        try
+        {
+            return await _http.GetFromJsonAsync<MarketplaceSettingsDto>("api/Marketplace/settings");
+        }
+        catch { return null; }
+    }
+
     public async Task<bool> ApproveMarketplaceItemAsync(int id, string? notes = null)
     {
         var response = await _http.PostAsync($"api/Marketplace/{id}/approve?notes={Uri.EscapeDataString(notes ?? "")}", null);
         return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> ApproveMarketplaceItemWithDatesAsync(int id, DateTime startDate, DateTime endDate, string? notes = null)
+    {
+        try
+        {
+            var url = $"api/Marketplace/{id}/approve?startDate={startDate:yyyy-MM-dd}&endDate={endDate:yyyy-MM-dd}";
+            if (!string.IsNullOrEmpty(notes))
+                url += $"&notes={Uri.EscapeDataString(notes)}";
+            var response = await _http.PostAsync(url, null);
+            return response.IsSuccessStatusCode;
+        }
+        catch { return false; }
     }
 
     public async Task<bool> RejectMarketplaceItemAsync(int id, string? notes = null)
