@@ -35,9 +35,10 @@
                                 <i class="fa-solid fa-grid-2"></i>
                                 <span>التصنيفات</span>
                             </div>
-                            <div class="menu-item @GetActiveClass("marketplace")" @onclick='() => NavigateTo("/marketplace")'>
+                            <div class="menu-item marketplace-item-premium @GetActiveClass("marketplace")" @onclick='() => NavigateTo("/marketplace")'>
                                 <span class="store-icon-wrap"><i class="fa-solid fa-store store-anim"></i></span>
                                 <span>المتجر</span>
+                                <span class="premium-tag">مميز</span>
                             </div>
                             <div class="menu-item" @onclick="RefreshApp">
                                 <i class="fa-solid fa-arrows-rotate"></i>
@@ -372,6 +373,39 @@
 
     .logout-item i {
         color: #ef4444 !important;
+    }
+
+    /* Marketplace Premium Styling */
+    .marketplace-item-premium {
+        background: linear-gradient(to left, rgba(99, 102, 241, 0.05), transparent) !important;
+        border: 1px solid rgba(99, 102, 241, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .marketplace-item-premium::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 4px;
+        height: 100%;
+        background: var(--theme-primary, #6366f1);
+        border-radius: 0 4px 4px 0;
+    }
+
+    .premium-tag {
+        margin-right: auto;
+        background: linear-gradient(135deg, #f59e0b, #fbbf24);
+        color: white;
+        font-size: 0.6rem;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 8px rgba(245, 158, 11, 0.2);
+        animation: store-badge-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+        animation-delay: 0.3s;
     }
 
     /* Auth Card Guest */

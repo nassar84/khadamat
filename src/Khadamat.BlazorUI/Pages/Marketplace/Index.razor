@@ -20,6 +20,14 @@
                 </a>
             </div>
         </div>
+        
+        <!-- Categories Slider -->
+        <MarketplaceCategorySlider 
+            Categories="marketplaceCategories" 
+            SelectedId="selectedCategoryId" 
+            OnSelected="HandleCategorySelected" />
+
+        <!-- Featured Section -->
 
         <!-- Featured Section -->
         @if (featuredItems != null && featuredItems.Any())
@@ -375,6 +383,13 @@
         featuredItems = await Api.GetFeaturedMarketplaceItemsAsync();
         marketplaceCategories = await Api.GetMarketplaceCategoriesAsync();
         governorates = await Api.GetGovernoratesAsync();
+    }
+
+    private async Task HandleCategorySelected(int? id)
+    {
+        selectedCategoryId = id;
+        await OnCategoryChanged();
+        await Search();
     }
 
     private void ToggleAdvancedFilters()

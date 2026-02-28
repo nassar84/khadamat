@@ -12,18 +12,23 @@ public class SignalRClientService
     private readonly AppState _appState;
     private readonly Khadamat.Shared.Interfaces.ISecureStorageService _secureStorage;
     private readonly NavigationManager _navigation;
-    private readonly string _apiBaseUrl = "http://localhost:5144"; // Default dev
+    private string _apiBaseUrl = "http://localhost:5144"; // Default dev
 
     public event Action<string, string>? NotificationReceived;
     public event Action<MessageDto>? MessageReceived;
 
     public SignalRClientService(AppState appState, 
                                 Khadamat.Shared.Interfaces.ISecureStorageService secureStorage,
-                                NavigationManager navigation)
+                                NavigationManager navigation,
+                                HttpClient http)
     {
         _appState = appState;
         _secureStorage = secureStorage;
         _navigation = navigation;
+        if (http.BaseAddress != null)
+        {
+            _apiBaseUrl = http.BaseAddress.ToString().TrimEnd('/');
+        }
     }
 
     public async Task StartAsync()

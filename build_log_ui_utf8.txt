@@ -1,0 +1,42 @@
+﻿  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Khadamat.Domain -> e:\MVC\khadamat\src\Khadamat.Domain\bin\Debug\net9.0\Khadamat.Domain.dll
+  Khadamat.Application -> e:\MVC\khadamat\src\Khadamat.Application\bin\Debug\net9.0\Khadamat.Application.dll
+  Khadamat.Shared -> e:\MVC\khadamat\src\Khadamat.Shared\bin\Debug\net9.0\Khadamat.Shared.dll
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Pages\Marketplace\CreateItem.razor(47,47): error RZ1003: A space or line break was encountered after the "@" character.  Only valid identifiers, keywords, comments, "(" and "{" are valid at the start of a code block and they must occur immediately following "@" with no space in between. [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Pages\Marketplace\CreateItem.razor(70,47): error RZ1003: A space or line break was encountered after the "@" character.  Only valid identifiers, keywords, comments, "(" and "{" are valid at the start of a code block and they must occur immediately following "@" with no space in between. [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Pages\Marketplace\Index.razor(89,48): error RZ1003: A space or line break was encountered after the "@" character.  Only valid identifiers, keywords, comments, "(" and "{" are valid at the start of a code block and they must occur immediately following "@" with no space in between. [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Pages\Marketplace\Index.razor(110,48): error RZ1003: A space or line break was encountered after the "@" character.  Only valid identifiers, keywords, comments, "(" and "{" are valid at the start of a code block and they must occur immediately following "@" with no space in between. [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Pages\Marketplace\CreateItem.razor(47,47): error CS1525: Invalid expression term ')' [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Pages\Marketplace\CreateItem.razor(70,47): error CS1525: Invalid expression term ')' [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Pages\Marketplace\Index.razor(89,48): error CS1525: Invalid expression term ')' [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Pages\Marketplace\Index.razor(110,48): error CS1525: Invalid expression term ')' [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Services\WebShareService.cs(25,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread. [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Services\WebShareService.cs(31,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread. [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Pages\Marketplace\Index.razor(360,18): warning CS0414: The field 'Index.isFetchingCities' is assigned but its value is never used [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Pages\Marketplace\CreateItem.razor(199,18): warning CS0414: The field 'CreateItem.isFetchingSubCategories' is assigned but its value is never used [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Pages\Marketplace\Index.razor(359,18): warning CS0414: The field 'Index.isFetchingSubCategories' is assigned but its value is never used [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Pages\Marketplace\CreateItem.razor(200,18): warning CS0414: The field 'CreateItem.isFetchingCities' is assigned but its value is never used [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+
+Build FAILED.
+
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Services\WebShareService.cs(25,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread. [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Services\WebShareService.cs(31,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread. [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Pages\Marketplace\Index.razor(360,18): warning CS0414: The field 'Index.isFetchingCities' is assigned but its value is never used [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Pages\Marketplace\CreateItem.razor(199,18): warning CS0414: The field 'CreateItem.isFetchingSubCategories' is assigned but its value is never used [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Pages\Marketplace\Index.razor(359,18): warning CS0414: The field 'Index.isFetchingSubCategories' is assigned but its value is never used [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Pages\Marketplace\CreateItem.razor(200,18): warning CS0414: The field 'CreateItem.isFetchingCities' is assigned but its value is never used [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Pages\Marketplace\CreateItem.razor(47,47): error RZ1003: A space or line break was encountered after the "@" character.  Only valid identifiers, keywords, comments, "(" and "{" are valid at the start of a code block and they must occur immediately following "@" with no space in between. [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Pages\Marketplace\CreateItem.razor(70,47): error RZ1003: A space or line break was encountered after the "@" character.  Only valid identifiers, keywords, comments, "(" and "{" are valid at the start of a code block and they must occur immediately following "@" with no space in between. [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Pages\Marketplace\Index.razor(89,48): error RZ1003: A space or line break was encountered after the "@" character.  Only valid identifiers, keywords, comments, "(" and "{" are valid at the start of a code block and they must occur immediately following "@" with no space in between. [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Pages\Marketplace\Index.razor(110,48): error RZ1003: A space or line break was encountered after the "@" character.  Only valid identifiers, keywords, comments, "(" and "{" are valid at the start of a code block and they must occur immediately following "@" with no space in between. [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Pages\Marketplace\CreateItem.razor(47,47): error CS1525: Invalid expression term ')' [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Pages\Marketplace\CreateItem.razor(70,47): error CS1525: Invalid expression term ')' [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Pages\Marketplace\Index.razor(89,48): error CS1525: Invalid expression term ')' [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Pages\Marketplace\Index.razor(110,48): error CS1525: Invalid expression term ')' [e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+    6 Warning(s)
+    8 Error(s)
+
+Time Elapsed 00:00:03.61
+
+Workload updates are available. Run `dotnet workload list` for more information.

@@ -52,7 +52,8 @@ public class CategoriesController : ControllerBase
                 Id = c.Id, 
                 Name = c.Name,
                 MainCategoryId = c.MainCategoryId,
-                MainCategoryName = c.MainCategory.Name
+                MainCategoryName = c.MainCategory.Name,
+                ImageUrl = c.ImageUrl
             })
             .ToListAsync();
         
@@ -70,7 +71,8 @@ public class CategoriesController : ControllerBase
                 Id = c.Id, 
                 Name = c.Name,
                 MainCategoryId = c.MainCategoryId,
-                MainCategoryName = c.MainCategory.Name
+                MainCategoryName = c.MainCategory.Name,
+                ImageUrl = c.ImageUrl
             })
             .FirstOrDefaultAsync();
         
@@ -92,7 +94,8 @@ public class CategoriesController : ControllerBase
                 CategoryId = s.CategoryId,
                 CategoryName = s.Category.Name,
                 MainCategoryId = s.Category.MainCategoryId,
-                MainCategoryName = s.Category.MainCategory.Name
+                MainCategoryName = s.Category.MainCategory.Name,
+                ImageUrl = s.ImageUrl
             })
             .FirstOrDefaultAsync();
         
@@ -114,7 +117,8 @@ public class CategoriesController : ControllerBase
                 CategoryId = s.CategoryId,
                 CategoryName = s.Category.Name,
                 MainCategoryId = s.Category.MainCategoryId,
-                MainCategoryName = s.Category.MainCategory.Name
+                MainCategoryName = s.Category.MainCategory.Name,
+                ImageUrl = s.ImageUrl
             })
             .ToListAsync();
         
@@ -125,7 +129,10 @@ public class CategoriesController : ControllerBase
     [Authorize(Policy = "RequireAdmin")]
     public async Task<ActionResult<ApiResponse<int>>> CreateMainCategory(MainCategoryDto dto)
     {
-        var category = new MainCategory(dto.Name, dto.Icon, dto.Color, dto.DisplayOrder);
+        var category = new MainCategory(dto.Name, dto.Icon, dto.Color, dto.DisplayOrder)
+        {
+            ImageUrl = dto.ImageUrl
+        };
         _context.MainCategories.Add(category);
         await _context.SaveChangesAsync();
         return Ok(ApiResponse<int>.Succeed(category.Id));
@@ -160,7 +167,7 @@ public class CategoriesController : ControllerBase
     [Authorize(Policy = "RequireAdmin")]
     public async Task<ActionResult<ApiResponse<int>>> CreateCategory(CategoryDto dto)
     {
-        var category = new Category(dto.Name, dto.MainCategoryId);
+        var category = new Category(dto.Name, dto.MainCategoryId, dto.ImageUrl);
         _context.Categories.Add(category);
         await _context.SaveChangesAsync();
         return Ok(ApiResponse<int>.Succeed(category.Id));
@@ -173,7 +180,7 @@ public class CategoriesController : ControllerBase
         var category = await _context.Categories.FindAsync(id);
         if (category == null) return NotFound(ApiResponse<bool>.Fail("Not found"));
         
-        category.Update(dto.Name, dto.MainCategoryId);
+        category.Update(dto.Name, dto.MainCategoryId, dto.ImageUrl);
         await _context.SaveChangesAsync();
         return Ok(ApiResponse<bool>.Succeed(true));
     }
@@ -195,7 +202,7 @@ public class CategoriesController : ControllerBase
     [Authorize(Policy = "RequireAdmin")]
     public async Task<ActionResult<ApiResponse<int>>> CreateSubCategory(SubCategoryDto dto)
     {
-        var sub = new SubCategory(dto.Name, dto.CategoryId);
+        var sub = new SubCategory(dto.Name, dto.CategoryId, dto.ImageUrl);
         _context.SubCategories.Add(sub);
         await _context.SaveChangesAsync();
         return Ok(ApiResponse<int>.Succeed(sub.Id));
@@ -208,7 +215,7 @@ public class CategoriesController : ControllerBase
         var sub = await _context.SubCategories.FindAsync(id);
         if (sub == null) return NotFound(ApiResponse<bool>.Fail("Not found"));
         
-        sub.Update(dto.Name, dto.CategoryId);
+        sub.Update(dto.Name, dto.CategoryId, dto.ImageUrl);
         await _context.SaveChangesAsync();
         return Ok(ApiResponse<bool>.Succeed(true));
     }

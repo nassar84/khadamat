@@ -18,6 +18,7 @@ public class CategoryDto
     public string Name { get; set; } = string.Empty;
     public int MainCategoryId { get; set; }
     public string? MainCategoryName { get; set; }
+    public string? ImageUrl { get; set; }
 }
 
 public class SubCategoryDto
@@ -28,4 +29,5 @@ public class SubCategoryDto
     public string? CategoryName { get; set; }
     public int MainCategoryId { get; set; }
     public string? MainCategoryName { get; set; }
+    public string? ImageUrl { get; set; }
 }

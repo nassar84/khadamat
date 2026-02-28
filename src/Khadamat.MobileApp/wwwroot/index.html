@@ -51,7 +51,7 @@
             <div class="mt-4 fw-bold text-primary" style="font-family: 'Tajawal', sans-serif;">تحميل خدمات...</div>
             <div id="debug-info"
                 style="margin-top:20px; font-size:16px; color:#000; font-weight:bold; background:rgba(255,255,255,0.95); padding:10px 20px; border-radius:10px; border:2px solid #6366f1;">
-                V1.3 | <span id="timer-val">0</span>s
+                V1.4 | <span id="timer-val">0</span>s
             </div>
             <div id="status-info"
                 style="margin-top:12px; font-size:12px; color:#333; max-width:300px; text-align:center; background:rgba(255,255,255,0.8); padding:6px 12px; border-radius:6px;">
@@ -59,6 +59,18 @@
             </div>
         </div>
     </div>
+    <script>
+        window.onerror = function (msg, url, line, col, error) {
+            var debug = document.getElementById('debug-info');
+            if (debug) {
+                debug.innerHTML += '<div style="color:red;font-size:10px">ERR: ' + msg + '</div>';
+            }
+            console.error(msg, error);
+            return false;
+        };
+        console.log("ANTIGRAVITY_LOG: index.html script execution started");
+    </script>
+
     <script>
         (function () {
             var start = Date.now();
@@ -75,40 +87,24 @@
                     else if (elapsed < 6) statusEl.innerText = '🔌 Connecting to API (10.0.2.2:5144)...';
                     else if (elapsed < 10) statusEl.innerText = '📦 Loading components...';
                     else {
-                        statusEl.innerHTML = '⚠️ <strong>Taking too long!</strong><br>API might be unreachable';
+                        statusEl.innerHTML = '⚠️ <strong>Taking too long!</strong><br>Check if API is running at 10.0.2.2:5144';
                         statusEl.style.color = '#dc3545';
                         statusEl.style.fontWeight = 'bold';
                     }
                 }
             }, 1000);
-
-            setTimeout(function () {
-                console.log("ANTIGRAVITY_LOG: 10s timeout - checking for hang...");
-                var appEl = document.getElementById('app');
-                if (appEl && appEl.innerText.includes('تحميل')) {
-                    console.log("ANTIGRAVITY_LOG: Still loading after 10s. Possible issues:");
-                    console.log("ANTIGRAVITY_LOG: 1. API not running on localhost:5144");
-                    console.log("ANTIGRAVITY_LOG: 2. Emulator cannot reach 10.0.2.2:5144");
-                    console.log("ANTIGRAVITY_LOG: 3. Blazor WebView bridge failed");
-                    if (statusEl) {
-                        statusEl.innerHTML = '❌ <strong>App Stuck!</strong><br>Check: API running? Network OK?';
-                        statusEl.style.color = '#dc3545';
-                        statusEl.style.fontSize = '13px';
-                    }
-                }
-            }, 10000);
         })();
     </script>
 
+    <script src="_framework/blazor.webview.js"></script>
     <div id="blazor-error-ui">
         حدث خطأ غير متوقع.
         <a href="" class="reload">إعادة تحميل</a>
         <a class="dismiss">🗙</a>
     </div>
 
-    <!-- JS Dependencies -->
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <script src="_framework/blazor.webview.js"></script>
+    <!-- JS Dependencies (Deferred to prevent blocking) -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js" defer></script>
 </body>
 
 </html>

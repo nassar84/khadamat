@@ -31,11 +31,12 @@
                         <label class="form-label small fw-bold">اللون المميز</label>
                         <input type="color" class="form-control form-control-color w-100 rounded-pill border-0 bg-light p-1" @bind="Model.Color" style="height: 38px;">
                     </div>
-                    <div class="col-12">
-                        <label class="form-label small fw-bold">صورة التصنيف</label>
-                        <ImageUploader @bind-ImageUrl="Model.ImageUrl" Height="150px" PickerLabel="اختر صورة للتصنيف" />
-                    </div>
                 }
+
+                <div class="col-12">
+                    <label class="form-label small fw-bold">صورة التصنيف</label>
+                    <ImageUploader @bind-ImageUrl="Model.ImageUrl" Height="150px" PickerLabel="اختر صورة للتصنيف" />
+                </div>
                 
                 <div class="col-12">
                     <label class="form-label small fw-bold">ترتيب العرض</label>

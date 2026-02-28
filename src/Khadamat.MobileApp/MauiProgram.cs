@@ -48,31 +48,34 @@ public static class MauiProgram
             if (isEmulator)
             {
                 // Android emulator - use special IP that maps to host machine's localhost
-                apiBaseUrl = "http://10.0.2.2:5144";
+                apiBaseUrl = "http://10.0.2.2:5144/";
             }
             else
             {
                 // Physical Android device - use your PC's actual IP address
-                // Make sure your phone and PC are on the same WiFi network
-                apiBaseUrl = "http://10.102.2.2:5144";
+                apiBaseUrl = "http://10.102.2.2:5144/";
             }
         }
         else if (DeviceInfo.Platform == DevicePlatform.iOS)
         {
             // iOS simulator can use localhost
-            apiBaseUrl = "http://localhost:5144";
+            apiBaseUrl = "http://localhost:5144/";
         }
         else
         {
             // Fallback for other platforms
-            apiBaseUrl = "http://localhost:5144";
+            apiBaseUrl = "http://localhost:5144/";
         }
         
-        builder.Services.AddScoped(sp => new HttpClient
+        builder.Services.AddTransient<AuthenticationHandler>();
+        
+        builder.Services.AddHttpClient("KhadamatAPI", client => 
         {
-            BaseAddress = new Uri(apiBaseUrl),
-            Timeout = TimeSpan.FromSeconds(30)
-        });
+            client.BaseAddress = new Uri(apiBaseUrl);
+            client.Timeout = TimeSpan.FromSeconds(30);
+        }).AddHttpMessageHandler<AuthenticationHandler>();
+
+        builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("KhadamatAPI"));
 
         // Register Blazor UI Services
         builder.Services.AddScoped<IAuthService, AuthService>();
@@ -80,6 +83,7 @@ public static class MauiProgram
         builder.Services.AddScoped<Khadamat.BlazorUI.Services.Admin.IAdminService, Khadamat.BlazorUI.Services.Admin.AdminService>();
         builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
         builder.Services.AddSingleton<AppState>();
+        builder.Services.AddScoped<SignalRClientService>();
 
         // Register Device Services
         builder.Services.AddSingleton<IDeviceCameraService, CameraService>();
@@ -91,9 +95,9 @@ public static class MauiProgram
         builder.Services.AddSingleton<ISecureStorageService, MauiSecureStorageService>();
         builder.Services.AddSingleton<IExternalAuthService, MauiExternalAuthService>();
         builder.Services.AddSingleton<Khadamat.Application.Interfaces.IOfflineDataService, LocalDataService>();
-        builder.Services.AddSingleton<IBiometricService, MauiBiometricService>();
-        builder.Services.AddSingleton<IMobileAuthService, MobileAuthService>();
-        builder.Services.AddSingleton<SyncService>();
+        builder.Services.AddScoped<IBiometricService, MauiBiometricService>();
+        builder.Services.AddScoped<IMobileAuthService, MobileAuthService>();
+        builder.Services.AddScoped<SyncService>();
         // Blazored LocalStorage
         builder.Services.AddBlazoredLocalStorage();
 

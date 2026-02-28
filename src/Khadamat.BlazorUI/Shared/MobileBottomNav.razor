@@ -41,6 +41,14 @@ else
         <span>الأقسام</span>
     </button>
     
+    <button class="nav-item marketplace-nav-btn @GetActiveClass("/marketplace")" @onclick='() => Navigate("/marketplace")'>
+        <span class="store-icon-wrap">
+            <i class="fa-solid fa-store store-anim"></i>
+            <span class="store-pulse-ring"></span>
+        </span>
+        <span>المتجر</span>
+    </button>
+    
     @if (State.IsProvider)
     {
         <button class="nav-item" @onclick="ToggleMode">
@@ -139,6 +147,29 @@ else
 
     .nav-item:active::before {
         opacity: 0.2;
+    }
+
+    /* Marketplace Special Styling */
+    .marketplace-nav-btn {
+        position: relative;
+    }
+
+    .marketplace-nav-btn.active {
+        color: #f59e0b !important;
+    }
+
+    .store-pulse-ring {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 32px;
+        height: 32px;
+        background: rgba(245, 158, 11, 0.4);
+        border-radius: 50%;
+        z-index: -1;
+        animation: store-shimmer-ring 2s infinite;
+        pointer-events: none;
     }
 
     /* Safe area for notched devices */

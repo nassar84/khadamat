@@ -76,9 +76,13 @@
     private bool ShowPromotionalContent => !IsAdminPage && !IsProfilePage && !IsProviderPage;
     private bool ShowHeroAds => IsHomePage;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         Navigation.LocationChanged += HandleLocationChanged;
+    }
+
+    private async Task LoadInitialDataAsync()
+    {
         // Load global settings
         try
         {
@@ -90,14 +94,15 @@
                 AppState.PrimaryColor = settingsResult.Data.PrimaryColor;
                 AppState.SecondaryColor = settingsResult.Data.SecondaryColor;
                 AppState.TriggerStateChanged();
+                
+                // Apply colors if we have them
+                await JS.InvokeVoidAsync("applyThemeColors", AppState.PrimaryColor, AppState.SecondaryColor);
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error loading settings: {ex.Message}");
         }
-
-
 
         if (AppState.IsAuthenticated)
         {
@@ -116,8 +121,7 @@
                     AppState.CityId = profile.Data.CityId;
                     AppState.GovernorateId = profile.Data.GovernorateId;
                     AppState.PhoneNumber = profile.Data.PhoneNumber;
-                    
-                    // Start SignalR if not started? (Already called above based on IsAuthenticated)
+                    AppState.TriggerStateChanged();
                 }
             }
             catch (Exception ex)
@@ -129,15 +133,20 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && !string.IsNullOrEmpty(AppState.PrimaryColor))
+        if (firstRender)
         {
-            try
+            _ = LoadInitialDataAsync(); // Trigger background load without awaiting it here
+            
+            if (!string.IsNullOrEmpty(AppState.PrimaryColor))
             {
-                await JS.InvokeVoidAsync("applyThemeColors", AppState.PrimaryColor, AppState.SecondaryColor);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error applying theme colors: {ex.Message}");
+                try
+                {
+                    await JS.InvokeVoidAsync("applyThemeColors", AppState.PrimaryColor, AppState.SecondaryColor);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error applying theme colors: {ex.Message}");
+                }
             }
         }
     }

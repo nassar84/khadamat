@@ -1,6 +1,13 @@
 <div class="category-card p-4 rounded-4 shadow-sm border text-center h-100 animate-up" @onclick="HandleClick">
-    <div class="icon-box-large mb-3 mx-auto">
-        <span class="category-icon-display">@Category.Icon</span>
+    <div class="icon-box-large mb-3 mx-auto overflow-hidden">
+        @if (!string.IsNullOrEmpty(Category.ImageUrl))
+        {
+            <img src="@Category.ImageUrl" class="w-100 h-100 object-fit-cover" />
+        }
+        else
+        {
+            <span class="category-icon-display">@Category.Icon</span>
+        }
     </div>
     <div class="fw-bold fs-5">@Category.Name</div>
     <div class="text-muted small mt-1">استكشف الخدمات</div>

@@ -404,6 +404,7 @@ public class MarketplaceService : IMarketplaceService
                 Id = s.Id,
                 CategoryId = s.CategoryId,
                 Name = s.Name,
+                ImageUrl = s.ImageUrl,
                 DisplayOrder = s.DisplayOrder
             }).OrderBy(s => s.DisplayOrder).ToList()
         }).ToList();
@@ -421,6 +422,7 @@ public class MarketplaceService : IMarketplaceService
             Id = s.Id,
             CategoryId = s.CategoryId,
             Name = s.Name,
+            ImageUrl = s.ImageUrl,
             DisplayOrder = s.DisplayOrder
         }).ToList();
     }

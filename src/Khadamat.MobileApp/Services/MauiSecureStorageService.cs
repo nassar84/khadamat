@@ -7,21 +7,22 @@ public class MauiSecureStorageService : ISecureStorageService
 {
     public Task SaveAsync(string key, string value)
     {
-        return SecureStorage.SetAsync(key, value);
+        Preferences.Default.Set(key, value);
+        return Task.CompletedTask;
     }
 
     public Task<string?> GetAsync(string key)
     {
-        return SecureStorage.GetAsync(key);
+        return Task.FromResult<string?>(Preferences.Default.Get<string?>(key, null));
     }
 
     public void Remove(string key)
     {
-        SecureStorage.Remove(key);
+        Preferences.Default.Remove(key);
     }
 
     public void RemoveAll()
     {
-        SecureStorage.RemoveAll();
+        Preferences.Default.Clear();
     }
 }

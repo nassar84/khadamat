@@ -33,8 +33,16 @@
                                 <div class="col-6 col-md-4 col-lg-3">
                                     <div class="category-card p-3 rounded-4 shadow-sm border text-center h-100 animate-up" @onclick="() => ExploreCategory(cat)">
                                         <div class="mb-3 mx-auto">
-                                            <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetCategoryImage(cat.Name)" 
-                                                 class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" />
+                                            @if (!string.IsNullOrEmpty(cat.ImageUrl))
+                                            {
+                                                <img src="@cat.ImageUrl" 
+                                                     class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" />
+                                            }
+                                            else
+                                            {
+                                                <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetCategoryImage(cat.Name)" 
+                                                     class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" />
+                                            }
                                         </div>
                                         <div class="fw-bold">@cat.Name</div>
                                     </div>
@@ -62,8 +70,16 @@
                                 <div class="col-6 col-md-4 col-lg-3">
                                     <div class="category-card p-3 rounded-4 shadow-sm border text-center h-100 animate-up" @onclick="() => ExploreSubCategory(sub)">
                                         <div class="mb-3 mx-auto">
-                                            <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(sub.Name)" 
-                                                 class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" />
+                                            @if (!string.IsNullOrEmpty(sub.ImageUrl))
+                                            {
+                                                <img src="@sub.ImageUrl" 
+                                                     class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" />
+                                            }
+                                            else
+                                            {
+                                                <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(sub.Name)" 
+                                                     class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" />
+                                            }
                                         </div>
                                         <div class="fw-bold">@sub.Name</div>
                                     </div>

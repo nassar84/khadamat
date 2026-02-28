@@ -36,22 +36,25 @@ public class Category : BaseEntity
 {
     public int MainCategoryId { get; set; }
     public string Name { get; set; } = string.Empty;
+    public string? ImageUrl { get; set; }
     
     public virtual MainCategory MainCategory { get; set; } = null!;
     public virtual ICollection<SubCategory> SubCategories { get; set; } = new List<SubCategory>();
     public virtual ICollection<Service> Services { get; set; } = new List<Service>();
 
     public Category() { }
-    public Category(string name, int mainCategoryId)
+    public Category(string name, int mainCategoryId, string? imageUrl = null)
     {
         Name = name;
         MainCategoryId = mainCategoryId;
+        ImageUrl = imageUrl;
     }
 
-    public void Update(string name, int mainCategoryId)
+    public void Update(string name, int mainCategoryId, string? imageUrl = null)
     {
         Name = name;
         MainCategoryId = mainCategoryId;
+        ImageUrl = imageUrl;
         UpdatedAt = System.DateTime.UtcNow;
     }
 }
@@ -60,21 +63,24 @@ public class SubCategory : BaseEntity
 {
     public int CategoryId { get; set; }
     public string Name { get; set; } = string.Empty;
+    public string? ImageUrl { get; set; }
     
     public virtual Category Category { get; set; } = null!;
     public virtual ICollection<Service> Services { get; set; } = new List<Service>();
 
     public SubCategory() { }
-    public SubCategory(string name, int categoryId)
+    public SubCategory(string name, int categoryId, string? imageUrl = null)
     {
         Name = name;
         CategoryId = categoryId;
+        ImageUrl = imageUrl;
     }
 
-    public void Update(string name, int categoryId)
+    public void Update(string name, int categoryId, string? imageUrl = null)
     {
         Name = name;
         CategoryId = categoryId;
+        ImageUrl = imageUrl;
         UpdatedAt = System.DateTime.UtcNow;
     }
 }

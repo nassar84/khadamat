@@ -1,0 +1,557 @@
+﻿
+SET IDENTITY_INSERT [dbo].[Cities] ON 
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (1, 1, N'15 مايو', N'15 May', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 1, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (2, 1, N'الازبكية', N'Al Azbakeyah', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 2, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (3, 1, N'البساتين', N'Al Basatin', CAST(N'2026-01-22T08:16:37.5657021' 
+AS DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 
+3, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (4, 1, N'التبين', N'Tebin', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 4, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (5, 1, N'الخليفة', N'El-Khalifa', CAST(N'2026-01-22T08:16:37.5657021' 
+AS DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 
+5, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (6, 1, N'الدراسة', N'El darrasa', CAST(N'2026-01-22T08:16:37.5657021' 
+AS DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 
+6, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (7, 1, N'الدرب الاحمر', N'Aldarb Alahmar', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 7, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (8, 1, N'الزاوية الحمراء', N'Zawya al-Hamra', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 8, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (9, 1, N'الزيتون', N'El-Zaytoun', CAST(N'2026-01-22T08:16:37.5657021' 
+AS DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 
+9, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (10, 1, N'الساحل', N'Sahel', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 10, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (11, 1, N'السلام', N'El Salam', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 11, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (12, 1, N'السيدة زينب', N'Sayeda Zeinab', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 12, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (13, 1, N'الشرابية', N'El Sharabeya', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 13, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (14, 1, N'مدينة الشروق', N'Shorouk', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 14, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (15, 1, N'الظاهر', N'El Daher', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 15, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (16, 1, N'العتبة', N'Ataba', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 16, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (17, 1, N'القاهرة الجديدة', N'New Cairo', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 17, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (18, 1, N'المرج', N'El Marg', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 18, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (19, 1, N'عزبة النخل', N'Ezbet el Nakhl', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 19, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (20, 1, N'المطرية', N'Matareya', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 20, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (21, 1, N'المعادى', N'Maadi', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 21, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (22, 1, N'المعصرة', N'Maasara', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 22, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (23, 1, N'المقطم', N'Mokattam', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 23, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (24, 1, N'المنيل', N'Manyal', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 24, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (25, 1, N'الموسكى', N'Mosky', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 25, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (26, 1, N'النزهة', N'Nozha', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 26, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (27, 1, N'الوايلى', N'Waily', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 27, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (28, 1, N'باب الشعرية', N'Bab al-Shereia', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 28, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (29, 1, N'بولاق', N'Bolaq', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 29, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (30, 1, N'جاردن سيتى', N'Garden City', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 30, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (31, 1, N'حدائق القبة', N'Hadayek El-Kobba', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 31, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (32, 1, N'حلوان', N'Helwan', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 32, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (33, 1, N'دار السلام', N'Dar Al Salam', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 33, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (34, 1, N'شبرا', N'Shubra', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 34, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (35, 1, N'طره', N'Tura', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 35, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (36, 1, N'عابدين', N'Abdeen', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 36, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (37, 1, N'عباسية', N'Abaseya', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 37, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (38, 1, N'عين شمس', N'Ain Shams', CAST(N'2026-01-22T08:16:37.5657021' 
+AS DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 
+38, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (39, 1, N'مدينة نصر', N'Nasr City', CAST(N'2026-01-22T08:16:37.5657021' 
+AS DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 
+39, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (40, 1, N'مصر الجديدة', N'New Heliopolis', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 40, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (41, 1, N'مصر القديمة', N'Masr Al Qadima', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 41, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (42, 1, N'منشية ناصر', N'Mansheya Nasir', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 42, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (43, 1, N'مدينة بدر', N'Badr City', CAST(N'2026-01-22T08:16:37.5657021' 
+AS DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 
+43, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (44, 1, N'مدينة العبور', N'Obour City', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 44, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (45, 1, N'وسط البلد', N'Cairo Downtown', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 45, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (46, 1, N'الزمالك', N'Zamalek', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 46, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (47, 1, N'قصر النيل', N'Kasr El Nile', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 47, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (48, 1, N'الرحاب', N'Rehab', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 48, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (49, 1, N'القطامية', N'Katameya', CAST(N'2026-01-22T08:16:37.5657021' 
+AS DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 
+49, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (50, 1, N'مدينتي', N'Madinty', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 50, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (51, 1, N'روض الفرج', N'Rod Alfarag', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 51, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (52, 1, N'شيراتون', N'Sheraton', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 52, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (53, 1, N'الجمالية', N'El-Gamaleya', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 53, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (54, 1, N'العاشر من رمضان', N'10th of Ramadan City', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 54, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (55, 1, N'الحلمية', N'Helmeyat Alzaytoun', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 55, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (56, 1, N'النزهة الجديدة', N'New Nozha', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 56, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (57, 1, N'العاصمة الإدارية', N'Capital New', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 57, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (58, 2, N'الجيزة', N'Giza', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 58, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (59, 2, N'السادس من أكتوبر', N'Sixth of October', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 59, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (60, 2, N'الشيخ زايد', N'Cheikh Zayed', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 60, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (61, 2, N'الحوامدية', N'Hawamdiyah', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 61, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (62, 2, N'البدرشين', N'Al Badrasheen', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 62, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (63, 2, N'الصف', N'Saf', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 63, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (64, 2, N'أطفيح', N'Atfih', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 64, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (65, 2, N'العياط', N'Al Ayat', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 65, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (66, 2, N'الباويطي', N'Al-Bawaiti', CAST(N'2026-01-22T08:16:37.5657021' 
+AS DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 
+66, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (67, 2, N'منشأة القناطر', N'ManshiyetAl Qanater', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 67, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (68, 2, N'أوسيم', N'Oaseem', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 68, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (69, 2, N'كرداسة', N'Kerdasa', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 69, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (70, 2, N'أبو النمرس', N'Abu Nomros', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 70, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (71, 2, N'كفر غطاطي', N'Kafr Ghati', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 71, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (72, 2, N'منشأة البكاري', N'Manshiyet Al Bakari', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 72, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (73, 2, N'الدقى', N'Dokki', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 73, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (74, 2, N'العجوزة', N'Agouza', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 74, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (75, 2, N'الهرم', N'Haram', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 75, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (76, 2, N'الوراق', N'Warraq', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 76, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (77, 2, N'امبابة', N'Imbaba', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 77, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (78, 2, N'بولاق الدكرور', N'Boulaq Dakrour', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 78, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (79, 2, N'الواحات البحرية', N'Al Wahat Al Baharia', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 79, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (80, 2, N'العمرانية', N'Omraneya', CAST(N'2026-01-22T08:16:37.5657021' 
+AS DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 
+80, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (81, 2, N'المنيب', N'Moneeb', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 81, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (82, 2, N'بين السرايات', N'Bin Alsarayat', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 82, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (83, 2, N'الكيت كات', N'Kit Kat', CAST(N'2026-01-22T08:16:37.5657021' 
+AS DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 
+83, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (84, 2, N'المهندسين', N'Mohandessin', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 84, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (85, 2, N'فيصل', N'Faisal', CAST(N'2026-01-22T08:16:37.5657021' AS 
+DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 85, 
+N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (86, 2, N'أبو رواش', N'Abu Rawash', CAST(N'2026-01-22T08:16:37.5657021' 
+AS DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 
+86, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (87, 2, N'حدائق الأهرام', N'Hadayek Alahram', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 87, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (88, 2, N'الحرانية', N'Haraneya', CAST(N'2026-01-22T08:16:37.5657021' 
+AS DateTime2), N'System-Migration', N'System', NULL, NULL, 0, NULL, NULL, 1, 
+88, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (89, 2, N'حدائق اكتوبر', N'Hadayek October', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 89, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (90, 2, N'صفط اللبن', N'Saft Allaban', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 90, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (91, 2, N'القرية الذكية', N'Smart Village', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 91, N'Data migrated from xcities')
+INSERT [dbo].[Cities] ([Id], [GovernorateId], [City_Name_AR], [City_Name_EN], 
+[CreatedAt], [CreatedBy], [UserCreated], [UpdatedAt], [UpdatedBy], 
+[IsDeleted], [DeletedAt], [DeletedBy], [Approved], [DisplayOrder], [Notes]) 
+VALUES (92, 2, N'ارض اللواء', N'Ard Ellwaa', 
+CAST(N'2026-01-22T08:16:37.5657021' AS DateTime2), N'System-Migration', 
+N'System', NULL, NULL, 0, NULL, NULL, 1, 92, N'Data migrated from xcities')
+SET IDENTITY_INSERT [dbo].[Cities] OFF
+
+
