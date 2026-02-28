@@ -16,30 +16,18 @@
                             <div class="category-shape-wrapper p-0">
                                 @{
                                     var imageUrl = "";
-                                    
                                     if (!string.IsNullOrEmpty(cat.ImageUrl))
                                     {
-                                        if (cat.ImageUrl.StartsWith("http") || cat.ImageUrl.StartsWith("/images") || cat.ImageUrl.StartsWith("images/"))
-                                        {
-                                            imageUrl = cat.ImageUrl;
-                                        }
-                                        else
-                                        {
-                                            imageUrl = $"images/maincategories/{cat.ImageUrl}";
-                                        }
-                                    }
-                                    else if (!string.IsNullOrEmpty(cat.Icon) && (cat.Icon.StartsWith("http") || cat.Icon.StartsWith("/images") || cat.Icon.StartsWith("images/")))
-                                    {
-                                        imageUrl = cat.Icon;
+                                        imageUrl = $"/images/categories/{cat.ImageUrl}";
                                     }
                                     else
                                     {
-                                        imageUrl = Khadamat.BlazorUI.Helpers.DefaultImages.GetCategoryImage(cat.Name);
+                                        imageUrl = "/images/categories/defult.jpg";
                                     }
                                 }
                                 <img src="@imageUrl" 
                                      class="w-100 h-100 object-fit-cover" alt="@cat.Name" 
-                                     onerror="this.src='images/maincategories/default.jpg'"
+                                     onerror="this.onerror=null;this.src='/images/categories/defult.jpg';"
                                      style="opacity: 0.9; border-radius: 50%;" />
                             </div>
                             <span class="category-name-small">@cat.Name</span>

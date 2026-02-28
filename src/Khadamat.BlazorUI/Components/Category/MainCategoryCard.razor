@@ -2,11 +2,13 @@
     <div class="icon-box-large mb-3 mx-auto overflow-hidden">
         @if (!string.IsNullOrEmpty(Category.ImageUrl))
         {
-            <img src="@Category.ImageUrl" class="w-100 h-100 object-fit-cover" />
+            <img src="/images/categories/@Category.ImageUrl" 
+                 onerror="this.onerror=null;this.src='/images/categories/defult.jpg';"
+                 class="w-100 h-100 object-fit-cover" />
         }
         else
         {
-            <span class="category-icon-display">@Category.Icon</span>
+            <img src="/images/categories/defult.jpg" class="w-100 h-100 object-fit-cover" />
         }
     </div>
     <div class="fw-bold fs-5">@Category.Name</div>

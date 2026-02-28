@@ -21,7 +21,7 @@
                 else { <span>الخدمات في @Name</span> }
             </h3>
 
-            <div class="row g-4">
+            <div class="row g-3 row-cols-2 row-cols-md-3 row-cols-lg-4">
                 @if (Level == "main")
                 {
                     @if (categories != null)
@@ -35,12 +35,13 @@
                                         <div class="mb-3 mx-auto">
                                             @if (!string.IsNullOrEmpty(cat.ImageUrl))
                                             {
-                                                <img src="@cat.ImageUrl" 
+                                                <img src="/images/categories/@cat.ImageUrl" 
+                                                     onerror="this.onerror=null;this.src='/images/categories/defult.jpg';"
                                                      class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" />
                                             }
                                             else
                                             {
-                                                <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetCategoryImage(cat.Name)" 
+                                                <img src="/images/categories/defult.jpg" 
                                                      class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" />
                                             }
                                         </div>
@@ -72,12 +73,13 @@
                                         <div class="mb-3 mx-auto">
                                             @if (!string.IsNullOrEmpty(sub.ImageUrl))
                                             {
-                                                <img src="@sub.ImageUrl" 
+                                                <img src="/images/categories/@sub.ImageUrl" 
+                                                     onerror="this.onerror=null;this.src='/images/categories/defult.jpg';"
                                                      class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" />
                                             }
                                             else
                                             {
-                                                <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(sub.Name)" 
+                                                <img src="/images/categories/defult.jpg" 
                                                      class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" />
                                             }
                                         </div>
