@@ -42,30 +42,19 @@ public static class MauiProgram
         
         if (DeviceInfo.Platform == DevicePlatform.Android)
         {
-            // Check if running on emulator or physical device
-            var isEmulator = DeviceInfo.DeviceType == DeviceType.Virtual;
-            
-            if (isEmulator)
-            {
-                // Android emulator - use special IP that maps to host machine's localhost
-                apiBaseUrl = "http://10.0.2.2:5144/";
-            }
-            else
-            {
-                // Physical Android device - use your PC's actual IP address
-                apiBaseUrl = "http://10.102.2.2:5144/";
-            }
+            apiBaseUrl = "http://10.0.2.2:5144/";
         }
         else if (DeviceInfo.Platform == DevicePlatform.iOS)
         {
-            // iOS simulator can use localhost
             apiBaseUrl = "http://localhost:5144/";
         }
         else
         {
-            // Fallback for other platforms
             apiBaseUrl = "http://localhost:5144/";
         }
+        
+        // Print it to help with debugging
+        Console.WriteLine($"ANTIGRAVITY_LOG: Using API Base URL: {apiBaseUrl}");
         
         builder.Services.AddTransient<AuthenticationHandler>();
         

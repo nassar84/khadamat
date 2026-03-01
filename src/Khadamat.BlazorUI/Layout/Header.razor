@@ -118,24 +118,31 @@
                 </div>
             </div>
 
+            <!-- Store/Marketplace (Visible on small screens) -->
+            <div class="icon-action-btn marketplace-action-btn position-relative d-lg-none animate-pulse-subtle" @onclick='() => Navigation.NavigateTo("/marketplace")' title="متجر السلع">
+                 <div class="market-badge-premium">
+                    <i class="fa-solid fa-store store-pulse-icon"></i>
+                 </div>
+            </div>
+
             <div class="vr mx-1 opacity-25 d-none d-md-block"></div>
 
             <!-- Messages -->
             <div class="icon-action-btn position-relative" @onclick='() => Navigation.NavigateTo("/user/messages")' title="الرسائل">
-                <i class="fa-regular fa-envelope text-secondary"></i>
-                @if (State.HasUnreadMessages)
-                {
-                    <span class="notification-badge bg-danger"></span>
-                }
+                 <i class="fa-regular fa-envelope text-secondary"></i>
+                 @if (State.HasUnreadMessages)
+                 {
+                     <span class="notification-badge bg-danger"></span>
+                 }
             </div>
 
             <!-- Notifications -->
             <div class="icon-action-btn position-relative" @onclick='() => Navigation.NavigateTo("/user/notifications")' title="الإشعارات">
-                <i class="fa-regular fa-bell text-secondary"></i>
-                @if (State.HasUnreadNotifications)
-                {
-                    <span class="notification-badge bg-primary"></span>
-                }
+                 <i class="fa-regular fa-bell text-secondary"></i>
+                 @if (State.HasUnreadNotifications)
+                 {
+                     <span class="notification-badge bg-primary"></span>
+                 }
             </div>
 
             <!-- User Profile (Minimal - Avatar Only in Bar) -->
@@ -302,6 +309,43 @@
         0% { transform: scale(1); filter: brightness(1); }
         50% { transform: scale(1.2) rotate(5deg); filter: brightness(1.3); }
         100% { transform: scale(1); filter: brightness(1); }
+    }
+
+    /* Mobile Marketplace Button */
+    .marketplace-action-btn {
+        background: rgba(255, 8, 68, 0.05) !important;
+        border: 1px solid rgba(255, 8, 68, 0.1);
+        width: 44px !important;
+        height: 44px !important;
+    }
+
+    .market-badge-premium {
+        position: relative;
+        color: #ff0844;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .store-pulse-icon {
+        animation: storePulse 2s infinite cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @@keyframes storePulse {
+        0% { transform: scale(1); filter: drop-shadow(0 0 0px rgba(255, 8, 68, 0)); }
+        50% { transform: scale(1.25); filter: drop-shadow(0 0 8px rgba(255, 8, 68, 0.5)); }
+        100% { transform: scale(1); filter: drop-shadow(0 0 0px rgba(255, 8, 68, 0)); }
+    }
+
+    .animate-pulse-subtle {
+        animation: pulseSubtle 3s infinite ease-in-out;
+    }
+
+    @@keyframes pulseSubtle {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 8, 68, 0.2); }
+        50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 8, 68, 0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 8, 68, 0); }
     }
 
     .nav-link-marketplace-premium::before {

@@ -23,21 +23,44 @@ public static class KhadamatDbContextSeed
             {
                 var mainCategories = new List<MainCategory>
                 {
-                    new MainCategory { Name = "صحة", Icon = "🏥", Color = "medical", DisplayOrder = 1 },
-                    new MainCategory { Name = "تعليم", Icon = "🎓", Color = "education", DisplayOrder = 2 },
-                    new MainCategory { Name = "متاجر", Icon = "🏪", Color = "stores", DisplayOrder = 3 },
-                    new MainCategory { Name = "ماكولات ومشروبات", Icon = "🍲", Color = "food", DisplayOrder = 4 },
-                    new MainCategory { Name = "مكاتب", Icon = "🏢", Color = "offices", DisplayOrder = 5 },
-                    new MainCategory { Name = "حرفيون", Icon = "🛠️", Color = "crafts", DisplayOrder = 6 },
-                    new MainCategory { Name = "تسوق اون لين", Icon = "🛒", Color = "online", DisplayOrder = 7 },
-                    new MainCategory { Name = "مواصلات", Icon = "🚗", Color = "transport", DisplayOrder = 8 },
-                    new MainCategory { Name = "صيانة سيارات", Icon = "🔧", Color = "auto", DisplayOrder = 9 },
-                    new MainCategory { Name = "خدمات حكومية", Icon = "🏛️", Color = "gov", DisplayOrder = 10 },
-                    new MainCategory { Name = "متجر السلع", Icon = "🛍️", Color = "marketplace", DisplayOrder = 11 },
-                    new MainCategory { Name = "خدمات اخرى", Icon = "✨", Color = "other", DisplayOrder = 12 }
+                    new MainCategory { Name = "صحة", Icon = "🏥", Color = "medical", DisplayOrder = 1, ImageUrl = "cat_1.png" },
+                    new MainCategory { Name = "تعليم", Icon = "🎓", Color = "education", DisplayOrder = 2, ImageUrl = "cat_2.png" },
+                    new MainCategory { Name = "متاجر", Icon = "🏪", Color = "stores", DisplayOrder = 3, ImageUrl = "cat_3.png" },
+                    new MainCategory { Name = "ماكولات ومشروبات", Icon = "🍲", Color = "food", DisplayOrder = 4, ImageUrl = "cat_4.png" },
+                    new MainCategory { Name = "مكاتب", Icon = "🏢", Color = "offices", DisplayOrder = 5, ImageUrl = "cat_5.png" },
+                    new MainCategory { Name = "حرفيون", Icon = "🛠️", Color = "crafts", DisplayOrder = 6, ImageUrl = "cat_8.png" },
+                    new MainCategory { Name = "تسوق اون لين", Icon = "🛒", Color = "online", DisplayOrder = 7, ImageUrl = "cat_9.png" },
+                    new MainCategory { Name = "مواصلات", Icon = "🚗", Color = "transport", DisplayOrder = 8, ImageUrl = "cat_10.png" },
+                    new MainCategory { Name = "صيانة سيارات", Icon = "🔧", Color = "auto", DisplayOrder = 9, ImageUrl = "cat_11.png" },
+                    new MainCategory { Name = "خدمات حكومية", Icon = "🏛️", Color = "gov", DisplayOrder = 10, ImageUrl = "cat_12.png" },
+                    new MainCategory { Name = "متجر السلع", Icon = "🛍️", Color = "marketplace", DisplayOrder = 11, ImageUrl = "cat_7.png" },
+                    new MainCategory { Name = "خدمات اخرى", Icon = "✨", Color = "other", DisplayOrder = 12, ImageUrl = "cat_6.png" }
                 };
                 await context.MainCategories.AddRangeAsync(mainCategories);
                 await context.SaveChangesAsync();
+            }
+            else 
+            {
+                // Fix existing categories if they were seeded without images
+                var existing = await context.MainCategories.ToListAsync();
+                bool changed = false;
+                var imageMap = new Dictionary<string, string>
+                {
+                    { "صحة", "cat_1.png" }, { "تعليم", "cat_2.png" }, { "متاجر", "cat_3.png" },
+                    { "ماكولات ومشروبات", "cat_4.png" }, { "مكاتب", "cat_5.png" }, { "حرفيون", "cat_8.png" },
+                    { "تسوق اون لين", "cat_9.png" }, { "مواصلات", "cat_10.png" }, { "صيانة سيارات", "cat_11.png" },
+                    { "خدمات حكومية", "cat_1.png" }, { "متجر السلع", "cat_7.png" }, { "خدمات اخرى", "cat_6.png" }
+                };
+
+                foreach (var cat in existing)
+                {
+                    if (string.IsNullOrEmpty(cat.ImageUrl) && imageMap.TryGetValue(cat.Name, out var img))
+                    {
+                        cat.ImageUrl = img;
+                        changed = true;
+                    }
+                }
+                if (changed) await context.SaveChangesAsync();
             }
 
             if (!await context.Categories.AnyAsync())

@@ -18,16 +18,16 @@
                                     var imageUrl = "";
                                     if (!string.IsNullOrEmpty(cat.ImageUrl))
                                     {
-                                        imageUrl = $"/images/categories/{cat.ImageUrl}";
+                                        imageUrl = $"/images/maincategories/{cat.ImageUrl}";
                                     }
                                     else
                                     {
-                                        imageUrl = "/images/categories/defult.jpg";
+                                        imageUrl = "/images/maincategories/default.jpg";
                                     }
                                 }
                                 <img src="@imageUrl" 
                                      class="w-100 h-100 object-fit-cover" alt="@cat.Name" 
-                                     onerror="this.onerror=null;this.src='/images/categories/defult.jpg';"
+                                     onerror="this.onerror=null;this.src='/images/maincategories/default.jpg';"
                                      style="opacity: 0.9; border-radius: 50%;" />
                             </div>
                             <span class="category-name-small">@cat.Name</span>

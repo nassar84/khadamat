@@ -1,0 +1,33 @@
+[
+  {
+    "Name": "WebAPI + WasmHost (Full Stack)",
+    "Projects": [
+      {
+        "Path": "src\\Khadamat.WebAPI\\Khadamat.WebAPI.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "src\\Khadamat.WasmHost\\Khadamat.WasmHost.csproj",
+        "Action": "Start"
+      }
+    ]
+  },
+  {
+    "Name": "WebAPI Only",
+    "Projects": [
+      {
+        "Path": "src\\Khadamat.WebAPI\\Khadamat.WebAPI.csproj",
+        "Action": "Start"
+      }
+    ]
+  },
+  {
+    "Name": "WasmHost Only",
+    "Projects": [
+      {
+        "Path": "src\\Khadamat.WasmHost\\Khadamat.WasmHost.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

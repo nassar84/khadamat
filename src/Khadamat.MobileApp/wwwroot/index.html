@@ -76,21 +76,30 @@
             var start = Date.now();
             var statusEl = document.getElementById('status-info');
 
+            var messages = [
+                { time: 0,   msg: '⏳ بدء تحميل التطبيق...' },
+                { time: 5,   msg: '📦 تحميل إطار العمل Blazor...' },
+                { time: 15,  msg: '🔧 تهيئة مكونات التطبيق...' },
+                { time: 30,  msg: '🌐 الاتصال بقاعدة البيانات...' },
+                { time: 50,  msg: '📱 تحميل الواجهة الرئيسية...' },
+                { time: 70,  msg: '⚙️ اكتمال تحميل الملفات، جارٍ التشغيل...' },
+                { time: 100, msg: '🔄 المحاكي يحتاج وقتاً أطول في المرة الأولى...' },
+                { time: 130, msg: '🙏 شكراً على صبرك، التطبيق يكمل التحميل...' },
+                { time: 160, msg: '✅ اكتمل التحضير، يبدأ التشغيل قريباً...' },
+            ];
+
             setInterval(function () {
                 var el = document.getElementById('timer-val');
                 var elapsed = Math.floor((Date.now() - start) / 1000);
                 if (el) el.innerText = elapsed;
 
-                // Update status based on time
                 if (statusEl) {
-                    if (elapsed < 3) statusEl.innerText = '⏳ Loading Blazor framework...';
-                    else if (elapsed < 6) statusEl.innerText = '🔌 Connecting to API (10.0.2.2:5144)...';
-                    else if (elapsed < 10) statusEl.innerText = '📦 Loading components...';
-                    else {
-                        statusEl.innerHTML = '⚠️ <strong>Taking too long!</strong><br>Check if API is running at 10.0.2.2:5144';
-                        statusEl.style.color = '#dc3545';
-                        statusEl.style.fontWeight = 'bold';
+                    var current = messages[0].msg;
+                    for (var i = 0; i < messages.length; i++) {
+                        if (elapsed >= messages[i].time) current = messages[i].msg;
                     }
+                    statusEl.innerHTML = current;
+                    statusEl.style.color = elapsed > 90 ? '#f59e0b' : '#333';
                 }
             }, 1000);
         })();
