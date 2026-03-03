@@ -106,6 +106,7 @@ else
 @inject Khadamat.Shared.Interfaces.IBiometricService BiometricService
 @inject Khadamat.Shared.Interfaces.ISecureStorageService SecureStorage
 @inject Khadamat.BlazorUI.Services.Auth.IAuthService AuthService
+@inject IJSRuntime JS
 
 @code {
     private bool isLocked = false;
@@ -114,6 +115,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         AppState.OnChange += OnStateChange;
+        await AuthService.InitializeAsync();
         
         // Detect if should show lock screen
         // Only if authenticated and it's mobile and hasn't been unlocked this session
@@ -127,6 +129,19 @@ else
                 await Task.Delay(500);
                 await UnlockApp();
             }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try 
+            {
+                // Signal to index.html that Blazor is ready
+                await JS.InvokeVoidAsync("hideLoadingScreen");
+            }
+            catch { }
         }
     }
 

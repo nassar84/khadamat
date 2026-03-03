@@ -19,17 +19,48 @@ public class AppState
         set { _userToken = value; NotifyStateChanged(); } 
     }
 
-    public string UserName { get; set; } = string.Empty;
-    public string UserRole { get; set; } = string.Empty;
-    public string UserId { get; set; } = string.Empty;
+    private string _userName = string.Empty;
+    public string UserName 
+    { 
+        get => _userName; 
+        set { if (_userName != value) { _userName = value; NotifyStateChanged(); } } 
+    }
+
+    private string _userRole = string.Empty;
+    public string UserRole 
+    { 
+        get => _userRole; 
+        set { if (_userRole != value) { _userRole = value; NotifyStateChanged(); } } 
+    }
+
+    private string _userId = string.Empty;
+    public string UserId 
+    { 
+        get => _userId; 
+        set { if (_userId != value) { _userId = value; NotifyStateChanged(); } } 
+    }
     
     private string _userImageUrl = string.Empty;
     public string UserImageUrl 
     { 
         get => string.IsNullOrEmpty(_userImageUrl) ? DefaultImages.DefaultAvatar : _userImageUrl;
-        set => _userImageUrl = value;
+        set { if (_userImageUrl != value) { _userImageUrl = value; NotifyStateChanged(); } }
     }
-    public bool IsProvider { get; set; }
+
+    private bool _isProvider;
+    public bool IsProvider 
+    { 
+        get => _isProvider; 
+        set { if (_isProvider != value) { _isProvider = value; NotifyStateChanged(); } } 
+    }
+
+    private bool _isProviderMode;
+    public bool IsProviderMode 
+    { 
+        get => _isProviderMode; 
+        set { if (_isProviderMode != value) { _isProviderMode = value; NotifyStateChanged(); } } 
+    }
+    
     public int NotificationCount { get; set; } = 3;
     public bool HasUnreadNotifications { get; set; }
     public bool HasUnreadMessages { get; set; }
@@ -41,7 +72,6 @@ public class AppState
     public string SecondaryColor { get; set; } = "#a855f7";
    // UI State
     public bool IsSidebarOpen { get; set; }
-    public bool IsProviderMode { get; set; } // If true, show dashboard. If false, show client UI.
     
     // Profile Information
     public int? CityId { get; set; }

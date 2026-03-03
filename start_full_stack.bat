@@ -16,7 +16,7 @@ echo.
 echo ============================================================
 echo [2/3] Starting Backend API (Port 5144)...
 echo ============================================================
-start "Khadamat Web API" cmd /k "cd /d %ROOT_DIR% && dotnet run --project src\Khadamat.WebAPI\Khadamat.WebAPI.csproj --no-build"
+start "Khadamat Web API" cmd /k "cd /d %ROOT_DIR%src\Khadamat.WebAPI && dotnet run --no-build"
 
 echo Waiting for API to start...
 timeout /t 5 /nobreak > nul
@@ -25,7 +25,7 @@ echo.
 echo ============================================================
 echo [3/3] Starting Blazor WasmHost (Port 5028)...
 echo ============================================================
-start "Khadamat WasmHost" cmd /k "cd /d %ROOT_DIR% && dotnet run --project src\Khadamat.WasmHost\Khadamat.WasmHost.csproj --no-build --urls http://localhost:5028"
+start "Khadamat WasmHost" cmd /k "cd /d %ROOT_DIR%src\Khadamat.WasmHost && dotnet run --no-build --urls http://localhost:5028"
 
 echo.
 echo ============================================================

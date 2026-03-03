@@ -41,6 +41,8 @@ public class AuthService : IAuthService
                 await _secureStorage.SaveAsync("authToken", result.Data.Token);
                 await _secureStorage.SaveAsync("refreshToken", result.Data.RefreshToken);
 
+                _appState.UserToken = result.Data.Token;
+
                 ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsAuthenticated(result.Data.Token);
                 return result.Data;
             }
@@ -59,6 +61,9 @@ public class AuthService : IAuthService
     {
         _secureStorage.Remove("authToken");
         _secureStorage.Remove("refreshToken");
+        
+        _appState.UserToken = null;
+
         ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsLoggedOut();
         _httpClient.DefaultRequestHeaders.Authorization = null;
         return Task.CompletedTask;
@@ -94,10 +99,21 @@ public class AuthService : IAuthService
 
     public async Task<bool> LoginWithToken(string token, string refreshToken)
     {
-        await _localStorage.SetItemAsync("authToken", token);
-        await _localStorage.SetItemAsync("refreshToken", refreshToken);
+        await _secureStorage.SaveAsync("authToken", token);
+        await _secureStorage.SaveAsync("refreshToken", refreshToken);
+
+        _appState.UserToken = token;
 
         ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsAuthenticated(token);
         return true;
+    }
+
+    public async Task InitializeAsync()
+    {
+        var token = await _secureStorage.GetAsync("authToken");
+        if (!string.IsNullOrEmpty(token))
+        {
+            _appState.UserToken = token;
+        }
     }
 }

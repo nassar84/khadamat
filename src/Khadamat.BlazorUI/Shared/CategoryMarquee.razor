@@ -18,16 +18,16 @@
                                     var imageUrl = "";
                                     if (!string.IsNullOrEmpty(cat.ImageUrl))
                                     {
-                                        imageUrl = $"/images/maincategories/{cat.ImageUrl}";
+                                        imageUrl = $"/_content/Khadamat.BlazorUI/images/maincategories/{cat.ImageUrl}";
                                     }
                                     else
                                     {
-                                        imageUrl = "/images/maincategories/default.jpg";
+                                        imageUrl = "/_content/Khadamat.BlazorUI/images/maincategories/default.jpg";
                                     }
                                 }
                                 <img src="@imageUrl" 
                                      class="w-100 h-100 object-fit-cover" alt="@cat.Name" 
-                                     onerror="this.onerror=null;this.src='/images/maincategories/default.jpg';"
+                                     onerror="this.onerror=null;this.src='/_content/Khadamat.BlazorUI/images/maincategories/default.jpg';"
                                      style="opacity: 0.9; border-radius: 50%;" />
                             </div>
                             <span class="category-name-small">@cat.Name</span>
@@ -55,8 +55,7 @@
     .category-marquee-container {
         padding: 5px 0 10px 0;
         margin-bottom: 25px; /* Added gap between marquee and ads/content */
-        overflow-x: auto;
-        overflow-y: visible;
+        overflow: hidden;
         width: 100%;
         position: sticky;
         top: 72px; /* Sticky exactly below Header */
@@ -203,6 +202,11 @@
         padding: 0 10px;
     }
 
+    .categories-swiper .swiper-wrapper {
+        transition-timing-function: linear !important;
+        will-change: transform;
+    }
+    
     .category-marquee-container.loading {
         opacity: 0.6;
         pointer-events: none;
@@ -241,10 +245,11 @@
             {
                 await JS.InvokeVoidAsync("initCategoriesSlider");
                 _swiperInitialized = true;
+                Console.WriteLine("ANTIGRAVITY_LOG: Swiper initialized from CategoryMarquee.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error initializing swiper: {ex.Message}");
+                Console.WriteLine($"ANTIGRAVITY_LOG_ERR: Swiper init fail: {ex.Message}");
             }
         }
     }
@@ -265,7 +270,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"ANTIGRAVITY_LOG: Error loading categories: {ex.Message}");
+            Console.WriteLine($"ANTIGRAVITY_LOG_ERR: Error loading categories: {ex.Message}");
             GenerateMockCategories();
         }
         finally

@@ -27,9 +27,14 @@
             <ValidationMessage For="@(() => loginRequest.UserName)" />
         </div>
 
-        <div class="form-group">
+        <div class="form-group position-relative">
             <label>كلمة المرور</label>
-            <InputText @bind-Value="loginRequest.Password" type="password" class="form-control glass-input" placeholder="••••••••" autocomplete="new-password" />
+            <div class="input-group">
+                <InputText @bind-Value="loginRequest.Password" type="@(showPassword ? "text" : "password")" class="form-control glass-input password-input" placeholder="••••••••" autocomplete="new-password" />
+                <button type="button" class="btn position-absolute end-0 top-50 translate-middle-y border-0 ps-3" @onclick="TogglePasswordVisibility" style="z-index: 10;">
+                    <i class="fa-solid @(showPassword ? "fa-eye-slash" : "fa-eye") text-muted"></i>
+                </button>
+            </div>
             <ValidationMessage For="@(() => loginRequest.Password)" />
         </div>
 
@@ -126,6 +131,10 @@
         outline: none;
     }
 
+    .password-input {
+        padding-left: 45px !important;
+    }
+
     .auth-actions {
         display: flex;
         justify-content: flex-end;
@@ -208,6 +217,12 @@
     private LoginRequest loginRequest = new LoginRequest();
     private bool isLoading = false;
     private string errorMessage = "";
+    private bool showPassword = false;
+
+    private void TogglePasswordVisibility()
+    {
+        showPassword = !showPassword;
+    }
 
     protected override void OnInitialized()
     {

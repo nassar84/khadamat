@@ -57,7 +57,15 @@ public static class DefaultImages
     public static string GetServiceImage(string? categoryName = null, string? existingUrl = null)
     {
         if (!string.IsNullOrEmpty(existingUrl))
-            return existingUrl;
+        {
+            if (existingUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) || 
+                existingUrl.StartsWith("/", StringComparison.OrdinalIgnoreCase) || 
+                existingUrl.StartsWith("_content", StringComparison.OrdinalIgnoreCase))
+            {
+                return existingUrl.StartsWith("_content", StringComparison.OrdinalIgnoreCase) ? "/" + existingUrl : existingUrl;
+            }
+            return $"/_content/Khadamat.BlazorUI/images/categories/{existingUrl}";
+        }
 
         if (string.IsNullOrEmpty(categoryName))
             return DefaultService;
@@ -158,7 +166,15 @@ public static class DefaultImages
     public static string GetCategoryImage(string? categoryName = null, string? existingUrl = null)
     {
         if (!string.IsNullOrEmpty(existingUrl))
-            return existingUrl;
+        {
+            if (existingUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) || 
+                existingUrl.StartsWith("/", StringComparison.OrdinalIgnoreCase) || 
+                existingUrl.StartsWith("_content", StringComparison.OrdinalIgnoreCase))
+            {
+                return existingUrl.StartsWith("_content", StringComparison.OrdinalIgnoreCase) ? "/" + existingUrl : existingUrl;
+            }
+            return $"/_content/Khadamat.BlazorUI/images/categories/{existingUrl}";
+        }
 
         if (string.IsNullOrEmpty(categoryName))
             return DefaultCategory;

@@ -1,3 +1,4 @@
+@page "/explore"
 @page "/explore/{Level}/{Id:int}/{Name}"
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
@@ -6,7 +7,7 @@
 @inject NavigationManager Navigation
 
 <div>
-    <CategoryMarquee />
+
     <div class="explore-content-inner px-3">
         <!-- Ads Slider (Dynamic System) -->
         <Khadamat.BlazorUI.Components.Ads.AdsSlider />
@@ -16,13 +17,13 @@
 
         <div class="mb-4">
             <h3 class="fw-bold mb-4 gradient-text">
-                @if (Level == "main") { <span>التصنيفات في @Name</span> }
+                @if (Level == "main" || Level == "main_all") { <span>التصنيفات في @(string.IsNullOrEmpty(Name) ? "كل الفئات" : Name)</span> }
                 else if (Level == "category") { <span>الأنواع في @Name</span> }
                 else { <span>الخدمات في @Name</span> }
             </h3>
 
             <div class="row g-3 row-cols-2 row-cols-md-3 row-cols-lg-4">
-                @if (Level == "main")
+                @if (Level == "main" || Level == "main_all")
                 {
                     @if (categories != null)
                     {
@@ -35,13 +36,13 @@
                                         <div class="mb-3 mx-auto">
                                             @if (!string.IsNullOrEmpty(cat.ImageUrl))
                                             {
-                                                <img src="/images/categories/@cat.ImageUrl" 
-                                                     onerror="this.onerror=null;this.src='/images/categories/default.jpg';"
+                                                <img src="/_content/Khadamat.BlazorUI/images/categories/@cat.ImageUrl" 
+                                                     onerror="this.onerror=null;this.src='/_content/Khadamat.BlazorUI/images/categories/default.jpg';"
                                                      class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" />
                                             }
                                             else
                                             {
-                                                <img src="/images/categories/default.jpg" 
+                                                <img src="/_content/Khadamat.BlazorUI/images/categories/default.jpg" 
                                                      class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" />
                                             }
                                         </div>
@@ -73,13 +74,13 @@
                                         <div class="mb-3 mx-auto">
                                             @if (!string.IsNullOrEmpty(sub.ImageUrl))
                                             {
-                                                <img src="/images/categories/@sub.ImageUrl" 
-                                                     onerror="this.onerror=null;this.src='/images/categories/default.jpg';"
+                                                <img src="/_content/Khadamat.BlazorUI/images/categories/@sub.ImageUrl" 
+                                                     onerror="this.onerror=null;this.src='/_content/Khadamat.BlazorUI/images/categories/default.jpg';"
                                                      class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" />
                                             }
                                             else
                                             {
-                                                <img src="/images/categories/default.jpg" 
+                                                <img src="/_content/Khadamat.BlazorUI/images/categories/default.jpg" 
                                                      class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" />
                                             }
                                         </div>
@@ -164,7 +165,14 @@
         services = null;
         breadcrumbItems.Clear();
 
-        if (Level == "main")
+        if (string.IsNullOrEmpty(Level))
+        {
+            Level = "main_all";
+            breadcrumbItems.Add(new BreadcrumbItem { Label = "استكشف الفئات", IsActive = true });
+            var mainCategories = await Api.GetMainCategoriesAsync();
+            categories = mainCategories?.Select(mc => new CategoryDto { Id = mc.Id, Name = mc.Name, ImageUrl = mc.ImageUrl }).ToList();
+        }
+        else if (Level == "main")
         {
             breadcrumbItems.Add(new BreadcrumbItem { Label = Name, IsActive = true });
             categories = await Api.GetCategoriesByMainIdAsync(Id);

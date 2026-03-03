@@ -6,12 +6,26 @@
 
 <header class="mobile-header-premium">
     <div class="header-glass-content">
+        <!-- Right Side (RTL): Avatar / Menu -->
         <div class="header-left">
-            <button class="menu-toggle-btn-glass" @onclick="ToggleSidebar">
-                <i class="fa-solid fa-bars-staggered"></i>
-            </button>
+            <AuthorizeView>
+                <Authorized>
+                    <div class="user-profile-header-premium" @onclick="ToggleSidebar">
+                        <div class="avatar-header-wrapper">
+                            <img src="@State.UserImageUrl" alt="Profile" class="user-header-avatar-premium" />
+                            <div class="online-dot-small"></div>
+                        </div>
+                    </div>
+                </Authorized>
+                <NotAuthorized>
+                    <button class="menu-toggle-btn-glass" @onclick="ToggleSidebar">
+                        <i class="fa-solid fa-bars-staggered"></i>
+                    </button>
+                </NotAuthorized>
+            </AuthorizeView>
         </div>
 
+        <!-- Center: Logo -->
         <div class="header-center" @onclick='() => Navigation.NavigateTo("/")'>
             <div class="logo-wrapper-mobile">
                 @if (!string.IsNullOrEmpty(State.AppLogo))
@@ -26,59 +40,8 @@
             </div>
         </div>
 
+        <!-- Left Side (RTL): Notifications only -->
         <div class="header-right">
-            <AuthorizeView>
-                <Authorized>
-                    <div class="user-profile-header-premium" @onclick='() => Navigation.NavigateTo("/profile")'>
-                        <div class="user-meta-header d-none d-sm-flex">
-                            <span class="user-name-header">@State.UserName</span>
-                        </div>
-                        <div class="avatar-header-wrapper">
-                            <img src="@State.UserImageUrl" alt="Profile" class="user-header-avatar-premium" />
-                            <div class="online-dot-small"></div>
-                        </div>
-                    </div>
-                </Authorized>
-                <NotAuthorized>
-                    <button class="btn-login-minimal" @onclick='() => Navigation.NavigateTo("/login")'>
-                        <i class="fa-solid fa-right-to-bracket"></i>
-                    </button>
-                </NotAuthorized>
-            </AuthorizeView>
-            
-            <div id="mobileThemeToggle" class="theme-switcher-mobile me-2">
-                <button class="icon-btn-minimal" @onclick="ToggleThemeMenu">
-                    <i class="fa-solid fa-palette"></i>
-                </button>
-                @if (isThemeMenuOpen)
-                {
-                    <div class="theme-popover-mobile animate-up">
-                        <div class="theme-grid-mobile">
-                            <button class="theme-dot-mobile default @(State.CurrentTheme == "default" ? "active" : "")" @onclick='() => HandleSetTheme("default")'></button>
-                            <button class="theme-dot-mobile sunset @(State.CurrentTheme == "sunset" ? "active" : "")" @onclick='() => HandleSetTheme("sunset")'></button>
-                            <button class="theme-dot-mobile ocean @(State.CurrentTheme == "ocean" ? "active" : "")" @onclick='() => HandleSetTheme("ocean")'></button>
-                            <button class="theme-dot-mobile forest @(State.CurrentTheme == "forest" ? "active" : "")" @onclick='() => HandleSetTheme("forest")'></button>
-                            <button class="theme-dot-mobile lavender @(State.CurrentTheme == "lavender" ? "active" : "")" @onclick='() => HandleSetTheme("lavender")'></button>
-                            <button class="theme-dot-mobile royal @(State.CurrentTheme == "royal" ? "active" : "")" @onclick='() => HandleSetTheme("royal")'></button>
-                        </div>
-                    </div>
-                }
-            </div>
-
-            <!-- Marketplace -->
-            <div class="icon-btn-minimal marketplace-mobile-premium" @onclick='() => Navigation.NavigateTo("/marketplace")'>
-                <i class="fa-solid fa-basket-shopping icon-pulse"></i>
-            </div>
-
-            <!-- Messages -->
-            <div class="icon-btn-minimal" @onclick='() => Navigation.NavigateTo("/user/messages")'>
-                <i class="fa-solid fa-envelope"></i>
-                @if (State.HasUnreadMessages)
-                {
-                    <span class="badge-dot danger"></span>
-                }
-            </div>
-
             <!-- Notifications -->
             <div class="icon-btn-minimal" @onclick='() => Navigation.NavigateTo("/user/notifications")'>
                 <i class="fa-solid fa-bell"></i>
@@ -141,6 +104,13 @@
         display: flex;
         align-items: center;
         gap: 8px;
+    }
+
+    .header-right {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-direction: row;
     }
 
     .logo-icon-glow {
@@ -235,7 +205,18 @@
         color: #64748b;
         font-size: 1.1rem;
         position: relative;
-        margin-right: 5px;
+        cursor: pointer;
+        transition: transform 0.2s, background 0.2s;
+        border-radius: 12px;
+    }
+    
+    .icon-btn-minimal:hover {
+        background: rgba(0,0,0,0.05);
+        transform: scale(1.05);
+    }
+    
+    .icon-btn-minimal:active {
+        transform: scale(0.95);
     }
 
     .marketplace-mobile-premium {
@@ -427,7 +408,14 @@
     private async Task HandleSetTheme(string theme)
     {
         State.SetTheme(theme);
-        await JS.InvokeVoidAsync("document.body.setAttribute", "data-theme", theme);
+        try 
+        {
+            await JS.InvokeVoidAsync("setBodyTheme", theme);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error setting theme in MobileHeader: {ex.Message}");
+        }
         isThemeMenuOpen = false;
     }
 

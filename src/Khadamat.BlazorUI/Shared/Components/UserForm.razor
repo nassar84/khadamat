@@ -64,7 +64,12 @@
                     {
                         <div class="col-md-6">
                             <label class="form-label small fw-bold">كلمة المرور</label>
-                            <InputText type="password" class="form-control rounded-pill px-4" @bind-Value="Model.Password" placeholder="أدخل كلمة المرور" />
+                            <div class="input-group">
+                                <InputText type="@(showPassword ? "text" : "password")" class="form-control rounded-pill px-4" style="border-top-left-radius: 0 !important; border-bottom-left-radius: 0 !important;" @bind-Value="Model.Password" placeholder="أدخل كلمة المرور" />
+                                <button type="button" class="btn input-group-text bg-white" style="border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important;" @onclick="TogglePasswordVisibility">
+                                    <i class="fa-solid @(showPassword ? "fa-eye-slash" : "fa-eye") text-muted"></i>
+                                </button>
+                            </div>
                             <ValidationMessage For="@(() => Model.Password)" class="text-danger small" />
                         </div>
                     }
@@ -178,6 +183,12 @@
     public UserFormModel Model { get; set; } = new();
     
     private bool IsReadOnly => Mode == "View";
+    private bool showPassword = false;
+
+    private void TogglePasswordVisibility()
+    {
+        showPassword = !showPassword;
+    }
 
     public class UserFormModel
     {

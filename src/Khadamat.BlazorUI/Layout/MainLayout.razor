@@ -6,6 +6,7 @@
     
     <div class="app-main-view">
         <Header />
+        <CategoryMarquee />
         
         <main class="app-content">
 
@@ -76,9 +77,11 @@
     private bool ShowPromotionalContent => !IsAdminPage && !IsProfilePage && !IsProviderPage;
     private bool ShowHeroAds => IsHomePage;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         Navigation.LocationChanged += HandleLocationChanged;
+        AppState.OnChange += StateHasChanged;
+        await AuthService.InitializeAsync();
     }
 
     private async Task LoadInitialDataAsync()
@@ -96,7 +99,14 @@
                 AppState.TriggerStateChanged();
                 
                 // Apply colors if we have them
-                await JS.InvokeVoidAsync("applyThemeColors", AppState.PrimaryColor, AppState.SecondaryColor);
+                try 
+                {
+                    await JS.InvokeVoidAsync("applyThemeColors", AppState.PrimaryColor, AppState.SecondaryColor);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error applying theme colors in LoadInitialDataAsync: {ex.Message}");
+                }
             }
         }
         catch (Exception ex)
@@ -131,22 +141,22 @@
         }
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+        protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            _ = LoadInitialDataAsync(); // Trigger background load without awaiting it here
-            
-            if (!string.IsNullOrEmpty(AppState.PrimaryColor))
+            try 
             {
-                try
+                _ = LoadInitialDataAsync(); // Trigger background load without awaiting it here
+                
+                if (!string.IsNullOrEmpty(AppState.PrimaryColor))
                 {
                     await JS.InvokeVoidAsync("applyThemeColors", AppState.PrimaryColor, AppState.SecondaryColor);
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error applying theme colors: {ex.Message}");
-                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in MainLayout OnAfterRenderAsync: {ex.Message}");
             }
         }
     }

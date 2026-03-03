@@ -853,7 +853,14 @@
     private async Task HandleSetTheme(string theme)
     {
         State.SetTheme(theme);
-        await JSRuntime.InvokeVoidAsync("setBodyTheme", theme);
+        try 
+        {
+            await JSRuntime.InvokeVoidAsync("setBodyTheme", theme);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error setting theme in Header: {ex.Message}");
+        }
         isThemeMenuOpen = false;
     }
 

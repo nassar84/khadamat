@@ -128,18 +128,24 @@
                 <div class="col-md-6 mb-3">
                     <label class="form-label">كلمة المرور</label>
                     <div class="input-group">
-                        <span class="input-group-text glass-input-addon"><i class="fas fa-lock"></i></span>
-                        <InputText type="password" @bind-Value="registerModel.Password" class="form-control glass-input" />
-                    </div>
+                    <button type="button" class="btn input-group-text glass-input-addon ps-3" @onclick="TogglePasswordVisibility">
+                        <i class="fa-solid @(showPassword ? "fa-eye-slash" : "fa-eye")"></i>
+                    </button>
+                    <InputText type="@(showPassword ? "text" : "password")" @bind-Value="registerModel.Password" class="form-control glass-input password-input" />
+                    <span class="input-group-text glass-input-addon"><i class="fas fa-lock"></i></span>
+                </div>
                     <ValidationMessage For="@(() => registerModel.Password)" />
                 </div>
 
                  <div class="col-md-6 mb-3">
                     <label class="form-label">تأكيد كلمة المرور</label>
                     <div class="input-group">
-                        <span class="input-group-text glass-input-addon"><i class="fas fa-lock"></i></span>
-                        <InputText type="password" @bind-Value="confirmPassword" class="form-control glass-input" />
-                    </div>
+                    <button type="button" class="btn input-group-text glass-input-addon ps-3" @onclick="ToggleConfirmPasswordVisibility">
+                        <i class="fa-solid @(showConfirmPassword ? "fa-eye-slash" : "fa-eye")"></i>
+                    </button>
+                    <InputText type="@(showConfirmPassword ? "text" : "password")" @bind-Value="confirmPassword" class="form-control glass-input password-input" />
+                    <span class="input-group-text glass-input-addon"><i class="fas fa-lock"></i></span>
+                </div>
                     @if (!passwordsMatch && !string.IsNullOrEmpty(confirmPassword))
                     {
                         <div class="text-danger small mt-1">كلمات المرور غير متطابقة</div>
@@ -212,6 +218,11 @@
         border: 1px solid rgba(255, 255, 255, 0.6) !important;
         backdrop-filter: blur(5px);
         border-radius: 0 10px 10px 0 !important; /* RTL Left rounded */
+    }
+    
+    .password-input {
+        padding-left: 15px !important;
+        padding-right: 15px !important;
     }
     
     .glass-input:focus {
@@ -302,6 +313,18 @@
     private bool passwordsMatch => string.IsNullOrEmpty(registerModel.Password) || registerModel.Password == confirmPassword;
     private string? previewImage;
     private bool isLoadingCities = false;
+    private bool showPassword = false;
+    private bool showConfirmPassword = false;
+
+    private void TogglePasswordVisibility()
+    {
+        showPassword = !showPassword;
+    }
+
+    private void ToggleConfirmPasswordVisibility()
+    {
+        showConfirmPassword = !showConfirmPassword;
+    }
 
     private List<Khadamat.Application.DTOs.GovernorateDto> governorates = new();
     private List<Khadamat.Application.DTOs.CityDto> cities = new();

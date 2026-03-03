@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application 
         android:allowBackup="true" 
-        android:icon="@mipmap/appicon" 
-        android:roundIcon="@mipmap/appicon_round" 
+        android:icon="@mipmap/khadamat_icon" 
+        android:roundIcon="@mipmap/khadamat_icon" 
         android:supportsRtl="true"
         android:label="خدمات"
         android:theme="@style/Maui.SplashTheme"

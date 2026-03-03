@@ -1,5 +1,6 @@
 @inject NavigationManager Navigation
 @inject Khadamat.BlazorUI.State.AppState State
+@implements IDisposable
 
 <nav class="bottom-nav">
 @if (State.IsProviderMode)
@@ -179,12 +180,33 @@ else
         }
     }
 </style>
-
 @code {
+    protected override void OnInitialized()
+    {
+        State.OnChange += StateHasChanged;
+        Navigation.LocationChanged += HandleLocationChanged;
+    }
+
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        State.OnChange -= StateHasChanged;
+        Navigation.LocationChanged -= HandleLocationChanged;
+    }
+
     private string GetActiveClass(string path)
     {
-        var currentPath = new Uri(Navigation.Uri).AbsolutePath;
-        return currentPath == path || (path != "/" && currentPath.StartsWith(path)) ? "active" : "";
+        var uri = new Uri(Navigation.Uri);
+        var currentPath = uri.AbsolutePath;
+        
+        if (path == "/")
+            return currentPath == "/" ? "active" : "";
+            
+        return currentPath.StartsWith(path) ? "active" : "";
     }
 
     private void Navigate(string path)
