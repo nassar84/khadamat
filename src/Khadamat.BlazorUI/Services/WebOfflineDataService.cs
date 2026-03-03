@@ -24,6 +24,16 @@ public class WebOfflineDataService : IOfflineDataService
         return await _localStorage.GetItemAsync<List<ServiceDto>>("offline_services") ?? new List<ServiceDto>();
     }
 
+    public async Task SaveMainCategoriesAsync(List<MainCategoryDto> categories)
+    {
+        await _localStorage.SetItemAsync("offline_categories", categories);
+    }
+
+    public async Task<List<MainCategoryDto>> GetMainCategoriesAsync()
+    {
+        return await _localStorage.GetItemAsync<List<MainCategoryDto>>("offline_categories") ?? new List<MainCategoryDto>();
+    }
+
     public Task AddSyncActionAsync(string action, string data)
     {
         // For web PWA we could use IndexedDB, but for now simple fallback

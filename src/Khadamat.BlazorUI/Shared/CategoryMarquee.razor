@@ -3,6 +3,7 @@
 @inject ApiClient Api
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
+@inject Khadamat.Application.Interfaces.IOfflineDataService OfflineData
 
 <div class="category-marquee-container @(categories == null ? "loading" : "")" @ref="containerRef">
     <div class="swiper categories-swiper h-100">
@@ -258,12 +259,25 @@
     {
         try
         {
+            // 1. Try to load from Cache first (Instant speed)
+            var cached = await OfflineData.GetMainCategoriesAsync();
+            if (cached != null && cached.Any())
+            {
+                Console.WriteLine("ANTIGRAVITY_LOG: Loaded categories from cache.");
+                PopulateCategories(cached);
+                await InvokeAsync(StateHasChanged);
+            }
+
+            // 2. Fetch from API in background (Fresh data)
             var results = await Api.GetMainCategoriesAsync();
             if (results != null && results.Any())
             {
                 PopulateCategories(results);
+                // 3. Update Cache
+                await OfflineData.SaveMainCategoriesAsync(results);
+                Console.WriteLine("ANTIGRAVITY_LOG: Categories updated from API and cached.");
             }
-            else
+            else if (categories == null)
             {
                 GenerateMockCategories();
             }
@@ -271,7 +285,7 @@
         catch (Exception ex)
         {
             Console.WriteLine($"ANTIGRAVITY_LOG_ERR: Error loading categories: {ex.Message}");
-            GenerateMockCategories();
+            if (categories == null) GenerateMockCategories();
         }
         finally
         {

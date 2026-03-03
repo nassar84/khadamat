@@ -15,8 +15,38 @@ public class LocalDataService : Khadamat.Application.Interfaces.IOfflineDataServ
         _database = new SQLiteAsyncConnection(dbPath);
 
         await _database.CreateTableAsync<LocalService>();
+        await _database.CreateTableAsync<LocalMainCategory>();
         await _database.CreateTableAsync<LocalPost>();
         await _database.CreateTableAsync<SyncAction>();
+    }
+
+    public async Task SaveMainCategoriesAsync(List<MainCategoryDto> results)
+    {
+        await Init();
+        await _database!.DeleteAllAsync<LocalMainCategory>();
+        var locals = results.Select(c => new LocalMainCategory
+        {
+            Id = c.Id,
+            Name = c.Name,
+            Icon = c.Icon,
+            ImageUrl = c.ImageUrl,
+            Color = c.Color
+        }).ToList();
+        await _database.InsertAllAsync(locals);
+    }
+
+    public async Task<List<MainCategoryDto>> GetMainCategoriesAsync()
+    {
+        await Init();
+        var locals = await _database!.Table<LocalMainCategory>().ToListAsync();
+        return locals.Select(l => new MainCategoryDto
+        {
+            Id = l.Id,
+            Name = l.Name,
+            Icon = l.Icon,
+            ImageUrl = l.ImageUrl,
+            Color = l.Color
+        }).ToList();
     }
 
     public async Task SaveServicesAsync(List<ServiceDto> services)
@@ -73,6 +103,15 @@ public class LocalService
     public string Location { get; set; } = "";
     public string CategoryName { get; set; } = "";
     public string? ImageUrl { get; set; }
+}
+
+public class LocalMainCategory
+{
+    [PrimaryKey] public int Id { get; set; }
+    public string Name { get; set; } = "";
+    public string? Icon { get; set; }
+    public string? ImageUrl { get; set; }
+    public string? Color { get; set; }
 }
 
 public class LocalPost

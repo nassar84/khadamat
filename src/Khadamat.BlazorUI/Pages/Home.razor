@@ -346,7 +346,26 @@
     {
         try 
         {
-            // Parallel loading for maximum speed
+            // 1. Instant Load from Cache
+            var cachedServices = await OfflineData.GetServicesAsync();
+            var cachedCats = await OfflineData.GetMainCategoriesAsync();
+            
+            if (cachedServices != null && cachedServices.Any())
+            {
+                featuredServices = cachedServices.Take(6).ToList();
+                nearbyServices = cachedServices.Skip(1).Take(4).ToList();
+            }
+            if (cachedCats != null && cachedCats.Any())
+            {
+                mainCategories = cachedCats;
+            }
+            
+            if (featuredServices != null || mainCategories != null)
+            {
+                await InvokeAsync(StateHasChanged);
+            }
+
+            // 2. Parallel loading fresh data
             var servicesTask = Api.GetServicesAsync();
             var categoriesTask = Api.GetMainCategoriesAsync();
             var marketTask = Api.GetLatestMarketplaceItemsAsync(6);
@@ -355,28 +374,32 @@
 
             var servicesResult = servicesTask.Result;
             latestMarketItems = marketTask.Result;
+            mainCategories = categoriesTask.Result ?? mainCategories;
             
             if (servicesResult?.Items != null && servicesResult.Items.Any())
             {
                 featuredServices = servicesResult.Items.Take(6).ToList();
                 nearbyServices = servicesResult.Items.Skip(1).Take(4).ToList();
                 
-                // Save to offline storage
-                _ = OfflineData.SaveServicesAsync(servicesResult.Items);
-            }
-            else
-            {
-                // FALLBACK: Generate Mock Data if API is empty
-                GenerateMockServices();
+                // Update Cache
+                await OfflineData.SaveServicesAsync(servicesResult.Items);
             }
             
-            mainCategories = (await categoriesTask) ?? new();
+            if (mainCategories != null)
+            {
+                await OfflineData.SaveMainCategoriesAsync(mainCategories);
+            }
+
+            if (featuredServices == null)
+            {
+                GenerateMockServices();
+            }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"API Error: {ex.Message}. Using Mock Data...");
-            GenerateMockServices();
-            mainCategories = new List<MainCategoryDto>();
+            if (featuredServices == null) GenerateMockServices();
+            mainCategories ??= new List<MainCategoryDto>();
         }
         finally
         {
