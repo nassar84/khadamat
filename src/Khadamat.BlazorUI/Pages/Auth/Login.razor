@@ -5,6 +5,8 @@
 @inject NavigationManager Navigation
 @inject Khadamat.BlazorUI.State.AppState AppState
 @inject Khadamat.Shared.Interfaces.IExternalAuthService ExternalAuthService
+@inject Khadamat.Shared.Interfaces.IBiometricService BiometricService
+@inject Khadamat.Shared.Interfaces.ISecureStorageService SecureStorage
 
 <div class="glass-card auth-card">
     <div class="auth-header">
@@ -42,7 +44,7 @@
             <a href="/forgot-password" class="forgot-link">نسيت كلمة المرور؟</a>
         </div>
 
-        <button type="submit" class="btn btn-primary glass-btn-primary" disabled="@isLoading">
+        <button type="submit" class="btn btn-primary glass-btn-primary mb-3" disabled="@isLoading">
             @if (isLoading)
             {
                 <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
@@ -53,6 +55,16 @@
                 <span>تسجيل الدخول</span>
             }
         </button>
+
+        @if (isBiometricAvailable && hasBiometricSaved)
+        {
+            <div class="text-center mb-3">
+                <button type="button" class="btn btn-outline-primary rounded-circle p-3 biometric-btn animate-pulse" @onclick="HandleBiometricLogin" title="تسجيل الدخول بالبصمة">
+                    <i class="fa-solid fa-fingerprint fa-2x"></i>
+                </button>
+                <p class="small text-muted mt-2">استخدم البصمة للدخول السريع</p>
+            </div>
+        }
     </EditForm>
 
     <div class="auth-footer">
@@ -211,6 +223,20 @@
         align-items: center;
         justify-content: center;
     }
+
+    .biometric-btn {
+        width: 64px;
+        height: 64px;
+        border: 2px solid var(--theme-primary);
+        color: var(--theme-primary);
+        transition: all 0.3s ease;
+    }
+
+    .biometric-btn:hover {
+        background: var(--theme-primary);
+        color: white;
+        transform: scale(1.1);
+    }
 </style>
 
 @code {
@@ -224,11 +250,72 @@
         showPassword = !showPassword;
     }
 
-    protected override void OnInitialized()
+    private bool isBiometricAvailable = false;
+    private bool hasBiometricSaved = false;
+
+    protected override async Task OnInitializedAsync()
     {
         if (AppState.IsAuthenticated)
         {
             Navigation.NavigateTo("/");
+            return;
+        }
+
+        try
+        {
+            isBiometricAvailable = await BiometricService.IsAvailableAsync();
+            var savedUser = await SecureStorage.GetAsync("bio_username");
+            hasBiometricSaved = !string.IsNullOrEmpty(savedUser);
+            
+            // Auto-trigger biometric if available and saved
+            if (isBiometricAvailable && hasBiometricSaved && !isLoading)
+            {
+                // Give UI time to render
+                _ = Task.Delay(500).ContinueWith(_ => HandleBiometricLogin());
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Biometric check error: {ex.Message}");
+        }
+    }
+
+    private async Task HandleBiometricLogin()
+    {
+        errorMessage = "";
+        try
+        {
+            var authenticated = await BiometricService.AuthenticateAsync("تسجيل الدخول إلى حسابك في خدمات");
+            if (authenticated)
+            {
+                isLoading = true;
+                StateHasChanged();
+
+                var username = await SecureStorage.GetAsync("bio_username");
+                var password = await SecureStorage.GetAsync("bio_password");
+
+                if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
+                {
+                    loginRequest.UserName = username;
+                    loginRequest.Password = password;
+                    await HandleLogin();
+                }
+                else
+                {
+                    errorMessage = "لم يتم العثور على بيانات محفوظة للدخول بالبصمة.";
+                    isLoading = false;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "فشل المصادقة الحيوية.";
+            Console.WriteLine(ex.Message);
+            isLoading = false;
+        }
+        finally
+        {
+            StateHasChanged();
         }
     }
 
@@ -296,6 +383,14 @@
                     "SystemAdmin" => "مدير نظام",
                     _ => "مستخدم"
                 };
+
+                // After successful manual login, if biometric is available but not saved, save it
+                if (isBiometricAvailable && !hasBiometricSaved)
+                {
+                    await SecureStorage.SaveAsync("bio_username", loginRequest.UserName);
+                    await SecureStorage.SaveAsync("bio_password", loginRequest.Password);
+                }
+
                 Navigation.NavigateTo("/");
             }
             else
