@@ -1,6 +1,7 @@
 @inherits LayoutComponentBase
 @inject NavigationManager Navigation
 @inject Khadamat.BlazorUI.Services.Auth.IAuthService AuthService
+@inject Khadamat.BlazorUI.State.AppState State
 
 <div class="admin-layout" dir="rtl">
     <!-- Mobile Overlay -->
@@ -8,7 +9,13 @@
 
     <aside class="admin-sidebar glass-card @(SidebarOpen ? "open" : "")">
         <div class="sidebar-header d-flex justify-content-between align-items-center">
-            <h3 class="brand-name mb-0">خدمات <span class="badge">Admin</span></h3>
+            <div class="d-flex align-items-center gap-2">
+                @if (!string.IsNullOrEmpty(State.AppLogo))
+                {
+                    <img src="@State.AppLogo" alt="Logo" style="height: 25px; width: auto;" />
+                }
+                <h3 class="brand-name mb-0">@State.AppName <span class="badge">Admin</span></h3>
+            </div>
             <!-- Mobile Close Button -->
             <button class="btn btn-link text-muted d-lg-none" @onclick="ToggleSidebar">
                 <i class="fas fa-times fs-5"></i>

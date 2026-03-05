@@ -120,6 +120,11 @@
                                         <i class="fa-regular fa-clock me-1"></i>
                                         @item.CreatedAt.ToRelativeTime()
                                     </span>
+                                    <!-- Share Button -->
+                                    <button class="btn btn-fav me-1" @onclick="ShareItem" title="مشاركة">
+                                        <i class="fa-solid fa-share-nodes"></i>
+                                    </button>
+
                                     <!-- Favorite Button -->
                                     @if (isAuthenticated)
                                     {
@@ -307,6 +312,58 @@
                 </div>
             </div>
         }
+    </div>
+</div>
+
+<!-- Hidden Share Card for Social Media Captures (Marketplace) -->
+<div id="item-share-card" class="share-capture-card" style="display: none;">
+    <div class="share-card-content p-4 text-center">
+        <!-- Logo Header -->
+        <div class="d-flex align-items-center justify-content-center mb-3">
+            <div class="share-logo-container me-2">
+                <img src="/favicon.png" width="40" height="40" alt="Logo" />
+            </div>
+            <div class="share-brand">
+                <div class="fw-900 fs-4 text-primary">متجر خدمات</div>
+                <div class="x-small text-muted">Khadamat.com/Market</div>
+            </div>
+        </div>
+
+        <!-- Item Image -->
+        <div class="share-main-img-container mb-3 px-2">
+            <img src="@activeImageUrl" class="w-100 rounded-4 shadow-sm" style="height: 250px; object-fit: contain; background: #f8fafc;" />
+        </div>
+
+        <!-- Item Info -->
+        <div class="share-item-title fw-900 fs-3 mb-2 px-2">@item?.Title</div>
+        <div class="d-flex justify-content-center gap-3 mb-3">
+             <span class="badge bg-primary rounded-pill px-3 py-2 fs-5">@item?.Price.ToString("N0") @item?.Currency</span>
+             <span class="badge bg-light text-dark rounded-pill px-3 py-2 border">@(item?.Condition == "New" ? "جديد" : "مستعمل")</span>
+        </div>
+        
+        <p class="share-description text-muted small px-3 mb-4" style="min-height: 60px;">
+            @((item?.Description?.Length > 150) ? item.Description.Substring(0, 147) + "..." : item?.Description)
+        </p>
+
+        <!-- Divider with CTA -->
+        <div class="share-divider mb-4">
+            <span class="share-cta">تفاصيل الإعلان وطلب الشراء</span>
+        </div>
+
+        <!-- QR and App Promo -->
+        <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded-4 mx-2">
+            <div id="item-share-card-qrcode" class="qr-container shadow-sm border rounded-3 p-1 bg-white"></div>
+            <div class="text-end ms-3">
+                <div class="fw-bold small mb-1">تواصل مع البائع عبر المنصة</div>
+                <div class="text-muted xx-small mb-2">امسح الكود لفتح الإعلان</div>
+                <div class="badges-mini d-flex gap-1 justify-content-end">
+                    <i class="fa-brands fa-google-play text-muted"></i>
+                    <i class="fa-brands fa-apple text-muted"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4 x-small text-primary opacity-50">Khadamat Marketplace &copy; 2026</div>
     </div>
 </div>
 
@@ -563,7 +620,48 @@
     .tl-end { background: #3b82f6; }
     .tl-expired { background: #ef4444; }
     .tl-sold { background: #64748b; }
+
+    /* Share Card Capture Styles */
+    .share-capture-card {
+        width: 450px;
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        font-family: 'Tajawal', sans-serif;
+        text-align: center;
+    }
+    .share-card-content {
+        background: linear-gradient(180deg, rgba(99, 102, 241, 0.05) 0%, #ffffff 20%);
+    }
+    .share-logo-container {
+        background: white;
+        padding: 5px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    .share-brand div { line-height: 1; }
+    .share-divider {
+        height: 1px;
+        background: #e2e8f0;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .share-cta {
+        background: white;
+        padding: 0 15px;
+        font-size: 0.75rem;
+        color: #64748b;
+        font-weight: 700;
+        position: absolute;
+    }
+    .qr-container { width: 110px; height: 110px; }
+    .xx-small { font-size: 0.65rem; }
 </style>
+
+@inject IJSRuntime JS
+@inject Khadamat.Shared.Interfaces.IShareService DeviceShareService
 
 @code {
     [Parameter] public int Id { get; set; }
@@ -619,6 +717,24 @@
         await Api.ToggleMarketplaceFavoriteAsync(Id);
         isFavorite = !isFavorite;
         ShowToast(isFavorite ? "تمت الإضافة للمفضلة ❤️" : "تمت الإزالة من المفضلة");
+    }
+
+    private async Task ShareItem()
+    {
+        try 
+        {
+            var fileName = $"Khadamat_Market_{item?.Id}";
+            var shareUrl = Navigation.Uri;
+            
+            // Invoke the JS from index.html
+            await JS.InvokeVoidAsync("shareServiceAsImage", "item-share-card", shareUrl, fileName);
+        }
+        catch (Exception ex)
+        {
+            // Fallback
+            await DeviceShareService.ShareLinkAsync(Navigation.Uri, item?.Title ?? "إعلان");
+            Console.WriteLine($"Advanced share failed: {ex.Message}");
+        }
     }
 
     private async Task CallSeller()

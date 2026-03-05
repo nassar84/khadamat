@@ -63,7 +63,7 @@
             <div class="row align-items-center position-relative z-1">
                 <div class="col-8">
                     <span class="badge bg-danger rounded-pill mb-2 px-3 animate-pulse">جديد 🔥</span>
-                    <h3 class="fw-bold text-white mb-1">متجر خدمات (Marketplace)</h3>
+                    <h3 class="fw-bold text-white mb-1">متجر @AppState.AppName (Marketplace)</h3>
                     <p class="text-white-50 mb-3">بيع، اشترِ، وتصفح أفضل العروض في منطقتك بكل سهولة وأمان.</p>
                     <button class="btn btn-outline-light rounded-pill px-4 fw-bold">تصفح المتجر الآن <i class="fa-solid fa-arrow-left ms-2"></i></button>
                 </div>
@@ -610,13 +610,15 @@
 
             if (featuredServices == null)
             {
-                GenerateMockServices();
+                featuredServices = new List<ServiceDto>();
+                nearbyServices = new List<ServiceDto>();
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"API Error: {ex.Message}. Using Mock Data...");
-            if (featuredServices == null) GenerateMockServices();
+            Console.WriteLine($"API Error: {ex.Message}");
+            featuredServices ??= new List<ServiceDto>();
+            nearbyServices ??= new List<ServiceDto>();
             mainCategories ??= new List<MainCategoryDto>();
         }
         finally
@@ -625,112 +627,6 @@
         }
     }
 
-    private void GenerateMockServices()
-    {
-        featuredServices = new List<ServiceDto>
-        {
-            new ServiceDto 
-            { 
-                Id = 101, 
-                Title = "تركيب وصيانة مكيفات سبليت", 
-                CategoryName = "صيانة", 
-                Price = 250, 
-                Rating = 4.8, 
-                Location = "الرياض، حي الملقا",
-                Images = new List<string> { "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=800&h=600&fit=crop&q=80" },
-                ProviderName = "شركة التميز للصيانة",
-                ProviderPhoto = Khadamat.BlazorUI.Helpers.DefaultImages.GenerateColoredAvatar("التميز")
-            },
-            new ServiceDto 
-            { 
-                Id = 102, 
-                Title = "تصميم داخلي وديكور عصري", 
-                CategoryName = "ديكور", 
-                Price = 1500, 
-                Rating = 4.9, 
-                Location = "جدة، حي الشاطئ",
-                Images = new List<string> { "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800&h=600&fit=crop&q=80" },
-                ProviderName = "سارة أحمد",
-                ProviderPhoto = Khadamat.BlazorUI.Helpers.DefaultImages.FemaleAvatar
-            },
-            new ServiceDto 
-            { 
-                Id = 103, 
-                Title = "تنسيق حدائق منزلية وعشب صناعي", 
-                CategoryName = "حدائق", 
-                Price = 50, 
-                Rating = 4.7, 
-                Location = "الدمام، حي الفيصلية",
-                Images = new List<string> { "https://images.unsplash.com/photo-1558904541-efa843a96f01?w=800&h=600&fit=crop&q=80" },
-                ProviderName = "مشاتل الطبيعة",
-                ProviderPhoto = Khadamat.BlazorUI.Helpers.DefaultImages.GenerateColoredAvatar("طبيعة")
-            },
-            new ServiceDto 
-            { 
-                Id = 104, 
-                Title = "غسيل سيارات متنقل VIP", 
-                CategoryName = "سيارات", 
-                Price = 120, 
-                Rating = 4.6, 
-                Location = "الرياض، حي اليرموك",
-                Images = new List<string> { "https://images.unsplash.com/photo-1601362840469-51e4d8d58785?w=800&h=600&fit=crop&q=80" },
-                ProviderName = "كار واش",
-                ProviderPhoto = Khadamat.BlazorUI.Helpers.DefaultImages.GenerateColoredAvatar("Car")
-            },
-            new ServiceDto 
-            { 
-                Id = 105, 
-                Title = "معلم دهانات وديكورات بجدة", 
-                CategoryName = "دهانات", 
-                Price = 0, 
-                Rating = 4.5, 
-                Location = "جدة، حي الصفا",
-                Images = new List<string> { "https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=800&h=600&fit=crop&q=80" },
-                ProviderName = "علي محمد",
-                ProviderPhoto = Khadamat.BlazorUI.Helpers.DefaultImages.MaleAvatar
-            }
-        };
-
-        nearbyServices = new List<ServiceDto>
-        {
-            new ServiceDto 
-            { 
-                Id = 201, 
-                Title = "سباك ممتاز لكشف التسربات", 
-                CategoryName = "سباكة", 
-                Price = 100, 
-                Rating = 4.3, 
-                Location = "1.5 كم",
-                Images = new List<string> { "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=800&h=600&fit=crop&q=80" },
-                ProviderName = "أبو خالد",
-                ProviderPhoto = Khadamat.BlazorUI.Helpers.DefaultImages.MaleAvatar
-            },
-            new ServiceDto 
-            { 
-                Id = 202, 
-                Title = "كهربائي منازل صيانة فورية", 
-                CategoryName = "كهرباء", 
-                Price = 80, 
-                Rating = 4.4, 
-                Location = "2.3 كم",
-                Images = new List<string> { "https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=800&h=600&fit=crop&q=80" },
-                ProviderName = "محمود الكهربائي",
-                ProviderPhoto = Khadamat.BlazorUI.Helpers.DefaultImages.MaleAvatar
-            },
-            new ServiceDto 
-            { 
-                Id = 203, 
-                Title = "نقل عفش مع الفك والتركيب", 
-                CategoryName = "نقل", 
-                Price = 400, 
-                Rating = 4.9, 
-                Location = "3.1 كم",
-                Images = new List<string> { "https://images.unsplash.com/photo-1600518464441-9154a4dea21b?w=800&h=600&fit=crop&q=80" },
-                ProviderName = "سريعين للنقل",
-                ProviderPhoto = Khadamat.BlazorUI.Helpers.DefaultImages.GenerateColoredAvatar("سريع")
-            }
-        };
-    }
 
     private void OnServiceSelected(ServiceDto service) => Navigation.NavigateTo($"/service/{service.Id}");
 

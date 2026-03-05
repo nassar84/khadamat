@@ -109,7 +109,71 @@
     </div>
     <script src="lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
+        window.shareServiceAsImage = async (elementId, qrText, fileName) => {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            // Show element temporarily if it's hidden
+            const originalDisplay = element.style.display;
+            element.style.display = 'block';
+            element.style.position = 'fixed';
+            element.style.left = '-9999px';
+            element.style.top = '0';
+
+            // Generate QR Code
+            const qrContainer = document.getElementById(elementId + '-qrcode');
+            if (qrContainer) {
+                qrContainer.innerHTML = '';
+                new QRCode(qrContainer, {
+                    text: qrText,
+                    width: 100,
+                    height: 100,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+                // Wait a bit for QR to render
+                await new TaskWait(200);
+            }
+
+            try {
+                const canvas = await html2canvas(element, {
+                    useCORS: true,
+                    scale: 2, // Higher quality
+                    backgroundColor: null
+                });
+
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                const file = new File([blob], fileName + '.png', { type: 'image/png' });
+
+                if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: 'مشاركة الخدمة',
+                        text: 'شاهد هذه الخدمة الرائعة على تطبيق وموقع خدمات'
+                    });
+                } else {
+                    // Fallback to simple download or alert
+                    const link = document.createElement('a');
+                    link.download = fileName + '.png';
+                    link.href = canvas.toDataValue('image/png');
+                    link.click();
+                }
+            } catch (err) {
+                console.error('Sharing failed', err);
+            } finally {
+                element.style.display = originalDisplay;
+                element.style.position = '';
+                element.style.left = '';
+            }
+        };
+
+        function TaskWait(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
         window.initCategoriesSlider = () => {
             const el = document.querySelector('.categories-swiper');
             if (!el) {

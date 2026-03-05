@@ -382,12 +382,15 @@
     }
 
     private IEnumerable<UserDto> FilteredUsers => users
-        .Where(u => (string.IsNullOrEmpty(SearchTerm) || 
-                    (u.FullName?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) || 
-                    (u.Email?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (u.UserName?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false)) &&
-                    (string.IsNullOrEmpty(SelectedRole) || u.Role == SelectedRole) &&
-                    (string.IsNullOrEmpty(SelectedStatus) || (SelectedStatus == "active" ? u.IsActive : !u.IsActive)));
+        .Where(u => 
+            // Visibility Filter: SystemAdmins only see Users and Providers
+            (CurrentUserRole == "SuperAdmin" || (u.Role == "User" || u.Role == "Provider")) &&
+            (string.IsNullOrEmpty(SearchTerm) || 
+            (u.FullName?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) || 
+            (u.Email?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+            (u.UserName?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false)) &&
+            (string.IsNullOrEmpty(SelectedRole) || u.Role == SelectedRole) &&
+            (string.IsNullOrEmpty(SelectedStatus) || (SelectedStatus == "active" ? u.IsActive : !u.IsActive)));
 
     private string GetRoleBadgeClass(string role) => role switch
     {

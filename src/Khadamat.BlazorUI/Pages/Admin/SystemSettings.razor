@@ -32,8 +32,27 @@
                         <textarea @bind="settings.WelcomeMessage" class="form-control rounded-3 px-4" rows="3" placeholder="أدخل رسالة ترحيبية تظهر للمستخدمين..."></textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">رابط الشعار (Logo URL)</label>
-                        <input type="text" @bind="settings.LogoUrl" class="form-control rounded-pill px-4" placeholder="https://...">
+                        <label class="form-label small fw-bold">شعار الموقع (Logo)</label>
+                        <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-4">
+                            <div class="logo-preview-box bg-white p-2 rounded-3 border d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                @if (!string.IsNullOrEmpty(settings.LogoUrl))
+                                {
+                                    <img src="@settings.LogoUrl" style="max-width: 100%; max-height: 100%;" />
+                                }
+                                else
+                                {
+                                    <i class="fa-solid fa-image text-muted fs-3"></i>
+                                }
+                            </div>
+                            <div class="flex-grow-1">
+                                <label class="btn btn-outline-primary btn-sm rounded-pill px-3 cursor-pointer">
+                                    <i class="fa-solid fa-upload me-1"></i> رفع شعار جديد
+                                    <InputFile OnChange="HandleLogoUpload" class="d-none" accept=".jpg,.jpeg,.png,.svg" />
+                                </label>
+                                <div class="x-small text-muted mt-2">يفضل استخدام صورة شفافة (PNG) وبأبعاد متناسقة.</div>
+                                <input type="text" @bind="settings.LogoUrl" class="form-control form-control-sm mt-2 rounded-pill opacity-50" placeholder="أو أدخل رابطاً مباشراً...">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -136,6 +155,56 @@
                     <div class="mb-3">
                         <label class="form-label small fw-bold"><i class="fa-brands fa-instagram me-2"></i>Instagram</label>
                         <input type="text" @bind="settings.InstagramUrl" class="form-control rounded-pill px-4" placeholder="https://instagram.com/...">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Role Permissions Overview -->
+            <div class="col-md-12 mb-4">
+                <div class="glass-card p-4">
+                    <h5 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-key me-2 text-dark"></i>نظرة عامة على صلاحيات الإدارة</h5>
+                    <div class="table-responsive">
+                        <table class="table table-borderless align-middle small mb-0">
+                            <thead>
+                                <tr class="border-bottom border-light">
+                                    <th style="width: 250px;">الميزة / العملية</th>
+                                    <th class="text-center"><span class="badge bg-primary text-white rounded-pill px-3">System Admin</span></th>
+                                    <th class="text-center"><span class="badge bg-dark text-white rounded-pill px-3">Super Admin</span></th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-muted">
+                                <tr>
+                                    <td>إدارة المستخدمين (عملاء / مزودين)</td>
+                                    <td class="text-center text-success"><i class="fa-solid fa-check"></i> كاملة</td>
+                                    <td class="text-center text-success"><i class="fa-solid fa-check"></i> كاملة</td>
+                                </tr>
+                                <tr>
+                                    <td>إعتماد الخدمات والسلع</td>
+                                    <td class="text-center text-success"><i class="fa-solid fa-check"></i> كاملة</td>
+                                    <td class="text-center text-success"><i class="fa-solid fa-check"></i> كاملة</td>
+                                </tr>
+                                <tr>
+                                    <td>إدارة مديري النظام (SystemAdmin)</td>
+                                    <td class="text-center text-danger"><i class="fa-solid fa-xmark"></i> لا توجد</td>
+                                    <td class="text-center text-success"><i class="fa-solid fa-check"></i> كاملة</td>
+                                </tr>
+                                <tr>
+                                    <td>تعديل إعدادات النظام (الشعار / الاسم)</td>
+                                    <td class="text-center text-danger"><i class="fa-solid fa-xmark"></i> لا توجد</td>
+                                    <td class="text-center text-success"><i class="fa-solid fa-check"></i> كاملة</td>
+                                </tr>
+                                <tr>
+                                    <td>حذف المستخدمين بشكر نهائي</td>
+                                    <td class="text-center text-danger"><i class="fa-solid fa-xmark"></i> لا توجد</td>
+                                    <td class="text-center text-success"><i class="fa-solid fa-check"></i> كاملة</td>
+                                </tr>
+                                <tr>
+                                    <td>مشاهدة سجلات النشاط (Audit Logs)</td>
+                                    <td class="text-center text-danger"><i class="fa-solid fa-xmark"></i> لا توجد</td>
+                                    <td class="text-center text-success"><i class="fa-solid fa-check"></i> كاملة</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -267,6 +336,33 @@
         finally
         {
             isSaving = false;
+        }
+    private async Task HandleLogoUpload(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            var file = e.File;
+            if (file != null)
+            {
+                // Upload to server using ApiClient
+                var result = await Api.UploadImageAsync(file);
+                if (result.Success && !string.IsNullOrEmpty(result.ImageUrl))
+                {
+                    settings.LogoUrl = result.ImageUrl;
+                    statusMessage = "تم رفع الشعار بنجاح. اضغط 'حفظ' لتفعيله نهائياً.";
+                    isSuccess = true;
+                }
+                else
+                {
+                    statusMessage = result.Message ?? "فشل رفع الشعار.";
+                    isSuccess = false;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = "خطأ أثناء الرفع.";
+            Console.WriteLine(ex.Message);
         }
     }
 }

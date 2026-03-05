@@ -345,6 +345,54 @@
     }
 </div>
 
+<!-- Hidden Share Card for Social Media Captures -->
+<div id="service-share-card" class="share-capture-card" style="display: none;">
+    <div class="share-card-content p-4 text-center">
+        <!-- Logo Header -->
+        <div class="d-flex align-items-center justify-content-center mb-3">
+            <div class="share-logo-container me-2">
+                <img src="/favicon.png" width="40" height="40" alt="Logo" />
+            </div>
+            <div class="share-brand">
+                <div class="fw-900 fs-4 text-primary">خدمات</div>
+                <div class="x-small text-muted">Khadamat.com</div>
+            </div>
+        </div>
+
+        <!-- Service Image -->
+        <div class="share-main-img-container mb-3">
+            <img src="@mainImage" class="w-100 rounded-4 shadow-sm" style="max-height: 250px; object-fit: cover;" />
+        </div>
+
+        <!-- Service Info -->
+        <div class="share-service-title fw-900 fs-3 mb-2">@service?.Title</div>
+        <div class="share-service-price fs-4 text-success fw-bold mb-3">@service?.Price?.ToString("N0") ج.م</div>
+        
+        <p class="share-description text-muted small px-3 mb-4">
+            @((service?.Description?.Length > 150) ? service.Description.Substring(0, 147) + "..." : service?.Description)
+        </p>
+
+        <!-- Divider with CTA -->
+        <div class="share-divider mb-4">
+            <span class="share-cta">امسح الكود لمعرفة التفاصيل والطلب</span>
+        </div>
+
+        <!-- QR and App Promo -->
+        <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded-4">
+            <div id="service-share-card-qrcode" class="qr-container shadow-sm border rounded-3 p-1 bg-white"></div>
+            <div class="text-end ms-3">
+                <div class="fw-bold small mb-1">متوفر الآن للتطبيق والموقع</div>
+                <div class="badges-mini d-flex gap-1 justify-content-end">
+                    <i class="fa-brands fa-google-play text-muted"></i>
+                    <i class="fa-brands fa-apple text-muted"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4 x-small text-primary opacity-50">Khadamat &copy; 2026 - منصة جميع الخدمات في مكان واحد</div>
+    </div>
+</div>
+
 <!-- Simple Modals (rendered as overlays for now) -->
 @if (showRateModal)
 {
@@ -596,14 +644,46 @@
         to { transform: scale(1); opacity: 1; }
     }
 
-    .animate-fade-in {
-        animation: fadeIn 0.3s ease;
-    }
-
     @@keyframes fadeIn {
         from { opacity: 0; }
         to { opacity: 1; }
     }
+
+    /* Share Card Capture Styles */
+    .share-capture-card {
+        width: 450px;
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        font-family: 'Tajawal', sans-serif;
+    }
+    .share-card-content {
+        background: linear-gradient(180deg, rgba(99, 102, 241, 0.05) 0%, #ffffff 20%);
+    }
+    .share-logo-container {
+        background: white;
+        padding: 5px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    .share-brand div { line-height: 1; }
+    .share-divider {
+        height: 1px;
+        background: #e2e8f0;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .share-cta {
+        background: white;
+        padding: 0 15px;
+        font-size: 0.75rem;
+        color: #64748b;
+        font-weight: 700;
+        position: absolute;
+    }
+    .qr-container { width: 110px; height: 110px; }
 </style>
 
 @code {
@@ -648,7 +728,10 @@
         }
 
         if (service == null)
-            GenerateMockServiceSafe(Id);
+        {
+            // Handle not found or error cases gracefully in production
+            return;
+        }
 
         // Only fill truly missing fields — never overwrite real API data
         EnsureRequiredFields();
@@ -676,63 +759,6 @@
         }
     }
 
-    private void GenerateMockServiceSafe(int id)
-    {
-        try
-        {
-            var safeId = Math.Abs(id);
-            var categories = new[] { "صيانة", "كهرباء", "سباكة", "نظافة", "ديكور", "نقل" };
-            var category = categories[safeId % categories.Length];
-            var random = new Random(safeId);
-
-            service = new ServiceDto
-            {
-                Id = id,
-                Title = GetMockTitle(id, category),
-                Description = "هذه خدمة تجريبية تم توليدها تلقائياً لعرض تفاصيل الخدمة. نقدم أفضل الخدمات بأعلى جودة وأفضل الأسعار.",
-                Price = 100 + safeId, // Simple math
-                CategoryName = category,
-                MainCategoryName = "خدمات منزلية",
-                SubCategoryName = category,
-                Location = "الرياض",
-                Address = "عنوان تجريبي",
-                Rating = 4.5,
-                RatersCount = 50,
-                WorkDays = "السبت - الخميس",
-                WorkHours = "8 ص - 10 م",
-                ProviderName = "مقدم خدمة " + id,
-                ProviderPhoto = null,
-                Phone1 = "0500000000",
-                IsFavorite = false,
-                Images = new List<string>
-                {
-                    "https://picsum.photos/seed/" + id + "/800/600",
-                    "https://picsum.photos/seed/" + (id+1) + "/800/600"
-                },
-                Reviews = new List<ReviewDto>(),
-                Posts = new List<PostDto>()
-            };
-        }
-        catch(Exception ex)
-        {
-             Console.WriteLine($"Mock Gen Error: {ex}");
-             service = new ServiceDto { Id = id, Title = "Mock Error", Images=new(), Reviews=new(), Posts=new() };
-        }
-    }
-
-    private string GetMockTitle(int id, string category)
-    {
-        return category switch
-        {
-            "صيانة" => "صيانة مكيفات سبليت وشباك",
-            "كهرباء" => "تأسيس وصيانة كهرباء منازل",
-            "سباكة" => "كشف تسربات المياه وإصلاحها",
-            "نظافة" => "تنظيف شقق وفلل وقصور",
-            "ديكور" => "تصميم وتنفيذ ديكورات داخلية",
-            "نقل" => "نقل عفش مع الفك والتركيب",
-            _ => "خدمة مميزة رقم " + id
-        };
-    }
 
     /// <summary>Only fills missing/empty fields — never overwrites real API data.</summary>
     private void EnsureRequiredFields()
@@ -777,7 +803,20 @@
 
     private async Task ShareService()
     {
-        await DeviceShareService.ShareLinkAsync(Navigation.Uri, service?.Title ?? "خدمة");
+        try 
+        {
+            var fileName = $"Khadamat_Service_{service?.Id}";
+            var shareUrl = Navigation.Uri;
+            
+            // Invoke the JS we added to index.html
+            await JS.InvokeVoidAsync("shareServiceAsImage", "service-share-card", shareUrl, fileName);
+        }
+        catch (Exception ex)
+        {
+            // Fallback to simple link if complex share fails
+            await DeviceShareService.ShareLinkAsync(Navigation.Uri, service?.Title ?? "خدمة");
+            Console.WriteLine($"Advanced share failed: {ex.Message}");
+        }
     }
 
     private async Task ContactWhatsApp()

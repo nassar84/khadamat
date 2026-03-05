@@ -155,7 +155,7 @@
 
                 <div class="menu-sections-wrapper">
                     <div class="menu-section">
-                        <h6 class="section-title">إكتشف خدمات</h6>
+                        <h6 class="section-title">إكتشف @State.AppName</h6>
                         <div class="menu-items">
                             <div class="menu-item @GetActiveClass("")" @onclick='() => NavigateTo("/")'>
                                 <i class="fa-solid fa-house"></i>
@@ -529,7 +529,7 @@
 
     private async Task ShareApp()
     {
-        await ShareService.ShareTextAsync("حمل تطبيق خدمات الرائع الآن! منصتك المثالية لكل ما تحتاجه.", "مشاركة تطبيق خدمات");
+        await ShareService.ShareTextAsync($"حمل تطبيق {State.AppName} الرائع الآن! منصتك المثالية لكل ما تحتاجه.", $"مشاركة تطبيق {State.AppName}");
     }
 
     private void ToggleProviderMode()

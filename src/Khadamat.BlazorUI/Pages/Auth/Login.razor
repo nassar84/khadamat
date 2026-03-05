@@ -7,10 +7,11 @@
 @inject Khadamat.Shared.Interfaces.IExternalAuthService ExternalAuthService
 @inject Khadamat.Shared.Interfaces.IBiometricService BiometricService
 @inject Khadamat.Shared.Interfaces.ISecureStorageService SecureStorage
+@inject HttpClient Http
 
 <div class="glass-card auth-card">
     <div class="auth-header">
-        <h2 class="brand-name">خدمات</h2>
+        <h2 class="brand-name">@AppState.AppName</h2>
         <h3>تسجيل الدخول</h3>
         <p>مرحباً بعودتك! الرجاء إدخال بياناتك</p>
     </div>
@@ -285,7 +286,7 @@
         errorMessage = "";
         try
         {
-            var authenticated = await BiometricService.AuthenticateAsync("تسجيل الدخول إلى حسابك في خدمات");
+            var authenticated = await BiometricService.AuthenticateAsync($"تسجيل الدخول إلى حسابك في {AppState.AppName}");
             if (authenticated)
             {
                 isLoading = true;
@@ -323,7 +324,7 @@
     {
         errorMessage = "";
         try {
-            var apiBaseUrl = "http://localhost:5144"; // For production this should come from config
+            var apiBaseUrl = Http.BaseAddress?.ToString().TrimEnd('/');
             
             // For Mobile (MAUI), we use a custom scheme
             // For Web, we redirect back to the app page
