@@ -8,8 +8,44 @@
             <a href="/terms">الشروط والأحكام</a>
             <a href="/contact">تواصل معنا</a>
         </div>
+        <div class="footer-app-badges">
+            <span class="small text-muted d-block mb-2">حمل تطبيقنا الآن:</span>
+            <div class="d-flex gap-2">
+                <a href="/app.apk" download="khadamat.apk" class="app-badge" title="تنزيل مباشر للأندرويد"><i class="fa-brands fa-android"></i></a>
+                <span class="app-badge opacity-50" title="قريباً للايفون"><i class="fa-brands fa-apple"></i></span>
+            </div>
+        </div>
     </div>
 </footer>
+
+<style>
+    .app-badge {
+        background: #f1f5f9;
+        color: #334155;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        transition: all 0.2s;
+    }
+    .app-badge:hover {
+        background: var(--theme-primary);
+        color: white;
+        transform: translateY(-3px);
+    }
+    .footer-app-badges {
+        text-align: center;
+    }
+
+    @@media (max-width: 991px) {
+        .footer-app-badges {
+            display: none !important;
+        }
+    }
+</style>
 
 @code {
 

@@ -1,0 +1,366 @@
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<div class="app-download-widget-v2 @(isExpanded ? "expanded" : "") @(isVisible ? "visible" : "")">
+    <!-- Glow Background Layer -->
+    <div class="widget-aurora-glow"></div>
+    
+    <!-- Collapsed Trigger (Floating Button) -->
+    <button class="widget-fab shadow-premium" @onclick="ToggleExpand" aria-label="Download App">
+        <div class="fab-inner">
+            <div class="icon-stack">
+                <i class="fa-solid fa-mobile-screen-button fab-icon-main"></i>
+                <div class="status-dot-pulse"></div>
+            </div>
+            <span class="fab-text d-none d-md-block">حمّل التطبيق</span>
+        </div>
+        
+        <!-- Ripple Effect Elements -->
+        <div class="ripple-ring r1"></div>
+        <div class="ripple-ring r2"></div>
+    </button>
+
+    <!-- Expanded Portal Card -->
+    <div class="app-portal-card glass-morphism-premium @(isExpanded ? "expanded" : "")">
+        <button class="close-portal-btn" @onclick="ToggleExpand" title="إغلاق">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <div class="portal-body">
+            <div class="portal-header text-center mb-4">
+                <div class="app-logo-animated mb-2">
+                    <div class="logo-orb">
+                         <i class="fa-solid fa-bolt-lightning text-white fs-4"></i>
+                    </div>
+                </div>
+                <h4 class="fw-bold premium-text-glow mb-1">خدمات موبايل</h4>
+                <p class="text-muted small">كل ما تحتاجه في متناول يدك</p>
+            </div>
+
+            <div class="portal-actions d-grid gap-3">
+                <a href="/app.apk" download="khadamat.apk" class="store-link play-store-glow d-flex align-items-center p-3 rounded-4 text-decoration-none">
+                    <div class="store-icon bg-white text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width:40px;height:40px;">
+                        <i class="fa-brands fa-android fs-5"></i>
+                    </div>
+                    <div class="store-info text-white text-start">
+                        <span class="d-block xx-small opacity-75">DIRECT DOWNLOAD</span>
+                        <span class="fw-bold">تنزيل مباشر (APK)</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-left ms-auto text-white opacity-50"></i>
+                </a>
+
+                <div class="store-link app-store-glow d-flex align-items-center p-3 rounded-4 text-decoration-none opacity-50" style="cursor: not-allowed;">
+                    <div class="store-icon bg-white text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width:40px;height:40px;">
+                        <i class="fa-brands fa-apple fs-4"></i>
+                    </div>
+                    <div class="store-info text-white text-start">
+                        <span class="d-block xx-small opacity-75">COMING SOON</span>
+                        <span class="fw-bold">قريباً على App Store</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="qr-scan-section mt-4 pt-4 border-top border-white border-opacity-10 text-center">
+                <div class="qr-frame mx-auto mb-3">
+                    <div class="qr-corner top-left"></div>
+                    <div class="qr-corner top-right"></div>
+                    <div class="qr-corner bottom-left"></div>
+                    <div class="qr-corner bottom-right"></div>
+                    <div class="qr-scanner-line"></div>
+                    <i class="fa-solid fa-qrcode fa-5x text-white opacity-25"></i>
+                </div>
+                <span class="text-white opacity-75 x-small">امسح الكود ضوئياً لتحميل التطبيق مباشرة</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Premium App Widget Styles */
+    .app-download-widget-v2 {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 10000;
+        pointer-events: none;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @@media (max-width: 991px) {
+        .app-download-widget-v2 {
+            display: none !important;
+        }
+    }
+
+    .app-download-widget-v2.visible {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    /* FAB Styles */
+    .widget-fab {
+        background: linear-gradient(135deg, var(--theme-primary, #6366f1), var(--theme-secondary, #a855f7));
+        border: none;
+        padding: 12px 25px;
+        border-radius: 50px;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s ease;
+        box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+    }
+
+    .widget-fab:hover {
+        transform: scale(1.05) translateY(-5px);
+        box-shadow: 0 15px 40px rgba(99, 102, 241, 0.5);
+    }
+
+    .fab-inner {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .icon-stack {
+        position: relative;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .fab-icon-main {
+        font-size: 1.4rem;
+        animation: phoneFloat 3s ease-in-out infinite;
+    }
+
+    .status-dot-pulse {
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        width: 8px;
+        height: 8px;
+        background: #10b981;
+        border-radius: 50%;
+        border: 2px solid #6366f1;
+    }
+
+    .status-dot-pulse::after {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        border-radius: 50%;
+        border: 1px solid #10b981;
+        animation: pulseEffect 2s infinite;
+    }
+
+    .fab-text {
+        font-weight: 700;
+        font-size: 0.95rem;
+    }
+
+    /* Ripple Rings */
+    .ripple-ring {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        border: 1px solid rgba(255,255,255,0.4);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .ripple-ring.r1 { width: 100px; height: 100px; animation: rippleAnim 3s linear infinite; }
+    .ripple-ring.r2 { width: 150px; height: 150px; animation: rippleAnim 3s linear infinite 1.5s; }
+
+    /* Portal Card Styles */
+    .app-portal-card {
+        position: absolute;
+        bottom: 80px;
+        right: 0;
+        width: 320px;
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 30px;
+        padding: 30px;
+        opacity: 0;
+        visibility: hidden;
+        transform: scale(0.8) translateY(20px);
+        transform-origin: bottom right;
+        transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        z-index: 10001;
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+        color: white;
+    }
+
+    .app-portal-card.expanded {
+        opacity: 1;
+        visibility: visible;
+        transform: scale(1) translateY(0);
+    }
+
+    .close-portal-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: rgba(255,255,255,0.1);
+        border: none;
+        color: white;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .close-portal-btn:hover { background: rgba(255,255,255,0.2); transform: rotate(90deg); }
+
+    .app-logo-animated {
+        display: inline-block;
+        position: relative;
+    }
+
+    .logo-orb {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, var(--theme-primary, #6366f1), var(--theme-secondary, #a855f7));
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        box-shadow: 0 10px 20px rgba(99, 102, 241, 0.4);
+        animation: orbPulse 4s infinite ease-in-out;
+    }
+
+    /* Store Link Styles */
+    .store-link {
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .store-link:hover {
+        transform: scale(1.03) translateX(-5px);
+        border-color: rgba(255,255,255,0.3);
+    }
+
+    .play-store-glow { background: rgba(60, 186, 84, 0.2); }
+    .play-store-glow:hover { background: rgba(60, 186, 84, 0.3); }
+    
+    .app-store-glow { background: rgba(255, 255, 255, 0.1); }
+    .app-store-glow:hover { background: rgba(255, 255, 255, 0.15); }
+
+    /* QR Frame */
+    .qr-frame {
+        width: 140px;
+        height: 140px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,0.03);
+        border-radius: 20px;
+    }
+
+    .qr-corner {
+        position: absolute;
+        width: 15px;
+        height: 15px;
+        border: 2px solid var(--theme-primary, #6366f1);
+    }
+
+    .top-left { top: 0; left: 0; border-right: none; border-bottom: none; border-radius: 8px 0 0 0; }
+    .top-right { top: 0; right: 0; border-left: none; border-bottom: none; border-radius: 0 8px 0 0; }
+    .bottom-left { bottom: 0; left: 0; border-right: none; border-top: none; border-radius: 0 0 0 8px; }
+    .bottom-right { bottom: 0; right: 0; border-left: none; border-top: none; border-radius: 0 0 8px 0; }
+
+    .qr-scanner-line {
+        position: absolute;
+        top: 0;
+        left: 5%;
+        width: 90%;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--theme-primary, #6366f1), transparent);
+        box-shadow: 0 0 10px var(--theme-primary, #6366f1);
+        animation: scannerMove 3s infinite ease-in-out;
+        z-index: 5;
+    }
+
+    /* Animations */
+    @@keyframes phoneFloat {
+        0%, 100% { transform: translateY(0) rotate(0); }
+        50% { transform: translateY(-3px) rotate(5deg); }
+    }
+
+    @@keyframes pulseEffect {
+        0% { transform: scale(1); opacity: 1; }
+        100% { transform: scale(3); opacity: 0; }
+    }
+
+    @@keyframes rippleAnim {
+        from { transform: translate(-50%, -50%) scale(0.8); opacity: 0.5; }
+        to { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+    }
+
+    @@keyframes scannerMove {
+        0%, 100% { top: 5%; }
+        50% { top: 90%; }
+    }
+
+    @@keyframes orbPulse {
+        0%, 100% { transform: scale(1); filter: brightness(1); }
+        50% { transform: scale(1.1); filter: brightness(1.2); }
+    }
+
+    .premium-text-glow {
+        text-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+    }
+
+    .xx-small { font-size: 0.65rem; }
+
+    @@media (max-width: 768px) {
+        .app-download-widget-v2 {
+            bottom: 85px; /* Above BottomNav */
+            right: 20px;
+        }
+        .app-portal-card {
+            width: 280px;
+            bottom: 70px;
+            padding: 20px;
+        }
+    }
+</style>
+
+@code {
+    private bool isExpanded = false;
+    private bool isVisible = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Delayed appearance for "Surprise" effect
+            await Task.Delay(3000); 
+            isVisible = true;
+            StateHasChanged();
+        }
+    }
+
+    private void ToggleExpand() => isExpanded = !isExpanded;
+}

@@ -4,6 +4,7 @@
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
 @inject Khadamat.Application.Interfaces.IOfflineDataService OfflineData
+@inject HttpClient Http
 
 <div class="category-marquee-container @(categories == null ? "loading" : "")" @ref="containerRef">
     <div class="swiper categories-swiper h-100">
@@ -19,16 +20,19 @@
                                     var imageUrl = "";
                                     if (!string.IsNullOrEmpty(cat.ImageUrl))
                                     {
-                                        imageUrl = $"/_content/Khadamat.BlazorUI/images/maincategories/{cat.ImageUrl}";
+                                        if (cat.ImageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+                                            imageUrl = cat.ImageUrl;
+                                        else
+                                            imageUrl = $"{apiBaseUrl}images/maincategories/{cat.ImageUrl}";
                                     }
                                     else
                                     {
-                                        imageUrl = "/_content/Khadamat.BlazorUI/images/maincategories/default.jpg";
+                                        imageUrl = Khadamat.BlazorUI.Helpers.DefaultImages.DefaultCategory;
                                     }
                                 }
                                 <img src="@imageUrl" 
                                      class="w-100 h-100 object-fit-cover" alt="@cat.Name" 
-                                     onerror="this.onerror=null;this.src='/_content/Khadamat.BlazorUI/images/maincategories/default.jpg';"
+                                     onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=200&h=200&fit=crop&q=80';"
                                      style="opacity: 0.9; border-radius: 50%;" />
                             </div>
                             <span class="category-name-small">@cat.Name</span>
@@ -53,28 +57,8 @@
 </div>
 
 <style>
-    .category-marquee-container {
-        padding: 5px 0 10px 0;
-        margin-bottom: 25px; /* Added gap between marquee and ads/content */
-        overflow: hidden;
-        width: 100%;
-        position: sticky;
-        top: 72px; /* Sticky exactly below Header */
-        z-index: 990; 
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-    }
-
     /* Mobile Headers vary, we'll try to stick below them */
     @@media (max-width: 991px) {
-        .category-marquee-container {
-            top: 60px; /* Sticky below Mobile Header which is shorter */
-            padding: 2px 0 8px 0;
-        }
         .category-shape-wrapper {
             width: 55px !important;
             height: 55px !important;
@@ -228,10 +212,16 @@
 @code {
     private List<MainCategoryDto>? categories;
     private ElementReference containerRef;
+    private string apiBaseUrl = "";
 
     protected override void OnInitialized()
     {
-        Console.WriteLine("ANTIGRAVITY_LOG: CategoryMarquee Initialized. Starting load...");
+        // Build the API base URL to resolve category image paths correctly
+        // This works in both web and MAUI environments
+        apiBaseUrl = Http.BaseAddress?.ToString() ?? "";
+        if (!apiBaseUrl.EndsWith("/")) apiBaseUrl += "/";
+        
+        Console.WriteLine($"ANTIGRAVITY_LOG: CategoryMarquee Initialized. API Base: {apiBaseUrl}");
         _ = LoadCategoriesAsync();
     }
 
@@ -297,7 +287,7 @@
     {
         // To ensure infinite loop works with few items, we duplicate them
         var duplicated = new List<MainCategoryDto>();
-        while (duplicated.Count < 12)
+        while (duplicated.Count < 24)
         {
             duplicated.AddRange(results);
         }

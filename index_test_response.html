@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>خدمات | Khadamat</title>
+    <title>Ø®Ø¯ÙØ§Øª | Khadamat</title>
     <base href="/" />
 
     <!-- Fonts -->
@@ -97,15 +97,15 @@
             </svg>
             <div
                 style="position: fixed; top: 60%; width: 100%; text-align: center; color: var(--primary-color); font-weight: 500;">
-                جاري التحميل...
+                Ø¬Ø§Ø±Ù Ø§ÙØªØ­ÙÙÙ...
             </div>
         </div>
     </div>
 
     <div id="blazor-error-ui">
-        حدث خطأ غير متوقع.
-        <a href="." class="reload">إعادة تحميل</a>
-        <span class="dismiss">🗙</span>
+        Ø­Ø¯Ø« Ø®Ø·Ø£ ØºÙØ± ÙØªÙÙØ¹.
+        <a href="." class="reload">Ø¥Ø¹Ø§Ø¯Ø© ØªØ­ÙÙÙ</a>
+        <span class="dismiss">ð</span>
     </div>
     <script src="lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
@@ -125,27 +125,27 @@
             try {
                 new Swiper('.categories-swiper', {
                     slidesPerView: 'auto',
-                    spaceBetween: 25,
+                    spaceBetween: 0,
                     loop: true,
                     grabCursor: true,
-                    speed: 5000,
-                    autoplay: {
-                        delay: 0,
-                        disableOnInteraction: false,
-                        pauseOnMouseEnter: false
-                    },
                     freeMode: {
                         enabled: true,
                         momentumBounce: false,
                         momentumRatio: 1
                     },
-                    observer: true,
-                    observeParents: true,
-                    allowTouchMove: true,
+                    speed: 3000,
+                    autoplay: {
+                        delay: 0,
+                        disableOnInteraction: false,
+                        pauseOnMouseEnter: true
+                    },
                     mousewheel: {
                         forceToAxis: true,
                     },
-                    keyboard: true
+                    touchStartPreventDefault: false,
+                    simulateTouch: true,
+                    shortSwipes: true,
+                    longSwipes: true
                 });
             } catch (e) {
                 console.error("Swiper initialization failed:", e);

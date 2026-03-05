@@ -33,3 +33,15 @@ build_mobile_fix_attempt.txt
 # Temp files
 temp_publish/
 .gemini/
+
+# Large files - too big for GitHub (100MB limit)
+*.rar
+*.zip
+*.7z
+khadamat_mobile_screen*.png
+khadamat_mobile_screen*.jpg
+crash_full_2.txt
+crash_log.txt
+
+# APK files (large, use direct download link instead)
+src/Khadamat.WasmHost/wwwroot/app.apk

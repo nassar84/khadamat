@@ -3,13 +3,17 @@
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
                 <NotAuthorized>
-                    <LayoutView Layout="@typeof(MainLayout)">
-                        <div class="unauthorized-message">
-                            <h2>غير مصرح لك بالوصول</h2>
-                            <p>يرجى تسجيل الدخول للوصول إلى هذه الصفحة.</p>
-                            <a href="/login" class="btn btn-primary">تسجيل الدخول</a>
+                    <div class="container py-5 text-center">
+                        <div class="glass-card p-5 mx-auto" style="max-width: 500px; border-radius: 30px;">
+                            <i class="fa-solid fa-lock fa-3x text-primary mb-3 opacity-50"></i>
+                            <h3 class="fw-bold mb-3">تسجيل الدخول مطلوب</h3>
+                            <p class="text-muted mb-4">يرجى تسجيل الدخول للوصول إلى محتوى هذه الصفحة.</p>
+                            <div class="d-grid gap-2">
+                                <a href="/login" class="btn btn-primary btn-lg rounded-pill shadow-sm">تسجيل الدخول</a>
+                                <a href="/" class="btn btn-link text-muted">العودة للرئيسية</a>
+                            </div>
                         </div>
-                    </LayoutView>
+                    </div>
                 </NotAuthorized>
             </AuthorizeRouteView>
         </Found>

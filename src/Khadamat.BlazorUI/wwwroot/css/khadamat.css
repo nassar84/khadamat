@@ -269,18 +269,38 @@ body[data-theme="glass"]::after {
 
 .khadamat-app {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     min-height: 100vh;
     width: 100%;
     background: transparent;
     position: relative;
     z-index: 1;
-    /* Above the body::before glow */
+    overflow: visible !important;
 }
 
 .app-content {
     flex: 1;
     padding-bottom: 100px;
+    overflow: visible !important;
+}
+
+.category-marquee-container {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 72px !important;
+    z-index: 999 !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+    width: 100% !important;
+    display: block !important;
+}
+
+@media (max-width: 991px) {
+    .category-marquee-container {
+        top: 60px !important;
+    }
 }
 
 .content-wrapper {

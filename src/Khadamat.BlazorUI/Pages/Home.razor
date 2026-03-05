@@ -6,6 +6,8 @@
 @inject NavigationManager Navigation
 @inject Khadamat.BlazorUI.State.AppState AppState
 @inject Khadamat.Application.Interfaces.IOfflineDataService OfflineData
+@inject IJSRuntime JS
+@inject HttpClient Http
 
 <div class="px-3">
     <!-- Ads Slider (Dynamic System) -->
@@ -122,6 +124,98 @@
             }
         </div>
     </div>
+
+    <!-- Mobile App Promo Section - Hidden when running inside MAUI App -->
+    @if (!isMauiApp)
+    {
+    <div class="app-download-inline-card mb-5 premium-glass-card position-relative overflow-hidden">
+        <!-- Glow Background Layer -->
+        <div class="widget-aurora-glow-inline glow-1"></div>
+        <div class="widget-aurora-glow-inline glow-2"></div>
+        
+        <div class="row align-items-center position-relative z-1 p-4 p-md-5">
+            <div class="col-lg-7 mb-4 mb-lg-0 text-center text-lg-start">
+                <div class="d-flex flex-column flex-lg-row align-items-center gap-3 mb-4">
+                    <div class="logo-orb shadow-lg">
+                        <i class="fa-solid fa-bolt-lightning text-white fs-3"></i>
+                    </div>
+                    <div>
+                        <h2 class="fw-bold premium-text-glow mb-1 text-white">تطبيق خدمات موبايل</h2>
+                        <p class="text-white-50 mb-0">كل ما تحتاجه في متناول يدك</p>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <!-- 1. Direct Download -->
+                    <div class="col-sm-6">
+                        <a href="/app.apk" download="khadamat.apk" class="store-link-card play-store-glow d-flex align-items-center p-3 rounded-4 text-decoration-none h-100 w-100">
+                            <div class="store-icon bg-white text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;min-width:45px;">
+                                <i class="fa-brands fa-android fs-4 text-success"></i>
+                            </div>
+                            <div class="store-info text-white text-start">
+                                <span class="d-block xx-small opacity-75">تحميل مباشر</span>
+                                <span class="fw-bold fs-6">تنزيل (APK)</span>
+                            </div>
+                        </a>
+                    </div>
+                    
+                    <!-- 2. Coming Soon -->
+                    <div class="col-sm-6">
+                        <div class="store-link-card app-store-glow d-flex align-items-center p-3 rounded-4 text-decoration-none opacity-50 h-100 w-100" style="cursor: not-allowed;">
+                            <div class="store-icon bg-white text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;min-width:45px;">
+                                <i class="fa-brands fa-apple fs-4"></i>
+                            </div>
+                            <div class="store-info text-white text-start">
+                                <span class="d-block xx-small opacity-75">قريباً على</span>
+                                <span class="fw-bold fs-6">Store</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Share App -->
+                    <div class="col-sm-6">
+                        <button type="button" @onclick="ShareApp" class="store-link-card share-app-glow border-0 d-flex align-items-center p-3 rounded-4 text-decoration-none w-100 h-100 text-start bg-transparent">
+                            <div class="store-icon bg-white text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;min-width:45px;">
+                                <i class="fa-solid fa-share-nodes fs-4"></i>
+                            </div>
+                            <div class="store-info text-white text-start">
+                                <span class="d-block xx-small opacity-75">أخبر أصدقائك</span>
+                                <span class="fw-bold fs-6">مشاركة التطبيق</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- 4. Scan QR -->
+                    <div class="col-sm-6">
+                        <div class="store-link-card qr-code-glow d-flex align-items-center p-3 rounded-4 h-100 w-100">
+                            <div class="qr-code-mini-frame bg-white p-1 rounded-3 me-3 d-flex align-items-center justify-content-center" style="width:45px;height:45px;min-width:45px;">
+                                <i class="fa-solid fa-qrcode fs-3 text-dark"></i>
+                            </div>
+                            <div class="store-info text-white text-start">
+                                <span class="d-block fw-bold fs-6">امسح الكود ضوئياً</span>
+                                <span class="d-block xx-small opacity-75">للتنزيل مباشرة</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5 text-center mt-5 mt-lg-0 d-none d-md-block">
+                <div class="qr-scan-section-large mx-auto">
+                    <div class="qr-frame-large mx-auto mb-3">
+                        <div class="qr-corner-lg top-left"></div>
+                        <div class="qr-corner-lg top-right"></div>
+                        <div class="qr-corner-lg bottom-left"></div>
+                        <div class="qr-corner-lg bottom-right"></div>
+                        <div class="qr-scanner-line-large"></div>
+                        <i class="fa-solid fa-qrcode fa-6x text-white opacity-25"></i>
+                    </div>
+                    <span class="text-white opacity-75 small fw-bold mt-2 d-block">افتح الكاميرا وامسح الكود ضوئياً</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    }
 
     <!-- Join as Provider Banner -->
     <div class="provider-banner-card mb-5" @onclick="GoToRegisterProvider">
@@ -267,7 +361,124 @@
     .scroll-hide::-webkit-scrollbar { display: none; }
     .scroll-hide { scrollbar-width: none; }
 
-    /* Premium Marketplace Announcement */
+    /* App Promo Inline Design */
+    .premium-glass-card {
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 30px;
+        color: white;
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    .widget-aurora-glow-inline {
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        filter: blur(60px);
+        opacity: 0.5;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    .widget-aurora-glow-inline.glow-1 {
+        top: -100px;
+        left: -100px;
+        background: var(--theme-primary, #6366f1);
+        animation: orbPulse 6s infinite alternate;
+    }
+
+    .widget-aurora-glow-inline.glow-2 {
+        bottom: -100px;
+        right: -100px;
+        background: var(--theme-secondary, #a855f7);
+        animation: orbPulse 8s infinite alternate-reverse;
+    }
+
+    .logo-orb {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, var(--theme-primary, #6366f1), var(--theme-secondary, #a855f7));
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        box-shadow: 0 10px 20px rgba(99, 102, 241, 0.4);
+        animation: orbPulse 4s infinite ease-in-out;
+    }
+
+    .premium-text-glow {
+        text-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+    }
+
+    .store-link-card {
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .store-link-card:not(.opacity-50):hover {
+        transform: scale(1.03) translateX(-5px);
+        border-color: rgba(255,255,255,0.3);
+    }
+
+    .play-store-glow { background: rgba(60, 186, 84, 0.1); }
+    .play-store-glow:hover { background: rgba(60, 186, 84, 0.2); }
+    
+    .app-store-glow { background: rgba(255, 255, 255, 0.05); }
+    
+    .share-app-glow { background: rgba(99, 102, 241, 0.1); cursor: pointer; }
+    .share-app-glow:hover { background: rgba(99, 102, 241, 0.2); }
+
+    .qr-code-glow { background: rgba(168, 85, 247, 0.1); }
+
+    .qr-frame-large {
+        width: 180px;
+        height: 180px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,0.03);
+        border-radius: 20px;
+    }
+
+    .qr-corner-lg {
+        position: absolute;
+        width: 25px;
+        height: 25px;
+        border: 3px solid var(--theme-primary, #6366f1);
+    }
+    
+    .top-left { top: 0; left: 0; border-right: none; border-bottom: none; border-radius: 8px 0 0 0; }
+    .top-right { top: 0; right: 0; border-left: none; border-bottom: none; border-radius: 0 8px 0 0; }
+    .bottom-left { bottom: 0; left: 0; border-right: none; border-top: none; border-radius: 0 0 0 8px; }
+    .bottom-right { bottom: 0; right: 0; border-left: none; border-top: none; border-radius: 0 0 8px 0; }
+
+    .qr-scanner-line-large {
+        position: absolute;
+        top: 0;
+        left: 5%;
+        width: 90%;
+        height: 3px;
+        background: linear-gradient(90deg, transparent, var(--theme-primary, #6366f1), transparent);
+        box-shadow: 0 0 15px var(--theme-primary, #6366f1);
+        animation: scannerMove 3s infinite ease-in-out;
+        z-index: 5;
+    }
+
+    @@keyframes orbPulse {
+        0%, 100% { transform: scale(1); filter: brightness(1); }
+        50% { transform: scale(1.05); filter: brightness(1.2); }
+    }
+
+    @@keyframes scannerMove {
+        0%, 100% { top: 5%; }
+        50% { top: 92%; }
+    }
     .marketplace-announcement-banner {
         background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
         cursor: pointer;
@@ -335,10 +546,17 @@
     private List<ServiceDto>? nearbyServices;
     private List<MainCategoryDto>? mainCategories;
     private List<MarketplaceItemDto>? latestMarketItems;
+    private bool isMauiApp = false;
 
     protected override void OnInitialized()
     {
-        Console.WriteLine("ANTIGRAVITY_LOG: Home Page Initialized. Starting background data load...");
+        // Detect if running inside MAUI app:
+        // In MAUI, the HttpClient BaseAddress points to the API server (10.0.2.2 or localhost:5144)
+        // In web, it points to the web host (localhost:5028)
+        var baseAddress = Http.BaseAddress?.ToString() ?? "";
+        isMauiApp = baseAddress.Contains("5144") || baseAddress.Contains("10.0.2.2");
+        
+        Console.WriteLine($"ANTIGRAVITY_LOG: Home Page Initialized. IsMauiApp={isMauiApp}");
         _ = LoadDataAsync();
     }
 
@@ -524,5 +742,23 @@
             Navigation.NavigateTo("/provider/apply");
         else
             Navigation.NavigateTo("/register");
+    }
+
+    private async Task ShareApp()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.share", new 
+            { 
+                title = "تطبيق خدمات موبايل", 
+                text = "حمل أفضل تطبيق للخدمات في مصر!", 
+                url = Navigation.BaseUri 
+            });
+        }
+        catch
+        {
+            // Fallback if Web Share API is not supported
+            await JS.InvokeVoidAsync("alert", "رابط التطبيق: " + Navigation.BaseUri);
+        }
     }
 }
