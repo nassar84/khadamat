@@ -56,6 +56,11 @@ net9.0-windows10.0.19041.0
     </ItemGroup>
 
     <ItemGroup>
+        <EmbeddedResource Include="Resources\Raw\appsettings.json" LogicalName="appsettings.json" />
+        <EmbeddedResource Include="Resources\Raw\appsettings.Development.json" LogicalName="appsettings.Development.json" />
+    </ItemGroup>
+
+    <ItemGroup>
         <!-- MAUI Core -->
         <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
@@ -63,6 +68,7 @@ net9.0-windows10.0.19041.0
         
         <!-- Extensions -->
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.0" />
         
         <!-- Community Toolkit -->
         <PackageReference Include="CommunityToolkit.Maui" Version="9.0.3" />

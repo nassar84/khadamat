@@ -3,6 +3,7 @@
 @inject AppState State
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
+@implements IDisposable
 
 <div class="app-sidebar @(IsCollapsed ? "collapsed" : "") d-none d-lg-flex">
     <div class="sidebar-header">
@@ -308,6 +309,8 @@
 
     protected override async Task OnInitializedAsync()
     {
+        State.OnChange += OnStateChange;
+        
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         if (user.Identity?.IsAuthenticated == true)
@@ -322,8 +325,18 @@
         }
     }
 
+    private async void OnStateChange()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
     private void ToggleCollapse()
     {
         IsCollapsed = !IsCollapsed;
+    }
+
+    public void Dispose()
+    {
+        State.OnChange -= OnStateChange;
     }
 }

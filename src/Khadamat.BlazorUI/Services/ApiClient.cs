@@ -4,6 +4,8 @@ using Khadamat.Application.Common.Models;
 using Khadamat.Application.Features.Services.Queries;
 using System.Text.Json;
 using Khadamat.Application.Features.Services.Commands;
+using Microsoft.AspNetCore.Components.Forms;
+using System.Net.Http.Headers;
 
 namespace Khadamat.BlazorUI.Services;
 
@@ -892,6 +894,25 @@ public class ApiClient
             return new List<MarketplaceSubCategoryDto>();
         }
     }
+
+    public async Task<ImageUploadResponse> UploadImageAsync(IBrowserFile file)
+    {
+        try
+        {
+            var content = new MultipartFormDataContent();
+            var fileContent = new StreamContent(file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024));
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+            content.Add(fileContent, "file", file.Name);
+
+            var response = await _http.PostAsync("api/v1/upload", content);
+            return await response.Content.ReadFromJsonAsync<ImageUploadResponse>() 
+                   ?? new ImageUploadResponse { Success = false, Message = "Failed to parse upload response" };
+        }
+        catch (Exception ex)
+        {
+            return new ImageUploadResponse { Success = false, Message = $"Upload error: {ex.Message}" };
+        }
+    }
 }
 
 
@@ -937,3 +958,10 @@ public class MyCommentDto
 
 public class LoginDto { public string Email { get; set; } = ""; public string Password { get; set; } = ""; }
 public class AuthResponseDto { public string Token { get; set; } = ""; public string RefreshToken { get; set; } = ""; public string FullName { get; set; } = ""; }
+
+public class ImageUploadResponse
+{
+    public bool Success { get; set; }
+    public string? Message { get; set; }
+    public string? ImageUrl { get; set; }
+}

@@ -4,7 +4,7 @@ using Khadamat.BlazorUI.Services;
 using Khadamat.BlazorUI.Services.Auth;
 using Microsoft.Maui.Authentication;
 
-namespace Khadamat.MobileApp.Services
+namespace Khadamat.MobileApp.Security
 {
     public interface IMobileAuthService
     {
@@ -16,7 +16,6 @@ namespace Khadamat.MobileApp.Services
         private readonly ApiClient _apiClient;
         private readonly IAuthService _authService;
 
-        // Note: For a real app, these should be in a secure config or fetched from backend
         private const string GoogleClientId = "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
         private const string FacebookAppId = "YOUR_FACEBOOK_APP_ID";
         private const string CallbackScheme = "khadamat";
@@ -34,11 +33,9 @@ namespace Khadamat.MobileApp.Services
                 string authUrl = "";
                 if (provider.Equals("Google", StringComparison.OrdinalIgnoreCase))
                 {
-                    // Authorization Code Flow with PKCE is better, but WebAuthenticator can handle simple implicit/code flow
-                    // Here we construct a direct Google OAuth URL
                     authUrl = $"https://accounts.google.com/o/oauth2/v2/auth?" +
                               $"client_id={GoogleClientId}&" +
-                              $"response_type=id_token token&" + // Request both for simplicity or just id_token
+                              $"response_type=id_token token&" +
                               $"scope=openid%20email%20profile&" +
                               $"redirect_uri={CallbackScheme}://auth-callback&" +
                               $"nonce={Guid.NewGuid():N}";
@@ -56,7 +53,6 @@ namespace Khadamat.MobileApp.Services
                     new Uri(authUrl),
                     new Uri($"{CallbackScheme}://"));
 
-                // Depending on the provider, the token might be in "id_token" or "access_token"
                 string token = result.Properties.ContainsKey("id_token") 
                     ? result.Properties["id_token"] 
                     : result.AccessToken;
@@ -64,19 +60,16 @@ namespace Khadamat.MobileApp.Services
                 if (string.IsNullOrEmpty(token))
                     return ApiResponse<AuthResponse>.Fail("لم يتم الحصول على توكن من مزود الخدمة");
 
-                // Send the token to OUR Web API for validation and JWT generation
                 var exchangeRequest = new ExternalTokenLoginRequest
                 {
                     Provider = provider,
                     Token = token
                 };
 
-                // We need to call the new API endpoint
                 var apiResponse = await _apiClient.PostAsync<ApiResponse<AuthResponse>>("api/v1/auth/external-token-login", exchangeRequest);
                 
                 if (apiResponse != null && apiResponse.Success)
                 {
-                    // Successfully logged in, now save the token in our AppState/Storage
                     await _authService.LoginWithToken(apiResponse.Data.Token, apiResponse.Data.RefreshToken);
                     return apiResponse;
                 }

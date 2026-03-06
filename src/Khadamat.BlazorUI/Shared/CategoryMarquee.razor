@@ -16,24 +16,25 @@
                     <div class="swiper-slide w-auto">
                         <div class="category-item d-flex flex-column align-items-center" @onclick="() => OnCategorySelected(cat)">
                             <div class="category-shape-wrapper p-0">
-                                @{
-                                    var imageUrl = "";
-                                    if (!string.IsNullOrEmpty(cat.ImageUrl))
-                                    {
-                                        if (cat.ImageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-                                            imageUrl = cat.ImageUrl;
-                                        else
-                                            imageUrl = $"{apiBaseUrl}images/maincategories/{cat.ImageUrl}";
-                                    }
-                                    else
-                                    {
-                                        imageUrl = Khadamat.BlazorUI.Helpers.DefaultImages.DefaultCategory;
-                                    }
+                                @if (!string.IsNullOrEmpty(cat.ImageUrl))
+                                {
+                                    var imageUrl = cat.ImageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) 
+                                        ? cat.ImageUrl 
+                                        : $"{apiBaseUrl}images/maincategories/{cat.ImageUrl}";
+                                        
+                                    <img src="@imageUrl" 
+                                         class="w-100 h-100 object-fit-cover" alt="@cat.Name" 
+                                         onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=200&h=200&fit=crop&q=80';"
+                                         style="opacity: 0.9; border-radius: 50%;" />
                                 }
-                                <img src="@imageUrl" 
-                                     class="w-100 h-100 object-fit-cover" alt="@cat.Name" 
-                                     onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=200&h=200&fit=crop&q=80';"
-                                     style="opacity: 0.9; border-radius: 50%;" />
+                                else if (!string.IsNullOrEmpty(cat.Icon))
+                                {
+                                    <span style="font-size: 2rem;">@cat.Icon</span>
+                                }
+                                else
+                                {
+                                    <span style="font-size: 2rem;">📁</span>
+                                }
                             </div>
                             <span class="category-name-small">@cat.Name</span>
                         </div>

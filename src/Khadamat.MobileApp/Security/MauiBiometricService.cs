@@ -2,7 +2,7 @@ using Khadamat.Shared.Interfaces;
 using Plugin.Fingerprint;
 using Plugin.Fingerprint.Abstractions;
 
-namespace Khadamat.MobileApp.Services;
+namespace Khadamat.MobileApp.Security;
 
 public class MauiBiometricService : IBiometricService
 {

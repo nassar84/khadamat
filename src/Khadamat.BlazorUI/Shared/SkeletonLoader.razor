@@ -1,0 +1,119 @@
+@* 
+    SkeletonLoader — Generic animated placeholder for loading states.
+    Usage:
+        <SkeletonLoader Type="card" Count="3" />
+        <SkeletonLoader Type="list" Count="5" />
+        <SkeletonLoader Type="text" Count="2" />
+*@
+
+@for (int i = 0; i < Count; i++)
+{
+    @if (Type == "card")
+    {
+        <div class="skeleton-card-wrap mb-3">
+            <div class="skeleton-img-block skeleton-pulse"></div>
+            <div class="skeleton-body">
+                <div class="skeleton-line skeleton-pulse w-75 mb-2"></div>
+                <div class="skeleton-line skeleton-pulse w-50 mb-2"></div>
+                <div class="skeleton-line skeleton-pulse w-35"></div>
+            </div>
+        </div>
+    }
+    else if (Type == "list")
+    {
+        <div class="skeleton-list-item mb-3 d-flex align-items-center gap-3">
+            <div class="skeleton-avatar skeleton-pulse"></div>
+            <div class="flex-grow-1">
+                <div class="skeleton-line skeleton-pulse w-60 mb-2"></div>
+                <div class="skeleton-line skeleton-pulse w-40"></div>
+            </div>
+        </div>
+    }
+    else if (Type == "text")
+    {
+        <div class="skeleton-line skeleton-pulse mb-2" style="height: 14px;"></div>
+        <div class="skeleton-line skeleton-pulse mb-2 w-75" style="height: 14px;"></div>
+    }
+    else if (Type == "banner")
+    {
+        <div class="skeleton-banner skeleton-pulse mb-3"></div>
+    }
+}
+
+<style>
+    .skeleton-pulse {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: skeletonShimmer 1.6s infinite ease-in-out;
+        border-radius: 8px;
+    }
+
+    @@keyframes skeletonShimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    .skeleton-card-wrap {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid #f1f5f9;
+        display: flex;
+        height: 120px;
+    }
+
+    .skeleton-img-block {
+        width: 120px;
+        min-width: 120px;
+        height: 100%;
+        border-radius: 0;
+    }
+
+    .skeleton-body {
+        flex: 1;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .skeleton-line {
+        height: 12px;
+        border-radius: 6px;
+        background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: skeletonShimmer 1.6s infinite ease-in-out;
+    }
+
+    .skeleton-list-item {
+        padding: 10px 0;
+    }
+
+    .skeleton-avatar {
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+        border-radius: 12px;
+        background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: skeletonShimmer 1.6s infinite ease-in-out;
+    }
+
+    .skeleton-banner {
+        height: 180px;
+        border-radius: 20px;
+        background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: skeletonShimmer 1.6s infinite ease-in-out;
+    }
+
+    .w-35 { width: 35%; }
+    .w-40 { width: 40%; }
+    .w-60 { width: 60%; }
+    .w-75 { width: 75%; }
+</style>
+
+@code {
+    [Parameter] public string Type { get; set; } = "card"; // card | list | text | banner
+    [Parameter] public int Count { get; set; } = 3;
+}

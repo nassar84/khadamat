@@ -1,0 +1,119 @@
+@using Khadamat.Shared.Interfaces
+
+@if (_showError)
+{
+    <div class="api-error-card">
+        <div class="error-icon-circle">
+            <i class="fa-solid fa-wifi-slash fa-2x"></i>
+        </div>
+        <h5 class="fw-bold mt-3 mb-1">@Title</h5>
+        <p class="text-muted small mb-4">@Message</p>
+        <button class="btn btn-retry" @onclick="HandleRetry" disabled="@_isRetrying">
+            @if (_isRetrying)
+            {
+                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                <span>جاري الإعادة...</span>
+            }
+            else
+            {
+                <i class="fa-solid fa-arrows-rotate me-2"></i>
+                <span>إعادة المحاولة</span>
+            }
+        </button>
+    </div>
+}
+else
+{
+    @ChildContent
+}
+
+<style>
+    .api-error-card {
+        text-align: center;
+        padding: 40px 20px;
+        background: white;
+        border-radius: 24px;
+        border: 1px solid #f1f5f9;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        margin: 20px 0;
+    }
+
+    .error-icon-circle {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #fef2f2, #fee2e2);
+        color: #ef4444;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        animation: shake 0.5s ease;
+    }
+
+    @@keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        20%, 60% { transform: translateX(-6px); }
+        40%, 80% { transform: translateX(6px); }
+    }
+
+    .btn-retry {
+        background: linear-gradient(135deg, var(--theme-primary, #6366f1), var(--theme-secondary, #a855f7));
+        color: white;
+        border: none;
+        border-radius: 14px;
+        padding: 12px 30px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+    }
+
+    .btn-retry:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(99,102,241,0.4);
+    }
+
+    .btn-retry:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+</style>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Title { get; set; } = "فشل تحميل البيانات";
+    [Parameter] public string Message { get; set; } = "تحقق من اتصال الإنترنت وأعد المحاولة.";
+    [Parameter] public Func<Task>? OnRetry { get; set; }
+    [Parameter] public bool ShowError { get; set; } = false;
+
+    private bool _showError = false;
+    private bool _isRetrying = false;
+
+    protected override void OnParametersSet()
+    {
+        _showError = ShowError;
+    }
+
+    private async Task HandleRetry()
+    {
+        if (OnRetry == null) return;
+        _isRetrying = true;
+        StateHasChanged();
+
+        try
+        {
+            await OnRetry.Invoke();
+            _showError = false;
+        }
+        catch
+        {
+            _showError = true;
+        }
+        finally
+        {
+            _isRetrying = false;
+            StateHasChanged();
+        }
+    }
+}

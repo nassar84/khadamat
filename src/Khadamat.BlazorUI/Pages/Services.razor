@@ -3,6 +3,7 @@
 @using Khadamat.BlazorUI.Services
 @inject ApiClient Api
 @inject NavigationManager Navigation
+@implements IDisposable
 
 <div class="px-3 pt-3 pb-5">
     <!-- Header with Search/Filter -->
@@ -51,7 +52,7 @@
         </div>
     }
 
-    <!-- Services List -->
+    <!-- Services List with Virtualize for performance -->
     <div class="row g-3">
         @if (services != null)
         {
@@ -65,12 +66,11 @@
             }
             else
             {
-                @foreach (var service in services)
-                {
+                <Virtualize Items="@services" Context="service" OverscanCount="3">
                     <div class="col-12 col-md-6">
                         <ServiceCard Service="service" OnClick="OnServiceSelected" />
                     </div>
-                }
+                </Virtualize>
             }
         }
         else
@@ -258,11 +258,30 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Start loading both without waiting for each other sequentially
+        // Subscribe to LocationChanged to close filters on navigate
+        Navigation.LocationChanged += OnLocationChanged;
+
         var initTask = LoadInitialData();
         var servicesTask = LoadServices();
         
         await Task.WhenAll(initTask, servicesTask);
+    }
+
+    // ✅ FIX: Memory Leak — unsubscribe from LocationChanged event
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        // Close filters drawer when user navigates
+        if (showFilters)
+        {
+            showFilters = false;
+            isFilterClosing = false;
+            InvokeAsync(StateHasChanged);
+        }
     }
 
     private async Task LoadInitialData()

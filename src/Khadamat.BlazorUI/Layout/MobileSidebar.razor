@@ -4,6 +4,7 @@
 @inject IJSRuntime JS
 @inject Khadamat.BlazorUI.Services.Auth.IAuthService AuthService
 @inject Khadamat.Shared.Interfaces.IShareService ShareService
+@implements IDisposable
 
 <div class="sidebar-overlay @(State.IsSidebarOpen ? "show" : "")" @onclick="CloseSidebar"></div>
 

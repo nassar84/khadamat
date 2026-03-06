@@ -8,6 +8,7 @@
 @inject Khadamat.Application.Interfaces.IOfflineDataService OfflineData
 @inject IJSRuntime JS
 @inject HttpClient Http
+@implements IDisposable
 
 <div class="px-3">
     <!-- Ads Slider (Dynamic System) -->
@@ -47,10 +48,7 @@
             else
             {
                 <div class="d-flex gap-3 overflow-hidden">
-                    @for (int i = 0; i < 3; i++)
-                    {
-                        <div class="skeleton rounded-4" style="min-width: 280px; height: 180px;"></div>
-                    }
+                    <SkeletonLoader Type="card" Count="3" />
                 </div>
             }
         </div>
@@ -117,10 +115,7 @@
             }
             else
             {
-                @for (int i = 0; i < 3; i++)
-                {
-                    <div class="skeleton rounded-4 mb-3" style="height: 90px;"></div>
-                }
+                <SkeletonLoader Type="list" Count="3" />
             }
         </div>
     </div>
@@ -547,24 +542,34 @@
     private List<MainCategoryDto>? mainCategories;
     private List<MarketplaceItemDto>? latestMarketItems;
     private bool isMauiApp = false;
+    private CancellationTokenSource _cts = new();
 
     protected override void OnInitialized()
     {
-        // Detect if running inside MAUI app:
-        // In MAUI, the HttpClient BaseAddress points to the API server (10.0.2.2 or localhost:5144)
-        // In web, it points to the web host (localhost:5028)
+        // Subscribe to AppState changes to re-render when data changes
+        AppState.OnChange += StateHasChanged;
+
         var baseAddress = Http.BaseAddress?.ToString() ?? "";
         isMauiApp = baseAddress.Contains("5144") || baseAddress.Contains("10.0.2.2");
         
         Console.WriteLine($"ANTIGRAVITY_LOG: Home Page Initialized. IsMauiApp={isMauiApp}");
-        _ = LoadDataAsync();
+        _ = LoadDataAsync(_cts.Token);
     }
 
-    private async Task LoadDataAsync()
+    public void Dispose()
+    {
+        // ✅ FIX 1: Memory Leak — always unsubscribe from events
+        AppState.OnChange -= StateHasChanged;
+        // ✅ FIX 2: Cancel any pending API calls when navigating away
+        _cts.Cancel();
+        _cts.Dispose();
+    }
+
+    private async Task LoadDataAsync(CancellationToken ct = default)
     {
         try 
         {
-            // 1. Instant Load from Cache
+            // 1. Instant Load from Cache (Offline-First)
             var cachedServices = await OfflineData.GetServicesAsync();
             var cachedCats = await OfflineData.GetMainCategoriesAsync();
             
@@ -578,17 +583,22 @@
                 mainCategories = cachedCats;
             }
             
+            // Show cached data immediately
             if (featuredServices != null || mainCategories != null)
             {
                 await InvokeAsync(StateHasChanged);
             }
 
-            // 2. Parallel loading fresh data
+            if (ct.IsCancellationRequested) return;
+
+            // 2. Parallel loading of fresh data from API
             var servicesTask = Api.GetServicesAsync();
             var categoriesTask = Api.GetMainCategoriesAsync();
             var marketTask = Api.GetLatestMarketplaceItemsAsync(6);
 
             await Task.WhenAll(servicesTask, categoriesTask, marketTask);
+
+            if (ct.IsCancellationRequested) return;
 
             var servicesResult = servicesTask.Result;
             latestMarketItems = marketTask.Result;
@@ -599,7 +609,7 @@
                 featuredServices = servicesResult.Items.Take(6).ToList();
                 nearbyServices = servicesResult.Items.Skip(1).Take(4).ToList();
                 
-                // Update Cache
+                // Update Cache for next launch (Offline-First)
                 await OfflineData.SaveServicesAsync(servicesResult.Items);
             }
             
@@ -614,6 +624,10 @@
                 nearbyServices = new List<ServiceDto>();
             }
         }
+        catch (OperationCanceledException)
+        {
+            // Navigation happened before data loaded — safe to ignore
+        }
         catch (Exception ex)
         {
             Console.WriteLine($"API Error: {ex.Message}");
@@ -623,10 +637,10 @@
         }
         finally
         {
-            await InvokeAsync(StateHasChanged);
+            if (!ct.IsCancellationRequested)
+                await InvokeAsync(StateHasChanged);
         }
     }
-
 
     private void OnServiceSelected(ServiceDto service) => Navigation.NavigateTo($"/service/{service.Id}");
 
@@ -653,7 +667,6 @@
         }
         catch
         {
-            // Fallback if Web Share API is not supported
             await JS.InvokeVoidAsync("alert", "رابط التطبيق: " + Navigation.BaseUri);
         }
     }

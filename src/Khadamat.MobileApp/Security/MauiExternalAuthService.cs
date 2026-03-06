@@ -1,7 +1,7 @@
 using Khadamat.Shared.Interfaces;
 using Microsoft.Maui.Authentication;
 
-namespace Khadamat.MobileApp.Services;
+namespace Khadamat.MobileApp.Security;
 
 public class MauiExternalAuthService : IExternalAuthService
 {
