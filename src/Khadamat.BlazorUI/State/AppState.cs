@@ -72,6 +72,12 @@ public class AppState
     public string SecondaryColor { get; set; } = "#a855f7";
    // UI State
     public bool IsSidebarOpen { get; set; }
+    private bool _isMobileApp;
+    public bool IsMobileApp 
+    { 
+        get => _isMobileApp; 
+        set { if (_isMobileApp != value) { _isMobileApp = value; NotifyStateChanged(); } } 
+    }
     
     // Profile Information
     public int? CityId { get; set; }

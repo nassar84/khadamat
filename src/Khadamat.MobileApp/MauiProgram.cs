@@ -1,14 +1,10 @@
 ﻿using CommunityToolkit.Maui;
-using Khadamat.BlazorUI.Services;
-using Khadamat.BlazorUI.Services.Auth;
-using Khadamat.BlazorUI.State;
 using Khadamat.MobileApp.Services;
 using Khadamat.MobileApp.Security;
 using Khadamat.Shared.Interfaces;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Logging;
-using Blazored.LocalStorage;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -51,41 +47,26 @@ public static class MauiProgram
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                fonts.AddFont("Cairo-Regular.ttf", "CairoRegular");
-                fonts.AddFont("Cairo-Bold.ttf", "CairoBold");
             });
 
-        // Add Blazor WebView
-        builder.Services.AddMauiBlazorWebView();
-
 #if DEBUG
-        builder.Services.AddBlazorWebViewDeveloperTools();
         builder.Logging.AddDebug();
 #endif
 
         // Configure HttpClient for API
         var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "https://api.yourdomain.com";
+        var webAppBaseUrl = builder.Configuration["ApiSettings:WebAppBaseUrl"] ?? "https://yourdomain.com";
+        
+        // Save base web app URL config dynamically to Preferences for easy access in parameterless pages
+        Preferences.Default.Set("WebAppBaseUrl", webAppBaseUrl);
         
         // Print it to help with debugging
         Console.WriteLine($"ANTIGRAVITY_LOG: Using API Base URL: {apiBaseUrl}");
+        Console.WriteLine($"ANTIGRAVITY_LOG: Using Web Application Base URL: {webAppBaseUrl}");
         
-        builder.Services.AddTransient<AuthenticationHandler>();
-        
-        builder.Services.AddHttpClient("KhadamatAPI", client => 
-        {
-            client.BaseAddress = new Uri(apiBaseUrl);
-            client.Timeout = TimeSpan.FromSeconds(30);
-        }).AddHttpMessageHandler<AuthenticationHandler>();
+        // Register UI and state things via Native methods or simplified stubs if needed for push notifications
+        // Note: We removed Blazor authentication handling from the mobile container as the WebView handles it natively
 
-        builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("KhadamatAPI"));
-
-        // Register Blazor UI Services
-        builder.Services.AddScoped<IAuthService, AuthService>();
-        builder.Services.AddScoped<ApiClient>();
-        builder.Services.AddScoped<Khadamat.BlazorUI.Services.Admin.IAdminService, Khadamat.BlazorUI.Services.Admin.AdminService>();
-        builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
-        builder.Services.AddSingleton<AppState>();
-        builder.Services.AddScoped<SignalRClientService>();
 
         // Register Device Services
         builder.Services.AddSingleton<IDeviceCameraService, CameraService>();
@@ -98,8 +79,8 @@ public static class MauiProgram
         builder.Services.AddSingleton<IExternalAuthService, MauiExternalAuthService>();
         builder.Services.AddSingleton<Khadamat.Application.Interfaces.IOfflineDataService, LocalDataService>();
         builder.Services.AddScoped<IBiometricService, MauiBiometricService>();
-        builder.Services.AddSingleton<IMobileAuthService, MobileAuthService>();
-        builder.Services.AddScoped<SyncService>();
+        // Mobile specific services
+        builder.Services.AddHttpClient();
         
         // Connectivity
         builder.Services.AddSingleton<IConnectivity>(Connectivity.Current);
@@ -130,11 +111,6 @@ public static class MauiProgram
             e.SetObserved(); // Prevent app crash on unobserved task exceptions
         };
 
-        // Blazored LocalStorage
-        builder.Services.AddBlazoredLocalStorage();
-
-        // Authorization
-        builder.Services.AddAuthorizationCore();
 
         return builder.Build();
     }

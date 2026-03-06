@@ -304,7 +304,9 @@
 </style>
 
 @code {
-    private bool IsCollapsed = false;
+    [Parameter] public bool IsCollapsed { get; set; }
+    [Parameter] public EventCallback<bool> IsCollapsedChanged { get; set; }
+    
     private string DisplayName = "مستخدم";
 
     protected override async Task OnInitializedAsync()
@@ -330,9 +332,10 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private void ToggleCollapse()
+    private async Task ToggleCollapse()
     {
         IsCollapsed = !IsCollapsed;
+        await IsCollapsedChanged.InvokeAsync(IsCollapsed);
     }
 
     public void Dispose()

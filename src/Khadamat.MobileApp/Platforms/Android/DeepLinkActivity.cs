@@ -1,6 +1,7 @@
 using Android.App;
 using Android.Content;
 using Android.OS;
+using Khadamat.MobileApp.Services;
 
 namespace Khadamat.MobileApp.Platforms.Android;
 

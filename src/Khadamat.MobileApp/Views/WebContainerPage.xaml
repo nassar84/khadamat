@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Khadamat.MobileApp.Views.WebContainerPage"
+             Title="{Binding Title}"
+             BackgroundColor="White">
+
+    <Grid>
+        <RefreshView x:Name="PullToRefresh" Refreshing="PullToRefresh_Refreshing" RefreshColor="#6366f1">
+            <WebView x:Name="MainWebView"
+                     Navigating="MainWebView_Navigating"
+                     Navigated="MainWebView_Navigated"
+                     HorizontalOptions="FillAndExpand" 
+                     VerticalOptions="FillAndExpand"/>
+        </RefreshView>
+                 
+        <ActivityIndicator x:Name="LoadingIndicator"
+                           IsRunning="{Binding Source={x:Reference MainWebView}, Path=IsNavigating}"
+                           IsVisible="{Binding Source={x:Reference MainWebView}, Path=IsNavigating}"
+                           Color="#6366f1"
+                           HorizontalOptions="Center" VerticalOptions="Center" 
+                           WidthRequest="50" HeightRequest="50" />
+
+        <!-- Offline Overlay -->
+        <Grid x:Name="OfflineOverlay" BackgroundColor="White" IsVisible="False">
+            <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="20">
+                <Label Text="📶" FontSize="60" HorizontalOptions="Center" />
+                <Label Text="No Internet Connection" FontSize="20" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Black" />
+                <Label Text="Please check your connection and try again." FontSize="14" HorizontalOptions="Center" TextColor="Gray" />
+                <Button Text="Retry" Clicked="RetryButton_Clicked" BackgroundColor="#0f172a" TextColor="White" CornerRadius="8" WidthRequest="200" />
+            </VerticalStackLayout>
+        </Grid>
+    </Grid>
+</ContentPage>

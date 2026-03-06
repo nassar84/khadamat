@@ -1,3 +1,6 @@
+using System.Net.Http.Json;
+using Microsoft.Extensions.Logging;
+
 namespace Khadamat.MobileApp.Services;
 
 /// <summary>
@@ -31,7 +34,7 @@ public class FcmTokenRegistrationService
     {
         try
         {
-            var token = Preferences.Default.Get<string?>("fcm_device_token", null);
+            var token = await SecureStorage.Default.GetAsync("fcm_device_token");
 
             if (string.IsNullOrEmpty(token))
             {
@@ -54,7 +57,7 @@ public class FcmTokenRegistrationService
             if (response.IsSuccessStatusCode)
             {
                 _logger.LogInformation("[FCM] Device token registered successfully.");
-                Preferences.Default.Set("fcm_token_registered", true);
+                await SecureStorage.Default.SetAsync("fcm_token_registered", "true");
             }
             else
             {
@@ -74,11 +77,11 @@ public class FcmTokenRegistrationService
     {
         try
         {
-            var token = Preferences.Default.Get<string?>("fcm_device_token", null);
+            var token = await SecureStorage.Default.GetAsync("fcm_device_token");
             if (string.IsNullOrEmpty(token)) return;
 
             await _http.DeleteAsync($"/api/notifications/unregister-device?token={Uri.EscapeDataString(token)}");
-            Preferences.Default.Set("fcm_token_registered", false);
+            await SecureStorage.Default.SetAsync("fcm_token_registered", "false");
 
             _logger.LogInformation("[FCM] Device token unregistered.");
         }

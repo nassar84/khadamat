@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="Khadamat.MobileApp.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:Khadamat.MobileApp.Views"
+    Title="خدمات"
+    FlyoutBackgroundColor="#ffffff"
+    FlyoutBehavior="Flyout"
+    FlowDirection="RightToLeft">
+
+    <!-- Flyout Header -->
+    <Shell.FlyoutHeader>
+        <Grid BackgroundColor="#0f172a" HeightRequest="150" Padding="20">
+            <VerticalStackLayout VerticalOptions="Center">
+                <!-- Using FontAwesome icons or stock MAUI icons -->
+                <Label Text="🚀" FontSize="40" HorizontalOptions="Center" />
+                <Label Text="تطبيق خدمات" TextColor="White" FontSize="18" FontAttributes="Bold" HorizontalOptions="Center" Margin="0,10,0,0"/>
+            </VerticalStackLayout>
+        </Grid>
+    </Shell.FlyoutHeader>
+
+    <!-- Base Tab Bar (Native Bottom Navigation) -->
+    <!-- The first item in flyout is exactly the root tab bar, so users access it by default -->
+    <FlyoutItem Title="الرئيسية">
+        <FlyoutItem.Icon>
+            <FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F3E0;" />
+        </FlyoutItem.Icon>
+        
+        <Tab Title="الرئيسية">
+            <Tab.Icon>
+                <FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F3E0;" />
+            </Tab.Icon>
+            <ShellContent Route="HomePage" ContentTemplate="{DataTemplate views:HomePage}" />
+        </Tab>
+        
+        <Tab Title="الخدمات">
+            <Tab.Icon>
+                <FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F527;" />
+            </Tab.Icon>
+            <ShellContent Route="ServicesPage" ContentTemplate="{DataTemplate views:ServicesPage}" />
+        </Tab>
+
+        <Tab Title="أضف خدمة">
+            <Tab.Icon>
+                <FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2795;" />
+            </Tab.Icon>
+            <ShellContent Route="PostServicePage" ContentTemplate="{DataTemplate views:PostServicePage}" />
+        </Tab>
+
+        <Tab Title="الرسائل">
+            <Tab.Icon>
+                <FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1f4ac;" />
+            </Tab.Icon>
+            <ShellContent Route="MessagesPage" ContentTemplate="{DataTemplate views:MessagesPage}" />
+        </Tab>
+
+        <Tab Title="الملف الشخصي">
+            <Tab.Icon>
+                <FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F464;" />
+            </Tab.Icon>
+            <ShellContent Route="ProfilePage" ContentTemplate="{DataTemplate views:ProfilePage}" />
+        </Tab>
+    </FlyoutItem>
+
+    <!-- Additional Flyout Items -->
+    <FlyoutItem Title="التصنيفات">
+        <FlyoutItem.Icon>
+            <FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4C2;" />
+        </FlyoutItem.Icon>
+        <ShellContent Route="CategoriesPage" ContentTemplate="{DataTemplate views:CategoriesPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="خدماتي">
+        <FlyoutItem.Icon>
+            <FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4BC;" />
+        </FlyoutItem.Icon>
+        <ShellContent Route="MyServicesPage" ContentTemplate="{DataTemplate views:MyServicesPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="المفضلة">
+        <FlyoutItem.Icon>
+            <FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2764;" />
+        </FlyoutItem.Icon>
+        <ShellContent Route="FavoritesPage" ContentTemplate="{DataTemplate views:FavoritesPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="الإعدادات">
+        <FlyoutItem.Icon>
+            <FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2699;" />
+        </FlyoutItem.Icon>
+        <ShellContent Route="SettingsPage" ContentTemplate="{DataTemplate views:SettingsPage}" />
+    </FlyoutItem>
+
+</Shell>

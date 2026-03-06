@@ -36,13 +36,13 @@
                                         <div class="mb-3 mx-auto">
                                             @if (!string.IsNullOrEmpty(cat.ImageUrl))
                                             {
-                                                <img src="/_content/Khadamat.BlazorUI/images/categories/@cat.ImageUrl" 
-                                                     onerror="this.onerror=null;this.src='/_content/Khadamat.BlazorUI/images/categories/default.jpg';"
+                                                <img src="images/maincategories/@cat.ImageUrl" 
+                                                     onerror="this.onerror=null;this.src='images/maincategories/default.jpg';"
                                                      class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" />
                                             }
                                             else
                                             {
-                                                <img src="/_content/Khadamat.BlazorUI/images/categories/default.jpg" 
+                                                <img src="images/maincategories/default.jpg" 
                                                      class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" />
                                             }
                                         </div>
@@ -55,7 +55,7 @@
                         {
                             <div class="col-12 text-center py-5">
                                 <i class="fa-solid fa-folder-open fs-1 text-muted mb-3 opacity-50"></i>
-                                <p class="text-muted fw-bold">لا توجد تصنيفات في هذا القسم حالياً</p>
+                                <p class="text-muted fw-bold">لا توجد تصنيفات تحت هذا القسم حالياً</p>
                             </div>
                         }
                     }
@@ -74,13 +74,13 @@
                                         <div class="mb-3 mx-auto">
                                             @if (!string.IsNullOrEmpty(sub.ImageUrl))
                                             {
-                                                <img src="/_content/Khadamat.BlazorUI/images/categories/@sub.ImageUrl" 
-                                                     onerror="this.onerror=null;this.src='/_content/Khadamat.BlazorUI/images/categories/default.jpg';"
+                                                <img src="images/subcategories/@sub.ImageUrl" 
+                                                     onerror="this.onerror=null;this.src='images/categories/default.jpg';"
                                                      class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" />
                                             }
                                             else
                                             {
-                                                <img src="/_content/Khadamat.BlazorUI/images/categories/default.jpg" 
+                                                <img src="images/categories/default.jpg" 
                                                      class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" />
                                             }
                                         </div>

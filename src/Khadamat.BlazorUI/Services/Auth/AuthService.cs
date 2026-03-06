@@ -71,16 +71,24 @@ public class AuthService : IAuthService
 
     public async Task<ApiResponse<AuthResponse>> GetProfileAsync()
     {
-        var response = await _httpClient.GetFromJsonAsync<ApiResponse<AuthResponse>>("api/v1/auth/profile");
-        if (response?.Success == true && response.Data != null)
+        try 
         {
-            var p = response.Data;
-            _appState.UpdateUserStatus(p.UserName, p.Roles.FirstOrDefault() ?? "User", p.IsProvider, DefaultImages.GetUserAvatar(p.UserName, p.Gender, p.ImageUrl), p.Id);
-            _appState.CityId = p.CityId;
-            _appState.GovernorateId = p.GovernorateId;
-            _appState.PhoneNumber = p.PhoneNumber;
+            var response = await _httpClient.GetFromJsonAsync<ApiResponse<AuthResponse>>("api/v1/auth/profile");
+            if (response?.Success == true && response.Data != null)
+            {
+                var p = response.Data;
+                _appState.UpdateUserStatus(p.UserName, p.Roles.FirstOrDefault() ?? "User", p.IsProvider, DefaultImages.GetUserAvatar(p.UserName, p.Gender, p.ImageUrl), p.Id);
+                _appState.CityId = p.CityId;
+                _appState.GovernorateId = p.GovernorateId;
+                _appState.PhoneNumber = p.PhoneNumber;
+            }
+            return response!;
         }
-        return response!;
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error getting profile in AuthService: {ex.Message}");
+            return new ApiResponse<AuthResponse> { Success = false, Message = "Failed to load profile" };
+        }
     }
 
     public async Task<ApiResponse<bool>> UpdateProfile(UpdateProfileRequest request)

@@ -1,6 +1,8 @@
 using Android.App;
 using Android.Content;
 using Firebase.Messaging;
+using Khadamat.MobileApp.Services;
+using System.Collections.Generic;
 
 namespace Khadamat.MobileApp.Platforms.Android;
 
@@ -13,12 +15,12 @@ namespace Khadamat.MobileApp.Platforms.Android;
 [IntentFilter(new[] { "com.google.firebase.MESSAGING_EVENT" })]
 public class KhadamatFirebaseMessagingService : FirebaseMessagingService
 {
-    public override void OnNewToken(string token)
+    public override async void OnNewToken(string token)
     {
         base.OnNewToken(token);
 
         // Save token securely for later use (e.g., register with your API)
-        Preferences.Default.Set("fcm_device_token", token);
+        await SecureStorage.Default.SetAsync("fcm_device_token", token);
         Console.WriteLine($"[FCM] New Token: {token}");
 
         // TODO: Send token to your API backend
@@ -29,9 +31,9 @@ public class KhadamatFirebaseMessagingService : FirebaseMessagingService
     {
         base.OnMessageReceived(message);
 
-        var title = message.GetNotification()?.Title ?? message.Data.GetValueOrDefault("title", "خدمات");
-        var body = message.GetNotification()?.Body ?? message.Data.GetValueOrDefault("body", "");
-        var navigateTo = message.Data.GetValueOrDefault("navigate_to", "");
+        var title = message.GetNotification()?.Title ?? (message.Data.ContainsKey("title") ? message.Data["title"] : "خدمات");
+        var body = message.GetNotification()?.Body ?? (message.Data.ContainsKey("body") ? message.Data["body"] : "");
+        var navigateTo = message.Data.ContainsKey("navigate_to") ? message.Data["navigate_to"] : "";
 
         Console.WriteLine($"[FCM] Message received: {title} — {body}");
 

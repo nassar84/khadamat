@@ -14,7 +14,15 @@
     <!-- Ads Slider (Dynamic System) -->
     <Khadamat.BlazorUI.Components.Ads.AdsSlider />
 
-    <!-- Category Marquee (The Scroller) removed from here as it's already in the header -->
+    <!-- Sell on Marketplace Promo Banner -->
+    <div class="sell-promo-banner mb-4" @onclick='() => Navigation.NavigateTo("/marketplace/create")'>
+        <img src="images/marketplace_sell_banner.png" 
+             alt="بيع سلعك الآن على المتجر" 
+             class="sell-promo-img" />
+        <div class="sell-promo-overlay">
+            <span class="sell-promo-cta">ابدأ البيع الآن <i class="fa-solid fa-arrow-left"></i></span>
+        </div>
+    </div>
 
     <!-- Featured Services (Horizontal Scroll) -->
     <div class="mb-5">
@@ -63,7 +71,7 @@
                     <span class="badge bg-danger rounded-pill mb-2 px-3 animate-pulse">جديد 🔥</span>
                     <h3 class="fw-bold text-white mb-1">متجر @AppState.AppName (Marketplace)</h3>
                     <p class="text-white-50 mb-3">بيع، اشترِ، وتصفح أفضل العروض في منطقتك بكل سهولة وأمان.</p>
-                    <button class="btn btn-outline-light rounded-pill px-4 fw-bold">تصفح المتجر الآن <i class="fa-solid fa-arrow-left ms-2"></i></button>
+                    <button class="btn btn-outline-light rounded-pill px-4 fw-bold" @onclick='() => Navigation.NavigateTo("/marketplace")'>تصفح المتجر الآن <i class="fa-solid fa-arrow-left ms-2"></i></button>
                 </div>
                 <div class="col-4 text-center">
                     <div class="announcement-icon-wrapper">
@@ -229,6 +237,53 @@
 <style>
     .featured-scroll-container::-webkit-scrollbar {
         display: none;
+    }
+
+    /* === Sell Promo Banner === */
+    .sell-promo-banner {
+        position: relative;
+        cursor: pointer;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 8px 30px rgba(99, 60, 209, 0.3);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .sell-promo-banner:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 40px rgba(99, 60, 209, 0.45);
+    }
+
+    .sell-promo-img {
+        width: 100%;
+        height: auto;
+        max-height: 200px;
+        object-fit: cover;
+        display: block;
+        border-radius: 20px;
+    }
+
+    .sell-promo-overlay {
+        position: absolute;
+        bottom: 16px;
+        left: 20px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .sell-promo-banner:hover .sell-promo-overlay {
+        opacity: 1;
+    }
+
+    .sell-promo-cta {
+        background: rgba(255, 255, 255, 0.95);
+        color: #4f46e5;
+        font-weight: 800;
+        font-size: 0.9rem;
+        padding: 8px 20px;
+        border-radius: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        display: inline-block;
     }
 
     .provider-banner-card {

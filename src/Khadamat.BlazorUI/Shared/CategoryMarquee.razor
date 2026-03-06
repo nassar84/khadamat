@@ -20,11 +20,11 @@
                                 {
                                     var imageUrl = cat.ImageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) 
                                         ? cat.ImageUrl 
-                                        : $"{apiBaseUrl}images/maincategories/{cat.ImageUrl}";
+                                        : $"images/maincategories/{cat.ImageUrl}";
                                         
                                     <img src="@imageUrl" 
                                          class="w-100 h-100 object-fit-cover" alt="@cat.Name" 
-                                         onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=200&h=200&fit=crop&q=80';"
+                                         onerror="this.onerror=null;this.src='images/maincategories/default.jpg';"
                                          style="opacity: 0.9; border-radius: 50%;" />
                                 }
                                 else if (!string.IsNullOrEmpty(cat.Icon))
@@ -193,6 +193,17 @@
         will-change: transform;
     }
     
+    .category-marquee-container {
+        min-height: 100px;
+        height: auto;
+        display: block !important;
+        background: rgba(255, 255, 255, 0.8) !important;
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        margin-bottom: 10px;
+    }
+
     .category-marquee-container.loading {
         opacity: 0.6;
         pointer-events: none;
@@ -250,45 +261,65 @@
     {
         try
         {
-            // 1. Try to load from Cache first (Instant speed)
-            var cached = await OfflineData.GetMainCategoriesAsync();
-            if (cached != null && cached.Any())
-            {
-                Console.WriteLine("ANTIGRAVITY_LOG: Loaded categories from cache.");
-                PopulateCategories(cached);
-                await InvokeAsync(StateHasChanged);
-            }
-
-            // 2. Fetch from API in background (Fresh data)
+            // 1. Fetch from API first (guaranteed fresh data with correct ImageUrl)
             var results = await Api.GetMainCategoriesAsync();
             if (results != null && results.Any())
             {
                 PopulateCategories(results);
-                // 3. Update Cache
+                // 2. Update Cache for offline use
                 await OfflineData.SaveMainCategoriesAsync(results);
-                Console.WriteLine("ANTIGRAVITY_LOG: Categories updated from API and cached.");
+                Console.WriteLine("ANTIGRAVITY_LOG: Categories loaded from API and cached.");
             }
-            else if (categories == null)
+            else
             {
-                GenerateMockCategories();
+                // 3. Fallback to Cache if API returns empty
+                var cached = await OfflineData.GetMainCategoriesAsync();
+                if (cached != null && cached.Any())
+                {
+                    Console.WriteLine("ANTIGRAVITY_LOG: Loaded categories from cache (API returned empty).");
+                    PopulateCategories(cached);
+                }
+                else
+                {
+                    GenerateMockCategories();
+                }
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"ANTIGRAVITY_LOG_ERR: Error loading categories: {ex.Message}");
-            if (categories == null) GenerateMockCategories();
+            // Fallback to Cache on error
+            try
+            {
+                var cached = await OfflineData.GetMainCategoriesAsync();
+                if (cached != null && cached.Any())
+                    PopulateCategories(cached);
+                else if (categories == null)
+                    GenerateMockCategories();
+            }
+            catch
+            {
+                if (categories == null) GenerateMockCategories();
+            }
         }
         finally
         {
+            _swiperInitialized = false; // Reset so swiper reinitializes with new image data
             await InvokeAsync(StateHasChanged);
         }
     }
 
     private void PopulateCategories(List<MainCategoryDto> results)
     {
+        if (results == null || !results.Any())
+        {
+            categories = new List<MainCategoryDto>();
+            return;
+        }
+
         // To ensure infinite loop works with few items, we duplicate them
         var duplicated = new List<MainCategoryDto>();
-        while (duplicated.Count < 24)
+        while (duplicated.Count < 24 && results.Any())
         {
             duplicated.AddRange(results);
         }

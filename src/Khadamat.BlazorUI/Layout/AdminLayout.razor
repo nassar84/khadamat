@@ -1,13 +1,15 @@
 @inherits LayoutComponentBase
+@implements IDisposable
 @inject NavigationManager Navigation
 @inject Khadamat.BlazorUI.Services.Auth.IAuthService AuthService
 @inject Khadamat.BlazorUI.State.AppState State
 
 <div class="admin-layout" dir="rtl">
-    <!-- Mobile Overlay -->
-    <div class="sidebar-overlay @(SidebarOpen ? "visible" : "")" @onclick="ToggleSidebar"></div>
+    @if (!State.IsMobileApp)
+    {
+        <div class="sidebar-overlay @(SidebarOpen ? "visible" : "")" @onclick="ToggleSidebar"></div>
 
-    <aside class="admin-sidebar glass-card @(SidebarOpen ? "open" : "")">
+        <aside class="admin-sidebar glass-card @(SidebarOpen ? "open" : "")">
         <div class="sidebar-header d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center gap-2">
                 @if (!string.IsNullOrEmpty(State.AppLogo))
@@ -82,27 +84,31 @@
             </button>
         </nav>
     </aside>
+    }
 
-    <main class="admin-content">
-        <div class="admin-header glass-card">
-            <div class="d-flex align-items-center gap-3">
-                <!-- Mobile Toggle Button -->
-                <button class="btn btn-link text-dark p-0 d-lg-none" @onclick="ToggleSidebar">
-                    <i class="fas fa-bars fs-4"></i>
-                </button>
-                <h4 class="mb-0">لوحة التحكم</h4>
-            </div>
+    <main class="admin-content" style="@(State.IsMobileApp ? "width: 100%; padding:0;" : "")">
+        @if (!State.IsMobileApp)
+        {
+            <div class="admin-header glass-card">
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Mobile Toggle Button -->
+                    <button class="btn btn-link text-dark p-0 d-lg-none" @onclick="ToggleSidebar">
+                        <i class="fas fa-bars fs-4"></i>
+                    </button>
+                    <h4 class="mb-0">لوحة التحكم</h4>
+                </div>
 
-            <div class="admin-user-info">
-                 <AuthorizeView>
-                    <Authorized>
-                        <span class="d-none d-md-inline">مرحباً، @context.User.Identity?.Name</span>
-                        <i class="fas fa-user-circle fs-4 d-md-none text-primary"></i>
-                    </Authorized>
-                </AuthorizeView>
+                <div class="admin-user-info">
+                    <AuthorizeView>
+                        <Authorized>
+                            <span class="d-none d-md-inline">مرحباً، @context.User.Identity?.Name</span>
+                            <i class="fas fa-user-circle fs-4 d-md-none text-primary"></i>
+                        </Authorized>
+                    </AuthorizeView>
+                </div>
             </div>
-        </div>
-        
+        }
+
         <div class="content-body">
             @Body
         </div>
@@ -258,6 +264,35 @@
 
 @code {
     private bool SidebarOpen { get; set; } = false;
+
+    protected override void OnInitialized()
+    {
+        State.OnChange += StateHasChanged;
+        Navigation.LocationChanged += HandleLocationChanged;
+        CheckMobileMode();
+    }
+
+    private void CheckMobileMode()
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        if (query.TryGetValue("mobileapp", out var value) && value == "1")
+        {
+            if (!State.IsMobileApp) State.IsMobileApp = true;
+        }
+    }
+
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        CheckMobileMode();
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= HandleLocationChanged;
+        State.OnChange -= StateHasChanged;
+    }
 
     private void ToggleSidebar()
     {

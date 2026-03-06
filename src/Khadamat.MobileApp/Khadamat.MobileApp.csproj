@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFrameworks>net9.0-android;
@@ -53,6 +53,9 @@ net9.0-windows10.0.19041.0
 
         <!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
         <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+        
+        <!-- Google Services Json for Android -->
+        <GoogleServicesJson Condition="$(TargetFramework.Contains('-android'))" Include="Platforms\Android\google-services.json" />
     </ItemGroup>
 
     <ItemGroup>
@@ -64,11 +67,11 @@ net9.0-windows10.0.19041.0
         <!-- MAUI Core -->
         <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
         
         <!-- Extensions -->
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" />
         
         <!-- Community Toolkit -->
         <PackageReference Include="CommunityToolkit.Maui" Version="9.0.3" />
@@ -79,14 +82,16 @@ net9.0-windows10.0.19041.0
         <!-- <PackageReference Include="Plugin.LocalNotification" Version="11.1.5" /> -->
         
         <!-- Storage -->
-        <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
         <PackageReference Include="Plugin.Fingerprint" Version="2.1.5" />
         <PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
+
+        <!-- Firebase (Android only) -->
+        <PackageReference Condition="$(TargetFramework.Contains('-android'))" Include="Xamarin.Firebase.Messaging" Version="123.4.1.1" />
+        <PackageReference Condition="$(TargetFramework.Contains('-android'))" Include="Xamarin.Firebase.Analytics" Version="121.5.0.1" />
     </ItemGroup>
 
     <ItemGroup>
         <!-- Project References -->
-        <ProjectReference Include="..\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj" />
         <ProjectReference Include="..\Khadamat.Application\Khadamat.Application.csproj" />
         <ProjectReference Include="..\Khadamat.Shared\Khadamat.Shared.csproj" />
     </ItemGroup>
