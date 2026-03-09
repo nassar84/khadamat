@@ -44,7 +44,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAll",
         builder =>
         {
-            builder.WithOrigins("http://localhost:5028", "http://localhost:5030", "https://localhost:7082", "http://localhost:5144", "http://10.0.2.2:5144", "http://10.102.2.2:5144", "app://0.0.0.0")
+            builder.WithOrigins("http://localhost:5028", "http://localhost:5030", "https://localhost:7082", "http://localhost:5144", "http://10.0.2.2:5144", "http://10.0.2.2:5028", "http://10.102.2.2:5144", "app://0.0.0.0", "http://10.0.2.2")
+                   .SetIsOriginAllowed(_ => true) // Also just allow any origin for development
                    .AllowAnyMethod()
                    .AllowAnyHeader()
                    .AllowCredentials();
