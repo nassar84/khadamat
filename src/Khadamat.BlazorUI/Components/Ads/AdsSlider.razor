@@ -22,7 +22,13 @@
             {
                 var ad = ads[i];
                 <div class="ad-slide @(i == currentIndex ? "active" : "")" @onclick="() => OnAdClick(ad)">
-                    <div class="ad-content-card @ad.ImageUrl">
+                    @{
+                        var isRealImage = !string.IsNullOrEmpty(ad.ImageUrl) && !ad.ImageUrl.StartsWith("hero-gradient");
+                        var imageUrl = isRealImage ? Api.GetAbsoluteUrl(ad.ImageUrl) : ad.ImageUrl;
+                        var bgStyle = isRealImage ? $"background-image: url('{imageUrl}'); background-size: cover; background-position: center;" : "";
+                        var cardClass = !isRealImage ? ad.ImageUrl : "";
+                    }
+                    <div class="ad-content-card @cardClass" style="@bgStyle">
                         <div class="glass-overlay"></div>
                         <div class="ad-text-content">
                             @if (!string.IsNullOrEmpty(ad.Title))
@@ -31,7 +37,7 @@
                             }
                             @if (!string.IsNullOrEmpty(ad.Description))
                             {
-                                <p class="ad-desc animate-fade-in">@ad.Description</p>
+                                <p class="ad-desc animate-fade-in shadow-text">@ad.Description</p>
                             }
                             <button class="btn btn-light rounded-pill px-4 btn-sm fw-bold mt-2">عرض التفاصيل</button>
                         </div>
@@ -211,15 +217,23 @@
         {
             ads = await Api.GetSliderAdsAsync();
             
-            if (ads != null && ads.Count > 1)
+            if (ads != null && ads.Any())
             {
-                timer = new System.Timers.Timer(5000);
-                timer.Elapsed += (s, e) => 
+                foreach (var ad in ads)
                 {
-                    currentIndex = (currentIndex + 1) % ads.Count;
-                    InvokeAsync(StateHasChanged);
-                };
-                timer.Enabled = true;
+                    _ = Api.TrackAdViewAsync(ad.Id); // Fire and forget
+                }
+
+                if (ads.Count > 1)
+                {
+                    timer = new System.Timers.Timer(5000);
+                    timer.Elapsed += (s, e) => 
+                    {
+                        currentIndex = (currentIndex + 1) % ads.Count;
+                        InvokeAsync(StateHasChanged);
+                    };
+                    timer.Enabled = true;
+                }
             }
             await InvokeAsync(StateHasChanged);
         }
@@ -238,6 +252,7 @@
 
     private void OnAdClick(EnhancedAdDto ad)
     {
+        _ = Api.TrackAdClickAsync(ad.Id);
         if (!string.IsNullOrEmpty(ad.TargetUrl))
         {
             Navigation.NavigateTo(ad.TargetUrl);

@@ -1,0 +1,179 @@
+@page "/provider/referrals"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+@inject IJSRuntime JS
+
+<div class="px-3 pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-1"><i class="fa-solid fa-users-viewfinder text-primary me-2"></i> نظام الإحالة والنقاط</h4>
+            <p class="text-muted small mb-0">اكسب النقاط بدعوة زملائك المُزودين وحوّل نقاطك إلى إعلانات مجانية!</p>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="d-flex justify-content-center p-5">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4 mb-4">
+            <!-- Points Balance Card -->
+            <div class="col-md-6 col-lg-4">
+                <div class="glass-card p-4 text-center h-100 position-relative overflow-hidden">
+                    <div class="position-absolute top-0 end-0 p-3 opacity-10">
+                        <i class="fa-solid fa-coins fa-4x text-warning"></i>
+                    </div>
+                    <div class="position-relative z-1">
+                        <h6 class="text-muted fw-bold mb-3">رصيد النقاط الحالي</h6>
+                        <h1 class="display-4 fw-bold text-warning mb-0">@pointsBalance</h1>
+                        <p class="small text-muted mt-2">نقطة متاحة للتبديل</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Referral Code Card -->
+            <div class="col-md-6 col-lg-8">
+                <div class="glass-card p-4 h-100">
+                    <h6 class="fw-bold mb-3">رابط الدعوة الخاص بك</h6>
+                    <p class="small text-muted mb-4">انسخ الرابط وشاركه مع زملائك، وسيحصل كل منكم الكود على نقاط إضافية عند تفعيل حسابهم.</p>
+                    
+                    @if (referralData != null)
+                    {
+                        <div class="input-group mb-4">
+                            <input type="text" class="form-control bg-light text-primary fw-bold fs-5 text-center" readonly value="@referralData.Code">
+                            <button class="btn btn-primary px-4" @onclick="CopyCode">
+                                <i class="fa-solid fa-copy me-2"></i> نسخ الكود
+                            </button>
+                        </div>
+                        
+                        <div class="row g-3 text-center border-top pt-3">
+                            <div class="col-6">
+                                <div class="p-2 rounded bg-light">
+                                    <div class="small text-muted mb-1">إجمالي الدعوات</div>
+                                    <h4 class="fw-bold text-dark mb-0">@referralData.TotalInvites</h4>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 rounded bg-light">
+                                    <div class="small text-muted mb-1">دعوات ناجحة (تم تفعيلها)</div>
+                                    <h4 class="fw-bold text-success mb-0">@referralData.Successful</h4>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-12">
+                <div class="glass-card p-4">
+                    <h5 class="fw-bold mb-4"><i class="fa-solid fa-gift text-primary me-2"></i> استبدال النقاط بإعلانات</h5>
+                    
+                    <div class="alert alert-info border-0 rounded-4 mb-4">
+                        <div class="d-flex w-100 gap-3">
+                            <i class="fa-solid fa-circle-info fs-4 mt-1"></i>
+                            <div>
+                                <strong>قاعدة الاستبدال:</strong> كل <strong>100 نقطة</strong> تمنحك تمديداً لإعلانك النشط لمدة <strong>7 أيام</strong>. تأكد من تحديد الإعلان الصحيح قبل التبديل.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row align-items-end g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">اختر الإعلان المُراد تمديده</label>
+                            <select class="form-select rounded-pill border-0 bg-light" @bind="selectedAdId">
+                                <option value="0">اختر إعلاناً...</option>
+                                @if (myAds != null)
+                                {
+                                    @foreach (var ad in myAds.Where(a => a.IsActive))
+                                    {
+                                        <option value="@ad.Id">@ad.Title (ينتهي في @(ad.EndDate?.ToString("yyyy/MM/dd")))</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">عدد النقاط المراد استبدالها</label>
+                            <input type="number" class="form-control rounded-pill border-0 bg-light" @bind="pointsToSpend" min="100" max="@pointsBalance" step="100">
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-primary-premium rounded-pill w-100" @onclick="ConvertPoints" disabled="@(pointsToSpend < 100 || pointsToSpend > pointsBalance || selectedAdId == 0)">
+                                استبدال الآن
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private int pointsBalance = 0;
+    private ReferralCodeDto? referralData;
+    private List<EnhancedAdDto>? myAds;
+    
+    private int selectedAdId = 0;
+    private int pointsToSpend = 100;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        try
+        {
+            var codeTask = Api.GetMyReferralCodeAsync();
+            var pointsTask = Api.GetMyPointsBalanceAsync();
+            var adsTask = Api.GetAllAdsAsync(); // Fetch ads to let user choose one to extend
+
+            await Task.WhenAll(codeTask, pointsTask, adsTask);
+
+            referralData = await codeTask;
+            pointsBalance = await pointsTask;
+            myAds = await adsTask; 
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task CopyCode()
+    {
+        if (referralData != null)
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", referralData.Code);
+            await JS.InvokeVoidAsync("alert", "تم نسخ الكود بنجاح!");
+        }
+    }
+
+    private async Task ConvertPoints()
+    {
+        if (selectedAdId == 0 || pointsToSpend < 100 || pointsToSpend > pointsBalance) return;
+
+        var request = new ConvertPointsRequestDto(selectedAdId, pointsToSpend);
+        var success = await Api.ConvertPointsToAdDaysAsync(request);
+
+        if (success)
+        {
+            await JS.InvokeVoidAsync("alert", "تم تحويل النقاط وتمديد الإعلان بنجاح!");
+            pointsToSpend = 100;
+            selectedAdId = 0;
+            await LoadData();
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("alert", "حدث خطأ أثناء تحويل النقاط. يرجى التأكد من الشروط والمحاولة لاحقاً.");
+        }
+    }
+}

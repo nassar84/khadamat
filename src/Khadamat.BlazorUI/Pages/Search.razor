@@ -1,6 +1,7 @@
 @page "/search"
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
+@using Khadamat.BlazorUI.Components.Ads
 @inject ApiClient Api
 @inject NavigationManager Navigation
 
@@ -71,11 +72,21 @@
                 else
                 {
                     <div class="row g-3">
-                        @foreach (var service in results)
+                        @for (int i = 0; i < results.Count; i++)
                         {
+                            var service = results[i];
                             <div class="col-12 col-md-6">
                                 <ServiceCard Service="service" OnClick="OnServiceSelected" />
                             </div>
+
+                            @if ((i + 1) % 3 == 0 && searchAds != null && searchAds.Any())
+                            {
+                                var adIndex = ((i + 1) / 3 - 1) % searchAds.Count;
+                                var ad = searchAds[adIndex];
+                                <div class="col-12 col-md-6">
+                                    <NativeAdCard Ad="ad" />
+                                </div>
+                            }
                         }
                     </div>
                 }
@@ -110,6 +121,7 @@
 @code {
     private string? currentQuery;
     private List<ServiceDto>? results;
+    private List<EnhancedAdDto>? searchAds;
     private List<string> recentSearches = new() { "سباكة", "كهربائي الرياض", "تصميم شعار" };
 
     [Parameter]
@@ -139,8 +151,13 @@
 
         try
         {
-            var searchResult = await Api.GetServicesAsync(search: term);
-            results = searchResult.Items;
+            var searchResultTask = Api.GetServicesAsync(search: term);
+            var searchAdsTask = Api.GetSearchAdsAsync();
+
+            await Task.WhenAll(searchResultTask, searchAdsTask);
+
+            results = searchResultTask.Result.Items;
+            searchAds = searchAdsTask.Result;
         }
         catch (Exception ex)
         {

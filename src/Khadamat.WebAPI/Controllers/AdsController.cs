@@ -98,7 +98,10 @@ public class AdsController : ControllerBase
                 TargetDays = a.TargetDays,
                 TargetMonths = a.TargetMonths,
                 TargetTimeStart = a.TargetTimeStart,
-                TargetTimeEnd = a.TargetTimeEnd
+                TargetTimeEnd = a.TargetTimeEnd,
+                TargetDeepSubCategories = a.TargetDeepSubCategories,
+                AmountPaid = a.AmountPaid,
+                CreatedBy = a.UserCreated
             })
             .ToListAsync();
 
@@ -138,7 +141,10 @@ public class AdsController : ControllerBase
             TargetDays = ad.TargetDays,
             TargetMonths = ad.TargetMonths,
             TargetTimeStart = ad.TargetTimeStart,
-            TargetTimeEnd = ad.TargetTimeEnd
+            TargetTimeEnd = ad.TargetTimeEnd,
+            TargetDeepSubCategories = ad.TargetDeepSubCategories,
+            AmountPaid = ad.AmountPaid,
+            CreatedBy = ad.UserCreated
         };
 
         return Ok(ApiResponse<EnhancedAdDto>.Succeed(dto));
@@ -178,14 +184,35 @@ public class AdsController : ControllerBase
             dto.TargetGovernorates,
             dto.TargetCities,
             dto.TargetServices,
+            dto.TargetDeepSubCategories,
             dto.TargetUserGender,
             dto.TargetDays,
             dto.TargetMonths,
             dto.TargetTimeStart,
-            dto.TargetTimeEnd
+            dto.TargetTimeEnd,
+            categoryId,
+            null, // subCategoryId
+            null, // serviceId
+            dto.AmountPaid
         );
 
-        ad.SetMainImage(dto.ImageUrl);
+        // Link to user if logged in
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!string.IsNullOrEmpty(userId))
+        {
+            ad.SetOwner(userId);
+        }
+
+        if (!string.IsNullOrEmpty(dto.ImageBase64))
+        {
+            var imageUrl = await SaveImage(dto.ImageBase64, ad.Id);
+            ad.SetMainImage(imageUrl);
+        }
+        else
+        {
+            ad.SetMainImage(dto.ImageUrl);
+        }
+        
         if (dto.IsActive) ad.Approve(); else ad.Reject();
         ad.SetDisplayOrder(dto.DisplayOrder);
         
@@ -193,6 +220,29 @@ public class AdsController : ControllerBase
         await _context.SaveChangesAsync();
         
         return Ok(ApiResponse<int>.Succeed(ad.Id));
+    }
+
+    private async Task<string> SaveImage(string base64Data, int adId)
+    {
+        try
+        {
+            var folderPath = Path.Combine("wwwroot", "uploads", "ads");
+            if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
+
+            var fileName = $"ad_{adId}_{DateTime.UtcNow.Ticks}.jpg";
+            var filePath = Path.Combine(folderPath, fileName);
+
+            var data = base64Data.Contains(",") ? base64Data.Split(',')[1] : base64Data;
+            var bytes = Convert.FromBase64String(data);
+            await System.IO.File.WriteAllBytesAsync(filePath, bytes);
+
+            return $"/uploads/ads/{fileName}";
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving ad image: {ex.Message}");
+            return "/images/defaults/default-ad.png";
+        }
     }
 
     [HttpPut("{id}")]
@@ -218,14 +268,28 @@ public class AdsController : ControllerBase
             dto.TargetGovernorates,
             dto.TargetCities,
             dto.TargetServices,
+            dto.TargetDeepSubCategories,
             dto.TargetUserGender,
             dto.TargetDays,
             dto.TargetMonths,
             dto.TargetTimeStart,
-            dto.TargetTimeEnd
+            dto.TargetTimeEnd,
+            int.TryParse(dto.TargetCategories, out int cid2) ? cid2 : null,
+            int.TryParse(dto.TargetSubCategories, out int scid2) ? scid2 : null,
+            null, // serviceId
+            dto.AmountPaid
         );
 
-        ad.SetMainImage(dto.ImageUrl);
+        if (!string.IsNullOrEmpty(dto.ImageBase64))
+        {
+            var imageUrl = await SaveImage(dto.ImageBase64, ad.Id);
+            ad.SetMainImage(imageUrl);
+        }
+        else
+        {
+            ad.SetMainImage(dto.ImageUrl);
+        }
+
         ad.SetDisplayOrder(dto.DisplayOrder);
 
         if (dto.IsActive)
@@ -250,5 +314,57 @@ public class AdsController : ControllerBase
         await _context.SaveChangesAsync();
         
         return Ok(ApiResponse<bool>.Succeed(true));
+    }
+
+    [HttpPost("{id}/track-view")]
+    public async Task<IActionResult> TrackView(int id)
+    {
+        var ad = await _context.Ads.FindAsync(id);
+        if (ad == null) return NotFound();
+        ad.IncrementViews();
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
+
+    [HttpPost("{id}/track-click")]
+    public async Task<IActionResult> TrackClick(int id)
+    {
+        var ad = await _context.Ads.FindAsync(id);
+        if (ad == null) return NotFound();
+        ad.IncrementClicks();
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
+
+    [HttpGet("my")]
+    [Authorize]
+    public async Task<IActionResult> GetMyAds()
+    {
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        var ads = await _context.Ads
+            .Where(a => !a.IsDeleted && a.UserCreated == userId)
+            .OrderByDescending(a => a.CreatedAt)
+            .Select(a => new EnhancedAdDto
+            {
+                Id = a.Id,
+                Title = a.Title,
+                Description = a.Description,
+                AdType = a.AdType,
+                ImageUrl = a.ImagePath,
+                TargetUrl = a.RedirectUrl,
+                Placement = a.Placement,
+                StartDate = a.StartDate,
+                EndDate = a.EndDate,
+                IsActive = a.Approved,
+                ViewCount = a.Views,
+                ClickCount = a.Clicks,
+                AmountPaid = a.AmountPaid,
+                CreatedAt = a.CreatedAt
+            })
+            .ToListAsync();
+
+        return Ok(ApiResponse<List<EnhancedAdDto>>.Succeed(ads));
     }
 }

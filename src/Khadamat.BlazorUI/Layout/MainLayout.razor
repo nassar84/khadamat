@@ -2,7 +2,7 @@
 @implements IDisposable
 
 <div class="khadamat-app @(AppState.IsMobileApp ? "mobile-mode" : "") @(isSidebarCollapsed ? "collapsed" : "")">
-    @if (!AppState.IsMobileApp)
+    @if (!AppState.IsMobileApp && !AppState.IsNativeApp)
     {
         <Sidebar @bind-IsCollapsed="isSidebarCollapsed" />
     }
@@ -25,9 +25,6 @@
         {
             <div class="mt-3">
                 <HeroAds />
-            </div>
-            <div class="sticky-categories-bar">
-                <CategoryMarquee />
             </div>
         }
 
@@ -53,6 +50,8 @@
     {
         <MobileBottomNav />
     }
+    
+    <AdPopup />
 </div>
 
 <style>
@@ -135,8 +134,9 @@
         get
         {
             var relativePath = Navigation.ToBaseRelativePath(Navigation.Uri);
-            return string.IsNullOrEmpty(relativePath) || 
-                   relativePath.Equals("index", StringComparison.OrdinalIgnoreCase);
+            var pathOnly = relativePath.Split('?')[0];
+            return string.IsNullOrEmpty(pathOnly) || 
+                   pathOnly.Equals("index", StringComparison.OrdinalIgnoreCase);
         }
     }
 
@@ -147,23 +147,73 @@
         AppState.OnChange += StateHasChanged;
         Navigation.LocationChanged += HandleLocationChanged;
         
-        CheckMobileMode();
+        CheckMobileModeFromUrl(); // URL params only (no JS needed)
         await AuthService.InitializeAsync();
     }
 
-    private void CheckMobileMode()
+    // Called from OnInitializedAsync - reads URL params only (JS not available yet)
+    private void CheckMobileModeFromUrl()
     {
         var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
         var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
-        if (query.TryGetValue("mobileapp", out var value) && value == "1")
+        
+        if (query.TryGetValue("mobileapp", out var mValue) && mValue == "1")
         {
             if (!AppState.IsMobileApp) AppState.IsMobileApp = true;
+        }
+
+        if (query.TryGetValue("nativeapp", out var nValue) && nValue == "1")
+        {
+            if (!AppState.IsNativeApp) AppState.IsNativeApp = true;
+            if (!AppState.IsMobileApp) AppState.IsMobileApp = true;
+        }
+    }
+
+    // Full async check: reads URL params AND sessionStorage (JS required)
+    private async Task CheckMobileModeAsync()
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        bool urlHasNative = false;
+        
+        if (query.TryGetValue("mobileapp", out var mValue) && mValue == "1")
+        {
+            if (!AppState.IsMobileApp) AppState.IsMobileApp = true;
+            try { await JS.InvokeVoidAsync("sessionStorage.setItem", "mobileapp", "1"); } catch { }
+        }
+
+        if (query.TryGetValue("nativeapp", out var nValue) && nValue == "1")
+        {
+            urlHasNative = true;
+            if (!AppState.IsNativeApp) AppState.IsNativeApp = true;
+            if (!AppState.IsMobileApp) AppState.IsMobileApp = true;
+            try { await JS.InvokeVoidAsync("sessionStorage.setItem", "nativeapp", "1"); } catch { }
+        }
+        
+        if (!urlHasNative)
+        {
+            // Check sessionStorage in case user navigated internally without the query param
+            try
+            {
+                var storedNative = await JS.InvokeAsync<string>("sessionStorage.getItem", "nativeapp");
+                if (storedNative == "1")
+                {
+                    if (!AppState.IsNativeApp) AppState.IsNativeApp = true;
+                    if (!AppState.IsMobileApp) AppState.IsMobileApp = true;
+                }
+                var storedMobile = await JS.InvokeAsync<string>("sessionStorage.getItem", "mobileapp");
+                if (storedMobile == "1")
+                {
+                    if (!AppState.IsMobileApp) AppState.IsMobileApp = true;
+                }
+            }
+            catch { }
         }
     }
 
     private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        CheckMobileMode();
+        _ = CheckMobileModeAsync();
         StateHasChanged();
     }
     private async Task LoadInitialDataAsync()
@@ -229,6 +279,9 @@
         {
             try 
             {
+                // Check sessionStorage for mobile/native mode flags (JS is now available)
+                await CheckMobileModeAsync();
+                
                 _ = LoadInitialDataAsync(); // Trigger background load without awaiting it here
                 
                 if (!string.IsNullOrEmpty(AppState.PrimaryColor))

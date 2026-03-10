@@ -313,6 +313,38 @@
                 }
             </div>
 
+            <!-- Similar Services -->
+            <div class="mb-5 pt-4 border-top">
+                <h4 class="fw-900 mb-4 border-right-styled pe-3">خدمات مشابهة قد تهمك</h4>
+                @if (similarServices == null)
+                {
+                    <div class="d-flex justify-content-center py-4">
+                        <div class="spinner-border text-primary spinner-border-sm"></div>
+                    </div>
+                }
+                else if (!similarServices.Any())
+                {
+                    <p class="text-muted small text-center">لا توجد خدمات مشابهة في الوقت الحالي</p>
+                }
+                else
+                {
+                    <div class="row g-3">
+                        @foreach (var s in similarServices)
+                        {
+                            <div class="col-6 col-md-3">
+                                <div class="glass-card-v3 p-0 overflow-hidden h-100 cursor-pointer" @onclick='() => Navigation.NavigateTo($"/service/{s.Id}")'>
+                                    <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(s.CategoryName, s.Images.FirstOrDefault())" class="w-100 aspect-square object-fit-cover" />
+                                    <div class="p-2">
+                                        <div class="fw-bold x-small text-truncate">@s.Title</div>
+                                        <div class="text-primary fw-bold xx-small">@s.Price?.ToString("N0") ج.م</div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
             <!-- Reviews List -->
             <div class="mb-5">
                 <h4 class="fw-900 mb-4 border-right-styled pe-3">تقييمات العملاء</h4>
@@ -690,6 +722,7 @@
     [Parameter] public int Id { get; set; }
     
     private ServiceDto? service;
+    private List<ServiceDto>? similarServices;
     private string activeTab = "details";
     private bool showRateModal = false;
     private int userRating = 0;
@@ -732,6 +765,14 @@
             // Handle not found or error cases gracefully in production
             return;
         }
+
+        // Fetch similar services
+        try
+        {
+            var similarResult = await Api.GetSimilarServicesAsync(Id, 4);
+            similarServices = similarResult.Items;
+        }
+        catch { similarServices = new(); }
 
         // Only fill truly missing fields — never overwrite real API data
         EnsureRequiredFields();
@@ -810,6 +851,9 @@
             
             // Invoke the JS we added to index.html
             await JS.InvokeVoidAsync("shareServiceAsImage", "service-share-card", shareUrl, fileName);
+
+            // Record the share for points
+            await Api.RecordShareAsync("Service", Id);
         }
         catch (Exception ex)
         {

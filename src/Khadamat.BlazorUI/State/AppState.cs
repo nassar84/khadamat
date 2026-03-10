@@ -78,6 +78,13 @@ public class AppState
         get => _isMobileApp; 
         set { if (_isMobileApp != value) { _isMobileApp = value; NotifyStateChanged(); } } 
     }
+
+    private bool _isNativeApp;
+    public bool IsNativeApp 
+    { 
+        get => _isNativeApp; 
+        set { if (_isNativeApp != value) { _isNativeApp = value; NotifyStateChanged(); } } 
+    }
     
     // Profile Information
     public int? CityId { get; set; }
@@ -123,6 +130,13 @@ public class AppState
     }
 
     public bool IsAuthenticated => !string.IsNullOrEmpty(_userToken);
+
+    public string GetAbsoluteUrl(string? path)
+    {
+        if (string.IsNullOrEmpty(path)) return "/";
+        if (path.StartsWith("http")) return path;
+        return $"http://localhost:5144/{path.TrimStart('/')}";
+    }
 
     public event Action? OnChange;
 

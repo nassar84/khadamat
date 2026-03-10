@@ -1,0 +1,155 @@
+@page "/admin/ad-analytics"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+@inject NavigationManager Navigation
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "SystemAdmin,SuperAdmin")]
+
+<div class="px-3 pt-3">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center">
+            <button class="btn btn-icon me-3" @onclick='() => Navigation.NavigateTo("/admin")'>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+            <h3 class="fw-bold mb-0">لوحة تحليل الإعلانات</h3>
+        </div>
+        <button class="btn btn-primary rounded-pill px-4 shadow-sm" @onclick="LoadAnalytics">
+            <i class="fa-solid fa-rotate-right me-2"></i> تحديث البيانات
+        </button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger rounded-4 shadow-sm animate-pop">
+            <i class="fa-solid fa-circle-exclamation me-2"></i> @errorMessage
+        </div>
+    }
+
+    @if (isLoading)
+    {
+        <LoadingSpinner Message="جاري تحميل اللوحة الشاملة للإعلانات..." />
+    }
+    else if (analytics != null)
+    {
+        <!-- Economy Overview Cards -->
+        <h5 class="fw-bold mb-3"><i class="fa-solid fa-coins text-warning me-2"></i> الاقتصاد والأداء المالي</h5>
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-md-4">
+                <div class="stat-card glass-panel rounded-4 p-4 text-center h-100 border-start border-4 border-success">
+                    <div class="icon-box text-success bg-success bg-opacity-10 mx-auto mb-3">
+                        <i class="fa-solid fa-money-bill-trend-up"></i>
+                    </div>
+                    <div class="text-muted mb-1 fw-bold">إجمالي الإيرادات المتوقعة</div>
+                    <h2 class="fw-black mb-0 text-success">@analytics.TotalRevenue.ToString("N0") <span class="fs-6 fw-normal text-muted">ر.س</span></h2>
+                </div>
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="stat-card glass-panel rounded-4 p-4 text-center h-100 border-start border-4 border-primary">
+                    <div class="icon-box text-primary bg-primary bg-opacity-10 mx-auto mb-3">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <div class="text-muted mb-1 fw-bold">إجمالي النقرات للشبكة</div>
+                    <h2 class="fw-black mb-0">@analytics.TotalClicks.ToString("N0")</h2>
+                </div>
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="stat-card glass-panel rounded-4 p-4 text-center h-100 border-start border-4 border-info">
+                    <div class="icon-box text-info bg-info bg-opacity-10 mx-auto mb-3">
+                        <i class="fa-solid fa-eye"></i>
+                    </div>
+                    <div class="text-muted mb-1 fw-bold">إجمالي المشاهدات (Impressions)</div>
+                    <h2 class="fw-black mb-0">@analytics.TotalImpressions.ToString("N0")</h2>
+                </div>
+            </div>
+        </div>
+
+        <h5 class="fw-bold mb-3"><i class="fa-solid fa-bullhorn text-primary me-2"></i> نشاط الإعلانات الكلي</h5>
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-4">
+                <div class="glass-panel p-3 rounded-4 shadow-sm h-100">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box text-light bg-dark me-3"><i class="fa-solid fa-layer-group"></i></div>
+                        <div>
+                            <div class="text-muted small">كل الإعلانات (التاريخية)</div>
+                            <h4 class="fw-bold mb-0">@analytics.TotalAds</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="glass-panel p-3 rounded-4 shadow-sm h-100">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box text-light bg-success me-3"><i class="fa-solid fa-bolt"></i></div>
+                        <div>
+                            <div class="text-muted small">الإعلانات النشطة حالياً</div>
+                            <h4 class="fw-bold mb-0">@analytics.ActiveAds</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="glass-panel p-3 rounded-4 shadow-sm h-100">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box text-light bg-warning me-3"><i class="fa-solid fa-arrows-to-eye"></i></div>
+                        <div>
+                            <div class="text-muted small">معدل التحويل الكلي (CTR)</div>
+                            <h4 class="fw-bold mb-0">@analytics.AverageCTR%</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-panel p-4 rounded-4 shadow-sm text-center mb-4 border border-warning" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));">
+            <h5 class="fw-bold mb-2">النظام الاقتصادي التجميعي للإعلانات يعمل بشكل آلي</h5>
+            <p class="text-muted mb-0">يقوم النظام تلقائياً بتحديث نقاط (AdScore) بناءً على المشاهدات والنقرات والمزايدات، لتحديد ترتيب الإعلانات في واجهات المستخدم.</p>
+        </div>
+    }
+</div>
+
+<style>
+    .icon-box {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+    .fw-black {
+        font-weight: 900;
+    }
+</style>
+
+@code {
+    private AdAnalyticsDto? analytics;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAnalytics();
+    }
+
+    private string? errorMessage;
+
+    private async Task LoadAnalytics()
+    {
+        isLoading = true;
+        errorMessage = null;
+        StateHasChanged();
+        
+        try 
+        {
+            analytics = await Api.GetGlobalAnalyticsAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "فشل تحميل الإحصائيات: " + ex.Message;
+            Console.WriteLine("Analytics load error: " + ex.Message);
+        }
+        
+        isLoading = false;
+        StateHasChanged();
+    }
+}

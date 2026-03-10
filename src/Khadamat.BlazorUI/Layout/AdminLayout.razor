@@ -3,9 +3,19 @@
 @inject NavigationManager Navigation
 @inject Khadamat.BlazorUI.Services.Auth.IAuthService AuthService
 @inject Khadamat.BlazorUI.State.AppState State
+@inject IJSRuntime JS
 
 <div class="admin-layout" dir="rtl">
-    @if (!State.IsMobileApp)
+    @if (State.IsMobileApp)
+    {
+        <MobileHeader />
+        <MobileSidebar />
+        <main class="mobile-content">
+            @Body
+        </main>
+        <MobileBottomNav />
+    }
+    else
     {
         <div class="sidebar-overlay @(SidebarOpen ? "visible" : "")" @onclick="ToggleSidebar"></div>
 
@@ -54,13 +64,25 @@
                 <i class="fas fa-map-marker-alt"></i> المناطق
             </NavLink>
 
+            <!-- Advertising & Economy Group -->
+            <AuthorizeView Roles="SystemAdmin,SuperAdmin">
+                <div class="nav-group-label text-muted x-small fw-bold mt-3 mb-2 px-3">الإعلانات والاقتصاد</div>
+                
+                <NavLink class="nav-link" href="/admin/ad-analytics" @onclick="CloseSidebar">
+                    <i class="fas fa-chart-pie"></i> إحصائيات الإعلانات
+                </NavLink>
+                <NavLink class="nav-link" href="/admin/adsmanagement" @onclick="CloseSidebar">
+                    <i class="fas fa-rectangle-ad"></i> إدارة الإعلانات
+                </NavLink>
+                <NavLink class="nav-link" href="/admin/ad-packages" @onclick="CloseSidebar">
+                    <i class="fas fa-gem"></i> باقات الإعلانات
+                </NavLink>
+            </AuthorizeView>
+
             <!-- System Group (SuperAdmin Only) -->
             <AuthorizeView Roles="SuperAdmin">
                 <div class="nav-group-label text-muted x-small fw-bold mt-3 mb-2 px-3">النظام</div>
                 
-                <NavLink class="nav-link" href="/admin/ads" @onclick="CloseSidebar">
-                    <i class="fas fa-ad"></i> الإعلانات
-                </NavLink>
                  <NavLink class="nav-link" href="/admin/reports" @onclick="CloseSidebar">
                     <i class="fas fa-file-alt"></i> التقارير
                 </NavLink>
@@ -84,35 +106,32 @@
             </button>
         </nav>
     </aside>
-    }
 
-    <main class="admin-content" style="@(State.IsMobileApp ? "width: 100%; padding:0;" : "")">
-        @if (!State.IsMobileApp)
-        {
-            <div class="admin-header glass-card">
-                <div class="d-flex align-items-center gap-3">
-                    <!-- Mobile Toggle Button -->
-                    <button class="btn btn-link text-dark p-0 d-lg-none" @onclick="ToggleSidebar">
-                        <i class="fas fa-bars fs-4"></i>
-                    </button>
-                    <h4 class="mb-0">لوحة التحكم</h4>
-                </div>
-
-                <div class="admin-user-info">
-                    <AuthorizeView>
-                        <Authorized>
-                            <span class="d-none d-md-inline">مرحباً، @context.User.Identity?.Name</span>
-                            <i class="fas fa-user-circle fs-4 d-md-none text-primary"></i>
-                        </Authorized>
-                    </AuthorizeView>
-                </div>
+    <main class="admin-content">
+        <div class="admin-header glass-card">
+            <div class="d-flex align-items-center gap-3">
+                <!-- Mobile Toggle Button -->
+                <button class="btn btn-link text-dark p-0 d-lg-none" @onclick="ToggleSidebar">
+                    <i class="fas fa-bars fs-4"></i>
+                </button>
+                <h4 class="mb-0">لوحة التحكم</h4>
             </div>
-        }
+
+            <div class="admin-user-info">
+                <AuthorizeView>
+                    <Authorized>
+                        <span class="d-none d-md-inline">مرحباً، @context.User.Identity?.Name</span>
+                        <i class="fas fa-user-circle fs-4 d-md-none text-primary"></i>
+                    </Authorized>
+                </AuthorizeView>
+            </div>
+        </div>
 
         <div class="content-body">
             @Body
         </div>
     </main>
+    }
 </div>
 
 <style>
@@ -280,12 +299,54 @@
         {
             if (!State.IsMobileApp) State.IsMobileApp = true;
         }
+        if (query.TryGetValue("nativeapp", out var nValue) && nValue == "1")
+        {
+            if (!State.IsNativeApp) State.IsNativeApp = true;
+            if (!State.IsMobileApp) State.IsMobileApp = true;
+        }
     }
 
     private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        CheckMobileMode();
+        _ = CheckMobileModeAsync();
         StateHasChanged();
+    }
+
+    private async Task CheckMobileModeAsync()
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+
+        if (query.TryGetValue("mobileapp", out var mValue) && mValue == "1")
+        {
+            if (!State.IsMobileApp) State.IsMobileApp = true;
+            try { await JS.InvokeVoidAsync("sessionStorage.setItem", "mobileapp", "1"); } catch { }
+        }
+
+        if (query.TryGetValue("nativeapp", out var nValue) && nValue == "1")
+        {
+            if (!State.IsNativeApp) State.IsNativeApp = true;
+            if (!State.IsMobileApp) State.IsMobileApp = true;
+            try { await JS.InvokeVoidAsync("sessionStorage.setItem", "nativeapp", "1"); } catch { }
+        }
+        else
+        {
+            try
+            {
+                var storedNative = await JS.InvokeAsync<string>("sessionStorage.getItem", "nativeapp");
+                if (storedNative == "1")
+                {
+                    if (!State.IsNativeApp) State.IsNativeApp = true;
+                    if (!State.IsMobileApp) State.IsMobileApp = true;
+                }
+                var storedMobile = await JS.InvokeAsync<string>("sessionStorage.getItem", "mobileapp");
+                if (storedMobile == "1")
+                {
+                    if (!State.IsMobileApp) State.IsMobileApp = true;
+                }
+            }
+            catch { }
+        }
     }
 
     public void Dispose()

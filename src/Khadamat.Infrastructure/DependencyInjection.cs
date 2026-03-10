@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Khadamat.Infrastructure.Persistence;
 using Khadamat.Infrastructure.Identity;
+using Khadamat.Infrastructure.Features;
 
 namespace Khadamat.Infrastructure;
 
@@ -33,6 +34,10 @@ public static class DependencyInjection
         services.AddScoped<Khadamat.Application.Interfaces.INotificationService, Khadamat.Infrastructure.Services.NotificationService>();
         services.AddScoped<Khadamat.Application.Interfaces.IMarketplaceService, Khadamat.Infrastructure.Services.MarketplaceService>();
         services.AddScoped(typeof(Khadamat.Application.Interfaces.IGenericRepository<>), typeof(Khadamat.Infrastructure.Persistence.Repositories.GenericRepository<>));
+
+        // Advertisement & Growth System
+        services.AddScoped<Khadamat.Application.Interfaces.IAdvertisementService, AdvertisementService>();
+        services.AddScoped<Khadamat.Application.Interfaces.IReferralService, ReferralService>();
 
         services.AddAuthentication(options =>
         {

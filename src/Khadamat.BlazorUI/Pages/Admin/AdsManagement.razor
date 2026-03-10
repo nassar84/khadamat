@@ -2,23 +2,112 @@
 @page "/admin/adsmanagement"
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "SystemAdmin,SuperAdmin")]
 @inject ApiClient Api
 @inject IJSRuntime JS
+@inject NavigationManager Navigation
 
 <div class="px-2 pb-5">
-    <div class="d-flex justify-content-end mb-4">
-        <button class="btn btn-primary-premium rounded-pill px-4" @onclick="OpenAddModal">
-            <i class="fa-solid fa-plus me-2"></i> إضافة إعلان جديد
-        </button>
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h4 class="fw-bold mb-1"><i class="fa-solid fa-rectangle-ad text-primary me-2"></i> إدارة الإعلانات</h4>
+            <p class="text-muted small mb-0">إنشاء الإعلانات وإدارة مواضعها وعرضها واستهدافها</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary rounded-pill btn-sm" @onclick='() => Navigation.NavigateTo("/admin/ad-analytics")'>
+                <i class="fa-solid fa-chart-line me-1"></i> الإحصائيات
+            </button>
+            <button class="btn btn-outline-info rounded-pill btn-sm" @onclick='() => Navigation.NavigateTo("/admin/ad-packages")'>
+                <i class="fa-solid fa-gem me-1"></i> الباقات
+            </button>
+            <button class="btn btn-primary-premium rounded-pill px-4" @onclick="OpenAddModal">
+                <i class="fa-solid fa-plus me-2"></i> إعلان جديد
+            </button>
+            <button class="btn btn-outline-warning rounded-pill px-3 ms-2" @onclick="() => showMap = true">
+                <i class="fa-solid fa-map me-2"></i> دليل الأماكن
+            </button>
+        </div>
     </div>
 
-    @if (ads == null)
+    <!-- Filter & Stats Bar -->
+    @if (ads != null)
+    {
+        <div class="row g-3 mb-4 animate-fade-in">
+            <div class="col-md-3">
+                <div class="glass-card p-3 rounded-4 border-start border-primary border-4 shadow-sm h-100">
+                    <div class="small text-muted mb-1">إجمالي الإعلانات</div>
+                    <div class="h4 fw-bold mb-0 text-primary">@ads.Count</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="glass-card p-3 rounded-4 border-start border-success border-4 shadow-sm h-100">
+                    <div class="small text-muted mb-1">إجمالي المشاهدات</div>
+                    <div class="h4 fw-bold mb-0 text-success">@ads.Sum(a => a.ViewCount).ToString("N0")</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="glass-card p-3 rounded-4 border-start border-info border-4 shadow-sm h-100">
+                    <div class="small text-muted mb-1">إجمالي النقرات</div>
+                    <div class="h4 fw-bold mb-0 text-info">@ads.Sum(a => a.ClickCount).ToString("N0")</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="glass-card p-3 rounded-4 border-start border-warning border-4 shadow-sm h-100">
+                    <div class="small text-muted mb-1">إجمالي الإيرادات</div>
+                    <div class="h4 fw-bold mb-0 text-warning">@ads.Sum(a => a.AmountPaid).ToString("C0")</div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="glass-card p-3 rounded-4 shadow-sm border-0 mb-4">
+        <div class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-0 pe-0"><i class="fa-solid fa-search text-muted"></i></span>
+                    <input type="text" class="form-control border-0 shadow-none bg-transparent" placeholder="بحث بالعنوان أو المعلن..." @bind="searchText" @bind:event="oninput" @onkeyup="FilterAds">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select border-0 shadow-none bg-light rounded-pill" @bind="filterPlacement" @bind:after="FilterAds">
+                    <option value="">كل الأماكن</option>
+                    <option value="Slider">السلايدر</option>
+                    <option value="Sidebar">الجانبي</option>
+                    <option value="Bottom">الأسفل</option>
+                    <option value="Category">الفئات</option>
+                    <option value="Search">البحث</option>
+                    <option value="Popup">المنبثق</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select border-0 shadow-none bg-light rounded-pill" @bind="filterStatus" @bind:after="FilterAds">
+                    <option value="">كل الحالات</option>
+                    <option value="active">نشط فقط</option>
+                    <option value="inactive">موقف فقط</option>
+                </select>
+            </div>
+            <div class="col-md-3 text-end ps-3 pt-1">
+                <span class="badge bg-primary rounded-pill px-3">@(filteredAds?.Count ?? 0) إعلان</span>
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger rounded-4 shadow-sm animate-pop">
+            <i class="fa-solid fa-circle-exclamation me-2"></i> @errorMessage
+            <button class="btn btn-sm btn-outline-danger ms-3 rounded-pill" @onclick="LoadAds">إعادة المحاولة</button>
+        </div>
+    }
+
+    @if (isPageLoading)
     {
         <div class="d-flex justify-content-center p-5">
             <div class="spinner-border text-primary" role="status"></div>
         </div>
     }
-    else if (!ads.Any())
+    else if (ads == null || !ads.Any())
     {
         <div class="glass-card p-5 text-center text-muted">
             <i class="fa-solid fa-rectangle-ad fs-1 mb-3 opacity-50"></i>
@@ -28,10 +117,10 @@
     else
     {
         <div class="row g-4">
-            @foreach (var ad in ads)
+            @foreach (var ad in filteredAds ?? new())
             {
                 <div class="col-12 col-md-6 col-lg-4">
-                    <div class="glass-card overflow-hidden p-0 h-100 animate-up">
+                    <div class="glass-card overflow-hidden p-0 h-100 animate-up @(ad.IsActive ? "" : "opacity-75")">
                         <div class="ad-image-container position-relative">
                             @if (ad.AdType == "Video")
                             {
@@ -41,27 +130,58 @@
                             }
                             else
                             {
-                                <div class="ad-preview-img @(ad.ImageUrl?.StartsWith("hero-gradient") == true ? ad.ImageUrl : "")" 
-                                     style="height: 180px; background-image: url('@(ad.ImageUrl?.StartsWith("hero-gradient") == true ? "" : ad.ImageUrl)')">
+                                <div class="ad-preview-img @(ad.ImageUrl?.StartsWith("hero-gradient") == true || string.IsNullOrEmpty(ad.ImageUrl) ? (ad.ImageUrl ?? "hero-gradient-1") : "")"
+                                     style="height: 180px; @(ad.ImageUrl?.StartsWith("hero-gradient") != true && !string.IsNullOrEmpty(ad.ImageUrl) ? $"background-image: url('{Api.GetAbsoluteUrl(ad.ImageUrl)}'); background-size: cover; background-position: center;" : "")">
                                 </div>
                             }
                             <div class="ad-actions position-absolute top-0 end-0 p-2 d-flex gap-2">
                                 <button class="btn btn-white btn-sm rounded-circle shadow-sm" @onclick="() => EditAd(ad)"><i class="fa-solid fa-pen text-primary"></i></button>
                                 <button class="btn btn-white btn-sm rounded-circle shadow-sm" @onclick="() => DeleteAd(ad)"><i class="fa-solid fa-trash text-danger"></i></button>
                             </div>
-                            <div class="position-absolute bottom-0 start-0 p-2">
+                            <div class="position-absolute bottom-0 start-0 p-2 d-flex gap-1">
                                 <span class="badge bg-dark bg-opacity-75 rounded-pill shadow-sm">@ad.Placement</span>
+                                @if (ad.TargetCategories != null)
+                                {
+                                    <span class="badge bg-info bg-opacity-75 rounded-pill shadow-sm"><i class="fa-solid fa-bullseye me-1"></i>مستهدف</span>
+                                }
+                            </div>
+                            <div class="position-absolute top-0 start-0 p-2">
+                                <span class="badge @(ad.IsActive ? "bg-success" : "bg-warning") rounded-pill shadow-sm">
+                                    <i class="fa-solid @(ad.IsActive ? "fa-bolt" : "fa-pause") me-1"></i>@(ad.IsActive ? "نشط" : "موقوف")
+                                </span>
                             </div>
                         </div>
                         <div class="p-3">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h6 class="fw-bold mb-0 text-truncate" style="max-width: 180px;">@ad.Title</h6>
-                                <span class="badge @(ad.IsActive ? "bg-success" : "bg-warning") small rounded-pill">@(ad.IsActive ? "نشط" : "متوقف")</span>
+                            <h6 class="fw-bold mb-1 text-truncate">@ad.Title</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-muted x-small text-truncate" title="صاحب الإعلان">
+                                    <i class="fa-solid fa-user me-1"></i> @(string.IsNullOrEmpty(ad.CreatedBy) ? "النظام" : ad.CreatedBy.Substring(0, Math.Min(10, ad.CreatedBy.Length)) + "...")
+                                </span>
+                                <span class="badge bg-soft-warning p-1 px-2 text-warning rounded-pill small">@ad.AmountPaid.ToString("C0")</span>
                             </div>
-                            <div class="d-flex justify-content-between text-muted x-small mt-3 border-top pt-2">
-                                <span><i class="fa-solid fa-eye me-1"></i> @ad.ViewCount</span>
-                                <span><i class="fa-solid fa-mouse-pointer me-1"></i> @ad.ClickCount</span>
-                                <span><i class="fa-solid fa-clock me-1"></i> @(ad.EndDate?.ToString("MM/dd"))</span>
+                            <div class="row g-1 text-center border-top pt-2">
+                                <div class="col-4 border-end">
+                                    <div class="fw-bold small">@ad.ViewCount</div>
+                                    <div class="extra-small text-muted">مشاهدة</div>
+                                </div>
+                                <div class="col-4 border-end">
+                                    <div class="fw-bold small">@ad.ClickCount</div>
+                                    <div class="extra-small text-muted">نقرة</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="fw-bold small">@ad.CTR.ToString("F1")%</div>
+                                    <div class="extra-small text-muted">CTR</div>
+                                </div>
+                            </div>
+                            <div class="row g-1 text-center border-top pt-2 mt-2">
+                                <div class="col-6 border-end">
+                                    <div class="extra-small text-muted">البداية</div>
+                                    <div class="small extra-small fw-bold">@ad.StartDate?.ToString("yyyy/MM/dd")</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="extra-small text-muted">النهاية</div>
+                                    <div class="small extra-small fw-bold">@ad.EndDate?.ToString("yyyy/MM/dd")</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -101,22 +221,71 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label small fw-bold">رابط المحتوى (Image/Video URL)</label>
-                        <input type="text" class="form-control rounded-pill" @bind="currentAd.ImageUrl">
+                        <label class="form-label small fw-bold">تحميل صورة أو رابط</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control rounded-start-pill" @bind="currentAd.ImageUrl" placeholder="رابط خارجي...">
+                            <label class="btn btn-primary rounded-end-pill mb-0" for="adImageFile">
+                                <i class="fa-solid fa-upload"></i>
+                                <InputFile id="adImageFile" class="d-none" OnChange="HandleFileSelected" />
+                            </label>
+                        </div>
+                        @if (!string.IsNullOrEmpty(imagePreview))
+                        {
+                            <div class="mt-2 text-center">
+                                <img src="@imagePreview" class="rounded shadow-sm" style="max-height: 80px;" />
+                                <button class="btn btn-link btn-sm text-danger" @onclick="() => { imagePreview = null; currentAd.ImageBase64 = null; }">إلغاء</button>
+                            </div>
+                        }
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold">رابط التوجيه (Target URL)</label>
-                        <input type="text" class="form-control rounded-pill" @bind="currentAd.TargetUrl">
+                    <!-- Gradient Selector (when ImageUrl is empty or gradient) -->
+                    <div class="col-12">
+                        <label class="form-label small fw-bold">تدرج لوني (اختياري - إذا لم تحمّل صورة)</label>
+                        <div class="d-flex gap-2 flex-wrap">
+                            @foreach (var g in new[] { "hero-gradient-1", "hero-gradient-2", "hero-gradient-3", "hero-gradient-4" })
+                            {
+                                <div class="gradient-swatch @g @(currentAd.ImageUrl == g && string.IsNullOrEmpty(imagePreview) ? "selected" : "")"
+                                     @onclick="() => { if(string.IsNullOrEmpty(imagePreview)) { currentAd.ImageUrl = g; } }" title="@g">
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="col-md-8">
+                        <label class="form-label small fw-bold">الرابط الموجه (URL)</label>
+                        <input type="text" class="form-control rounded-pill" @bind="currentAd.TargetUrl" placeholder="https://...">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">المبلغ المدفوع (جنيه)</label>
+                        <input type="number" class="form-control rounded-pill" @bind="currentAd.AmountPaid">
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label small fw-bold">المكان</label>
+                        <label class="form-label small fw-bold">المكان (موضع الظهور)</label>
                         <select class="form-select rounded-pill" @bind="currentAd.Placement">
-                            <option value="Slider">سلايدر</option>
-                            <option value="Sidebar">جانبي</option>
-                            <option value="Popup">منبثق</option>
-                            <option value="Bottom">أسفل الصفحة</option>
+                            <option value="Slider">سلايدر الرئيسي (أعلى الصفحة)</option>
+                            <option value="Sidebar">جانبي (في القائمة الجانبية)</option>
+                            <option value="Bottom">أسفل الصفحة (قبل التذييل)</option>
+                            <option value="Category">قائمة الفئات (بين الخدمات)</option>
+                            <option value="Search">نتائج البحث (بين الخدمات)</option>
+                            <option value="Popup">منبثق (عند فتح الصفحة)</option>
                         </select>
+                        <div class="form-text extra-small mt-1 text-primary">
+                            @placementDescriptions.GetValueOrDefault(currentAd.Placement ?? "Slider")
+                        </div>
+                    </div>
+
+                    <!-- Visual Guide Reference -->
+                    <div class="col-12 mt-3">
+                        <div class="alert alert-info rounded-4 border-0 bg-opacity-10 d-flex align-items-center">
+                            <i class="fa-solid fa-circle-info me-3 fs-4"></i>
+                            <div class="small">
+                                <strong>دليل الأماكن:</strong> يمكنك اختيار المكان المناسب للإعلان لضمان وصوله للجمهور المستهدف. الإعلانات الجانبية تظهر في جميع الصفحات، بينما إعلانات الفئات والبحث تظهر تلقائياً بين نتائج العرض.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">ترتيب العرض</label>
+                        <input type="number" class="form-control rounded-pill" @bind="currentAd.DisplayOrder" min="0" />
                     </div>
                     <div class="col-md-4">
                         <label class="form-label small fw-bold">تاريخ البدء</label>
@@ -132,12 +301,34 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label small fw-bold">المحافظات المستهدفة (IDs)</label>
-                        <input type="text" class="form-control rounded-pill form-control-sm" @bind="currentAd.TargetGovernorates" placeholder="مثال: 1,3,5">
+                        <label class="form-label small fw-bold">الفئة الرئيسية المستهدفة</label>
+                        <select class="form-select rounded-pill form-select-sm" value="@selectedMainCategoryId" @onchange="OnMainCategoryChanged">
+                            <option value="0">الكل</option>
+                            @foreach (var cat in mainCategories)
+                            {
+                                <option value="@cat.Id">@cat.Name</option>
+                            }
+                        </select>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold">المدن المستهدفة (IDs)</label>
-                        <input type="text" class="form-control rounded-pill form-control-sm" @bind="currentAd.TargetCities">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">التصنيف (L2)</label>
+                        <select class="form-select rounded-pill form-select-sm" value="@selectedSubCategoryId" @onchange="OnCategoryChanged">
+                            <option value="0">الكل</option>
+                            @foreach (var sub in subCategories)
+                            {
+                                <option value="@sub.Id">@sub.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">النوع (الفئة تحت الفرعية L3)</label>
+                        <select class="form-select rounded-pill form-select-sm" @bind="selectedDeepSubCategoryId">
+                            <option value="0">الكل</option>
+                            @foreach (var deep in deepSubCategories)
+                            {
+                                <option value="@deep.Id">@deep.Name</option>
+                            }
+                        </select>
                     </div>
 
                     <div class="col-md-4">
@@ -148,18 +339,35 @@
                             <option value="Female">إناث</option>
                         </select>
                     </div>
-                    <div class="col-md-8">
-                        <label class="form-label small fw-bold">أيام العرض (Mon,Tue...)</label>
-                        <input type="text" class="form-control rounded-pill form-control-sm" @bind="currentAd.TargetDays" placeholder="Sat,Sun,Mon">
+                    <div class="col-12">
+                        <label class="form-label small fw-bold">أيام العرض</label>
+                        <div class="d-flex flex-wrap gap-3 bg-light p-3 rounded-4 border border-info border-opacity-10">
+                            @foreach (var day in allDays)
+                            {
+                                <div class="form-check form-check-inline m-0">
+                                    <input class="form-check-input" type="checkbox" id="day-@day.Key" 
+                                           checked="@selectedDays.Contains(day.Key)"
+                                           @onchange='(e) => ToggleDay(day.Key, (bool)e.Value!)'>
+                                    <label class="form-check-label small" for="day-@day.Key">@day.Value</label>
+                                </div>
+                            }
+                        </div>
+                        <div class="form-text extra-small mt-1">سيظهر الإعلان في الأيام المختارة فقط. (الافتراضي: كل الأيام)</div>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label small fw-bold">وقت البدء (HH:mm)</label>
-                        <input type="time" class="form-control rounded-pill form-control-sm" @bind="currentAd.TargetTimeStart">
+                        <label class="form-label small fw-bold">وقت البدء</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text rounded-start-pill bg-light border-end-0"><i class="fa-solid fa-clock-rotate-left"></i></span>
+                            <input type="time" class="form-control rounded-end-pill border-start-0" @bind="currentAd.TargetTimeStart" />
+                        </div>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label small fw-bold">وقت الانتهاء (HH:mm)</label>
-                        <input type="time" class="form-control rounded-pill form-control-sm" @bind="currentAd.TargetTimeEnd">
+                        <label class="form-label small fw-bold">وقت الانتهاء</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text rounded-start-pill bg-light border-end-0"><i class="fa-solid fa-clock"></i></span>
+                            <input type="time" class="form-control rounded-end-pill border-start-0" @bind="currentAd.TargetTimeEnd" />
+                        </div>
                     </div>
 
                     <div class="col-12 pt-2">
@@ -179,6 +387,38 @@
     </div>
 }
 
+    @if (showMap)
+    {
+        <div class="modal-overlay" @onclick="() => showMap = false">
+            <div class="glass-panel rounded-5 p-4 shadow-2xl animate-pop position-relative" style="max-width: 900px; width: 95%;" @onclick:stopPropagation="true">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0 text-primary"><i class="fa-solid fa-map-location-dot me-2"></i> مخطط أماكن ظهور الإعلانات</h5>
+                    <button class="btn-close" @onclick="() => showMap = false"></button>
+                </div>
+                
+                <div class="text-center mb-4">
+                    <img src="ad_placements_map.png" class="img-fluid rounded-4 shadow-sm border" alt="Ads Placement Guide" style="max-height: 500px;" />
+                </div>
+
+                <div class="row g-3">
+                    @foreach (var entry in placementDescriptions)
+                    {
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-4 h-100">
+                                <span class="badge bg-primary mb-2">@entry.Key</span>
+                                <p class="small mb-0 text-muted">@entry.Value</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="mt-4 text-center">
+                    <button class="btn btn-primary rounded-pill px-5" @onclick="() => showMap = false">فهمت ذلك</button>
+                </div>
+            </div>
+        </div>
+    }
+
 <style>
     .ad-image-container { overflow: hidden; background: #f8f9fa; }
     .ad-preview-img { background-size: cover; background-position: center; transition: all 0.5s; }
@@ -188,6 +428,19 @@
     .hero-gradient-2 { background: linear-gradient(135deg, #0abde3 0%, #00d2d3 100%); }
     .hero-gradient-3 { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); }
     .hero-gradient-4 { background: linear-gradient(135deg, #10ac84 0%, #01a3a4 100%); }
+
+    .gradient-swatch {
+        width: 48px; height: 36px;
+        border-radius: 10px;
+        cursor: pointer;
+        border: 3px solid transparent;
+        transition: all 0.2s;
+    }
+    .gradient-swatch:hover, .gradient-swatch.selected {
+        border-color: #6366f1;
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+    }
 
     .modal-overlay {
         position: fixed; inset: 0; z-index: 2000;
@@ -202,21 +455,129 @@
         to { transform: scale(1); opacity: 1; }
     }
     .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+    .glass-panel { background: white; }
 </style>
 
 @code {
     private List<EnhancedAdDto>? ads;
+    private List<EnhancedAdDto>? filteredAds;
+    private List<MainCategoryDto> mainCategories = new();
+    private List<CategoryDto> subCategories = new();
+    private List<SubCategoryDto> deepSubCategories = new();
+    private int selectedMainCategoryId = 0;
+    private int selectedSubCategoryId = 0;
+    private int selectedDeepSubCategoryId = 0;
+    private string? imagePreview;
     private bool showModal = false;
     private EnhancedAdDto currentAd = new();
+    private string searchText = "";
+    private string? errorMessage;
+    private string filterPlacement = "";
+    private string filterStatus = "";
+    private bool isPageLoading = true;
+    private bool showMap = false;
+    private List<string> selectedDays = new();
+
+    private Dictionary<string, string> allDays = new()
+    {
+        { "Sat", "السبت" }, { "Sun", "الأحد" }, { "Mon", "الاثنين" }, 
+        { "Tue", "الثلاثاء" }, { "Wed", "الأربعاء" }, { "Thu", "الخميس" }, { "Fri", "الجمعة" }
+    };
+
+    private Dictionary<string, string> placementDescriptions = new()
+    {
+        { "Slider", "يظهر في السلايدر الرئيسي أعلى الصفحة الرئيسية وصفحات الاستكشاف." },
+        { "Sidebar", "يظهر في القائمة الجانبية في جميع صفحات الموقع للشاشات الكبيرة." },
+        { "Bottom", "يظهر في أسفل الصفحة الرئيسية قبل التذييل (Footer)." },
+        { "Category", "يظهر بشكل أصلي (Native) داخل قائمة الخدمات أثناء التصفح." },
+        { "Search", "يظهر بشكل أصلي (Native) داخل نتائج البحث بين الخدمات." },
+        { "Popup", "يظهر كنافذة منبثقة عند دخول الموقع (قيد التطوير حالياً)." }
+    };
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadAds();
+        isPageLoading = true;
+        try
+        {
+            await LoadAds();
+            mainCategories = await Api.GetMainCategoriesAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "حدث خطأ أثناء تحميل البيانات الإدارية. يرجى مراجعة الصلاحيات.";
+            Console.WriteLine($"Error initializing AdsManagement: {ex.Message}");
+        }
+        finally
+        {
+            isPageLoading = false;
+        }
+    }
+    private async Task OnMainCategoryChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int id))
+        {
+            selectedMainCategoryId = id;
+            selectedSubCategoryId = 0;
+            selectedDeepSubCategoryId = 0;
+            deepSubCategories.Clear();
+            if (id > 0)
+                subCategories = await Api.GetCategoriesByMainIdAsync(id);
+            else
+                subCategories.Clear();
+        }
+    }
+
+    private async Task OnCategoryChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int id))
+        {
+            selectedSubCategoryId = id;
+            selectedDeepSubCategoryId = 0;
+            if (id > 0)
+                deepSubCategories = await Api.GetSubCategoriesByCategoryIdAsync(id);
+            else
+                deepSubCategories.Clear();
+        }
+    }
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        var format = "image/jpeg";
+        var resizedImage = await file.RequestImageFileAsync(format, 1200, 600);
+        var buffer = new byte[resizedImage.Size];
+        using var stream = resizedImage.OpenReadStream();
+        await stream.ReadAsync(buffer);
+        
+        currentAd.ImageBase64 = Convert.ToBase64String(buffer);
+        imagePreview = $"data:{format};base64,{currentAd.ImageBase64}";
+        currentAd.ImageUrl = null; // Clear URL if uploading
     }
 
     private async Task LoadAds()
     {
-        ads = await Api.GetAllAdsAsync();
+        try
+        {
+            ads = await Api.GetAllAdsAsync();
+            FilterAds();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "فشل في جلب قائمة الإعلانات من الخادم.";
+            Console.WriteLine($"Error loading ads: {ex.Message}");
+        }
+    }
+
+    private void FilterAds()
+    {
+        if (ads == null) { filteredAds = null; return; }
+        filteredAds = ads
+            .Where(a => string.IsNullOrEmpty(searchText) || 
+                        (a.Title?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                        (a.CreatedBy?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false))
+            .Where(a => string.IsNullOrEmpty(filterPlacement) || a.Placement == filterPlacement)
+            .Where(a => string.IsNullOrEmpty(filterStatus) || (filterStatus == "active" ? a.IsActive : !a.IsActive))
+            .ToList();
     }
 
     private void OpenAddModal()
@@ -229,13 +590,21 @@
             IsActive = true,
             StartDate = DateTime.Now,
             EndDate = DateTime.Now.AddMonths(1),
-            TargetUserGender = "All"
+            TargetUserGender = "All",
+            TargetDays = "Sat,Sun,Mon,Tue,Wed,Thu,Fri"
         };
+        selectedMainCategoryId = 0;
+        selectedSubCategoryId = 0;
+        selectedDeepSubCategoryId = 0;
+        subCategories.Clear();
+        deepSubCategories.Clear();
+        selectedDays = allDays.Keys.ToList(); // All days selected by default
         showModal = true;
     }
 
-    private void EditAd(EnhancedAdDto ad)
+    private async Task EditAd(EnhancedAdDto ad)
     {
+        imagePreview = null;
         currentAd = new EnhancedAdDto
         {
             Id = ad.Id,
@@ -253,21 +622,63 @@
             IsActive = ad.IsActive,
             TargetGovernorates = ad.TargetGovernorates,
             TargetCities = ad.TargetCities,
+            TargetCategories = ad.TargetCategories,
+            TargetSubCategories = ad.TargetSubCategories,
             TargetServices = ad.TargetServices,
             TargetUserGender = ad.TargetUserGender,
             TargetDays = ad.TargetDays,
             TargetMonths = ad.TargetMonths,
             TargetTimeStart = ad.TargetTimeStart,
             TargetTimeEnd = ad.TargetTimeEnd,
-            TargetKeywords = ad.TargetKeywords
+            TargetKeywords = ad.TargetKeywords,
+            TargetDeepSubCategories = ad.TargetDeepSubCategories
         };
+
+        if (int.TryParse(currentAd.TargetCategories, out int cid)) 
+        {
+            selectedMainCategoryId = cid;
+            if (cid > 0) subCategories = await Api.GetCategoriesByMainIdAsync(cid);
+        }
+        else selectedMainCategoryId = 0;
+        
+        if (int.TryParse(currentAd.TargetSubCategories, out int scid)) 
+        {
+            selectedSubCategoryId = scid;
+            if (scid > 0) deepSubCategories = await Api.GetSubCategoriesByCategoryIdAsync(scid);
+        }
+        else selectedSubCategoryId = 0;
+
+        if (int.TryParse(currentAd.TargetDeepSubCategories, out int dscid)) 
+            selectedDeepSubCategoryId = dscid;
+        else selectedDeepSubCategoryId = 0;
+
+        // Populate selected days from TargetDays string
+        if (!string.IsNullOrEmpty(currentAd.TargetDays))
+            selectedDays = currentAd.TargetDays.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
+        else
+            selectedDays = allDays.Keys.ToList(); // Default to all if empty
+
         showModal = true;
+    }
+
+    private void ToggleDay(string dayKey, bool isChecked)
+    {
+        if (isChecked && !selectedDays.Contains(dayKey))
+            selectedDays.Add(dayKey);
+        else if (!isChecked && selectedDays.Contains(dayKey))
+            selectedDays.Remove(dayKey);
+        
+        currentAd.TargetDays = string.Join(",", selectedDays);
     }
 
     private async Task SaveAd()
     {
         if (string.IsNullOrWhiteSpace(currentAd.Title)) return;
         
+        currentAd.TargetCategories = selectedMainCategoryId > 0 ? selectedMainCategoryId.ToString() : null;
+        currentAd.TargetSubCategories = selectedSubCategoryId > 0 ? selectedSubCategoryId.ToString() : null;
+        currentAd.TargetDeepSubCategories = selectedDeepSubCategoryId > 0 ? selectedDeepSubCategoryId.ToString() : null;
+
         bool success;
         if (currentAd.Id == 0)
             success = await Api.CreateAdAsync(currentAd);
@@ -278,6 +689,7 @@
         {
             await LoadAds();
             showModal = false;
+            imagePreview = null;
         }
     }
 

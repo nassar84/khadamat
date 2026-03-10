@@ -26,11 +26,11 @@
         </div>
 
         <!-- Center: Logo -->
-        <div class="header-center" @onclick='() => Navigation.NavigateTo("/")'>
+        <div class="header-center" @onclick='() => NavigateTo("/")'>
             <div class="logo-wrapper-mobile">
                 @if (!string.IsNullOrEmpty(State.AppLogo))
                 {
-                    <img src="@State.AppLogo" class="logo-img-mobile" alt="Logo" style="height: 28px; width: auto;" />
+                    <img src="@State.GetAbsoluteUrl(State.AppLogo)" class="logo-img-mobile" alt="Logo" style="height: 32px; width: auto; object-fit: contain;" />
                 }
                 else
                 {
@@ -43,7 +43,7 @@
         <!-- Left Side (RTL): Notifications only -->
         <div class="header-right">
             <!-- Notifications -->
-            <div class="icon-btn-minimal" @onclick='() => Navigation.NavigateTo("/user/notifications")'>
+            <div class="icon-btn-minimal" @onclick='() => NavigateTo("/user/notifications")'>
                 <i class="fa-solid fa-bell"></i>
                 @if (State.HasUnreadNotifications)
                 {
@@ -57,10 +57,10 @@
 <div class="mobile-search-bar px-3 pb-2">
     <div class="search-input-wrapper">
         <i class="fa-solid fa-magnifying-glass search-icon"></i>
-        <input type="text" placeholder="ابحث عن خدمات..." @oninput="HandleSearch" />
+        <input type="text" placeholder="ابحث عن خدمات..." @bind="searchQuery" @bind:event="oninput" @onkeydown="HandleKeyDown" />
     </div>
 </div>
-<CategoryMarquee />
+@* <CategoryMarquee /> *@
 
 
 <style>
@@ -290,7 +290,7 @@
 
     .search-icon {
         position: absolute;
-        right: 20px;
+        left: 20px;
         top: 50%;
         transform: translateY(-50%);
         color: var(--theme-primary);
@@ -298,8 +298,8 @@
     }
 
     [dir="rtl"] .search-icon {
-        right: auto;
-        left: 20px;
+        right: 20px;
+        left: auto;
     }
     .theme-switcher-mobile {
         position: relative;
@@ -350,11 +350,17 @@
 </style>
 
 @code {
-    private bool isThemeMenuOpen = false;
+    private string searchQuery = string.Empty;
+    private bool isThemeMenuOpen;
 
     protected override void OnInitialized()
     {
         State.OnChange += OnStateChange;
+    }
+
+    private async void OnStateChange()
+    {
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -365,14 +371,32 @@
         }
     }
 
-    private async void OnStateChange()
-    {
-        await InvokeAsync(StateHasChanged);
-    }
-
     public void Dispose()
     {
         State.OnChange -= OnStateChange;
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(searchQuery))
+        {
+            NavigateTo($"/explore?search={Uri.EscapeDataString(searchQuery)}");
+        }
+    }
+
+    private void NavigateTo(string path)
+    {
+        // Preserve nativeapp/mobileapp params when in mobile app
+        if (State.IsNativeApp || State.IsMobileApp)
+        {
+            var separator = path.Contains('?') ? "&" : "?";
+            var param = State.IsNativeApp ? "nativeapp=1" : "mobileapp=1";
+            Navigation.NavigateTo(path + separator + param);
+        }
+        else
+        {
+            Navigation.NavigateTo(path);
+        }
     }
 
     private async Task SetupClickOutsideHandler()
@@ -417,10 +441,5 @@
             Console.WriteLine($"Error setting theme in MobileHeader: {ex.Message}");
         }
         isThemeMenuOpen = false;
-    }
-
-    private void HandleSearch(ChangeEventArgs e)
-    {
-        // Placeholder for search logic
     }
 }

@@ -38,8 +38,8 @@ public partial class WebContainerPage : ContentPage
         else
             finalUrl = baseUrl.TrimEnd('/') + "/" + routePart;
         
-        // Append mobileapp=1 once
-        finalUrl += finalUrl.Contains("?") ? "&mobileapp=1" : "?mobileapp=1";
+        // Append nativeapp=1 once to inform the Blazor side to hide website bars
+        finalUrl += finalUrl.Contains("?") ? "&nativeapp=1" : "?nativeapp=1";
         
         LoadUrl(finalUrl);
     }
@@ -110,17 +110,67 @@ public partial class WebContainerPage : ContentPage
         // Navigation within the same domain
     }
 
-    private void MainWebView_Navigated(object sender, WebNavigatedEventArgs e)
+    private async void MainWebView_Navigated(object sender, WebNavigatedEventArgs e)
     {
         PullToRefresh.IsRefreshing = false;
         
         if (e.Result != WebNavigationResult.Success)
         {
-            // Possibly failed due to network
             if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
             {
                 ShowOfflineState(true);
             }
+            return;
+        }
+
+        // Inject JS to persist nativeapp=1 across all internal navigation
+        try
+        {
+            await MainWebView.EvaluateJavaScriptAsync(@"
+                (function() {
+                    // Save nativeapp flag in sessionStorage so Blazor can read it
+                    sessionStorage.setItem('nativeapp', '1');
+
+                    // Intercept all anchor clicks to inject nativeapp=1 into URL
+                    if (!window._nativeAppInterceptorAttached) {
+                        window._nativeAppInterceptorAttached = true;
+                        document.addEventListener('click', function(e) {
+                            var target = e.target;
+                            while (target && target.tagName !== 'A') {
+                                target = target.parentElement;
+                            }
+                            if (target && target.href) {
+                                var url = new URL(target.href, window.location.href);
+                                if (url.origin === window.location.origin) {
+                                    if (!url.searchParams.has('nativeapp')) {
+                                        url.searchParams.set('nativeapp', '1');
+                                        target.href = url.toString();
+                                    }
+                                }
+                            }
+                        }, true);
+
+                        // Also intercept Blazor's NavigationManager navigations
+                        var _originalPushState = history.pushState;
+                        history.pushState = function(state, title, url) {
+                            if (url && typeof url === 'string') {
+                                try {
+                                    var u = new URL(url, window.location.href);
+                                    if (!u.searchParams.has('nativeapp')) {
+                                        u.searchParams.set('nativeapp', '1');
+                                        url = u.pathname + u.search + u.hash;
+                                    }
+                                } catch(ex) {}
+                            }
+                            return _originalPushState.call(this, state, title, url);
+                        };
+                    }
+                })();
+            ");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ANTIGRAVITY_LOG: JS injection error: {ex.Message}");
         }
     }
 }

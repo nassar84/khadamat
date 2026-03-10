@@ -16,12 +16,15 @@ public class EnhancedAdDto
     
     // المحتوى - Content
     public string? ImageUrl { get; set; }
+    public string? ImageBase64 { get; set; }
     public string? VideoUrl { get; set; } // YouTube URL
     public string? TextContent { get; set; }
     
     // الاستهداف المتطور - Advanced Targeting
     public string? TargetUrl { get; set; }
     public string? TargetCategories { get; set; } // Comma-separated category IDs
+    public string? TargetSubCategories { get; set; } // Comma-separated category IDs (L2)
+    public string? TargetDeepSubCategories { get; set; } // Comma-separated sub-category IDs (L3)
     public string? TargetGovernorates { get; set; } // Comma-separated IDs
     public string? TargetCities { get; set; } // Comma-separated IDs
     public string? TargetServices { get; set; } // Comma-separated IDs
@@ -44,6 +47,8 @@ public class EnhancedAdDto
     public bool IsActive { get; set; } = true;
     public int ViewCount { get; set; }
     public int ClickCount { get; set; }
+    public decimal AmountPaid { get; set; }
+    public double CTR => ViewCount > 0 ? (double)ClickCount / ViewCount * 100 : 0;
     
     // البيانات الوصفية - Metadata
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

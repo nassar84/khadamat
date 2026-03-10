@@ -20,6 +20,18 @@ public class ApiClient
         _appState = appState;
     }
 
+    public string BaseUrl => _http.BaseAddress?.ToString() ?? "";
+
+    public string GetAbsoluteUrl(string? relativeUrl)
+    {
+        if (string.IsNullOrEmpty(relativeUrl)) return "";
+        if (relativeUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) || 
+            relativeUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase)) 
+            return relativeUrl;
+            
+        return $"{BaseUrl.TrimEnd('/')}/{relativeUrl.TrimStart('/')}";
+    }
+
     public async Task<T?> PostAsync<T>(string url, object data)
     {
         var response = await _http.PostAsJsonAsync(url, data);
@@ -75,6 +87,12 @@ public class ApiClient
     public async Task<ServiceDto?> GetServiceByIdAsync(int id)
     {
         return await _http.GetFromJsonAsync<ServiceDto>($"api/v1/services/{id}");
+    }
+
+    public async Task<PaginatedResult<ServiceDto>> GetSimilarServicesAsync(int id, int count = 4)
+    {
+        return await _http.GetFromJsonAsync<PaginatedResult<ServiceDto>>($"api/v1/services/{id}/similar?count={count}")
+               ?? new PaginatedResult<ServiceDto>(new List<ServiceDto>(), 0, 1, count);
     }
 
     public async Task<int?> CreateServiceAsync(CreateServiceCommand command)
@@ -295,6 +313,31 @@ public class ApiClient
         return response.IsSuccessStatusCode;
     }
 
+    // Ad Packages
+    public async Task<List<AdPackageDto>> GetAdPackagesAsync()
+    {
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<AdPackageDto>>>("api/v1/adpackages");
+        return response?.Data ?? new List<AdPackageDto>();
+    }
+
+    public async Task<bool> CreateAdPackageAsync(CreateAdPackageRequest request)
+    {
+        var response = await _http.PostAsJsonAsync("api/v1/adpackages", request);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> UpdateAdPackageAsync(int id, CreateAdPackageRequest request)
+    {
+        var response = await _http.PutAsJsonAsync($"api/v1/adpackages/{id}", request);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeleteAdPackageAsync(int id)
+    {
+        var response = await _http.DeleteAsync($"api/v1/adpackages/{id}");
+        return response.IsSuccessStatusCode;
+    }
+
     // Ads
     public async Task<List<EnhancedAdDto>> GetSliderAdsAsync()
     {
@@ -306,6 +349,25 @@ public class ApiClient
     {
         var response = await _http.GetFromJsonAsync<ApiResponse<List<EnhancedAdDto>>>("api/v1/ads");
         return response?.Data ?? new List<EnhancedAdDto>();
+    }
+
+    public async Task<List<EnhancedAdDto>> GetSearchAdsAsync()
+    {
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<EnhancedAdDto>>>("api/v1/ads/placements/Search");
+        return response?.Data ?? new List<EnhancedAdDto>();
+    }
+
+    public async Task<List<EnhancedAdDto>> GetAdsByPlacementAsync(string placement)
+    {
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<EnhancedAdDto>>>($"api/v1/ads/placements/{placement}");
+        return response?.Data ?? new List<EnhancedAdDto>();
+    }
+
+    public async Task<List<EnhancedAdDto>> GetCategoryAdsAsync(int categoryId)
+    {
+        var ads = await GetAdsByPlacementAsync("Category");
+        // Filter ads matching the specific category, or ads targeting all categories (null)
+        return ads.Where(a => string.IsNullOrEmpty(a.TargetCategories) || a.TargetCategories == categoryId.ToString()).ToList();
     }
 
     public async Task<bool> CreateAdAsync(EnhancedAdDto ad)
@@ -324,6 +386,92 @@ public class ApiClient
     {
         var response = await _http.DeleteAsync($"api/v1/ads/{id}");
         return response.IsSuccessStatusCode;
+    }
+
+    public async Task TrackAdViewAsync(int adId)
+    {
+        await _http.PostAsync($"api/v1/ads/{adId}/track-view", null);
+    }
+
+    public async Task TrackAdClickAsync(int adId)
+    {
+        await _http.PostAsync($"api/v1/ads/{adId}/track-click", null);
+    }
+
+    public async Task<List<EnhancedAdDto>> GetMyAdsAsync()
+    {
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<EnhancedAdDto>>>("api/v1/ads/my");
+        return response?.Data ?? new List<EnhancedAdDto>();
+    }
+
+    // Advertisements System - Referral & Points
+    public async Task<ReferralCodeDto?> GetMyReferralCodeAsync()
+    {
+        try
+        {
+            return await _http.GetFromJsonAsync<ReferralCodeDto>("api/Advertisements/referral/my-code");
+        }
+        catch { return null; }
+    }
+
+    public async Task<int> GetMyPointsBalanceAsync()
+    {
+        try
+        {
+            var response = await _http.GetFromJsonAsync<PointsBalanceDto>("api/Advertisements/points/balance");
+            return response?.Balance ?? 0;
+        }
+        catch { return 0; }
+    }
+
+    public async Task<bool> ConvertPointsToAdDaysAsync(ConvertPointsRequestDto request)
+    {
+        try
+        {
+            var response = await _http.PostAsJsonAsync("api/Advertisements/points/convert", request);
+            return response.IsSuccessStatusCode;
+        }
+        catch { return false; }
+    }
+
+    // ── Economy: Promos & Analytics (Phases 8 & 11) ───────────────────────
+
+    public async Task<List<PromoCodeDto>> GetActivePromotionsAsync()
+    {
+        try
+        {
+            var response = await _http.GetFromJsonAsync<List<PromoCodeDto>>("api/Advertisements/promotions");
+            return response ?? new List<PromoCodeDto>();
+        }
+        catch { return new List<PromoCodeDto>(); }
+    }
+
+    public async Task<bool> ApplyPromoCodeAsync(ApplyPromoRequestDto request)
+    {
+        try
+        {
+            var response = await _http.PostAsJsonAsync("api/Advertisements/apply-promo", request);
+            return response.IsSuccessStatusCode;
+        }
+        catch { return false; }
+    }
+
+    public async Task<AdAnalyticsDto?> GetMyAnalyticsAsync()
+    {
+        try
+        {
+            return await _http.GetFromJsonAsync<AdAnalyticsDto>("api/Advertisements/my-analytics");
+        }
+        catch { return null; }
+    }
+
+    public async Task<AdAnalyticsDto?> GetGlobalAnalyticsAsync()
+    {
+        try
+        {
+            return await _http.GetFromJsonAsync<AdAnalyticsDto>("api/Advertisements/admin/analytics");
+        }
+        catch { return null; }
     }
 
     // Auth
@@ -511,6 +659,12 @@ public class ApiClient
     public async Task<bool> MarkNotificationAsReadAsync(int id)
     {
         var response = await _http.PostAsync($"api/v1/notifications/{id}/read", null);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> RecordShareAsync(string itemType, int itemId)
+    {
+        var response = await _http.PostAsJsonAsync("api/Advertisements/record-share", new { ItemType = itemType, ItemId = itemId });
         return response.IsSuccessStatusCode;
     }
 
@@ -731,22 +885,25 @@ public class ApiClient
         catch { return null; }
     }
 
-    public async Task<MarketplaceItemDto?> CreateMarketplaceItemAsync(CreateMarketplaceItemRequest request)
+    public async Task<(MarketplaceItemDto? Item, string? Error)> CreateMarketplaceItemAsync(CreateMarketplaceItemRequest request)
     {
         try 
         {
             var response = await _http.PostAsJsonAsync("api/Marketplace", request);
             if (response.IsSuccessStatusCode)
-                return await response.Content.ReadFromJsonAsync<MarketplaceItemDto>();
+            {
+                var item = await response.Content.ReadFromJsonAsync<MarketplaceItemDto>();
+                return (item, null);
+            }
             
             var error = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"CreateMarketplaceItem Error: {response.StatusCode} - {error}");
-            return null;
+            Console.WriteLine($"ANTIGRAVITY_LOG: CreateMarketplaceItem Error: {response.StatusCode} - {error}");
+            return (null, error);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"CreateMarketplaceItem Exception: {ex.Message}");
-            return null;
+            Console.WriteLine($"ANTIGRAVITY_LOG: CreateMarketplaceItem Exception: {ex.Message}");
+            return (null, ex.Message);
         }
     }
 

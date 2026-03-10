@@ -10,6 +10,11 @@
 @inject HttpClient Http
 @implements IDisposable
 
+<!-- Category Marquee Bar (Horizontal Scrolling) -->
+<div class="sticky-categories-bar" style="min-height: 110px; display: block !important;">
+    <Khadamat.BlazorUI.Shared.CategoryMarquee Categories="mainCategories" />
+</div>
+
 <div class="px-3">
     <!-- Ads Slider (Dynamic System) -->
     <Khadamat.BlazorUI.Components.Ads.AdsSlider />
@@ -232,6 +237,9 @@
             <i class="fa-solid fa-briefcase"></i>
         </div>
     </div>
+
+    <!-- Bottom Page Ads -->
+    <Khadamat.BlazorUI.Components.Ads.AdLocation Placement="Bottom" />
 </div>
 
 <style>
@@ -604,10 +612,10 @@
         // Subscribe to AppState changes to re-render when data changes
         AppState.OnChange += StateHasChanged;
 
-        var baseAddress = Http.BaseAddress?.ToString() ?? "";
-        isMauiApp = baseAddress.Contains("5144") || baseAddress.Contains("10.0.2.2");
+        isMauiApp = AppState.IsMobileApp;
         
-        Console.WriteLine($"ANTIGRAVITY_LOG: Home Page Initialized. IsMauiApp={isMauiApp}");
+        Console.WriteLine($"ANTIGRAVITY_LOG: Home Page Initialized. IsMobileApp={isMauiApp}");
+        if (mainCategories == null) Console.WriteLine("ANTIGRAVITY_LOG: mainCategories is null on init");
         _ = LoadDataAsync(_cts.Token);
     }
 

@@ -1,0 +1,135 @@
+@page "/profile/my-ads"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject ApiClient Api
+@inject NavigationManager Navigation
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-1">إعلاناتي</h4>
+            <p class="text-muted small">تابع أداء حملاتك الإعلانية ونتائجها</p>
+        </div>
+        <button class="btn btn-primary rounded-pill px-4" @onclick='() => Navigation.NavigateTo("/admin/adsmanagement")'>
+            <i class="fa-solid fa-plus me-2"></i> حملة جديدة
+        </button>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">جاري تحميل إعلاناتك...</p>
+        </div>
+    }
+    else if (myAds == null || !myAds.Any())
+    {
+        <div class="text-center py-5 glass-card rounded-5 shadow-sm">
+            <div class="display-1 text-light mb-3"><i class="fa-solid fa-rectangle-ad"></i></div>
+            <h5>لا توجد إعلانات نشطة</h5>
+            <p class="text-muted">ابدأ بالترويج لخدماتك ووصول لآلاف العملاء اليوم.</p>
+            <button class="btn btn-primary rounded-pill px-5 mt-3" @onclick='() => Navigation.NavigateTo("/admin/adsmanagement")'>إنشاء أول إعلان</button>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var ad in myAds)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="glass-card rounded-4 overflow-hidden border-0 shadow-sm hover-up h-100">
+                        <div class="position-relative">
+                            @{
+                                var isRealImage = !string.IsNullOrEmpty(ad.ImageUrl) && !ad.ImageUrl.StartsWith("hero-gradient");
+                                var imageUrl = isRealImage ? Api.GetAbsoluteUrl(ad.ImageUrl) : ad.ImageUrl;
+                                var cardClass = !isRealImage ? ad.ImageUrl : "";
+                            }
+                            <div class="ad-card-banner @cardClass" style="@(isRealImage ? $"background-image: url('{imageUrl}');" : "")">
+                                <span class="badge @(ad.IsActive ? "bg-success" : "bg-warning") position-absolute top-0 end-0 m-3 rounded-pill shadow-sm">
+                                    @(ad.IsActive ? "نشط" : "قيد المراجعة")
+                                </span>
+                                <div class="ad-card-overlay p-3 d-flex flex-column justify-content-end">
+                                    <h6 class="text-white fw-bold mb-0">@ad.Title</h6>
+                                    <span class="text-white-50 extra-small">@ad.Placement</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <div class="row g-2 text-center">
+                                <div class="col-4 border-end">
+                                    <div class="h5 fw-bold mb-0">@ad.ViewCount</div>
+                                    <div class="extra-small text-muted">مشاهدة</div>
+                                </div>
+                                <div class="col-4 border-end">
+                                    <div class="h5 fw-bold mb-0">@ad.ClickCount</div>
+                                    <div class="extra-small text-muted">نقرة</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="h5 fw-bold mb-0 text-primary">@ad.CTR.ToString("F1")%</div>
+                                    <div class="extra-small text-muted">CTR</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 pt-3 border-top">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="small text-muted">ميزانية الحملة:</span>
+                                    <span class="fw-bold text-success">@ad.AmountPaid.ToString("C0")</span>
+                                </div>
+                                <div class="progress rounded-pill mb-1" style="height: 6px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 75%"></div>
+                                </div>
+                                <div class="d-flex justify-content-between extra-small text-muted">
+                                    <span>بدأ: @ad.StartDate?.ToShortDateString()</span>
+                                    <span>ينتهي: @ad.EndDate?.ToShortDateString()</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .ad-card-banner {
+        height: 160px;
+        background-size: cover;
+        background-position: center;
+        position: relative;
+    }
+    .ad-card-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+    }
+    .hover-up { transition: transform 0.3s ease; }
+    .hover-up:hover { transform: translateY(-5px); }
+    
+    .hero-gradient-1 { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); }
+    .hero-gradient-2 { background: linear-gradient(135deg, #0ea5e9 0%, #22c55e 100%); }
+    .hero-gradient-3 { background: linear-gradient(135deg, #f43f5e 0%, #fb923c 100%); }
+</style>
+
+@code {
+    private List<EnhancedAdDto>? myAds;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            myAds = await Api.GetMyAdsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading my ads: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

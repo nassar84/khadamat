@@ -1,0 +1,129 @@
+@page "/provider/ad-analytics"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+@inject NavigationManager Navigation
+
+<div class="px-3 pt-3">
+    <div class="d-flex align-items-center mb-4">
+        <button class="btn btn-icon me-3" @onclick='() => Navigation.NavigateTo("/provider-dashboard")'>
+            <i class="fa-solid fa-arrow-right"></i>
+        </button>
+        <h3 class="fw-bold mb-0 gradient-text">إحصائيات الإعلانات</h3>
+    </div>
+
+    @if (isLoading)
+    {
+        <LoadingSpinner Message="جاري تحميل إحصائيات الإعلانات..." />
+    }
+    else if (analytics == null)
+    {
+        <div class="text-center py-5 opacity-50 bg-light rounded-4">
+            <i class="fa-solid fa-chart-line fs-1 mb-3"></i>
+            <p>لا تتوافر إحصائيات حالياً. قم بإنشاء إعلانات لتبدأ.</p>
+        </div>
+    }
+    else
+    {
+        <!-- Stats Row -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="stat-card glass-panel rounded-4 p-3 text-center h-100">
+                    <div class="icon-box text-primary bg-primary bg-opacity-10 mx-auto mb-2">
+                        <i class="fa-solid fa-rectangle-ad"></i>
+                    </div>
+                    <div class="text-muted small mb-1">إجمالي الإعلانات</div>
+                    <h4 class="fw-bold mb-0">@analytics.TotalAds</h4>
+                </div>
+            </div>
+            
+            <div class="col-6 col-md-3">
+                <div class="stat-card glass-panel rounded-4 p-3 text-center h-100">
+                    <div class="icon-box text-info bg-info bg-opacity-10 mx-auto mb-2">
+                        <i class="fa-solid fa-eye"></i>
+                    </div>
+                    <div class="text-muted small mb-1">إجمالي المشاهدات</div>
+                    <h4 class="fw-bold mb-0">@analytics.TotalImpressions.ToString("N0")</h4>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <div class="stat-card glass-panel rounded-4 p-3 text-center h-100">
+                    <div class="icon-box text-success bg-success bg-opacity-10 mx-auto mb-2">
+                        <i class="fa-solid fa-hand-pointer"></i>
+                    </div>
+                    <div class="text-muted small mb-1">النقرات</div>
+                    <h4 class="fw-bold mb-0">@analytics.TotalClicks.ToString("N0")</h4>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3">
+                <div class="stat-card glass-panel rounded-4 p-3 text-center h-100">
+                    <div class="icon-box text-warning bg-warning bg-opacity-10 mx-auto mb-2">
+                        <i class="fa-solid fa-percentage"></i>
+                    </div>
+                    <div class="text-muted small mb-1">نسبة النقر (CTR)</div>
+                    <h4 class="fw-bold mb-0">@analytics.OverallCTR%</h4>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Ads -->
+        <h5 class="fw-bold mb-3">أفضل الإعلانات أداءً</h5>
+        @if (analytics.TopPerformingAds != null && analytics.TopPerformingAds.Any())
+        {
+            <div class="glass-container rounded-4 overflow-hidden border">
+                @foreach (var ad in analytics.TopPerformingAds)
+                {
+                    <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-bold text-truncate" style="max-width: 200px;">@ad.Title</div>
+                            <small class="text-muted"><i class="fa-solid fa-eye ms-1"></i> @ad.Impressions | <i class="fa-solid fa-hand-pointer ms-1"></i> @ad.Clicks</small>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2">
+                                @ad.CTR% CTR
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center p-4 bg-light rounded-4 text-muted">
+                لا توجد بيانات تفصيلية بعد.
+            </div>
+        }
+    }
+</div>
+
+<style>
+    .icon-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+    
+    .stat-card {
+        transition: transform 0.2s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-3px);
+    }
+</style>
+
+@code {
+    private AdAnalyticsDto? analytics;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        analytics = await Api.GetMyAnalyticsAsync();
+        isLoading = false;
+    }
+}

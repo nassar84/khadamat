@@ -65,9 +65,9 @@
                         <i class="fa-solid fa-heart"></i>
                         <span class="item-label">المفضلة</span>
                     </NavLink>
-                    <NavLink class="menu-item" href="/marketplace/my-listings">
-                        <i class="fa-solid fa-box-open" style="color: #7c3aed;"></i>
-                        <span class="item-label">إعلاناتي</span>
+                    <NavLink class="menu-item" href="/profile/my-ads">
+                        <i class="fa-solid fa-rectangle-ad" style="color: #f59e0b;"></i>
+                        <span class="item-label text-warning-emphasis fw-bold">إحصائيات إعلاناتي</span>
                     </NavLink>
                 </div>
 
@@ -79,6 +79,14 @@
                             <i class="fa-solid fa-chart-line"></i>
                             <span class="item-label">لوحة المزود</span>
                         </NavLink>
+                        <NavLink class="menu-item" href="/provider/referrals">
+                            <i class="fa-solid fa-users-viewfinder text-primary"></i>
+                            <span class="item-label text-primary fw-bold">نظام الإحالة والنقاط</span>
+                        </NavLink>
+                        <NavLink class="menu-item" href="/provider/ad-analytics">
+                            <i class="fa-solid fa-chart-pie text-success"></i>
+                            <span class="item-label text-success fw-bold">إحصائيات الإعلانات</span>
+                        </NavLink>
                     </div>
                 }
 
@@ -89,10 +97,29 @@
                             <i class="fa-solid fa-gauge-high"></i>
                             <span class="item-label">لوحة المدير</span>
                         </NavLink>
+                        <NavLink class="menu-item" href="/admin/ads">
+                            <i class="fa-solid fa-rectangle-ad"></i>
+                            <span class="item-label">إدارة الإعلانات</span>
+                        </NavLink>
+                        <NavLink class="menu-item" href="/admin/ad-analytics">
+                            <i class="fa-solid fa-chart-line text-success"></i>
+                            <span class="item-label">إحصائيات الإعلانات</span>
+                        </NavLink>
+                        <NavLink class="menu-item" href="/admin/ad-packages">
+                            <i class="fa-solid fa-gem text-info"></i>
+                            <span class="item-label text-info fw-bold">باقات الإعلانات</span>
+                        </NavLink>
                     </div>
                 </AuthorizeView>
             </Authorized>
         </AuthorizeView>
+
+        @if (!IsCollapsed)
+        {
+            <div class="mt-4 px-3 pb-3">
+                <Khadamat.BlazorUI.Components.Ads.AdLocation Placement="Sidebar" />
+            </div>
+        }
     </div>
 
     <AuthorizeView>

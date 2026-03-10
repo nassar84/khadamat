@@ -1,6 +1,7 @@
 @inherits LayoutComponentBase
 @inject Khadamat.BlazorUI.State.AppState AppState
 @inject NavigationManager Navigation
+@inject Khadamat.BlazorUI.Services.ApiClient Api
 @implements IDisposable
 
 @if (isLocked)
@@ -142,6 +143,30 @@ else
                 await JS.InvokeVoidAsync("hideLoadingScreen");
             }
             catch { }
+
+            // Load app settings (name, logo, colors) from the API
+            try
+            {
+                var settingsResult = await Api.GetSettingsAsync();
+                if (settingsResult?.Success == true && settingsResult.Data != null)
+                {
+                    AppState.AppName = settingsResult.Data.ApplicationName;
+                    AppState.AppLogo = settingsResult.Data.LogoUrl;
+                    AppState.PrimaryColor = settingsResult.Data.PrimaryColor;
+                    AppState.SecondaryColor = settingsResult.Data.SecondaryColor;
+                    AppState.TriggerStateChanged();
+
+                    try
+                    {
+                        await JS.InvokeVoidAsync("applyThemeColors", AppState.PrimaryColor, AppState.SecondaryColor);
+                    }
+                    catch { }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"MobileLayout: Error loading settings: {ex.Message}");
+            }
         }
     }
 

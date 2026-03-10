@@ -211,7 +211,17 @@ else
 
     private void Navigate(string path)
     {
-        Navigation.NavigateTo(path);
+        // Preserve nativeapp/mobileapp params when navigating in mobile app
+        if (State.IsNativeApp || State.IsMobileApp)
+        {
+            var separator = path.Contains('?') ? "&" : "?";
+            var param = State.IsNativeApp ? "nativeapp=1" : "mobileapp=1";
+            Navigation.NavigateTo(path + separator + param);
+        }
+        else
+        {
+            Navigation.NavigateTo(path);
+        }
     }
 
     private void ToggleMode()

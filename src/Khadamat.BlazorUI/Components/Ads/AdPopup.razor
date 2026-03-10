@@ -1,0 +1,206 @@
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+@if (showPopup && popupAd != null)
+{
+    <div class="ad-popup-overlay" @onclick="ClosePopup">
+        <div class="ad-popup-container animate-pop" @onclick:stopPropagation="true">
+            <button class="ad-popup-close" @onclick="ClosePopup">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div class="ad-popup-content shadow-2xl" @onclick="OnAdClick">
+                @{
+                    var isRealImage = !string.IsNullOrEmpty(popupAd.ImageUrl) && !popupAd.ImageUrl.StartsWith("hero-gradient");
+                    var imageUrl = isRealImage ? Api.GetAbsoluteUrl(popupAd.ImageUrl) : popupAd.ImageUrl;
+                    var cardClass = !isRealImage ? popupAd.ImageUrl : "has-bg-image";
+                }
+                
+                <div class="ad-popup-image @cardClass" style="@(isRealImage ? $"background-image: url('{imageUrl}');" : "")">
+                    <div class="ad-popup-badge">إعلان مميز</div>
+                    <div class="ad-popup-info">
+                        @if (!string.IsNullOrEmpty(popupAd.Title))
+                        {
+                            <h2 class="ad-popup-title">@popupAd.Title</h2>
+                        }
+                        @if (!string.IsNullOrEmpty(popupAd.Description))
+                        {
+                            <p class="ad-popup-desc">@popupAd.Description</p>
+                        }
+                        <button class="btn btn-light rounded-pill px-4 fw-bold">اكتشف الآن <i class="fa-solid fa-arrow-left ms-2"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .ad-popup-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 3000;
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(10px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .ad-popup-container {
+        position: relative;
+        width: 100%;
+        max-width: 500px;
+    }
+
+    .ad-popup-close {
+        position: absolute;
+        top: -15px;
+        right: -15px;
+        width: 40px;
+        height: 40px;
+        background: white;
+        border: none;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        cursor: pointer;
+        z-index: 10;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        transition: transform 0.2s;
+    }
+
+    .ad-popup-close:hover {
+        transform: scale(1.1);
+    }
+
+    .ad-popup-content {
+        background: white;
+        border-radius: 30px;
+        overflow: hidden;
+        cursor: pointer;
+    }
+
+    .ad-popup-image {
+        min-height: 450px;
+        background-size: cover;
+        background-position: center;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 30px;
+    }
+
+    .ad-popup-image::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.2) 60%, transparent 100%);
+    }
+
+    .ad-popup-badge {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(5px);
+        color: white;
+        font-size: 0.75rem;
+        padding: 5px 15px;
+        border-radius: 20px;
+        z-index: 2;
+        font-weight: 700;
+    }
+
+    .ad-popup-info {
+        position: relative;
+        z-index: 2;
+        color: white;
+    }
+
+    .ad-popup-title {
+        font-weight: 800;
+        font-size: 1.8rem;
+        margin-bottom: 10px;
+    }
+
+    .ad-popup-desc {
+        font-size: 0.95rem;
+        opacity: 0.85;
+        margin-bottom: 25px;
+        line-height: 1.6;
+    }
+
+    /* Gradients for non-image ads */
+    .hero-gradient-1 { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); }
+    .hero-gradient-2 { background: linear-gradient(135deg, #0ea5e9 0%, #22c55e 100%); }
+    .hero-gradient-3 { background: linear-gradient(135deg, #f43f5e 0%, #fb923c 100%); }
+    .hero-gradient-4 { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); }
+</style>
+
+@code {
+    private bool showPopup = false;
+    private EnhancedAdDto? popupAd;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Check session storage to see if we've shown a popup in this session
+            var hasShown = await JS.InvokeAsync<string>("sessionStorage.getItem", "popup_ad_shown");
+            
+            if (string.IsNullOrEmpty(hasShown))
+            {
+                await LoadPopupAd();
+            }
+        }
+    }
+
+    private async Task LoadPopupAd()
+    {
+        try
+        {
+            var ads = await Api.GetAdsByPlacementAsync("Popup");
+            if (ads != null && ads.Any())
+            {
+                popupAd = ads.OrderBy(x => Guid.NewGuid()).FirstOrDefault(); // Random popup
+                if (popupAd != null)
+                {
+                    showPopup = true;
+                    _ = Api.TrackAdViewAsync(popupAd.Id); // Track view
+                    StateHasChanged();
+                    await JS.InvokeVoidAsync("sessionStorage.setItem", "popup_ad_shown", "true");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading popup ad: {ex.Message}");
+        }
+    }
+
+    private void ClosePopup()
+    {
+        showPopup = false;
+    }
+
+    private void OnAdClick()
+    {
+        if (popupAd != null)
+        {
+            _ = Api.TrackAdClickAsync(popupAd.Id); // Track click
+            if (!string.IsNullOrEmpty(popupAd.TargetUrl))
+            {
+                Navigation.NavigateTo(popupAd.TargetUrl);
+                ClosePopup();
+            }
+        }
+    }
+}

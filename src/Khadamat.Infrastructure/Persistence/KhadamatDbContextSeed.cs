@@ -93,6 +93,13 @@ public static class KhadamatDbContextSeed
             {
                 await SeedMarketplaceItemsAsync(context);
             }
+
+            // ── Advertisement System Data ───────────────────────────────
+            if (!await context.AdPackages.AnyAsync())
+                await SeedAdPackagesAsync(context);
+
+            if (!await context.PointRewardRules.AnyAsync())
+                await SeedPointRewardRulesAsync(context);
         }
         catch (Exception ex)
         {
@@ -397,6 +404,82 @@ public static class KhadamatDbContextSeed
         ad.SetMainImage("https://picsum.photos/seed/ad/1200/400");
         ad.Approve();
         context.Ads.Add(ad);
+        await context.SaveChangesAsync();
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // Phase 9: Seed Ad Packages (Basic / Silver / Gold / Platinum)
+    // ────────────────────────────────────────────────────────────────────────
+    private static async Task SeedAdPackagesAsync(KhadamatDbContext context)
+    {
+        var packages = new List<AdPackage>
+        {
+            new AdPackage(
+                name: "الباقة الأساسية",
+                price: 99,
+                durationDays: 30,
+                tier: AdPackageTier.Basic,
+                maxAds: 1,
+                isFeatured: false,
+                isSponsored: false,
+                isBanner: false,
+                priorityBoost: 0,
+                description: "إعلان واحد لمدة 30 يوماً"),
+
+            new AdPackage(
+                name: "الباقة الفضية",
+                price: 199,
+                durationDays: 30,
+                tier: AdPackageTier.Silver,
+                maxAds: 3,
+                isFeatured: false,
+                isSponsored: true,
+                isBanner: false,
+                priorityBoost: 2,
+                description: "3 إعلانات ممولة في نتائج البحث"),
+
+            new AdPackage(
+                name: "الباقة الذهبية",
+                price: 399,
+                durationDays: 30,
+                tier: AdPackageTier.Gold,
+                maxAds: 5,
+                isFeatured: true,
+                isSponsored: true,
+                isBanner: true,
+                priorityBoost: 5,
+                description: "مزودون مميزون + بانر رئيسي + إعلانات ممولة"),
+
+            new AdPackage(
+                name: "الباقة البلاتينية",
+                price: 699,
+                durationDays: 30,
+                tier: AdPackageTier.Platinum,
+                maxAds: 10,
+                isFeatured: true,
+                isSponsored: true,
+                isBanner: true,
+                priorityBoost: 10,
+                description: "أفضل ظهور على المنصة مع كل المميزات")
+        };
+
+        await context.AdPackages.AddRangeAsync(packages);
+        await context.SaveChangesAsync();
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+    // Phase 10: Seed Point Reward Rules
+    // ────────────────────────────────────────────────────────────────────────
+    private static async Task SeedPointRewardRulesAsync(KhadamatDbContext context)
+    {
+        var rules = new List<PointRewardRule>
+        {
+            new PointRewardRule(PointActionType.Referral,       50, "50 نقطة لكل صديق يسجل بالرابط"),
+            new PointRewardRule(PointActionType.Review,         10, "10 نقاط عند استلام تقييم من عميل"),
+            new PointRewardRule(PointActionType.OrderCompleted, 20, "20 نقطة عند إتمام طلب خدمة")
+        };
+
+        await context.PointRewardRules.AddRangeAsync(rules);
         await context.SaveChangesAsync();
     }
 }

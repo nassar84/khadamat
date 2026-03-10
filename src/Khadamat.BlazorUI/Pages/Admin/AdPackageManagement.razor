@@ -1,0 +1,374 @@
+@page "/admin/ad-packages"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "SystemAdmin,SuperAdmin")]
+@inject ApiClient Api
+@inject IJSRuntime JS
+
+<div class="px-2 pb-5">
+    <!-- Page Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h3 class="fw-bold mb-0">إدارة باقات الإعلانات</h3>
+            <p class="text-muted small mb-0">تحديد أسعار وميزات باقات الإعلانات الممولة</p>
+        </div>
+        <button class="btn btn-primary-premium rounded-pill px-4" @onclick="() => OpenModal(null)">
+            <i class="fa-solid fa-plus me-2"></i> باقة جديدة
+        </button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(feedback))
+    {
+        <div class="alert @(feedbackSuccess ? "alert-success" : "alert-danger") rounded-4 mb-4 animate-pop">
+            <i class="fa-solid @(feedbackSuccess ? "fa-circle-check" : "fa-circle-exclamation") me-2"></i>
+            @feedback
+        </div>
+    }
+
+    <!-- Packages Grid -->
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary"></div>
+        </div>
+    }
+    else if (packages == null || !packages.Any())
+    {
+        <div class="glass-card p-5 text-center">
+            <i class="fa-solid fa-rectangle-ad display-1 text-muted opacity-25 mb-3 d-block"></i>
+            <h5>لا توجد باقات إعلانية بعد</h5>
+            <p class="text-muted small">أضف باقتك الأولى لتمكين المزودين من الترويج لخدماتهم</p>
+            <button class="btn btn-primary-premium rounded-pill px-5 mt-2" @onclick="() => OpenModal(null)">
+                إضافة باقة
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var pkg in packages)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="plan-card glass-card p-4 position-relative @(pkg.IsFeatured ? "featured-plan" : "")">
+                        @if (pkg.IsFeatured)
+                        {
+                            <div class="featured-ribbon">
+                                <i class="fa-solid fa-star me-1"></i> باقة مرشحة
+                            </div>
+                        }
+
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h5 class="fw-bold mb-1">@pkg.Name</h5>
+                                <span class="badge bg-light text-muted rounded-pill">@pkg.Tier</span>
+                            </div>
+                            <div class="plan-icon-circle @(pkg.IsFeatured ? "bg-primary text-white" : "bg-light text-primary")">
+                                <i class="@GetPackageIcon(pkg.Tier)"></i>
+                            </div>
+                        </div>
+
+                        <div class="plan-price mb-3">
+                            <span class="fw-black fs-2 text-primary">@pkg.Price.ToString("N0")</span>
+                            <span class="text-muted small"> ج.م</span>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="fa-solid fa-clock text-info small"></i>
+                                <span class="small">مدة <strong>@pkg.DurationDays</strong> يوم</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="fa-solid fa-images text-success small"></i>
+                                <span class="small">بحد أقصى <strong>@pkg.MaxAds</strong> إعلان</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="fa-solid fa-bolt text-warning small"></i>
+                                <span class="small">دفعة أولوية (AdScore): <strong>+@pkg.PriorityBoost</strong></span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="fa-solid fa-magnifying-glass @(pkg.IsSponsored ? "text-primary" : "text-muted opacity-50") small"></i>
+                                <span class="small @(pkg.IsSponsored ? "" : "text-muted")">@(pkg.IsSponsored ? "ظهور ممول في البحث" : "بدون تمويل بحث")</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-panorama @(pkg.IsBanner ? "text-danger" : "text-muted opacity-50") small"></i>
+                                <span class="small @(pkg.IsBanner ? "" : "text-muted")">@(pkg.IsBanner ? "بانر عرض رئيسي" : "إعلان داخلي فقط")</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-primary rounded-pill flex-grow-1 btn-sm"
+                                    @onclick="() => OpenModal(pkg)">
+                                <i class="fa-solid fa-pen me-1"></i> تعديل
+                            </button>
+                            <button class="btn btn-outline-danger rounded-pill btn-sm"
+                                    @onclick="() => DeletePackage(pkg)">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Modal -->
+@if (showModal)
+{
+    <div class="modal-overlay" @onclick="CloseModal">
+        <div class="modal-card glass-card p-4 rounded-4 animate-pop shadow-2xl" @onclick:stopPropagation style="max-width: 600px;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0 text-primary">
+                    <i class="fa-solid fa-gem me-2"></i>
+                    @(editingPackage?.Id > 0 ? "تعديل باقة الإعلانات" : "إضافة باقة إعلانية جديدة")
+                </h5>
+                <button class="btn-close" @onclick="CloseModal"></button>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-7">
+                    <label class="form-label small fw-bold">اسم الباقة</label>
+                    <input type="text" class="form-control premium-input" @bind="editingPackage!.Name" placeholder="مثال: الباقة الذهبية" />
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label small fw-bold">فئة السعر (Tier)</label>
+                    <select class="form-select premium-input" @bind="editingPackage.Tier">
+                        <option value="Basic">الأساسية (Basic)</option>
+                        <option value="Silver">الفضية (Silver)</option>
+                        <option value="Gold">الذهبية (Gold)</option>
+                        <option value="Platinum">البلاتينية (Platinum)</option>
+                    </select>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label small fw-bold">الوصف</label>
+                    <textarea class="form-control premium-input" @bind="editingPackage.Description" rows="2" placeholder="اكتب ميزات الباقة لإظهارها للمزودين"></textarea>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">السعر (ج.م)</label>
+                    <input type="number" class="form-control premium-input" @bind="editingPackage.Price" min="0" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">المدة (يوم)</label>
+                    <input type="number" class="form-control premium-input" @bind="editingPackage.DurationDays" min="1" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold">أقصى عدد إعلانات</label>
+                    <input type="number" class="form-control premium-input" @bind="editingPackage.MaxAds" min="1" />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">أولوية إضافية (Boost)</label>
+                    <input type="number" class="form-control premium-input" @bind="editingPackage.PriorityBoost" min="0" placeholder="0 = لا توجد أولوية" />
+                </div>
+
+                <div class="col-12 border-top pt-3 mt-3">
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <div class="form-check form-switch card-switch p-3 rounded-3 border">
+                                <input class="form-check-input" type="checkbox" id="featuredCheck" @bind="editingPackage.IsFeatured" />
+                                <label class="form-check-label fw-bold small ms-2" for="featuredCheck">باقة مرشحة (تميز بصري)</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch card-switch p-3 rounded-3 border">
+                                <input class="form-check-input" type="checkbox" id="sponsoredCheck" @bind="editingPackage.IsSponsored" />
+                                <label class="form-check-label fw-bold small ms-2" for="sponsoredCheck">ظهور ممول في البحث</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch card-switch p-3 rounded-3 border">
+                                <input class="form-check-input" type="checkbox" id="bannerCheck" @bind="editingPackage.IsBanner" />
+                                <label class="form-check-label fw-bold small ms-2" for="bannerCheck">دعم بنرات العرض</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-end mt-4">
+                <button class="btn btn-light rounded-pill px-4" @onclick="CloseModal">إلغاء</button>
+                <button class="btn btn-primary-premium rounded-pill px-4" @onclick="SavePackage" disabled="@isSaving">
+                    @if (isSaving)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                    }
+                    <span>@(editingPackage.Id > 0 ? "حفظ التعديلات" : "إضافة الباقة")</span>
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .plan-card { border: 2px solid transparent; transition: all 0.3s; }
+    .plan-card:hover { transform: translateY(-6px); border-color: rgba(99, 102, 241, 0.2); box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
+    .plan-card.featured-plan { border-color: var(--theme-primary); background: linear-gradient(145deg, #fff 0%, rgba(var(--theme-primary-rgb), 0.03) 100%); }
+    .featured-ribbon { position: absolute; top: -1px; left: 16px; background: var(--theme-primary); color: white; font-size: 0.72rem; font-weight: 700; padding: 4px 16px; border-radius: 0 0 12px 12px; z-index: 10; }
+    .plan-icon-circle { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+    .premium-input { border: 2px solid #f1f5f9; background: #f8fafc; border-radius: 12px; padding: 10px 14px; transition: all 0.2s; }
+    .premium-input:focus { background: white; border-color: var(--theme-primary); box-shadow: 0 0 0 4px rgba(var(--theme-primary-rgb), 0.1); outline: none; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(6px); z-index: 9000; display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .modal-card { width: 100%; max-height: 90vh; overflow-y: auto; background: white; }
+    .animation-pop { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+    .card-switch { background: #f8fafc; transition: all 0.2s; }
+    .card-switch:hover { background: #f1f5f9; }
+</style>
+
+@code {
+    private List<AdPackageDto> packages = new();
+    private bool isLoading = true;
+    private bool showModal = false;
+    private AdPackageDto? editingPackage;
+    private bool isSaving = false;
+    private string? feedback;
+    private bool feedbackSuccess;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPackages();
+    }
+
+    private async Task LoadPackages()
+    {
+        isLoading = true;
+        try
+        {
+            packages = await Api.GetAdPackagesAsync();
+        }
+        catch (Exception ex)
+        {
+            ShowFeedback("فشل تحميل الباقات: " + ex.Message, false);
+            Console.WriteLine("Packages load error: " + ex.Message);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void OpenModal(AdPackageDto? pkg)
+    {
+        editingPackage = pkg != null
+            ? new AdPackageDto
+            {
+                Id = pkg.Id,
+                Name = pkg.Name,
+                Description = pkg.Description,
+                Price = pkg.Price,
+                DurationDays = pkg.DurationDays,
+                Tier = pkg.Tier,
+                MaxAds = pkg.MaxAds,
+                IsFeatured = pkg.IsFeatured,
+                IsSponsored = pkg.IsSponsored,
+                IsBanner = pkg.IsBanner,
+                PriorityBoost = pkg.PriorityBoost,
+                IsActive = pkg.IsActive
+            }
+            : new AdPackageDto { DurationDays = 30, MaxAds = 1, Tier = "Basic" };
+        showModal = true;
+        feedback = null;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        editingPackage = null;
+    }
+
+    private async Task SavePackage()
+    {
+        if (editingPackage == null) return;
+        if (string.IsNullOrWhiteSpace(editingPackage.Name))
+        {
+            ShowFeedback("يرجى إدخال اسم الباقة", false);
+            return;
+        }
+
+        isSaving = true;
+        try
+        {
+            var req = new CreateAdPackageRequest
+            {
+                Name = editingPackage.Name,
+                Description = editingPackage.Description,
+                Price = editingPackage.Price,
+                DurationDays = editingPackage.DurationDays,
+                Tier = editingPackage.Tier,
+                MaxAds = editingPackage.MaxAds,
+                IsFeatured = editingPackage.IsFeatured,
+                IsSponsored = editingPackage.IsSponsored,
+                IsBanner = editingPackage.IsBanner,
+                PriorityBoost = editingPackage.PriorityBoost
+            };
+
+            bool success;
+            if (editingPackage.Id > 0)
+                success = await Api.UpdateAdPackageAsync(editingPackage.Id, req);
+            else
+                success = await Api.CreateAdPackageAsync(req);
+
+            if (success)
+            {
+                CloseModal();
+                await LoadPackages();
+                ShowFeedback(editingPackage.Id > 0 ? "تم تحديث الباقة بنجاح" : "تم إضافة الباقة بنجاح", true);
+            }
+            else
+            {
+                ShowFeedback("حدث خطأ أثناء الحفظ، يرجى المحاولة مرة أخرى", false);
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowFeedback("خطأ تقني: " + ex.Message, false);
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task DeletePackage(AdPackageDto pkg)
+    {
+        if (!await JS.InvokeAsync<bool>("confirm", $"هل أنت متأكد من تعطيل/حذف باقة \"{pkg.Name}\"؟"))
+            return;
+
+        try
+        {
+            var success = await Api.DeleteAdPackageAsync(pkg.Id);
+            if (success)
+            {
+                packages.Remove(pkg);
+                ShowFeedback("تم تعطيل الباقة بنجاح", true);
+            }
+            else
+            {
+                ShowFeedback("فشل تعطيل الباقة، يرجى المحاولة مرة أخرى", false);
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowFeedback("خطأ تقني: " + ex.Message, false);
+        }
+    }
+
+    private void ShowFeedback(string msg, bool success)
+    {
+        feedback = msg;
+        feedbackSuccess = success;
+        StateHasChanged();
+    }
+
+    private string GetPackageIcon(string tier) => tier switch
+    {
+        "Basic" => "fa-solid fa-seedling",
+        "Silver" => "fa-solid fa-medal",
+        "Gold" => "fa-solid fa-crown",
+        "Platinum" => "fa-solid fa-gem",
+        _ => "fa-solid fa-box"
+    };
+}

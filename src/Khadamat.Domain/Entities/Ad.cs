@@ -9,6 +9,7 @@ public class Ad : BaseEntity
     public int? ActivityID { get; private set; }
     public int? CategoryID { get; private set; }
     public int? SubCategoryID { get; private set; }
+    public int? ServiceID { get; private set; }
     
     // Basic Information
     public string Title { get; private set; } = string.Empty;
@@ -44,11 +45,13 @@ public class Ad : BaseEntity
     public string? TargetGovernorates { get; private set; }
     public string? TargetCities { get; private set; }
     public string? TargetServices { get; private set; }
+    public string? TargetDeepSubCategories { get; private set; }
     public string? TargetUserGender { get; private set; }
     public string? TargetDays { get; private set; }
     public string? TargetMonths { get; private set; }
     public TimeOnly? TargetTimeStart { get; private set; }
     public TimeOnly? TargetTimeEnd { get; private set; }
+    public decimal AmountPaid { get; private set; }
     public string? TargetKeywords { get; private set; } // Comma separated
     
     // Display Options
@@ -58,6 +61,7 @@ public class Ad : BaseEntity
     // Navigation Properties
     public virtual Category? Category { get; private set; }
     public virtual SubCategory? SubCategory { get; private set; }
+    public virtual Service? Service { get; private set; }
     public virtual ICollection<AdImage> AdImages { get; private set; } = new List<AdImage>();
     
     // Constructor for EF Core
@@ -72,6 +76,7 @@ public class Ad : BaseEntity
         int? activityId = null,
         int? categoryId = null,
         int? subCategoryId = null,
+        int? serviceId = null,
         string? userCreated = null)
     {
         if (string.IsNullOrWhiteSpace(title))
@@ -88,6 +93,7 @@ public class Ad : BaseEntity
         ActivityID = activityId;
         CategoryID = categoryId;
         SubCategoryID = subCategoryId;
+        ServiceID = serviceId;
         UserCreated = userCreated;
         
         // Defaults
@@ -115,18 +121,23 @@ public class Ad : BaseEntity
         string? targetGovernorates = null,
         string? targetCities = null,
         string? targetServices = null,
+        string? targetDeepSubCategories = null,
         string? targetUserGender = null,
         string? targetDays = null,
         string? targetMonths = null,
         TimeOnly? targetTimeStart = null,
-        TimeOnly? targetTimeEnd = null)
+        TimeOnly? targetTimeEnd = null,
+        int? categoryId = null,
+        int? subCategoryId = null,
+        int? serviceId = null,
+        decimal amountPaid = 0)
     {
         if (string.IsNullOrWhiteSpace(title))
             throw new ArgumentException("Ad title is required.");
             
         if (endDate <= startDate)
             throw new ArgumentException("End date must be after start date.");
-
+ 
         Title = title;
         Description = description;
         StartDate = startDate;
@@ -141,11 +152,16 @@ public class Ad : BaseEntity
         TargetGovernorates = targetGovernorates;
         TargetCities = targetCities;
         TargetServices = targetServices;
+        TargetDeepSubCategories = targetDeepSubCategories;
         TargetUserGender = targetUserGender;
         TargetDays = targetDays;
         TargetMonths = targetMonths;
         TargetTimeStart = targetTimeStart;
         TargetTimeEnd = targetTimeEnd;
+        CategoryID = categoryId;
+        SubCategoryID = subCategoryId;
+        ServiceID = serviceId;
+        AmountPaid = amountPaid;
         
         if (!string.IsNullOrEmpty(adType))
             AdType = adType;
@@ -179,6 +195,16 @@ public class Ad : BaseEntity
     public void SetDisplayOrder(int order)
     {
         DisplayOrder = order;
+    }
+
+    public void SetOwner(string? userId)
+    {
+        UserCreated = userId;
+    }
+
+    public void SetAmount(decimal amount)
+    {
+        AmountPaid = amount;
     }
 
     public void IncrementViews()

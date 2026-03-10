@@ -1,3 +1,111 @@
-<h3>NativeAdCard.razor</h3>
-@code {}
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+@inject NavigationManager Navigation
 
+@if (Ad != null)
+{
+    <div class="native-ad-card" @onclick="OnClick">
+        <div class="ad-badge">إعلان ممول</div>
+        <div class="ad-content d-flex flex-column h-100">
+            @if (!string.IsNullOrEmpty(Ad.ImageUrl))
+            {
+                <div class="ad-image-mini mb-3 rounded-3 overflow-hidden">
+                    <img src="@Api.GetAbsoluteUrl(Ad.ImageUrl)" class="w-100 h-100 object-fit-cover" style="max-height: 120px;" />
+                </div>
+            }
+            <h6 class="ad-title">@Ad.Title</h6>
+            <p class="ad-desc">@Ad.Description</p>
+            <div class="ad-footer mt-auto">
+                @if (!string.IsNullOrEmpty(Ad.TargetUrl))
+                {
+                    <span class="btn btn-sm btn-outline-primary rounded-pill px-3">تصفح الآن <i class="fa-solid fa-arrow-left ms-1"></i></span>
+                }
+            </div>
+            <i class="fa-solid fa-star-of-life ad-deco"></i>
+        </div>
+    </div>
+}
+
+<style>
+    .native-ad-card {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(168, 85, 247, 0.05) 100%);
+        border: 1px solid rgba(99, 102, 241, 0.2);
+        border-radius: 16px;
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .native-ad-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(99, 102, 241, 0.15);
+        border-color: rgba(99, 102, 241, 0.4);
+    }
+
+    .ad-badge {
+        position: absolute;
+        top: 15px;
+        left: -25px;
+        background: linear-gradient(135deg, #f59e0b, #fbbf24);
+        color: white;
+        font-size: 0.65rem;
+        font-weight: 800;
+        padding: 3px 25px;
+        transform: rotate(-45deg);
+        box-shadow: 0 2px 10px rgba(245, 158, 11, 0.3);
+        z-index: 2;
+    }
+
+    .ad-title {
+        color: var(--theme-primary, #6366f1);
+        font-weight: 800;
+        margin-bottom: 8px;
+        margin-top: 5px;
+        font-size: 1.1rem;
+    }
+
+    .ad-desc {
+        color: #64748b;
+        font-size: 0.85rem;
+        margin-bottom: 15px;
+        flex-grow: 1;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .ad-footer {
+        margin-top: auto;
+    }
+
+    .ad-deco {
+        position: absolute;
+        bottom: -20px;
+        left: 10px;
+        font-size: 5rem;
+        color: var(--theme-primary);
+        opacity: 0.05;
+        transform: rotate(20deg);
+        z-index: 0;
+        pointer-events: none;
+    }
+</style>
+
+@code {
+    [Parameter] public EnhancedAdDto? Ad { get; set; }
+
+    private void OnClick()
+    {
+        if (Ad != null && !string.IsNullOrEmpty(Ad.TargetUrl))
+        {
+            Navigation.NavigateTo(Ad.TargetUrl);
+        }
+    }
+}

@@ -3,6 +3,7 @@
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
 @using static Khadamat.BlazorUI.Components.Category.BreadcrumbNav
+@using Khadamat.BlazorUI.Components.Ads
 @inject ApiClient Api
 @inject NavigationManager Navigation
 
@@ -105,11 +106,21 @@
                     {
                         @if (services.Any())
                         {
-                            @foreach (var service in services)
+                            for (int i = 0; i < services.Count; i++)
                             {
+                                var service = services[i];
                                 <div class="col-12 col-md-6 mb-3">
                                     <ServiceCard Service="service" OnClick='(s) => Navigation.NavigateTo($"/service/{s.Id}")' />
                                 </div>
+                                
+                                @if ((i + 1) % 3 == 0 && categoryAds != null && categoryAds.Any())
+                                {
+                                    var adIndex = ((i + 1) / 3 - 1) % categoryAds.Count;
+                                    var ad = categoryAds[adIndex];
+                                    <div class="col-12 col-md-6 mb-3">
+                                        <NativeAdCard Ad="ad" />
+                                    </div>
+                                }
                             }
                         }
                         else
@@ -156,6 +167,7 @@
     private List<CategoryDto>? categories;
     private List<SubCategoryDto>? subCategories;
     private List<ServiceDto>? services;
+    private List<EnhancedAdDto>? categoryAds;
     private List<BreadcrumbItem> breadcrumbItems = new();
 
     protected override async Task OnParametersSetAsync()
@@ -208,8 +220,14 @@
                 });
                 breadcrumbItems.Add(new BreadcrumbItem { Label = Name, IsActive = true });
             }
-            var result = await Api.GetServicesAsync(subCategoryId: Id);
-            services = result.Items;
+            
+            var servicesTask = Api.GetServicesAsync(subCategoryId: Id);
+            var categoryAdsTask = Api.GetCategoryAdsAsync(Id);
+            
+            await Task.WhenAll(servicesTask, categoryAdsTask);
+            
+            services = servicesTask.Result.Items;
+            categoryAds = categoryAdsTask.Result;
         }
     }
 

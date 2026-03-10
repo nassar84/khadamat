@@ -271,14 +271,14 @@
         isSubmitting = true;
         errorMessage = null;
 
-        var result = await Api.CreateMarketplaceItemAsync(model);
+        var (result, error) = await Api.CreateMarketplaceItemAsync(model);
         if (result != null)
         {
             Navigation.NavigateTo($"/marketplace/item/{result.Id}");
         }
         else
         {
-            errorMessage = "فشل في حفظ السلعة، يرجى المحاولة لاحقاً";
+            errorMessage = !string.IsNullOrEmpty(error) ? $"خطأ: {error}" : "فشل في حفظ السلعة، يرجى المحاولة لاحقاً";
         }
         
         isSubmitting = false;

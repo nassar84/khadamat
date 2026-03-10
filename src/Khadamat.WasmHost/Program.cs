@@ -13,9 +13,20 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped<Khadamat.BlazorUI.Services.Auth.AuthenticationHandler>();
 
-builder.Services.AddHttpClient("KhadamatAPI", client => 
+builder.Services.AddHttpClient("KhadamatAPI", (sp, client) => 
 {
-    client.BaseAddress = new Uri("http://localhost:5144/");
+    var nav = sp.GetRequiredService<Microsoft.AspNetCore.Components.NavigationManager>();
+    var uri = new Uri(nav.BaseUri);
+    // If we're on a local address, use the same host but the API port
+    if (uri.Host == "localhost" || uri.Host == "127.0.0.1" || uri.Host == "10.0.2.2")
+    {
+        client.BaseAddress = new Uri($"{uri.Scheme}://{uri.Host}:5144/");
+    }
+    else
+    {
+        // Production fallback (change this to your production API URL)
+        client.BaseAddress = new Uri("http://localhost:5144/");
+    }
 })
 .AddHttpMessageHandler<Khadamat.BlazorUI.Services.Auth.AuthenticationHandler>();
 

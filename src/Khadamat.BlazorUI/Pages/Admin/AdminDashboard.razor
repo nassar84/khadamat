@@ -78,24 +78,6 @@
                         <div class="module-desc x-small text-muted">التنظيم الهيكلي للخدمات</div>
                     </div>
                 </div>
-                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/adsmanagement")'>
-                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up">
-                        <div class="module-icon bg-light-info mb-3">
-                            <i class="fa-solid fa-rectangle-ad text-info"></i>
-                        </div>
-                        <div class="module-title fw-bold">الإعلانات</div>
-                        <div class="module-desc x-small text-muted">إدارة الحملات والبنرات</div>
-                    </div>
-                </div>
-                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/subscriptions")'>
-                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up">
-                        <div class="module-icon bg-light-warning mb-3">
-                            <i class="fa-solid fa-gem text-warning"></i>
-                        </div>
-                        <div class="module-title fw-bold">الباقات</div>
-                        <div class="module-desc x-small text-muted">تحكم في خطط الاشتراك</div>
-                    </div>
-                </div>
                 <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/reports")'>
                     <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up">
                         <div class="module-icon bg-light-danger mb-3">
@@ -140,7 +122,41 @@
                             </span>
                         </div>
                         <div class="module-title fw-bold">السوق</div>
-                        <div class="module-desc x-small text-muted">مراجعة وإدارة الإعلانات</div>
+                        <div class="module-desc x-small text-muted">مراجعة وإدارة إعلانات المتجر</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Section for Advertising & Economy -->
+            <h6 class="fw-bold mb-3 mt-4 d-flex align-items-center">
+                <i class="fa-solid fa-coins me-2 text-warning"></i> نظام الإعلانات والاقتصاد
+            </h6>
+            <div class="row g-3">
+                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/ad-analytics")'>
+                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up">
+                        <div class="module-icon bg-light-warning mb-3">
+                            <i class="fa-solid fa-chart-line text-warning"></i>
+                        </div>
+                        <div class="module-title fw-bold">الإحصائيات</div>
+                        <div class="module-desc x-small text-muted">أداء وتحليلات الحملات</div>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/adsmanagement")'>
+                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up" style="border-color: var(--primary) !important; background: rgba(99, 102, 241, 0.02) !important;">
+                        <div class="module-icon bg-light-primary mb-3">
+                            <i class="fa-solid fa-rectangle-ad text-primary"></i>
+                        </div>
+                        <div class="module-title fw-bold">إدارة الإعلانات</div>
+                        <div class="module-desc x-small text-muted">التحكم في العرض والاستهداف</div>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/ad-packages")'>
+                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up">
+                        <div class="module-icon bg-light-info mb-3">
+                            <i class="fa-solid fa-gem text-info"></i>
+                        </div>
+                        <div class="module-title fw-bold">باقات الإعلانات</div>
+                        <div class="module-desc x-small text-muted">تخصيص الأسعار والميزات</div>
                     </div>
                 </div>
             </div>

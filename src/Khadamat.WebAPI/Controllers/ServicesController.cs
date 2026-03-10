@@ -79,4 +79,27 @@ public class ServicesController : ControllerBase
         var result = await _mediator.Send(query);
         return Ok(result);
     }
+    [HttpGet("{id}/similar")]
+    public async Task<IActionResult> GetSimilarServices(int id, [FromQuery] int count = 4)
+    {
+        // For simplicity, using a direct query or MediatR if available.
+        // I'll check if there's a Query for this. If not, I'll create one.
+        // Since I don't want to create too many files, I'll use the existing GetServiceQuery with filters.
+        var service = await _mediator.Send(new GetServiceByIdQuery(id));
+        if (service == null) return NotFound();
+
+        var query = new GetServiceQuery
+        {
+            CategoryId = service.CategoryId,
+            SubCategoryId = service.SubCategoryId,
+            PageSize = count + 1, // +1 to exclude current
+            IsApproved = true
+        };
+
+        var result = await _mediator.Send(query);
+        // Exclude current service
+        result.Items = result.Items.Where(i => i.Id != id).Take(count).ToList();
+        
+        return Ok(result);
+    }
 }

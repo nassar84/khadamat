@@ -39,6 +39,23 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<MarketplaceSubCategory> MarketplaceSubCategories { get; set; }
     public DbSet<Payment> Payments { get; set; }
 
+    // ── Advertisement & Growth System ─────────────────────────────────────
+    public DbSet<AdPackage> AdPackages { get; set; }
+    public DbSet<AdCampaign> AdCampaigns { get; set; }
+    public DbSet<Advertisement> Advertisements { get; set; }
+    public DbSet<AdImpression> AdImpressions { get; set; }
+    public DbSet<AdClick> AdClicks { get; set; }
+    public DbSet<AdStatistic> AdStatistics { get; set; }
+    public DbSet<AdExtension> AdExtensions { get; set; }
+    public DbSet<PromotionalOffer> PromotionalOffers { get; set; }
+    public DbSet<TrialAdvertisement> TrialAdvertisements { get; set; }
+    // ── Referral & Points ─────────────────────────────────────────────────
+    public DbSet<ReferralCode> ReferralCodes { get; set; }
+    public DbSet<Referral> Referrals { get; set; }
+    public DbSet<ProviderPoints> ProviderPoints { get; set; }
+    public DbSet<RewardConversion> RewardConversions { get; set; }
+    public DbSet<PointRewardRule> PointRewardRules { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -91,6 +108,7 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<Ad>().HasMany(a => a.AdImages).WithOne(ai => ai.Ad).HasForeignKey(ai => ai.AdId);
         builder.Entity<Category>().HasMany<Ad>().WithOne(a => a.Category).HasForeignKey(a => a.CategoryID);
         builder.Entity<SubCategory>().HasMany<Ad>().WithOne(a => a.SubCategory).HasForeignKey(a => a.SubCategoryID);
+        builder.Entity<Service>().HasMany<Ad>().WithOne(a => a.Service).HasForeignKey(a => a.ServiceID);
         
         // Subscription Relationships
         builder.Entity<ProviderSubscription>()
@@ -188,5 +206,92 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
             .WithMany()
             .HasForeignKey(p => p.MarketplaceItemId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        // ── Advertisement System ───────────────────────────────────────────
+        builder.Entity<AdCampaign>()
+            .HasMany(c => c.Advertisements)
+            .WithOne(a => a.Campaign)
+            .HasForeignKey(a => a.CampaignId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<AdCampaign>()
+            .HasOne(c => c.Package)
+            .WithMany()
+            .HasForeignKey(c => c.PackageId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<Advertisement>()
+            .HasOne(a => a.Category)
+            .WithMany()
+            .HasForeignKey(a => a.CategoryId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<Advertisement>()
+            .HasOne(a => a.SubCategory)
+            .WithMany()
+            .HasForeignKey(a => a.SubCategoryId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<Advertisement>()
+            .HasOne(a => a.Service)
+            .WithMany()
+            .HasForeignKey(a => a.ServiceId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<Advertisement>()
+            .HasOne(a => a.City)
+            .WithMany()
+            .HasForeignKey(a => a.CityId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.Entity<AdImpression>()
+            .HasOne(i => i.Advertisement)
+            .WithMany()
+            .HasForeignKey(i => i.AdvertisementId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<AdClick>()
+            .HasOne(c => c.Advertisement)
+            .WithMany()
+            .HasForeignKey(c => c.AdvertisementId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<AdStatistic>()
+            .HasOne(s => s.Advertisement)
+            .WithMany()
+            .HasForeignKey(s => s.AdvertisementId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<AdStatistic>()
+            .HasIndex(s => new { s.AdvertisementId, s.Date })
+            .IsUnique();
+
+        builder.Entity<AdExtension>()
+            .HasOne(e => e.Advertisement)
+            .WithMany()
+            .HasForeignKey(e => e.AdvertisementId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<AdCampaign>().Property(c => c.Budget).HasPrecision(18, 2);
+        builder.Entity<Advertisement>().Property(a => a.Bid).HasPrecision(18, 2);
+        builder.Entity<PromotionalOffer>().Property(o => o.DiscountPercentage).HasPrecision(5, 2);
+
+        builder.Entity<Advertisement>().HasQueryFilter(a => !a.IsDeleted);
+        builder.Entity<AdCampaign>().HasQueryFilter(c => !c.IsDeleted);
+
+        // ── Referral & Points System ───────────────────────────────────────
+        builder.Entity<ReferralCode>()
+            .HasMany(r => r.Referrals)
+            .WithOne(ref1 => ref1.ReferralCode)
+            .HasForeignKey(ref1 => ref1.ReferralCodeId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<ReferralCode>()
+            .HasIndex(r => r.Code)
+            .IsUnique();
+
+        builder.Entity<ProviderPoints>()
+            .HasIndex(p => p.ProviderId)
+            .IsUnique();
     }
 }

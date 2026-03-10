@@ -63,9 +63,17 @@
                                 <i class="fa-solid fa-envelope"></i>
                                 <span>رسائلي</span>
                             </div>
+                            <div class="menu-item @GetActiveClass("user/notifications")" @onclick='() => NavigateTo("/user/notifications")'>
+                                <i class="fa-solid fa-bell"></i>
+                                <span>الإشعارات</span>
+                            </div>
                             <div class="menu-item @GetActiveClass("client/favorites")" @onclick='() => NavigateTo("/client/favorites")'>
                                 <i class="fa-solid fa-heart text-danger"></i>
                                 <span>المفضلة</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("profile/my-ads")" @onclick='() => NavigateTo("/profile/my-ads")'>
+                                <i class="fa-solid fa-rectangle-ad" style="color: #f59e0b;"></i>
+                                <span class="fw-bold" style="color:#92400e;">إحصائيات إعلاناتي</span>
                             </div>
                             <div class="menu-item @GetActiveClass("marketplace/my-listings")" @onclick='() => NavigateTo("/marketplace/my-listings")'>
                                 <i class="fa-solid fa-box-open" style="color: #7c3aed;"></i>
@@ -82,10 +90,50 @@
                                 <span>الملف الشخصي</span>
                             </div>
 
-                            <AuthorizeView Roles="Admin,SystemAdmin,SuperAdmin" Context="adminCtx">
+                            <div class="menu-item @GetActiveClass("services")" @onclick='() => NavigateTo("/services")'>
+                                <i class="fa-solid fa-briefcase"></i>
+                                <span>استكشاف الخدمات</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("explore")" @onclick='() => NavigateTo("/explore")'>
+                                <i class="fa-solid fa-compass"></i>
+                                <span>استكشف</span>
+                            </div>
+                            <AuthorizeView Roles="SystemAdmin,SuperAdmin" Context="adminCtx">
                                 <div class="menu-item admin-link-premium" @onclick='() => NavigateTo("/admin")'>
                                     <i class="fa-solid fa-shield-halved"></i>
                                     <span>لوحة المدير</span>
+                                </div>
+                                <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.05);" @onclick='() => NavigateTo("/admin/users")'>
+                                    <i class="fa-solid fa-users text-primary"></i>
+                                    <span>إدارة المستخدمين</span>
+                                </div>
+                                <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.05);" @onclick='() => NavigateTo("/admin/approvals/providers")'>
+                                    <i class="fa-solid fa-user-check text-primary"></i>
+                                    <span>اعتماد المزودين</span>
+                                </div>
+                                <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.05);" @onclick='() => NavigateTo("/admin/services")'>
+                                    <i class="fa-solid fa-briefcase text-primary"></i>
+                                    <span>إدارة الخدمات</span>
+                                </div>
+                                <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.05);" @onclick='() => NavigateTo("/admin/ads")'>
+                                    <i class="fa-solid fa-rectangle-ad text-primary"></i>
+                                    <span>إدارة الإعلانات</span>
+                                </div>
+                                <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.05);" @onclick='() => NavigateTo("/admin/categories")'>
+                                    <i class="fa-solid fa-th-large text-primary"></i>
+                                    <span>التصنيفات</span>
+                                </div>
+                                <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.05);" @onclick='() => NavigateTo("/admin/locations")'>
+                                    <i class="fa-solid fa-map-marker-alt text-primary"></i>
+                                    <span>المناطق</span>
+                                </div>
+                                <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.05);" @onclick='() => NavigateTo("/admin/reports")'>
+                                    <i class="fa-solid fa-file-alt text-primary"></i>
+                                    <span>التقارير</span>
+                                </div>
+                                <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.05);" @onclick='() => NavigateTo("/admin/settings")'>
+                                    <i class="fa-solid fa-cogs text-primary"></i>
+                                    <span>الإعدادات العامة</span>
                                 </div>
                             </AuthorizeView>
                         </div>
@@ -113,6 +161,14 @@
                                     <div class="menu-item @GetActiveClass("provider/statistics")" @onclick='() => NavigateTo("/provider/statistics")'>
                                         <i class="fa-solid fa-chart-line"></i>
                                         <span>الإحصائيات</span>
+                                    </div>
+                                    <div class="menu-item @GetActiveClass("provider/referrals")" @onclick='() => NavigateTo("/provider/referrals")'>
+                                        <i class="fa-solid fa-users-viewfinder text-primary"></i>
+                                        <span class="text-primary fw-bold">نظام الإحالة</span>
+                                    </div>
+                                    <div class="menu-item @GetActiveClass("provider/ad-analytics")" @onclick='() => NavigateTo("/provider/ad-analytics")'>
+                                        <i class="fa-solid fa-chart-pie text-success"></i>
+                                        <span class="text-success fw-bold">إحصائيات الإعلانات</span>
                                     </div>
                                     <div class="menu-item @GetActiveClass("provider/createpost")" @onclick='() => NavigateTo("/provider/createpost")'>
                                         <i class="fa-solid fa-pen-to-square"></i>
@@ -144,7 +200,7 @@
                     <div class="logo-sidebar">
                         @if (!string.IsNullOrEmpty(State.AppLogo))
                         {
-                            <img src="@State.AppLogo" class="logo-img" alt="Logo" style="height: 40px; width: auto;" />
+                            <img src="@State.GetAbsoluteUrl(State.AppLogo)" class="logo-img" alt="Logo" style="height: 40px; width: auto; object-fit: contain;" />
                         }
                         else
                         {
@@ -506,7 +562,17 @@
     private void NavigateTo(string path)
     {
         CloseSidebar();
-        Navigation.NavigateTo(path);
+        // Preserve nativeapp/mobileapp params when navigating in mobile app
+        if (State.IsNativeApp || State.IsMobileApp)
+        {
+            var separator = path.Contains('?') ? "&" : "?";
+            var param = State.IsNativeApp ? "nativeapp=1" : "mobileapp=1";
+            Navigation.NavigateTo(path + separator + param);
+        }
+        else
+        {
+            Navigation.NavigateTo(path);
+        }
     }
 
     private async Task HandleLogout()
@@ -537,7 +603,7 @@
     {
         State.IsProviderMode = !State.IsProviderMode;
         CloseSidebar();
-        if (State.IsProviderMode) Navigation.NavigateTo("/provider/dashboard");
-        else Navigation.NavigateTo("/");
+        if (State.IsProviderMode) NavigateTo("/provider/dashboard");
+        else NavigateTo("/");
     }
 }
