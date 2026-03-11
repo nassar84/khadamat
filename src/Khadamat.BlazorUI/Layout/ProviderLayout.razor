@@ -1,4 +1,102 @@
 @inherits LayoutComponentBase
+@implements IDisposable
+@inject NavigationManager Navigation
+@inject Khadamat.BlazorUI.State.AppState State
+@inject IJSRuntime JS
 
-<h3>ProviderLayout.razor</h3>
-@Body
+<div class="provider-layout" dir="rtl">
+    @if (State.IsNativeApp)
+    {
+        <main class="mobile-content">
+            @Body
+        </main>
+    }
+    else if (State.IsMobileApp)
+    {
+        <MobileHeader />
+        <MobileSidebar />
+        <main class="mobile-content">
+            @Body
+        </main>
+        <MobileBottomNav />
+    }
+    else
+    {
+        <main class="provider-content">
+            @Body
+        </main>
+    }
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        State.OnChange += StateHasChanged;
+        Navigation.LocationChanged += HandleLocationChanged;
+        CheckMobileMode();
+    }
+
+    private void CheckMobileMode()
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        if (query.TryGetValue("mobileapp", out var value) && value == "1")
+        {
+            if (!State.IsMobileApp) State.IsMobileApp = true;
+        }
+        if (query.TryGetValue("nativeapp", out var nValue) && nValue == "1")
+        {
+            if (!State.IsNativeApp) State.IsNativeApp = true;
+            if (!State.IsMobileApp) State.IsMobileApp = true;
+        }
+    }
+
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        _ = CheckMobileModeAsync();
+        StateHasChanged();
+    }
+
+    private async Task CheckMobileModeAsync()
+    {
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+
+        if (query.TryGetValue("mobileapp", out var mValue) && mValue == "1")
+        {
+            if (!State.IsMobileApp) State.IsMobileApp = true;
+            try { await JS.InvokeVoidAsync("sessionStorage.setItem", "mobileapp", "1"); } catch { }
+        }
+
+        if (query.TryGetValue("nativeapp", out var nValue) && nValue == "1")
+        {
+            if (!State.IsNativeApp) State.IsNativeApp = true;
+            if (!State.IsMobileApp) State.IsMobileApp = true;
+            try { await JS.InvokeVoidAsync("sessionStorage.setItem", "nativeapp", "1"); } catch { }
+        }
+        else
+        {
+            try
+            {
+                var storedNative = await JS.InvokeAsync<string>("sessionStorage.getItem", "nativeapp");
+                if (storedNative == "1")
+                {
+                    if (!State.IsNativeApp) State.IsNativeApp = true;
+                    if (!State.IsMobileApp) State.IsMobileApp = true;
+                }
+                var storedMobile = await JS.InvokeAsync<string>("sessionStorage.getItem", "mobileapp");
+                if (storedMobile == "1")
+                {
+                    if (!State.IsMobileApp) State.IsMobileApp = true;
+                }
+            }
+            catch { }
+        }
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= HandleLocationChanged;
+        State.OnChange -= StateHasChanged;
+    }
+}

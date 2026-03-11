@@ -1,5 +1,7 @@
 @using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
 @inject IJSRuntime JS
+@inject ApiClient Api
 
 <div class="category-slider-container mb-5">
     <!-- Header removed -->
@@ -23,10 +25,7 @@
                         <div class="icon-circle @(string.IsNullOrEmpty(cat.ImageUrl) ? "" : "p-0 overflow-hidden")">
                             @if (!string.IsNullOrEmpty(cat.ImageUrl))
                             {
-                                var imageUrl = cat.ImageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) 
-                                    ? cat.ImageUrl 
-                                    : $"{apiBaseUrl}images/maincategories/{cat.ImageUrl}";
-                                <img src="@imageUrl" class="w-100 h-100 object-fit-cover" alt="@cat.Name" style="border-radius: 50%; opacity: 0.9;" />
+                                <img src="@Api.GetAbsoluteUrl($"/images/maincategories/{cat.ImageUrl}")" class="w-100 h-100 object-fit-cover" alt="@cat.Name" style="border-radius: 50%; opacity: 0.9;" />
                             }
                             else
                             {
@@ -156,17 +155,8 @@
 </script>
 
 @code {
-    [Inject] private HttpClient Http { get; set; } = default!;
     [Parameter] public List<MainCategoryDto>? Categories { get; set; }
     [Parameter] public EventCallback<MainCategoryDto> OnClick { get; set; }
-
-    private string apiBaseUrl = "";
-
-    protected override void OnInitialized()
-    {
-        apiBaseUrl = Http.BaseAddress?.ToString() ?? "";
-        if (!apiBaseUrl.EndsWith("/")) apiBaseUrl += "/";
-    }
 
     private async Task OnCategoryClick(MainCategoryDto cat)
     {

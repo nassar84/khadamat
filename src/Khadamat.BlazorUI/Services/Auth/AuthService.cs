@@ -15,18 +15,30 @@ public class AuthService : IAuthService
     private readonly ILocalStorageService _localStorage;
     private readonly Khadamat.Shared.Interfaces.ISecureStorageService _secureStorage;
     private readonly AppState _appState;
+    private readonly IJSRuntime _js;
 
     public AuthService(HttpClient httpClient,
                        AuthenticationStateProvider authenticationStateProvider,
                        ILocalStorageService localStorage,
                        Khadamat.Shared.Interfaces.ISecureStorageService secureStorage,
-                       AppState appState)
+                       AppState appState,
+                       IJSRuntime js)
     {
         _httpClient = httpClient;
         _authenticationStateProvider = authenticationStateProvider;
         _localStorage = localStorage;
         _secureStorage = secureStorage;
         _appState = appState;
+        _js = js;
+    }
+
+    private async Task NotifyNativeApp(string message)
+    {
+        try
+        {
+            await _js.InvokeVoidAsync("window.chrome.webview.postMessage", message);
+        }
+        catch { /* Fallback or ignore if not in native webview */ }
     }
 
     public async Task<AuthResponse?> Login(LoginRequest loginRequest)
@@ -44,6 +56,7 @@ public class AuthService : IAuthService
                 _appState.UserToken = result.Data.Token;
 
                 ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsAuthenticated(result.Data.Token);
+                await NotifyNativeApp("auth_success");
                 return result.Data;
             }
         }
@@ -66,6 +79,7 @@ public class AuthService : IAuthService
 
         ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsLoggedOut();
         _httpClient.DefaultRequestHeaders.Authorization = null;
+        _ = NotifyNativeApp("auth_logout");
         return Task.CompletedTask;
     }
 
@@ -83,6 +97,11 @@ public class AuthService : IAuthService
                 _appState.PhoneNumber = p.PhoneNumber;
             }
             return response!;
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        {
+            await Logout();
+            return new ApiResponse<AuthResponse> { Success = false, Message = "Session expired. Please login again." };
         }
         catch (Exception ex)
         {
@@ -113,6 +132,7 @@ public class AuthService : IAuthService
         _appState.UserToken = token;
 
         ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsAuthenticated(token);
+        await NotifyNativeApp("auth_success");
         return true;
     }
 
@@ -122,6 +142,8 @@ public class AuthService : IAuthService
         if (!string.IsNullOrEmpty(token))
         {
             _appState.UserToken = token;
+            ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsAuthenticated(token);
+            await NotifyNativeApp("auth_success");
         }
     }
 }

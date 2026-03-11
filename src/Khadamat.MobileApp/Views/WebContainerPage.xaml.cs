@@ -13,6 +13,47 @@ public partial class WebContainerPage : ContentPage
     public WebContainerPage()
     {
         InitializeComponent();
+        MainWebView.WebMessageReceived += MainWebView_WebMessageReceived;
+    }
+
+    private void MainWebView_WebMessageReceived(object? sender, WebMessageReceivedEventArgs e)
+    {
+        var message = e.GetWebMessageAsString();
+        if (message == "auth_success")
+        {
+            if (Shell.Current.BindingContext is ViewModels.ShellViewModel vm)
+            {
+                vm.IsAuthenticated = true;
+            }
+        }
+        else if (message == "auth_logout")
+        {
+            if (Shell.Current.BindingContext is ViewModels.ShellViewModel vm)
+            {
+                vm.IsAuthenticated = false;
+            }
+        }
+    }
+
+    private string? _currentUrl;
+
+    public void RefreshWebView()
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            if (MainWebView != null)
+            {
+                Console.WriteLine("ANTIGRAVITY_LOG: Performing WebView Reload");
+                // Option 1: Native Reload
+                MainWebView.Reload();
+                
+                // Option 2: Fallback if Reload fails (re-assign source)
+                if (!string.IsNullOrEmpty(_currentUrl))
+                {
+                    MainWebView.Source = new UrlWebViewSource { Url = _currentUrl };
+                }
+            }
+        });
     }
 
     public WebContainerPage(string route) : this()
@@ -26,9 +67,7 @@ public partial class WebContainerPage : ContentPage
         base.OnNavigatedTo(args);
 
         // Optional: Resolve base url from preferences or configuration if needed
-        // Assuming we set BaseUrl in secure storage or use a known constant for now
-        // Let's use a standard domain based on the appsettings but for now hardcoded fallback route
-        string baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "https://khadamat-app.vercel.app");
+        string baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "http://10.0.2.2:5144");
         
         string routePart = !string.IsNullOrEmpty(DeepLinkRoute) ? DeepLinkRoute : (_route ?? "").TrimStart('/');
         
@@ -53,6 +92,7 @@ public partial class WebContainerPage : ContentPage
         }
 
         ShowOfflineState(false);
+        _currentUrl = url;
         MainWebView.Source = new UrlWebViewSource { Url = url };
     }
 
@@ -123,6 +163,9 @@ public partial class WebContainerPage : ContentPage
             return;
         }
 
+        // Update current URL for refresh functionality
+        _currentUrl = e.Url;
+
         // Inject JS to persist nativeapp=1 across all internal navigation
         try
         {
@@ -172,5 +215,14 @@ public partial class WebContainerPage : ContentPage
         {
             Console.WriteLine($"ANTIGRAVITY_LOG: JS injection error: {ex.Message}");
         }
+    }
+    protected override bool OnBackButtonPressed()
+    {
+        if (MainWebView != null && MainWebView.CanGoBack)
+        {
+            MainWebView.GoBack();
+            return true; // Handled, don't exit the app
+        }
+        return base.OnBackButtonPressed();
     }
 }

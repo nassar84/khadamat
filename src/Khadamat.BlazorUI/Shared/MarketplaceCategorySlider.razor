@@ -25,7 +25,7 @@
                     <div class="category-icon-box">
                         @if (!string.IsNullOrEmpty(cat.ImageUrl))
                         {
-                            <img src="@cat.ImageUrl" alt="@cat.Name" />
+                            <img src="@Api.GetAbsoluteUrl(cat.ImageUrl)" alt="@cat.Name" />
                         }
                         else if (!string.IsNullOrEmpty(cat.Icon))
                         {

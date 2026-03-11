@@ -1,23 +1,26 @@
-﻿using Khadamat.MobileApp.Services;
+using Khadamat.MobileApp.Services;
 namespace Khadamat.MobileApp;
 
 public partial class App : Microsoft.Maui.Controls.Application
 {
-	public App()
-	{
-		InitializeComponent();
+    private readonly AppShell _shell;
+
+    public App(AppShell shell)
+    {
+        InitializeComponent();
+        _shell = shell;
         
         DeepLinkBridge.OnDeepLinkReceived += async (url) => 
         {
-            if (Shell.Current is AppShell shell)
+            if (Shell.Current is AppShell appShell)
             {
-                await shell.HandleDeepLink(url);
+                await appShell.HandleDeepLink(url);
             }
         };
-	}
+    }
 
-	protected override Window CreateWindow(IActivationState? activationState)
-	{
-		return new Window(new AppShell()) { Title = "Khadamat.MobileApp" };
-	}
+    protected override Window CreateWindow(IActivationState? activationState)
+    {
+        return new Window(_shell) { Title = "Khadamat.MobileApp" };
+    }
 }

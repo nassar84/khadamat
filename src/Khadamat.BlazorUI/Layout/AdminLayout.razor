@@ -6,7 +6,13 @@
 @inject IJSRuntime JS
 
 <div class="admin-layout" dir="rtl">
-    @if (State.IsMobileApp)
+    @if (State.IsNativeApp)
+    {
+        <main class="mobile-content">
+            @Body
+        </main>
+    }
+    else if (State.IsMobileApp)
     {
         <MobileHeader />
         <MobileSidebar />

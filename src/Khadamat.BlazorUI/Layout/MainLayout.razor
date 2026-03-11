@@ -1,24 +1,30 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 @implements IDisposable
 
 <div class="khadamat-app @(AppState.IsMobileApp ? "mobile-mode" : "") @(isSidebarCollapsed ? "collapsed" : "")">
-    @if (!AppState.IsMobileApp && !AppState.IsNativeApp)
+    @if (!AppState.IsNativeApp)
     {
-        <Sidebar @bind-IsCollapsed="isSidebarCollapsed" />
-    }
-    else
-    {
-        <MobileSidebar />
-    }
-    
-    <div class="app-main-view" style="@(AppState.IsMobileApp ? "max-width: 100%;" : "")">
         @if (!AppState.IsMobileApp)
         {
-            <Header />
+            <Sidebar @bind-IsCollapsed="isSidebarCollapsed" />
         }
         else
         {
-            <MobileHeader />
+            <MobileSidebar />
+        }
+    }
+    
+    <div class="app-main-view" style="@(AppState.IsMobileApp ? "max-width: 100%;" : "")">
+        @if (!AppState.IsNativeApp)
+        {
+            @if (!AppState.IsMobileApp)
+            {
+                <Header />
+            }
+            else
+            {
+                <MobileHeader />
+            }
         }
         
         @if (ShowHeroAds && !AppState.IsMobileApp)
@@ -35,20 +41,26 @@
             </div>
         </main>
 
-        @if (!AppState.IsMobileApp)
+        @if (!AppState.IsNativeApp)
         {
-            <Footer />
+            @if (!AppState.IsMobileApp)
+            {
+                <Footer />
+            }
         }
     </div>
 
-    @if (!AppState.IsMobileApp)
+    @if (!AppState.IsNativeApp)
     {
-        <BottomNav />
-        <AppDownloadWidget />
-    }
-    else
-    {
-        <MobileBottomNav />
+        @if (!AppState.IsMobileApp)
+        {
+            <BottomNav />
+            <AppDownloadWidget />
+        }
+        else
+        {
+            <MobileBottomNav />
+        }
     }
     
     <AdPopup />
@@ -144,11 +156,16 @@
 
     protected override async Task OnInitializedAsync()
     {
-        AppState.OnChange += StateHasChanged;
+        AppState.OnChange += OnStateChange;
         Navigation.LocationChanged += HandleLocationChanged;
         
         CheckMobileModeFromUrl(); // URL params only (no JS needed)
         await AuthService.InitializeAsync();
+    }
+
+    private async void OnStateChange()
+    {
+        await InvokeAsync(StateHasChanged);
     }
 
     // Called from OnInitializedAsync - reads URL params only (JS not available yet)
@@ -299,7 +316,7 @@
     public void Dispose()
     {
         Navigation.LocationChanged -= HandleLocationChanged;
-        AppState.OnChange -= StateHasChanged;
+        AppState.OnChange -= OnStateChange;
         _ = SignalRService.StopAsync();
     }
 }

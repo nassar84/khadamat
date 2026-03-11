@@ -4,9 +4,16 @@ namespace Khadamat.MobileApp
 {
     public partial class AppShell : Shell
     {
-        public AppShell()
+        private readonly ViewModels.ShellViewModel _viewModel;
+
+        public AppShell(ViewModels.ShellViewModel viewModel)
         {
             InitializeComponent();
+            _viewModel = viewModel;
+            BindingContext = _viewModel;
+            
+            // Load settings in background
+            Task.Run(async () => await _viewModel.LoadSettingsAsync());
         }
 
         public async Task HandleDeepLink(string url)

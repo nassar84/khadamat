@@ -1,4 +1,4 @@
-﻿@page "/"
+@page "/"
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
 @using Khadamat.BlazorUI.Components.ServiceRelated
@@ -21,7 +21,7 @@
 
     <!-- Sell on Marketplace Promo Banner -->
     <div class="sell-promo-banner mb-4" @onclick='() => Navigation.NavigateTo("/marketplace/create")'>
-        <img src="images/marketplace_sell_banner.png" 
+        <img src="@Api.GetAbsoluteUrl("images/marketplace_sell_banner.png")" 
              alt="بيع سلعك الآن على المتجر" 
              class="sell-promo-img" />
         <div class="sell-promo-overlay">
@@ -98,7 +98,7 @@
                 {
                     <div class="market-item-mini" @onclick='() => Navigation.NavigateTo($"/marketplace/item/{item.Id}")'>
                         <div class="mini-img-wrapper">
-                            <img src="@(item.Images.FirstOrDefault()?.ImageUrl ?? "images/defaults/default-product.png")" />
+                            <img src="@Api.GetAbsoluteUrl(item.Images.FirstOrDefault()?.ImageUrl ?? "images/defaults/default-product.png")" />
                             <span class="mini-price">@item.Price.ToString("N0") ج.م</span>
                         </div>
                         <div class="p-2">

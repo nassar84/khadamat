@@ -11,4 +11,5 @@ namespace Khadamat.MobileApp.Views
     public class PostServicePage : WebContainerPage { public PostServicePage() : base("provider/apply") { } }
     public class MessagesPage : WebContainerPage { public MessagesPage() : base("messages") { } }
     public class ProfilePage : WebContainerPage { public ProfilePage() : base("profile") { } }
+    public class MarketplacePage : WebContainerPage { public MarketplacePage() : base("marketplace") { } }
 }

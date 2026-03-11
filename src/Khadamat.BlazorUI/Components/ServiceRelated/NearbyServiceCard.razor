@@ -1,9 +1,10 @@
-@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
 @inject NavigationManager Navigation
+@inject ApiClient Api
 
 <div class="nearby-card" @onclick="OnClickInternal">
     <div class="nearby-image-wrapper">
-        <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(Service.CategoryName, Service.Images?.FirstOrDefault())" 
+        <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(Service.CategoryName, Service.Images?.FirstOrDefault()))" 
              alt="@Service.Title" 
              class="nearby-image">
     </div>

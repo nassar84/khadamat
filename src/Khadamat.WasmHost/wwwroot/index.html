@@ -91,7 +91,7 @@
 
 <body>
     <div id="app">
-        <div class="loading-progress-container">
+        <div id="loading-container" class="loading-progress-container">
             <svg class="loading-progress">
                 <circle cx="40" cy="40" r="35" />
             </svg>
@@ -101,6 +101,15 @@
             </div>
         </div>
     </div>
+    
+    <script>
+        window.hideLoadingScreen = () => {
+            const loadingContainer = document.getElementById('loading-container');
+            if (loadingContainer) {
+                loadingContainer.style.display = 'none';
+            }
+        };
+    </script>
 
     <div id="blazor-error-ui">
         حدث خطأ غير متوقع.

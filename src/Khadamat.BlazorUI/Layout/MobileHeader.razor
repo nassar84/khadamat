@@ -40,16 +40,48 @@
             </div>
         </div>
 
-        <!-- Left Side (RTL): Notifications only -->
+        <!-- Left Side (RTL): Theme, Messages, Notifications -->
         <div class="header-right">
-            <!-- Notifications -->
-            <div class="icon-btn-minimal" @onclick='() => NavigateTo("/user/notifications")'>
-                <i class="fa-solid fa-bell"></i>
-                @if (State.HasUnreadNotifications)
+            
+            <!-- Theme Toggle -->
+            <div id="mobileThemeToggle" class="icon-btn-minimal theme-switcher-mobile" @onclick="ToggleThemeMenu" title="تغيير الثيم">
+                <i class="fa-solid fa-palette text-secondary"></i>
+                @if (isThemeMenuOpen)
                 {
-                    <span class="badge-dot"></span>
+                    <div class="theme-popover-mobile animate-up" @onclick:stopPropagation="true">
+                        <div class="theme-grid-mobile">
+                            <div class="theme-dot-mobile default @(State.CurrentTheme == "default" ? "active" : "")" @onclick='() => HandleSetTheme("default")'></div>
+                            <div class="theme-dot-mobile sunset @(State.CurrentTheme == "sunset" ? "active" : "")" @onclick='() => HandleSetTheme("sunset")'></div>
+                            <div class="theme-dot-mobile ocean @(State.CurrentTheme == "ocean" ? "active" : "")" @onclick='() => HandleSetTheme("ocean")'></div>
+                            <div class="theme-dot-mobile forest @(State.CurrentTheme == "forest" ? "active" : "")" @onclick='() => HandleSetTheme("forest")'></div>
+                            <div class="theme-dot-mobile lavender @(State.CurrentTheme == "lavender" ? "active" : "")" @onclick='() => HandleSetTheme("lavender")'></div>
+                            <div class="theme-dot-mobile royal @(State.CurrentTheme == "royal" ? "active" : "")" @onclick='() => HandleSetTheme("royal")'></div>
+                        </div>
+                    </div>
                 }
             </div>
+
+            <AuthorizeView>
+                <Authorized>
+                    <!-- Messages -->
+                    <div class="icon-btn-minimal" @onclick='() => NavigateTo("/user/messages")' title="الرسائل">
+                        <i class="fa-regular fa-envelope"></i>
+                        @if (State.HasUnreadMessages)
+                        {
+                            <span class="badge-dot danger"></span>
+                        }
+                    </div>
+
+                    <!-- Notifications -->
+                    <div class="icon-btn-minimal" @onclick='() => NavigateTo("/user/notifications")' title="الإشعارات">
+                        <i class="fa-regular fa-bell"></i>
+                        @if (State.HasUnreadNotifications)
+                        {
+                            <span class="badge-dot"></span>
+                        }
+                    </div>
+                </Authorized>
+            </AuthorizeView>
         </div>
     </div>
 </header>

@@ -3,9 +3,10 @@
 @using Khadamat.BlazorUI.Services
 @using Khadamat.BlazorUI.Helpers
 @using Microsoft.AspNetCore.Authorization
+@using Khadamat.Shared.Interfaces
 @inject ApiClient Api
 @inject NavigationManager Navigation
-@inject WebPhoneService Phone
+@inject IPhoneService Phone
 @inject AuthenticationStateProvider AuthProvider
 
 <div class="item-details-page py-4">
@@ -43,7 +44,7 @@
                 <div class="col-lg-7">
                     <div class="gallery-card-glass p-2">
                         <div class="main-image-viewport">
-                            <img src="@activeImageUrl" alt="@item.Title" class="main-img" />
+                            <img src="@Api.GetAbsoluteUrl(activeImageUrl)" alt="@item.Title" class="main-img" />
                             @if (item.ItemStatus == "Sold")
                             {
                                 <div class="sold-overlay">
@@ -66,7 +67,7 @@
                                 {
                                     <div class="thumb @(activeImageUrl == img.ImageUrl ? "active" : "")"
                                          @onclick="() => activeImageUrl = img.ImageUrl">
-                                        <img src="@img.ImageUrl" alt="thumb" />
+                                        <img src="@Api.GetAbsoluteUrl(img.ImageUrl)" alt="thumb" />
                                     </div>
                                 }
                             </div>
@@ -331,7 +332,7 @@
 
         <!-- Item Image -->
         <div class="share-main-img-container mb-3 px-2">
-            <img src="@activeImageUrl" class="w-100 rounded-4 shadow-sm" style="height: 250px; object-fit: contain; background: #f8fafc;" />
+            <img src="@Api.GetAbsoluteUrl(activeImageUrl)" class="w-100 rounded-4 shadow-sm" style="height: 250px; object-fit: contain; background: #f8fafc;" />
         </div>
 
         <!-- Item Info -->

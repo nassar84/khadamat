@@ -556,30 +556,21 @@
     private void CloseSidebar()
     {
         State.IsSidebarOpen = false;
-        State.TriggerStateChanged();
+        _ = InvokeAsync(State.TriggerStateChanged);
     }
 
     private void NavigateTo(string path)
     {
-        CloseSidebar();
-        // Preserve nativeapp/mobileapp params when navigating in mobile app
-        if (State.IsNativeApp || State.IsMobileApp)
-        {
-            var separator = path.Contains('?') ? "&" : "?";
-            var param = State.IsNativeApp ? "nativeapp=1" : "mobileapp=1";
-            Navigation.NavigateTo(path + separator + param);
-        }
-        else
-        {
-            Navigation.NavigateTo(path);
-        }
+        State.IsSidebarOpen = false;
+        Navigation.NavigateTo(path, forceLoad: false);
+        _ = InvokeAsync(State.TriggerStateChanged);
     }
 
     private async Task HandleLogout()
     {
         CloseSidebar();
         await AuthService.Logout();
-        Navigation.NavigateTo("/login");
+        Navigation.NavigateTo("/login", forceLoad: false);
     }
 
     private async Task RefreshApp()
@@ -602,7 +593,6 @@
     private void ToggleProviderMode()
     {
         State.IsProviderMode = !State.IsProviderMode;
-        CloseSidebar();
         if (State.IsProviderMode) NavigateTo("/provider/dashboard");
         else NavigateTo("/");
     }

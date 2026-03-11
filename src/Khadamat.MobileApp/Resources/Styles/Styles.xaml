@@ -32,9 +32,10 @@
     </Style>
 
     <Style TargetType="Shell" ApplyToDerivedTypes="True">
-        <Setter Property="Shell.BackgroundColor" Value="{StaticResource White}" />
-        <Setter Property="Shell.ForegroundColor" Value="{StaticResource Black}" />
-        <Setter Property="Shell.TitleColor" Value="{StaticResource Black}" />
+        <Setter Property="Shell.BackgroundColor" Value="{StaticResource Primary}" />
+        <Setter Property="Shell.ForegroundColor" Value="{StaticResource White}" />
+        <Setter Property="Shell.TitleColor" Value="{StaticResource White}" />
+        <Setter Property="Shell.UnselectedColor" Value="{StaticResource Secondary}" />
     </Style>
 
 </ResourceDictionary>

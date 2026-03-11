@@ -25,14 +25,20 @@
 else
 {
     <div class="mobile-app">
-        <MobileHeader />
-        <MobileSidebar />
+        @if (!AppState.IsNativeApp)
+        {
+            <MobileHeader />
+            <MobileSidebar />
+        }
         
         <main class="mobile-content">
             @Body
         </main>
         
-        <MobileBottomNav />
+        @if (!AppState.IsNativeApp)
+        {
+            <MobileBottomNav />
+        }
     </div>
 }
 

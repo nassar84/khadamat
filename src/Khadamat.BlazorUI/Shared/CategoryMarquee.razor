@@ -18,13 +18,9 @@
                 <div class="category-shape-wrapper p-0">
                     @if (!string.IsNullOrEmpty(cat.ImageUrl))
                     {
-                        var imageUrl = cat.ImageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) 
-                            ? cat.ImageUrl 
-                            : $"{apiBaseUrl}images/maincategories/{cat.ImageUrl}";
-                            
-                        <img src="@imageUrl" 
+                        <img src="@Api.GetAbsoluteUrl($"/images/maincategories/{cat.ImageUrl}")" 
                              class="w-100 h-100 object-fit-cover" alt="@cat.Name" 
-                             onerror="this.onerror=null;this.src='images/maincategories/default.jpg';"
+                             onerror="this.onerror=null;this.src='@Api.GetAbsoluteUrl("/images/maincategories/default.jpg")';"
                              style="opacity: 0.9; border-radius: 50%;" />
                     }
                     else if (!string.IsNullOrEmpty(cat.Icon))
@@ -235,14 +231,10 @@ else if (DisplayCategories == null || !DisplayCategories.Any())
     }
     
     private ElementReference containerRef;
-    private string apiBaseUrl = "";
     private bool _swiperInitialized = false;
 
     protected override void OnInitialized()
     {
-        apiBaseUrl = Http.BaseAddress?.ToString() ?? "";
-        if (!apiBaseUrl.EndsWith("/")) apiBaseUrl += "/";
-        
         if (Categories == null)
         {
             _ = LoadCategoriesAsync();

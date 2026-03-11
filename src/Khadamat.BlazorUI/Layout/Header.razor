@@ -8,10 +8,10 @@
 <header class="app-header-premium container-fluid" style="display: block; padding: 0;">
     <div class="header-inner-container h-100 mx-auto d-flex align-items-center justify-content-between gap-4" style="max-width: 1200px; padding: 0 20px;">
         <!-- Logo Section -->
-        <div class="header-brand-section d-none d-lg-flex align-items-center gap-2 pointer" @onclick='() => Navigation.NavigateTo("/")'>
+        <div class="header-brand-section d-flex align-items-center gap-2 pointer" @onclick='() => Navigation.NavigateTo("/")'>
             @if (!string.IsNullOrEmpty(State.AppLogo))
             {
-                <img src="@State.AppLogo" alt="Logo" style="height: 35px; width: auto;" />
+                <img src="@State.GetAbsoluteUrl(State.AppLogo)" alt="Logo" style="height: 35px; width: auto;" />
             }
             else
             {

@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Maui;
+using CommunityToolkit.Maui;
 using Khadamat.MobileApp.Services;
 using Khadamat.MobileApp.Security;
 using Khadamat.Shared.Interfaces;
@@ -81,6 +81,8 @@ public static class MauiProgram
         builder.Services.AddScoped<IBiometricService, MauiBiometricService>();
         // Mobile specific services
         builder.Services.AddHttpClient();
+        builder.Services.AddSingleton<ViewModels.ShellViewModel>();
+        builder.Services.AddSingleton<AppShell>();
         
         // Connectivity
         builder.Services.AddSingleton<IConnectivity>(Connectivity.Current);

@@ -19,14 +19,49 @@
         <span>الرسائل</span>
     </NavLink>
     
-    <NavLink class="nav-item" href="client/clientprofile">
-        <i class="fa-solid fa-user"></i>
-        <span>حسابي</span>
-    </NavLink>
+    @if (AppState.IsAuthenticated)
+    {
+        <button class="nav-item" @onclick='() => Navigate("/profile")'>
+            <div class="nav-avatar-wrapper">
+                <img src="@AppState.UserImageUrl" class="nav-user-avatar" alt="User" />
+            </div>
+            <span>@GetFirstName(AppState.UserName)</span>
+        </button>
+        <button class="nav-item text-danger" @onclick="HandleLogout">
+            <i class="fa-solid fa-power-off"></i>
+            <span>خروج</span>
+        </button>
+    }
+    else
+    {
+        <NavLink class="nav-item" href="login">
+            <i class="fa-solid fa-user"></i>
+            <span>دخول</span>
+        </NavLink>
+    }
 </div>
 
-@code {
+@inject NavigationManager Navigation
+@inject Khadamat.BlazorUI.State.AppState AppState
+@inject Khadamat.BlazorUI.Services.Auth.IAuthService AuthService
 
+@code {
+    private void Navigate(string path)
+    {
+        Navigation.NavigateTo(path);
+    }
+
+    private string GetFirstName(string fullName)
+    {
+        if (string.IsNullOrEmpty(fullName)) return "حسابي";
+        return fullName.Split(' ')[0];
+    }
+
+    private async Task HandleLogout()
+    {
+        await AuthService.Logout();
+        Navigation.NavigateTo("/login");
+    }
 }
 
 <style>
@@ -80,6 +115,28 @@
 
         .nav-item span {
             display: block !important;
+        }
+
+        .nav-avatar-wrapper {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 2px;
+        }
+
+        .nav-user-avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1.5px solid var(--theme-primary, #8e2de2);
+        }
+
+        .nav-item button {
+            background: none;
+            border: none;
+            padding: 0;
+            color: inherit;
+            font: inherit;
         }
     }
 </style>

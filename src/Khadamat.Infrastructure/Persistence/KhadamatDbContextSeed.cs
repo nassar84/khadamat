@@ -354,32 +354,85 @@ public static class KhadamatDbContextSeed
     {
         var mainCats = await context.MainCategories.ToDictionaryAsync(m => m.Name);
 
-        if (mainCats.TryGetValue("حرفيون", out var crafts))
-        {
-            var cats = new List<Category> { new Category { Name = "سباكة", MainCategoryId = crafts.Id }, new Category { Name = "كهرباء", MainCategoryId = crafts.Id } };
-            await context.Categories.AddRangeAsync(cats);
-            await context.SaveChangesAsync();
-
-            await context.SubCategories.AddRangeAsync(
-                new SubCategory { Name = "تأسيس سباكة", CategoryId = cats[0].Id },
-                new SubCategory { Name = "صيانة أدوات صحية", CategoryId = cats[0].Id },
-                new SubCategory { Name = "تركيب نجفات", CategoryId = cats[1].Id }
-            );
-        }
-
+        // 1. صحة (Health)
         if (mainCats.TryGetValue("صحة", out var health))
         {
-            var cats = new List<Category> { new Category { Name = "عيادات", MainCategoryId = health.Id } };
-            await context.Categories.AddRangeAsync(cats);
-            await context.SaveChangesAsync();
+            var healthData = new Dictionary<string, List<string>>
+            {
+                { "عيادات", new List<string> { "اسنان", "اطفال", "عيون", "جلدية", "باطنة", "عظام", "مخ واعصاب", "انف واذن وحنجرة" } },
+                { "صيدليات", new List<string> { "صيدلية 24 ساعة", "صيدلية منزلية", "مستلزمات طبية" } },
+                { "مستشفيات", new List<string> { "مستشفى عام", "مركز جراحة", "طوارئ" } },
+                { "معامل تحاليل", new List<string> { "تحاليل دم", "تحاليل شاملة", "مسحات" } },
+                { "مراكز اشعة", new List<string> { "اشعة مقطعية", "سونار", "رنين مغناطيسي" } }
+            };
+            await SeedSectionAsync(context, health.Id, healthData);
+        }
 
-            await context.SubCategories.AddRangeAsync(
-                new SubCategory { Name = "اسنان", CategoryId = cats[0].Id },
-                new SubCategory { Name = "اطفال", CategoryId = cats[0].Id }
-            );
+        // 2. تعليم (Education)
+        if (mainCats.TryGetValue("تعليم", out var education))
+        {
+            var eduData = new Dictionary<string, List<string>>
+            {
+                { "دروس خصوصية", new List<string> { "ابتدائي", "اعدادي", "ثانوي", "لغات", "مواد علمية", "مواد ادبية" } },
+                { "كورسات", new List<string> { "برمجة", "لغة انجليزية", "لغة المانية", "فوتوشوب", "جرافيك ديزاين", "تسويق الكتروني" } },
+                { "حضانات", new List<string> { "حضانة لغات", "تنمية مهارات", "تخاطب" } },
+                { "مراكز تدريب", new List<string> { "تنمية بشرية", "ادارة اعمال", "محاسبة" } }
+            };
+            await SeedSectionAsync(context, education.Id, eduData);
+        }
+
+        // 3. حرفيون (Craftsmen)
+        if (mainCats.TryGetValue("حرفيون", out var crafts))
+        {
+            var craftsData = new Dictionary<string, List<string>>
+            {
+                { "سباكة", new List<string> { "تأسيس سباكة", "صيانة اعطال", "تركيب ادوات صحية", "تسليك بلاعات" } },
+                { "كهرباء", new List<string> { "تأسيس كهرباء", "تركيب نجفات", "صيانة اجهزة", "لوحات توزيع" } },
+                { "نجارة", new List<string> { "تصنيع اثاث", "تصليح ابواب", "تجديد مطابخ", "فك وتركيب" } },
+                { "نقاشة ودهانات", new List<string> { "دهانات داخلية", "ديكورات جبس", "ورق حائط" } },
+                { "صيانة اجهزة منزلية", new List<string> { "ثلاجات", "غسالات", "تكييفات", "بوتاجازات" } }
+            };
+            await SeedSectionAsync(context, crafts.Id, craftsData);
+        }
+
+        // 4. مواصلات (Transportation)
+        if (mainCats.TryGetValue("مواصلات", out var transport))
+        {
+            var transportData = new Dictionary<string, List<string>>
+            {
+                { "توصيل طلبات", new List<string> { "دليفري مطاعم", "شحن محافظات", "توصيل هدايا" } },
+                { "نقل اثاث", new List<string> { "ونش رفع", "فك وتركيب اثاث", "سيارات نقل" } },
+                { "تاكسي ورحلات", new List<string> { "مشاوير خاصة", "توصيل مطار", "رحلات سياحية" } }
+            };
+            await SeedSectionAsync(context, transport.Id, transportData);
         }
 
         await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedSectionAsync(KhadamatDbContext context, int mainId, Dictionary<string, List<string>> data)
+    {
+        foreach (var categoryPair in data)
+        {
+            var catName = categoryPair.Key;
+            var subNames = categoryPair.Value;
+
+            var category = await context.Categories.FirstOrDefaultAsync(c => c.Name == catName && c.MainCategoryId == mainId);
+            if (category == null)
+            {
+                category = new Category { Name = catName, MainCategoryId = mainId };
+                context.Categories.Add(category);
+                await context.SaveChangesAsync();
+            }
+
+            foreach (var subName in subNames)
+            {
+                if (!await context.SubCategories.AnyAsync(s => s.Name == subName && s.CategoryId == category.Id))
+                {
+                    context.SubCategories.Add(new SubCategory { Name = subName, CategoryId = category.Id });
+                }
+            }
+        }
     }
 
     private static async Task SeedLocationsAsync(KhadamatDbContext context)
