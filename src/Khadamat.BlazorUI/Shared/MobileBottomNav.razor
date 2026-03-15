@@ -6,12 +6,12 @@
 <nav class="bottom-nav">
 @if (State.IsProviderMode)
 {
-    <button class="nav-item @GetActiveClass("/provider/dashboard")" @onclick='() => Navigate("/provider/dashboard")'>
-        <i class="fa-solid fa-chart-line"></i>
+    <button class="nav-item @GetActiveClass("/")" @onclick='() => Navigate("/")'>
+        <i class="fa-solid fa-house"></i>
         <span>الرئيسية</span>
     </button>
     
-    <button class="nav-item @GetActiveClass("/provider/myservices")" @onclick='() => Navigate("/provider/myservices")'>
+    <button class="nav-item @GetActiveClass("/provider/my-services")" @onclick='() => Navigate("/provider/my-services")'>
         <i class="fa-solid fa-briefcase"></i>
         <span>خدماتي</span>
     </button>
@@ -21,10 +21,6 @@
         <span>تبديل</span>
     </button>
 
-    <button class="nav-item @GetActiveClass("/provider/messages")" @onclick='() => Navigate("/provider/messages")'>
-        <i class="fa-solid fa-message"></i>
-        <span>الرسائل</span>
-    </button>
     
     <button class="nav-item @GetActiveClass("/profile")" @onclick='() => Navigate("/profile")'>
         <i class="fa-solid fa-user-gear"></i>

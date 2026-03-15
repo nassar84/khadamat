@@ -12,6 +12,7 @@ public class SignalRClientService
     private readonly AppState _appState;
     private readonly Khadamat.Shared.Interfaces.ISecureStorageService _secureStorage;
     private readonly NavigationManager _navigation;
+    private readonly SoundService _soundService;
     private string _apiBaseUrl = "http://localhost:5144"; // Default dev
 
     public event Action<string, string>? NotificationReceived;
@@ -20,11 +21,13 @@ public class SignalRClientService
     public SignalRClientService(AppState appState, 
                                 Khadamat.Shared.Interfaces.ISecureStorageService secureStorage,
                                 NavigationManager navigation,
-                                HttpClient http)
+                                HttpClient http,
+                                SoundService soundService)
     {
         _appState = appState;
         _secureStorage = secureStorage;
         _navigation = navigation;
+        _soundService = soundService;
         if (http.BaseAddress != null)
         {
             _apiBaseUrl = http.BaseAddress.ToString().TrimEnd('/');
@@ -47,6 +50,7 @@ public class SignalRClientService
 
         _notificationHub.On<string, string>("ReceiveNotification", (title, message) =>
         {
+            _ = _soundService.PlayNotificationAsync();
             NotificationReceived?.Invoke(title, message);
             _appState.HasUnreadNotifications = true; // Simple flag in AppState
             _appState.TriggerStateChanged();
@@ -62,6 +66,7 @@ public class SignalRClientService
 
         _chatHub.On<MessageDto>("ReceiveMessage", (message) =>
         {
+            _ = _soundService.PlayMessageAsync();
             MessageReceived?.Invoke(message);
             _appState.HasUnreadMessages = true;
             _appState.TriggerStateChanged();

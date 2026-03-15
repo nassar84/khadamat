@@ -5,6 +5,7 @@ using Khadamat.Application.Common.Models;
 using Microsoft.AspNetCore.Components.Authorization;
 using Khadamat.BlazorUI.State;
 using Khadamat.BlazorUI.Helpers;
+using Microsoft.JSInterop;
 
 namespace Khadamat.BlazorUI.Services.Auth;
 
@@ -32,11 +33,16 @@ public class AuthService : IAuthService
         _js = js;
     }
 
-    private async Task NotifyNativeApp(string message)
+    private async Task NotifyNativeApp(string message, string? data = null)
     {
         try
         {
-            await _js.InvokeVoidAsync("window.chrome.webview.postMessage", message);
+            var url = $"khadamat://auth/{message}";
+            if (!string.IsNullOrEmpty(data))
+            {
+                url += $"?data={Uri.EscapeDataString(data)}";
+            }
+            await _js.InvokeVoidAsync("eval", $"window.location.href = '{url}'");
         }
         catch { /* Fallback or ignore if not in native webview */ }
     }
@@ -57,6 +63,10 @@ public class AuthService : IAuthService
 
                 ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsAuthenticated(result.Data.Token);
                 await NotifyNativeApp("auth_success");
+                
+                // Fetch full profile immediately to populate AppState before returning
+                await GetProfileAsync(); 
+                
                 return result.Data;
             }
         }
@@ -95,6 +105,12 @@ public class AuthService : IAuthService
                 _appState.CityId = p.CityId;
                 _appState.GovernorateId = p.GovernorateId;
                 _appState.PhoneNumber = p.PhoneNumber;
+
+                // Notify native app with full profile data
+                var roles = string.Join(",", p.Roles);
+                var is_admin = p.Roles.Any(r => r == "SystemAdmin" || r == "SuperAdmin").ToString().ToLower();
+                var nativeData = $"name={p.UserName}&image={p.ImageUrl}&is_admin={is_admin}&is_provider={p.IsProvider.ToString().ToLower()}";
+                _ = NotifyNativeApp("auth_success", nativeData);
             }
             return response!;
         }
@@ -133,6 +149,10 @@ public class AuthService : IAuthService
 
         ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsAuthenticated(token);
         await NotifyNativeApp("auth_success");
+        
+        // Fetch full profile immediately
+        await GetProfileAsync();
+
         return true;
     }
 
@@ -144,6 +164,9 @@ public class AuthService : IAuthService
             _appState.UserToken = token;
             ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsAuthenticated(token);
             await NotifyNativeApp("auth_success");
+            
+            // Try to load profile in background
+            _ = GetProfileAsync();
         }
     }
 }

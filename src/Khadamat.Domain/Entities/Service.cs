@@ -152,4 +152,11 @@ public class Service : BaseEntity
     {
         CityId = cityId;
     }
+
+    public void ReassignOwner(int providerProfileId, string userId)
+    {
+        ProviderProfileId = providerProfileId;
+        UserCreated = userId;
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

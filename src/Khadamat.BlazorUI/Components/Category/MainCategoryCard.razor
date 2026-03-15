@@ -5,13 +5,13 @@
     <div class="icon-box-large mb-3 mx-auto overflow-hidden">
         @if (!string.IsNullOrEmpty(Category.ImageUrl))
         {
-            <img src="@Api.GetAbsoluteUrl($"/images/maincategories/{Category.ImageUrl}")" 
-                 onerror="this.onerror=null;this.src='@Api.GetAbsoluteUrl("/images/maincategories/default.jpg")';"
+            <img src="/images/maincategories/@Category.ImageUrl" 
+                 onerror="this.onerror=null;this.src='/images/maincategories/default.jpg';"
                  class="w-100 h-100 object-fit-cover" />
         }
         else
         {
-            <img src="@Api.GetAbsoluteUrl("/images/maincategories/default.jpg")" class="w-100 h-100 object-fit-cover" />
+            <img src="/images/maincategories/default.jpg" class="w-100 h-100 object-fit-cover" />
         }
     </div>
     <div class="fw-bold fs-5">@Category.Name</div>

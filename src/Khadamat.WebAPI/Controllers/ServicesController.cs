@@ -102,4 +102,20 @@ public class ServicesController : ControllerBase
         
         return Ok(result);
     }
+
+    [HttpPost("{id}/request-edit")]
+    [Authorize]
+    public async Task<IActionResult> RequestEdit(int id, [FromBody] CreateServiceEditRequestCommand command)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        if (id != command.ServiceId) return BadRequest("ID mismatch");
+
+        command.RequesterId = userId;
+        var result = await _mediator.Send(command);
+        
+        if (!result) return NotFound();
+        return Ok(new { message = "تم إرسال طلب التعديل بنجاح" });
+    }
 }

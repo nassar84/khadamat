@@ -16,6 +16,7 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Category> Categories { get; set; }
     public DbSet<SubCategory> SubCategories { get; set; }
     public DbSet<Service> Services { get; set; }
+    public DbSet<ServiceEditRequest> ServiceEditRequests { get; set; }
     public DbSet<Rating> Ratings { get; set; }
     public DbSet<Like> Likes { get; set; }
     public DbSet<Post> Posts { get; set; }

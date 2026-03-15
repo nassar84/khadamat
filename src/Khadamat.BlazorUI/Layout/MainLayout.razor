@@ -135,6 +135,7 @@
 @inject Khadamat.BlazorUI.Services.ApiClient Api
 @inject Khadamat.BlazorUI.Services.SignalRClientService SignalRService
 @inject IJSRuntime JS
+@inject Khadamat.BlazorUI.Services.SoundService SoundService
 
 @code {
     private bool isSidebarCollapsed = false;
@@ -298,6 +299,8 @@
             {
                 // Check sessionStorage for mobile/native mode flags (JS is now available)
                 await CheckMobileModeAsync();
+                
+                await SoundService.PlayStartupAsync();
                 
                 _ = LoadInitialDataAsync(); // Trigger background load without awaiting it here
                 

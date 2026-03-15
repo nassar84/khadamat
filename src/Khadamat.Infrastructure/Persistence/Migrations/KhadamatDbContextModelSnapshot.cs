@@ -37,6 +37,9 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal>("AmountPaid")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<bool>("Approved")
                         .HasColumnType("bit");
 
@@ -89,6 +92,9 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.Property<string>("RedirectUrl")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("ServiceID")
+                        .HasColumnType("int");
+
                     b.Property<bool>("ShowImage")
                         .HasColumnType("bit");
 
@@ -105,6 +111,9 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TargetDays")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TargetDeepSubCategories")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TargetGovernorates")
@@ -153,6 +162,8 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryID");
+
+                    b.HasIndex("ServiceID");
 
                     b.HasIndex("SubCategoryID");
 
@@ -639,12 +650,18 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.Property<string>("RedirectUrl")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("ServiceId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("SubCategoryId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -663,6 +680,10 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.HasIndex("CategoryId");
 
                     b.HasIndex("CityId");
+
+                    b.HasIndex("ServiceId");
+
+                    b.HasIndex("SubCategoryId");
 
                     b.ToTable("Advertisements");
                 });
@@ -2300,6 +2321,72 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.ToTable("Services");
                 });
 
+            modelBuilder.Entity("Khadamat.Domain.Entities.ServiceEditRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ProposedAddress")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProposedDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProposedName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProposedPhone1")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("ProposedPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RequesterId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ServiceId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServiceId");
+
+                    b.ToTable("ServiceEditRequests");
+                });
+
             modelBuilder.Entity("Khadamat.Domain.Entities.ServiceRequest", b =>
                 {
                     b.Property<int>("Id")
@@ -2780,11 +2867,17 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("CategoryID");
 
+                    b.HasOne("Khadamat.Domain.Entities.Service", "Service")
+                        .WithMany()
+                        .HasForeignKey("ServiceID");
+
                     b.HasOne("Khadamat.Domain.Entities.SubCategory", "SubCategory")
                         .WithMany()
                         .HasForeignKey("SubCategoryID");
 
                     b.Navigation("Category");
+
+                    b.Navigation("Service");
 
                     b.Navigation("SubCategory");
                 });
@@ -2872,11 +2965,25 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                         .HasForeignKey("CityId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("Khadamat.Domain.Entities.Service", "Service")
+                        .WithMany()
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Khadamat.Domain.Entities.SubCategory", "SubCategory")
+                        .WithMany()
+                        .HasForeignKey("SubCategoryId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Campaign");
 
                     b.Navigation("Category");
 
                     b.Navigation("City");
+
+                    b.Navigation("Service");
+
+                    b.Navigation("SubCategory");
                 });
 
             modelBuilder.Entity("Khadamat.Domain.Entities.Category", b =>
@@ -3115,6 +3222,17 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.Navigation("ProviderProfile");
 
                     b.Navigation("SubCategory");
+                });
+
+            modelBuilder.Entity("Khadamat.Domain.Entities.ServiceEditRequest", b =>
+                {
+                    b.HasOne("Khadamat.Domain.Entities.Service", "Service")
+                        .WithMany()
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Service");
                 });
 
             modelBuilder.Entity("Khadamat.Domain.Entities.ServiceRequest", b =>

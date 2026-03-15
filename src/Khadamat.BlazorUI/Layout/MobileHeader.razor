@@ -61,16 +61,17 @@
                 }
             </div>
 
+            <!-- Messages -->
+            <div class="icon-btn-minimal" @onclick='() => NavigateTo("/user/messages")' title="الرسائل">
+                <i class="fa-solid fa-message text-primary"></i>
+                @if (State.HasUnreadMessages)
+                {
+                    <span class="badge-dot danger"></span>
+                }
+            </div>
+
             <AuthorizeView>
                 <Authorized>
-                    <!-- Messages -->
-                    <div class="icon-btn-minimal" @onclick='() => NavigateTo("/user/messages")' title="الرسائل">
-                        <i class="fa-regular fa-envelope"></i>
-                        @if (State.HasUnreadMessages)
-                        {
-                            <span class="badge-dot danger"></span>
-                        }
-                    </div>
 
                     <!-- Notifications -->
                     <div class="icon-btn-minimal" @onclick='() => NavigateTo("/user/notifications")' title="الإشعارات">

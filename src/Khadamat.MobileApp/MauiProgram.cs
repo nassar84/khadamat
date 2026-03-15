@@ -1,4 +1,5 @@
 using CommunityToolkit.Maui;
+using Plugin.Maui.Audio;
 using Khadamat.MobileApp.Services;
 using Khadamat.MobileApp.Security;
 using Khadamat.Shared.Interfaces;
@@ -43,6 +44,7 @@ public static class MauiProgram
         builder
             .UseMauiApp<App>()
             .UseMauiCommunityToolkit()
+            .AddAudio()
             //.UseLocalNotification()
             .ConfigureFonts(fonts =>
             {
@@ -83,6 +85,7 @@ public static class MauiProgram
         builder.Services.AddHttpClient();
         builder.Services.AddSingleton<ViewModels.ShellViewModel>();
         builder.Services.AddSingleton<AppShell>();
+        builder.Services.AddSingleton<Views.WelcomePage>();
         
         // Connectivity
         builder.Services.AddSingleton<IConnectivity>(Connectivity.Current);

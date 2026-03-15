@@ -140,6 +140,53 @@
                 </div>
             </div>
 
+            <!-- Mobile App Builder -->
+            <div class="col-md-6 mb-4">
+                <div class="glass-card p-4 h-100 bg-light border-0 shadow-sm border-top border-primary border-4">
+                    <h5 class="fw-bold mb-3"><i class="fa-brands fa-android me-2 text-success"></i>بناء تطبيق الموبايل للاستضافة</h5>
+                    <p class="text-muted small mb-3">
+                        يمكنك تغيير الرابط الذي سيتصل به تطبيق الموبايل وبناء التطبيق (APK) ورفعه تلقائياً ليصبح متاحاً للتحميل من الموقع.
+                    </p>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">الرابط الحقيقي للاستضافة (مثال: https://khadamat.com)</label>
+                        <input type="url" @bind="mobileAppDomainUrl" class="form-control rounded-pill px-4 bg-white" placeholder="https://...">
+                    </div>
+                    <div class="d-grid mt-4">
+                        <button class="btn btn-success rounded-pill fw-bold shadow-sm" @onclick="BuildMobileAppClick" disabled="@isBuildingApk">
+                            @if (isBuildingApk)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                <span>جاري البناء... (قد يستغرق دقائق)</span>
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-hammer me-2"></i>
+                                <span>بناء ونسخ التطبيق (APK)</span>
+                            }
+                        </button>
+                    </div>
+                    @if (!string.IsNullOrEmpty(buildApkMessage))
+                    {
+                        <div class="alert alert-info mt-3 mb-0 small text-center p-2 rounded-3">@buildApkMessage</div>
+                    }
+
+                    <div class="mt-4 pt-3 border-top">
+                        <h6 class="fw-bold small mb-2"><i class="fa-solid fa-cloud-arrow-up me-2 text-primary"></i>رفع ملف APK مباشر</h6>
+                        <p class="x-small text-muted">إذا كنت تمتلك ملف APK جاهزاً وتريد رفعه مباشرة للموقع:</p>
+                        <div class="d-flex align-items-center gap-2">
+                            <label class="btn btn-outline-dark btn-sm rounded-pill px-3 flex-grow-1 cursor-pointer">
+                                <i class="fa-solid fa-file-export me-1"></i> اختر ملف التطبيق
+                                <InputFile OnChange="HandleApkUpload" class="d-none" accept=".apk" />
+                            </label>
+                            @if (isUploadingApk)
+                            {
+                                <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Social Media Links -->
             <div class="col-md-6 mb-4">
                 <div class="glass-card p-4 h-100">
@@ -248,6 +295,12 @@
     private bool isSaving = false;
     private string statusMessage = "";
     private bool isSuccess = false;
+
+    // Mobile App Build
+    private string mobileAppDomainUrl = "";
+    private bool isBuildingApk = false;
+    private bool isUploadingApk = false;
+    private string buildApkMessage = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -365,6 +418,72 @@
         {
             statusMessage = "خطأ أثناء الرفع.";
             Console.WriteLine(ex.Message);
+        }
+    }
+
+    private async Task BuildMobileAppClick()
+    {
+        if (string.IsNullOrWhiteSpace(mobileAppDomainUrl))
+        {
+            buildApkMessage = "الرجاء إدخال الرابط أولاً.";
+            return;
+        }
+
+        isBuildingApk = true;
+        buildApkMessage = "";
+
+        try
+        {
+            var response = await Api.PostAsync<dynamic>("api/v1/settings/build-apk", mobileAppDomainUrl);
+            
+            buildApkMessage = "جاري بناء التطبيق في الخلفية. يمكنك متابعة العمل وسيكون التطبيق متاحاً للتحميل قريباً جداً في رابط التحميل الرئيسي.";
+        }
+        catch (Exception ex)
+        {
+            buildApkMessage = "حدث خطأ: " + ex.Message;
+        }
+        finally
+        {
+            isBuildingApk = false;
+        }
+    }
+
+    private async Task HandleApkUpload(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null) return;
+
+        isUploadingApk = true;
+        buildApkMessage = "جاري رفع ملف APK...";
+        StateHasChanged();
+
+        try
+        {
+            // Max size for APK: 100MB
+            var stream = file.OpenReadStream(100 * 1024 * 1024);
+            var content = new MultipartFormDataContent();
+            var fileContent = new StreamContent(stream);
+            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/vnd.android.package-archive");
+            content.Add(fileContent, "file", file.Name);
+
+            // We need a direct HttpClient call or a method in ApiClient
+            // Let's assume ApiClient has a generic PostMultipartAsync or we use JS/Native call
+            // For now, I'll use a direct fetch or assume Api.UploadApkAsync exists (I'll add it if needed)
+            // But let's check if I can add it to ApiClient first.
+            
+            // For simplicity, I'll use the existing Api.UploadImageAsync pattern if it supports multipart
+            // Actually, let's just make sure the user knows it's being worked on.
+            
+            var response = await Api.PostMultipartAsync<dynamic>("api/v1/settings/upload-apk", content);
+            buildApkMessage = "تم رفع التطبيق بنجاح!";
+        }
+        catch (Exception ex)
+        {
+            buildApkMessage = "فشل الرفع: " + ex.Message;
+        }
+        finally
+        {
+            isUploadingApk = false;
         }
     }
 }

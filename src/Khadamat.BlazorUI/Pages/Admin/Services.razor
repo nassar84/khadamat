@@ -72,6 +72,9 @@
                                     <button class="btn btn-sm btn-light border text-primary" title="تعديل" @onclick:stopPropagation="true" @onclick="() => OpenEditService(n)">
                                         <i class="fa-solid fa-pen x-small"></i>
                                     </button>
+                                    <button class="btn btn-sm btn-light border text-secondary" title="ربط بمستخدم" @onclick:stopPropagation="true" @onclick="() => OpenChangeOwner(n)">
+                                        <i class="fa-solid fa-user-link x-small"></i>
+                                    </button>
                                     @if (!n.IsApproved)
                                     {
                                         <button class="btn btn-sm btn-light border text-success" title="اعتماد" @onclick:stopPropagation="true" @onclick="() => Approve(n)">
@@ -109,6 +112,32 @@
                         Id="@(editServiceId)"
                         OnSave="SaveChanges"
                         OnCancel="() => showEditModal = false" />
+        </div>
+    </div>
+}
+
+@if (showChangeOwnerModal)
+{
+    <div class="modal-overlay" @onclick="() => showChangeOwnerModal = false">
+        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop" style="max-width: 500px;" @onclick:stopPropagation="true">
+            <h5 class="fw-bold mb-4">ربط الخدمة بمستخدم موجود</h5>
+            <div class="mb-3">
+                <label class="form-label small fw-bold">اختر المستخدم</label>
+                <select @bind="selectedUserIdForOwner" class="form-select">
+                    <option value="">-- اختر مستخدم --</option>
+                    @foreach (var user in allUsers)
+                    {
+                        <option value="@user.Id">@user.FullName (@user.Email)</option>
+                    }
+                </select>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary-premium flex-grow-1 rounded-pill" disabled="@(string.IsNullOrEmpty(selectedUserIdForOwner) || isSavingOwner)" @onclick="SaveChangeOwner">
+                    @if (isSavingOwner) { <span class="spinner-border spinner-border-sm me-2"></span> }
+                    حفظ التغيير
+                </button>
+                <button class="btn btn-light flex-grow-1 rounded-pill" @onclick="() => showChangeOwnerModal = false">إلغاء</button>
+            </div>
         </div>
     </div>
 }
@@ -377,6 +406,53 @@
         finally
         {
             isSaving = false;
+        }
+    }
+
+    // --- Change Owner Logic ---
+    private bool showChangeOwnerModal = false;
+    private int serviceIdToChangeOwner;
+    private string selectedUserIdForOwner = "";
+    private bool isSavingOwner = false;
+    private List<UserDto> allUsers = new();
+
+    private async Task OpenChangeOwner(ServiceTreeNode node)
+    {
+        serviceIdToChangeOwner = node.Id;
+        showChangeOwnerModal = true;
+        selectedUserIdForOwner = "";
+        
+        if (!allUsers.Any())
+        {
+            try
+            {
+                allUsers = await AdminService.GetAllUsers();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Could not load users: " + ex.Message);
+            }
+        }
+    }
+
+    private async Task SaveChangeOwner()
+    {
+        if (string.IsNullOrEmpty(selectedUserIdForOwner)) return;
+        
+        isSavingOwner = true;
+        try
+        {
+            var success = await Api.PostAsync<dynamic>($"api/v1/admin/services/{serviceIdToChangeOwner}/change-owner", selectedUserIdForOwner);
+            await JS.InvokeVoidAsync("alert", "تم ربط الخدمة بالمستخدم بنجاح كمالك لها.");
+            showChangeOwnerModal = false;
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "خطأ في ربط المستخدم: " + ex.Message);
+        }
+        finally
+        {
+            isSavingOwner = false;
         }
     }
 }

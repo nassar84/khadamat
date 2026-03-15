@@ -51,56 +51,109 @@
             flex-direction: column;
         }
 
-        .loading-progress {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80px;
-            height: 80px;
+        .skeleton-container {
+            padding: 15px;
+            background-color: #f8fafc;
+            min-height: 100vh;
         }
 
-        .loading-progress circle {
-            fill: none;
-            stroke: var(--primary-color);
-            stroke-width: 6;
-            stroke-linecap: round;
-            stroke-dasharray: 1, 200;
-            stroke-dashoffset: 0;
-            animation: dash 1.5s ease-in-out infinite;
+        .skeleton-shimmer {
+            background: linear-gradient(90deg, #edf2f7 25%, #e2e8f0 50%, #edf2f7 75%);
+            background-size: 200% 100%;
+            animation: skeleton-shimmer 1.5s infinite linear;
+            border-radius: 8px;
         }
 
-        @keyframes dash {
-            0% {
-                stroke-dasharray: 1, 200;
-                stroke-dashoffset: 0;
-            }
-
-            50% {
-                stroke-dasharray: 89, 200;
-                stroke-dashoffset: -35;
-            }
-
-            100% {
-                stroke-dasharray: 89, 200;
-                stroke-dashoffset: -124;
-            }
+        @keyframes skeleton-shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
         }
+
+        .skeleton-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            gap: 10px;
+        }
+
+        .skeleton-circle {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .skeleton-search {
+            flex-grow: 1;
+            height: 45px;
+            border-radius: 25px;
+        }
+
+        .skeleton-marquee {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .skeleton-icon {
+            width: 65px;
+            height: 65px;
+            border-radius: 20px;
+            flex-shrink: 0;
+        }
+
+        .skeleton-hero {
+            height: 160px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+
+        .skeleton-section-title {
+            margin-bottom: 15px;
+        }
+
+        .skeleton-title-box {
+            width: 120px;
+            height: 20px;
+        }
+
+        .skeleton-cards-row {
+            display: flex;
+            gap: 15px;
+            overflow: hidden;
+        }
+
+        .skeleton-card {
+            flex: 1;
+            min-width: 250px;
+            background: white;
+            padding: 12px;
+            border-radius: 20px;
+            border: 1px solid #edf2f7;
+        }
+
+        .skeleton-card-img {
+            aspect-ratio: 16/9;
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+
+        .skeleton-card-line {
+            height: 12px;
+            margin-bottom: 8px;
+        }
+
+        .w-75 { width: 75%; }
+        .w-50 { width: 50%; }
     </style>
 </head>
 
 <body>
-    <div id="app">
-        <div id="loading-container" class="loading-progress-container">
-            <svg class="loading-progress">
-                <circle cx="40" cy="40" r="35" />
-            </svg>
-            <div
-                style="position: fixed; top: 60%; width: 100%; text-align: center; color: var(--primary-color); font-weight: 500;">
-                جاري التحميل...
-            </div>
-        </div>
-    </div>
+    <div id="app"></div>
     
     <script>
         window.hideLoadingScreen = () => {

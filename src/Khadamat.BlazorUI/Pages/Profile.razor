@@ -3,7 +3,9 @@
 @using Khadamat.BlazorUI.Services
 @using Khadamat.BlazorUI.Services.Auth
 @using Khadamat.BlazorUI.State
+@using Microsoft.AspNetCore.Components.Authorization
 @inject IAuthService AuthService
+@inject AuthenticationStateProvider AuthStateProvider
 @inject ApiClient Api
 @inject NavigationManager Navigation
 @inject AppState AppState
@@ -286,7 +288,7 @@
                 </div>
             </div>
         }
-        else
+        else if (!isLoading && profile == null) 
         {
             <div class="text-center py-5">
                 <i class="fa-solid fa-circle-exclamation text-danger fs-1 mb-3"></i>
@@ -409,6 +411,13 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // If user is not authenticated, redirect to login page immediately
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState?.User?.Identity?.IsAuthenticated != true)
+        {
+            Navigation.NavigateTo("/login", forceLoad: false);
+            return;
+        }
         await LoadData();
     }
 

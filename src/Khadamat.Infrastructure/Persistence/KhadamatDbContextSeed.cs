@@ -318,31 +318,31 @@ public static class KhadamatDbContextSeed
 
     private static async Task SeedMarketplaceCategoriesAsync(KhadamatDbContext context)
     {
-        var marketplaceData = new Dictionary<string, List<string>>
+        var marketplaceData = new List<(string Name, string Icon, List<string> Subs)>
         {
-            { "الأثاث", new List<string> { "غرف نوم", "غرف معيشة", "سفرة وطاولات", "كراسي ومكاتب", "أثاث مكتبي", "أثاث أطفال", "أثاث خارجي", "أثاث مستعمل", "أثاث جديد" } },
-            { "الأجهزة الإلكترونية", new List<string> { "موبايلات", "تابلت", "لابتوب", "كمبيوتر مكتبي", "شاشات", "طابعات", "كاميرات", "سماعات", "أجهزة ألعاب" } },
-            { "الأجهزة المنزلية", new List<string> { "ثلاجات", "غسالات", "بوتاجازات", "ميكروويف", "تكييفات", "مراوح", "سخانات", "أجهزة مطبخ صغيرة" } },
-            { "السيارات والمركبات", new List<string> { "سيارات", "موتوسيكلات", "دراجات", "قطع غيار", "إكسسوارات سيارات" } },
-            { "الحيوانات الأليفة", new List<string> { "كلاب", "قطط", "طيور", "أسماك", "أدوات الحيوانات", "طعام الحيوانات" } },
-            { "الملابس والأزياء", new List<string> { "ملابس رجالي", "ملابس نسائي", "ملابس أطفال", "أحذية", "شنط", "إكسسوارات", "ساعات" } },
-            { "ألعاب وأطفال", new List<string> { "ألعاب أطفال", "عربيات أطفال", "سرير أطفال", "ملابس أطفال", "أدوات تعليمية" } },
-            { "أدوات رياضية", new List<string> { "أجهزة رياضية منزلية", "أثقال", "أدوات جيم", "دراجات رياضية", "ملابس رياضية" } },
-            { "كتب وأدوات تعليمية", new List<string> { "كتب مدرسية", "كتب جامعية", "روايات", "أدوات مكتبية" } },
-            { "أدوات منزلية", new List<string> { "أدوات مطبخ", "أدوات ديكور", "سجاد", "ستائر", "إضاءة" } },
-            { "أدوات ومعدات", new List<string> { "أدوات كهربائية", "أدوات يدوية", "معدات صناعية" } },
-            { "أشياء متنوعة", new List<string> { "أخرى" } }
+            ( "الأثاث", "🛋️", new List<string> { "غرف نوم", "غرف معيشة", "سفرة وطاولات", "كراسي ومكاتب", "أثاث مكتبي", "أثاث أطفال", "أثاث خارجي", "أثاث مستعمل", "أثاث جديد" } ),
+            ( "الأجهزة الإلكترونية", "📱", new List<string> { "موبايلات", "تابلت", "لابتوب", "كمبيوتر مكتبي", "شاشات", "طابعات", "كاميرات", "سماعات", "أجهزة ألعاب" } ),
+            ( "الأجهزة المنزلية", "🏠", new List<string> { "ثلاجات", "غسالات", "بوتاجازات", "ميكروويف", "تكييفات", "مراوح", "سخانات", "أجهزة مطبخ صغيرة" } ),
+            ( "السيارات والمركبات", "🚗", new List<string> { "سيارات", "موتوسيكلات", "دراجات", "قطع غيار", "إكسسوارات سيارات" } ),
+            ( "الحيوانات الأليفة", "🐾", new List<string> { "كلاب", "قطط", "طيور", "أسماك", "أدوات الحيوانات", "طعام الحيوانات" } ),
+            ( "الملابس والأزياء", "👕", new List<string> { "ملابس رجالي", "ملابس نسائي", "ملابس أطفال", "أحذية", "شنط", "إكسسوارات", "ساعات" } ),
+            ( "ألعاب وأطفال", "🧸", new List<string> { "ألعاب أطفال", "عربيات أطفال", "سرير أطفال", "ملابس أطفال", "أدوات تعليمية" } ),
+            ( "أدوات رياضية", "⚽", new List<string> { "أجهزة رياضية منزلية", "أثقال", "أدوات جيم", "دراجات رياضية", "ملابس رياضية" } ),
+            ( "كتب وأدوات تعليمية", "📚", new List<string> { "كتب مدرسية", "كتب جامعية", "روايات", "أدوات مكتبية" } ),
+            ( "أدوات منزلية", "🍳", new List<string> { "أدوات مطبخ", "أدوات ديكور", "سجاد", "ستائر", "إضاءة" } ),
+            ( "أدوات ومعدات", "🛠️", new List<string> { "أدوات كهربائية", "أدوات يدوية", "معدات صناعية" } ),
+            ( "أشياء متنوعة", "📦", new List<string> { "أخرى" } )
         };
 
         int displayOrder = 1;
-        foreach (var categoryPair in marketplaceData)
+        foreach (var item in marketplaceData)
         {
-            var category = new MarketplaceCategory { Name = categoryPair.Key, DisplayOrder = displayOrder++ };
+            var category = new MarketplaceCategory { Name = item.Name, Icon = item.Icon, DisplayOrder = displayOrder++ };
             await context.MarketplaceCategories.AddAsync(category);
             await context.SaveChangesAsync();
 
             int subOrder = 1;
-            foreach (var subName in categoryPair.Value)
+            foreach (var subName in item.Subs)
             {
                 await context.MarketplaceSubCategories.AddAsync(new MarketplaceSubCategory { Name = subName, CategoryId = category.Id, DisplayOrder = subOrder++ });
             }

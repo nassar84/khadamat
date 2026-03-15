@@ -1,0 +1,651 @@
+--------- beginning of main
+03-11 23:46:00.976  5785  5868 D EGL_emulation: app_time_stats: avg=6.10ms min=4.53ms max=9.47ms count=60
+03-11 23:46:01.994  5785  5868 D EGL_emulation: app_time_stats: avg=5.95ms min=4.41ms max=10.27ms count=61
+03-11 23:46:03.010  5785  5868 D EGL_emulation: app_time_stats: avg=5.59ms min=4.63ms max=10.21ms count=61
+03-11 23:46:03.918   731   928 D EGL_emulation: app_time_stats: avg=3899.29ms min=3899.29ms max=3899.29ms count=1
+03-11 23:46:04.025  5785  5868 D EGL_emulation: app_time_stats: avg=6.95ms min=4.56ms max=19.26ms count=61
+03-11 23:46:05.040  5785  5868 D EGL_emulation: app_time_stats: avg=6.20ms min=4.73ms max=12.93ms count=60
+03-11 23:46:06.040  5785  5868 D EGL_emulation: app_time_stats: avg=5.46ms min=4.49ms max=9.15ms count=60
+03-11 23:46:07.040  5785  5868 D EGL_emulation: app_time_stats: avg=5.29ms min=4.39ms max=8.35ms count=60
+03-11 23:46:08.041  5785  5868 D EGL_emulation: app_time_stats: avg=5.87ms min=4.64ms max=8.01ms count=60
+03-11 23:46:09.042  5785  5868 D EGL_emulation: app_time_stats: avg=6.89ms min=4.78ms max=18.71ms count=60
+03-11 23:46:10.057  5785  5868 D EGL_emulation: app_time_stats: avg=5.59ms min=4.59ms max=8.00ms count=61
+03-11 23:46:11.058  5785  5868 D EGL_emulation: app_time_stats: avg=5.74ms min=4.50ms max=8.41ms count=60
+03-11 23:46:12.076  5785  5868 D EGL_emulation: app_time_stats: avg=5.81ms min=4.65ms max=8.87ms count=61
+03-11 23:46:13.093  5785  5868 D EGL_emulation: app_time_stats: avg=5.39ms min=4.52ms max=10.06ms count=61
+03-11 23:46:14.109  5785  5868 D EGL_emulation: app_time_stats: avg=6.64ms min=4.60ms max=12.28ms count=61
+03-11 23:46:15.109  5785  5868 D EGL_emulation: app_time_stats: avg=6.12ms min=4.58ms max=9.22ms count=60
+03-11 23:46:16.110  5785  5868 D EGL_emulation: app_time_stats: avg=5.42ms min=4.43ms max=7.64ms count=60
+03-11 23:46:17.111  5785  5868 D EGL_emulation: app_time_stats: avg=5.95ms min=4.73ms max=11.96ms count=59
+--------- beginning of kernel
+03-11 23:46:17.232     0     0 I logd    : logdr: UID=2000 GID=2000 PID=6545 b tail=0 logMask=99 pid=0 start=0ns deadline=0ns
+03-11 23:46:18.124  5785  5868 D EGL_emulation: app_time_stats: avg=6.71ms min=4.89ms max=22.26ms count=60
+03-11 23:46:19.126  5785  5868 D EGL_emulation: app_time_stats: avg=7.57ms min=4.72ms max=19.89ms count=60
+03-11 23:46:20.142  5785  5868 D EGL_emulation: app_time_stats: avg=6.09ms min=4.60ms max=9.80ms count=61
+03-11 23:46:21.143  5785  5868 D EGL_emulation: app_time_stats: avg=5.70ms min=4.52ms max=8.73ms count=60
+03-11 23:46:22.160  5785  5868 D EGL_emulation: app_time_stats: avg=5.61ms min=4.66ms max=8.02ms count=61
+03-11 23:46:23.174  5785  5868 D EGL_emulation: app_time_stats: avg=5.51ms min=4.64ms max=7.77ms count=61
+03-11 23:46:24.175  5785  5868 D EGL_emulation: app_time_stats: avg=7.15ms min=5.01ms max=16.12ms count=60
+03-11 23:46:25.191  5785  5868 D EGL_emulation: app_time_stats: avg=6.02ms min=4.66ms max=10.54ms count=61
+03-11 23:46:26.191  5785  5868 D EGL_emulation: app_time_stats: avg=5.45ms min=4.68ms max=7.15ms count=60
+03-11 23:46:27.206  5785  5868 D EGL_emulation: app_time_stats: avg=5.54ms min=4.41ms max=8.01ms count=61
+03-11 23:46:28.207  5785  5868 D EGL_emulation: app_time_stats: avg=5.47ms min=4.47ms max=8.50ms count=60
+03-11 23:46:29.208  5785  5868 D EGL_emulation: app_time_stats: avg=6.99ms min=4.69ms max=17.10ms count=60
+03-11 23:46:30.223  5785  5868 D EGL_emulation: app_time_stats: avg=5.64ms min=4.41ms max=9.70ms count=61
+03-11 23:46:31.224  5785  5868 D EGL_emulation: app_time_stats: avg=6.03ms min=4.63ms max=20.98ms count=59
+03-11 23:46:32.225  5785  5868 D EGL_emulation: app_time_stats: avg=5.37ms min=4.59ms max=7.25ms count=60
+03-11 23:46:33.226  5785  5868 D EGL_emulation: app_time_stats: avg=5.80ms min=4.62ms max=8.24ms count=60
+03-11 23:46:34.227  5785  5868 D EGL_emulation: app_time_stats: avg=7.57ms min=5.04ms max=21.17ms count=60
+03-11 23:46:35.240  5785  5868 D EGL_emulation: app_time_stats: avg=5.78ms min=4.55ms max=13.16ms count=61
+03-11 23:46:36.242  5785  5868 D EGL_emulation: app_time_stats: avg=5.48ms min=4.44ms max=7.53ms count=60
+03-11 23:46:37.257  5785  5868 D EGL_emulation: app_time_stats: avg=5.52ms min=4.55ms max=9.40ms count=61
+03-11 23:46:38.259  5785  5868 D EGL_emulation: app_time_stats: avg=5.75ms min=4.62ms max=8.12ms count=60
+03-11 23:46:39.260  5785  5868 D EGL_emulation: app_time_stats: avg=7.28ms min=4.75ms max=20.23ms count=59
+03-11 23:46:40.276  5785  5868 D EGL_emulation: app_time_stats: avg=6.03ms min=4.52ms max=16.67ms count=61
+03-11 23:46:41.292  5785  5868 D EGL_emulation: app_time_stats: avg=5.72ms min=4.41ms max=9.94ms count=61
+03-11 23:46:42.339  5785  5868 D EGL_emulation: app_time_stats: avg=5.90ms min=4.58ms max=22.84ms count=61
+03-11 23:46:43.366  5785  5868 D EGL_emulation: app_time_stats: avg=6.52ms min=4.51ms max=43.86ms count=60
+03-11 23:46:43.425  6550  6550 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 2000 <<<<<<
+03-11 23:46:43.428  6550  6550 I AndroidRuntime: Using default boot image
+03-11 23:46:43.429  6550  6550 I AndroidRuntime: Leaving lock profiling enabled
+03-11 23:46:43.431  6550  6550 I app_process: Core platform API reporting enabled, enforcing=false
+03-11 23:46:43.431  6550  6550 I app_process: Using CollectorTypeCC GC.
+03-11 23:46:43.499  6550  6550 D app_process: Time zone APEX ICU file found: /apex/com.android.tzdata/etc/icu/icu_tzdata.dat
+03-11 23:46:43.499  6550  6550 D app_process: I18n APEX ICU file found: /apex/com.android.i18n/etc/icu/icudt70l.dat
+03-11 23:46:43.503  6550  6550 W app_process: Unexpected CPU variant for x86: x86_64.
+03-11 23:46:43.503  6550  6550 W app_process: Known variants: atom, sandybridge, silvermont, kabylake, default
+03-11 23:46:43.521  6550  6550 D AndroidRuntime: Calling main entry com.android.commands.monkey.Monkey
+03-11 23:46:43.522  6550  6550 W Monkey  : args: [-p, com.khadamat.app, -c, android.intent.category.LAUNCHER, 1]
+03-11 23:46:43.522  6550  6550 W Monkey  :  arg: "-p"
+03-11 23:46:43.523  6550  6550 W Monkey  :  arg: "com.khadamat.app"
+03-11 23:46:43.523  6550  6550 W Monkey  :  arg: "-c"
+03-11 23:46:43.523  6550  6550 W Monkey  :  arg: "android.intent.category.LAUNCHER"
+03-11 23:46:43.523  6550  6550 W Monkey  :  arg: "1"
+03-11 23:46:43.523  6550  6550 W Monkey  : data="com.khadamat.app"
+03-11 23:46:43.523  6550  6550 W Monkey  : data="android.intent.category.LAUNCHER"
+--------- beginning of system
+03-11 23:46:43.533   534   567 W BroadcastQueue: Skipping deliver [background] BroadcastRecord{a993015 u-1 android.net.conn.CONNECTIVITY_CHANGE} to ReceiverList{51e0f2a 6550 (unknown name)/2000/u-1 remote:5e393ff}: process gone or crashing
+03-11 23:46:43.540   534  2209 I ActivityTaskManager: START u0 {act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 cmp=com.khadamat.app/crc6471b8d43c21118a13.MainActivity} from uid 2000
+03-11 23:46:43.543  6550  6550 I Monkey  : Events injected: 1
+03-11 23:46:43.545  6550  6550 I Monkey  : ## Network stats: elapsed time=5ms (0ms mobile, 0ms wifi, 5ms not connected)
+03-11 23:46:43.546  6550  6550 I app_process: System.exit called, status: 0
+03-11 23:46:43.546  6550  6550 I AndroidRuntime: VM exiting with result code 0.
+03-11 23:46:44.375  5785  5868 D EGL_emulation: app_time_stats: avg=7.93ms min=5.67ms max=28.94ms count=60
+03-11 23:46:45.390  5785  5868 D EGL_emulation: app_time_stats: avg=5.53ms min=4.41ms max=8.33ms count=61
+03-11 23:46:46.392  5785  5868 D EGL_emulation: app_time_stats: avg=5.71ms min=4.56ms max=8.66ms count=60
+03-11 23:46:47.392  5785  5868 D EGL_emulation: app_time_stats: avg=5.80ms min=4.71ms max=9.24ms count=60
+03-11 23:46:48.398  5785  5868 D EGL_emulation: app_time_stats: avg=6.37ms min=4.68ms max=22.70ms count=60
+03-11 23:46:49.408  5785  5868 D EGL_emulation: app_time_stats: avg=6.76ms min=5.08ms max=12.53ms count=61
+03-11 23:46:50.409  5785  5868 D EGL_emulation: app_time_stats: avg=5.61ms min=4.36ms max=10.31ms count=60
+03-11 23:46:51.423  5785  5868 D EGL_emulation: app_time_stats: avg=5.66ms min=4.60ms max=8.70ms count=61
+03-11 23:46:52.423  5785  5868 D EGL_emulation: app_time_stats: avg=5.37ms min=4.59ms max=8.64ms count=60
+03-11 23:46:53.427  5785  5868 D EGL_emulation: app_time_stats: avg=6.36ms min=4.35ms max=17.28ms count=60
+03-11 23:46:54.442  5785  5868 D EGL_emulation: app_time_stats: avg=6.66ms min=5.29ms max=9.95ms count=61
+03-11 23:46:55.457  5785  5868 D EGL_emulation: app_time_stats: avg=6.00ms min=4.41ms max=31.15ms count=60
+03-11 23:46:56.458  5785  5868 D EGL_emulation: app_time_stats: avg=5.45ms min=4.55ms max=7.88ms count=60
+03-11 23:46:57.473  5785  5868 D EGL_emulation: app_time_stats: avg=5.53ms min=4.46ms max=8.90ms count=61
+03-11 23:46:58.477  5785  5868 D EGL_emulation: app_time_stats: avg=6.30ms min=4.56ms max=18.28ms count=60
+03-11 23:46:59.490  5785  5868 D EGL_emulation: app_time_stats: avg=6.49ms min=4.78ms max=12.25ms count=61
+03-11 23:47:00.003  1465  1739 I AiAiEcho: Predicting[0]: 
+03-11 23:47:00.004  1465  1739 I AiAiEcho: Ranked targets strategy: SORT, count: 0, ranking metadata: 
+03-11 23:47:00.004  1465  1739 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface lockscreen with targets# 0
+03-11 23:47:00.004  1465  1739 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface home with targets# 0
+03-11 23:47:00.005  1465  1739 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface media_data_manager with targets# 0
+03-11 23:47:00.019   731   928 D EGL_emulation: app_time_stats: avg=56100.66ms min=56100.66ms max=56100.66ms count=1
+03-11 23:47:00.021   731   731 D SsMediaDataProvider: Forwarding Smartspace updates []
+03-11 23:47:00.509  5785  5868 D EGL_emulation: app_time_stats: avg=5.61ms min=4.40ms max=7.50ms count=61
+03-11 23:47:01.524  5785  5868 D EGL_emulation: app_time_stats: avg=5.35ms min=4.55ms max=7.26ms count=61
+03-11 23:47:02.540  5785  5868 D EGL_emulation: app_time_stats: avg=5.68ms min=4.57ms max=9.57ms count=61
+03-11 23:47:03.543  5785  5868 D EGL_emulation: app_time_stats: avg=6.15ms min=4.47ms max=21.69ms count=60
+03-11 23:47:04.557  5785  5868 D EGL_emulation: app_time_stats: avg=6.54ms min=4.67ms max=15.89ms count=61
+03-11 23:47:05.561  5785  5868 D EGL_emulation: app_time_stats: avg=5.47ms min=4.53ms max=8.34ms count=60
+03-11 23:47:06.574  5785  5868 D EGL_emulation: app_time_stats: avg=5.65ms min=4.41ms max=8.32ms count=61
+03-11 23:47:07.576  5785  5868 D EGL_emulation: app_time_stats: avg=5.52ms min=4.59ms max=7.42ms count=60
+03-11 23:47:08.577  5785  5868 D EGL_emulation: app_time_stats: avg=6.24ms min=4.46ms max=15.62ms count=60
+03-11 23:47:09.590  5785  5868 D EGL_emulation: app_time_stats: avg=6.40ms min=4.62ms max=12.49ms count=61
+03-11 23:47:10.590  5785  5868 D EGL_emulation: app_time_stats: avg=6.01ms min=4.50ms max=32.33ms count=59
+03-11 23:47:11.592  5785  5868 D EGL_emulation: app_time_stats: avg=5.72ms min=4.56ms max=14.56ms count=60
+03-11 23:47:12.607  5785  5868 D EGL_emulation: app_time_stats: avg=5.63ms min=4.54ms max=7.39ms count=61
+03-11 23:47:13.610  5785  5868 D EGL_emulation: app_time_stats: avg=6.60ms min=4.68ms max=17.94ms count=60
+03-11 23:47:14.623  5785  5868 D EGL_emulation: app_time_stats: avg=6.66ms min=4.73ms max=9.19ms count=61
+03-11 23:47:15.625  5785  5868 D EGL_emulation: app_time_stats: avg=5.64ms min=4.54ms max=9.14ms count=60
+03-11 23:47:16.625  5785  5868 D EGL_emulation: app_time_stats: avg=5.54ms min=4.70ms max=7.16ms count=60
+03-11 23:47:17.627  5785  5868 D EGL_emulation: app_time_stats: avg=5.87ms min=4.83ms max=7.88ms count=60
+03-11 23:47:18.642  5785  5868 D EGL_emulation: app_time_stats: avg=6.39ms min=4.60ms max=13.62ms count=61
+03-11 23:47:19.642  5785  5868 D EGL_emulation: app_time_stats: avg=6.45ms min=4.76ms max=8.89ms count=60
+03-11 23:47:20.657  5785  5868 D EGL_emulation: app_time_stats: avg=5.51ms min=4.65ms max=10.44ms count=61
+03-11 23:47:21.658  5785  5868 D EGL_emulation: app_time_stats: avg=5.45ms min=4.59ms max=7.82ms count=60
+03-11 23:47:22.659  5785  5868 D EGL_emulation: app_time_stats: avg=5.43ms min=4.51ms max=7.58ms count=60
+03-11 23:47:23.660  5785  5868 D EGL_emulation: app_time_stats: avg=7.11ms min=4.59ms max=24.37ms count=60
+03-11 23:47:24.660  5785  5868 D EGL_emulation: app_time_stats: avg=6.64ms min=4.58ms max=17.03ms count=59
+03-11 23:47:25.676  5785  5868 D EGL_emulation: app_time_stats: avg=5.28ms min=4.54ms max=6.92ms count=61
+03-11 23:47:26.692  5785  5868 D EGL_emulation: app_time_stats: avg=5.79ms min=4.64ms max=8.33ms count=61
+03-11 23:47:27.692  5785  5868 D EGL_emulation: app_time_stats: avg=5.77ms min=4.70ms max=9.21ms count=60
+03-11 23:47:28.710  5785  5868 D EGL_emulation: app_time_stats: avg=6.61ms min=4.57ms max=17.47ms count=61
+03-11 23:47:29.726  5785  5868 D EGL_emulation: app_time_stats: avg=6.20ms min=4.55ms max=8.41ms count=61
+03-11 23:47:30.740  5785  5868 D EGL_emulation: app_time_stats: avg=5.42ms min=4.52ms max=7.51ms count=61
+03-11 23:47:31.742  5785  5868 D EGL_emulation: app_time_stats: avg=5.69ms min=4.65ms max=9.92ms count=60
+03-11 23:47:32.757  5785  5868 D EGL_emulation: app_time_stats: avg=5.62ms min=4.40ms max=7.71ms count=61
+03-11 23:47:33.758  5785  5868 D EGL_emulation: app_time_stats: avg=6.78ms min=4.71ms max=18.63ms count=60
+03-11 23:47:34.699   319  6567 I resolv  : GetAddrInfoHandler::run: {101 786533 101 983141 10119 0}
+03-11 23:47:34.699   319  6569 I resolv  : res_nmkquery: (QUERY, IN, A)
+03-11 23:47:34.699   319  6568 I resolv  : res_nmkquery: (QUERY, IN, AAAA)
+03-11 23:47:34.699   319  6568 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:47:34.702   319  6569 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:47:34.775  5785  5868 D EGL_emulation: app_time_stats: avg=6.62ms min=4.55ms max=18.21ms count=61
+03-11 23:47:35.734   319  6571 I resolv  : GetAddrInfoHandler::run: {101 786533 101 983141 10119 0}
+03-11 23:47:35.735   319  6573 I resolv  : res_nmkquery: (QUERY, IN, A)
+03-11 23:47:35.735   319  6572 I resolv  : res_nmkquery: (QUERY, IN, AAAA)
+03-11 23:47:35.735   319  6572 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:47:35.738   319  6573 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:47:35.804  5785  5868 D EGL_emulation: app_time_stats: avg=5.57ms min=4.50ms max=9.02ms count=60
+03-11 23:47:36.807  5785  5868 D EGL_emulation: app_time_stats: avg=5.63ms min=4.31ms max=13.42ms count=61
+03-11 23:47:37.808  5785  5868 D EGL_emulation: app_time_stats: avg=5.64ms min=4.37ms max=10.02ms count=60
+03-11 23:47:38.810  5785  5868 D EGL_emulation: app_time_stats: avg=6.66ms min=4.50ms max=23.33ms count=59
+03-11 23:47:39.706   319  6568 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:47:39.707   319  6569 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:47:39.826  5785  5868 D EGL_emulation: app_time_stats: avg=6.02ms min=4.43ms max=8.54ms count=61
+03-11 23:47:40.740   319  6572 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:47:40.743   319  6573 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:47:40.843  5785  5868 D EGL_emulation: app_time_stats: avg=5.61ms min=4.52ms max=8.55ms count=61
+03-11 23:47:41.858  5785  5868 D EGL_emulation: app_time_stats: avg=5.61ms min=4.65ms max=9.33ms count=61
+03-11 23:47:42.875  5785  5868 D EGL_emulation: app_time_stats: avg=5.70ms min=4.64ms max=8.28ms count=61
+03-11 23:47:43.877  5785  5868 D EGL_emulation: app_time_stats: avg=7.23ms min=4.59ms max=20.71ms count=60
+03-11 23:47:43.937   731   928 D EGL_emulation: app_time_stats: avg=43917.88ms min=43917.88ms max=43917.88ms count=1
+03-11 23:47:43.954   319  6568 I resolv  : res_nsend: used send_dg 0 terrno: 62
+03-11 23:47:43.954   319  6569 I resolv  : res_nsend: used send_dg 0 terrno: 62
+03-11 23:47:43.954   319  6568 I resolv  : doQuery: rcode=2, ancount=0, return value=-110
+03-11 23:47:43.954   319  6569 I resolv  : doQuery: rcode=2, ancount=0, return value=-110
+03-11 23:47:43.955  1605  6566 W enyb    : [{0}] Failed to resolve name. status={1}
+03-11 23:47:44.890  5785  5868 D EGL_emulation: app_time_stats: avg=6.29ms min=4.61ms max=11.99ms count=61
+03-11 23:47:45.744   319  6572 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:47:45.744   319  6572 I resolv  : doQuery: rcode=255, ancount=0, return value=-110
+03-11 23:47:45.749   319  6573 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:47:45.749   319  6573 I resolv  : doQuery: rcode=255, ancount=0, return value=-110
+03-11 23:47:45.749  1605  6570 W enyb    : [{0}] Failed to resolve name. status={1}
+03-11 23:47:45.893  5785  5868 D EGL_emulation: app_time_stats: avg=5.38ms min=4.49ms max=7.97ms count=60
+03-11 23:47:46.894  5785  5868 D EGL_emulation: app_time_stats: avg=5.64ms min=4.61ms max=8.15ms count=60
+03-11 23:47:47.909  5785  5868 D EGL_emulation: app_time_stats: avg=5.47ms min=4.51ms max=7.86ms count=61
+03-11 23:47:48.574   347   347 E android.hardware.power.stats@1.0-service-mock: Failed to getEnergyData
+03-11 23:47:48.928  5785  5868 D EGL_emulation: app_time_stats: avg=7.40ms min=4.56ms max=19.80ms count=61
+03-11 23:47:49.944  5785  5868 D EGL_emulation: app_time_stats: avg=6.57ms min=4.58ms max=15.44ms count=61
+03-11 23:47:50.958  5785  5868 D EGL_emulation: app_time_stats: avg=5.47ms min=4.47ms max=7.48ms count=61
+03-11 23:47:51.975  5785  5868 D EGL_emulation: app_time_stats: avg=5.57ms min=4.45ms max=10.52ms count=61
+03-11 23:47:52.975  5785  5868 D EGL_emulation: app_time_stats: avg=5.52ms min=4.53ms max=8.62ms count=60
+03-11 23:47:53.992  5785  5868 D EGL_emulation: app_time_stats: avg=7.41ms min=4.59ms max=29.92ms count=60
+03-11 23:47:55.007  5785  5868 D EGL_emulation: app_time_stats: avg=5.90ms min=4.68ms max=9.00ms count=61
+03-11 23:47:56.008  5785  5868 D EGL_emulation: app_time_stats: avg=6.10ms min=4.59ms max=21.68ms count=59
+03-11 23:47:57.008  5785  5868 D EGL_emulation: app_time_stats: avg=5.46ms min=4.47ms max=8.40ms count=60
+03-11 23:47:58.023  5785  5868 D EGL_emulation: app_time_stats: avg=5.36ms min=4.44ms max=9.03ms count=61
+03-11 23:47:59.025  5785  5868 D EGL_emulation: app_time_stats: avg=7.23ms min=4.96ms max=29.19ms count=59
+03-11 23:48:00.003  1465  1739 I AiAiEcho: Predicting[0]: 
+03-11 23:48:00.003  1465  1739 I AiAiEcho: Ranked targets strategy: SORT, count: 0, ranking metadata: 
+03-11 23:48:00.004  1465  1739 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface lockscreen with targets# 0
+03-11 23:48:00.004  1465  1739 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface home with targets# 0
+03-11 23:48:00.005  1465  1739 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface media_data_manager with targets# 0
+03-11 23:48:00.018   731   928 D EGL_emulation: app_time_stats: avg=16081.22ms min=16081.22ms max=16081.22ms count=1
+03-11 23:48:00.021   731   731 D SsMediaDataProvider: Forwarding Smartspace updates []
+03-11 23:48:00.042  5785  5868 D EGL_emulation: app_time_stats: avg=5.90ms min=4.61ms max=9.06ms count=61
+03-11 23:48:01.057  5785  5868 D EGL_emulation: app_time_stats: avg=5.28ms min=4.54ms max=7.90ms count=61
+03-11 23:48:02.073  5785  5868 D EGL_emulation: app_time_stats: avg=5.39ms min=4.56ms max=11.11ms count=61
+03-11 23:48:03.074  5785  5868 D EGL_emulation: app_time_stats: avg=5.25ms min=4.52ms max=6.27ms count=60
+03-11 23:48:04.076  5785  5868 D EGL_emulation: app_time_stats: avg=6.97ms min=4.68ms max=18.17ms count=60
+03-11 23:48:05.077  5785  5868 D EGL_emulation: app_time_stats: avg=5.82ms min=4.52ms max=9.37ms count=60
+03-11 23:48:06.077  5785  5868 D EGL_emulation: app_time_stats: avg=5.64ms min=4.40ms max=10.97ms count=60
+03-11 23:48:07.090  5785  5868 D EGL_emulation: app_time_stats: avg=5.37ms min=4.27ms max=6.79ms count=61
+03-11 23:48:08.107  5785  5868 D EGL_emulation: app_time_stats: avg=5.62ms min=4.59ms max=9.42ms count=61
+03-11 23:48:09.108  5785  5868 D EGL_emulation: app_time_stats: avg=7.13ms min=4.68ms max=18.83ms count=60
+03-11 23:48:10.124  5785  5868 D EGL_emulation: app_time_stats: avg=6.27ms min=4.55ms max=19.35ms count=60
+03-11 23:48:11.129  5785  5868 D EGL_emulation: app_time_stats: avg=5.90ms min=4.53ms max=15.29ms count=60
+03-11 23:48:11.302     0     0 I logd    : logdr: UID=2000 GID=2000 PID=6574 n tail=0 logMask=99 pid=0 start=0ns deadline=0ns
+03-11 23:48:12.140  5785  5868 D EGL_emulation: app_time_stats: avg=6.29ms min=4.48ms max=13.28ms count=60
+03-11 23:48:12.382   797  6579 D TrafficStats: tagSocket(6) with statsTag=0xffffff81, statsUid=-1
+03-11 23:48:12.382   797  6578 D TrafficStats: tagSocket(69) with statsTag=0xffffff81, statsUid=-1
+03-11 23:48:12.384   797  6579 D TrafficStats: tagSocket(6) with statsTag=0xffffff81, statsUid=-1
+03-11 23:48:12.384   797  6578 D TrafficStats: tagSocket(69) with statsTag=0xffffff81, statsUid=-1
+03-11 23:48:12.386   319  6580 I resolv  : ResNSendHandler::run: 0 / {101 983141 101 983141 1073 1}
+03-11 23:48:12.386   319  6581 I resolv  : ResNSendHandler::run: 0 / {101 983141 101 983141 1073 1}
+03-11 23:48:12.386   319  6580 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:48:12.387   319  6581 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:48:12.389   319  6582 I resolv  : ResNSendHandler::run: 0 / {101 983141 101 983141 1073 1}
+03-11 23:48:12.389   319  6582 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:48:12.393   319  6583 I resolv  : ResNSendHandler::run: 0 / {101 983141 101 983141 1073 1}
+03-11 23:48:12.395   319  6583 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:48:12.450   797  6586 D TrafficStats: tagSocket(102) with statsTag=0xffffff81, statsUid=-1
+03-11 23:48:12.451   797  6586 D TrafficStats: tagSocket(102) with statsTag=0xffffff81, statsUid=-1
+03-11 23:48:12.454   797  6585 D TrafficStats: tagSocket(102) with statsTag=0xffffff81, statsUid=-1
+03-11 23:48:12.455   797  6585 D TrafficStats: tagSocket(102) with statsTag=0xffffff81, statsUid=-1
+03-11 23:48:12.456   319  6587 I resolv  : ResNSendHandler::run: 0 / {100 983140 100 983140 1073 1}
+03-11 23:48:12.456   319  6587 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:48:12.459   319  6589 I resolv  : ResNSendHandler::run: 0 / {100 983140 100 983140 1073 1}
+03-11 23:48:12.460   319  6589 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:48:12.462   797   809 W rkstack.process: Reducing the number of considered missed Gc histogram windows from 140 to 100
+03-11 23:48:12.463   319  6588 I resolv  : ResNSendHandler::run: 0 / {100 983140 100 983140 1073 1}
+03-11 23:48:12.463   319  6590 I resolv  : ResNSendHandler::run: 0 / {100 983140 100 983140 1073 1}
+03-11 23:48:12.463   319  6588 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:48:12.464   319  6590 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:48:13.140  5785  5868 D EGL_emulation: app_time_stats: avg=5.66ms min=4.15ms max=12.26ms count=60
+03-11 23:48:14.143  5785  5868 D EGL_emulation: app_time_stats: avg=7.14ms min=4.68ms max=18.27ms count=60
+03-11 23:48:15.157  5785  5868 D EGL_emulation: app_time_stats: avg=5.91ms min=4.48ms max=11.15ms count=61
+03-11 23:48:15.385   319  6591 I resolv  : GetAddrInfoHandler::run: {101 983141 101 983141 1073 1}
+03-11 23:48:15.386   319  6593 I resolv  : res_nmkquery: (QUERY, IN, A)
+03-11 23:48:15.386   319  6593 I resolv  : resolv_cache_lookup: Waiting for previous request
+03-11 23:48:15.386   319  6592 I resolv  : res_nmkquery: (QUERY, IN, AAAA)
+03-11 23:48:15.387   319  6592 I resolv  : resolv_cache_lookup: Waiting for previous request
+03-11 23:48:15.451   319  6594 I resolv  : GetAddrInfoHandler::run: {100 983140 100 983140 1073 1}
+03-11 23:48:15.451   319  6595 I resolv  : res_nmkquery: (QUERY, IN, AAAA)
+03-11 23:48:15.452   319  6595 I resolv  : resolv_cache_lookup: Waiting for previous request
+03-11 23:48:15.451   319  6596 I resolv  : res_nmkquery: (QUERY, IN, A)
+03-11 23:48:15.452   319  6596 I resolv  : resolv_cache_lookup: Waiting for previous request
+03-11 23:48:16.159  5785  5868 D EGL_emulation: app_time_stats: avg=5.51ms min=4.17ms max=7.89ms count=60
+03-11 23:48:17.173  5785  5868 D EGL_emulation: app_time_stats: avg=5.41ms min=4.53ms max=7.32ms count=61
+03-11 23:48:17.392   319  6581 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:48:17.392   319  6580 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:48:17.394   319  6582 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:48:17.402   319  6583 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:48:17.463   319  6589 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:48:17.463   319  6587 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:48:17.466   319  6590 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:48:17.466   319  6588 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:48:18.173  5785  5868 D EGL_emulation: app_time_stats: avg=5.46ms min=4.53ms max=10.07ms count=60
+03-11 23:48:19.176  5785  5868 D EGL_emulation: app_time_stats: avg=6.94ms min=4.48ms max=27.52ms count=59
+03-11 23:48:20.193  5785  5868 D EGL_emulation: app_time_stats: avg=5.69ms min=4.48ms max=8.54ms count=61
+03-11 23:48:21.209  5785  5868 D EGL_emulation: app_time_stats: avg=5.59ms min=4.38ms max=7.65ms count=61
+03-11 23:48:22.043   319  6588 I resolv  : res_nsend: used send_dg 0 terrno: 62
+03-11 23:48:22.043   319  6589 I resolv  : res_nsend: used send_dg 0 terrno: 62
+03-11 23:48:22.043   319  6590 I resolv  : res_nsend: used send_dg 0 terrno: 62
+03-11 23:48:22.043   319  6583 I resolv  : res_nsend: used send_dg 0 terrno: 62
+03-11 23:48:22.043   319  6587 I resolv  : res_nsend: used send_dg 0 terrno: 62
+03-11 23:48:22.043   319  6595 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:48:22.044   797   797 W DnsResolver: resNetworkResult:android.system.ErrnoException: resNetworkResult failed: ETIMEDOUT (Connection timed out)
+03-11 23:48:22.044   797   797 W DnsResolver: resNetworkResult:android.system.ErrnoException: resNetworkResult failed: ETIMEDOUT (Connection timed out)
+03-11 23:48:22.044   797   797 W DnsResolver: resNetworkResult:android.system.ErrnoException: resNetworkResult failed: ETIMEDOUT (Connection timed out)
+03-11 23:48:22.044   797   797 W DnsResolver: resNetworkResult:android.system.ErrnoException: resNetworkResult failed: ETIMEDOUT (Connection timed out)
+03-11 23:48:22.044   797  6585 D NetworkMonitor/100: PROBE_DNS www.google.com 9590ms FAIL in type ADDRCONFIG android.net.DnsResolver$DnsException: android.system.ErrnoException: resNetworkResult failed: ETIMEDOUT (Connection timed out)
+03-11 23:48:22.045   319  6580 I resolv  : res_nsend: used send_dg 0 terrno: 62
+03-11 23:48:22.045   319  6581 I resolv  : res_nsend: used send_dg 0 terrno: 62
+03-11 23:48:22.046   319  6582 I resolv  : res_nsend: used send_dg 0 terrno: 62
+03-11 23:48:22.046   319  6592 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:48:22.046   319  6597 I resolv  : GetAddrInfoHandler::run: {100 983140 100 983140 1073 1}
+03-11 23:48:22.046   797   797 W DnsResolver: resNetworkResult:android.system.ErrnoException: resNetworkResult failed: ETIMEDOUT (Connection timed out)
+03-11 23:48:22.047   797   797 W DnsResolver: resNetworkResult:android.system.ErrnoException: resNetworkResult failed: ETIMEDOUT (Connection timed out)
+03-11 23:48:22.047   319  6596 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:48:22.047   797   797 W DnsResolver: resNetworkResult:android.system.ErrnoException: resNetworkResult failed: ETIMEDOUT (Connection timed out)
+03-11 23:48:22.047   797  6579 D NetworkMonitor/101: PROBE_DNS connectivitycheck.gstatic.com 9665ms FAIL in type ADDRCONFIG android.net.DnsResolver$DnsException: android.system.ErrnoException: resNetworkResult failed: ETIMEDOUT (Connection timed out)
+03-11 23:48:22.048   319  6598 I resolv  : res_nmkquery: (QUERY, IN, AAAA)
+03-11 23:48:22.048   319  6598 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:48:22.048   797  6578 D NetworkMonitor/101: PROBE_DNS www.google.com 9665ms FAIL in type ADDRCONFIG android.net.DnsResolver$DnsException: android.system.ErrnoException: resNetworkResult failed: ETIMEDOUT (Connection timed out)
+03-11 23:48:22.048   319  6593 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:48:22.050   319  6599 I resolv  : res_nmkquery: (QUERY, IN, A)
+03-11 23:48:22.051   797   797 W DnsResolver: resNetworkResult:android.system.ErrnoException: resNetworkResult failed: ETIMEDOUT (Connection timed out)
+03-11 23:48:22.051   797  6586 D NetworkMonitor/100: PROBE_DNS connectivitycheck.gstatic.com 9601ms FAIL in type ADDRCONFIG android.net.DnsResolver$DnsException: android.system.ErrnoException: resNetworkResult failed: ETIMEDOUT (Connection timed out)
+03-11 23:48:22.051   319  6601 I resolv  : GetAddrInfoHandler::run: {101 983141 101 983141 1073 1}
+03-11 23:48:22.052   319  6600 I resolv  : GetAddrInfoHandler::run: {101 983141 101 983141 1073 1}
+03-11 23:48:22.052   319  6602 I resolv  : res_nmkquery: (QUERY, IN, AAAA)
+03-11 23:48:22.053   319  6603 I resolv  : res_nmkquery: (QUERY, IN, A)
+03-11 23:48:22.053   319  6599 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:48:22.053   319  6604 I resolv  : res_nmkquery: (QUERY, IN, AAAA)
+03-11 23:48:22.054   319  6604 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:48:22.055   319  6605 I resolv  : GetAddrInfoHandler::run: {100 983140 100 983140 1073 1}
+03-11 23:48:22.056   319  6606 I resolv  : res_nmkquery: (QUERY, IN, A)
+03-11 23:48:22.056   319  6607 I resolv  : res_nmkquery: (QUERY, IN, AAAA)
+03-11 23:48:22.056   319  6608 I resolv  : res_nmkquery: (QUERY, IN, A)
+03-11 23:48:22.056   319  6607 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:48:22.056   319  6603 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:48:22.058   319  6606 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:48:22.060   319  6608 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:48:22.062   319  6602 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:48:22.224  5785  5868 D EGL_emulation: app_time_stats: avg=5.46ms min=4.41ms max=12.40ms count=61
+03-11 23:48:23.225  5785  5868 D EGL_emulation: app_time_stats: avg=5.89ms min=4.70ms max=18.44ms count=60
+03-11 23:48:23.938   731   928 D EGL_emulation: app_time_stats: avg=23919.13ms min=23919.13ms max=23919.13ms count=1
+03-11 23:48:24.227  5785  5868 D EGL_emulation: app_time_stats: avg=7.98ms min=4.60ms max=23.39ms count=58
+03-11 23:48:25.241  5785  5868 D EGL_emulation: app_time_stats: avg=5.98ms min=4.58ms max=8.32ms count=61
+03-11 23:48:26.258  5785  5868 D EGL_emulation: app_time_stats: avg=5.54ms min=4.69ms max=6.95ms count=61
+03-11 23:48:27.048   319  6592 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:48:27.048   319  6596 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:48:27.050   319  6598 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:48:27.051   319  6595 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:48:27.055   319  6599 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:48:27.055   319  6593 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:48:27.062   319  6604 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:48:27.062   319  6607 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:48:27.062   319  6603 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:48:27.062   319  6606 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:48:27.065   319  6602 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:48:27.067   319  6608 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:48:27.260  5785  5868 D EGL_emulation: app_time_stats: avg=5.85ms min=4.47ms max=8.59ms count=60
+03-11 23:48:28.274  5785  5868 D EGL_emulation: app_time_stats: avg=5.62ms min=4.46ms max=8.43ms count=61
+03-11 23:48:29.275  5785  5868 D EGL_emulation: app_time_stats: avg=7.21ms min=5.46ms max=19.96ms count=60
+03-11 23:48:30.291  5785  5868 D EGL_emulation: app_time_stats: avg=5.55ms min=4.72ms max=7.94ms count=61
+03-11 23:48:31.292  5785  5868 D EGL_emulation: app_time_stats: avg=5.64ms min=4.27ms max=8.85ms count=60
+03-11 23:48:32.043   319  6598 I resolv  : res_nsend: used send_dg 0 terrno: 62
+03-11 23:48:32.043   319  6595 I resolv  : res_nsend: used send_dg 0 terrno: 62
+03-11 23:48:32.043   319  6596 I resolv  : res_nsend: used send_dg 0 terrno: 62
+03-11 23:48:32.043   319  6599 I resolv  : res_nsend: used send_dg 0 terrno: 62
+03-11 23:48:32.043   319  6596 I resolv  : doQuery: rcode=2, ancount=0, return value=-110
+03-11 23:48:32.043   319  6598 I resolv  : doQuery: rcode=2, ancount=0, return value=-110
+03-11 23:48:32.043   319  6595 I resolv  : doQuery: rcode=2, ancount=0, return value=-110
+03-11 23:48:32.043   319  6599 I resolv  : doQuery: rcode=2, ancount=0, return value=-110
+03-11 23:48:32.044   319  6607 I resolv  : res_nsend: used send_dg 0 terrno: 62
+03-11 23:48:32.044   319  6608 I resolv  : res_nsend: used send_dg 0 terrno: 62
+03-11 23:48:32.044   319  6607 I resolv  : doQuery: rcode=2, ancount=0, return value=-110
+03-11 23:48:32.044   319  6608 I resolv  : doQuery: rcode=2, ancount=0, return value=-110
+03-11 23:48:32.044   797  6584 D NetworkMonitor/100: PROBE_FALLBACK http://www.google.com/gen_204 Probe failed with exception java.net.UnknownHostException: Unable to resolve host "www.google.com": No address associated with hostname
+03-11 23:48:32.044   797  6585 D NetworkMonitor/100: PROBE_HTTPS https://www.google.com/generate_204 Probe failed with exception java.net.UnknownHostException: Unable to resolve host "www.google.com": No address associated with hostname
+03-11 23:48:32.044   797  6586 D NetworkMonitor/100: PROBE_HTTP http://connectivitycheck.gstatic.com/generate_204 Probe failed with exception java.net.UnknownHostException: Unable to resolve host "connectivitycheck.gstatic.com": No address associated with hostname
+03-11 23:48:32.045   797  6584 D NetworkMonitor/100: isCaptivePortal: isSuccessful()=false isPortal()=false RedirectUrl=null isPartialConnectivity()=false Time=19596ms
+03-11 23:48:32.046   534   672 D ConnectivityService: [100 CELLULAR] validation failed
+03-11 23:48:32.052   319  6592 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:48:32.052   319  6592 I resolv  : doQuery: rcode=255, ancount=0, return value=-110
+03-11 23:48:32.063   319  6593 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:48:32.064   319  6593 I resolv  : doQuery: rcode=255, ancount=0, return value=-110
+03-11 23:48:32.066   319  6606 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:48:32.066   319  6606 I resolv  : doQuery: rcode=255, ancount=0, return value=-110
+03-11 23:48:32.066   319  6602 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:48:32.068   319  6602 I resolv  : doQuery: rcode=255, ancount=0, return value=-110
+03-11 23:48:32.068   797  6577 D NetworkMonitor/101: PROBE_FALLBACK http://www.google.com/gen_204 Probe failed with exception java.net.UnknownHostException: Unable to resolve host "www.google.com": No address associated with hostname
+03-11 23:48:32.069   319  6603 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:48:32.069   319  6604 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:48:32.070   319  6604 I resolv  : doQuery: rcode=255, ancount=0, return value=-110
+03-11 23:48:32.070   319  6603 I resolv  : doQuery: rcode=255, ancount=0, return value=-110
+03-11 23:48:32.070   797  6579 D NetworkMonitor/101: PROBE_HTTP http://connectivitycheck.gstatic.com/generate_204 Probe failed with exception java.net.UnknownHostException: Unable to resolve host "connectivitycheck.gstatic.com": No address associated with hostname
+03-11 23:48:32.071   797  6578 D NetworkMonitor/101: PROBE_HTTPS https://www.google.com/generate_204 Probe failed with exception java.net.UnknownHostException: Unable to resolve host "www.google.com": No address associated with hostname
+03-11 23:48:32.072   797  6577 D NetworkMonitor/101: isCaptivePortal: isSuccessful()=false isPortal()=false RedirectUrl=null isPartialConnectivity()=false Time=19690ms
+03-11 23:48:32.073   534   672 D ConnectivityService: [101 WIFI] validation failed
+03-11 23:48:32.311  5785  5868 D EGL_emulation: app_time_stats: avg=5.42ms min=4.45ms max=9.46ms count=61
+03-11 23:48:32.668   534  2165 D WifiNl80211Manager: Scan result ready event
+03-11 23:48:32.668   534  2165 D WifiNative: Scan result ready event
+03-11 23:48:33.337  5785  5868 D EGL_emulation: app_time_stats: avg=5.92ms min=4.47ms max=15.93ms count=61
+03-11 23:48:34.347  5785  5868 D EGL_emulation: app_time_stats: avg=7.04ms min=5.37ms max=9.87ms count=61
+03-11 23:48:35.357  5785  5868 D EGL_emulation: app_time_stats: avg=5.56ms min=4.55ms max=8.28ms count=61
+03-11 23:48:36.358  5785  5868 D EGL_emulation: app_time_stats: avg=5.48ms min=4.53ms max=8.60ms count=60
+03-11 23:48:37.359  5785  5868 D EGL_emulation: app_time_stats: avg=5.36ms min=4.59ms max=7.01ms count=60
+03-11 23:48:38.365  5785  5868 D EGL_emulation: app_time_stats: avg=6.03ms min=4.62ms max=30.86ms count=58
+03-11 23:48:39.374  5785  5868 D EGL_emulation: app_time_stats: avg=6.72ms min=5.25ms max=12.22ms count=61
+03-11 23:48:40.376  5785  5868 D EGL_emulation: app_time_stats: avg=5.75ms min=4.45ms max=8.86ms count=60
+03-11 23:48:41.376  5785  5868 D EGL_emulation: app_time_stats: avg=5.55ms min=4.00ms max=7.65ms count=60
+03-11 23:48:42.370  1082  1082 D TaplEvents: TIS / TouchInteractionService.onInputEvent: MotionEvent { action=ACTION_DOWN, actionButton=0, id[0]=0, x[0]=100.0, y[0]=100.0, toolType[0]=TOOL_TYPE_FINGER, buttonState=0, classification=NONE, metaState=0, flags=0x0, edgeFlags=0x0, pointerCount=1, historySize=0, eventTime=4992199, downTime=4992199, deviceId=-1, source=0x1002, displayId=0, eventId=-573911802 }
+03-11 23:48:42.374  1082  1082 D TaplEvents: TIS / TouchInteractionService.onInputEvent: MotionEvent { action=ACTION_UP, actionButton=0, id[0]=0, x[0]=100.0, y[0]=100.0, toolType[0]=TOOL_TYPE_FINGER, buttonState=0, classification=NONE, metaState=0, flags=0x0, edgeFlags=0x0, pointerCount=1, historySize=0, eventTime=4992199, downTime=4992199, deviceId=-1, source=0x1002, displayId=0, eventId=-423668355 }
+03-11 23:48:42.377  5785  5868 D EGL_emulation: app_time_stats: avg=5.81ms min=4.37ms max=10.14ms count=60
+03-11 23:48:43.378  5785  5868 D EGL_emulation: app_time_stats: avg=6.51ms min=4.52ms max=20.50ms count=60
+03-11 23:48:44.390  5785  5868 D EGL_emulation: app_time_stats: avg=6.77ms min=4.91ms max=9.04ms count=61
+03-11 23:48:45.394  5785  5868 D EGL_emulation: app_time_stats: avg=5.70ms min=4.59ms max=7.68ms count=60
+03-11 23:48:46.407  5785  5868 D EGL_emulation: app_time_stats: avg=5.61ms min=4.53ms max=7.11ms count=61
+03-11 23:48:47.407  5785  5868 D EGL_emulation: app_time_stats: avg=5.57ms min=4.33ms max=9.65ms count=60
+03-11 23:48:48.410  5785  5868 D EGL_emulation: app_time_stats: avg=6.13ms min=4.52ms max=20.42ms count=59
+03-11 23:48:49.425  5785  5868 D EGL_emulation: app_time_stats: avg=6.76ms min=5.22ms max=9.59ms count=61
+03-11 23:48:50.440  5785  5868 D EGL_emulation: app_time_stats: avg=6.27ms min=4.57ms max=34.18ms count=60
+03-11 23:48:51.442  5785  5868 D EGL_emulation: app_time_stats: avg=5.65ms min=4.58ms max=9.15ms count=60
+03-11 23:48:52.442  5785  5868 D EGL_emulation: app_time_stats: avg=5.48ms min=4.47ms max=7.97ms count=60
+03-11 23:48:53.443  5785  5868 D EGL_emulation: app_time_stats: avg=6.28ms min=4.62ms max=18.50ms count=60
+03-11 23:48:54.457  5785  5868 D EGL_emulation: app_time_stats: avg=6.54ms min=4.67ms max=8.73ms count=61
+03-11 23:48:55.474  5785  5868 D EGL_emulation: app_time_stats: avg=5.57ms min=4.49ms max=8.88ms count=61
+03-11 23:48:56.490  5785  5868 D EGL_emulation: app_time_stats: avg=5.44ms min=4.44ms max=8.70ms count=61
+03-11 23:48:57.491  5785  5868 D EGL_emulation: app_time_stats: avg=5.42ms min=4.49ms max=8.98ms count=60
+03-11 23:48:58.493  5785  5868 D EGL_emulation: app_time_stats: avg=5.87ms min=4.58ms max=15.65ms count=60
+03-11 23:48:59.509  5785  5868 D EGL_emulation: app_time_stats: avg=6.66ms min=4.69ms max=10.32ms count=61
+03-11 23:49:00.004  1465  1739 I AiAiEcho: Predicting[0]: 
+03-11 23:49:00.004  1465  1739 I AiAiEcho: Ranked targets strategy: SORT, count: 0, ranking metadata: 
+03-11 23:49:00.005  1465  1739 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface lockscreen with targets# 0
+03-11 23:49:00.005  1465  1739 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface home with targets# 0
+03-11 23:49:00.005  1465  1739 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface media_data_manager with targets# 0
+03-11 23:49:00.019   731   928 D EGL_emulation: app_time_stats: avg=36081.30ms min=36081.30ms max=36081.30ms count=1
+03-11 23:49:00.021   731   731 D SsMediaDataProvider: Forwarding Smartspace updates []
+03-11 23:49:00.524  5785  5868 D EGL_emulation: app_time_stats: avg=5.63ms min=4.51ms max=14.33ms count=61
+03-11 23:49:01.525  5785  5868 D EGL_emulation: app_time_stats: avg=5.58ms min=4.32ms max=8.95ms count=60
+03-11 23:49:02.541  5785  5868 D EGL_emulation: app_time_stats: avg=5.43ms min=4.56ms max=8.04ms count=61
+03-11 23:49:03.544  5785  5868 D EGL_emulation: app_time_stats: avg=6.40ms min=4.64ms max=17.95ms count=60
+03-11 23:49:03.937   731   928 D EGL_emulation: app_time_stats: avg=3917.23ms min=3917.23ms max=3917.23ms count=1
+03-11 23:49:04.557  5785  5868 D EGL_emulation: app_time_stats: avg=6.39ms min=4.66ms max=9.00ms count=61
+03-11 23:49:05.557  5785  5868 D EGL_emulation: app_time_stats: avg=5.77ms min=4.42ms max=13.52ms count=59
+03-11 23:49:06.559  5785  5868 D EGL_emulation: app_time_stats: avg=6.30ms min=4.52ms max=33.14ms count=59
+03-11 23:49:07.577  5785  5868 D EGL_emulation: app_time_stats: avg=5.37ms min=4.51ms max=8.48ms count=61
+03-11 23:49:08.593  5785  5868 D EGL_emulation: app_time_stats: avg=6.44ms min=4.27ms max=19.97ms count=61
+03-11 23:49:09.607  5785  5868 D EGL_emulation: app_time_stats: avg=6.19ms min=4.69ms max=8.40ms count=61
+03-11 23:49:10.608  5785  5868 D EGL_emulation: app_time_stats: avg=5.46ms min=4.51ms max=9.18ms count=60
+03-11 23:49:11.624  5785  5868 D EGL_emulation: app_time_stats: avg=5.16ms min=4.42ms max=7.44ms count=61
+03-11 23:49:12.625  5785  5868 D EGL_emulation: app_time_stats: avg=5.46ms min=4.49ms max=9.32ms count=60
+03-11 23:49:13.628  5785  5868 D EGL_emulation: app_time_stats: avg=6.52ms min=4.50ms max=19.64ms count=60
+03-11 23:49:14.644  5785  5868 D EGL_emulation: app_time_stats: avg=6.20ms min=4.75ms max=10.45ms count=61
+03-11 23:49:15.659  5785  5868 D EGL_emulation: app_time_stats: avg=5.45ms min=4.37ms max=7.10ms count=61
+03-11 23:49:16.675  5785  5868 D EGL_emulation: app_time_stats: avg=5.22ms min=4.59ms max=7.06ms count=61
+03-11 23:49:17.692  5785  5868 D EGL_emulation: app_time_stats: avg=5.44ms min=4.68ms max=7.43ms count=61
+03-11 23:49:18.693  5785  5868 D EGL_emulation: app_time_stats: avg=6.32ms min=4.60ms max=14.51ms count=60
+03-11 23:49:19.696  5785  5868 D EGL_emulation: app_time_stats: avg=7.05ms min=4.70ms max=34.28ms count=59
+03-11 23:49:20.707  5785  5868 D EGL_emulation: app_time_stats: avg=5.58ms min=4.67ms max=7.21ms count=61
+03-11 23:49:21.707  5785  5868 D EGL_emulation: app_time_stats: avg=5.35ms min=4.41ms max=7.52ms count=60
+03-11 23:49:22.710  5785  5868 D EGL_emulation: app_time_stats: avg=5.60ms min=4.54ms max=8.23ms count=60
+03-11 23:49:23.110     0     0 I logd    : logdr: UID=2000 GID=2000 PID=6614 n tail=0 logMask=99 pid=0 start=0ns deadline=0ns
+03-11 23:49:23.726  5785  5868 D EGL_emulation: app_time_stats: avg=7.52ms min=4.41ms max=41.21ms count=58
+03-11 23:49:24.743  5785  5868 D EGL_emulation: app_time_stats: avg=6.28ms min=4.42ms max=11.30ms count=61
+03-11 23:49:25.759  5785  5868 D EGL_emulation: app_time_stats: avg=5.59ms min=4.47ms max=7.73ms count=61
+03-11 23:49:26.773  5785  5868 D EGL_emulation: app_time_stats: avg=5.23ms min=4.34ms max=7.48ms count=61
+03-11 23:49:27.775  5785  5868 D EGL_emulation: app_time_stats: avg=5.46ms min=4.59ms max=8.65ms count=60
+03-11 23:49:28.775  5785  5868 D EGL_emulation: app_time_stats: avg=6.42ms min=4.36ms max=11.27ms count=60
+03-11 23:49:29.791  5785  5868 D EGL_emulation: app_time_stats: avg=6.03ms min=4.66ms max=8.50ms count=61
+03-11 23:49:30.808  5785  5868 D EGL_emulation: app_time_stats: avg=5.73ms min=4.41ms max=11.19ms count=61
+03-11 23:49:31.809  5785  5868 D EGL_emulation: app_time_stats: avg=5.83ms min=4.53ms max=13.78ms count=59
+03-11 23:49:32.716   319  6618 I resolv  : GetAddrInfoHandler::run: {101 786533 101 983141 10119 0}
+03-11 23:49:32.716   319  6619 I resolv  : res_nmkquery: (QUERY, IN, AAAA)
+03-11 23:49:32.716   319  6620 I resolv  : res_nmkquery: (QUERY, IN, A)
+03-11 23:49:32.717   319  6619 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:49:32.721   319  6620 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:49:32.827  5785  5868 D EGL_emulation: app_time_stats: avg=5.67ms min=4.38ms max=9.43ms count=61
+03-11 23:49:33.827  5785  5868 D EGL_emulation: app_time_stats: avg=6.91ms min=4.49ms max=14.46ms count=60
+03-11 23:49:34.841  5785  5868 D EGL_emulation: app_time_stats: avg=6.39ms min=4.82ms max=11.16ms count=61
+03-11 23:49:35.841  5785  5868 D EGL_emulation: app_time_stats: avg=5.35ms min=4.41ms max=7.80ms count=60
+03-11 23:49:35.966  1490  1733 W MediaProvider: isAppCloneUserPair for user 0: false
+03-11 23:49:35.978  6621  6621 W ProcessState: Extra binder thread started, but 0 threads requested. Do not use *startThreadPool when zero threads are requested.
+03-11 23:49:36.016  1220  1375 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService started execution. cause:9 exec_start_elapsed_seconds: 5045 [CONTEXT service_id=218 ]
+03-11 23:49:36.021  1220  1220 D BoundBrokerSvc: onBind: Intent { act=com.google.android.gms.scheduler.ACTION_PROXY_SCHEDULE dat=chimera-action:/... cmp=com.google.android.gms/.chimera.PersistentApiService }
+03-11 23:49:36.022  1220  1220 D BoundBrokerSvc: Loading bound service for intent: Intent { act=com.google.android.gms.scheduler.ACTION_PROXY_SCHEDULE dat=chimera-action:/... cmp=com.google.android.gms/.chimera.PersistentApiService }
+03-11 23:49:36.040  1220  1375 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService finished executing. cause:9 result: 1 elapsed_millis: 38 uptime_millis: 38 exec_start_elapsed_seconds: 5045 [CONTEXT service_id=218 ]
+03-11 23:49:36.052   162   162 I hwservicemanager: getTransport: Cannot find entry android.hardware.graphics.mapper@4.0::IMapper/default in either framework or device VINTF manifest.
+03-11 23:49:36.052  6621  6623 I Gralloc4: mapper 4.x is not supported
+03-11 23:49:36.065  6621  6623 D HostConnection: HostComposition ext ANDROID_EMU_CHECKSUM_HELPER_v1 ANDROID_EMU_native_sync_v2 ANDROID_EMU_native_sync_v3 ANDROID_EMU_native_sync_v4 ANDROID_EMU_dma_v1 ANDROID_EMU_direct_mem ANDROID_EMU_host_composition_v1 ANDROID_EMU_host_composition_v2 ANDROID_EMU_vulkan ANDROID_EMU_deferred_vulkan_commands ANDROID_EMU_vulkan_null_optional_strings ANDROID_EMU_vulkan_create_resources_with_requirements ANDROID_EMU_YUV_Cache ANDROID_EMU_vulkan_ignored_handles ANDROID_EMU_has_shared_slots_host_memory_allocator ANDROID_EMU_vulkan_free_memory_sync ANDROID_EMU_vulkan_shader_float16_int8 ANDROID_EMU_vulkan_async_queue_submit ANDROID_EMU_vulkan_queue_submit_with_commands ANDROID_EMU_sync_buffer_data ANDROID_EMU_vulkan_async_qsri ANDROID_EMU_read_color_buffer_dma ANDROID_EMU_hwc_multi_configs GL_OES_EGL_image_external_essl3 GL_OES_vertex_array_object GL_KHR_texture_compression_astc_ldr ANDROID_EMU_host_side_tracing ANDROID_EMU_gles_max_version_3_1 
+03-11 23:49:36.095  1220  2842 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.phenotype.service.sync.PhenotypeConfigurator started execution. cause:5 exec_start_elapsed_seconds: 5045 [CONTEXT service_id=218 ]
+03-11 23:49:36.099  1220  1220 D BoundBrokerSvc: onBind: Intent { act=com.google.android.gms.phenotype.service.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.PersistentApiService }
+03-11 23:49:36.099  1220  1220 D BoundBrokerSvc: Loading bound service for intent: Intent { act=com.google.android.gms.phenotype.service.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.PersistentApiService }
+03-11 23:49:36.116  1220  5634 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.checkin.EventLogService started execution. cause:5 exec_start_elapsed_seconds: 5045 [CONTEXT service_id=218 ]
+03-11 23:49:36.150  1605  2509 I Checkin : [EventLogChimeraService] Opted in for usage reporting: false
+03-11 23:49:36.154  1605  2509 I Checkin : [EventLogChimeraService] Aggregate from 1773264096279 (log), 1773264096279 (data)
+03-11 23:49:36.142     0     0 I logd    : logdr: UID=10119 GID=10119 PID=1605 n tail=0 logMask=4 pid=0 start=0ns deadline=0ns
+03-11 23:49:36.169   534   597 I DropBoxManagerService: add tag=event_data isTagEnabled=true flags=0x2
+03-11 23:49:36.173   534   567 W BroadcastQueue: Background execution not allowed: receiving Intent { act=android.intent.action.DROPBOX_ENTRY_ADDED flg=0x10 (has extras) } to com.google.android.gms/.stats.service.DropBoxEntryAddedReceiver
+03-11 23:49:36.173   534   567 W BroadcastQueue: Background execution not allowed: receiving Intent { act=android.intent.action.DROPBOX_ENTRY_ADDED flg=0x10 (has extras) } to com.google.android.gms/.chimera.GmsIntentOperationService$PersistentTrustedReceiver
+03-11 23:49:36.201  1220  5633 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.checkin.EventLogService finished executing. cause:5 result: 1 elapsed_millis: 106 uptime_millis: 106 exec_start_elapsed_seconds: 5045 [CONTEXT service_id=218 ]
+03-11 23:49:36.316  1220  1231 W .gms.persistent: Reducing the number of considered missed Gc histogram windows from 168 to 100
+03-11 23:49:36.505  1490  2372 I MediaProvider: Begin Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///... flg=0x1400010 cmp=com.google.android.providers.media.module/com.android.providers.media.MediaService }
+03-11 23:49:36.548  1490  1500 W FuseDaemon: Reducing the number of considered missed Gc histogram windows from 501 to 100
+03-11 23:49:36.555  1490  2372 I MediaProvider: End Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///... flg=0x1400010 cmp=com.google.android.providers.media.module/com.android.providers.media.MediaService }
+03-11 23:49:36.619  1220  5634 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService started execution. cause:9 exec_start_elapsed_seconds: 5046 [CONTEXT service_id=218 ]
+03-11 23:49:36.622  1220  2842 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.ipa.base.IpaGcmTaskService finished executing. cause:9 result: 1 elapsed_millis: 25 uptime_millis: 25 exec_start_elapsed_seconds: 5046 [CONTEXT service_id=218 ]
+03-11 23:49:36.844  5785  5868 D EGL_emulation: app_time_stats: avg=11.26ms min=5.87ms max=74.50ms count=56
+03-11 23:49:37.146   534   547 W system_server: Reducing the number of considered missed Gc histogram windows from 119 to 100
+03-11 23:49:37.723   319  6619 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:49:37.723   319  6620 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:49:37.850  5785  5868 D EGL_emulation: app_time_stats: avg=8.78ms min=5.02ms max=26.84ms count=59
+03-11 23:49:38.546  1220  1375 I HeterodyneSyncer: Removed 0 invalid users [CONTEXT service_id=51 ]
+03-11 23:49:38.698   319  6640 I resolv  : GetAddrInfoHandler::run: {101 786533 101 983141 10119 0}
+03-11 23:49:38.698   319  6641 I resolv  : res_nmkquery: (QUERY, IN, AAAA)
+03-11 23:49:38.699   319  6642 I resolv  : res_nmkquery: (QUERY, IN, A)
+03-11 23:49:38.699   319  6641 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:49:38.701   319  6642 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:49:38.859  5785  5868 D EGL_emulation: app_time_stats: avg=8.74ms min=5.11ms max=24.02ms count=61
+03-11 23:49:39.875  5785  5868 D EGL_emulation: app_time_stats: avg=6.05ms min=4.26ms max=10.77ms count=61
+03-11 23:49:40.875  5785  5868 D EGL_emulation: app_time_stats: avg=5.56ms min=4.48ms max=7.92ms count=60
+03-11 23:49:41.584  1490  1647 D PickerSyncController: syncAllMedia
+03-11 23:49:41.584  1490  1647 D PickerSyncController: syncAllMediaFromProvider() LOCAL, auth=com.android.providers.media.photopicker, retry=true
+03-11 23:49:41.584  1490  1647 D PickerSyncController: getSyncRequestParams() LOCAL, auth=com.android.providers.media.photopicker
+03-11 23:49:41.587  1490  1647 D PickerSyncController:    Latest ID/Gen=1405:fb4f482c-3ac3-4905-b28d-1a4e4fa5d92b:0000-0000:external_primary/45
+03-11 23:49:41.587  1490  1647 D PickerSyncController:    Cached ID/Gen=1405:fb4f482c-3ac3-4905-b28d-1a4e4fa5d92b:0000-0000:external_primary/38
+03-11 23:49:41.587  1490  1647 D PickerSyncController:    RESULT=SyncRequestParams{type=MEDIA_INCREMENTAL, gen=38, latest=Bundle[{last_media_sync_generation=45, media_collection_id=1405:fb4f482c-3ac3-4905-b28d-1a4e4fa5d92b:0000-0000:external_primary}]}
+03-11 23:49:41.587  1490  1647 I PickerSyncController: Executing SyncAdd. isLocal: true. authority: com.android.providers.media.photopicker
+03-11 23:49:41.592  1490  1647 I PickerSyncController: Paged sync successful. QueryArgs: Bundle[{android.provider.extra.SYNC_GENERATION=38}]. Result count: 1. Cursor count: 1
+03-11 23:49:41.598  1490  1647 I PickerSyncController: Executing SyncRemove. isLocal: true. authority: com.android.providers.media.photopicker
+03-11 23:49:41.604  1490  1647 I PickerSyncController: Paged sync successful. QueryArgs: Bundle[{android.provider.extra.SYNC_GENERATION=38}]. Result count: 0. Cursor count: 0
+03-11 23:49:41.604  1490  1647 D PickerSyncController: syncAllMediaFromProvider() CLOUD, auth=null, retry=true
+03-11 23:49:41.604  1490  1647 D PickerSyncController: getSyncRequestParams() CLOUD, auth=null
+03-11 23:49:41.604  1490  1647 D PickerSyncController:    RESULT=SyncRequestParams{type=MEDIA_RESET, gen=0, latest=null}
+03-11 23:49:41.605  1490  1647 I PickerSyncController: Executing SyncReset. isLocal: false. authority: null
+03-11 23:49:41.605  1490  1647 I PickerSyncController: SyncReset. isLocal:false. authority: null. result count: 0
+03-11 23:49:41.605  1490  1647 D PickerSyncController: Ignoring cache media info for null authority with bundle: null
+03-11 23:49:41.605  1490  1647 I PickerSyncController: Executing SyncAlbumReset. isLocal: true. authority: com.android.providers.media.photopicker. albumId: null
+03-11 23:49:41.606  1490  1647 I PickerSyncController: Successfully executed SyncResetAlbum. authority: com.android.providers.media.photopicker. albumId: null. Result count: 0
+03-11 23:49:41.606  1490  1647 I PickerSyncController: Executing SyncAlbumReset. isLocal: false. authority: null. albumId: null
+03-11 23:49:41.606  1490  1647 I PickerSyncController: Successfully executed SyncResetAlbum. authority: null. albumId: null. Result count: 0
+03-11 23:49:41.876  5785  5868 D EGL_emulation: app_time_stats: avg=5.64ms min=4.35ms max=10.76ms count=60
+03-11 23:49:41.908   319  6619 I resolv  : res_nsend: used send_dg 0 terrno: 62
+03-11 23:49:41.908   319  6620 I resolv  : res_nsend: used send_dg 0 terrno: 62
+03-11 23:49:41.908   319  6619 I resolv  : doQuery: rcode=2, ancount=0, return value=-110
+03-11 23:49:41.909   319  6620 I resolv  : doQuery: rcode=2, ancount=0, return value=-110
+03-11 23:49:41.910  1605  6617 W enyb    : [{0}] Failed to resolve name. status={1}
+03-11 23:49:42.876  5785  5868 D EGL_emulation: app_time_stats: avg=5.75ms min=4.21ms max=7.57ms count=60
+03-11 23:49:43.702   319  6641 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:49:43.708   319  6642 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:49:43.877  5785  5868 D EGL_emulation: app_time_stats: avg=7.34ms min=4.26ms max=24.28ms count=60
+03-11 23:49:44.699   319  6643 I resolv  : GetAddrInfoHandler::run: {101 786533 101 983141 10119 0}
+03-11 23:49:44.700   319  6644 I resolv  : res_nmkquery: (QUERY, IN, AAAA)
+03-11 23:49:44.700   319  6645 I resolv  : res_nmkquery: (QUERY, IN, A)
+03-11 23:49:44.700   319  6644 I resolv  : resolv_cache_lookup: Waiting for previous request
+03-11 23:49:44.700   319  6645 I resolv  : resolv_cache_lookup: Waiting for previous request
+03-11 23:49:44.891  5785  5868 D EGL_emulation: app_time_stats: avg=6.56ms min=4.48ms max=24.72ms count=61
+03-11 23:49:45.907  5785  5868 D EGL_emulation: app_time_stats: avg=5.73ms min=4.37ms max=8.35ms count=61
+03-11 23:49:46.574   534  2165 W JobScheduler: Job didn't exist in JobStore: 7bbfa52 #u0a143/1034 com.google.android.apps.photos/com.google.android.libraries.social.mediamonitor.MediaMonitorJobSchedulerService
+03-11 23:49:46.577   534  2165 W UriGrantsManagerService: No permission grants found for com.google.android.apps.photos
+03-11 23:49:46.578   534  2165 W UriGrantsManagerService: No permission grants found for com.google.android.apps.photos
+03-11 23:49:46.638   534   597 W UriGrantsManagerService: No permission grants found for com.google.android.apps.photos
+03-11 23:49:46.638   534   597 W UriGrantsManagerService: No permission grants found for com.google.android.apps.photos
+03-11 23:49:46.649  3152  6648 I XmpUtil : XMP parse: only JPEG file is supported
+03-11 23:49:46.681   534   597 W UriGrantsManagerService: No permission grants found for com.google.android.apps.photos
+03-11 23:49:46.682   534   597 W UriGrantsManagerService: No permission grants found for com.google.android.apps.photos
+03-11 23:49:46.908  5785  5868 D EGL_emulation: app_time_stats: avg=6.24ms min=4.63ms max=11.33ms count=60
+03-11 23:49:47.910  5785  5868 D EGL_emulation: app_time_stats: avg=5.76ms min=4.64ms max=10.26ms count=60
+03-11 23:49:48.255   319  6642 I resolv  : res_nsend: used send_dg 0 terrno: 62
+03-11 23:49:48.255   319  6641 I resolv  : res_nsend: used send_dg 0 terrno: 62
+03-11 23:49:48.255   319  6642 I resolv  : doQuery: rcode=2, ancount=0, return value=-110
+03-11 23:49:48.255   319  6641 I resolv  : doQuery: rcode=2, ancount=0, return value=-110
+03-11 23:49:48.256   319  6644 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:49:48.258   319  6645 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: Sync failed [CONTEXT service_id=51 ]
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: bwdx: 29504: Network error
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: 	at bwhy.D(:com.google.android.gms@231818047@23.18.18 (190800-535401451):210)
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: 	at bwhy.p(:com.google.android.gms@231818047@23.18.18 (190800-535401451):61)
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: 	at bwhy.w(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: 	at bwhy.o(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: 	at com.google.android.gms.phenotype.sync.HeterodyneSyncTaskChimeraService.d(:com.google.android.gms@231818047@23.18.18 (190800-535401451):29)
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: 	at com.google.android.gms.phenotype.sync.HeterodyneSyncTaskChimeraService.a(:com.google.android.gms@231818047@23.18.18 (190800-535401451):10)
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: 	at avzs.call(:com.google.android.gms@231818047@23.18.18 (190800-535401451):4)
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: 	at java.util.concurrent.FutureTask.run(FutureTask.java:264)
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: 	at aced.c(:com.google.android.gms@231818047@23.18.18 (190800-535401451):6)
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: 	at aced.run(:com.google.android.gms@231818047@23.18.18 (190800-535401451):7)
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1137)
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:637)
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: 	at acjn.run(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: 	at java.lang.Thread.run(Thread.java:1012)
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: Caused by: java.io.IOException: request causes GmsNetworkException without UrlResponseInfo at execution
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: 	at bwia.a(:com.google.android.gms@231818047@23.18.18 (190800-535401451):38)
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: 	at bwhy.D(:com.google.android.gms@231818047@23.18.18 (190800-535401451):166)
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: 	... 13 more
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: Caused by: avvw: Failed to process request
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: 	at avxk.onFailed(:com.google.android.gms@231818047@23.18.18 (190800-535401451):2)
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: 	at jf.onFailed(:com.google.android.gms.dynamite_cronetdynamite@231818047@23.18.18 (190800-0):0)
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: 	at ih.run(:com.google.android.gms.dynamite_cronetdynamite@231818047@23.18.18 (190800-0):1)
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: 	... 6 more
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: Caused by: iq: Exception in CronetUrlRequest: net::ERR_NAME_NOT_RESOLVED, ErrorCode=1, InternalErrorCode=-105, Retryable=false
+03-11 23:49:48.268  1220  1375 W HeterodyneSyncer: 	at org.chromium.net.impl.CronetUrlRequest.onError(:com.google.android.gms.dynamite_cronetdynamite@231818047@23.18.18 (190800-0):5)
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: Sync task failure [CONTEXT service_id=51 ]
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: bwdx: 29504: Network error
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: 	at bwhy.D(:com.google.android.gms@231818047@23.18.18 (190800-535401451):210)
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: 	at bwhy.p(:com.google.android.gms@231818047@23.18.18 (190800-535401451):61)
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: 	at bwhy.w(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: 	at bwhy.o(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: 	at com.google.android.gms.phenotype.sync.HeterodyneSyncTaskChimeraService.d(:com.google.android.gms@231818047@23.18.18 (190800-535401451):29)
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: 	at com.google.android.gms.phenotype.sync.HeterodyneSyncTaskChimeraService.a(:com.google.android.gms@231818047@23.18.18 (190800-535401451):10)
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: 	at avzs.call(:com.google.android.gms@231818047@23.18.18 (190800-535401451):4)
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: 	at java.util.concurrent.FutureTask.run(FutureTask.java:264)
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: 	at aced.c(:com.google.android.gms@231818047@23.18.18 (190800-535401451):6)
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: 	at aced.run(:com.google.android.gms@231818047@23.18.18 (190800-535401451):7)
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1137)
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:637)
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: 	at acjn.run(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: 	at java.lang.Thread.run(Thread.java:1012)
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: Caused by: java.io.IOException: request causes GmsNetworkException without UrlResponseInfo at execution
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: 	at bwia.a(:com.google.android.gms@231818047@23.18.18 (190800-535401451):38)
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: 	at bwhy.D(:com.google.android.gms@231818047@23.18.18 (190800-535401451):166)
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: 	... 13 more
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: Caused by: avvw: Failed to process request
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: 	at avxk.onFailed(:com.google.android.gms@231818047@23.18.18 (190800-535401451):2)
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: 	at jf.onFailed(:com.google.android.gms.dynamite_cronetdynamite@231818047@23.18.18 (190800-0):0)
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: 	at ih.run(:com.google.android.gms.dynamite_cronetdynamite@231818047@23.18.18 (190800-0):1)
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: 	... 6 more
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: Caused by: iq: Exception in CronetUrlRequest: net::ERR_NAME_NOT_RESOLVED, ErrorCode=1, InternalErrorCode=-105, Retryable=false
+03-11 23:49:48.339  1220  1375 E HeterodyneSyncTaskChime: 	at org.chromium.net.impl.CronetUrlRequest.onError(:com.google.android.gms.dynamite_cronetdynamite@231818047@23.18.18 (190800-0):5)
+03-11 23:49:48.401  1220  6637 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.phenotype.service.sync.PhenotypeConfigurator finished executing. cause:5 result: 2 elapsed_millis: 12326 uptime_millis: 12326 exec_start_elapsed_seconds: 5045 [CONTEXT service_id=218 ]
+03-11 23:49:48.577   347   347 E android.hardware.power.stats@1.0-service-mock: Failed to getEnergyData
+03-11 23:49:48.926  5785  5868 D EGL_emulation: app_time_stats: avg=8.12ms min=4.48ms max=73.09ms count=56
+03-11 23:49:49.941  5785  5868 D EGL_emulation: app_time_stats: avg=6.01ms min=4.48ms max=8.92ms count=61
+03-11 23:49:50.942  5785  5868 D EGL_emulation: app_time_stats: avg=5.67ms min=4.58ms max=10.84ms count=60
+03-11 23:49:51.626  1220  1220 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.gms.scheduler.ACTION_PROXY_SCHEDULE dat=chimera-action:/... cmp=com.google.android.gms/.chimera.PersistentApiService }
+03-11 23:49:51.943  5785  5868 D EGL_emulation: app_time_stats: avg=5.58ms min=4.60ms max=9.12ms count=60
+03-11 23:49:52.961  5785  5868 D EGL_emulation: app_time_stats: avg=5.54ms min=4.49ms max=7.93ms count=61
+03-11 23:49:53.263   319  6645 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:49:53.263   319  6644 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:49:53.975  5785  5868 D EGL_emulation: app_time_stats: avg=7.61ms min=4.61ms max=24.85ms count=60
+03-11 23:49:54.992  5785  5868 D EGL_emulation: app_time_stats: avg=6.01ms min=4.53ms max=9.07ms count=61
+03-11 23:49:56.008  5785  5868 D EGL_emulation: app_time_stats: avg=5.63ms min=4.52ms max=9.20ms count=61
+03-11 23:49:57.024  5785  5868 D EGL_emulation: app_time_stats: avg=5.59ms min=4.59ms max=7.85ms count=61
+03-11 23:49:58.025  5785  5868 D EGL_emulation: app_time_stats: avg=5.37ms min=4.51ms max=8.49ms count=60
+03-11 23:49:58.243   319  6645 I resolv  : res_nsend: used send_dg 0 terrno: 62
+03-11 23:49:58.243   319  6644 I resolv  : res_nsend: used send_dg 0 terrno: 62
+03-11 23:49:58.243   319  6644 I resolv  : doQuery: rcode=2, ancount=0, return value=-110
+03-11 23:49:58.243   319  6645 I resolv  : doQuery: rcode=2, ancount=0, return value=-110
+03-11 23:49:59.042  5785  5868 D EGL_emulation: app_time_stats: avg=6.97ms min=4.71ms max=23.84ms count=61
+03-11 23:50:00.004  1465  1739 I AiAiEcho: Predicting[0]: 
+03-11 23:50:00.004  1465  1739 I AiAiEcho: Ranked targets strategy: SORT, count: 0, ranking metadata: 
+03-11 23:50:00.005  1465  1739 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface lockscreen with targets# 0
+03-11 23:50:00.005  1465  1739 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface home with targets# 0
+03-11 23:50:00.005  1465  1739 I AiAiEcho: #postPredictionTargets: Sending updates to UISurface media_data_manager with targets# 0
+03-11 23:50:00.018   731   928 D EGL_emulation: app_time_stats: avg=56081.68ms min=56081.68ms max=56081.68ms count=1
+03-11 23:50:00.021   731   731 D SsMediaDataProvider: Forwarding Smartspace updates []
+03-11 23:50:00.060  5785  5868 D EGL_emulation: app_time_stats: avg=5.83ms min=4.53ms max=9.05ms count=61
+03-11 23:50:00.283   319  6651 I resolv  : GetAddrInfoHandler::run: {101 786533 101 983141 10119 0}
+03-11 23:50:00.284   319  6653 I resolv  : res_nmkquery: (QUERY, IN, A)
+03-11 23:50:00.284   319  6652 I resolv  : res_nmkquery: (QUERY, IN, AAAA)
+03-11 23:50:00.285   319  6652 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:50:00.287   319  6653 I resolv  : res_stats_usable_server: too many resolution errors, ignoring server
+03-11 23:50:01.074  5785  5868 D EGL_emulation: app_time_stats: avg=6.41ms min=4.41ms max=38.23ms count=60
+03-11 23:50:02.094  5785  5868 D EGL_emulation: app_time_stats: avg=5.54ms min=4.61ms max=7.59ms count=61
+03-11 23:50:03.108  5785  5868 D EGL_emulation: app_time_stats: avg=5.84ms min=4.56ms max=10.86ms count=61
+03-11 23:50:03.419  1220  1220 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.gms.phenotype.service.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.PersistentApiService }
+03-11 23:50:04.110  5785  5868 D EGL_emulation: app_time_stats: avg=7.35ms min=4.79ms max=22.36ms count=59
+03-11 23:50:05.124  5785  5868 D EGL_emulation: app_time_stats: avg=6.18ms min=4.58ms max=9.53ms count=61
+03-11 23:50:05.290   319  6652 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:50:05.290   319  6653 I resolv  : res_nsend: used send_dg 0 terrno: 110
+03-11 23:50:06.025  1605  6654 I GmscoreIpa: Starting mediastore instant index [CONTEXT service_id=255 ]
+03-11 23:50:06.143  5785  5868 D EGL_emulation: app_time_stats: avg=5.74ms min=4.52ms max=9.45ms count=61
+03-11 23:50:07.157  5785  5868 D EGL_emulation: app_time_stats: avg=5.59ms min=4.39ms max=9.09ms count=61
+03-11 23:50:08.160  5785  5868 D EGL_emulation: app_time_stats: avg=5.40ms min=4.57ms max=10.86ms count=60
+03-11 23:50:09.160  5785  5868 D EGL_emulation: app_time_stats: avg=6.74ms min=4.66ms max=13.98ms count=60
+03-11 23:50:10.030   319  6653 I resolv  : res_nsend: used send_dg 0 terrno: 62
+03-11 23:50:10.030   319  6653 I resolv  : doQuery: rcode=2, ancount=0, return value=-110
+03-11 23:50:10.030   319  6652 I resolv  : res_nsend: used send_dg 0 terrno: 62
+03-11 23:50:10.030   319  6652 I resolv  : doQuery: rcode=2, ancount=0, return value=-110
+03-11 23:50:10.030  1605  6617 W enyb    : [{0}] Failed to resolve name. status={1}
+03-11 23:50:10.174  5785  5868 D EGL_emulation: app_time_stats: avg=5.95ms min=4.50ms max=11.97ms count=61
+03-11 23:50:11.175  5785  5868 D EGL_emulation: app_time_stats: avg=6.34ms min=4.44ms max=38.52ms count=59
+03-11 23:50:12.190  5785  5868 D EGL_emulation: app_time_stats: avg=5.68ms min=4.56ms max=10.30ms count=61
+03-11 23:50:13.192  5785  5868 D EGL_emulation: app_time_stats: avg=5.57ms min=4.49ms max=8.29ms count=60
+03-11 23:50:14.207  5785  5868 D EGL_emulation: app_time_stats: avg=6.95ms min=4.08ms max=23.83ms count=60
+03-11 23:50:15.208  5785  5868 D EGL_emulation: app_time_stats: avg=5.72ms min=4.48ms max=9.97ms count=60
+03-11 23:50:16.223  5785  5868 D EGL_emulation: app_time_stats: avg=5.46ms min=4.48ms max=8.11ms count=61
+03-11 23:50:17.225  5785  5868 D EGL_emulation: app_time_stats: avg=5.41ms min=4.55ms max=7.50ms count=60
+03-11 23:50:18.242  5785  5868 D EGL_emulation: app_time_stats: avg=5.64ms min=4.49ms max=10.19ms count=61
+03-11 23:50:19.260  5785  5868 D EGL_emulation: app_time_stats: avg=6.87ms min=5.32ms max=16.80ms count=61
+03-11 23:50:20.275  5785  5868 D EGL_emulation: app_time_stats: avg=5.53ms min=4.47ms max=9.14ms count=61
+03-11 23:50:21.294  5785  5868 D EGL_emulation: app_time_stats: avg=5.60ms min=4.47ms max=10.55ms count=61
+03-11 23:50:22.308  5785  5868 D EGL_emulation: app_time_stats: avg=5.47ms min=4.37ms max=7.47ms count=61
+03-11 23:50:23.321  5785  5868 D EGL_emulation: app_time_stats: avg=6.72ms min=4.64ms max=36.34ms count=59
+03-11 23:50:24.333  5785  5868 D EGL_emulation: app_time_stats: avg=8.21ms min=5.27ms max=14.80ms count=61
+03-11 23:50:25.342  5785  5868 D EGL_emulation: app_time_stats: avg=5.78ms min=4.47ms max=8.79ms count=61
+03-11 23:50:26.359  5785  5868 D EGL_emulation: app_time_stats: avg=5.66ms min=4.45ms max=7.32ms count=61

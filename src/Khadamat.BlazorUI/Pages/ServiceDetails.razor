@@ -38,6 +38,12 @@
                             <i class="fa-solid fa-pen"></i>
                         </button>
                     }
+                    else if (IsAuthenticated)
+                    {
+                        <button class="btn btn-glass-dark text-info" title="اطلب تعديل بيانات" @onclick="OpenRequestEditModal">
+                            <i class="fa-solid fa-code-pull-request"></i>
+                        </button>
+                    }
                     <button class="btn btn-glass-dark @(service.IsFavorite ? "text-danger" : "")" @onclick="ToggleFavorite">
                         <i class="@(service.IsFavorite ? "fa-solid" : "fa-regular") fa-heart"></i>
                     </button>
@@ -421,7 +427,7 @@
             </div>
         </div>
         
-        <div class="mt-4 x-small text-primary opacity-50">Khadamat &copy; 2026 - منصة جميع الخدمات في مكان واحد</div>
+        <div class="mt-4 x-small text-primary opacity-50">خدماوي &copy; 2026 - منصة جميع الخدمات في مكان واحد</div>
     </div>
 </div>
 
@@ -480,6 +486,48 @@
             @if (!string.IsNullOrEmpty(requestError))
             {
                 <div class="alert alert-danger mt-3 mb-0 small">@requestError</div>
+            }
+        </div>
+    </div>
+}
+
+<!-- Request Edit Service Modal -->
+@if (showRequestEditModal)
+{
+    <div class="modal-overlay">
+        <div class="glass-card p-4 rounded-4 animate-pop" style="max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <h5 class="fw-bold text-center mb-3">اقتراح تعديل بيانات</h5>
+            <p class="text-muted small text-center mb-4">@service?.Title</p>
+            
+            <div class="mb-3">
+                <label class="form-label fw-bold small">سبب التعديل <span class="text-danger">*</span></label>
+                <textarea @bind="editReason" class="form-control" rows="2" placeholder="مثال: رقم الهاتف تغير، السعر خطأ..."></textarea>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label fw-bold small">الاسم المقترح (اختياري)</label>
+                <input type="text" @bind="editProposedName" class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold small">رقم التواصل المقترح (اختياري)</label>
+                <input type="text" @bind="editProposedPhone" class="form-control" />
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button class="btn btn-info flex-grow-1 rounded-pill text-white" @onclick="SubmitEditRequest" disabled="@isSubmittingEditRequest">
+                    @if (isSubmittingEditRequest)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                    }
+                    إرسال الاقتراح
+                </button>
+                <button class="btn btn-light flex-grow-1 rounded-pill" @onclick="() => showRequestEditModal = false" disabled="@isSubmittingEditRequest">إلغاء</button>
+            </div>
+            
+            @if (!string.IsNullOrEmpty(editRequestError))
+            {
+                <div class="alert alert-danger mt-3 mb-0 small">@editRequestError</div>
             }
         </div>
     </div>
@@ -784,6 +832,7 @@
             var user = authState.User;
             if (user.Identity?.IsAuthenticated == true)
             {
+                IsAuthenticated = true;
                 var profile = await AuthService.GetProfileAsync();
                 if (profile?.Success == true)
                 {
@@ -1087,6 +1136,65 @@
         finally
         {
             isSubmittingRequest = false;
+        }
+    }
+
+    // --- Request Edit Logic ---
+    private bool IsAuthenticated = false;
+    private bool showRequestEditModal = false;
+    private string editReason = "";
+    private string? editProposedName;
+    private string? editProposedPhone;
+    private bool isSubmittingEditRequest = false;
+    private string? editRequestError;
+
+    private void OpenRequestEditModal()
+    {
+        editReason = "";
+        editProposedName = "";
+        editProposedPhone = "";
+        editRequestError = null;
+        showRequestEditModal = true;
+    }
+
+    private async Task SubmitEditRequest()
+    {
+        if (string.IsNullOrWhiteSpace(editReason))
+        {
+            editRequestError = "يرجى كتابة سبب التعديل";
+            return;
+        }
+
+        isSubmittingEditRequest = true;
+        editRequestError = null;
+
+        try
+        {
+            var success = await Api.RequestServiceEditAsync(service.Id, new 
+            {
+                ServiceId = service.Id,
+                Reason = editReason,
+                ProposedName = editProposedName,
+                ProposedPhone1 = editProposedPhone
+            });
+
+            if (success)
+            {
+                showRequestEditModal = false;
+                await JS.InvokeVoidAsync("alert", "تم إرسال اقتراح التعديل بنجاح والمراجعة من قبل الإدارة");
+            }
+            else
+            {
+                editRequestError = "حدث خطأ أثناء الإرسال. تأكد من اتصالك.";
+            }
+        }
+        catch (Exception ex)
+        {
+            editRequestError = "حدث خطأ. حاول مرة أخرى لاحقاً.";
+        }
+        finally
+        {
+            isSubmittingEditRequest = false;
         }
     }
 }

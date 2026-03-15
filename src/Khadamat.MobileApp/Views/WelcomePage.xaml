@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Khadamat.MobileApp.Views.WelcomePage"
+             BackgroundColor="#0f172a"
+             Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="*, Auto">
+        <!-- Background Gradient Simulation -->
+        <BoxView Grid.RowSpan="2">
+            <BoxView.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#0f172a" Offset="0.1" />
+                    <GradientStop Color="#1e293b" Offset="1.0" />
+                </LinearGradientBrush>
+            </BoxView.Background>
+        </BoxView>
+
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Spacing="25" Padding="30,50,30,30">
+                <!-- Hero Image -->
+                <Frame Padding="0" HasShadow="True" CornerRadius="20" IsClippedToBounds="True" HeightRequest="300" 
+                       Background="Transparent" BorderColor="Transparent">
+                    <Image Source="welcome_hero.png" Aspect="AspectFill" />
+                </Frame>
+
+                <!-- Titles -->
+                <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                    <Label Text="{Binding AppName, StringFormat='منصة {0}'}" 
+                           FontSize="32" 
+                           FontAttributes="Bold" 
+                           TextColor="White" 
+                           HorizontalOptions="Center" 
+                           FontFamily="OpenSansRegular" />
+                    <Label Text="خدماتك في مكان واحد.. لكل المصريين" 
+                           FontSize="16" 
+                           TextColor="#94a3b8" 
+                           HorizontalOptions="Center" 
+                           HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+
+                <!-- Benefits Section -->
+                <Grid ColumnDefinitions="*, *" ColumnSpacing="20" Margin="0,10,0,0">
+                    <!-- Seeker -->
+                    <Frame Grid.Column="0" BackgroundColor="#1e293b" CornerRadius="15" Padding="15" BorderColor="#334155">
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="🔍" FontSize="24" HorizontalOptions="Center" />
+                            <Label Text="للباحث عن خدمة" TextColor="#3b82f6" FontAttributes="Bold" FontSize="14" HorizontalOptions="Center" />
+                            <Label Text="تواصل مع محامين، ممرضين، سواقين، وحرفيين محترفين في ثوانٍ." 
+                                   TextColor="#cbd5e1" FontSize="12" HorizontalTextAlignment="Center" LineHeight="1.2" />
+                        </VerticalStackLayout>
+                    </Frame>
+
+                    <!-- Provider -->
+                    <Frame Grid.Column="1" BackgroundColor="#1e293b" CornerRadius="15" Padding="15" BorderColor="#334155">
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="💼" FontSize="24" HorizontalOptions="Center" />
+                            <Label Text="لصاحب الخدمة" TextColor="#10b981" FontAttributes="Bold" FontSize="14" HorizontalOptions="Center" />
+                            <Label Text="سجل مهنتك، اعرض خدماتك، وضاعف دخلك بالوصول لآلاف العملاء." 
+                                   TextColor="#cbd5e1" FontSize="12" HorizontalTextAlignment="Center" LineHeight="1.2" />
+                        </VerticalStackLayout>
+                    </Frame>
+                </Grid>
+
+                <!-- Diversity Note -->
+                <Label Text="محاماة • تمريض • قيادة • تعليم • حرف • تنظيف • دليفري" 
+                       TextColor="#64748b" 
+                       FontSize="11" 
+                       HorizontalOptions="Center" 
+                       Margin="0,10,0,0" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Bottom Actions -->
+        <VerticalStackLayout Grid.Row="1" Padding="30,0,30,40" Spacing="15" BackgroundColor="Transparent">
+            <Button Text="ابدأ الآن" 
+                    Clicked="OnStartClicked"
+                    BackgroundColor="#3b82f6" 
+                    TextColor="White" 
+                    HeightRequest="55" 
+                    CornerRadius="27" 
+                    FontAttributes="Bold" 
+                    FontSize="18">
+                <Button.Shadow>
+                    <Shadow Brush="#000000" Offset="0,5" Radius="10" Opacity="0.4" />
+                </Button.Shadow>
+            </Button>
+            
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
+                <Label Text="بالاستمرار، أنت توافق على" 
+                       TextColor="#475569" 
+                       FontSize="11" />
+                <Label Text="الشروط والأحكام" 
+                       TextColor="#3b82f6" 
+                       FontSize="11" 
+                       TextDecorations="Underline">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Clicked="OnTermsClicked" />
+                    </Label.GestureRecognizers>
+                </Label>
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

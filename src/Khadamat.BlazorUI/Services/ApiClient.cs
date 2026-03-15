@@ -40,6 +40,14 @@ public class ApiClient
         return default;
     }
 
+    public async Task<T?> PostMultipartAsync<T>(string url, MultipartFormDataContent content)
+    {
+        var response = await _http.PostAsync(url, content);
+        if (response.IsSuccessStatusCode)
+            return await response.Content.ReadFromJsonAsync<T>();
+        return default;
+    }
+
     // Settings
     public async Task<ApiResponse<AppSettingsDto>> GetSettingsAsync()
     {
@@ -114,6 +122,12 @@ public class ApiClient
     public async Task<bool> UpdateServiceAsync(int id, UpdateServiceCommand command)
     {
         var response = await _http.PutAsJsonAsync($"api/v1/services/{id}", command);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> RequestServiceEditAsync(int serviceId, object editDto)
+    {
+        var response = await _http.PostAsJsonAsync($"api/v1/services/{serviceId}/request-edit", editDto);
         return response.IsSuccessStatusCode;
     }
 

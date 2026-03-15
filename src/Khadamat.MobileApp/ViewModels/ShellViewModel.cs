@@ -10,13 +10,16 @@ namespace Khadamat.MobileApp.ViewModels;
 public partial class ShellViewModel : ObservableObject
 {
     [ObservableProperty]
-    private string appName = "خدمات";
+    private string appName = "خدماوي";
 
     [ObservableProperty]
     private string appLogo = "app_logo.png";
 
     [ObservableProperty]
     private string userTitle = "دخول";
+
+    [ObservableProperty]
+    private string userName = "مستخدم";
 
     [ObservableProperty]
     private string userImage = "profile_icon.png";
@@ -27,9 +30,32 @@ public partial class ShellViewModel : ObservableObject
 
     public bool IsNotAuthenticated => !IsAuthenticated;
 
-    public void SetAuthenticated(bool value)
+    [ObservableProperty]
+    private bool isAdmin = false;
+
+    [ObservableProperty]
+    private bool isProvider = false;
+
+    public void SetAuthenticated(bool value, string? name = null, string? image = null, bool admin = false, bool provider = false)
     {
         IsAuthenticated = value;
+        IsAdmin = admin;
+        IsProvider = provider;
+        
+        if (value)
+        {
+            UserName = !string.IsNullOrEmpty(name) ? name : "مستخدم";
+            UserImage = !string.IsNullOrEmpty(image) ? image : "profile_icon.png";
+            UserTitle = string.IsNullOrEmpty(name) ? "حسابي" : name.Split(' ')[0];
+        }
+        else
+        {
+            UserName = "زائر";
+            UserTitle = "دخول";
+            UserImage = "profile_icon.png";
+            IsAdmin = false;
+            IsProvider = false;
+        }
     }
 
     private readonly HttpClient _httpClient;
@@ -49,7 +75,87 @@ public partial class ShellViewModel : ObservableObject
         // Close flyout first
         Shell.Current.FlyoutIsPresented = false;
         
-        await Shell.Current.GoToAsync(route);
+        if (route == "logout")
+        {
+            if (!IsAuthenticated) return;
+            SetAuthenticated(false);
+            // Inform Blazor part about logout via WebView if possible, or reload HomePage
+            await Refresh();
+            await Shell.Current.GoToAsync("//HomePage");
+            return;
+        }
+        else if (route == "profile")
+            route = IsAuthenticated ? "//AuthProfilePage" : "//GuestProfilePage";
+        else if (route == "favorites")
+            route = "//FavoritesTab";
+        else if (route == "messages")
+            route = IsAuthenticated ? "//MessagesPage" : "//GuestProfilePage"; // Need login for auth
+        else if (route == "provider/dashboard")
+            route = IsAuthenticated ? "//HomePage?route=provider/dashboard" : "//GuestProfilePage";
+        else if (route == "settings")
+            route = IsAuthenticated ? "//SettingsPage" : "//GuestProfilePage";
+        else if (route == "explore")
+            route = "//HomePage?route=explore";
+        else if (route == "categories")
+            route = "//HomePage?route=categories";
+        else if (route == "support")
+        {
+            // Just use the WebContainer with specific route?
+            await Shell.Current.GoToAsync($"//HomePage?route=contact"); // or register generic route
+            return;
+        }
+        else if (route == "notifications" || route == "search")
+        {
+            await Shell.Current.GoToAsync($"//HomePage?route={route}");
+            return;
+        }
+        else if (route == "//HomePage")
+            route = "//HomePage?route=";
+        else if (!route.StartsWith("//"))
+            route = "//HomePage?route=" + Uri.EscapeDataString(route);
+
+        try
+        {
+            await Shell.Current.GoToAsync(route);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ANTIGRAVITY_LOG: Navigate Error for {route}: {ex.Message}");
+            // Fallback to home
+            await Shell.Current.GoToAsync("//HomePage");
+        }
+    }
+
+    [RelayCommand]
+    private async Task ShowThemePicker()
+    {
+        string result = await Shell.Current.DisplayActionSheet("اختر مظهر التطبيق", "إلغاء", null, 
+            "الافتراضي (Default)", "الغروب (Sunset)", "المحيط (Ocean)", "الغابة (Forest)", "اللافندر (Lavender)", "الملكي (Royal)");
+
+        string? theme = result switch
+        {
+            "الافتراضي (Default)" => "default",
+            "الغروب (Sunset)" => "sunset",
+            "المحيط (Ocean)" => "ocean",
+            "الغابة (Forest)" => "forest",
+            "اللافندر (Lavender)" => "lavender",
+            "الملكي (Royal)" => "royal",
+            _ => null
+        };
+
+        if (theme != null)
+        {
+            Microsoft.Maui.Storage.Preferences.Default.Set("AppTheme", theme);
+            
+            // If we are currently on a web container, tell it to update JS immediately
+            var currentPage = Shell.Current.CurrentPage;
+            if (currentPage is NavigationPage navPage) currentPage = navPage.CurrentPage;
+            
+            if (currentPage is Views.WebContainerPage webPage)
+            {
+                await webPage.ApplyThemeToWebView(theme);
+            }
+        }
     }
 
     [RelayCommand]
@@ -87,6 +193,9 @@ public partial class ShellViewModel : ObservableObject
         await Task.CompletedTask;
     }
 
+    [ObservableProperty]
+    private string appSlogan = "بوابتك لأفضل الخدمات المهنية";
+
     public async Task LoadSettingsAsync()
     {
         try
@@ -100,6 +209,11 @@ public partial class ShellViewModel : ObservableObject
             {
                 AppName = response.Data.ApplicationName;
                 
+                if (!string.IsNullOrEmpty(response.Data.WelcomeMessage))
+                {
+                    AppSlogan = response.Data.WelcomeMessage;
+                }
+
                 if (!string.IsNullOrEmpty(response.Data.LogoUrl))
                 {
                     // Ensure full URL for the image

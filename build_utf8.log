@@ -1,0 +1,18 @@
+﻿  Determining projects to restore...
+  All projects are up-to-date for restore.
+  Khadamat.Domain -> E:\MVC\khadamat\src\Khadamat.Domain\bin\Debug\net9.0\Khadamat.Domain.dll
+  Khadamat.Application -> E:\MVC\khadamat\src\Khadamat.Application\bin\Debug\net9.0\Khadamat.Application.dll
+  Khadamat.Shared -> E:\MVC\khadamat\src\Khadamat.Shared\bin\Debug\net9.0\Khadamat.Shared.dll
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Services\Auth\AuthService.cs(18,22): error CS0246: The type or namespace name 'IJSRuntime' could not be found (are you missing a using directive or an assembly reference?) [E:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Services\Auth\AuthService.cs(25,24): error CS0246: The type or namespace name 'IJSRuntime' could not be found (are you missing a using directive or an assembly reference?) [E:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+
+Build FAILED.
+
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Services\Auth\AuthService.cs(18,22): error CS0246: The type or namespace name 'IJSRuntime' could not be found (are you missing a using directive or an assembly reference?) [E:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+E:\MVC\khadamat\src\Khadamat.BlazorUI\Services\Auth\AuthService.cs(25,24): error CS0246: The type or namespace name 'IJSRuntime' could not be found (are you missing a using directive or an assembly reference?) [E:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj]
+    0 Warning(s)
+    2 Error(s)
+
+Time Elapsed 00:00:04.16
+
+Workload updates are available. Run `dotnet workload list` for more information.

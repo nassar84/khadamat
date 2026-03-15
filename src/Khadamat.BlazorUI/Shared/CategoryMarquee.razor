@@ -18,9 +18,9 @@
                 <div class="category-shape-wrapper p-0">
                     @if (!string.IsNullOrEmpty(cat.ImageUrl))
                     {
-                        <img src="@Api.GetAbsoluteUrl($"/images/maincategories/{cat.ImageUrl}")" 
+                        <img src="/images/maincategories/@cat.ImageUrl" 
                              class="w-100 h-100 object-fit-cover" alt="@cat.Name" 
-                             onerror="this.onerror=null;this.src='@Api.GetAbsoluteUrl("/images/maincategories/default.jpg")';"
+                             onerror="this.onerror=null;this.src='/images/maincategories/default.jpg';"
                              style="opacity: 0.9; border-radius: 50%;" />
                     }
                     else if (!string.IsNullOrEmpty(cat.Icon))

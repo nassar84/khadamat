@@ -6,6 +6,7 @@ using Khadamat.Application.Common.Models;
 using Khadamat.Application.DTOs;
 using Khadamat.Infrastructure.Identity;
 using Khadamat.Infrastructure.Persistence;
+using Khadamat.Domain.Entities;
 using Khadamat.Domain.Enums;
 
 namespace Khadamat.WebAPI.Controllers;
@@ -425,6 +426,40 @@ public class AdminController : ControllerBase
         service.IsDeleted = true;
         service.DeletedAt = DateTime.UtcNow;
         service.DeletedBy = currentUserId;
+
+        await _context.SaveChangesAsync();
+        return Ok(ApiResponse<bool>.Succeed(true));
+    }
+
+    [HttpPost("services/{id}/change-owner")]
+    public async Task<IActionResult> ChangeServiceOwner(int id, [FromBody] string newUserId)
+    {
+        var service = await _context.Services.FindAsync(id);
+        if (service == null) return NotFound(ApiResponse<bool>.Fail("الخدمة غير موجودة"));
+
+        var user = await _userManager.FindByIdAsync(newUserId);
+        if (user == null) return NotFound(ApiResponse<bool>.Fail("المستخدم غير موجود"));
+
+        // Find or create provider profile for the new user
+        var providerProfile = await _context.ProviderProfiles.FirstOrDefaultAsync(p => p.UserId == newUserId);
+        if (providerProfile == null)
+        {
+            providerProfile = new ProviderProfile
+            {
+                UserId = newUserId,
+                BusinessName = user.FullName ?? "بدون اسم",
+                ContactNumber = user.PhoneNumber ?? "",
+                Verified = true
+            };
+            providerProfile.CreatedAt = DateTime.UtcNow;
+            _context.ProviderProfiles.Add(providerProfile);
+            await _context.SaveChangesAsync(); // save to get ID
+            
+            user.IsProvider = true;
+            await _userManager.UpdateAsync(user);
+        }
+
+        service.ReassignOwner(providerProfile.Id, newUserId);
 
         await _context.SaveChangesAsync();
         return Ok(ApiResponse<bool>.Succeed(true));

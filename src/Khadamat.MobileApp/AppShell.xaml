@@ -4,159 +4,204 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:views="clr-namespace:Khadamat.MobileApp.Views"
+    xmlns:viewModels="clr-namespace:Khadamat.MobileApp.ViewModels"
+    x:DataType="viewModels:ShellViewModel"
     Title="{Binding AppName}"
     FlyoutBackgroundColor="#ffffff"
     FlyoutBehavior="Flyout"
     FlowDirection="RightToLeft">
 
     <Shell.TitleView>
-        <Grid ColumnDefinitions="Auto,*" Padding="10,0" VerticalOptions="Fill">
-            <Image Source="{Binding AppLogo}" 
-                   HeightRequest="32" 
-                   WidthRequest="32" 
-                   VerticalOptions="Center"
-                   Aspect="AspectFit"
-                   Margin="0,0,10,0"/>
-            <Label Grid.Column="1"
-                   Text="{Binding AppName}" 
-                   VerticalOptions="Center" 
-                   FontSize="18" 
-                   FontAttributes="Bold" 
-                   TextColor="White"/>
+        <Grid Padding="10,0" VerticalOptions="Fill">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            
+            <HorizontalStackLayout Grid.Column="0" HorizontalOptions="Start" VerticalOptions="Center" Spacing="8">
+                <HorizontalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="//HomePage" />
+                </HorizontalStackLayout.GestureRecognizers>
+                <Image Source="{Binding AppLogo}" HeightRequest="28" WidthRequest="28" Aspect="AspectFit"/>
+                <Label Text="{Binding AppName}" FontSize="18" FontAttributes="Bold" TextColor="White" VerticalOptions="Center"/>
+            </HorizontalStackLayout>
+            
+            <ImageButton Grid.Column="2" Source="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F3A8;', Color=White}"
+                         HeightRequest="30" WidthRequest="30" Margin="5,0"
+                         Command="{Binding ShowThemePickerCommand}" />
+
+            <ImageButton Grid.Column="3" Source="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F514;', Color=White}"
+                         HeightRequest="30" WidthRequest="30" Margin="5,0"
+                         IsVisible="{Binding IsAuthenticated}"
+                         Command="{Binding NavigateCommand}" CommandParameter="notifications" />
+            
+            <ImageButton Grid.Column="4" Source="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F50D;', Color=White}"
+                         HeightRequest="30" WidthRequest="30" Margin="5,0"
+                         Command="{Binding NavigateCommand}" CommandParameter="explore" />
         </Grid>
     </Shell.TitleView>
 
     <!-- Flyout Header -->
     <Shell.FlyoutHeader>
-        <Grid BackgroundColor="#0f172a" HeightRequest="150" Padding="20">
-            <VerticalStackLayout VerticalOptions="Center">
-                <Image Source="{Binding AppLogo}" 
-                       HeightRequest="60" 
-                       WidthRequest="60" 
-                       HorizontalOptions="Center"
-                       Aspect="AspectFit">
-                    <Image.Clip>
-                        <EllipseGeometry Center="30,30" RadiusX="30" RadiusY="30" />
-                    </Image.Clip>
-                </Image>
-                <Label Text="{Binding AppName}" 
-                       TextColor="White" 
-                       FontSize="18" 
-                       FontAttributes="Bold" 
-                       HorizontalOptions="Center" 
-                       Margin="0,10,0,0"/>
-            </VerticalStackLayout>
+        <Grid HeightRequest="200">
+            <!-- Premium Background (Mocking Gradient with overlapping boxes or just a solid rich color) -->
+            <BoxView Color="#0f172a" />
+            
+            <Grid Padding="20">
+                <!-- Guest Header -->
+                <VerticalStackLayout VerticalOptions="Center" IsVisible="{Binding IsNotAuthenticated}" Spacing="12">
+                    <Frame BackgroundColor="White" Padding="0" HeightRequest="64" WidthRequest="64" CornerRadius="32" HorizontalOptions="Center" HasShadow="True">
+                        <Frame.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="//HomePage" />
+                        </Frame.GestureRecognizers>
+                        <Image Source="{Binding AppLogo}" Aspect="AspectFit" Margin="10"/>
+                    </Frame>
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="{Binding AppName, StringFormat='مرحباً بك في {0}'}" TextColor="White" FontSize="18" FontAttributes="Bold" HorizontalOptions="Center">
+                             <Label.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="//HomePage" />
+                            </Label.GestureRecognizers>
+                        </Label>
+                        <Label Text="{Binding AppSlogan}" TextColor="#94a3b8" FontSize="12" HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                    <Button Text="دخول / تسجيل" Command="{Binding NavigateCommand}" CommandParameter="profile" 
+                            BackgroundColor="#3b82f6" TextColor="White" CornerRadius="25" FontAttributes="Bold" HeightRequest="45" Padding="25,0" Margin="0,10,0,0">
+                        <Button.Shadow>
+                            <Shadow Brush="#000000" Offset="0,4" Radius="8" Opacity="0.3" />
+                        </Button.Shadow>
+                    </Button>
+                </VerticalStackLayout>
+                
+                <!-- Authenticated Header -->
+                <VerticalStackLayout VerticalOptions="Center" IsVisible="{Binding IsAuthenticated}" Spacing="10">
+                    <Frame Padding="2" HeightRequest="74" WidthRequest="74" CornerRadius="37" HorizontalOptions="Center" BackgroundColor="#3b82f6" HasShadow="True">
+                        <Image Source="{Binding UserImage}" Aspect="AspectFill">
+                            <Image.Clip><EllipseGeometry Center="35,35" RadiusX="35" RadiusY="35" /></Image.Clip>
+                        </Image>
+                    </Frame>
+                    <Label Text="{Binding UserName}" TextColor="White" FontSize="18" FontAttributes="Bold" HorizontalOptions="Center"/>
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="2">
+                        <Label Text="⭐" TextColor="#f59e0b" FontSize="12"/>
+                        <Label Text="⭐" TextColor="#f59e0b" FontSize="12"/>
+                        <Label Text="⭐" TextColor="#f59e0b" FontSize="12"/>
+                        <Label Text="⭐" TextColor="#f59e0b" FontSize="12"/>
+                        <Label Text="⭐" TextColor="#f59e0b" FontSize="12"/>
+                    </HorizontalStackLayout>
+                    <Button Text="الملف الشخصي" BackgroundColor="#1e293b" TextColor="#cbd5e1" FontSize="12" CornerRadius="12" Padding="15,0" HeightRequest="30" 
+                            Command="{Binding NavigateCommand}" CommandParameter="profile" HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </Grid>
         </Grid>
     </Shell.FlyoutHeader>
 
-    <!-- Main Application Structure with persistent Bottom TabBar -->
+    <!-- Flyout Footer for a Premium Look -->
+    <Shell.FlyoutFooter>
+        <VerticalStackLayout Padding="20" IsVisible="{Binding IsAuthenticated}" BackgroundColor="#ffffff">
+            <BoxView HeightRequest="1" Color="#f1f5f9" Margin="0,0,0,15" />
+            <Button Text="تسجيل الخروج" 
+                    Command="{Binding NavigateCommand}" 
+                    CommandParameter="logout"
+                    BackgroundColor="#fff1f2"
+                    TextColor="#e11d48"
+                    FontAttributes="Bold"
+                    CornerRadius="25"
+                    HeightRequest="50"
+                    ImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F6AA;', Color='#e11d48'}"
+                    ContentLayout="Right,12">
+                <Button.Shadow>
+                    <Shadow Brush="#000000" Offset="0,2" Radius="5" Opacity="0.1" />
+                </Button.Shadow>
+            </Button>
+            <Label Text="نسخة 1.0.0" FontSize="10" TextColor="#94a3b8" HorizontalOptions="Center" Margin="0,10,0,0" />
+        </VerticalStackLayout>
+    </Shell.FlyoutFooter>
+
     <TabBar x:Name="MainTabBar">
         
         <Tab Title="الرئيسية" Route="HomePage">
-            <Tab.Icon>
-                <FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F3E0;" />
-            </Tab.Icon>
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F3E0;" /></Tab.Icon>
             <ShellContent ContentTemplate="{DataTemplate views:HomePage}" />
         </Tab>
 
         <Tab Title="المتجر" Route="MarketplacePage">
-            <Tab.Icon>
-                <FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F6CD;" />
-            </Tab.Icon>
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F6CD;" /></Tab.Icon>
             <ShellContent ContentTemplate="{DataTemplate views:MarketplacePage}" />
         </Tab>
         
-        <Tab Title="أضف خدمة" Route="PostServicePage">
-            <Tab.Icon>
-                <FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2795;" />
-            </Tab.Icon>
+        <Tab Title="أضف إعلان" Route="PostServicePage">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2795;" Color="#8e2de2" /></Tab.Icon>
             <ShellContent ContentTemplate="{DataTemplate views:PostServicePage}" />
         </Tab>
 
-        <Tab Title="المفضلة" Route="FavoritesPage">
-            <Tab.Icon>
-                <FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2764;" />
-            </Tab.Icon>
+        <!-- Unauthenticated Specific Tabs -->
+        <Tab Title="المفضلة" Route="FavoritesTab">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2764;" /></Tab.Icon>
             <ShellContent ContentTemplate="{DataTemplate views:FavoritesPage}" />
         </Tab>
-        
-        <Tab Title="{Binding UserTitle}" Route="ProfilePage" IsVisible="{Binding IsAuthenticated}">
-            <Tab.Icon>
-                <FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F464;" />
-            </Tab.Icon>
+        <Tab Title="دخول" Route="GuestProfilePage" IsVisible="{Binding IsNotAuthenticated}">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F464;" /></Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:LoginPage}" />
+        </Tab>
+
+        <!-- Authenticated Specific Tabs -->
+        <Tab Title="{Binding UserTitle}" Route="AuthProfilePage" IsVisible="{Binding IsAuthenticated}">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F468;" /></Tab.Icon>
             <ShellContent ContentTemplate="{DataTemplate views:ProfilePage}" />
         </Tab>
 
-        <!-- Extra Pages (Hidden from Bottom Nav but share the TabBar context) -->
-        <Tab Title="التصنيفات" Route="CategoriesPage" IsVisible="False">
-            <ShellContent ContentTemplate="{DataTemplate views:CategoriesPage}" />
-        </Tab>
+        <!-- Extra Hidden Pages -->
+        <!-- We use standalone routes for these via AppPages -->
 
         <Tab Title="خدماتي" Route="MyServicesPage" IsVisible="False">
             <ShellContent ContentTemplate="{DataTemplate views:MyServicesPage}" />
         </Tab>
-
         <Tab Title="الإعدادات" Route="SettingsPage" IsVisible="False">
             <ShellContent ContentTemplate="{DataTemplate views:SettingsPage}" />
         </Tab>
-
-        <Tab Title="الرسائل" Route="MessagesPage" IsVisible="False">
-            <ShellContent ContentTemplate="{DataTemplate views:MessagesPage}" />
-        </Tab>
-
     </TabBar>
 
     <!-- Side Menu (Flyout) Navigation -->
-    <MenuItem Text="الرئيسية" 
-              Command="{Binding NavigateCommand}"
-              CommandParameter="//HomePage"
-              IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F3E0;', Color='#0f172a'}">
-    </MenuItem>
+    <!-- ==== الاستكشاف ==== -->
+    <MenuItem Text="الرئيسية" Command="{Binding NavigateCommand}" CommandParameter="//HomePage" IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F3E0;', Color='#0f172a'}" />
+    <MenuItem Text="التصنيفات" Command="{Binding NavigateCommand}" CommandParameter="categories" IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F4C2;', Color='#0f172a'}" />
+    <MenuItem Text="المتجر" Command="{Binding NavigateCommand}" CommandParameter="//MarketplacePage" IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F6CD;', Color='#0f172a'}" />
 
-    <MenuItem Text="التصنيفات" 
-              Command="{Binding NavigateCommand}"
-              CommandParameter="//CategoriesPage"
-              IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F4C2;', Color='#0f172a'}">
-    </MenuItem>
-
-    <MenuItem Text="المتجر" 
-              Command="{Binding NavigateCommand}"
-              CommandParameter="//MarketplacePage"
-              IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F6CD;', Color='#0f172a'}">
-    </MenuItem>
-
-    <MenuItem Text="خدماتي" 
-              IsVisible="{Binding IsAuthenticated}"
-              Command="{Binding NavigateCommand}"
-              CommandParameter="//MyServicesPage"
-              IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F4BC;', Color='#0f172a'}">
-    </MenuItem>
-
+    <!-- ==== نشاطاتي ==== -->
+    <MenuItem Text="إعلاناتي / خدماتي" 
+              Command="{Binding NavigateCommand}" 
+              CommandParameter="provider/dashboard" 
+              IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F4BC;', Color='#0f172a'}" />
     <MenuItem Text="المفضلة" 
-              IsVisible="{Binding IsAuthenticated}"
-              Command="{Binding NavigateCommand}"
-              CommandParameter="//FavoritesPage"
-              IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x2764;', Color='#0f172a'}">
-    </MenuItem>
+              Command="{Binding NavigateCommand}" 
+              CommandParameter="favorites" 
+              IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x2764;', Color='#0f172a'}" />
+    <MenuItem Text="الرسائل" 
+              Command="{Binding NavigateCommand}" 
+              CommandParameter="messages" 
+              IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F4AC;', Color='#0f172a'}" />
 
-    <MenuItem Text="الإعدادات" 
-              IsVisible="{Binding IsAuthenticated}"
-              Command="{Binding NavigateCommand}"
-              CommandParameter="//SettingsPage"
-              IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x2699;', Color='#0f172a'}">
-    </MenuItem>
+    <!-- ==== الإدارة ==== -->
+    <MenuItem Text="لوحة المدير" 
+              Command="{Binding NavigateCommand}" 
+              CommandParameter="admin" 
+              IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F6E1;', Color='#0f172a'}" />
+    <MenuItem Text="إدارة الإعلانات" 
+              Command="{Binding NavigateCommand}" 
+              CommandParameter="admin/ads" 
+              IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F4DC;', Color='#0f172a'}" />
 
-    <MenuItem Text="تحديث التطبيق" 
-              Command="{Binding RefreshCommand}" 
-              IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1f504;', Color='#0f172a'}">
-    </MenuItem>
+    <!-- Visual Separator -->
+    <MenuItem Text="━━━━━━━━━━━━" IsEnabled="False" />
 
-    <MenuItem Text="تسجيل الدخول" 
-              IsVisible="{Binding IsNotAuthenticated}"
-              Command="{Binding NavigateCommand}"
-              CommandParameter="//ProfilePage"
-              IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F512;', Color='#0f172a'}">
-    </MenuItem>
+    <!-- ==== النظام ==== -->
+    <MenuItem Text="الإعدادات" Command="{Binding NavigateCommand}" CommandParameter="settings" IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x2699;', Color='#0f172a'}" />
+    <MenuItem Text="الدعم والمساعدة" Command="{Binding NavigateCommand}" CommandParameter="support" IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F198;', Color='#0f172a'}" />
+    <MenuItem Text="الشروط والأحكام" Command="{Binding NavigateCommand}" CommandParameter="terms" IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F4DC;', Color='#0f172a'}" />
+    <MenuItem Text="تحديث التطبيق" Command="{Binding RefreshCommand}" IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1f504;', Color='#0f172a'}" />
+    
+    <!-- Logout is now in FlyoutFooter for better UI -->
 
-    <!-- Refresh Menu Item (Duplicated for safety at bottom or just leave it above) -->
 </Shell>

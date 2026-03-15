@@ -16,6 +16,32 @@ namespace Khadamat.MobileApp
             Task.Run(async () => await _viewModel.LoadSettingsAsync());
         }
 
+        protected override void OnNavigating(ShellNavigatingEventArgs args)
+        {
+            base.OnNavigating(args);
+
+            if (args.Target != null)
+            {
+                var targetLoc = args.Target.Location.ToString();
+                var targetPath = targetLoc.Split('?')[0];
+                
+                // If navigating to the Home page (either by tab click or menu)
+                // and it's either the exact same location or a base navigation without params,
+                // we force the WebView to return to root.
+                if (targetPath.EndsWith("HomePage") || targetPath == "//")
+                {
+                    // If no specific route param is provided, or navigation is to the same full location
+                    if (!targetLoc.Contains("route=") || targetLoc.EndsWith("route=") || (args.Current != null && args.Current.Location.ToString() == targetLoc))
+                    {
+                        if (CurrentPage is Views.WebContainerPage webPage)
+                        {
+                            webPage.ReturnToRoot();
+                        }
+                    }
+                }
+            }
+        }
+
         public async Task HandleDeepLink(string url)
         {
             // Example: khadamat://service/120 -> /service/120

@@ -50,5 +50,6 @@ builder.Services.AddScoped<Khadamat.Shared.Interfaces.IBiometricService, Khadama
 builder.Services.AddScoped<Khadamat.Application.Interfaces.IOfflineDataService, Khadamat.BlazorUI.Services.WebOfflineDataService>();
 builder.Services.AddScoped<Khadamat.Shared.Interfaces.ILocationService, Khadamat.BlazorUI.Services.WebLocationService>();
 builder.Services.AddScoped<Khadamat.BlazorUI.Services.SignalRClientService>();
+builder.Services.AddScoped<Khadamat.BlazorUI.Services.SoundService>();
 
 await builder.Build().RunAsync();

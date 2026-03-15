@@ -45,7 +45,7 @@
                                 <div class="featured-badge">مميز</div>
                                 <div class="item-badge">@(item.Condition == "New" ? "جديد" : "مستعمل")</div>
                                 <div class="item-image-container">
-                                    <img src="@Api.GetAbsoluteUrl(item.Images.FirstOrDefault()?.ImageUrl ?? "images/defaults/default-product.png")" alt="@item.Title" />
+                                    <img src="@(item.Images != null && item.Images.Any() ? Api.GetAbsoluteUrl(item.Images.First().ImageUrl) : "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80")" alt="@item.Title" />
                                 </div>
                                 <div class="item-details p-3">
                                     <h6 class="text-truncate fw-bold mb-1">@item.Title</h6>
@@ -179,7 +179,7 @@
                             }
                             <div class="item-badge">@(item.Condition == "New" ? "جديد" : "مستعمل")</div>
                             <div class="item-image-container">
-                                <img src="@Api.GetAbsoluteUrl(item.Images?.FirstOrDefault()?.ImageUrl ?? "images/defaults/default-product.png")" alt="@item.Title" />
+                                <img src="@(item.Images != null && item.Images.Any() ? Api.GetAbsoluteUrl(item.Images.First().ImageUrl) : "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80")" alt="@item.Title" />
                             </div>
                             <div class="item-details p-3">
                                 <h6 class="text-truncate fw-bold mb-1">@item.Title</h6>

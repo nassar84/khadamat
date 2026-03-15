@@ -4,11 +4,20 @@
 @inject Khadamat.BlazorUI.Services.ApiClient ApiClient
 @inject NavigationManager Navigation
 @inject Khadamat.BlazorUI.State.AppState AppState
+@inject Khadamat.Shared.Interfaces.IExternalAuthService ExternalAuthService
+@inject HttpClient Http
 
 <div class="auth-container d-flex justify-content-center align-items-center py-5">
     <div class="glass-card p-4 p-md-5 w-100" style="max-width: 700px;">
         <div class="text-center mb-4">
-             <h2 class="brand-name mb-2">@AppState.AppName</h2>
+             @if (!string.IsNullOrEmpty(AppState.AppLogo))
+             {
+                 <img src="@AppState.AppLogo" alt="@AppState.AppName" class="auth-logo mb-3" style="max-height: 80px;" />
+             }
+             else
+             {
+                 <h2 class="brand-name mb-2">@AppState.AppName</h2>
+             }
              <h4 class="text-muted">إنشاء حساب جديد</h4>
         </div>
         
@@ -188,12 +197,12 @@
             <div class="text-center mt-4">
                 <p class="text-muted small mb-3">أو قم بالتسجيل عبر</p>
                 <div class="d-flex justify-content-center gap-3">
-                     <a href="http://localhost:5144/api/v1/auth/external-login?provider=Google&redirectUrl=http://localhost:5028/login-callback" class="btn btn-outline-danger rounded-circle p-2" style="width: 45px; height: 45px;">
-                        <i class="fab fa-google"></i>
-                    </a>
-                    <a href="http://localhost:5144/api/v1/auth/external-login?provider=Facebook&redirectUrl=http://localhost:5028/login-callback" class="btn btn-outline-primary rounded-circle p-2" style="width: 45px; height: 45px;">
-                        <i class="fab fa-facebook-f"></i>
-                    </a>
+                    <button type="button" class="btn btn-outline-danger rounded-circle p-2" style="width: 45px; height: 45px;" @onclick='() => ExternalLogin("Google")'>
+                        <i class="fa-brands fa-google"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-primary rounded-circle p-2" style="width: 45px; height: 45px;" @onclick='() => ExternalLogin("Facebook")'>
+                        <i class="fa-brands fa-facebook-f"></i>
+                    </button>
                 </div>
             </div>
 
@@ -449,6 +458,44 @@
         finally
         {
             isBusy = false;
+        }
+    }
+    private async Task ExternalLogin(string provider)
+    {
+        errorMessage = "";
+        try {
+            var apiBaseUrl = Http.BaseAddress?.ToString().TrimEnd('/');
+            var isWeb = (await ExternalAuthService.AuthenticateAsync("test", "test", "test"))?.Error == "REDIRECT_REQUIRED";
+            var callbackUrl = isWeb 
+                ? Navigation.ToAbsoluteUri("/login-callback").ToString() 
+                : "khadamat://callback";
+            var authUrl = $"{apiBaseUrl}/api/v1/auth/external-login?provider={provider}&redirectUrl={Uri.EscapeDataString(callbackUrl)}";
+
+            if (isWeb)
+            {
+                Navigation.NavigateTo(authUrl, forceLoad: true);
+            }
+            else
+            {
+                var result = await ExternalAuthService.AuthenticateAsync(provider, authUrl, "khadamat");
+                if (result != null)
+                {
+                    if (!string.IsNullOrEmpty(result.Token))
+                    {
+                        var success = await AuthService.LoginWithToken(result.Token, result.RefreshToken ?? "");
+                        if (success) Navigation.NavigateTo("/");
+                    }
+                    else if (!string.IsNullOrEmpty(result.Error))
+                    {
+                        errorMessage = "فشل التسجيل عبر " + provider;
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            errorMessage = "حدث خطأ أثناء محاولة التسجيل الاجتماعي";
         }
     }
 }

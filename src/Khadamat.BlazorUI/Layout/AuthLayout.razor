@@ -1,4 +1,7 @@
 @inherits LayoutComponentBase
+@inject Khadamat.BlazorUI.State.AppState AppState
+@inject Khadamat.BlazorUI.Services.ApiClient Api
+@inject IJSRuntime JS
 
 <div class="auth-layout">
     <div class="auth-background"></div>
@@ -24,7 +27,6 @@
         top: 0;
         left: 0;
         z-index: -1;
-        /* Inherit global background but adjust if needed */
     }
 
     .auth-content {
@@ -33,3 +35,41 @@
         z-index: 10;
     }
 </style>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        // Load global settings if not already loaded (e.g. if arriving directly at login)
+        if (AppState.AppName == "خدمات")
+        {
+            try
+            {
+                var settingsResult = await Api.GetSettingsAsync();
+                if (settingsResult?.Success == true && settingsResult.Data != null)
+                {
+                    AppState.AppName = settingsResult.Data.ApplicationName;
+                    AppState.AppLogo = settingsResult.Data.LogoUrl;
+                    AppState.PrimaryColor = settingsResult.Data.PrimaryColor;
+                    AppState.SecondaryColor = settingsResult.Data.SecondaryColor;
+                    AppState.TriggerStateChanged();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading settings in AuthLayout: {ex.Message}");
+            }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !string.IsNullOrEmpty(AppState.PrimaryColor))
+        {
+            try
+            {
+                await JS.InvokeVoidAsync("applyThemeColors", AppState.PrimaryColor, AppState.SecondaryColor);
+            }
+            catch { }
+        }
+    }
+}
