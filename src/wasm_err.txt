@@ -1,0 +1,13 @@
+﻿  Determining projects to restore...
+e:\MVC\khadamat\src\Khadamat.Domain\Khadamat.Domain.csproj : warning NU1903: Package 'AutoMapper' 13.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x [e:\MVC\khadamat\src\Khadamat.WasmHost\Khadamat.WasmHost.csproj]
+e:\MVC\khadamat\src\Khadamat.Application\Khadamat.Application.csproj : warning NU1903: Package 'AutoMapper' 13.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x [e:\MVC\khadamat\src\Khadamat.WasmHost\Khadamat.WasmHost.csproj]
+e:\MVC\khadamat\src\Khadamat.Shared\Khadamat.Shared.csproj : warning NU1903: Package 'AutoMapper' 13.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x [e:\MVC\khadamat\src\Khadamat.WasmHost\Khadamat.WasmHost.csproj]
+e:\MVC\khadamat\src\Khadamat.BlazorUI\Khadamat.BlazorUI.csproj : warning NU1903: Package 'AutoMapper' 13.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x [e:\MVC\khadamat\src\Khadamat.WasmHost\Khadamat.WasmHost.csproj]
+e:\MVC\khadamat\src\Khadamat.WasmHost\Khadamat.WasmHost.csproj : warning NU1903: Package 'AutoMapper' 13.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x
+e:\MVC\khadamat\src\Khadamat.WasmHost\Khadamat.WasmHost.csproj : error NU1605: Warning As Error: Detected package downgrade: Microsoft.Extensions.Http from 10.0.5 to 8.0.0. Reference the package directly from the project to select a different version. 
+e:\MVC\khadamat\src\Khadamat.WasmHost\Khadamat.WasmHost.csproj : error NU1605:  Khadamat.WasmHost -> Microsoft.Extensions.Http.Polly 10.0.5 -> Microsoft.Extensions.Http (>= 10.0.5) 
+e:\MVC\khadamat\src\Khadamat.WasmHost\Khadamat.WasmHost.csproj : error NU1605:  Khadamat.WasmHost -> Microsoft.Extensions.Http (>= 8.0.0)
+  Failed to restore e:\MVC\khadamat\src\Khadamat.WasmHost\Khadamat.WasmHost.csproj (in 369 ms).
+  4 of 5 projects are up-to-date for restore.
+
+Workload updates are available. Run `dotnet workload list` for more information.

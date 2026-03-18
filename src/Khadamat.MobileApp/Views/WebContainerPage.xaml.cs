@@ -9,17 +9,7 @@ namespace Khadamat.MobileApp.Views;
 public partial class WebContainerPage : ContentPage
 {
     private string _deepLinkRoute = "";
-    private static bool _hasShownInitialLoad = false;
-    private bool _isAnimating = false;
-    private System.Threading.CancellationTokenSource? _animationCts;
 
-    private readonly (string Image, string Title)[] _services = new[]
-    {
-        ("srv_electrician.png", "كهربائي محترف"),
-        ("srv_teacher.png", "مدرس متميز"),
-        ("srv_nurse.png", "ممرض مؤهل"),
-        ("srv_driver.png", "سائق أمين")
-    };
     public string DeepLinkRoute 
     { 
         get => _deepLinkRoute;
@@ -120,7 +110,6 @@ public partial class WebContainerPage : ContentPage
 
         _currentUrl = url;
         Console.WriteLine($"ANTIGRAVITY_LOG: WebView loading URL: {url}");
-        StartLoadingAnimation();
         MainWebView.Source = new UrlWebViewSource { Url = url };
     }
 
@@ -166,13 +155,7 @@ public partial class WebContainerPage : ContentPage
     {
         var url = e.Url;
 
-        // Show loading only on the VERY FIRST navigation (app startup)
-        if (!_hasShownInitialLoad && !url.Contains("#") && !LoadingOverlay.IsVisible)
-        {
-            // The user explicitly requested to NEVER show this loading screen.
-            _hasShownInitialLoad = true;
-            LoadingOverlay.IsVisible = false;
-        }
+
 
         if (url.StartsWith("khadamat://auth/"))
         {
@@ -259,17 +242,6 @@ public partial class WebContainerPage : ContentPage
     {
         PullToRefresh.IsRefreshing = false;
         
-        // Hide loading overlay with animation for premium feel
-        if (LoadingOverlay.IsVisible)
-        {
-            _hasShownInitialLoad = true; // Mark as shown so it doesn't appear on internal navigations
-            StopLoadingAnimation();
-            await Task.Delay(800); // Buffer to show the service images
-            await LoadingOverlay.FadeTo(0, 400, Easing.CubicOut);
-            LoadingOverlay.IsVisible = false;
-            LoadingOverlay.Opacity = 1; // Reset for next time (if it were allowed, but flag prevents it)
-        }
-        
         if (e.Result != WebNavigationResult.Success)
         {
             if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
@@ -328,58 +300,4 @@ public partial class WebContainerPage : ContentPage
         Console.WriteLine("ANTIGRAVITY_LOG: No back history, exiting application.");
         return false;
     }
-    private void StartLoadingAnimation()
-    {
-        if (_isAnimating) return;
-        _isAnimating = true;
-        _animationCts = new System.Threading.CancellationTokenSource();
-        Task.Run(() => RotateServicesAsync(_animationCts.Token));
-    }
 
-    private void StopLoadingAnimation()
-    {
-        _isAnimating = false;
-        _animationCts?.Cancel();
-    }
-
-    private async Task RotateServicesAsync(System.Threading.CancellationToken token)
-    {
-        int index = 0;
-        while (!token.IsCancellationRequested)
-        {
-            var service = _services[index];
-            
-            await MainThread.InvokeOnMainThreadAsync(async () => {
-                // Fade In + Scale Up
-                ServiceAvatar.Source = service.Image;
-                ServiceLabel.Text = service.Title;
-                
-                ServiceAvatar.Scale = 0.8;
-                ServiceAvatar.Opacity = 0;
-                ServiceLabel.Opacity = 0;
-                ServiceLabel.TranslationY = 10;
-
-                await Task.WhenAll(
-                    ServiceAvatar.FadeTo(1, 600, Easing.CubicOut),
-                    ServiceAvatar.ScaleTo(1.0, 600, Easing.CubicOut),
-                    ServiceLabel.FadeTo(1, 600, Easing.CubicOut),
-                    ServiceLabel.TranslateTo(0, 0, 600, Easing.CubicOut)
-                );
-            });
-
-            // Wait while visible (unless cancelled)
-            try { await Task.Delay(1500, token); } catch { break; }
-
-            await MainThread.InvokeOnMainThreadAsync(async () => {
-                // Fade Out + Scale Down
-                await Task.WhenAll(
-                    ServiceAvatar.FadeTo(0, 400, Easing.CubicIn),
-                    ServiceAvatar.ScaleTo(0.9, 400, Easing.CubicIn),
-                    ServiceLabel.FadeTo(0, 400, Easing.CubicIn)
-                );
-            });
-
-            index = (index + 1) % _services.Length;
-        }
-    }
-}

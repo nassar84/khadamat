@@ -1,0 +1,17 @@
+﻿  Determining projects to restore...
+e:\MVC\khadamat\src\Khadamat.Domain\Khadamat.Domain.csproj : warning NU1903: Package 'AutoMapper' 13.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x [e:\MVC\khadamat\src\Khadamat.WebAPI\Khadamat.WebAPI.csproj]
+e:\MVC\khadamat\src\Khadamat.Application\Khadamat.Application.csproj : warning NU1903: Package 'AutoMapper' 13.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x [e:\MVC\khadamat\src\Khadamat.WebAPI\Khadamat.WebAPI.csproj]
+e:\MVC\khadamat\src\Khadamat.Infrastructure\Khadamat.Infrastructure.csproj : warning NU1903: Package 'AutoMapper' 13.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x [e:\MVC\khadamat\src\Khadamat.WebAPI\Khadamat.WebAPI.csproj]
+e:\MVC\khadamat\src\Khadamat.WebAPI\Khadamat.WebAPI.csproj : warning NU1903: Package 'AutoMapper' 13.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x
+  All projects are up-to-date for restore.
+e:\MVC\khadamat\src\Khadamat.WebAPI\Khadamat.WebAPI.csproj : warning NU1903: Package 'AutoMapper' 13.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x
+e:\MVC\khadamat\src\Khadamat.Application\Khadamat.Application.csproj : warning NU1903: Package 'AutoMapper' 13.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x
+e:\MVC\khadamat\src\Khadamat.Infrastructure\Khadamat.Infrastructure.csproj : warning NU1903: Package 'AutoMapper' 13.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x
+e:\MVC\khadamat\src\Khadamat.Domain\Khadamat.Domain.csproj : warning NU1903: Package 'AutoMapper' 13.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x
+  Khadamat.Domain -> e:\MVC\khadamat\src\Khadamat.Domain\bin\Release\net8.0\Khadamat.Domain.dll
+  Khadamat.Application -> e:\MVC\khadamat\src\Khadamat.Application\bin\Release\net8.0\Khadamat.Application.dll
+  Khadamat.Infrastructure -> e:\MVC\khadamat\src\Khadamat.Infrastructure\bin\Release\net8.0\Khadamat.Infrastructure.dll
+  Khadamat.WebAPI -> e:\MVC\khadamat\src\Khadamat.WebAPI\bin\Release\net8.0\Khadamat.WebAPI.dll
+  Khadamat.WebAPI -> E:\Maged\Khadamat\api\
+
+Workload updates are available. Run `dotnet workload list` for more information.

@@ -15,65 +15,7 @@
                      VerticalOptions="FillAndExpand"/>
         </RefreshView>
                  
-        <!-- Premium Loading Overlay -->
-        <Grid x:Name="LoadingOverlay" BackgroundColor="#0f172a" IsVisible="False">
-            <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="30">
-                
-                <!-- Brand Logo (New) -->
-                <Image Source="app_logo.png" 
-                       HeightRequest="80" 
-                       WidthRequest="80" 
-                       HorizontalOptions="Center" 
-                       Margin="0,0,0,20">
-                    <Image.Shadow>
-                        <Shadow Brush="White" Offset="0,0" Radius="10" Opacity="0.2" />
-                    </Image.Shadow>
-                </Image>
 
-                <!-- Animated Service Icon Container -->
-                <Grid HeightRequest="200" WidthRequest="200" HorizontalOptions="Center">
-                    <!-- Outer Glow Effect -->
-                    <BoxView CornerRadius="100" BackgroundColor="#6366f1" Opacity="0.1" Scale="1.3">
-                        <BoxView.Shadow>
-                            <Shadow Brush="#6366f1" Offset="0,0" Radius="40" Opacity="0.4" />
-                        </BoxView.Shadow>
-                    </BoxView>
-
-                    <!-- Avatar Image -->
-                    <Image x:Name="ServiceAvatar" 
-                           Source="srv_electrician.png" 
-                           Aspect="AspectFit" 
-                           HeightRequest="160" 
-                           WidthRequest="160" 
-                           VerticalOptions="Center" 
-                           HorizontalOptions="Center"
-                           Scale="1.0"
-                           Opacity="1"/>
-                </Grid>
-                
-                <VerticalStackLayout Spacing="10">
-                    <Label x:Name="ServiceLabel" 
-                           Text="كهربائي محترف" 
-                           TextColor="White" 
-                           FontSize="22" 
-                           FontAttributes="Bold" 
-                           HorizontalOptions="Center" 
-                           Opacity="1"/>
-                    
-                    <Label Text="جاري تحضير طلبك..." 
-                           TextColor="#94a3b8" 
-                           FontSize="13" 
-                           HorizontalOptions="Center" />
-                </VerticalStackLayout>
-
-                <!-- Thin Modern Progress Bar -->
-                <BoxView HeightRequest="2" WidthRequest="120" Color="#1e293b" HorizontalOptions="Center">
-                    <BoxView.Clip>
-                        <RoundRectangleGeometry CornerRadius="1" Rect="0,0,120,2" />
-                    </BoxView.Clip>
-                </BoxView>
-            </VerticalStackLayout>
-        </Grid>
 
         <!-- Offline Overlay -->
         <Grid x:Name="OfflineOverlay" BackgroundColor="White" IsVisible="False">
