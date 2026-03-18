@@ -1,7 +1,7 @@
 @inherits LayoutComponentBase
 @implements IDisposable
 
-<div class="khadamat-app @(AppState.IsMobileApp ? "mobile-mode" : "") @(isSidebarCollapsed ? "collapsed" : "")">
+<div class="khadamat-app @(AppState.IsMobileApp ? "mobile-mode" : "") @(isSidebarCollapsed ? "collapsed" : "")" dir="rtl">
     @if (!AppState.IsNativeApp)
     {
         @if (!AppState.IsMobileApp)
@@ -139,6 +139,7 @@
 
 @code {
     private bool isSidebarCollapsed = false;
+    private bool _disposed = false;
     private bool IsAdminPage => Navigation.Uri.Contains("/admin", StringComparison.OrdinalIgnoreCase);
     private bool IsProfilePage => Navigation.Uri.Contains("/profile", StringComparison.OrdinalIgnoreCase) || Navigation.Uri.Contains("/settings", StringComparison.OrdinalIgnoreCase);
     private bool IsProviderPage => Navigation.Uri.Contains("/provider/", StringComparison.OrdinalIgnoreCase);
@@ -155,18 +156,20 @@
 
     private bool ShowHeroAds => IsHomePage && !IsAdminPage;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         AppState.OnChange += OnStateChange;
         Navigation.LocationChanged += HandleLocationChanged;
         
-        CheckMobileModeFromUrl(); // URL params only (no JS needed)
-        await AuthService.InitializeAsync();
+        CheckMobileModeFromUrl();
     }
 
     private async void OnStateChange()
     {
-        await InvokeAsync(StateHasChanged);
+        if (_disposed) return;
+        try { await InvokeAsync(StateHasChanged); }
+        catch (ObjectDisposedException) { }
+        catch (InvalidOperationException) { }
     }
 
     // Called from OnInitializedAsync - reads URL params only (JS not available yet)
@@ -184,6 +187,18 @@
         {
             if (!AppState.IsNativeApp) AppState.IsNativeApp = true;
             if (!AppState.IsMobileApp) AppState.IsMobileApp = true;
+        }
+
+        // Handle deep link redirect from native app to avoid 404s on refresh/direct loads
+        if (query.TryGetValue("redirect", out var rValue))
+        {
+            var target = rValue.ToString();
+            if (!string.IsNullOrEmpty(target))
+            {
+                // Remove the redirect param and navigate
+                var newUri = Navigation.GetUriWithQueryParameter("redirect", (string?)null);
+                Navigation.NavigateTo(target);
+            }
         }
     }
 
@@ -264,14 +279,14 @@
             Console.WriteLine($"Error loading settings: {ex.Message}");
         }
 
-        if (AppState.IsAuthenticated)
+        try 
         {
-             await SignalRService.StartAsync();
-        }
+            if (AppState.IsAuthenticated)
+            {
+                 await SignalRService.StartAsync();
+            }
 
-        if (AppState.IsAuthenticated && !AppState.IsProfileComplete)
-        {
-            try
+            if (AppState.IsAuthenticated && !AppState.IsProfileComplete)
             {
                 var profile = await AuthService.GetProfileAsync();
                 if (profile?.Success == true && profile.Data != null)
@@ -284,40 +299,68 @@
                     AppState.TriggerStateChanged();
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error syncing profile: {ex.Message}");
-            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ANTIGRAVITY_LOG: Error during background data sync: {ex.Message}");
         }
     }
 
-        protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            try 
+            // تشغيل loading screen إخفاء بعد اكتمال أول render
+            // نُشغّل كل المنطق خارج render cycle باستخدام Task.Run + InvokeAsync
+            // هذا يمنع Race Condition الذي يُسبب "No element is currently associated with component"
+            _ = Task.Run(async () =>
             {
-                // Check sessionStorage for mobile/native mode flags (JS is now available)
-                await CheckMobileModeAsync();
-                
-                await SoundService.PlayStartupAsync();
-                
-                _ = LoadInitialDataAsync(); // Trigger background load without awaiting it here
-                
-                if (!string.IsNullOrEmpty(AppState.PrimaryColor))
+                // تأخير يضمن أن Blazor أنهى first render كاملاً
+                await Task.Delay(150);
+
+                await InvokeAsync(async () =>
                 {
-                    await JS.InvokeVoidAsync("applyThemeColors", AppState.PrimaryColor, AppState.SecondaryColor);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error in MainLayout OnAfterRenderAsync: {ex.Message}");
-            }
+                    try
+                    {
+                        // تهيئة Auth Session (يُطلق NotifyAuthenticationStateChanged المؤجّل)
+                        await AuthService.InitializeAsync();
+
+                        // فحص Mobile/Native Mode من sessionStorage (يتطلب JS)
+                        await CheckMobileModeAsync();
+
+                        // تطبيق ألوان Theme إذا كانت محددة
+                        if (!string.IsNullOrEmpty(AppState.PrimaryColor))
+                        {
+                            try
+                            {
+                                await JS.InvokeVoidAsync("applyThemeColors", AppState.PrimaryColor, AppState.SecondaryColor);
+                            }
+                            catch { }
+                        }
+
+                        // تشغيل خدمات الخلفية بدون انتظار
+                        _ = LoadInitialDataAsync();
+
+                        // صوت الترحيب
+                        await SoundService.PlayStartupAsync();
+
+                        // تأخير قبل إخفاء شاشة التحميل لضمان اكتمال الرسم
+                        await Task.Delay(500);
+                        await JS.InvokeVoidAsync("hideLoadingScreen");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"ANTIGRAVITY_LOG: MainLayout Startup Error: {ex.Message}");
+                        try { await JS.InvokeVoidAsync("hideLoadingScreen"); } catch { }
+                    }
+                });
+            });
         }
     }
 
     public void Dispose()
     {
+        _disposed = true;
         Navigation.LocationChanged -= HandleLocationChanged;
         AppState.OnChange -= OnStateChange;
         _ = SignalRService.StopAsync();

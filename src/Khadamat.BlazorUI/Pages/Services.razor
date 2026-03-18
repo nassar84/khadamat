@@ -75,15 +75,15 @@
         }
         else
         {
-            @for (int i = 0; i < 4; i++)
+            @for (int i = 0; i < 6; i++)
             {
-                <div class="col-12 col-md-6">
-                    <div class="glass-card p-0 overflow-hidden border-0 shadow-sm" style="height: 120px;">
-                        <div class="d-flex h-100">
-                            <div class="skeleton" style="width: 120px; height: 100%;"></div>
-                            <div class="p-3 flex-grow-1">
-                                <div class="skeleton skeleton-title"></div>
-                                <div class="skeleton skeleton-text" style="width: 40%;"></div>
+                <div class="col-12 col-md-6 mb-3">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden bg-white">
+                        <div class="d-flex p-3">
+                            <div class="skeleton-box" style="width: 70px; height: 70px; border-radius: 50%; min-width: 70px;"></div>
+                            <div class="ms-3 flex-grow-1 py-1">
+                                <div class="skeleton-box rounded-pill mb-2" style="height: 18px; width: 80%;"></div>
+                                <div class="skeleton-box rounded-pill" style="height: 14px; width: 50%;"></div>
                             </div>
                         </div>
                     </div>
@@ -235,6 +235,43 @@
     @@keyframes slideInLeft { from { transform: translateX(-100%); } to { transform: translateX(0); } }
     @@keyframes slideOutLeft { from { transform: translateX(0); } to { transform: translateX(-100%); } }
     .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+    
+    /* Skeleton Loading System */
+    .skeleton-box {
+        background: #f1f5f9;
+        overflow: hidden;
+        position: relative;
+        animation: ghost-pulse 1.5s ease-in-out infinite;
+    }
+
+    .skeleton-box::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background-image: linear-gradient(
+            90deg, 
+            rgba(255, 255, 255, 0) 0, 
+            rgba(255, 255, 255, 0.4) 20%, 
+            rgba(255, 255, 255, 0.6) 60%, 
+            rgba(255, 255, 255, 0)
+        );
+        transform: translateX(-100%);
+        animation: ghost-shimmer 2s infinite ease-in-out;
+    }
+
+    @@keyframes ghost-shimmer {
+        100% {
+            transform: translateX(100%);
+        }
+    }
+
+    @@keyframes ghost-pulse {
+        0%, 100% { background-color: #f1f5f9; }
+        50% { background-color: #e2e8f0; }
+    }
 </style>
 
 @code {
@@ -256,11 +293,16 @@
     private int? selectedCityId;
     private string? selectedCityName;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         // Subscribe to LocationChanged to close filters on navigate
         Navigation.LocationChanged += OnLocationChanged;
 
+        _ = LoadAllDataAsync();
+    }
+
+    private async Task LoadAllDataAsync()
+    {
         var initTask = LoadInitialData();
         var servicesTask = LoadServices();
         

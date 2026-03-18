@@ -14,16 +14,16 @@ public class SoundService
 
     public async Task PlayStartupAsync()
     {
-        await _js.InvokeVoidAsync("KhadamatSounds.playStartup");
+        try { await _js.InvokeVoidAsync("KhadamatSounds.playStartup"); } catch { }
     }
 
     public async Task PlayNotificationAsync()
     {
-        await _js.InvokeVoidAsync("KhadamatSounds.playNotification");
+        try { await _js.InvokeVoidAsync("KhadamatSounds.playNotification"); } catch { }
     }
 
     public async Task PlayMessageAsync()
     {
-        await _js.InvokeVoidAsync("KhadamatSounds.playMessage");
+        try { await _js.InvokeVoidAsync("KhadamatSounds.playMessage"); } catch { }
     }
 }

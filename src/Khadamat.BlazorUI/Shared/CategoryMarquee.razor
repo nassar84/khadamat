@@ -5,9 +5,10 @@
 @inject NavigationManager Navigation
 @inject Khadamat.Application.Interfaces.IOfflineDataService OfflineData
 @inject HttpClient Http
+@implements IDisposable
 
-<div class="category-marquee-container @(DisplayCategories == null ? "loading" : "")" @ref="containerRef">
-    <div class="swiper categories-swiper h-100">
+<div class="category-marquee-container" style="display: block !important; visibility: visible !important; opacity: 1 !important; z-index: 1000 !important;" @ref="containerRef">
+    <div class="swiper categories-swiper h-100" style="overflow: visible !important;">
         <div class="swiper-wrapper align-items-center">
             @if (DisplayCategories != null && DisplayCategories.Any())
 {
@@ -220,18 +221,21 @@ else if (DisplayCategories == null || !DisplayCategories.Any())
 
 @code {
     [Parameter] public List<MainCategoryDto>? Categories { get; set; }
-    private List<MainCategoryDto>? internalCategories;
+    private List<MainCategoryDto>? internalCategories = new List<MainCategoryDto>();
     private List<MainCategoryDto>? DisplayCategories 
     {
         get 
         {
             if (Categories != null && Categories.Any()) return Categories;
-            return internalCategories;
+            if (internalCategories != null && internalCategories.Any()) return internalCategories;
+            // Immediate UI Skeleton if nothing yet
+            return null; 
         }
     }
     
     private ElementReference containerRef;
     private bool _swiperInitialized = false;
+    private bool _disposed = false;
 
     protected override void OnInitialized()
     {
@@ -243,17 +247,21 @@ else if (DisplayCategories == null || !DisplayCategories.Any())
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (DisplayCategories != null && DisplayCategories.Any() && !_swiperInitialized)
+        if (!_disposed && DisplayCategories != null && DisplayCategories.Any() && !_swiperInitialized)
         {
             try
             {
-                // Give the DOM a tiny bit of time to settle
-                await Task.Delay(100);
-                await JS.InvokeVoidAsync("initCategoriesSlider");
                 _swiperInitialized = true;
+                // Give the DOM a tiny bit of time to settle
+                await Task.Delay(200);
+                if (!_disposed)
+                {
+                    await JS.InvokeVoidAsync("initCategoriesSlider");
+                }
             }
             catch (Exception ex)
             {
+                _swiperInitialized = false;
                 Console.WriteLine($"Swiper init fail: {ex.Message}");
             }
         }
@@ -261,8 +269,8 @@ else if (DisplayCategories == null || !DisplayCategories.Any())
 
     protected override void OnParametersSet()
     {
-        // If categories are updated from parent, reset swiper state
-        _swiperInitialized = false;
+        // Only reset if categories actually changed to avoid re-init on every parent render
+        // For now, let's just keep it simple and only init once per lifetime unless explicitly needed
     }
 
     private async Task LoadCategoriesAsync()
@@ -281,12 +289,21 @@ else if (DisplayCategories == null || !DisplayCategories.Any())
         }
         finally
         {
-            await InvokeAsync(StateHasChanged);
+            if (!_disposed)
+            {
+                try { await InvokeAsync(StateHasChanged); }
+                catch { }
+            }
         }
     }
 
     private void OnCategorySelected(MainCategoryDto category)
     {
         Navigation.NavigateTo($"/explore/main/{category.Id}/{Uri.EscapeDataString(category.Name)}");
+    }
+
+    public void Dispose()
+    {
+        _disposed = true;
     }
 }

@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Khadamat.MobileApp.Views.WebContainerPage"
              Shell.NavBarIsVisible="True"
-             BackgroundColor="White">
+             BackgroundColor="White"
+             FlowDirection="RightToLeft">
 
     <Grid>
         <RefreshView x:Name="PullToRefresh" Refreshing="PullToRefresh_Refreshing" RefreshColor="#6366f1">
@@ -15,7 +16,7 @@
         </RefreshView>
                  
         <!-- Premium Loading Overlay -->
-        <Grid x:Name="LoadingOverlay" BackgroundColor="#0f172a" IsVisible="True">
+        <Grid x:Name="LoadingOverlay" BackgroundColor="#0f172a" IsVisible="False">
             <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="30">
                 
                 <!-- Brand Logo (New) -->

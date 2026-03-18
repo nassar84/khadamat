@@ -1,9 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net9.0-android;
-net9.0-windows10.0.19041.0
-</TargetFrameworks>
+        <TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst;net8.0-windows10.0.19041.0</TargetFrameworks>
+        <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">net8.0-android;net8.0-windows10.0.19041.0</TargetFrameworks>
         
         <OutputType>Exe</OutputType>
         <RootNamespace>Khadamat.MobileApp</RootNamespace>
@@ -26,6 +25,13 @@ net9.0-windows10.0.19041.0
         <UseInterpreter Condition="'$(Configuration)' == 'Debug'">True</UseInterpreter>
         <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
         <AndroidUseFastDeployment>false</AndroidUseFastDeployment>
+        
+        <!-- Fix for JAVA0000 R8/D8 Build errors -->
+        <AndroidDexTool>d8</AndroidDexTool>
+        <AndroidEnableMultiDex>true</AndroidEnableMultiDex>
+        <UseR8>false</UseR8>
+        <AndroidLinkTool>d8</AndroidLinkTool>
+        <AndroidLinkMode>None</AndroidLinkMode>
 
         <!-- Android -->
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
@@ -65,16 +71,17 @@ net9.0-windows10.0.19041.0
 
     <ItemGroup>
         <!-- MAUI Core -->
+        <PackageReference Include="AutoMapper" Version="13.0.1" />
         <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
         
         <!-- Extensions -->
-        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.0" />
-        <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
         
         <!-- Community Toolkit -->
-        <PackageReference Include="CommunityToolkit.Maui" Version="9.0.3" />
+        <PackageReference Include="CommunityToolkit.Maui" Version="8.0.1" />
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
         
         <!-- Notifications -->
@@ -83,12 +90,8 @@ net9.0-windows10.0.19041.0
         
         <!-- Storage -->
         <PackageReference Include="Plugin.Fingerprint" Version="2.1.5" />
-        <PackageReference Include="Plugin.Maui.Audio" Version="4.0.0" />
+        <PackageReference Include="Plugin.Maui.Audio" Version="3.1.1" />
         <PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
-
-        <!-- Firebase (Android only) -->
-        <PackageReference Condition="$(TargetFramework.Contains('-android'))" Include="Xamarin.Firebase.Messaging" Version="123.4.1.1" />
-        <PackageReference Condition="$(TargetFramework.Contains('-android'))" Include="Xamarin.Firebase.Analytics" Version="121.5.0.1" />
     </ItemGroup>
 
     <ItemGroup>

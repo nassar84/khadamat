@@ -1,6 +1,7 @@
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
 @inject Khadamat.BlazorUI.State.AppState State
+@implements IDisposable
 
 <div class="app-download-widget-v2 @(isExpanded ? "expanded" : "") @(isVisible ? "visible" : "")">
     <!-- Glow Background Layer -->
@@ -358,6 +359,7 @@
 @code {
     private bool isExpanded = false;
     private bool isVisible = false;
+    private bool _disposed = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -365,10 +367,17 @@
         {
             // Delayed appearance for "Surprise" effect
             await Task.Delay(3000); 
+            if (_disposed) return;
             isVisible = true;
-            StateHasChanged();
+            try { await InvokeAsync(StateHasChanged); }
+            catch { }
         }
     }
 
     private void ToggleExpand() => isExpanded = !isExpanded;
+
+    public void Dispose()
+    {
+        _disposed = true;
+    }
 }

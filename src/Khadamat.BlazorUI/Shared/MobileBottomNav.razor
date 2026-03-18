@@ -268,6 +268,8 @@ else
 </style>
 @inject AuthenticationStateProvider AuthStateProvider
 @code {
+    private bool _disposed = false;
+
     protected override void OnInitialized()
     {
         State.OnChange += OnStateChange;
@@ -276,16 +278,23 @@ else
 
     private async void OnStateChange()
     {
-        await InvokeAsync(StateHasChanged);
+        if (_disposed) return;
+        try { await InvokeAsync(StateHasChanged); }
+        catch (ObjectDisposedException) { }
+        catch (InvalidOperationException) { }
     }
 
     private async void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        await InvokeAsync(StateHasChanged);
+        if (_disposed) return;
+        try { await InvokeAsync(StateHasChanged); }
+        catch (ObjectDisposedException) { }
+        catch (InvalidOperationException) { }
     }
 
     public void Dispose()
     {
+        _disposed = true;
         State.OnChange -= OnStateChange;
         Navigation.LocationChanged -= HandleLocationChanged;
     }

@@ -118,24 +118,27 @@ else
 @code {
     private bool isLocked = false;
     private static bool isInitiallyUnlocked = false;
+    private bool _disposed = false;
 
     protected override async Task OnInitializedAsync()
     {
         AppState.OnChange += OnStateChange;
-        await AuthService.InitializeAsync();
+        _ = AuthService.InitializeAsync(); // Run in background to avoid blocking initial render
         
         // Detect if should show lock screen
         // Only if authenticated and it's mobile and hasn't been unlocked this session
         if (AppState.IsAuthenticated && !isInitiallyUnlocked)
         {
-            var isBiometricAvailable = await BiometricService.IsAvailableAsync();
-            if (isBiometricAvailable)
-            {
-                isLocked = true;
-                // Auto prompt
-                await Task.Delay(500);
-                await UnlockApp();
-            }
+            try {
+                var isBiometricAvailable = await BiometricService.IsAvailableAsync();
+                if (isBiometricAvailable)
+                {
+                    isLocked = true;
+                    // Auto prompt
+                    await Task.Delay(500);
+                    if (!_disposed) await UnlockApp();
+                }
+            } catch { }
         }
     }
 
@@ -196,11 +199,15 @@ else
 
     private async void OnStateChange()
     {
-        await InvokeAsync(StateHasChanged);
+        if (_disposed) return;
+        try { await InvokeAsync(StateHasChanged); }
+        catch (ObjectDisposedException) { }
+        catch (InvalidOperationException) { }
     }
 
     public void Dispose()
     {
+        _disposed = true;
         AppState.OnChange -= OnStateChange;
     }
 }

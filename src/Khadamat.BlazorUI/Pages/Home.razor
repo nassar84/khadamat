@@ -606,11 +606,11 @@
     private List<MarketplaceItemDto>? latestMarketItems;
     private bool isMauiApp = false;
     private CancellationTokenSource _cts = new();
+    private bool _disposed = false;
 
     protected override void OnInitialized()
     {
-        // Subscribe to AppState changes to re-render when data changes
-        AppState.OnChange += StateHasChanged;
+        AppState.OnChange += OnAppStateChange;
 
         isMauiApp = AppState.IsMobileApp;
         
@@ -619,11 +619,18 @@
         _ = LoadDataAsync(_cts.Token);
     }
 
+    private async void OnAppStateChange()
+    {
+        if (_disposed) return;
+        try { await InvokeAsync(StateHasChanged); }
+        catch (ObjectDisposedException) { }
+        catch (InvalidOperationException) { }
+    }
+
     public void Dispose()
     {
-        // ✅ FIX 1: Memory Leak — always unsubscribe from events
-        AppState.OnChange -= StateHasChanged;
-        // ✅ FIX 2: Cancel any pending API calls when navigating away
+        _disposed = true;
+        AppState.OnChange -= OnAppStateChange;
         _cts.Cancel();
         _cts.Dispose();
     }
@@ -700,8 +707,12 @@
         }
         finally
         {
-            if (!ct.IsCancellationRequested)
-                await InvokeAsync(StateHasChanged);
+            if (!ct.IsCancellationRequested && !_disposed)
+            {
+                try { await InvokeAsync(StateHasChanged); }
+                catch (ObjectDisposedException) { }
+                catch (InvalidOperationException) { }
+            }
         }
     }
 

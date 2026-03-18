@@ -797,6 +797,7 @@
 @code {
     private bool isThemeMenuOpen = false;
     private bool isUserMenuOpen = false;
+    private bool _disposed = false;
     private string DisplayName => State.IsProvider ? "مزود خدمة" : "عميل";
     
     // Search
@@ -828,7 +829,10 @@
 
     private async void OnStateChange()
     {
-        await InvokeAsync(StateHasChanged);
+        if (_disposed) return;
+        try { await InvokeAsync(StateHasChanged); }
+        catch (ObjectDisposedException) { }
+        catch (InvalidOperationException) { }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -837,12 +841,13 @@
         {
             try {
                 await JSRuntime.InvokeVoidAsync("setBodyTheme", State.CurrentTheme);
-            } catch { } // Ignore cache issues where js function is missing
+            } catch { }
         }
     }
 
     public void Dispose()
     {
+        _disposed = true;
         State.OnChange -= OnStateChange;
     }
 

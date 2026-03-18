@@ -289,12 +289,21 @@
 
 @code {
     private bool SidebarOpen { get; set; } = false;
+    private bool _disposed = false;
 
     protected override void OnInitialized()
     {
-        State.OnChange += StateHasChanged;
+        State.OnChange += OnStateChange;
         Navigation.LocationChanged += HandleLocationChanged;
         CheckMobileMode();
+    }
+
+    private async void OnStateChange()
+    {
+        if (_disposed) return;
+        try { await InvokeAsync(StateHasChanged); }
+        catch (ObjectDisposedException) { }
+        catch (InvalidOperationException) { }
     }
 
     private void CheckMobileMode()
@@ -312,10 +321,12 @@
         }
     }
 
-    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    private async void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
     {
+        if (_disposed) return;
         _ = CheckMobileModeAsync();
-        StateHasChanged();
+        try { await InvokeAsync(StateHasChanged); }
+        catch { }
     }
 
     private async Task CheckMobileModeAsync()
@@ -357,8 +368,9 @@
 
     public void Dispose()
     {
+        _disposed = true;
         Navigation.LocationChanged -= HandleLocationChanged;
-        State.OnChange -= StateHasChanged;
+        State.OnChange -= OnStateChange;
     }
 
     private void ToggleSidebar()

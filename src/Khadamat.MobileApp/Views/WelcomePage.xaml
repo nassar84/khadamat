@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Khadamat.MobileApp.Views.WelcomePage"
              BackgroundColor="#0f172a"
-             Shell.NavBarIsVisible="False">
+             Shell.NavBarIsVisible="False"
+             FlowDirection="RightToLeft">
 
     <Grid RowDefinitions="*, Auto">
         <!-- Background Gradient Simulation -->
@@ -96,7 +97,7 @@
                        FontSize="11" 
                        TextDecorations="Underline">
                     <Label.GestureRecognizers>
-                        <TapGestureRecognizer Clicked="OnTermsClicked" />
+                        <TapGestureRecognizer Tapped="OnTermsClicked" />
                     </Label.GestureRecognizers>
                 </Label>
             </HorizontalStackLayout>

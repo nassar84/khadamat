@@ -35,10 +35,20 @@ namespace Khadamat.MobileApp.Views
 
         private async void OnTermsClicked(object sender, EventArgs e)
         {
-            // Navigate to terms page
+            // Navigate to terms page but we must ensure we are in the Shell first
             if (MauiApp.Current != null)
             {
-                // We navigate to a container that loads the /terms route
+                // Play a small animation before switching
+                if (sender is VisualElement visual)
+                {
+                    await visual.ScaleTo(0.9, 100);
+                    await visual.ScaleTo(1.0, 100);
+                }
+                
+                // Set the main page to the shell
+                MauiApp.Current.MainPage = _shell;
+                
+                // Then navigate to the correct terms route (/terms in Blazor)
                 await Shell.Current.GoToAsync("//HomePage?route=terms");
             }
         }

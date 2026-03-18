@@ -15,11 +15,41 @@
 <div class="service-v3-container">
     @if (service == null)
     {
-        <div class="d-flex justify-content-center align-items-center vh-100">
-            <div class="premium-loader">
-                <div class="loader-circle"></div>
-                <div class="loader-circle"></div>
-                <div class="loader-circle"></div>
+        <div class="container py-4">
+            <!-- Top Actions Skeleton -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="btn-glass-dark skeleton-box" style="width: 45px;"></div>
+                <div class="btn-glass-dark skeleton-box" style="width: 45px;"></div>
+            </div>
+
+            <div class="row g-4 mb-5">
+                <div class="col-12 col-md-5">
+                    <!-- Image Skeleton -->
+                    <div class="main-image-v3 rounded-5 overflow-hidden shadow-lg position-relative mb-4 skeleton-box"></div>
+                    <!-- Stats Skeleton -->
+                    <div class="stats-box-v3 p-4 rounded-5 shadow-sm border bg-white mb-4 skeleton-box" style="height: 120px;"></div>
+                    <div class="skeleton-box rounded-pill mt-auto" style="height: 50px; width: 100%;"></div>
+                </div>
+                <div class="col-12 col-md-7">
+                    <!-- Details Skeleton -->
+                    <div class="details-content-v3 ps-md-3">
+                        <div class="skeleton-box mb-2 rounded-pill" style="height: 25px; width: 30%;"></div>
+                        <div class="skeleton-box mb-4" style="height: 40px; width: 70%;"></div>
+                        <div class="skeleton-box mb-4" style="height: 20px; width: 100%;"></div>
+                        <div class="skeleton-box mb-4" style="height: 20px; width: 80%;"></div>
+                        
+                        <!-- Provider Skeleton -->
+                        <div class="provider-strip mb-4 skeleton-box" style="height: 70px;"></div>
+                        
+                        <!-- Grid Skeleton -->
+                        <div class="info-grid-v3 mb-4">
+                            <div class="skeleton-box" style="height: 60px;"></div>
+                            <div class="skeleton-box" style="height: 60px;"></div>
+                            <div class="skeleton-box" style="height: 60px;"></div>
+                            <div class="skeleton-box" style="height: 60px;"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     }
@@ -764,6 +794,44 @@
         position: absolute;
     }
     .qr-container { width: 110px; height: 110px; }
+
+    /* Skeleton Loading System */
+    .skeleton-box {
+        background: #f1f5f9;
+        overflow: hidden;
+        position: relative;
+        border-radius: 12px;
+        animation: ghost-pulse 1.5s ease-in-out infinite;
+    }
+
+    .skeleton-box::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background-image: linear-gradient(
+            90deg, 
+            rgba(255, 255, 255, 0) 0, 
+            rgba(255, 255, 255, 0.4) 20%, 
+            rgba(255, 255, 255, 0.6) 60%, 
+            rgba(255, 255, 255, 0)
+        );
+        transform: translateX(-100%);
+        animation: ghost-shimmer 2s infinite ease-in-out;
+    }
+
+    @@keyframes ghost-shimmer {
+        100% {
+            transform: translateX(100%);
+        }
+    }
+
+    @@keyframes ghost-pulse {
+        0%, 100% { background-color: #f1f5f9; }
+        50% { background-color: #e2e8f0; }
+    }
 </style>
 
 @code {
@@ -797,7 +865,12 @@
     private bool isSubmittingRequest = false;
     private string? requestError;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
+    {
+        _ = LoadServiceDataAsync();
+    }
+
+    private async Task LoadServiceDataAsync()
     {
         try
         {
@@ -811,6 +884,7 @@
         if (service == null)
         {
             // Handle not found or error cases gracefully in production
+            await InvokeAsync(StateHasChanged);
             return;
         }
 
@@ -824,6 +898,7 @@
 
         // Only fill truly missing fields — never overwrite real API data
         EnsureRequiredFields();
+        await InvokeAsync(StateHasChanged);
 
         // Auth check — non-blocking
         try
@@ -846,6 +921,10 @@
         catch (Exception ex)
         {
             Console.WriteLine($"Auth check error: {ex.Message}");
+        }
+        finally
+        {
+            await InvokeAsync(StateHasChanged);
         }
     }
 

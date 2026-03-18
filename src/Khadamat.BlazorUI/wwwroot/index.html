@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>خدمات | Khadamat</title>
+    <title>خدماوي | KhadaMAWI</title>
     <base href="/" />
 
     <!-- Fonts -->
@@ -80,16 +80,28 @@
 </head>
 
 <body>
-    <div id="app">
-        <div class="loading-progress-container">
-            <svg class="loading-progress">
-                <circle cx="40" cy="40" r="35" />
-            </svg>
-            <div
-                style="position: fixed; top: 60%; width: 100%; text-align: center; color: var(--primary-color); font-weight: 500;">
-                جاري التحميل...
+    <div id="app"></div>
+
+    <div class="loading-container" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; background-color: #f8fafc; z-index: 9999;">
+        <div style="text-align: center;">
+            <div class="pulsing-logo" style="width: 100px; height: 100px; margin: 0 auto 20px;">
+                <img src="logo.png" style="width: 100%; height: 100%; object-fit: contain;" />
+            </div>
+            <div class="loading-bar-container" style="width: 200px; height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden; margin: 0 auto;">
+                <div class="loading-bar-fill" style="width: 40%; height: 100%; background: var(--primary-color, #6366f1); border-radius: 2px; animation: loadingBar 2s infinite ease-in-out;"></div>
             </div>
         </div>
+        <style>
+            .pulsing-logo { animation: pulseLogo 2s infinite ease-in-out; }
+            @keyframes pulseLogo {
+                0%, 100% { transform: scale(1); opacity: 0.8; }
+                50% { transform: scale(1.05); opacity: 1; }
+            }
+            @keyframes loadingBar {
+                0% { transform: translateX(-100%); }
+                100% { transform: translateX(200%); }
+            }
+        </style>
     </div>
 
     <div id="blazor-error-ui">
@@ -266,6 +278,15 @@
         window.focusElement = (id) => {
             const el = document.getElementById(id);
             if (el) el.focus();
+        };
+
+        window.hideLoadingScreen = () => {
+            const loader = document.querySelector('.loading-container');
+            if (loader) {
+                loader.style.transition = 'opacity 0.6s ease-out';
+                loader.style.opacity = '0';
+                setTimeout(() => loader.remove(), 600);
+            }
         };
     </script>
 </body>

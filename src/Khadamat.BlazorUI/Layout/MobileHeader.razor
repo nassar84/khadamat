@@ -7,7 +7,7 @@
 <header class="mobile-header-premium">
     <div class="header-glass-content">
         <!-- Right Side (RTL): Avatar / Menu -->
-        <div class="header-left">
+        <div class="header-right">
             <AuthorizeView>
                 <Authorized>
                     <div class="user-profile-header-premium" @onclick="ToggleSidebar">
@@ -41,14 +41,14 @@
         </div>
 
         <!-- Left Side (RTL): Theme, Messages, Notifications -->
-        <div class="header-right">
+        <div class="header-left" dir="rtl">
             
             <!-- Theme Toggle -->
             <div id="mobileThemeToggle" class="icon-btn-minimal theme-switcher-mobile" @onclick="ToggleThemeMenu" title="تغيير الثيم">
                 <i class="fa-solid fa-palette text-secondary"></i>
                 @if (isThemeMenuOpen)
                 {
-                    <div class="theme-popover-mobile animate-up" @onclick:stopPropagation="true">
+                    <div class="theme-popover-mobile animate-up" @onclick:stopPropagation="true" dir="rtl">
                         <div class="theme-grid-mobile">
                             <div class="theme-dot-mobile default @(State.CurrentTheme == "default" ? "active" : "")" @onclick='() => HandleSetTheme("default")'></div>
                             <div class="theme-dot-mobile sunset @(State.CurrentTheme == "sunset" ? "active" : "")" @onclick='() => HandleSetTheme("sunset")'></div>
@@ -117,6 +117,7 @@
         justify-content: space-between;
         padding: 0 15px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        direction: rtl;
     }
 
     .menu-toggle-btn-glass {
@@ -385,6 +386,7 @@
 @code {
     private string searchQuery = string.Empty;
     private bool isThemeMenuOpen;
+    private bool _disposed = false;
 
     protected override void OnInitialized()
     {
@@ -393,7 +395,10 @@
 
     private async void OnStateChange()
     {
-        await InvokeAsync(StateHasChanged);
+        if (_disposed) return;
+        try { await InvokeAsync(StateHasChanged); }
+        catch (ObjectDisposedException) { }
+        catch (InvalidOperationException) { }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -406,6 +411,7 @@
 
     public void Dispose()
     {
+        _disposed = true;
         State.OnChange -= OnStateChange;
     }
 

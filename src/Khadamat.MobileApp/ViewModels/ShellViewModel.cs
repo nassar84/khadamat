@@ -129,23 +129,35 @@ public partial class ShellViewModel : ObservableObject
     [RelayCommand]
     private async Task ShowThemePicker()
     {
-        string result = await Shell.Current.DisplayActionSheet("اختر مظهر التطبيق", "إلغاء", null, 
-            "الافتراضي (Default)", "الغروب (Sunset)", "المحيط (Ocean)", "الغابة (Forest)", "اللافندر (Lavender)", "الملكي (Royal)");
+        // Require CommunityToolkit.Maui.Views
+        var popup = new Views.Popups.ThemePickerPopup();
+        
+        // Show Popup and get result
+        var result = await CommunityToolkit.Maui.Views.PopupExtensions.ShowPopupAsync(
+            Shell.Current.CurrentPage, 
+            popup);
 
-        string? theme = result switch
-        {
-            "الافتراضي (Default)" => "default",
-            "الغروب (Sunset)" => "sunset",
-            "المحيط (Ocean)" => "ocean",
-            "الغابة (Forest)" => "forest",
-            "اللافندر (Lavender)" => "lavender",
-            "الملكي (Royal)" => "royal",
-            _ => null
-        };
+        string? theme = result as string;
 
         if (theme != null)
         {
             Microsoft.Maui.Storage.Preferences.Default.Set("AppTheme", theme);
+            
+            // Set the native app theme color
+            string primaryHex = theme switch
+            {
+                "sunset" => "#ea580c",
+                "ocean" => "#0ea5e9",
+                "forest" => "#10b981",
+                "lavender" => "#8b5cf6",
+                "royal" => "#eab308",
+                _ => "#6366f1" // default
+            };
+            
+            if (Microsoft.Maui.Controls.Application.Current != null)
+            {
+                Microsoft.Maui.Controls.Application.Current.Resources["Primary"] = Color.FromArgb(primaryHex);
+            }
             
             // If we are currently on a web container, tell it to update JS immediately
             var currentPage = Shell.Current.CurrentPage;

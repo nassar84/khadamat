@@ -542,6 +542,8 @@
 </style>
 
 @code {
+    private bool _disposed = false;
+
     protected override void OnInitialized()
     {
         State.OnChange += OnStateChange;
@@ -549,11 +551,15 @@
 
     private async void OnStateChange()
     {
-        await InvokeAsync(StateHasChanged);
+        if (_disposed) return;
+        try { await InvokeAsync(StateHasChanged); }
+        catch (ObjectDisposedException) { }
+        catch (InvalidOperationException) { }
     }
 
     public void Dispose()
     {
+        _disposed = true;
         State.OnChange -= OnStateChange;
     }
 

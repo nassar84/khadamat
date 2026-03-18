@@ -1,0 +1,29 @@
+<div class="skeleton-card p-3 rounded-4 shadow-sm border text-center h-100">
+    <div class="mb-3 mx-auto skeleton-img rounded-3"></div>
+    <div class="skeleton-text mx-auto"></div>
+</div>
+
+<style>
+.skeleton-card {
+    background: white;
+}
+.skeleton-img {
+    width: 80px; 
+    height: 60px;
+    background: #e2e8f0;
+    animation: shimmer 1.5s infinite linear;
+}
+.skeleton-text {
+    height: 16px;
+    width: 60%;
+    background: #e2e8f0;
+    border-radius: 4px;
+    animation: shimmer 1.5s infinite linear;
+}
+
+@@keyframes shimmer {
+    0% { background-color: #f1f5f9; }
+    50% { background-color: #e2e8f0; }
+    100% { background-color: #f1f5f9; }
+}
+</style>

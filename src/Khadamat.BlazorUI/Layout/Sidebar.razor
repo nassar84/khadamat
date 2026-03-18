@@ -335,6 +335,7 @@
     [Parameter] public EventCallback<bool> IsCollapsedChanged { get; set; }
     
     private string DisplayName = "مستخدم";
+    private bool _disposed = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -356,7 +357,10 @@
 
     private async void OnStateChange()
     {
-        await InvokeAsync(StateHasChanged);
+        if (_disposed) return;
+        try { await InvokeAsync(StateHasChanged); }
+        catch (ObjectDisposedException) { }
+        catch (InvalidOperationException) { }
     }
 
     private async Task ToggleCollapse()
@@ -367,6 +371,7 @@
 
     public void Dispose()
     {
+        _disposed = true;
         State.OnChange -= OnStateChange;
     }
 }

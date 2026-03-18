@@ -87,11 +87,13 @@ public partial class WebContainerPage : ContentPage
         
         string routePart = !string.IsNullOrEmpty(DeepLinkRoute) ? DeepLinkRoute : (_route ?? "").TrimStart('/');
         
-        string finalUrl;
-        if (string.IsNullOrEmpty(routePart))
-            finalUrl = baseUrl.TrimEnd('/') + "/";
-        else
-            finalUrl = baseUrl.TrimEnd('/') + "/" + routePart;
+        string finalUrl = baseUrl.TrimEnd('/') + "/";
+        
+        // Use redirect parameter to avoid 404s on standalone WASM hosts
+        if (!string.IsNullOrEmpty(routePart))
+        {
+            finalUrl += "?redirect=" + Uri.EscapeDataString(routePart);
+        }
         
         // Append nativeapp=1 once to inform the Blazor side to hide website bars
         finalUrl += finalUrl.Contains("?") ? "&nativeapp=1" : "?nativeapp=1";
@@ -167,9 +169,9 @@ public partial class WebContainerPage : ContentPage
         // Show loading only on the VERY FIRST navigation (app startup)
         if (!_hasShownInitialLoad && !url.Contains("#") && !LoadingOverlay.IsVisible)
         {
-            LoadingOverlay.Opacity = 1;
-            LoadingOverlay.IsVisible = true;
-            StartLoadingAnimation();
+            // The user explicitly requested to NEVER show this loading screen.
+            _hasShownInitialLoad = true;
+            LoadingOverlay.IsVisible = false;
         }
 
         if (url.StartsWith("khadamat://auth/"))

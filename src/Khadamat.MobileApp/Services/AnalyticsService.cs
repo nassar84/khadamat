@@ -26,102 +26,32 @@ public class AnalyticsService : IAnalyticsService
     private void EnsureInitialized()
     {
         if (_isInitialized) return;
-
-        // Firebase Analytics initializes automatically via google-services.json on Android.
-        // No manual init needed — just use the static Firebase.Analytics.FirebaseAnalytics APIs.
         _isInitialized = true;
     }
 
     public Task TrackPageViewAsync(string pageName, Dictionary<string, string>? parameters = null)
     {
         EnsureInitialized();
-
-        try
-        {
-#if ANDROID
-            var analytics = Firebase.Analytics.FirebaseAnalytics.GetInstance(
-                Android.App.Application.Context);
-
-            var bundle = new Android.OS.Bundle();
-            bundle.PutString(Firebase.Analytics.FirebaseAnalytics.Param.ScreenName, pageName);
-            bundle.PutString(Firebase.Analytics.FirebaseAnalytics.Param.ScreenClass, pageName);
-
-            if (parameters != null)
-                foreach (var kv in parameters)
-                    bundle.PutString(kv.Key, kv.Value);
-
-            analytics.LogEvent(Firebase.Analytics.FirebaseAnalytics.Event.ScreenView, bundle);
-            Console.WriteLine($"[Analytics] Page view: {pageName}");
-#endif
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[Analytics] TrackPageView error: {ex.Message}");
-        }
-
+        Console.WriteLine($"[Analytics Disabled] Page view: {pageName}");
         return Task.CompletedTask;
     }
 
     public Task TrackEventAsync(string eventName, Dictionary<string, string>? parameters = null)
     {
         EnsureInitialized();
-
-        try
-        {
-#if ANDROID
-            var analytics = Firebase.Analytics.FirebaseAnalytics.GetInstance(
-                Android.App.Application.Context);
-
-            var bundle = new Android.OS.Bundle();
-            if (parameters != null)
-                foreach (var kv in parameters)
-                    bundle.PutString(kv.Key, kv.Value);
-
-            analytics.LogEvent(eventName, bundle);
-            Console.WriteLine($"[Analytics] Event: {eventName}");
-#endif
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[Analytics] TrackEvent error: {ex.Message}");
-        }
-
+        Console.WriteLine($"[Analytics Disabled] Event: {eventName}");
         return Task.CompletedTask;
     }
 
     public Task SetUserIdAsync(string userId)
     {
-        try
-        {
-#if ANDROID
-            var analytics = Firebase.Analytics.FirebaseAnalytics.GetInstance(
-                Android.App.Application.Context);
-            analytics.SetUserId(userId);
-#endif
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[Analytics] SetUserId error: {ex.Message}");
-        }
-
+        Console.WriteLine($"[Analytics Disabled] SetUserId: {userId}");
         return Task.CompletedTask;
     }
 
     public Task SetUserPropertyAsync(string name, string value)
     {
-        try
-        {
-#if ANDROID
-            var analytics = Firebase.Analytics.FirebaseAnalytics.GetInstance(
-                Android.App.Application.Context);
-            analytics.SetUserProperty(name, value);
-#endif
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[Analytics] SetUserProperty error: {ex.Message}");
-        }
-
+        Console.WriteLine($"[Analytics Disabled] SetUserProperty: {name}={value}");
         return Task.CompletedTask;
     }
 }

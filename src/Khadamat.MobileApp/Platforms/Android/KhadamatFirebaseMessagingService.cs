@@ -1,3 +1,4 @@
+#if false
 using Android.App;
 using Android.Content;
 using Firebase.Messaging;
@@ -85,3 +86,4 @@ public class KhadamatFirebaseMessagingService : FirebaseMessagingService
         notificationManager.Notify(notificationId, builder.Build());
     }
 }
+#endif

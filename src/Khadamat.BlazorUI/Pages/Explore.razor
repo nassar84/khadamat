@@ -61,7 +61,15 @@
                             </div>
                         }
                     }
-                    else { <LoadingSpinner Message="جاري تحميل التصنيفات..." /> }
+                    else 
+                    { 
+                        @for (int i = 0; i < 8; i++)
+                        {
+                            <div class="col-6 col-md-4 col-lg-3">
+                                <Khadamat.BlazorUI.Components.Shared.SkeletonCategoryCard />
+                            </div>
+                        }
+                    }
                 }
                 else if (Level == "category")
                 {
@@ -99,7 +107,15 @@
                             </div>
                         }
                     }
-                    else { <LoadingSpinner Message="جاري تحميل الأنواع..." /> }
+                    else 
+                    { 
+                        @for (int i = 0; i < 8; i++)
+                        {
+                            <div class="col-6 col-md-4 col-lg-3">
+                                <Khadamat.BlazorUI.Components.Shared.SkeletonCategoryCard />
+                            </div>
+                        }
+                    }
                 }
                 else if (Level == "subcategory")
                 {
@@ -132,7 +148,27 @@
                             </div>
                         }
                     }
-                    else { <LoadingSpinner Message="جاري تحميل الخدمات..." /> }
+                    else 
+                    { 
+                        @for (int i = 0; i < 6; i++)
+                        {
+                            <div class="col-12 col-md-6 mb-3">
+                                <!-- Service Card Skeleton -->
+                                <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden bg-white">
+                                    <div class="d-flex p-3">
+                                        <!-- Provider Image Skeleton -->
+                                        <div style="width: 70px; height: 70px; background:#e2e8f0; border-radius: 50%; min-width: 70px; animation: shimmer 1.5s infinite linear;"></div>
+                                        <div class="ms-3 flex-grow-1 py-1">
+                                            <!-- Title Skeleton -->
+                                            <div style="height: 18px; width: 80%; background:#e2e8f0; border-radius: 4px; animation: shimmer 1.5s infinite linear; margin-bottom: 8px;"></div>
+                                            <!-- Subtitle Skeleton -->
+                                            <div style="height: 14px; width: 50%; background:#e2e8f0; border-radius: 4px; animation: shimmer 1.5s infinite linear;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
                 }
             </div>
         </div>
@@ -171,64 +207,81 @@
     private List<EnhancedAdDto>? categoryAds;
     private List<BreadcrumbItem> breadcrumbItems = new();
 
-    protected override async Task OnParametersSetAsync()
+    protected override void OnParametersSet()
+    {
+        // Execute fetch without awaiting to allow immediate render of Skeletons
+        _ = FetchDataAsync();
+    }
+
+    private async Task FetchDataAsync()
     {
         categories = null;
         subCategories = null;
         services = null;
         breadcrumbItems.Clear();
 
-        if (string.IsNullOrEmpty(Level))
+        try
         {
-            Level = "main_all";
-            breadcrumbItems.Add(new BreadcrumbItem { Label = "استكشف الفئات", IsActive = true });
-            var mainCategories = await Api.GetMainCategoriesAsync();
-            categories = mainCategories?.Select(mc => new CategoryDto { Id = mc.Id, Name = mc.Name, ImageUrl = mc.ImageUrl }).ToList();
-        }
-        else if (Level == "main")
-        {
-            breadcrumbItems.Add(new BreadcrumbItem { Label = Name, IsActive = true });
-            categories = await Api.GetCategoriesByMainIdAsync(Id);
-        }
-        else if (Level == "category")
-        {
-            var catInfo = await Api.GetCategoryByIdAsync(Id);
-            if (catInfo != null)
+            if (string.IsNullOrEmpty(Level))
             {
-                breadcrumbItems.Add(new BreadcrumbItem { 
-                    Label = catInfo.MainCategoryName ?? "التصنيف الرئيسي", 
-                    Url = $"/explore/main/{catInfo.MainCategoryId}/{Uri.EscapeDataString(catInfo.MainCategoryName ?? "")}",
-                    Data = new { Level = "main", Id = catInfo.MainCategoryId, Name = catInfo.MainCategoryName }
-                });
-                breadcrumbItems.Add(new BreadcrumbItem { Label = Name, IsActive = true });
+                Level = "main_all";
+                breadcrumbItems.Add(new BreadcrumbItem { Label = "استكشف الفئات", IsActive = true });
+                var mainCategories = await Api.GetMainCategoriesAsync();
+                categories = mainCategories?.Select(mc => new CategoryDto { Id = mc.Id, Name = mc.Name, ImageUrl = mc.ImageUrl }).ToList();
             }
-            subCategories = await Api.GetSubCategoriesByCategoryIdAsync(Id);
-        }
-        else if (Level == "subcategory")
-        {
-            var subInfo = await Api.GetSubCategoryByIdAsync(Id);
-            if (subInfo != null)
+            else if (Level == "main")
             {
-                breadcrumbItems.Add(new BreadcrumbItem { 
-                    Label = subInfo.MainCategoryName ?? "التصنيف الرئيسي", 
-                    Url = $"/explore/main/{subInfo.MainCategoryId}/{Uri.EscapeDataString(subInfo.MainCategoryName ?? "")}",
-                    Data = new { Level = "main", Id = subInfo.MainCategoryId, Name = subInfo.MainCategoryName }
-                });
-                breadcrumbItems.Add(new BreadcrumbItem { 
-                    Label = subInfo.CategoryName ?? "التصنيف", 
-                    Url = $"/explore/category/{subInfo.CategoryId}/{Uri.EscapeDataString(subInfo.CategoryName ?? "")}",
-                    Data = new { Level = "category", Id = subInfo.CategoryId, Name = subInfo.CategoryName }
-                });
                 breadcrumbItems.Add(new BreadcrumbItem { Label = Name, IsActive = true });
+                categories = await Api.GetCategoriesByMainIdAsync(Id);
             }
-            
-            var servicesTask = Api.GetServicesAsync(subCategoryId: Id);
-            var categoryAdsTask = Api.GetCategoryAdsAsync(Id);
-            
-            await Task.WhenAll(servicesTask, categoryAdsTask);
-            
-            services = servicesTask.Result.Items;
-            categoryAds = categoryAdsTask.Result;
+            else if (Level == "category")
+            {
+                var catInfo = await Api.GetCategoryByIdAsync(Id);
+                if (catInfo != null)
+                {
+                    breadcrumbItems.Add(new BreadcrumbItem { 
+                        Label = catInfo.MainCategoryName ?? "التصنيف الرئيسي", 
+                        Url = $"/explore/main/{catInfo.MainCategoryId}/{Uri.EscapeDataString(catInfo.MainCategoryName ?? "")}",
+                        Data = new { Level = "main", Id = catInfo.MainCategoryId, Name = catInfo.MainCategoryName }
+                    });
+                    breadcrumbItems.Add(new BreadcrumbItem { Label = Name, IsActive = true });
+                }
+                subCategories = await Api.GetSubCategoriesByCategoryIdAsync(Id);
+            }
+            else if (Level == "subcategory")
+            {
+                var subInfo = await Api.GetSubCategoryByIdAsync(Id);
+                if (subInfo != null)
+                {
+                    breadcrumbItems.Add(new BreadcrumbItem { 
+                        Label = subInfo.MainCategoryName ?? "التصنيف الرئيسي", 
+                        Url = $"/explore/main/{subInfo.MainCategoryId}/{Uri.EscapeDataString(subInfo.MainCategoryName ?? "")}",
+                        Data = new { Level = "main", Id = subInfo.MainCategoryId, Name = subInfo.MainCategoryName }
+                    });
+                    breadcrumbItems.Add(new BreadcrumbItem { 
+                        Label = subInfo.CategoryName ?? "التصنيف", 
+                        Url = $"/explore/category/{subInfo.CategoryId}/{Uri.EscapeDataString(subInfo.CategoryName ?? "")}",
+                        Data = new { Level = "category", Id = subInfo.CategoryId, Name = subInfo.CategoryName }
+                    });
+                    breadcrumbItems.Add(new BreadcrumbItem { Label = Name, IsActive = true });
+                }
+                
+                var servicesTask = Api.GetServicesAsync(subCategoryId: Id);
+                var categoryAdsTask = Api.GetCategoryAdsAsync(Id);
+                
+                await Task.WhenAll(servicesTask, categoryAdsTask);
+                
+                services = servicesTask.Result.Items;
+                categoryAds = categoryAdsTask.Result;
+            }
+        }
+        catch (Exception)
+        {
+            // Handle error logic if needed, e.g., show an empty state or error message
+        }
+        finally
+        {
+            StateHasChanged();
         }
     }
 

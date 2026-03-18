@@ -35,6 +35,8 @@ public class AuthService : IAuthService
 
     private async Task NotifyNativeApp(string message, string? data = null)
     {
+        if (!_appState.IsNativeApp) return;
+
         try
         {
             var url = $"khadamat://auth/{message}";
@@ -162,7 +164,12 @@ public class AuthService : IAuthService
         if (!string.IsNullOrEmpty(token))
         {
             _appState.UserToken = token;
-            ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsAuthenticated(token);
+            
+            // المكون الأصلي (GetAuthenticationStateAsync) يتولى بالفعل بناء Auth State في البداية.
+            // لا تقم باستدعاء NotifyAuthenticationStateChanged هنا أبداً!
+            // هذا كان يُطلق Full-App Re-render في نفس لحظة First Render مما يُسبب خطأ:
+            // "No element is currently associated with component"
+            
             await NotifyNativeApp("auth_success");
             
             // Try to load profile in background

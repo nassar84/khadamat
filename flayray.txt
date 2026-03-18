@@ -1,0 +1,29 @@
+Khadamat.Application,
+Khadamat.BlazorUI,
+Khadamat.Domain,
+Khadamat.Infrastructure,
+Khadamat.Mobile,
+Khadamat.MobileApp,
+Khadamat.Shared,
+Khadamat.WasmHost,
+Khadamat.WebAPI
+
+
+deadline 
+بتاعنا امتى  لتسليم مواقع الشركات ؟
+ و
+بالنسبة للموقع الداخلى بالشركة "خاص بالعاملين" ايه موقفها. حتفضل زى ما هى ولا حتتحول . لانه مش حينفع تتحول او تكون على هوست خارج الشركة؟
+ 
+**************************************
+Ahmed Mansour
+17/03/2026 11:33
+طب هل فيه فرصه لتعليمنا نبقى back end لliferay بحيث نقدر نساعد شركتنا او شركات زمايلنا خصوصا ان اغلبنا عمل مواقع بلغات برمجه مختلفة وممكن نستفيد من قاعدة المبرمجين الكبيرة وده بيخف الضغط عليكم اكيد ونبقى استفدنا افكار كتير وفنفس الوقت ملتزمين بhost موحد
+ 
+Learning path for content management and everything we mentioned in all sessions
+https://learn.liferay.com/learning-path/content-manager
+ 
+Learning paths for developers
+https://learn.liferay.com/learning-path/liferay-application-developer
+ 
+https://learn.liferay.com/learning-path/frontend-developer
+ 

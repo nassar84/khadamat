@@ -10,6 +10,20 @@ public partial class App : MauiApp
     public App(Views.WelcomePage welcomePage)
     {
         InitializeComponent();
+        
+        // Initial Theme Load
+        string savedTheme = Microsoft.Maui.Storage.Preferences.Default.Get("AppTheme", "default");
+        string primaryHex = savedTheme switch
+        {
+            "sunset" => "#ea580c",
+            "ocean" => "#0ea5e9",
+            "forest" => "#10b981",
+            "lavender" => "#8b5cf6",
+            "royal" => "#eab308",
+            _ => "#6366f1" // default
+        };
+        Resources["Primary"] = Color.FromArgb(primaryHex);
+        
         _welcomePage = welcomePage;
         
         DeepLinkBridge.OnDeepLinkReceived += async (url) => 

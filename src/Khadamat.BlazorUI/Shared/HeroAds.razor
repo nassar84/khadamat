@@ -180,6 +180,7 @@
     private int CurrentSlideIndex = 0;
     private System.Threading.Timer? _timer;
     private string SearchTerm { get; set; } = "";
+    private bool _disposed = false;
 
     protected override void OnInitialized()
     {
@@ -189,16 +190,19 @@
 
     private void RotateSlide(object? state)
     {
+        if (_disposed) return;
         var nextIndex = (CurrentSlideIndex + 1) % HeroImages.Count;
         SetSlide(nextIndex);
     }
 
     private void SetSlide(int index)
     {
+        if (_disposed) return;
         if (CurrentSlideIndex != index)
         {
             CurrentSlideIndex = index;
-            InvokeAsync(StateHasChanged);
+            try { InvokeAsync(StateHasChanged); }
+            catch { }
         }
     }
 
@@ -242,6 +246,7 @@
 
     public void Dispose()
     {
+        _disposed = true;
         _timer?.Dispose();
     }
 }
