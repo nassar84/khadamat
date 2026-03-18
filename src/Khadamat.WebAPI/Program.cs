@@ -3,112 +3,146 @@ using Khadamat.Application;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-
 using Khadamat.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Khadamat.Infrastructure.Identity;
+using Serilog;
+using System.Security.Claims;
 
-var builder = WebApplication.CreateBuilder(args);
+// 1. Configure Serilog for structured logging
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.File("logs/khadamat-api-.txt", rollingInterval: RollingInterval.Day)
+    .Enrich.FromLogContext()
+    .CreateLogger();
 
-// Add services to the container.
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddSignalR();
-
-// Clean Architecture Layers
-builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddApplication();
-
-// Register MediatR for Infrastructure (contains Request handlers)
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Khadamat.Infrastructure.DependencyInjection).Assembly));
-builder.Services.AddScoped<Khadamat.Application.Interfaces.INotificationNotifier, Khadamat.WebAPI.Services.SignalRNotificationNotifier>();
-
-// Authorization Policies
-builder.Services.AddAuthorization(options =>
+try
 {
-    options.AddPolicy("RequireProvider", policy => 
-        policy.RequireAuthenticatedUser()
-              .RequireClaim("is_provider", "true"));
+    Log.Information("Starting Khadamat Web API...");
 
-    options.AddPolicy("RequireAdmin", policy => 
-        policy.RequireRole("SystemAdmin", "SuperAdmin"));
-        
-    options.AddPolicy("RequireSuperAdmin", policy => 
-        policy.RequireRole("SuperAdmin"));
-});
+    var builder = WebApplication.CreateBuilder(args);
+    builder.Host.UseSerilog();
 
-// CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll",
-        builder =>
-        {
-            builder.WithOrigins("http://localhost:5028", "http://localhost:5030", "https://localhost:7082", "http://localhost:5144", "http://10.0.2.2:5144", "http://10.0.2.2:5028", "http://10.102.2.2:5144", "app://0.0.0.0", "http://10.0.2.2")
-                   .SetIsOriginAllowed(_ => true) // Also just allow any origin for development
-                   .AllowAnyMethod()
-                   .AllowAnyHeader()
-                   .AllowCredentials();
-        });
-});
+    // 2. Add Core services
+    builder.Services.AddControllers();
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+    builder.Services.AddSignalR();
 
-var app = builder.Build();
+    // 3. Clean Architecture Layers
+    builder.Services.AddInfrastructure(builder.Configuration);
+    builder.Services.AddApplication();
 
-// Seed Database
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
+    // MediatR & Notification logic
+    builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Khadamat.Infrastructure.DependencyInjection).Assembly));
+    builder.Services.AddScoped<Khadamat.Application.Interfaces.INotificationNotifier, Khadamat.WebAPI.Services.SignalRNotificationNotifier>();
+
+    // 4. Production-Ready Authorization Policies
+    builder.Services.AddAuthorization(options =>
     {
-        var context = services.GetRequiredService<KhadamatDbContext>();
-        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+        options.AddPolicy("RequireProvider", policy => 
+            policy.RequireAuthenticatedUser()
+                  .RequireClaim("is_provider", "true"));
 
-        // Apply migrations automatically
-        try 
+        options.AddPolicy("RequireAdmin", policy => 
+            policy.RequireRole("SystemAdmin", "SuperAdmin"));
+            
+        options.AddPolicy("RequireSuperAdmin", policy => 
+            policy.RequireRole("SuperAdmin"));
+    });
+
+    // 5. Dynamic & Secure CORS Configuration
+    builder.Services.AddCors(options =>
+    {
+        var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? new[] { "http://localhost:5028" };
+        
+        options.AddPolicy("DefaultCors", policy =>
         {
+            policy.WithOrigins(allowedOrigins)
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials()
+                  .SetIsOriginAllowedToAllowWildcardSubdomains();
+            
+            if (builder.Environment.IsDevelopment())
+            {
+                policy.SetIsOriginAllowed(_ => true); // Extra flexibility in dev
+            }
+        });
+    });
+
+    var app = builder.Build();
+
+    // 6. Automatic Database Seeding & Migration Management
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        try
+        {
+            var context = services.GetRequiredService<KhadamatDbContext>();
+            var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+            var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+
+            // In production, you might want to run migrations manually via CI/CD, 
+            // but for this hosting environment, auto-apply is safer for updates.
             context.Database.Migrate();
+            await KhadamatDbContextSeed.SeedAsync(context, userManager, roleManager);
         }
         catch (Exception ex)
         {
-            var logger = services.GetRequiredService<ILogger<Program>>();
-            logger.LogWarning(ex, "Migration failed or tables already exist. Proceeding with seeding.");
+            Log.Error(ex, "An error occurred during database migration/seeding.");
         }
-        
-        // Seed data
-        await KhadamatDbContextSeed.SeedAsync(context, userManager, roleManager);
     }
-    catch (Exception ex)
+
+    // 7. Middlewares & Routing Strategy
+    if (app.Environment.IsDevelopment())
     {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while seeding the database.");
+        app.UseSwagger();
+        app.UseSwaggerUI();
     }
-}
+    else
+    {
+        // Enforce HTTPS in production
+        app.UseHsts();
+        app.UseHttpsRedirection();
+    }
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+    // Global Error Handling (Standardized)
+    app.UseExceptionHandler(exceptionHandlerApp =>
+    {
+        exceptionHandlerApp.Run(async context =>
+        {
+            context.Response.StatusCode = 500;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsJsonAsync(new { Error = "An internal server error occurred.", Details = app.Environment.IsDevelopment() ? "Check logs." : null });
+        });
+    });
+
+    app.UseDefaultFiles();
+    app.UseStaticFiles();
+
+    app.UseCors("DefaultCors");
+
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    // Support for hosting in sub-directory /api
+    app.MapControllers();
+    app.MapHub<Khadamat.WebAPI.Hubs.NotificationHub>("/notificationHub");
+    app.MapHub<Khadamat.WebAPI.Hubs.ChatHub>("/chatHub");
+
+    // SPA Fallback
+    app.MapFallbackToFile("index.html");
+
+    app.Run();
+}
+catch (Exception ex)
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    Log.Fatal(ex, "Host terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
 }
 
-// app.UseHttpsRedirection();
-
-// Serve Static Files for the Frontend
-app.UseDefaultFiles();
-app.UseStaticFiles();
-
-app.UseCors("AllowAll");
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
-app.MapHub<Khadamat.WebAPI.Hubs.NotificationHub>("/notificationHub");
-app.MapHub<Khadamat.WebAPI.Hubs.ChatHub>("/chatHub");
-
-// Fallback to index.html for SPA-like behavior
-app.MapFallbackToFile("index.html");
-
-app.Run();

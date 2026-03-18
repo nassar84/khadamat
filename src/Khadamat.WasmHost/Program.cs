@@ -6,32 +6,37 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using System.Net.Http;
+using Polly;
+using Polly.Extensions.Http;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
+// 1. Configure HttpClient with Resilience (Polly)
+IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+{
+    return HttpPolicyExtensions
+        .HandleTransientHttpError()
+        .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.NotFound)
+        .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+}
+
+// 2. Named Client with Configuration-based BaseAddress
 builder.Services.AddScoped<Khadamat.BlazorUI.Services.Auth.AuthenticationHandler>();
 
-builder.Services.AddHttpClient("KhadamatAPI", (sp, client) => 
+builder.Services.AddHttpClient("KhadamatAPI", client => 
 {
-    var nav = sp.GetRequiredService<Microsoft.AspNetCore.Components.NavigationManager>();
-    var uri = new Uri(nav.BaseUri);
-    // If we're on a local address, use the same host but the API port
-    if (uri.Host == "localhost" || uri.Host == "127.0.0.1" || uri.Host == "10.0.2.2")
-    {
-        client.BaseAddress = new Uri($"{uri.Scheme}://{uri.Host}:5144/");
-    }
-    else
-    {
-        // Production fallback (change this to your production API URL)
-        client.BaseAddress = new Uri("http://localhost:5144/");
-    }
+    var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "http://localhost:5144/";
+    client.BaseAddress = new Uri(apiBaseUrl);
 })
-.AddHttpMessageHandler<Khadamat.BlazorUI.Services.Auth.AuthenticationHandler>();
+.AddHttpMessageHandler<Khadamat.BlazorUI.Services.Auth.AuthenticationHandler>()
+.AddPolicyHandler(GetRetryPolicy());
 
+// Register the default HttpClient to use the factory-created client
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("KhadamatAPI"));
 
+// 3. Application Services
 builder.Services.AddScoped<Khadamat.BlazorUI.Services.ApiClient>();
 builder.Services.AddSingleton<Khadamat.BlazorUI.State.AppState>();
 
@@ -41,6 +46,8 @@ builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddScoped<AuthenticationStateProvider, Khadamat.BlazorUI.Services.Auth.CustomAuthenticationStateProvider>();
 builder.Services.AddScoped<Khadamat.BlazorUI.Services.Auth.IAuthService, Khadamat.BlazorUI.Services.Auth.AuthService>();
 builder.Services.AddScoped<Khadamat.BlazorUI.Services.Admin.IAdminService, Khadamat.BlazorUI.Services.Admin.AdminService>();
+
+// Shared / Platform Abstractions
 builder.Services.AddScoped<Khadamat.Shared.Interfaces.IShareService, Khadamat.BlazorUI.Services.WebShareService>();
 builder.Services.AddScoped<Khadamat.Shared.Interfaces.INotificationService, Khadamat.BlazorUI.Services.WebNotificationService>();
 builder.Services.AddScoped<Khadamat.Shared.Interfaces.IPhoneService, Khadamat.BlazorUI.Services.WebPhoneService>();
@@ -49,7 +56,9 @@ builder.Services.AddScoped<Khadamat.Shared.Interfaces.IExternalAuthService, Khad
 builder.Services.AddScoped<Khadamat.Shared.Interfaces.IBiometricService, Khadamat.BlazorUI.Services.WebBiometricService>();
 builder.Services.AddScoped<Khadamat.Application.Interfaces.IOfflineDataService, Khadamat.BlazorUI.Services.WebOfflineDataService>();
 builder.Services.AddScoped<Khadamat.Shared.Interfaces.ILocationService, Khadamat.BlazorUI.Services.WebLocationService>();
+
 builder.Services.AddScoped<Khadamat.BlazorUI.Services.SignalRClientService>();
 builder.Services.AddScoped<Khadamat.BlazorUI.Services.SoundService>();
 
 await builder.Build().RunAsync();
+
