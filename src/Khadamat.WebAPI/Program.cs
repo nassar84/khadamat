@@ -120,7 +120,15 @@ try
     });
 
     app.UseDefaultFiles();
-    app.UseStaticFiles();
+
+    // Configure Static Files to allow .apk downloads
+    var provider = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
+    provider.Mappings[".apk"] = "application/vnd.android.package-archive";
+    
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        ContentTypeProvider = provider
+    });
 
     app.UseCors("DefaultCors");
 

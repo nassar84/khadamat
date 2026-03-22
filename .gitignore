@@ -45,3 +45,5 @@ crash_log.txt
 
 # APK files (large, use direct download link instead)
 src/Khadamat.WasmHost/wwwroot/app.apk
+
+*.apk

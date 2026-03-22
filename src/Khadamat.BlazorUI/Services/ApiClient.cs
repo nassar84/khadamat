@@ -25,6 +25,9 @@ public class ApiClient
     public string GetAbsoluteUrl(string? relativeUrl)
     {
         if (string.IsNullOrEmpty(relativeUrl)) return "";
+
+        relativeUrl = relativeUrl.Replace("\\", "/");
+
         if (relativeUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) || 
             relativeUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase)) 
             return relativeUrl;
@@ -51,13 +54,13 @@ public class ApiClient
     // Settings
     public async Task<ApiResponse<AppSettingsDto>> GetSettingsAsync()
     {
-        return await _http.GetFromJsonAsync<ApiResponse<AppSettingsDto>>("api/v1/settings") 
+        return await _http.GetFromJsonAsync<ApiResponse<AppSettingsDto>>("v1/settings") 
                ?? ApiResponse<AppSettingsDto>.Fail("Failed to fetch settings");
     }
 
     public async Task<ApiResponse<bool>> UpdateSettingsAsync(UpdateAppSettingsRequest request)
     {
-        var response = await _http.PutAsJsonAsync("api/v1/settings", request);
+        var response = await _http.PutAsJsonAsync("v1/settings", request);
         return await response.Content.ReadFromJsonAsync<ApiResponse<bool>>() 
                ?? ApiResponse<bool>.Fail("Failed to update settings");
     }
@@ -65,7 +68,7 @@ public class ApiClient
     // Services
     public async Task<PaginatedResult<ServiceDto>> GetServicesAsync(string? search = null, int? categoryId = null, int? subCategoryId = null, int? governorateId = null, int? cityId = null, string? userId = null, bool? isApproved = true, string? sortBy = "latest", int page = 1, int pageSize = 10)
     {
-        var url = $"api/v1/services?page={page}&pageSize={pageSize}";
+        var url = $"v1/services?page={page}&pageSize={pageSize}";
         if (!string.IsNullOrEmpty(search)) url += $"&search={Uri.EscapeDataString(search)}";
         if (categoryId.HasValue) url += $"&categoryId={categoryId}";
         if (subCategoryId.HasValue) url += $"&subCategoryId={subCategoryId}";
@@ -88,24 +91,24 @@ public class ApiClient
 
     public async Task<PaginatedResult<ServiceDto>> GetMyServicesAsync(int page = 1)
     {
-        return await _http.GetFromJsonAsync<PaginatedResult<ServiceDto>>($"api/v1/services/myservices?page={page}") 
+        return await _http.GetFromJsonAsync<PaginatedResult<ServiceDto>>($"v1/services/myservices?page={page}") 
                ?? new PaginatedResult<ServiceDto>(new List<ServiceDto>(), 0, page, 10);
     }
 
     public async Task<ServiceDto?> GetServiceByIdAsync(int id)
     {
-        return await _http.GetFromJsonAsync<ServiceDto>($"api/v1/services/{id}");
+        return await _http.GetFromJsonAsync<ServiceDto>($"v1/services/{id}");
     }
 
     public async Task<PaginatedResult<ServiceDto>> GetSimilarServicesAsync(int id, int count = 4)
     {
-        return await _http.GetFromJsonAsync<PaginatedResult<ServiceDto>>($"api/v1/services/{id}/similar?count={count}")
+        return await _http.GetFromJsonAsync<PaginatedResult<ServiceDto>>($"v1/services/{id}/similar?count={count}")
                ?? new PaginatedResult<ServiceDto>(new List<ServiceDto>(), 0, 1, count);
     }
 
     public async Task<int?> CreateServiceAsync(CreateServiceCommand command)
     {
-        var response = await _http.PostAsJsonAsync("api/v1/services", command);
+        var response = await _http.PostAsJsonAsync("v1/services", command);
         if (response.IsSuccessStatusCode)
         {
             var result = await response.Content.ReadFromJsonAsync<JsonElement>();
@@ -121,19 +124,19 @@ public class ApiClient
 
     public async Task<bool> UpdateServiceAsync(int id, UpdateServiceCommand command)
     {
-        var response = await _http.PutAsJsonAsync($"api/v1/services/{id}", command);
+        var response = await _http.PutAsJsonAsync($"v1/services/{id}", command);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> RequestServiceEditAsync(int serviceId, object editDto)
     {
-        var response = await _http.PostAsJsonAsync($"api/v1/services/{serviceId}/request-edit", editDto);
+        var response = await _http.PostAsJsonAsync($"v1/services/{serviceId}/request-edit", editDto);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> DeleteServiceAsync(int id)
     {
-        var response = await _http.DeleteAsync($"api/v1/services/{id}");
+        var response = await _http.DeleteAsync($"v1/services/{id}");
         return response.IsSuccessStatusCode;
     }
 
@@ -142,7 +145,7 @@ public class ApiClient
     {
         try 
         {
-            var response = await _http.GetFromJsonAsync<ApiResponse<List<MainCategoryDto>>>("api/v1/categories/main");
+            var response = await _http.GetFromJsonAsync<ApiResponse<List<MainCategoryDto>>>("v1/categories/main");
             return response?.Data ?? new List<MainCategoryDto>();
         }
         catch
@@ -155,11 +158,11 @@ public class ApiClient
     {
         try
         {
-            var response = await _http.GetFromJsonAsync<ApiResponse<List<CategoryDto>>>($"api/v1/categories/main/{mainId}/categories");
+            var response = await _http.GetFromJsonAsync<ApiResponse<List<CategoryDto>>>($"v1/categories/main/{mainId}/categories");
             return response?.Data ?? new List<CategoryDto>();
         }
         catch
-        {
+      {
             return new List<CategoryDto>();
         }
     }
@@ -168,7 +171,7 @@ public class ApiClient
     {
         try
         {
-            var response = await _http.GetFromJsonAsync<ApiResponse<CategoryDto>>($"api/v1/categories/categories/{id}");
+            var response = await _http.GetFromJsonAsync<ApiResponse<CategoryDto>>($"v1/categories/categories/{id}");
             return response?.Data;
         }
         catch
@@ -181,7 +184,7 @@ public class ApiClient
     {
         try
         {
-            var response = await _http.GetFromJsonAsync<ApiResponse<SubCategoryDto>>($"api/v1/categories/subcategories/{id}");
+            var response = await _http.GetFromJsonAsync<ApiResponse<SubCategoryDto>>($"v1/categories/subcategories/{id}");
             return response?.Data;
         }
         catch
@@ -194,7 +197,7 @@ public class ApiClient
     {
         try
         {
-            var response = await _http.GetFromJsonAsync<ApiResponse<List<SubCategoryDto>>>($"api/v1/categories/{catId}/subcategories");
+            var response = await _http.GetFromJsonAsync<ApiResponse<List<SubCategoryDto>>>($"v1/categories/{catId}/subcategories");
             return response?.Data ?? new List<SubCategoryDto>();
         }
         catch
@@ -206,62 +209,62 @@ public class ApiClient
     // Category Management
     public async Task<bool> CreateMainCategoryAsync(MainCategoryDto dto)
     {
-        var response = await _http.PostAsJsonAsync("api/v1/categories/main", dto);
+        var response = await _http.PostAsJsonAsync("v1/categories/main", dto);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> UpdateMainCategoryAsync(int id, MainCategoryDto dto)
     {
-        var response = await _http.PutAsJsonAsync($"api/v1/categories/main/{id}", dto);
+        var response = await _http.PutAsJsonAsync($"v1/categories/main/{id}", dto);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> DeleteMainCategoryAsync(int id)
     {
-        var response = await _http.DeleteAsync($"api/v1/categories/main/{id}");
+        var response = await _http.DeleteAsync($"v1/categories/main/{id}");
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> CreateCategoryAsync(CategoryDto dto)
     {
-        var response = await _http.PostAsJsonAsync("api/v1/categories", dto);
+        var response = await _http.PostAsJsonAsync("v1/categories", dto);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> UpdateCategoryAsync(int id, CategoryDto dto)
     {
-        var response = await _http.PutAsJsonAsync($"api/v1/categories/{id}", dto);
+        var response = await _http.PutAsJsonAsync($"v1/categories/{id}", dto);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> DeleteCategoryAsync(int id)
     {
-        var response = await _http.DeleteAsync($"api/v1/categories/{id}");
+        var response = await _http.DeleteAsync($"v1/categories/{id}");
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> CreateSubCategoryAsync(SubCategoryDto dto)
     {
-        var response = await _http.PostAsJsonAsync("api/v1/categories/sub", dto);
+        var response = await _http.PostAsJsonAsync("v1/categories/sub", dto);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> UpdateSubCategoryAsync(int id, SubCategoryDto dto)
     {
-        var response = await _http.PutAsJsonAsync($"api/v1/categories/sub/{id}", dto);
+        var response = await _http.PutAsJsonAsync($"v1/categories/sub/{id}", dto);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> DeleteSubCategoryAsync(int id)
     {
-        var response = await _http.DeleteAsync($"api/v1/categories/sub/{id}");
+        var response = await _http.DeleteAsync($"v1/categories/sub/{id}");
         return response.IsSuccessStatusCode;
     }
 
     // Locations
     public async Task<List<GovernorateDto>> GetGovernoratesAsync()
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<List<GovernorateDto>>>("api/v1/locations/governorates");
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<GovernorateDto>>>("v1/locations/governorates");
         return response?.Data ?? new List<GovernorateDto>();
     }
 
@@ -269,7 +272,7 @@ public class ApiClient
     {
         try
         {
-            var response = await _http.GetFromJsonAsync<ApiResponse<List<CityDto>>>($"api/v1/locations/governorates/{governorateId}/cities");
+            var response = await _http.GetFromJsonAsync<ApiResponse<List<CityDto>>>($"v1/locations/governorates/{governorateId}/cities");
             return response?.Data ?? new List<CityDto>();
         }
         catch (Exception ex)
@@ -281,99 +284,99 @@ public class ApiClient
 
     public async Task<List<CityDto>> GetCitiesAsync()
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<List<CityDto>>>("api/v1/locations/cities");
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<CityDto>>>("v1/locations/cities");
         return response?.Data ?? new List<CityDto>();
     }
 
     public async Task<CityDto?> GetCityByIdAsync(int id)
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<CityDto>>($"api/v1/locations/cities/{id}");
+        var response = await _http.GetFromJsonAsync<ApiResponse<CityDto>>($"v1/locations/cities/{id}");
         return response?.Data;
     }
 
     public async Task<bool> CreateGovernorateAsync(GovernorateDto dto)
     {
-        var response = await _http.PostAsJsonAsync("api/v1/locations/governorates", dto);
+        var response = await _http.PostAsJsonAsync("v1/locations/governorates", dto);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> UpdateGovernorateAsync(int id, GovernorateDto dto)
     {
-        var response = await _http.PutAsJsonAsync($"api/v1/locations/governorates/{id}", dto);
+        var response = await _http.PutAsJsonAsync($"v1/locations/governorates/{id}", dto);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> DeleteGovernorateAsync(int id)
     {
-        var response = await _http.DeleteAsync($"api/v1/locations/governorates/{id}");
+        var response = await _http.DeleteAsync($"v1/locations/governorates/{id}");
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> CreateCityAsync(CityDto dto)
     {
-        var response = await _http.PostAsJsonAsync("api/v1/locations/cities", dto);
+        var response = await _http.PostAsJsonAsync("v1/locations/cities", dto);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> UpdateCityAsync(int id, CityDto dto)
     {
-        var response = await _http.PutAsJsonAsync($"api/v1/locations/cities/{id}", dto);
+        var response = await _http.PutAsJsonAsync($"v1/locations/cities/{id}", dto);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> DeleteCityAsync(int id)
     {
-        var response = await _http.DeleteAsync($"api/v1/locations/cities/{id}");
+        var response = await _http.DeleteAsync($"v1/locations/cities/{id}");
         return response.IsSuccessStatusCode;
     }
 
     // Ad Packages
     public async Task<List<AdPackageDto>> GetAdPackagesAsync()
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<List<AdPackageDto>>>("api/v1/adpackages");
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<AdPackageDto>>>("v1/adpackages");
         return response?.Data ?? new List<AdPackageDto>();
     }
 
     public async Task<bool> CreateAdPackageAsync(CreateAdPackageRequest request)
     {
-        var response = await _http.PostAsJsonAsync("api/v1/adpackages", request);
+        var response = await _http.PostAsJsonAsync("v1/adpackages", request);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> UpdateAdPackageAsync(int id, CreateAdPackageRequest request)
     {
-        var response = await _http.PutAsJsonAsync($"api/v1/adpackages/{id}", request);
+        var response = await _http.PutAsJsonAsync($"v1/adpackages/{id}", request);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> DeleteAdPackageAsync(int id)
     {
-        var response = await _http.DeleteAsync($"api/v1/adpackages/{id}");
+        var response = await _http.DeleteAsync($"v1/adpackages/{id}");
         return response.IsSuccessStatusCode;
     }
 
     // Ads
     public async Task<List<EnhancedAdDto>> GetSliderAdsAsync()
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<List<EnhancedAdDto>>>("api/v1/ads/slider");
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<EnhancedAdDto>>>("v1/ads/slider");
         return response?.Data ?? new List<EnhancedAdDto>();
     }
 
     public async Task<List<EnhancedAdDto>> GetAllAdsAsync()
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<List<EnhancedAdDto>>>("api/v1/ads");
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<EnhancedAdDto>>>("v1/ads");
         return response?.Data ?? new List<EnhancedAdDto>();
     }
 
     public async Task<List<EnhancedAdDto>> GetSearchAdsAsync()
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<List<EnhancedAdDto>>>("api/v1/ads/placements/Search");
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<EnhancedAdDto>>>("v1/ads/placements/Search");
         return response?.Data ?? new List<EnhancedAdDto>();
     }
 
     public async Task<List<EnhancedAdDto>> GetAdsByPlacementAsync(string placement)
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<List<EnhancedAdDto>>>($"api/v1/ads/placements/{placement}");
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<EnhancedAdDto>>>($"v1/ads/placements/{placement}");
         return response?.Data ?? new List<EnhancedAdDto>();
     }
 
@@ -386,35 +389,35 @@ public class ApiClient
 
     public async Task<bool> CreateAdAsync(EnhancedAdDto ad)
     {
-        var response = await _http.PostAsJsonAsync("api/v1/ads", ad);
+        var response = await _http.PostAsJsonAsync("v1/ads", ad);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> UpdateAdAsync(int id, EnhancedAdDto ad)
     {
-        var response = await _http.PutAsJsonAsync($"api/v1/ads/{id}", ad);
+        var response = await _http.PutAsJsonAsync($"v1/ads/{id}", ad);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> DeleteAdAsync(int id)
     {
-        var response = await _http.DeleteAsync($"api/v1/ads/{id}");
+        var response = await _http.DeleteAsync($"v1/ads/{id}");
         return response.IsSuccessStatusCode;
     }
 
     public async Task TrackAdViewAsync(int adId)
     {
-        await _http.PostAsync($"api/v1/ads/{adId}/track-view", null);
+        await _http.PostAsync($"v1/ads/{adId}/track-view", null);
     }
 
     public async Task TrackAdClickAsync(int adId)
     {
-        await _http.PostAsync($"api/v1/ads/{adId}/track-click", null);
+        await _http.PostAsync($"v1/ads/{adId}/track-click", null);
     }
 
     public async Task<List<EnhancedAdDto>> GetMyAdsAsync()
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<List<EnhancedAdDto>>>("api/v1/ads/my");
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<EnhancedAdDto>>>("v1/ads/my");
         return response?.Data ?? new List<EnhancedAdDto>();
     }
 
@@ -423,7 +426,7 @@ public class ApiClient
     {
         try
         {
-            return await _http.GetFromJsonAsync<ReferralCodeDto>("api/Advertisements/referral/my-code");
+            return await _http.GetFromJsonAsync<ReferralCodeDto>("v1/Advertisements/referral/my-code");
         }
         catch { return null; }
     }
@@ -432,7 +435,7 @@ public class ApiClient
     {
         try
         {
-            var response = await _http.GetFromJsonAsync<PointsBalanceDto>("api/Advertisements/points/balance");
+            var response = await _http.GetFromJsonAsync<PointsBalanceDto>("v1/Advertisements/points/balance");
             return response?.Balance ?? 0;
         }
         catch { return 0; }
@@ -442,7 +445,7 @@ public class ApiClient
     {
         try
         {
-            var response = await _http.PostAsJsonAsync("api/Advertisements/points/convert", request);
+            var response = await _http.PostAsJsonAsync("v1/Advertisements/points/convert", request);
             return response.IsSuccessStatusCode;
         }
         catch { return false; }
@@ -454,7 +457,7 @@ public class ApiClient
     {
         try
         {
-            var response = await _http.GetFromJsonAsync<List<PromoCodeDto>>("api/Advertisements/promotions");
+            var response = await _http.GetFromJsonAsync<List<PromoCodeDto>>("v1/Advertisements/promotions");
             return response ?? new List<PromoCodeDto>();
         }
         catch { return new List<PromoCodeDto>(); }
@@ -464,7 +467,7 @@ public class ApiClient
     {
         try
         {
-            var response = await _http.PostAsJsonAsync("api/Advertisements/apply-promo", request);
+            var response = await _http.PostAsJsonAsync("v1/Advertisements/apply-promo", request);
             return response.IsSuccessStatusCode;
         }
         catch { return false; }
@@ -474,7 +477,7 @@ public class ApiClient
     {
         try
         {
-            return await _http.GetFromJsonAsync<AdAnalyticsDto>("api/Advertisements/my-analytics");
+            return await _http.GetFromJsonAsync<AdAnalyticsDto>("v1/Advertisements/my-analytics");
         }
         catch { return null; }
     }
@@ -483,7 +486,7 @@ public class ApiClient
     {
         try
         {
-            return await _http.GetFromJsonAsync<AdAnalyticsDto>("api/Advertisements/admin/analytics");
+            return await _http.GetFromJsonAsync<AdAnalyticsDto>("v1/Advertisements/admin/analytics");
         }
         catch { return null; }
     }
@@ -491,7 +494,7 @@ public class ApiClient
     // Auth
     public async Task<AuthResponseDto?> LoginAsync(LoginDto loginDto)
     {
-        var response = await _http.PostAsJsonAsync("api/v1/auth/login", loginDto);
+        var response = await _http.PostAsJsonAsync("v1/auth/login", loginDto);
         if (response.IsSuccessStatusCode)
         {
             return await response.Content.ReadFromJsonAsync<AuthResponseDto>();
@@ -501,14 +504,14 @@ public class ApiClient
 
     public async Task<ApiResponse<AuthResponse>?> GetProfileAsync()
     {
-        return await _http.GetFromJsonAsync<ApiResponse<AuthResponse>>("api/v1/auth/profile");
+        return await _http.GetFromJsonAsync<ApiResponse<AuthResponse>>("v1/auth/profile");
     }
 
     public async Task<dynamic?> GetProviderProfileAsync(string userId)
     {
         try
         {
-            return await _http.GetFromJsonAsync<dynamic>($"api/v1/providers/{userId}");
+            return await _http.GetFromJsonAsync<dynamic>($"v1/providers/{userId}");
         }
         catch
         {
@@ -518,106 +521,106 @@ public class ApiClient
 
     public async Task<bool> ApplyProviderAsync(ApplyProviderDto dto)
     {
-        var response = await _http.PostAsJsonAsync("api/v1/providers/apply", dto);
+        var response = await _http.PostAsJsonAsync("v1/providers/apply", dto);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> UpdateProviderProfileAsync(UpdateProviderProfileRequest dto)
     {
-        var response = await _http.PutAsJsonAsync("api/v1/providers/profile", dto);
+        var response = await _http.PutAsJsonAsync("v1/providers/profile", dto);
         return response.IsSuccessStatusCode;
     }
 
     // Admin
     public async Task<AdminStatsDto?> GetAdminStatsAsync()
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<AdminStatsDto>>("api/v1/admin/stats");
+        var response = await _http.GetFromJsonAsync<ApiResponse<AdminStatsDto>>("v1/admin/stats");
         return response?.Data;
     }
 
     public async Task<List<UserDto>> GetUsersManagementAsync()
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<List<UserDto>>>("api/v1/admin/users");
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<UserDto>>>("v1/admin/users");
         return response?.Data ?? new List<UserDto>();
     }
 
     public async Task<List<PendingProviderDto>> GetPendingProvidersAsync()
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<List<PendingProviderDto>>>("api/v1/admin/providers/pending");
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<PendingProviderDto>>>("v1/admin/providers/pending");
         return response?.Data ?? new List<PendingProviderDto>();
     }
 
     public async Task<bool> ApproveProviderAsync(int id)
     {
-        var response = await _http.PostAsync($"api/v1/admin/providers/{id}/approve", null);
+        var response = await _http.PostAsync($"v1/admin/providers/{id}/approve", null);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<List<RecentActivityDto>> GetRecentAuditLogsAsync()
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<List<RecentActivityDto>>>("api/v1/admin/audit-logs/recent");
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<RecentActivityDto>>>("v1/admin/audit-logs/recent");
         return response?.Data ?? new List<RecentActivityDto>();
     }
 
     public async Task<bool> RejectProviderAsync(int id)
     {
-        var response = await _http.PostAsync($"api/v1/admin/providers/{id}/reject", null);
+        var response = await _http.PostAsync($"v1/admin/providers/{id}/reject", null);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> ToggleUserStatusAsync(string id)
     {
-        var response = await _http.PostAsync($"api/v1/admin/users/{id}/toggle-status", null);
+        var response = await _http.PostAsync($"v1/admin/users/{id}/toggle-status", null);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> DeleteUserAsync(string id)
     {
-        var response = await _http.DeleteAsync($"api/v1/admin/users/{id}");
+        var response = await _http.DeleteAsync($"v1/admin/users/{id}");
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> ApproveServiceAsync(int id)
     {
-        var response = await _http.PostAsync($"api/v1/admin/services/{id}/approve", null);
+        var response = await _http.PostAsync($"v1/admin/services/{id}/approve", null);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> RejectServiceAsync(int id)
     {
-        var response = await _http.PostAsync($"api/v1/admin/services/{id}/reject", null);
+        var response = await _http.PostAsync($"v1/admin/services/{id}/reject", null);
         return response.IsSuccessStatusCode;
     }
 
     // Posts
     public async Task<List<PostDto>> GetProviderPostsAsync(int providerId)
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<List<PostDto>>>($"api/v1/posts/provider/{providerId}");
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<PostDto>>>($"v1/posts/provider/{providerId}");
         return response?.Data ?? new List<PostDto>();
     }
 
     public async Task<bool> CreatePostAsync(CreatePostRequest request)
     {
-        var response = await _http.PostAsJsonAsync("api/v1/posts", request);
+        var response = await _http.PostAsJsonAsync("v1/posts", request);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> DeletePostAsync(int id)
     {
-        var response = await _http.DeleteAsync($"api/v1/posts/{id}");
+        var response = await _http.DeleteAsync($"v1/posts/{id}");
         return response.IsSuccessStatusCode;
     }
 
     // Reviews (My Ratings/Comments)
     public async Task<List<MyReviewDto>> GetMyReviewsAsync()
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<List<MyReviewDto>>>("api/v1/reviews/my");
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<MyReviewDto>>>("v1/reviews/my");
         return response?.Data ?? new List<MyReviewDto>();
     }
 
     public async Task<bool> CreateReviewAsync(CreateReviewRequest request)
     {
-        var response = await _http.PostAsJsonAsync("api/v1/reviews", request);
+        var response = await _http.PostAsJsonAsync("v1/reviews", request);
         return response.IsSuccessStatusCode;
     }
 
@@ -628,63 +631,63 @@ public class ApiClient
 
     public async Task<bool> DeleteReviewAsync(int id)
     {
-        var response = await _http.DeleteAsync($"api/v1/reviews/{id}");
+        var response = await _http.DeleteAsync($"v1/reviews/{id}");
         return response.IsSuccessStatusCode;
     }
 
     // Favorites
     public async Task<List<ServiceDto>> GetMyFavoritesAsync()
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<List<ServiceDto>>>("api/v1/favorites");
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<ServiceDto>>>("v1/favorites");
         return response?.Data ?? new List<ServiceDto>();
     }
 
     public async Task<bool> ToggleFavoriteAsync(int serviceId)
     {
-        var response = await _http.PostAsync($"api/v1/favorites/toggle/{serviceId}", null);
+        var response = await _http.PostAsync($"v1/favorites/toggle/{serviceId}", null);
         return response.IsSuccessStatusCode;
     }
 
     // Comments
     public async Task<List<MyCommentDto>> GetMyCommentsAsync()
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<List<MyCommentDto>>>("api/v1/comments/my");
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<MyCommentDto>>>("v1/comments/my");
         return response?.Data ?? new List<MyCommentDto>();
     }
 
     public async Task<bool> CreateCommentAsync(CreateCommentRequest request)
     {
-        var response = await _http.PostAsJsonAsync("api/v1/comments", request);
+        var response = await _http.PostAsJsonAsync("v1/comments", request);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> DeleteCommentAsync(int id)
     {
-        var response = await _http.DeleteAsync($"api/v1/comments/{id}");
+        var response = await _http.DeleteAsync($"v1/comments/{id}");
         return response.IsSuccessStatusCode;
     }
     // Notifications
     public async Task<List<NotificationDto>> GetMyNotificationsAsync()
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<List<NotificationDto>>>("api/v1/notifications");
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<NotificationDto>>>("v1/notifications");
         return response?.Data ?? new List<NotificationDto>();
     }
 
     public async Task<bool> MarkNotificationAsReadAsync(int id)
     {
-        var response = await _http.PostAsync($"api/v1/notifications/{id}/read", null);
+        var response = await _http.PostAsync($"v1/notifications/{id}/read", null);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> RecordShareAsync(string itemType, int itemId)
     {
-        var response = await _http.PostAsJsonAsync("api/Advertisements/record-share", new { ItemType = itemType, ItemId = itemId });
+        var response = await _http.PostAsJsonAsync("v1/Advertisements/record-share", new { ItemType = itemType, ItemId = itemId });
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> MarkAllNotificationsAsReadAsync()
     {
-        var response = await _http.PostAsync("api/v1/notifications/read-all", null);
+        var response = await _http.PostAsync("v1/notifications/read-all", null);
         return response.IsSuccessStatusCode;
     }
 
@@ -700,27 +703,27 @@ public class ApiClient
             CityId = cityId,
             MainCategoryId = catId
         };
-        var response = await _http.PostAsJsonAsync("api/v1/notifications/send", request);
+        var response = await _http.PostAsJsonAsync("v1/notifications/send", request);
         return response.IsSuccessStatusCode;
     }
 
     // Messages
     public async Task<List<ConversationDto>> GetConversationsAsync()
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<List<ConversationDto>>>("api/v1/messages");
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<ConversationDto>>>("v1/messages");
         return response?.Data ?? new List<ConversationDto>();
     }
 
     public async Task<List<MessageDto>> GetMessagesAsync(string userId)
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<List<MessageDto>>>($"api/v1/messages/{userId}");
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<MessageDto>>>($"v1/messages/{userId}");
         return response?.Data ?? new List<MessageDto>();
     }
 
     public async Task<bool> SendMessageAsync(string receiverId, string content)
     {
         var request = new { ReceiverId = receiverId, Content = content };
-        var response = await _http.PostAsJsonAsync("api/v1/messages", request);
+        var response = await _http.PostAsJsonAsync("v1/messages", request);
         return response.IsSuccessStatusCode;
     }
 
@@ -729,7 +732,7 @@ public class ApiClient
     {
         try
         {
-            return await _http.GetFromJsonAsync<List<SubscriptionPlanDto>>("api/v1/subscriptions/plans") 
+            return await _http.GetFromJsonAsync<List<SubscriptionPlanDto>>("v1/subscriptions/plans") 
                    ?? new List<SubscriptionPlanDto>();
         }
         catch
@@ -742,7 +745,7 @@ public class ApiClient
     {
         try
         {
-            var response = await _http.GetAsync("api/v1/subscriptions/my-subscription");
+            var response = await _http.GetAsync("v1/subscriptions/my-subscription");
             if (response.IsSuccessStatusCode)
             {
                 return await response.Content.ReadFromJsonAsync<ProviderSubscriptionDto>();
@@ -754,7 +757,7 @@ public class ApiClient
 
     public async Task<ApiResponse<bool>> SubscribeAsync(int planId)
     {
-        var response = await _http.PostAsJsonAsync("api/v1/subscriptions/subscribe", new SubscribeRequest { PlanId = planId });
+        var response = await _http.PostAsJsonAsync("v1/subscriptions/subscribe", new SubscribeRequest { PlanId = planId });
         return await response.Content.ReadFromJsonAsync<ApiResponse<bool>>() 
                ?? ApiResponse<bool>.Fail("فشل الاشتراك في الباقة");
     }
@@ -764,7 +767,7 @@ public class ApiClient
     {
         try
         {
-            var response = await _http.GetFromJsonAsync<List<ServiceRequestDto>>("api/v1/requests/my-requests");
+            var response = await _http.GetFromJsonAsync<List<ServiceRequestDto>>("v1/requests/my-requests");
             return response ?? new List<ServiceRequestDto>();
         }
         catch (Exception ex)
@@ -778,7 +781,7 @@ public class ApiClient
     {
         try
         {
-            var response = await _http.PostAsJsonAsync("api/v1/requests", dto);
+            var response = await _http.PostAsJsonAsync("v1/requests", dto);
             if (response.IsSuccessStatusCode)
             {
                 return await response.Content.ReadFromJsonAsync<ApiResponse<int>>() 
@@ -797,7 +800,7 @@ public class ApiClient
     {
         try
         {
-            var response = await _http.GetFromJsonAsync<List<ServiceRequestDto>>("api/v1/requests/provider-requests");
+            var response = await _http.GetFromJsonAsync<List<ServiceRequestDto>>("v1/requests/provider-requests");
             return response ?? new List<ServiceRequestDto>();
         }
         catch (Exception ex)
@@ -812,7 +815,7 @@ public class ApiClient
         try
         {
             var command = new { Status = status, ProviderNotes = notes };
-            var response = await _http.PutAsJsonAsync($"api/v1/requests/{requestId}/status", command);
+            var response = await _http.PutAsJsonAsync($"v1/requests/{requestId}/status", command);
             
             if (response.IsSuccessStatusCode)
             {
@@ -832,7 +835,7 @@ public class ApiClient
     {
         try
         {
-            var response = await _http.PutAsync($"api/v1/requests/my-requests/{requestId}/cancel", null);
+            var response = await _http.PutAsync($"v1/requests/my-requests/{requestId}/cancel", null);
             
             if (response.IsSuccessStatusCode)
             {
@@ -853,7 +856,7 @@ public class ApiClient
     {
         try
         {
-            return await _http.GetFromJsonAsync<List<MarketplaceItemDto>>($"api/Marketplace/latest?count={count}") ?? new List<MarketplaceItemDto>();
+            return await _http.GetFromJsonAsync<List<MarketplaceItemDto>>($"Marketplace/latest?count={count}") ?? new List<MarketplaceItemDto>();
         }
         catch { return new List<MarketplaceItemDto>(); }
     }
@@ -862,7 +865,7 @@ public class ApiClient
     {
         try
         {
-            return await _http.GetFromJsonAsync<List<MarketplaceItemDto>>($"api/Marketplace/featured?count={count}") ?? new List<MarketplaceItemDto>();
+            return await _http.GetFromJsonAsync<List<MarketplaceItemDto>>($"Marketplace/featured?count={count}") ?? new List<MarketplaceItemDto>();
         }
         catch { return new List<MarketplaceItemDto>(); }
     }
@@ -871,7 +874,7 @@ public class ApiClient
     {
         try
         {
-            var url = $"api/Marketplace/search?page={page}&pageSize={pageSize}";
+            var url = $"Marketplace/search?page={page}&pageSize={pageSize}";
             if (!string.IsNullOrEmpty(q)) url += $"&q={Uri.EscapeDataString(q)}";
             if (categoryId.HasValue && categoryId > 0) url += $"&categoryId={categoryId}";
             if (subCategoryId.HasValue && subCategoryId > 0) url += $"&subCategoryId={subCategoryId}";
@@ -894,7 +897,7 @@ public class ApiClient
     {
         try
         {
-            return await _http.GetFromJsonAsync<MarketplaceItemDto>($"api/Marketplace/{id}");
+            return await _http.GetFromJsonAsync<MarketplaceItemDto>($"Marketplace/{id}");
         }
         catch { return null; }
     }
@@ -903,7 +906,7 @@ public class ApiClient
     {
         try 
         {
-            var response = await _http.PostAsJsonAsync("api/Marketplace", request);
+            var response = await _http.PostAsJsonAsync("Marketplace", request);
             if (response.IsSuccessStatusCode)
             {
                 var item = await response.Content.ReadFromJsonAsync<MarketplaceItemDto>();
@@ -923,19 +926,19 @@ public class ApiClient
 
     public async Task<bool> UpdateMarketplaceItemAsync(int id, CreateMarketplaceItemRequest request)
     {
-        var response = await _http.PutAsJsonAsync($"api/Marketplace/{id}", request);
+        var response = await _http.PutAsJsonAsync($"Marketplace/{id}", request);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> DeleteMarketplaceItemAsync(int id)
     {
-        var response = await _http.DeleteAsync($"api/Marketplace/{id}");
+        var response = await _http.DeleteAsync($"Marketplace/{id}");
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> MarkMarketplaceItemAsSoldAsync(int id)
     {
-        var response = await _http.PostAsync($"api/Marketplace/{id}/sold", null);
+        var response = await _http.PostAsync($"Marketplace/{id}/sold", null);
         return response.IsSuccessStatusCode;
     }
 
@@ -944,7 +947,7 @@ public class ApiClient
         try
         {
             var request = new { Status = status };
-            var response = await _http.PostAsJsonAsync($"api/Marketplace/{id}/change-status", request);
+            var response = await _http.PostAsJsonAsync($"Marketplace/{id}/change-status", request);
             return response.IsSuccessStatusCode;
         }
         catch { return false; }
@@ -952,13 +955,13 @@ public class ApiClient
 
     public async Task<bool> LockMarketplaceItemAsync(int id)
     {
-        var response = await _http.PostAsync($"api/Marketplace/{id}/lock", null);
+        var response = await _http.PostAsync($"Marketplace/{id}/lock", null);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> ToggleMarketplaceFavoriteAsync(int id)
     {
-        var response = await _http.PostAsync($"api/Marketplace/{id}/favorite", null);
+        var response = await _http.PostAsync($"Marketplace/{id}/favorite", null);
         return response.IsSuccessStatusCode;
     }
 
@@ -966,7 +969,7 @@ public class ApiClient
     {
         try
         {
-            return await _http.GetFromJsonAsync<bool>($"api/Marketplace/{id}/is-favorite");
+            return await _http.GetFromJsonAsync<bool>($"Marketplace/{id}/is-favorite");
         }
         catch { return false; }
     }
@@ -976,7 +979,7 @@ public class ApiClient
     {
         try
         {
-            return await _http.GetFromJsonAsync<List<MarketplaceItemDto>>($"api/Marketplace/admin/items?pageSize={pageSize}") ?? new List<MarketplaceItemDto>();
+            return await _http.GetFromJsonAsync<List<MarketplaceItemDto>>($"Marketplace/admin/items?pageSize={pageSize}") ?? new List<MarketplaceItemDto>();
         }
         catch (Exception ex)
         {
@@ -989,14 +992,14 @@ public class ApiClient
     {
         try
         {
-            return await _http.GetFromJsonAsync<MarketplaceSettingsDto>("api/Marketplace/settings");
+            return await _http.GetFromJsonAsync<MarketplaceSettingsDto>("Marketplace/settings");
         }
         catch { return null; }
     }
 
     public async Task<bool> ApproveMarketplaceItemAsync(int id, string? notes = null)
     {
-        var response = await _http.PostAsync($"api/Marketplace/{id}/approve?notes={Uri.EscapeDataString(notes ?? "")}", null);
+        var response = await _http.PostAsync($"Marketplace/{id}/approve?notes={Uri.EscapeDataString(notes ?? "")}", null);
         return response.IsSuccessStatusCode;
     }
 
@@ -1004,7 +1007,7 @@ public class ApiClient
     {
         try
         {
-            var url = $"api/Marketplace/{id}/approve?startDate={startDate:yyyy-MM-dd}&endDate={endDate:yyyy-MM-dd}";
+            var url = $"Marketplace/{id}/approve?startDate={startDate:yyyy-MM-dd}&endDate={endDate:yyyy-MM-dd}";
             if (!string.IsNullOrEmpty(notes))
                 url += $"&notes={Uri.EscapeDataString(notes)}";
             var response = await _http.PostAsync(url, null);
@@ -1015,19 +1018,19 @@ public class ApiClient
 
     public async Task<bool> RejectMarketplaceItemAsync(int id, string? notes = null)
     {
-        var response = await _http.PostAsync($"api/Marketplace/{id}/reject?notes={Uri.EscapeDataString(notes ?? "")}", null);
+        var response = await _http.PostAsync($"Marketplace/{id}/reject?notes={Uri.EscapeDataString(notes ?? "")}", null);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> SetMarketplaceItemFeaturedAsync(int id, int days = 7)
     {
-        var response = await _http.PostAsync($"api/Marketplace/{id}/set-featured?days={days}", null);
+        var response = await _http.PostAsync($"Marketplace/{id}/set-featured?days={days}", null);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> SetMarketplaceItemPromotedAsync(int id, int days = 7)
     {
-        var response = await _http.PostAsync($"api/Marketplace/{id}/set-promoted?days={days}", null);
+        var response = await _http.PostAsync($"Marketplace/{id}/set-promoted?days={days}", null);
         return response.IsSuccessStatusCode;
     }
 
@@ -1035,7 +1038,7 @@ public class ApiClient
     {
         try
         {
-            return await _http.GetFromJsonAsync<List<MarketplaceItemDto>>("api/Marketplace/my-items") ?? new List<MarketplaceItemDto>();
+            return await _http.GetFromJsonAsync<List<MarketplaceItemDto>>("Marketplace/my-items") ?? new List<MarketplaceItemDto>();
         }
         catch { return new List<MarketplaceItemDto>(); }
     }
@@ -1044,7 +1047,7 @@ public class ApiClient
     {
         try
         {
-            return await _http.GetFromJsonAsync<List<MarketplaceCategoryDto>>("api/Marketplace/categories") ?? new List<MarketplaceCategoryDto>();
+            return await _http.GetFromJsonAsync<List<MarketplaceCategoryDto>>("Marketplace/categories") ?? new List<MarketplaceCategoryDto>();
         }
         catch (Exception ex)
         {
@@ -1057,7 +1060,7 @@ public class ApiClient
     {
         try
         {
-            return await _http.GetFromJsonAsync<List<MarketplaceSubCategoryDto>>($"api/Marketplace/categories/{categoryId}/subcategories") ?? new List<MarketplaceSubCategoryDto>();
+            return await _http.GetFromJsonAsync<List<MarketplaceSubCategoryDto>>($"Marketplace/categories/{categoryId}/subcategories") ?? new List<MarketplaceSubCategoryDto>();
         }
         catch (Exception ex)
         {
@@ -1075,7 +1078,7 @@ public class ApiClient
             fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
             content.Add(fileContent, "file", file.Name);
 
-            var response = await _http.PostAsync("api/v1/upload", content);
+            var response = await _http.PostAsync("v1/upload", content);
             return await response.Content.ReadFromJsonAsync<ImageUploadResponse>() 
                    ?? new ImageUploadResponse { Success = false, Message = "Failed to parse upload response" };
         }
