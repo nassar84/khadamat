@@ -51,7 +51,7 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponse?> Login(LoginRequest loginRequest)
     {
-        var response = await _httpClient.PostAsJsonAsync("api/v1/auth/login", loginRequest);
+        var response = await _httpClient.PostAsJsonAsync("v1/auth/login", loginRequest);
 
         if (response.IsSuccessStatusCode)
         {
@@ -77,7 +77,7 @@ public class AuthService : IAuthService
 
     public async Task<ApiResponse<AuthResponse>> Register(RegisterRequest registerRequest)
     {
-        var response = await _httpClient.PostAsJsonAsync("api/v1/auth/register", registerRequest);
+        var response = await _httpClient.PostAsJsonAsync("v1/auth/register", registerRequest);
         var result = await response.Content.ReadFromJsonAsync<ApiResponse<AuthResponse>>();
         return result!;
     }
@@ -99,7 +99,7 @@ public class AuthService : IAuthService
     {
         try 
         {
-            var response = await _httpClient.GetFromJsonAsync<ApiResponse<AuthResponse>>("api/v1/auth/profile");
+            var response = await _httpClient.GetFromJsonAsync<ApiResponse<AuthResponse>>("v1/auth/profile");
             if (response?.Success == true && response.Data != null)
             {
                 var p = response.Data;
@@ -130,14 +130,14 @@ public class AuthService : IAuthService
 
     public async Task<ApiResponse<bool>> UpdateProfile(UpdateProfileRequest request)
     {
-        var response = await _httpClient.PutAsJsonAsync("api/v1/auth/profile", request);
+        var response = await _httpClient.PutAsJsonAsync("v1/auth/profile", request);
         var result = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
         return result!;
     }
 
     public async Task<ApiResponse<bool>> ChangePassword(ChangeMyPasswordRequest request)
     {
-        var response = await _httpClient.PostAsJsonAsync("api/v1/auth/change-password", request);
+        var response = await _httpClient.PostAsJsonAsync("v1/auth/change-password", request);
         var result = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
         return result!;
     }

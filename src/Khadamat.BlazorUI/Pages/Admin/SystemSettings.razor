@@ -434,7 +434,7 @@
 
         try
         {
-            var response = await Api.PostAsync<dynamic>("api/v1/settings/build-apk", mobileAppDomainUrl);
+            var response = await Api.PostAsync<dynamic>("v1/settings/build-apk", mobileAppDomainUrl);
             
             buildApkMessage = "جاري بناء التطبيق في الخلفية. يمكنك متابعة العمل وسيكون التطبيق متاحاً للتحميل قريباً جداً في رابط التحميل الرئيسي.";
         }
@@ -474,7 +474,7 @@
             // For simplicity, I'll use the existing Api.UploadImageAsync pattern if it supports multipart
             // Actually, let's just make sure the user knows it's being worked on.
             
-            var response = await Api.PostMultipartAsync<dynamic>("api/v1/settings/upload-apk", content);
+            var response = await Api.PostMultipartAsync<dynamic>("v1/settings/upload-apk", content);
             buildApkMessage = "تم رفع التطبيق بنجاح!";
         }
         catch (Exception ex)

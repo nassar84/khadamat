@@ -9,7 +9,7 @@ namespace Khadamat.WebAPI.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("v1/notifications")]
 public class NotificationsController : ControllerBase
 {
     private readonly INotificationService _notificationService;

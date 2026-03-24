@@ -1,4 +1,4 @@
-﻿using Microsoft.Maui.Controls;
+using Microsoft.Maui.Controls;
 
 namespace Khadamat.Mobile;
 
@@ -12,14 +12,8 @@ public partial class MainPage : ContentPage
     {
         InitializeComponent();
         
-#if ANDROID
-        // 10.0.2.2 points to the host machine's loopback interface from the Android Emulator
-        _webUrl = "http://10.0.2.2:5028";
-#elif IOS || MACCATALYST || WINDOWS
-        _webUrl = "http://localhost:5028";
-#else
-        _webUrl = "http://localhost:5028";
-#endif
+        // Connect directly to the production website
+        _webUrl = "https://jobsek.eis-dev.com";
 
         AppWebView.Source = _webUrl;
     }

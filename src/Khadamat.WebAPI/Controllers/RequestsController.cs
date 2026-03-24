@@ -9,7 +9,7 @@ using Khadamat.Application.DTOs;
 namespace Khadamat.WebAPI.Controllers;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("v1/requests")]
 [Authorize]
 public class RequestsController : ControllerBase
 {

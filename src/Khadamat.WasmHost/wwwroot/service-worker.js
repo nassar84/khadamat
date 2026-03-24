@@ -1,4 +1,4 @@
-const CACHE_NAME = 'khadamat-cache-v1';
+const CACHE_NAME = 'khadamat-cache-v2';
 const ASSETS = [
     '/',
     '/index.html',
@@ -16,13 +16,12 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-    // For API calls, try network first, then cache
-    if (event.request.url.includes('/api/')) {
-        event.respondWith(
-            fetch(event.request)
-                .catch(() => caches.match(event.request))
-        );
-        return;
+    // For API calls, ALWAYS bypass the service worker cache and go to network
+    if (event.request.url.includes('/api/') || 
+        event.request.url.includes('/v1/') ||
+        event.request.url.includes('/connect/') ||
+        event.request.url.includes('/.well-known/')) {
+        return; 
     }
 
     event.respondWith(

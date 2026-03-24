@@ -442,7 +442,7 @@
         isSavingOwner = true;
         try
         {
-            var success = await Api.PostAsync<dynamic>($"api/v1/admin/services/{serviceIdToChangeOwner}/change-owner", selectedUserIdForOwner);
+            var success = await Api.PostAsync<dynamic>($"v1/admin/services/{serviceIdToChangeOwner}/change-owner", selectedUserIdForOwner);
             await JS.InvokeVoidAsync("alert", "تم ربط الخدمة بالمستخدم بنجاح كمالك لها.");
             showChangeOwnerModal = false;
         }

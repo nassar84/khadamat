@@ -1,6 +1,7 @@
 @inherits LayoutComponentBase
 @implements IDisposable
 
+<PageTitle>@AppState.AppName</PageTitle>
 <div class="khadamat-app @(AppState.IsMobileApp ? "mobile-mode" : "") @(isSidebarCollapsed ? "collapsed" : "")" dir="rtl">
     @if (!AppState.IsNativeApp)
     {
@@ -262,6 +263,8 @@
                 AppState.PrimaryColor = settingsResult.Data.PrimaryColor;
                 AppState.SecondaryColor = settingsResult.Data.SecondaryColor;
                 AppState.TriggerStateChanged();
+                
+                try { await JS.InvokeVoidAsync("updateWebDetails", AppState.AppName, AppState.AppLogo); } catch { }
                 
                 // Apply colors if we have them
                 try 

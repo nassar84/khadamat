@@ -319,13 +319,13 @@
             if (editingPlan.Id > 0)
             {
                 // Update - use a PUT endpoint
-                var response = await Api.PostAsync<bool>($"api/v1/subscriptions/plans/{editingPlan.Id}", editingPlan);
+                var response = await Api.PostAsync<bool>($"v1/subscriptions/plans/{editingPlan.Id}", editingPlan);
                 success = response;
             }
             else
             {
                 // Create
-                var response = await Api.PostAsync<bool>("api/v1/subscriptions/plans", editingPlan);
+                var response = await Api.PostAsync<bool>("v1/subscriptions/plans", editingPlan);
                 success = response;
             }
 
@@ -357,7 +357,7 @@
 
         try
         {
-            var response = await Api.PostAsync<bool>($"api/v1/subscriptions/plans/{plan.Id}/delete", new { });
+            var response = await Api.PostAsync<bool>($"v1/subscriptions/plans/{plan.Id}/delete", new { });
             if (response)
             {
                 plans.Remove(plan);

@@ -10,7 +10,7 @@ using System.Security.Claims;
 namespace Khadamat.WebAPI.Controllers;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("v1/reviews")]
 public class ReviewsController : ControllerBase
 {
     private readonly KhadamatDbContext _context;

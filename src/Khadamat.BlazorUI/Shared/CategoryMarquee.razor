@@ -1,276 +1,265 @@
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
 @inject ApiClient Api
-@inject IJSRuntime JS
 @inject NavigationManager Navigation
 @inject Khadamat.Application.Interfaces.IOfflineDataService OfflineData
-@inject HttpClient Http
 @implements IDisposable
 
-<div class="category-marquee-container" style="display: block !important; visibility: visible !important; opacity: 1 !important; z-index: 1000 !important;" @ref="containerRef">
-    <div class="swiper categories-swiper h-100" style="overflow: visible !important;">
-        <div class="swiper-wrapper align-items-center">
-            @if (DisplayCategories != null && DisplayCategories.Any())
+@if (DisplayCategories == null)
 {
-    @foreach (var cat in DisplayCategories)
-    {
-        <div class="swiper-slide w-auto">
-            <div class="category-item d-flex flex-column align-items-center" @onclick="() => OnCategorySelected(cat)">
-                <div class="category-shape-wrapper p-0">
-                    @if (!string.IsNullOrEmpty(cat.ImageUrl))
-                    {
-                        <img src="/images/maincategories/@cat.ImageUrl" 
-                             class="w-100 h-100 object-fit-cover" alt="@cat.Name" 
-                             onerror="this.onerror=null;this.src='/images/maincategories/default.jpg';"
-                             style="opacity: 0.9; border-radius: 50%;" />
-                    }
-                    else if (!string.IsNullOrEmpty(cat.Icon))
-                    {
-                        <span style="font-size: 2rem;">@cat.Icon</span>
-                    }
-                    else
-                    {
-                        <span style="font-size: 2rem;">📁</span>
-                    }
-                </div>
-                <span class="category-name-small">@cat.Name</span>
+    <div class="marquee-outer">
+        <div class="marquee-track" style="animation:none;">
+            <div class="marquee-copy">
+                @for (int i = 0; i < 8; i++)
+                {
+                    <div class="category-item">
+                        <div class="category-shape-wrapper skeleton-glow"></div>
+                        <div class="skeleton-glow rounded-pill mt-2" style="width:40px;height:10px;"></div>
+                    </div>
+                }
             </div>
-        </div>
-    }
-}
-else if (DisplayCategories == null || !DisplayCategories.Any())
-{
-    @for (int i = 0; i < 10; i++)
-    {
-        <div class="swiper-slide w-auto">
-            <div class="category-item d-flex flex-column align-items-center">
-                <div class="category-shape-wrapper skeleton-glow"></div>
-                <div class="skeleton-glow rounded-pill mt-2" style="width: 40px; height: 10px;"></div>
-            </div>
-        </div>
-    }
-}
         </div>
     </div>
-</div>
+}
+else
+{
+    <div class="marquee-outer">
+        <div class="marquee-track">
+            @* Copy 1 *@
+            <div class="marquee-copy">
+                @foreach (var cat in DisplayCategories)
+                {
+                    var c = cat;
+                    <div class="category-item" @onclick="() => OnCategorySelected(c)">
+                        <div class="category-shape-wrapper">
+                            @if (!string.IsNullOrEmpty(c.ImageUrl))
+                            {
+                                <img src="/images/maincategories/@c.ImageUrl"
+                                     class="cat-img" alt="@c.Name"
+                                     onerror="this.onerror=null;this.src='/images/maincategories/default.jpg';" />
+                            }
+                            else if (!string.IsNullOrEmpty(c.Icon))
+                            {
+                                <span class="cat-icon">@c.Icon</span>
+                            }
+                            else
+                            {
+                                <span class="cat-icon">📁</span>
+                            }
+                        </div>
+                        <span class="category-name-small">@c.Name</span>
+                    </div>
+                }
+            </div>
+            @* Copy 2 — visual duplicate for seamless loop *@
+            <div class="marquee-copy" aria-hidden="true">
+                @foreach (var cat in DisplayCategories)
+                {
+                    var c = cat;
+                    <div class="category-item" @onclick="() => OnCategorySelected(c)">
+                        <div class="category-shape-wrapper">
+                            @if (!string.IsNullOrEmpty(c.ImageUrl))
+                            {
+                                <img src="/images/maincategories/@c.ImageUrl"
+                                     class="cat-img" alt="@c.Name"
+                                     onerror="this.onerror=null;this.src='/images/maincategories/default.jpg';" />
+                            }
+                            else if (!string.IsNullOrEmpty(c.Icon))
+                            {
+                                <span class="cat-icon">@c.Icon</span>
+                            }
+                            else
+                            {
+                                <span class="cat-icon">📁</span>
+                            }
+                        </div>
+                        <span class="category-name-small">@c.Name</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
 
 <style>
-    /* Mobile Headers vary, we'll try to stick below them */
-    @@media (max-width: 991px) {
-        .category-shape-wrapper {
-            width: 55px !important;
-            height: 55px !important;
-        }
-        .category-name-small {
-            font-size: 0.75rem !important;
-            margin-top: 4px;
-        }
+    /* ── Outer container: clips overflow ── */
+    .marquee-outer {
+        width: 100%;
+        overflow: hidden;
+        min-height: 110px;
+        display: flex;
+        align-items: center;
+        padding: 8px 0;
+        /* disable RTL reversal for the marquee */
+        direction: ltr;
     }
 
-    .category-marquee-container::-webkit-scrollbar {
-        display: none;
+    /* ── Track: two copies side by side, grows to content width ── */
+    .marquee-track {
+        display: flex;
+        width: max-content;          /* critical: track IS its content width */
+        flex-shrink: 0;
+        animation: marquee-rtl 28s linear infinite;
+        will-change: transform;
     }
 
-    .category-marquee-container:active {
-        cursor: grabbing;
+    /* Pause on hover so users can click */
+    .marquee-outer:hover .marquee-track {
+        animation-play-state: paused;
     }
 
+    /* ── Each copy: a horizontal row of items ── */
+    .marquee-copy {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        flex-shrink: 0;
+        gap: 16px;
+        /* trailing padding equals gap → seam between copies = gap between items */
+        padding-right: 16px;
+    }
+
+    /*
+      Animation: move left by exactly the width of one .marquee-copy
+      = 50% of the .marquee-track  (because track = 2 * copy + no extra)
+      Wait: track width = copy1 + copy2, each copy has trailing padding-right:16px
+      So track = 2 * copy_computed_width
+      → translateX(-50%) = -copy_computed_width → seamless jump ✅
+    */
+    @@keyframes marquee-rtl {
+        0%   { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+
+    /* ── Category item ── */
     .category-item {
-        padding: 12px 8px;
-        transition: transform 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex-shrink: 0;
+        min-width: 72px;
         cursor: pointer;
         user-select: none;
+        transition: transform 0.25s ease;
     }
 
     .category-item:hover {
         transform: translateY(-5px) scale(1.05);
     }
-    
+
+    /* ── Circle ── */
     .category-shape-wrapper {
-        width: 70px;
-        height: 70px;
+        width: 62px;
+        height: 62px;
         border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.09);
+        border: 1px solid rgba(0,0,0,0.04);
         display: flex;
         align-items: center;
         justify-content: center;
-        
-        /* 3D Glass Ball Effect */
-        background: white !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        border: 1px solid rgba(0,0,0,0.03);
-        
-        position: relative;
         overflow: hidden;
-        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        position: relative;
+        transition: box-shadow 0.3s ease, transform 0.3s ease;
     }
-    
-    /* Glass reflection effect */
+
     .category-shape-wrapper::before {
         content: '';
         position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
+        top: -50%; left: -50%;
+        width: 200%; height: 200%;
         background: linear-gradient(135deg,
-            rgba(255, 255, 255, 0.6) 0%,
-            rgba(255, 255, 255, 0) 50%,
-            rgba(255, 255, 255, 0.3) 100%);
+            rgba(255,255,255,0.55) 0%,
+            transparent 50%,
+            rgba(255,255,255,0.25) 100%);
         transform: rotate(30deg);
         pointer-events: none;
-        opacity: 0.7;
     }
-    
-    .category-shape-wrapper img {
-        transition: transform 0.5s ease;
+
+    .category-item:hover .category-shape-wrapper {
+        box-shadow:
+            0 10px 28px rgba(0,0,0,0.14),
+            0 0 0 2px var(--theme-primary, #6366f1);
     }
-    
-    .category-item:hover .category-shape-wrapper img {
+
+    .cat-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        opacity: 0.92;
+        transition: transform 0.35s ease;
+    }
+
+    .category-item:hover .cat-img {
         transform: scale(1.1);
     }
-    
-    .category-shape-wrapper span {
-        color: var(--theme-primary);
-        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+
+    .cat-icon {
+        font-size: 1.8rem;
+        color: var(--theme-primary, #6366f1);
         position: relative;
         z-index: 1;
         transition: transform 0.3s ease;
     }
-    
-    .category-item:hover .category-shape-wrapper {
-        transform: scale(1.1) rotate(5deg);
-        box-shadow:
-            0 15px 35px rgba(0, 0, 0, 0.15),
-            inset 0 2px 12px rgba(255, 255, 255, 1),
-            inset 0 -2px 12px rgba(0, 0, 0, 0.05),
-            0 0 0 2px var(--theme-primary);
-    }
-    
-    .category-item:hover .category-shape-wrapper span {
+
+    .category-item:hover .cat-icon {
         transform: scale(1.15) rotate(-5deg);
     }
-    
-    .category-item:active .category-shape-wrapper {
-        transform: scale(0.95);
-        box-shadow:
-            0 5px 15px rgba(0, 0, 0, 0.1),
-            inset 0 2px 8px rgba(255, 255, 255, 0.8);
-    }
 
+    /* ── Label ── */
     .category-name-small {
-        font-size: 0.85rem;
+        font-size: 0.78rem;
         font-weight: 700;
         color: #334155;
-        margin-top: 8px;
+        margin-top: 6px;
         text-align: center;
-        max-width: 90px;
-    }
-
-    /* Swiper custom styles */
-    .swiper-slide {
-        display: flex !important;
-        justify-content: center;
-        align-items: center;
-        padding: 0 5px;
-        flex-shrink: 0;
-    }
-
-    .categories-swiper .swiper-wrapper {
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        align-items: center;
-    }
-    
-    .categories-swiper {
-        overflow: hidden !important;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .categories-swiper::-webkit-scrollbar {
-        display: none;
-    }
-    
-    .category-marquee-container {
-        min-height: 120px;
-        height: auto;
-        display: block !important;
-        background: transparent !important;
-        margin-bottom: 20px;
+        max-width: 80px;
+        white-space: nowrap;
         overflow: hidden;
+        text-overflow: ellipsis;
+        direction: rtl; /* restore RTL for Arabic text */
     }
 
-    .category-marquee-container.loading {
-        opacity: 0.6;
-        pointer-events: none;
-    }
-    
+    /* ── Skeleton ── */
     .skeleton-glow {
         background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
         background-size: 200% 100%;
-        animation: loading-animation 1.5s infinite;
+        animation: skel 1.5s infinite;
     }
 
-    @@keyframes loading-animation {
-        0% { background-position: 200% 0; }
+    @@keyframes skel {
+        0%   { background-position: 200% 0; }
         100% { background-position: -200% 0; }
+    }
+
+    @@media (max-width: 991px) {
+        .category-shape-wrapper { width: 52px !important; height: 52px !important; }
+        .category-item { min-width: 60px; }
+        .category-name-small { font-size: 0.72rem !important; }
     }
 </style>
 
 @code {
     [Parameter] public List<MainCategoryDto>? Categories { get; set; }
-    private List<MainCategoryDto>? internalCategories = new List<MainCategoryDto>();
-    private List<MainCategoryDto>? DisplayCategories 
+
+    private List<MainCategoryDto>? internalCategories;
+    private bool _disposed = false;
+
+    private List<MainCategoryDto>? DisplayCategories
     {
-        get 
+        get
         {
             if (Categories != null && Categories.Any()) return Categories;
             if (internalCategories != null && internalCategories.Any()) return internalCategories;
-            // Immediate UI Skeleton if nothing yet
-            return null; 
+            return null;
         }
     }
-    
-    private ElementReference containerRef;
-    private bool _swiperInitialized = false;
-    private bool _disposed = false;
 
     protected override void OnInitialized()
     {
         if (Categories == null)
-        {
             _ = LoadCategoriesAsync();
-        }
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!_disposed && DisplayCategories != null && DisplayCategories.Any() && !_swiperInitialized)
-        {
-            try
-            {
-                _swiperInitialized = true;
-                // Give the DOM a tiny bit of time to settle
-                await Task.Delay(200);
-                if (!_disposed)
-                {
-                    await JS.InvokeVoidAsync("initCategoriesSlider");
-                }
-            }
-            catch (Exception ex)
-            {
-                _swiperInitialized = false;
-                Console.WriteLine($"Swiper init fail: {ex.Message}");
-            }
-        }
-    }
-
-    protected override void OnParametersSet()
-    {
-        // Only reset if categories actually changed to avoid re-init on every parent render
-        // For now, let's just keep it simple and only init once per lifetime unless explicitly needed
     }
 
     private async Task LoadCategoriesAsync()
@@ -279,31 +268,23 @@ else if (DisplayCategories == null || !DisplayCategories.Any())
         {
             var results = await Api.GetMainCategoriesAsync();
             if (results != null && results.Any())
-            {
                 internalCategories = results;
-            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading categories: {ex.Message}");
+            Console.WriteLine($"CategoryMarquee: error loading - {ex.Message}");
         }
         finally
         {
             if (!_disposed)
             {
-                try { await InvokeAsync(StateHasChanged); }
-                catch { }
+                try { await InvokeAsync(StateHasChanged); } catch { }
             }
         }
     }
 
     private void OnCategorySelected(MainCategoryDto category)
-    {
-        Navigation.NavigateTo($"/explore/main/{category.Id}/{Uri.EscapeDataString(category.Name)}");
-    }
+        => Navigation.NavigateTo($"/explore/main/{category.Id}/{Uri.EscapeDataString(category.Name)}");
 
-    public void Dispose()
-    {
-        _disposed = true;
-    }
+    public void Dispose() => _disposed = true;
 }

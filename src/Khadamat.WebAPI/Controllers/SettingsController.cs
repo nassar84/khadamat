@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Khadamat.WebAPI.Controllers;
 
 [ApiController]
-[Route("api/v1/settings")]
+[Route("v1/settings")]
 public class SettingsController : ControllerBase
 {
     private readonly ISettingsService _settingsService;
@@ -84,7 +84,7 @@ public class SettingsController : ControllerBase
 
                         if (!string.IsNullOrEmpty(apkFile))
                         {
-                            var targetPath = System.IO.Path.Combine(webApiWwwroot, "app.apk");
+                            var targetPath = System.IO.Path.Combine(webApiWwwroot, "khadamat.apk");
                             System.IO.File.Copy(apkFile, targetPath, true);
                         }
                     }
@@ -117,7 +117,7 @@ public class SettingsController : ControllerBase
             if (!System.IO.Directory.Exists(webApiWwwroot))
                 System.IO.Directory.CreateDirectory(webApiWwwroot);
 
-            var filePath = System.IO.Path.Combine(webApiWwwroot, "app.apk");
+            var filePath = System.IO.Path.Combine(webApiWwwroot, "khadamat.apk");
 
             using (var stream = new System.IO.FileStream(filePath, System.IO.FileMode.Create))
             {

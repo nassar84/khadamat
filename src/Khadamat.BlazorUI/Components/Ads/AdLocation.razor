@@ -14,8 +14,7 @@
                     var imageUrl = isRealImage ? Api.GetAbsoluteUrl(ad.ImageUrl) : ad.ImageUrl;
                     var cardClass = !isRealImage ? ad.ImageUrl : "has-bg-image";
                 }
-                
-                <div class="ad-box @cardClass" style="@(isRealImage ? $"background-image: url('{imageUrl}');" : "")">
+                <div class="ad-box @cardClass" style="@(isRealImage ? $"background-image: url({imageUrl});" : "")">
                     <div class="ad-overlay"></div>
                     <div class="ad-content-mini">
                         @if (!string.IsNullOrEmpty(ad.Title))

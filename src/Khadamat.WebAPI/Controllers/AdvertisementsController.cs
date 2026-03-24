@@ -11,7 +11,7 @@ namespace Khadamat.WebAPI.Controllers;
 /// Endpoints for Mobile and Web integration.
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("v1/[controller]")]
 public class AdvertisementsController : ControllerBase
 {
     private readonly IAdvertisementService _adService;

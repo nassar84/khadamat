@@ -215,7 +215,7 @@ public partial class ShellViewModel : ObservableObject
             var baseUrl = _configuration["ApiSettings:BaseUrl"] ?? "http://10.0.2.2:5144";
             
             // Fetch settings from API
-            var response = await _httpClient.GetFromJsonAsync<ApiResponse<AppSettingsDto>>($"{baseUrl.TrimEnd('/')}/api/v1/settings");
+            var response = await _httpClient.GetFromJsonAsync<ApiResponse<AppSettingsDto>>($"{baseUrl.TrimEnd('/')}/v1/settings");
             
             if (response?.Success == true && response.Data != null)
             {

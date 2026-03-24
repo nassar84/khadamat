@@ -13,7 +13,7 @@ using System;
 namespace Khadamat.WebAPI.Controllers;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("v1/ads")]
 public class AdsController : ControllerBase
 {
     private readonly KhadamatDbContext _context;

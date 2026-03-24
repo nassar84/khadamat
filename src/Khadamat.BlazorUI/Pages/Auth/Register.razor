@@ -469,7 +469,7 @@
             var callbackUrl = isWeb 
                 ? Navigation.ToAbsoluteUri("/login-callback").ToString() 
                 : "khadamat://callback";
-            var authUrl = $"{apiBaseUrl}/api/v1/auth/external-login?provider={provider}&redirectUrl={Uri.EscapeDataString(callbackUrl)}";
+            var authUrl = $"{apiBaseUrl}/v1/auth/external-login?provider={provider}&redirectUrl={Uri.EscapeDataString(callbackUrl)}";
 
             if (isWeb)
             {

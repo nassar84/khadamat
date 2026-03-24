@@ -4,6 +4,7 @@
 @using Khadamat.BlazorUI.Services.Auth
 @using Microsoft.AspNetCore.Components.Authorization
 @inject ApiClient Api
+@inject Khadamat.BlazorUI.State.AppState State
 @inject IAuthService AuthService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
@@ -422,8 +423,8 @@
                 <img src="/favicon.png" width="40" height="40" alt="Logo" />
             </div>
             <div class="share-brand">
-                <div class="fw-900 fs-4 text-primary">خدمات</div>
-                <div class="x-small text-muted">Khadamat.com</div>
+                <div class="fw-900 fs-4 text-primary">@State.AppName</div>
+                <div class="x-small text-muted">@($"{State.AppName}.com")</div>
             </div>
         </div>
 
@@ -457,7 +458,7 @@
             </div>
         </div>
         
-        <div class="mt-4 x-small text-primary opacity-50">خدماوي &copy; 2026 - منصة جميع الخدمات في مكان واحد</div>
+        <div class="mt-4 x-small text-primary opacity-50">@State.AppName &copy; 2026 - منصة جميع الخدمات في مكان واحد</div>
     </div>
 </div>
 

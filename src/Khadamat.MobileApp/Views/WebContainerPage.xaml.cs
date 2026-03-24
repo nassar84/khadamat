@@ -10,10 +10,10 @@ public partial class WebContainerPage : ContentPage
 {
     private string _deepLinkRoute = "";
 
-    public string DeepLinkRoute 
-    { 
+    public string DeepLinkRoute
+    {
         get => _deepLinkRoute;
-        set 
+        set
         {
             if (_deepLinkRoute != value)
             {
@@ -41,7 +41,7 @@ public partial class WebContainerPage : ContentPage
                 Console.WriteLine("ANTIGRAVITY_LOG: Performing WebView Reload");
                 // Option 1: Native Reload
                 MainWebView.Reload();
-                
+
                 // Option 2: Fallback if Reload fails (re-assign source)
                 if (!string.IsNullOrEmpty(_currentUrl))
                 {
@@ -74,23 +74,23 @@ public partial class WebContainerPage : ContentPage
     {
         // Optional: Resolve base url from preferences or configuration if needed
         string baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "http://10.0.2.2:5144");
-        
+
         string routePart = !string.IsNullOrEmpty(DeepLinkRoute) ? DeepLinkRoute : (_route ?? "").TrimStart('/');
-        
+
         string finalUrl = baseUrl.TrimEnd('/') + "/";
-        
+
         // Use redirect parameter to avoid 404s on standalone WASM hosts
         if (!string.IsNullOrEmpty(routePart))
         {
             finalUrl += "?redirect=" + Uri.EscapeDataString(routePart);
         }
-        
+
         // Append nativeapp=1 once to inform the Blazor side to hide website bars
         finalUrl += finalUrl.Contains("?") ? "&nativeapp=1" : "?nativeapp=1";
-        
+
         LoadUrl(finalUrl);
     }
-    
+
     private void LoadUrl(string url)
     {
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
@@ -100,7 +100,7 @@ public partial class WebContainerPage : ContentPage
         }
 
         ShowOfflineState(false);
-        
+
         // Add theme parameter if exists in preferences
         string savedTheme = Microsoft.Maui.Storage.Preferences.Default.Get("AppTheme", "default");
         if (!url.Contains("theme="))
@@ -170,16 +170,16 @@ public partial class WebContainerPage : ContentPage
                     bool isProvider = false;
 
                     // Parse data if available in query params
-                    try 
+                    try
                     {
                         var uri = new Uri(url.Replace("khadamat://auth/", "http://localhost/"));
                         var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
-                        
+
                         string data = query["data"];
                         if (!string.IsNullOrEmpty(data))
                         {
                             var parts = data.Split('&');
-                            foreach(var part in parts)
+                            foreach (var part in parts)
                             {
                                 var firstEqual = part.IndexOf('=');
                                 if (firstEqual > 0)
@@ -241,7 +241,7 @@ public partial class WebContainerPage : ContentPage
     private async void MainWebView_Navigated(object sender, WebNavigatedEventArgs e)
     {
         PullToRefresh.IsRefreshing = false;
-        
+
         if (e.Result != WebNavigationResult.Success)
         {
             if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
@@ -300,4 +300,5 @@ public partial class WebContainerPage : ContentPage
         Console.WriteLine("ANTIGRAVITY_LOG: No back history, exiting application.");
         return false;
     }
+}
 

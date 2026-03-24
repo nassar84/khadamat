@@ -9,7 +9,7 @@ using MediatR;
 namespace Khadamat.WebAPI.Controllers;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("v1/services")]
 public class ServicesController : ControllerBase
 {
     private readonly IMediator _mediator;

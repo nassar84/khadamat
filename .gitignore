@@ -47,3 +47,9 @@ crash_log.txt
 src/Khadamat.WasmHost/wwwroot/app.apk
 
 *.apk
+
+# Additional exclusions
+logs/
+.config/
+temp_wasm/
+server_architecture_guide.md

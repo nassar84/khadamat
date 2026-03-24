@@ -12,7 +12,7 @@ using Khadamat.Domain.Entities;
 namespace Khadamat.WebAPI.Controllers;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("v1/categories")]
 public class CategoriesController : ControllerBase
 {
     private readonly KhadamatDbContext _context;

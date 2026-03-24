@@ -12,7 +12,7 @@ using Khadamat.Domain.Enums;
 namespace Khadamat.WebAPI.Controllers;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("v1/admin")]
 [Authorize(Policy = "RequireAdmin")]
 public class AdminController : ControllerBase
 {

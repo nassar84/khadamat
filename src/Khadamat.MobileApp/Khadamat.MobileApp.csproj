@@ -29,9 +29,24 @@
         <!-- Fix for JAVA0000 R8/D8 Build errors -->
         <AndroidDexTool>d8</AndroidDexTool>
         <AndroidEnableMultiDex>true</AndroidEnableMultiDex>
+        
+        <!-- Debug Configurations (No optimizations) -->
+        <UseR8 Condition="'$(Configuration)' == 'Debug'">false</UseR8>
+        <AndroidLinkTool Condition="'$(Configuration)' == 'Debug'">d8</AndroidLinkTool>
+        <AndroidLinkMode Condition="'$(Configuration)' == 'Debug'">None</AndroidLinkMode>
+
+    </PropertyGroup>
+
+    <!-- Release Configurations (Maximum compression and optimizations) -->
+    <PropertyGroup Condition="'$(Configuration)' == 'Release' and '$(TargetFramework)' == 'net8.0-android'">
         <UseR8>false</UseR8>
-        <AndroidLinkTool>d8</AndroidLinkTool>
-        <AndroidLinkMode>None</AndroidLinkMode>
+        <AndroidLinkMode>SdkOnly</AndroidLinkMode>
+        <PublishTrimmed>false</PublishTrimmed>
+        <RunAOTCompilation>false</RunAOTCompilation>
+        <AndroidPackageFormat>apk</AndroidPackageFormat>
+    </PropertyGroup>
+
+    <PropertyGroup>
 
         <!-- Android -->
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>

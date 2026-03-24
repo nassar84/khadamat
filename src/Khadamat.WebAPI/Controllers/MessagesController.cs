@@ -13,7 +13,7 @@ namespace Khadamat.WebAPI.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("v1/messages")]
 public class MessagesController : ControllerBase
 {
     private readonly KhadamatDbContext _context;

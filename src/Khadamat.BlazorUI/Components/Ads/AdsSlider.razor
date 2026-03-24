@@ -25,7 +25,7 @@
                     @{
                         var isRealImage = !string.IsNullOrEmpty(ad.ImageUrl) && !ad.ImageUrl.StartsWith("hero-gradient");
                         var imageUrl = isRealImage ? Api.GetAbsoluteUrl(ad.ImageUrl) : ad.ImageUrl;
-                        var bgStyle = isRealImage ? $"background-image: url('{imageUrl}'); background-size: cover; background-position: center;" : "";
+                        var bgStyle = isRealImage ? $"background-image: url({imageUrl}); background-size: cover; background-position: center;" : "";
                         var cardClass = !isRealImage ? ad.ImageUrl : "";
                     }
                     <div class="ad-content-card @cardClass" style="@bgStyle">
