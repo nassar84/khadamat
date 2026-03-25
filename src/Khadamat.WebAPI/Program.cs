@@ -125,6 +125,7 @@ try
     var provider = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
     provider.Mappings[".apk"] = "application/vnd.android.package-archive";
     
+    app.UseBlazorFrameworkFiles();
     app.UseStaticFiles(new StaticFileOptions
     {
         ContentTypeProvider = provider

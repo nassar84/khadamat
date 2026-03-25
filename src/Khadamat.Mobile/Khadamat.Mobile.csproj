@@ -59,6 +59,23 @@
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
 
+	<!-- Platform Specific Exclusions -->
+	<ItemGroup Condition="$(TargetFramework.Contains('-android')) != true">
+		<Compile Remove="Platforms\Android\**" />
+	</ItemGroup>
+	<ItemGroup Condition="$(TargetFramework.Contains('-ios')) != true">
+		<Compile Remove="Platforms\iOS\**" />
+	</ItemGroup>
+	<ItemGroup Condition="$(TargetFramework.Contains('-maccatalyst')) != true">
+		<Compile Remove="Platforms\MacCatalyst\**" />
+	</ItemGroup>
+	<ItemGroup Condition="$(TargetFramework.Contains('-windows')) != true">
+		<Compile Remove="Platforms\Windows\**" />
+	</ItemGroup>
+	<ItemGroup Condition="$(TargetFramework.Contains('-tizen')) != true">
+		<Compile Remove="Platforms\Tizen\**" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<PackageReference Include="AutoMapper" Version="13.0.1" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
