@@ -9,9 +9,13 @@ public class MauiExternalAuthService : IExternalAuthService
     {
         try
         {
+            var schemeUri = callbackScheme.Contains("://") 
+                ? new Uri(callbackScheme) 
+                : new Uri($"{callbackScheme}://");
+
             var authResult = await WebAuthenticator.Default.AuthenticateAsync(
                 new Uri(authUrl),
-                new Uri(callbackScheme));
+                schemeUri);
 
             return new ExternalAuthResult
             {

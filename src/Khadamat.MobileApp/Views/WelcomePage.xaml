@@ -75,7 +75,40 @@
 
         <!-- Bottom Actions -->
         <VerticalStackLayout Grid.Row="1" Padding="30,0,30,40" Spacing="15" BackgroundColor="Transparent">
-            <Button Text="ابدأ الآن" 
+            <!-- Social Login Section -->
+            <VerticalStackLayout Spacing="10" Margin="0,0,0,10">
+                <Label Text="أو الدخول بواسطة" 
+                       TextColor="#94a3b8" 
+                       FontSize="13" 
+                       HorizontalOptions="Center" 
+                       Margin="0,0,0,5" />
+                
+                <Grid ColumnDefinitions="*, *" ColumnSpacing="15">
+                    <Button Grid.Column="0"
+                            Text="جوجل" 
+                            Clicked="OnGoogleLoginClicked"
+                            BackgroundColor="#ffffff" 
+                            TextColor="#475569" 
+                            HeightRequest="50" 
+                            CornerRadius="25" 
+                            FontAttributes="Bold" 
+                            FontSize="14"
+                            ImageSource="google_icon.png" />
+                    
+                    <Button Grid.Column="1"
+                            Text="فيسبوك" 
+                            Clicked="OnFacebookLoginClicked"
+                            BackgroundColor="#1877f2" 
+                            TextColor="White" 
+                            HeightRequest="50" 
+                            CornerRadius="25" 
+                            FontAttributes="Bold" 
+                            FontSize="14"
+                            ImageSource="facebook_icon.png" />
+                </Grid>
+            </VerticalStackLayout>
+
+            <Button Text="ابدأ الآن كزائر" 
                     Clicked="OnStartClicked"
                     BackgroundColor="#3b82f6" 
                     TextColor="White" 
