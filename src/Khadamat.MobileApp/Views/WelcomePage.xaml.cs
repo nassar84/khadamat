@@ -78,6 +78,7 @@ namespace Khadamat.MobileApp.Views
         }
 
         public AppShell GetShell() => _shell;
+        public AppShell AppShellInstance => _shell;
 
         private async void OnTermsClicked(object sender, EventArgs e)
         {

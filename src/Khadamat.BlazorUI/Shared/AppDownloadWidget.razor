@@ -3,6 +3,8 @@
 @inject Khadamat.BlazorUI.State.AppState State
 @implements IDisposable
 
+@if (State.IsMobileApp || State.IsNativeApp) { return; }
+
 <div class="app-download-widget-v2 @(isExpanded ? "expanded" : "") @(isVisible ? "visible" : "")">
     <!-- Glow Background Layer -->
     <div class="widget-aurora-glow"></div>
@@ -46,27 +48,28 @@
                 <p class="text-muted small">كل ما تحتاجه في متناول يدك</p>
             </div>
 
-            <div class="portal-actions d-grid gap-3">
-                <a href="/downloads/khadamat.apk" download="@($"{State.AppName.ToLower()}.apk")" class="store-link play-store-glow d-flex align-items-center p-3 rounded-4 text-decoration-none">
-                    <div class="store-icon bg-white text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width:40px;height:40px;">
-                        <i class="fa-brands fa-android fs-5"></i>
+            <div class="portal-actions d-grid gap-2">
+                <a href="/downloads/khadamat.apk" download="@($"{State.AppName.ToLower()}.apk")" class="store-link play-store-glow d-flex align-items-center p-2 rounded-4 text-decoration-none">
+                    <div class="store-icon bg-white text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width:32px;height:32px;min-width:32px;">
+                        <i class="fa-brands fa-android fs-6"></i>
                     </div>
                     <div class="store-info text-white text-start">
                         <span class="d-block xx-small opacity-75">DIRECT DOWNLOAD</span>
-                        <span class="fw-bold">تنزيل مباشر (APK)</span>
+                        <span class="fw-bold fs-6">تنزيل مباشر (APK)</span>
                     </div>
-                    <i class="fa-solid fa-chevron-left ms-auto text-white opacity-50"></i>
+                    <div class="download-badge ms-auto">FREE</div>
                 </a>
 
-                <div class="store-link app-store-glow d-flex align-items-center p-3 rounded-4 text-decoration-none opacity-50" style="cursor: not-allowed;">
-                    <div class="store-icon bg-white text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width:40px;height:40px;">
-                        <i class="fa-brands fa-apple fs-4"></i>
+                <button @onclick="ShareAppInvitation" class="store-link share-app-glow d-flex align-items-center p-2 rounded-4 text-decoration-none bg-transparent border-0 w-100 text-start">
+                    <div class="store-icon bg-white text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width:32px;height:32px;min-width:32px;">
+                        <i class="fa-solid fa-share-nodes fs-6"></i>
                     </div>
                     <div class="store-info text-white text-start">
-                        <span class="d-block xx-small opacity-75">COMING SOON</span>
-                        <span class="fw-bold">قريباً على App Store</span>
+                        <span class="d-block xx-small opacity-75">INVITE FRIENDS</span>
+                        <span class="fw-bold fs-6">مشاركة التطبيق</span>
                     </div>
-                </div>
+                    <div class="share-sparkle ms-auto"><i class="fa-solid fa-sparkles small"></i></div>
+                </button>
             </div>
 
             <div class="qr-scan-section mt-4 pt-4 border-top border-white border-opacity-10 text-center">
@@ -76,7 +79,7 @@
                     <div class="qr-corner bottom-left"></div>
                     <div class="qr-corner bottom-right"></div>
                     <div class="qr-scanner-line"></div>
-                    <i class="fa-solid fa-qrcode fa-5x text-white opacity-25"></i>
+                    <i class="fa-solid fa-qrcode fa-4x text-white opacity-25"></i> <!-- Reduced fa-5x to fa-4x -->
                 </div>
                 <span class="text-white opacity-75 x-small">امسح الكود ضوئياً لتحميل التطبيق مباشرة</span>
             </div>
@@ -88,8 +91,8 @@
     /* Premium App Widget Styles */
     .app-download-widget-v2 {
         position: fixed;
-        bottom: 30px;
-        right: 30px;
+        bottom: 25px; /* Lowered from 30px */
+        right: 25px;
         z-index: 10000;
         pointer-events: none;
         opacity: 0;
@@ -99,7 +102,8 @@
 
     @@media (max-width: 991px) {
         .app-download-widget-v2 {
-            display: none !important;
+            /* Ensure visibility when minimized or on tablets */
+            display: block !important;
         }
     }
 
@@ -196,15 +200,17 @@
     /* Portal Card Styles */
     .app-portal-card {
         position: absolute;
-        bottom: 80px;
+        bottom: 60px; /* Lowered from 80px to provide more top clearance */
         right: 0;
-        width: 320px;
-        background: rgba(15, 23, 42, 0.85);
+        width: 280px; /* Reduced from 320px */
+        max-height: 85vh;
+        overflow-y: auto;
+        background: rgba(15, 23, 42, 0.95);
         backdrop-filter: blur(25px);
         -webkit-backdrop-filter: blur(25px);
         border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 30px;
-        padding: 30px;
+        border-radius: 24px;
+        padding: 15px 20px; /* More compact padding */
         opacity: 0;
         visibility: hidden;
         transform: scale(0.8) translateY(20px);
@@ -246,10 +252,10 @@
     }
 
     .logo-orb {
-        width: 60px;
-        height: 60px;
+        width: 40px; /* Reduced further from 50px */
+        height: 40px;
         background: linear-gradient(135deg, var(--theme-primary, #6366f1), var(--theme-secondary, #a855f7));
-        border-radius: 20px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -269,22 +275,42 @@
         border-color: rgba(255,255,255,0.3);
     }
 
-    .play-store-glow { background: rgba(60, 186, 84, 0.2); }
-    .play-store-glow:hover { background: rgba(60, 186, 84, 0.3); }
+    .play-store-glow { background: rgba(16, 185, 129, 0.15); box-shadow: 0 0 20px rgba(16, 185, 129, 0.1); }
+    .play-store-glow:hover { background: rgba(16, 185, 129, 0.25); box-shadow: 0 0 30px rgba(16, 185, 129, 0.2); }
     
+    .share-app-glow { background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3) !important; cursor: pointer; }
+    .share-app-glow:hover { background: rgba(99, 102, 241, 0.25); transform: translateY(-3px) scale(1.02); }
+
+    .download-badge {
+        background: #10b981;
+        color: white;
+        font-size: 0.6rem;
+        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: 6px;
+        letter-spacing: 1px;
+    }
+
+    .share-sparkle { color: #facc15; animation: sparkle 2s infinite; }
+    
+    @@keyframes sparkle {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.6; transform: scale(1.2); }
+    }
+
     .app-store-glow { background: rgba(255, 255, 255, 0.1); }
     .app-store-glow:hover { background: rgba(255, 255, 255, 0.15); }
 
     /* QR Frame */
     .qr-frame {
-        width: 140px;
-        height: 140px;
+        width: 90px; /* Reduced further from 110px */
+        height: 90px;
         position: relative;
         display: flex;
         align-items: center;
         justify-content: center;
         background: rgba(255,255,255,0.03);
-        border-radius: 20px;
+        border-radius: 12px;
     }
 
     .qr-corner {
@@ -375,6 +401,15 @@
     }
 
     private void ToggleExpand() => isExpanded = !isExpanded;
+
+    private async Task ShareAppInvitation()
+    {
+        var shareUrl = Navigation.BaseUri;
+        var shareTitle = $"حمّل تطبيق {State.AppName}";
+        var shareText = $"🚀 كن جزءاً من مجتمع {State.AppName}!\nكل الخدمات التي تحتاجها (تمريض، تعليم، حرف، توصيل، قانون) في مكان واحد.\n\nحمّل التطبيق الآن مباشرة من هنا:\n{shareUrl}";
+        
+        await JS.InvokeVoidAsync("shareApp", shareTitle, shareText, shareUrl);
+    }
 
     public void Dispose()
     {

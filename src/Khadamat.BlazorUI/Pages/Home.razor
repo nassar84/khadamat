@@ -178,18 +178,7 @@
                         </a>
                     </div>
                     
-                    <!-- 2. Coming Soon -->
-                    <div class="col-sm-6">
-                        <div class="store-link-card app-store-glow d-flex align-items-center p-3 rounded-4 text-decoration-none opacity-50 h-100 w-100" style="cursor: not-allowed;">
-                            <div class="store-icon bg-white text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;min-width:45px;">
-                                <i class="fa-brands fa-apple fs-4"></i>
-                            </div>
-                            <div class="store-info text-white text-start">
-                                <span class="d-block xx-small opacity-75">قريباً على</span>
-                                <span class="fw-bold fs-6">Store</span>
-                            </div>
-                        </div>
-                    </div>
+
 
                     <!-- 3. Share App -->
                     <div class="col-sm-6">
@@ -820,18 +809,9 @@
 
     private async Task ShareApp()
     {
-        try
-        {
-            await JS.InvokeVoidAsync("navigator.share", new 
-            { 
-                title = "تطبيق خدمات موبايل", 
-                text = "حمل أفضل تطبيق للخدمات في مصر!", 
-                url = Navigation.BaseUri 
-            });
-        }
-        catch
-        {
-            await JS.InvokeVoidAsync("alert", "رابط التطبيق: " + Navigation.BaseUri);
-        }
+        var shareUrl = Navigation.BaseUri;
+        var shareTitle = "تطبيق خدمات موبايل";
+        var shareText = "حمل أفضل تطبيق للخدمات في مصر! كل ما تحتاجه في تطبيق واحد 🚀";
+        await JS.InvokeVoidAsync("shareApp", shareTitle, shareText, shareUrl);
     }
 }

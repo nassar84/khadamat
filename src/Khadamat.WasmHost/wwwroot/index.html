@@ -537,6 +537,26 @@
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('service-worker.js');
         }
+        window.shareApp = async (title, text, url) => {
+            const fullText = `${text}\n${url}`;
+            if (navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                try {
+                    await navigator.share({ title, text, url });
+                    return true;
+                } catch (e) {
+                    if (e.name !== 'AbortError') console.error('Share failed:', e);
+                }
+            }
+            // Fallback: Copy to clipboard
+            try {
+                await navigator.clipboard.writeText(fullText);
+                alert('تم نسخ رابط الدعوة! يمكنك الآن لصقه ومشاركته مع أصدقائك.');
+                return true;
+            } catch (err) {
+                console.error('Clipboard copy failed:', err);
+                return false;
+            }
+        };
     </script>
 </body>
 

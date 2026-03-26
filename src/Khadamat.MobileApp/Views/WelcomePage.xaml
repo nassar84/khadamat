@@ -93,7 +93,7 @@
                             CornerRadius="25" 
                             FontAttributes="Bold" 
                             FontSize="14"
-                            ImageSource="google_icon.png" />
+                            ImageSource="google_icon.jpg" />
                     
                     <Button Grid.Column="1"
                             Text="فيسبوك" 
@@ -104,7 +104,7 @@
                             CornerRadius="25" 
                             FontAttributes="Bold" 
                             FontSize="14"
-                            ImageSource="facebook_icon.png" />
+                            ImageSource="facebook_icon.jpg" />
                 </Grid>
             </VerticalStackLayout>
 
