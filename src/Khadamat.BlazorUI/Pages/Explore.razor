@@ -35,18 +35,9 @@
                                 <div class="col-6 col-md-4 col-lg-3">
                                     <div class="category-card p-3 rounded-4 shadow-sm border text-center h-100 animate-up" @onclick="() => ExploreCategory(cat)">
                                         <div class="mb-3 mx-auto">
-                                            @if (!string.IsNullOrEmpty(cat.ImageUrl))
-                                            {
-                                                var folder = Level == "main_all" ? "maincategories" : "categories";
-                                                <img src="/images/@folder/@cat.ImageUrl" 
-                                                     onerror="this.onerror=null;this.src='/images/categories/default.jpg';"
-                                                     class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" />
-                                            }
-                                            else
-                                            {
-                                                <img src="/images/categories/default.jpg" 
-                                                     class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" />
-                                            }
+                                            <img src="@Api.GetAbsoluteUrl(cat.ImageUrl ?? "images/categories/default.jpg")" 
+                                                 onerror="this.onerror=null;this.src='/images/categories/default.jpg';"
+                                                 class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" loading="lazy" />
                                         </div>
                                         <div class="fw-bold">@cat.Name</div>
                                     </div>
@@ -66,7 +57,7 @@
                         @for (int i = 0; i < 8; i++)
                         {
                             <div class="col-6 col-md-4 col-lg-3">
-                                <Khadamat.BlazorUI.Components.Shared.SkeletonCategoryCard />
+                                <Khadamat.BlazorUI.Shared.SkeletonLoader Type="card" Count="1" />
                             </div>
                         }
                     }
@@ -82,17 +73,9 @@
                                 <div class="col-6 col-md-4 col-lg-3">
                                             <div class="category-card p-3 rounded-4 shadow-sm border text-center h-100 animate-up" @onclick="() => ExploreSubCategory(sub)">
                                         <div class="mb-3 mx-auto">
-                                            @if (!string.IsNullOrEmpty(sub.ImageUrl))
-                                            {
-                                                <img src="/images/subcategories/@sub.ImageUrl" 
-                                                     onerror="this.onerror=null;this.src='/images/categories/default.jpg';"
-                                                     class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" />
-                                            }
-                                            else
-                                            {
-                                                <img src="/images/categories/default.jpg" 
-                                                     class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" />
-                                            }
+                                            <img src="@Api.GetAbsoluteUrl(sub.ImageUrl ?? "images/categories/default.jpg")" 
+                                                 onerror="this.onerror=null;this.src='/images/categories/default.jpg';"
+                                                 class="rounded-3 shadow-sm object-fit-cover" width="80" height="60" loading="lazy" />
                                         </div>
                                         <div class="fw-bold">@sub.Name</div>
                                     </div>
@@ -112,7 +95,7 @@
                         @for (int i = 0; i < 8; i++)
                         {
                             <div class="col-6 col-md-4 col-lg-3">
-                                <Khadamat.BlazorUI.Components.Shared.SkeletonCategoryCard />
+                                <Khadamat.BlazorUI.Shared.SkeletonLoader Type="card" Count="1" />
                             </div>
                         }
                     }
@@ -153,19 +136,7 @@
                         @for (int i = 0; i < 6; i++)
                         {
                             <div class="col-12 col-md-6 mb-3">
-                                <!-- Service Card Skeleton -->
-                                <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden bg-white">
-                                    <div class="d-flex p-3">
-                                        <!-- Provider Image Skeleton -->
-                                        <div style="width: 70px; height: 70px; background:#e2e8f0; border-radius: 50%; min-width: 70px; animation: shimmer 1.5s infinite linear;"></div>
-                                        <div class="ms-3 flex-grow-1 py-1">
-                                            <!-- Title Skeleton -->
-                                            <div style="height: 18px; width: 80%; background:#e2e8f0; border-radius: 4px; animation: shimmer 1.5s infinite linear; margin-bottom: 8px;"></div>
-                                            <!-- Subtitle Skeleton -->
-                                            <div style="height: 14px; width: 50%; background:#e2e8f0; border-radius: 4px; animation: shimmer 1.5s infinite linear;"></div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <Khadamat.BlazorUI.Shared.SkeletonLoader Type="card" Count="1" />
                             </div>
                         }
                     }

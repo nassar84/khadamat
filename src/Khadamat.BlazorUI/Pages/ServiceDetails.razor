@@ -9,6 +9,7 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
+@inject Khadamat.BlazorUI.Services.SoundService SoundService
 @inject Khadamat.Shared.Interfaces.IShareService DeviceShareService
 @inject Khadamat.Shared.Interfaces.IPhoneService PhoneService
 @inject Khadamat.Shared.Interfaces.ILocationService LocationService
@@ -17,41 +18,7 @@
     @if (service == null)
     {
         <div class="container py-4">
-            <!-- Top Actions Skeleton -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div class="btn-glass-dark skeleton-box" style="width: 45px;"></div>
-                <div class="btn-glass-dark skeleton-box" style="width: 45px;"></div>
-            </div>
-
-            <div class="row g-4 mb-5">
-                <div class="col-12 col-md-5">
-                    <!-- Image Skeleton -->
-                    <div class="main-image-v3 rounded-5 overflow-hidden shadow-lg position-relative mb-4 skeleton-box"></div>
-                    <!-- Stats Skeleton -->
-                    <div class="stats-box-v3 p-4 rounded-5 shadow-sm border bg-white mb-4 skeleton-box" style="height: 120px;"></div>
-                    <div class="skeleton-box rounded-pill mt-auto" style="height: 50px; width: 100%;"></div>
-                </div>
-                <div class="col-12 col-md-7">
-                    <!-- Details Skeleton -->
-                    <div class="details-content-v3 ps-md-3">
-                        <div class="skeleton-box mb-2 rounded-pill" style="height: 25px; width: 30%;"></div>
-                        <div class="skeleton-box mb-4" style="height: 40px; width: 70%;"></div>
-                        <div class="skeleton-box mb-4" style="height: 20px; width: 100%;"></div>
-                        <div class="skeleton-box mb-4" style="height: 20px; width: 80%;"></div>
-                        
-                        <!-- Provider Skeleton -->
-                        <div class="provider-strip mb-4 skeleton-box" style="height: 70px;"></div>
-                        
-                        <!-- Grid Skeleton -->
-                        <div class="info-grid-v3 mb-4">
-                            <div class="skeleton-box" style="height: 60px;"></div>
-                            <div class="skeleton-box" style="height: 60px;"></div>
-                            <div class="skeleton-box" style="height: 60px;"></div>
-                            <div class="skeleton-box" style="height: 60px;"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <Khadamat.BlazorUI.Shared.SkeletonLoader Type="service-details" Count="1" />
         </div>
     }
     else
@@ -868,6 +835,7 @@
 
     protected override void OnInitialized()
     {
+        _ = SoundService.PlayOpenDetailsAsync();
         _ = LoadServiceDataAsync();
     }
 

@@ -27,8 +27,8 @@ public partial class ThemePickerPopup : Popup
         
         _themeElements = new VisualElement[_themes.Length];
         
-        double centerX = 170; // Half of 340 container width
-        double centerY = 240; // Bottom anchoring for semi circle
+        double centerX = 200; // Half of 400 container width
+        double centerY = 160; // Horizon for semi circle
         
         for (int i = 0; i < _themes.Length; i++)
         {
@@ -36,11 +36,11 @@ public partial class ThemePickerPopup : Popup
             var btnContainer = new VerticalStackLayout
             {
                 Spacing = 5,
-                Opacity = 0,
-                Scale = 0.5,
+                Opacity = 1,
+                Scale = 0,
                 // Start everything at the bottom center to fan out
-                TranslationX = centerX - 35, // 35 is half of 70 width
-                TranslationY = centerY - 35
+                TranslationX = centerX - 35, 
+                TranslationY = centerY
             };
             
             var btn = new Frame
@@ -77,7 +77,6 @@ public partial class ThemePickerPopup : Popup
             
             _themeElements[i] = btnContainer;
             
-            // Layout bounds fixed at 0,0 since we move them via Translation
             AbsoluteLayout.SetLayoutBounds(btnContainer, new Rect(0, 0, 70, 80));
             AbsoluteLayout.SetLayoutFlags(btnContainer, Microsoft.Maui.Layouts.AbsoluteLayoutFlags.None);
             
@@ -85,28 +84,29 @@ public partial class ThemePickerPopup : Popup
         }
 
         this.Opened += OnPopupOpened;
+        
+        // Safety net: trigger animation if it didn't trigger via event
+        Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(500), () => OnPopupOpened(null, null));
     }
 
-    private async void OnPopupOpened(object? sender, CommunityToolkit.Maui.Core.PopupOpenedEventArgs e)
+    private async void OnPopupOpened(object? sender, CommunityToolkit.Maui.Core.PopupOpenedEventArgs? e)
     {
         if (_isAnimated) return;
         _isAnimated = true;
         
         double radius = 110;
-        double centerX = 170; 
-        double centerY = 150; // Adjusted for the visible part of the semicircle
+        double centerX = 200; 
+        double centerY = 160; 
         
-        // Distribution: From PI around to 0
         double angleStep = Math.PI / (_themes.Length - 1);
         
         var tasks = new Task[_themes.Length];
         for (int i = 0; i < _themes.Length; i++)
         {
-            // Distribution: from PI to 0
             double angle = Math.PI - (i * angleStep);
             
             double targetX = centerX + radius * Math.Cos(angle) - 35; 
-            double targetY = centerY - radius * Math.Sin(angle) - 40; 
+            double targetY = centerY - radius * Math.Sin(angle) - 45; 
             
             tasks[i] = AnimateElementAsync(_themeElements[i], targetX, targetY, i * 60);
         }
@@ -118,11 +118,7 @@ public partial class ThemePickerPopup : Popup
     {
         await Task.Delay(delay);
         
-        // Make element visible
-        _ = element.FadeTo(1, 400, Easing.CubicOut);
         _ = element.ScaleTo(1, 400, Easing.SpringOut);
-        
-        // Move element to its arc position
         await element.TranslateTo(targetX, targetY, 600, Easing.SpringOut);
     }
 }

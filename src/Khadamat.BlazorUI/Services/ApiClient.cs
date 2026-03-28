@@ -51,16 +51,24 @@ public class ApiClient
         return default;
     }
 
+    private static ApiResponse<AppSettingsDto>? _settingsCache;
+    private static List<MainCategoryDto>? _mainCategoriesCache;
+    private static List<GovernorateDto>? _governoratesCache;
+    private static List<MarketplaceCategoryDto>? _marketCategoriesCache;
+
     // Settings
     public async Task<ApiResponse<AppSettingsDto>> GetSettingsAsync()
     {
-        return await _http.GetFromJsonAsync<ApiResponse<AppSettingsDto>>("v1/settings") 
+        if (_settingsCache != null) return _settingsCache;
+        _settingsCache = await _http.GetFromJsonAsync<ApiResponse<AppSettingsDto>>("v1/settings") 
                ?? ApiResponse<AppSettingsDto>.Fail("Failed to fetch settings");
+        return _settingsCache;
     }
 
     public async Task<ApiResponse<bool>> UpdateSettingsAsync(UpdateAppSettingsRequest request)
     {
         var response = await _http.PutAsJsonAsync("v1/settings", request);
+        _settingsCache = null; // Invalidate cache
         return await response.Content.ReadFromJsonAsync<ApiResponse<bool>>() 
                ?? ApiResponse<bool>.Fail("Failed to update settings");
     }
@@ -143,10 +151,12 @@ public class ApiClient
     // Categories
     public async Task<List<MainCategoryDto>> GetMainCategoriesAsync()
     {
+        if (_mainCategoriesCache != null) return _mainCategoriesCache;
         try 
         {
             var response = await _http.GetFromJsonAsync<ApiResponse<List<MainCategoryDto>>>("v1/categories/main");
-            return response?.Data ?? new List<MainCategoryDto>();
+            _mainCategoriesCache = response?.Data ?? new List<MainCategoryDto>();
+            return _mainCategoriesCache;
         }
         catch
         {
@@ -264,8 +274,10 @@ public class ApiClient
     // Locations
     public async Task<List<GovernorateDto>> GetGovernoratesAsync()
     {
+        if (_governoratesCache != null) return _governoratesCache;
         var response = await _http.GetFromJsonAsync<ApiResponse<List<GovernorateDto>>>("v1/locations/governorates");
-        return response?.Data ?? new List<GovernorateDto>();
+        _governoratesCache = response?.Data ?? new List<GovernorateDto>();
+        return _governoratesCache;
     }
 
     public async Task<List<CityDto>> GetCitiesAsync(int governorateId)
@@ -297,6 +309,7 @@ public class ApiClient
     public async Task<bool> CreateGovernorateAsync(GovernorateDto dto)
     {
         var response = await _http.PostAsJsonAsync("v1/locations/governorates", dto);
+        if (response.IsSuccessStatusCode) _governoratesCache = null;
         return response.IsSuccessStatusCode;
     }
 
@@ -1045,9 +1058,11 @@ public class ApiClient
 
     public async Task<List<MarketplaceCategoryDto>> GetMarketplaceCategoriesAsync()
     {
+        if (_marketCategoriesCache != null) return _marketCategoriesCache;
         try
         {
-            return await _http.GetFromJsonAsync<List<MarketplaceCategoryDto>>("Marketplace/categories") ?? new List<MarketplaceCategoryDto>();
+            _marketCategoriesCache = await _http.GetFromJsonAsync<List<MarketplaceCategoryDto>>("Marketplace/categories") ?? new List<MarketplaceCategoryDto>();
+            return _marketCategoriesCache;
         }
         catch (Exception ex)
         {

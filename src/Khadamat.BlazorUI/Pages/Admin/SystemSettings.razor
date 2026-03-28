@@ -23,9 +23,15 @@
             <div class="col-md-6 mb-4">
                 <div class="glass-card p-4 h-100">
                     <h5 class="fw-bold mb-3"><i class="fa-solid fa-server me-2 text-primary"></i>بيانات النظام</h5>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">اسم النظام / التطبيق</label>
-                        <input type="text" @bind="settings.ApplicationName" class="form-control rounded-pill px-4">
+                    <div class="row mb-3">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <label class="form-label small fw-bold">الاسم بالعربية</label>
+                            <input type="text" @bind="settings.ApplicationNameAr" class="form-control rounded-pill px-4" placeholder="مثال: خدماوي">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">الاسم بالإنجليزية</label>
+                            <input type="text" @bind="settings.ApplicationNameEn" class="form-control rounded-pill px-4" placeholder="Example: Khadamawi">
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold">رسالة الترحيب / الوصف</label>
@@ -131,11 +137,53 @@
                         <input type="color" @bind="settings.SecondaryColor" class="form-control form-control-color w-100 rounded-pill">
                     </div>
                     
-                    <div class="mt-4 pt-3 border-top">
-                        <h6 class="fw-bold small mb-2 text-muted">روابط سريعة</h6>
-                        <a href="/admin/usersmanagement?role=SystemAdmin" class="btn btn-outline-dark w-100 btn-sm mb-2">
-                            <i class="fa-solid fa-users-gear me-2"></i>إدارة مدراء النظام
-                        </a>
+                </div>
+            </div>
+
+            <!-- Sound Settings -->
+            <div class="col-md-6 mb-4">
+                <div class="glass-card p-4 h-100">
+                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-volume-high me-2 text-primary"></i>نغمات وأصوات التطبيق</h5>
+                    <p class="text-muted small mb-3">الأصوات المحسنة لتفاعل المستخدم مع الأنشطة المختلفة.</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">صوت فتح التطبيق</label>
+                        <div class="input-group">
+                            <input type="text" @bind="settings.OpenAppSound" class="form-control rounded-start-pill px-3" placeholder="open_app.mp3">
+                            <button class="btn btn-outline-secondary rounded-end-pill px-3" @onclick='() => PlayPreview(settings.OpenAppSound)'><i class="fa-solid fa-play"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">صوت إيجاد خدمة</label>
+                        <div class="input-group">
+                            <input type="text" @bind="settings.FindServiceSound" class="form-control rounded-start-pill px-3" placeholder="find_service.mp3">
+                            <button class="btn btn-outline-secondary rounded-end-pill px-3" @onclick='() => PlayPreview(settings.FindServiceSound)'><i class="fa-solid fa-play"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">صوت فتح التفاصيل</label>
+                        <div class="input-group">
+                            <input type="text" @bind="settings.OpenDetailsSound" class="form-control rounded-start-pill px-3" placeholder="open_details.mp3">
+                            <button class="btn btn-outline-secondary rounded-end-pill px-3" @onclick='() => PlayPreview(settings.OpenDetailsSound)'><i class="fa-solid fa-play"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">صوت استقبال رسالة</label>
+                        <div class="input-group">
+                            <input type="text" @bind="settings.MessageReceivedSound" class="form-control rounded-start-pill px-3" placeholder="message.mp3">
+                            <button class="btn btn-outline-secondary rounded-end-pill px-3" @onclick='() => PlayPreview(settings.MessageReceivedSound)'><i class="fa-solid fa-play"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">صوت استقبال تنبيه</label>
+                        <div class="input-group">
+                            <input type="text" @bind="settings.NotificationReceivedSound" class="form-control rounded-start-pill px-3" placeholder="notif.mp3">
+                            <button class="btn btn-outline-secondary rounded-end-pill px-3" @onclick='() => PlayPreview(settings.NotificationReceivedSound)'><i class="fa-solid fa-play"></i></button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -148,8 +196,18 @@
                         يمكنك تغيير الرابط الذي سيتصل به تطبيق الموبايل وبناء التطبيق (APK) ورفعه تلقائياً ليصبح متاحاً للتحميل من الموقع.
                     </p>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">الرابط الحقيقي للاستضافة (مثال: https://khadamat.com)</label>
-                        <input type="url" @bind="mobileAppDomainUrl" class="form-control rounded-pill px-4 bg-white" placeholder="https://...">
+                        <label class="form-label small fw-bold">رابط الاستضافة (API Base URL)</label>
+                        <input type="url" @bind="mobileAppDomainUrl" class="form-control rounded-pill px-4 bg-white" placeholder="https://api.khadamat.com">
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">اسم ملف الـ APK</label>
+                            <input type="text" @bind="settings.ApkFilename" class="form-control rounded-pill px-3" placeholder="app.apk">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">رابط أيقونة الـ APK</label>
+                            <input type="text" @bind="settings.ApkIconUrl" class="form-control rounded-pill px-3" placeholder="رابط الأيقونة...">
+                        </div>
                     </div>
                     <div class="d-grid mt-4">
                         <button class="btn btn-success rounded-pill fw-bold shadow-sm" @onclick="BuildMobileAppClick" disabled="@isBuildingApk">
@@ -340,18 +398,31 @@
         
         var request = new UpdateAppSettingsRequest
         {
-            ApplicationName = settings.ApplicationName,
+            ApplicationName = settings.ApplicationNameAr ?? settings.ApplicationName,
+            ApplicationNameAr = settings.ApplicationNameAr,
+            ApplicationNameEn = settings.ApplicationNameEn,
             LogoUrl = settings.LogoUrl,
+            ApkFilename = settings.ApkFilename,
+            ApkIconUrl = settings.ApkIconUrl,
             PrimaryColor = settings.PrimaryColor,
             SecondaryColor = settings.SecondaryColor,
             ContactEmail = settings.ContactEmail,
             ContactPhone = settings.ContactPhone,
             IsMaintenanceMode = settings.IsMaintenanceMode,
             WelcomeMessage = settings.WelcomeMessage,
+            OpenAppSound = settings.OpenAppSound,
+            FindServiceSound = settings.FindServiceSound,
+            OpenDetailsSound = settings.OpenDetailsSound,
+            MessageReceivedSound = settings.MessageReceivedSound,
+            NotificationReceivedSound = settings.NotificationReceivedSound,
             AllowUserRegistration = settings.AllowUserRegistration,
             RequireEmailVerification = settings.RequireEmailVerification,
             MaxServicesPerProvider = settings.MaxServicesPerProvider,
             EnableReviewAutoApproval = settings.EnableReviewAutoApproval,
+            MarketplaceDefaultListingDays = settings.MarketplaceDefaultListingDays,
+            MarketplaceMaxListingsPerUser = settings.MarketplaceMaxListingsPerUser,
+            MarketplaceRequireApproval = settings.MarketplaceRequireApproval,
+            MarketplaceAutoExpire = settings.MarketplaceAutoExpire,
             FacebookUrl = settings.FacebookUrl,
             TwitterUrl = settings.TwitterUrl,
             InstagramUrl = settings.InstagramUrl,
@@ -485,5 +556,14 @@
         {
             isUploadingApk = false;
         }
+    }
+    private async Task PlayPreview(string soundFile)
+    {
+        if (string.IsNullOrEmpty(soundFile)) return;
+        
+        var audioUrl = $"audio/{soundFile}";
+        if (soundFile.StartsWith("http")) audioUrl = soundFile;
+        
+        await JS.InvokeVoidAsync("eval", $"new Audio('{audioUrl}').play()");
     }
 }

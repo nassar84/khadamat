@@ -36,7 +36,7 @@
                 {
                     <i class="fa-solid fa-bolt-lightning logo-icon-glow"></i>
                 }
-                <span class="logo-text-premium">@State.AppName</span>
+                <span class="logo-text-premium">@(string.IsNullOrEmpty(State.AppNameAr) ? State.AppName : State.AppNameAr)</span>
             </div>
         </div>
 

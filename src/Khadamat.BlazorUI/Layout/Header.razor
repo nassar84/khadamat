@@ -17,7 +17,7 @@
             {
                 <i class="fa-solid fa-bolt-lightning text-primary fs-3"></i>
             }
-            <span class="fw-bold fs-5 text-dark">@State.AppName</span>
+            <span class="fw-bold fs-5 text-dark">@(string.IsNullOrEmpty(State.AppNameAr) ? State.AppName : State.AppNameAr)</span>
         </div>
 
         

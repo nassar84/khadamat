@@ -27,17 +27,26 @@ public static class MauiProgram
         
         // Load appsettings.json
         var assembly = Assembly.GetExecutingAssembly();
-        using var stream = assembly.GetManifestResourceStream("appsettings.json");
-        if (stream != null)
+        var resourceNames = assembly.GetManifestResourceNames();
+        
+        // Find main appsettings
+        var appsettingsName = resourceNames.FirstOrDefault(n => n.EndsWith("appsettings.json", StringComparison.OrdinalIgnoreCase));
+        if (appsettingsName != null)
         {
-            builder.Configuration.AddJsonStream(stream);
+            using var stream = assembly.GetManifestResourceStream(appsettingsName);
+            if (stream != null) builder.Configuration.AddJsonStream(stream);
+        }
+        else 
+        {
+            Console.WriteLine("ANTIGRAVITY_LOG: [WARNING] appsettings.json NOT FOUND in manifest resources!");
         }
 
         #if DEBUG
-        using var devStream = assembly.GetManifestResourceStream("appsettings.Development.json");
-        if (devStream != null)
+        var devSettingsName = resourceNames.FirstOrDefault(n => n.EndsWith("appsettings.Development.json", StringComparison.OrdinalIgnoreCase));
+        if (devSettingsName != null)
         {
-            builder.Configuration.AddJsonStream(devStream);
+            using var devStream = assembly.GetManifestResourceStream(devSettingsName);
+            if (devStream != null) builder.Configuration.AddJsonStream(devStream);
         }
         #endif
 
@@ -56,11 +65,13 @@ public static class MauiProgram
 #endif
 
         // Configure HttpClient for API
-        var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "https://api.yourdomain.com";
-        var webAppBaseUrl = builder.Configuration["ApiSettings:WebAppBaseUrl"] ?? "https://yourdomain.com";
+        var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "https://jobsek.eis-dev.com";
+        var webAppBaseUrl = builder.Configuration["ApiSettings:WebAppBaseUrl"] ?? "https://jobsek.eis-dev.com";
+        
+        // Ensure URLs end with slash for consistency if needed, but here we prefer consistency with config
         
         // Save base web app URL config dynamically to Preferences for easy access in parameterless pages
-        Preferences.Default.Set("WebAppBaseUrl", webAppBaseUrl);
+        Preferences.Default.Set("WebAppBaseUrl", webAppBaseUrl.TrimEnd('/') + "/");
         
         // Print it to help with debugging
         Console.WriteLine($"ANTIGRAVITY_LOG: Using API Base URL: {apiBaseUrl}");
@@ -83,6 +94,7 @@ public static class MauiProgram
         builder.Services.AddScoped<IBiometricService, MauiBiometricService>();
         // Mobile specific services
         builder.Services.AddHttpClient();
+        builder.Services.AddSingleton<IAudioService, AudioService>();
         builder.Services.AddSingleton<ViewModels.ShellViewModel>();
         builder.Services.AddSingleton<AppShell>();
         builder.Services.AddSingleton<Views.WelcomePage>();

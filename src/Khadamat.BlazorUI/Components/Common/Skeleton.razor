@@ -1,0 +1,33 @@
+<div class="skeleton-shimmer @Class" style="@Style">
+</div>
+
+<style>
+    .skeleton-shimmer {
+        background: linear-gradient(90deg, #f0f2f5 25%, #e1e4e8 50%, #f0f2f5 75%);
+        background-size: 200% 100%;
+        animation: skeleton-shimmer-animation 1.5s infinite linear;
+        border-radius: 8px;
+        display: block;
+        min-height: 1em;
+        width: 100%;
+    }
+
+    [data-theme="dark"] .skeleton-shimmer {
+        background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+    }
+
+    @@keyframes skeleton-shimmer-animation {
+        0% {
+            background-position: 200% 0;
+        }
+
+        100% {
+            background-position: -200% 0;
+        }
+    }
+</style>
+
+@code {
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public string? Style { get; set; }
+}

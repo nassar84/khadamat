@@ -11,9 +11,29 @@ namespace Khadamat.MobileApp
             InitializeComponent();
             _viewModel = viewModel;
             BindingContext = _viewModel;
+
+            RegisterRoutes();
             
             // Load settings in background
             Task.Run(async () => await _viewModel.LoadSettingsAsync());
+        }
+
+        private void RegisterRoutes()
+        {
+            Routing.RegisterRoute("marketplace", typeof(Views.MarketplacePage));
+            Routing.RegisterRoute("favorites", typeof(Views.FavoritesPage));
+            Routing.RegisterRoute("messages", typeof(Views.MessagesPage));
+            Routing.RegisterRoute("profile", typeof(Views.ProfilePage));
+            Routing.RegisterRoute("login", typeof(Views.LoginPage));
+            Routing.RegisterRoute("settings", typeof(Views.SettingsPage));
+            Routing.RegisterRoute("categories", typeof(Views.CategoriesPage));
+            Routing.RegisterRoute("my-services", typeof(Views.MyServicesPage));
+            Routing.RegisterRoute("provider/apply", typeof(Views.PostServicePage));
+            Routing.RegisterRoute("provider/dashboard", typeof(Views.MyServicesPage));
+            Routing.RegisterRoute("support", typeof(Views.WebContainerPage));
+            Routing.RegisterRoute("terms", typeof(Views.TermsPage));
+            Routing.RegisterRoute("notifications", typeof(Views.WebContainerPage));
+            Routing.RegisterRoute("search", typeof(Views.WebContainerPage));
         }
 
         protected override void OnNavigating(ShellNavigatingEventArgs args)

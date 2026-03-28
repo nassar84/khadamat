@@ -1,50 +1,19 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application 
         android:allowBackup="true" 
-        android:icon="@mipmap/khadamat_icon" 
-        android:roundIcon="@mipmap/khadamat_icon" 
         android:supportsRtl="true"
-        android:label="خدمات"
+        android:label="خدماوي"
+        android:icon="@mipmap/khadamat_icon"
+        android:roundIcon="@mipmap/khadamat_icon"
         android:theme="@style/Maui.SplashTheme"
         android:networkSecurityConfig="@xml/network_security_config">
 
-        <!-- WebAuthenticator (OAuth/Social Login) -->
-        <activity android:name="microsoft.maui.authentication.WebAuthenticatorCallbackActivity" android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="khadamat" />
-            </intent-filter>
-        </activity>
-
-        <!-- Deep Linking: khadamat://service/120 -->
-        <activity android:name="com.khadamat.app.DeepLinkActivity"
-                  android:exported="true"
-                  android:launchMode="singleTask">
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="khadamat" android:host="*" />
-            </intent-filter>
-            <!-- HTTPS Deep Links -->
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="khadamat.com" />
-            </intent-filter>
-        </activity>
-
-        <!-- Firebase Cloud Messaging Service -->
-        <service android:name="com.khadamat.app.KhadamatFirebaseMessagingService"
-                 android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
+        <!-- All activities (MainActivity, WebAuthenticatorActivity, DeepLinkActivity) 
+             and services are now registered via C# attributes for consistency and to avoid ClassNotFoundException. -->
+        
+        <!-- Native Deep Linking handled in DeepLinkActivity.cs attributes -->
+        <!-- Native Auth Callback handled in WebAuthenticatorActivity.cs attributes -->
 
     </application>
     

@@ -1,20 +1,23 @@
 using Android.App;
 using Android.Content;
 using Android.OS;
+using Android.Runtime;
 using Khadamat.MobileApp.Services;
 
-namespace Khadamat.MobileApp.Platforms.Android;
+namespace Khadamat.MobileApp;
 
-/// <summary>
-/// Handles deep links of the form:
-///   khadamat://service/120
-///   khadamat://category/5
-///   https://khadamat.com/service/120
-/// 
-/// Registered in AndroidManifest.xml with intent-filters for scheme "khadamat" and host "khadamat.com".
-/// Uses DeepLinkBridge to forward the URI into Blazor's NavigationManager.
-/// </summary>
+[Register("com.khadamat.app.DeepLinkActivity")]
 [Activity(NoHistory = true, LaunchMode = global::Android.Content.PM.LaunchMode.SingleTask, Exported = true)]
+[IntentFilter(new[] { Intent.ActionView }, 
+    Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable }, 
+    DataScheme = "khadamat", 
+    DataHost = "*", 
+    AutoVerify = true)]
+[IntentFilter(new[] { Intent.ActionView }, 
+    Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable }, 
+    DataScheme = "https", 
+    DataHost = "jobsek.eis-dev.com", 
+    AutoVerify = true)]
 public class DeepLinkActivity : Activity
 {
     protected override void OnCreate(Bundle? savedInstanceState)

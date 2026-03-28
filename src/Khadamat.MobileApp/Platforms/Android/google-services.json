@@ -1,13 +1,13 @@
 {
     "project_info": {
-        "project_number": "123456789",
-        "project_id": "khadamat-dummy",
-        "storage_bucket": "khadamat-dummy.appspot.com"
+        "project_number": "000000000000",
+        "project_id": "khadamat-dummy-project",
+        "storage_bucket": "khadamat-dummy-project.appspot.com"
     },
     "client": [
         {
             "client_info": {
-                "mobilesdk_app_id": "1:123456789:android:12345",
+                "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
                 "android_client_info": {
                     "package_name": "com.khadamat.app"
                 }
@@ -15,7 +15,7 @@
             "oauth_client": [],
             "api_key": [
                 {
-                    "current_key": "dummy-key"
+                    "current_key": "AIzaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
                 }
             ],
             "services": {

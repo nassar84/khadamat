@@ -11,6 +11,44 @@
     FlyoutBehavior="Flyout"
     FlowDirection="RightToLeft">
 
+    <Shell.Resources>
+        <ResourceDictionary>
+            <Style TargetType="Label" Class="FlyoutItemLabel">
+                <Setter Property="TextColor" Value="#0f172a" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="FontSize" Value="15" />
+                <Setter Property="VerticalOptions" Value="Center" />
+                <Setter Property="Margin" Value="10,0" />
+            </Style>
+        </ResourceDictionary>
+    </Shell.Resources>
+
+    <Shell.ItemTemplate>
+        <DataTemplate x:DataType="BaseShellItem">
+            <Grid HeightRequest="50" Padding="20,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="30" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Image Source="{Binding Icon}" HeightRequest="20" WidthRequest="20" HorizontalOptions="Center" VerticalOptions="Center" />
+                <Label Grid.Column="1" Text="{Binding Title}" StyleClass="FlyoutItemLabel" />
+            </Grid>
+        </DataTemplate>
+    </Shell.ItemTemplate>
+
+    <Shell.MenuItemTemplate>
+        <DataTemplate x:DataType="MenuItem">
+            <Grid HeightRequest="50" Padding="20,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="30" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Image Source="{Binding IconImageSource}" HeightRequest="20" WidthRequest="20" HorizontalOptions="Center" VerticalOptions="Center" />
+                <Label Grid.Column="1" Text="{Binding Text}" StyleClass="FlyoutItemLabel" />
+            </Grid>
+        </DataTemplate>
+    </Shell.MenuItemTemplate>
+
     <Shell.TitleView>
         <Grid Padding="10,0" VerticalOptions="Fill">
             <Grid.ColumnDefinitions>
@@ -120,88 +158,105 @@
     </Shell.FlyoutFooter>
 
     <TabBar x:Name="MainTabBar">
-        
-        <Tab Title="الرئيسية" Route="HomePage">
-            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F3E0;" /></Tab.Icon>
-            <ShellContent ContentTemplate="{DataTemplate views:HomePage}" />
-        </Tab>
-
         <Tab Title="المتجر" Route="MarketplacePage">
             <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F6CD;" /></Tab.Icon>
             <ShellContent ContentTemplate="{DataTemplate views:MarketplacePage}" />
         </Tab>
-        
-        <Tab Title="أضف إعلان" Route="PostServicePage">
-            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2795;" Color="{DynamicResource Primary}" /></Tab.Icon>
-            <ShellContent ContentTemplate="{DataTemplate views:PostServicePage}" />
+        <Tab Title="المفضلة" Route="FavoritesPage">
+             <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2764;" /></Tab.Icon>
+             <ShellContent ContentTemplate="{DataTemplate views:FavoritesPage}" />
         </Tab>
-
-        <!-- Unauthenticated Specific Tabs -->
-        <Tab Title="المفضلة" Route="FavoritesTab">
-            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2764;" /></Tab.Icon>
-            <ShellContent ContentTemplate="{DataTemplate views:FavoritesPage}" />
+        <Tab Title="الرئيسية" Route="HomePage">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F3E0;" /></Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:HomePage}" />
         </Tab>
-        <Tab Title="دخول" Route="GuestProfilePage" IsVisible="{Binding IsNotAuthenticated}">
+        <Tab Title="الرسائل" Route="MessagesPage">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4AC;" /></Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:MessagesPage}" />
+        </Tab>
+        <Tab Title="{Binding UserTitle}" Route="ProfileTab">
             <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F464;" /></Tab.Icon>
-            <ShellContent ContentTemplate="{DataTemplate views:LoginPage}" />
-        </Tab>
-
-        <!-- Authenticated Specific Tabs -->
-        <Tab Title="{Binding UserTitle}" Route="AuthProfilePage" IsVisible="{Binding IsAuthenticated}">
-            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F468;" /></Tab.Icon>
-            <ShellContent ContentTemplate="{DataTemplate views:ProfilePage}" />
-        </Tab>
-
-        <!-- Extra Hidden Pages -->
-        <!-- We use standalone routes for these via AppPages -->
-
-        <Tab Title="خدماتي" Route="MyServicesPage" IsVisible="False">
-            <ShellContent ContentTemplate="{DataTemplate views:MyServicesPage}" />
-        </Tab>
-        <Tab Title="الإعدادات" Route="SettingsPage" IsVisible="False">
-            <ShellContent ContentTemplate="{DataTemplate views:SettingsPage}" />
+            <ShellContent Title="الملف الشخصي" ContentTemplate="{DataTemplate views:ProfilePage}" IsVisible="{Binding IsAuthenticated}" />
+            <ShellContent Title="تسجيل الدخول" ContentTemplate="{DataTemplate views:LoginPage}" IsVisible="{Binding IsNotAuthenticated}" />
         </Tab>
     </TabBar>
 
-    <!-- Side Menu (Flyout) Navigation -->
+    <!-- Side Menu (Flyout) Navigation Groups -->
+    
     <!-- ==== الاستكشاف ==== -->
-    <MenuItem Text="الرئيسية" Command="{Binding NavigateCommand}" CommandParameter="//HomePage" IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F3E0;', Color='#0f172a'}" />
-    <MenuItem Text="التصنيفات" Command="{Binding NavigateCommand}" CommandParameter="categories" IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F4C2;', Color='#0f172a'}" />
-    <MenuItem Text="المتجر" Command="{Binding NavigateCommand}" CommandParameter="//MarketplacePage" IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F6CD;', Color='#0f172a'}" />
+    <FlyoutItem Title="الرئيسية" FlyoutDisplayOptions="AsSingleItem">
+        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F3E0;" Color="#0f172a" /></FlyoutItem.Icon>
+        <ShellContent ContentTemplate="{DataTemplate views:HomePage}" />
+    </FlyoutItem>
 
-    <!-- ==== نشاطاتي ==== -->
-    <MenuItem Text="إعلاناتي / خدماتي" 
-              Command="{Binding NavigateCommand}" 
-              CommandParameter="provider/dashboard" 
-              IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F4BC;', Color='#0f172a'}" />
-    <MenuItem Text="المفضلة" 
-              Command="{Binding NavigateCommand}" 
-              CommandParameter="favorites" 
-              IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x2764;', Color='#0f172a'}" />
-    <MenuItem Text="الرسائل" 
-              Command="{Binding NavigateCommand}" 
-              CommandParameter="messages" 
-              IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F4AC;', Color='#0f172a'}" />
+    <FlyoutItem Title="التصنيفات" FlyoutDisplayOptions="AsSingleItem">
+        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4C2;" Color="#0f172a" /></FlyoutItem.Icon>
+        <ShellContent ContentTemplate="{DataTemplate views:CategoriesPage}" />
+    </FlyoutItem>
 
-    <!-- ==== الإدارة ==== -->
-    <MenuItem Text="لوحة المدير" 
-              Command="{Binding NavigateCommand}" 
-              CommandParameter="admin" 
-              IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F6E1;', Color='#0f172a'}" />
-    <MenuItem Text="إدارة الإعلانات" 
-              Command="{Binding NavigateCommand}" 
-              CommandParameter="admin/ads" 
-              IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F4DC;', Color='#0f172a'}" />
+    <FlyoutItem Title="المتجر" FlyoutDisplayOptions="AsSingleItem">
+        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F6CD;" Color="#0f172a" /></FlyoutItem.Icon>
+        <ShellContent ContentTemplate="{DataTemplate views:MarketplacePage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="أضف إعلان" FlyoutDisplayOptions="AsSingleItem">
+        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2795;" Color="#0f172a" /></FlyoutItem.Icon>
+        <ShellContent ContentTemplate="{DataTemplate views:PostServicePage}" />
+    </FlyoutItem>
+
+    <!-- ==== نشاطاتي (Visible Only if Authenticated) ==== -->
+    <FlyoutItem Title="إعلاناتي" IsVisible="{Binding IsAuthenticated}" FlyoutDisplayOptions="AsSingleItem">
+        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4BC;" Color="#0f172a" /></FlyoutItem.Icon>
+        <ShellContent ContentTemplate="{DataTemplate views:MyServicesPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="خدماتي" IsVisible="{Binding IsAuthenticated}" FlyoutDisplayOptions="AsSingleItem">
+        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2705;" Color="#0f172a" /></FlyoutItem.Icon>
+        <ShellContent ContentTemplate="{DataTemplate views:ServicesPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="المفضلة" IsVisible="{Binding IsAuthenticated}" FlyoutDisplayOptions="AsSingleItem">
+        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2764;" Color="#0f172a" /></FlyoutItem.Icon>
+        <ShellContent ContentTemplate="{DataTemplate views:FavoritesPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="الرسائل" IsVisible="{Binding IsAuthenticated}" FlyoutDisplayOptions="AsSingleItem">
+        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4AC;" Color="#0f172a" /></FlyoutItem.Icon>
+        <ShellContent ContentTemplate="{DataTemplate views:MessagesPage}" />
+    </FlyoutItem>
+
+    <!-- ==== الإدارة (Visible Only if Admin) ==== -->
+    <FlyoutItem Title="لوحة المدير" IsVisible="{Binding IsAdmin}" FlyoutDisplayOptions="AsSingleItem">
+        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F6E1;" Color="#0f172a" /></FlyoutItem.Icon>
+        <ShellContent ContentTemplate="{DataTemplate views:AdminPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="إدارة الإعلانات" IsVisible="{Binding IsAdmin}" FlyoutDisplayOptions="AsSingleItem">
+        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4DC;" Color="#0f172a" /></FlyoutItem.Icon>
+        <ShellContent ContentTemplate="{DataTemplate views:AdminAdsPage}" />
+    </FlyoutItem>
 
     <!-- Visual Separator -->
     <MenuItem Text="━━━━━━━━━━━━" IsEnabled="False" />
 
     <!-- ==== النظام ==== -->
-    <MenuItem Text="الإعدادات" Command="{Binding NavigateCommand}" CommandParameter="settings" IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x2699;', Color='#0f172a'}" />
-    <MenuItem Text="الدعم والمساعدة" Command="{Binding NavigateCommand}" CommandParameter="support" IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F198;', Color='#0f172a'}" />
-    <MenuItem Text="الشروط والأحكام" Command="{Binding NavigateCommand}" CommandParameter="terms" IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F4DC;', Color='#0f172a'}" />
+    <FlyoutItem Title="الإعدادات" IsVisible="{Binding IsAuthenticated}" FlyoutDisplayOptions="AsSingleItem">
+        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2699;" Color="#0f172a" /></FlyoutItem.Icon>
+        <ShellContent ContentTemplate="{DataTemplate views:SettingsPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="الدعم والمساعدة" FlyoutDisplayOptions="AsSingleItem">
+        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F198;" Color="#0f172a" /></FlyoutItem.Icon>
+        <ShellContent ContentTemplate="{DataTemplate views:SupportPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="الشروط والأحكام" FlyoutDisplayOptions="AsSingleItem">
+        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4DC;" Color="#0f172a" /></FlyoutItem.Icon>
+        <ShellContent ContentTemplate="{DataTemplate views:TermsPage}" />
+    </FlyoutItem>
+
     <MenuItem Text="تحديث التطبيق" Command="{Binding RefreshCommand}" IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1f504;', Color='#0f172a'}" />
     
-    <!-- Logout is now in FlyoutFooter for better UI -->
+    <!-- Logout is in FlyoutFooter -->
 
 </Shell>

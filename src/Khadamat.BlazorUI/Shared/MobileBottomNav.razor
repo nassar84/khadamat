@@ -29,11 +29,6 @@
 }
 else
 {
-    <button class="nav-item @GetActiveClass("/")" @onclick='() => Navigate("/")'>
-        <i class="fa-solid fa-house"></i>
-        <span>الرئيسية</span>
-    </button>
-    
     <button class="nav-item @GetActiveClass("/categories")" @onclick='() => Navigate("/categories")'>
         <i class="fa-solid fa-th-large"></i>
         <span>الأقسام</span>
@@ -45,6 +40,13 @@ else
             <span class="store-pulse-ring"></span>
         </span>
         <span>المتجر</span>
+    </button>
+
+    <button class="nav-item home-nav-btn @GetActiveClass("/")" @onclick='() => Navigate("/")'>
+        <div class="home-icon-container">
+            <i class="fa-solid fa-house"></i>
+        </div>
+        <span>الرئيسية</span>
     </button>
     
     @if (State.IsProvider)
@@ -64,19 +66,13 @@ else
     
     <AuthorizeView>
         <Authorized>
-            <div class="nav-item-account-group">
-                <button class="nav-item @GetActiveClass("/profile")" @onclick='() => Navigate("/profile")'>
-                    <div class="nav-avatar-wrapper">
-                        <img src="@State.UserImageUrl" class="nav-user-avatar" alt="User" />
-                        <div class="online-dot-mini"></div>
-                    </div>
-                    <span>@GetFirstName(State.UserName)</span>
-                </button>
-                <button class="nav-item logout-btn-mini" @onclick="HandleLogout">
-                    <i class="fa-solid fa-power-off"></i>
-                    <span>خروج</span>
-                </button>
-            </div>
+            <button class="nav-item @GetActiveClass("/profile")" @onclick='() => Navigate("/profile")'>
+                <div class="nav-avatar-wrapper">
+                    <img src="@State.UserImageUrl" class="nav-user-avatar" alt="User" />
+                    <div class="online-dot-mini"></div>
+                </div>
+                <span>@GetFirstName(State.UserName)</span>
+            </button>
         </Authorized>
         <NotAuthorized>
             <button class="nav-item @GetActiveClass("/login")" @onclick='() => Navigate("/login")'>
@@ -191,32 +187,41 @@ else
         background: rgba(245, 158, 11, 0.2);
     }
 
-    .store-anim {
-        animation: store-bounce 2s infinite ease-in-out;
+    /* Home Button Prominent Style */
+    .home-nav-btn {
+        margin-top: -30px;
+        z-index: 10;
+        background: none !important;
     }
 
-    .store-pulse-ring {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 45px;
-        height: 45px;
-        background: radial-gradient(circle, rgba(245, 158, 11, 0.3) 0%, transparent 70%);
+    .home-icon-container {
+        width: 54px;
+        height: 54px;
+        background: linear-gradient(135deg, var(--theme-primary, #3b82f6), var(--theme-secondary, #2563eb));
         border-radius: 50%;
-        z-index: -1;
-        animation: store-pulse 2s infinite;
-        pointer-events: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 20px var(--theme-glow, rgba(59, 130, 246, 0.4));
+        border: 4px solid white;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    @@keyframes store-bounce {
-        0%, 100% { transform: translateY(0) scale(1); }
-        50% { transform: translateY(-3px) scale(1.1); }
+    .home-nav-btn.active .home-icon-container {
+        transform: scale(1.1) translateY(-5px);
+        box-shadow: 0 12px 25px var(--theme-glow);
     }
 
-    @@keyframes store-pulse {
-        0% { transform: translate(-50%, -50%) scale(0.6); opacity: 0.8; }
-        100% { transform: translate(-50%, -50%) scale(1.3); opacity: 0; }
+    .home-icon-container i {
+        color: white !important;
+        font-size: 1.5rem !important;
+        filter: none !important;
+    }
+
+    .home-nav-btn span {
+        margin-top: 2px;
+        font-weight: 800 !important;
+        color: var(--theme-primary, #3b82f6) !important;
     }
 
     /* Safe area for notched devices */

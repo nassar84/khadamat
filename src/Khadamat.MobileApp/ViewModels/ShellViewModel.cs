@@ -13,6 +13,24 @@ public partial class ShellViewModel : ObservableObject
     private string appName = "خدماوي";
 
     [ObservableProperty]
+    private string appNameAr = "خدماوي";
+
+    [ObservableProperty]
+    private string appNameEn = "Khadamawi";
+
+    // Sound filenames
+    [ObservableProperty]
+    private string? openAppSound;
+    [ObservableProperty]
+    private string? findServiceSound;
+    [ObservableProperty]
+    private string? openDetailsSound;
+    [ObservableProperty]
+    private string? messageReceivedSound;
+    [ObservableProperty]
+    private string? notificationReceivedSound;
+
+    [ObservableProperty]
     private string appLogo = "app_logo.png";
 
     [ObservableProperty]
@@ -85,23 +103,24 @@ public partial class ShellViewModel : ObservableObject
             return;
         }
         else if (route == "profile")
-            route = IsAuthenticated ? "//AuthProfilePage" : "//GuestProfilePage";
+            route = "//ProfileTab";
         else if (route == "favorites")
-            route = "//FavoritesTab";
+            route = IsAuthenticated ? "favorites" : "//ProfileTab";
         else if (route == "messages")
-            route = IsAuthenticated ? "//MessagesPage" : "//GuestProfilePage"; // Need login for auth
+            route = IsAuthenticated ? "messages" : "//ProfileTab";
         else if (route == "provider/dashboard")
-            route = IsAuthenticated ? "//HomePage?route=provider/dashboard" : "//GuestProfilePage";
+            route = IsAuthenticated ? "provider/dashboard" : "//ProfileTab";
+        else if (route == "my-services")
+            route = IsAuthenticated ? "my-services" : "//ProfileTab";
         else if (route == "settings")
-            route = IsAuthenticated ? "//SettingsPage" : "//GuestProfilePage";
+            route = IsAuthenticated ? "settings" : "//ProfileTab";
         else if (route == "explore")
             route = "//HomePage?route=explore";
         else if (route == "categories")
             route = "//HomePage?route=categories";
         else if (route == "support")
         {
-            // Just use the WebContainer with specific route?
-            await Shell.Current.GoToAsync($"//HomePage?route=contact"); // or register generic route
+            await Shell.Current.GoToAsync($"//HomePage?route=contact"); 
             return;
         }
         else if (route == "notifications" || route == "search")
@@ -220,10 +239,34 @@ public partial class ShellViewModel : ObservableObject
             if (response?.Success == true && response.Data != null)
             {
                 AppName = response.Data.ApplicationName;
+                AppNameAr = response.Data.ApplicationNameAr;
+                AppNameEn = response.Data.ApplicationNameEn;
                 
+                OpenAppSound = response.Data.OpenAppSound;
+                FindServiceSound = response.Data.FindServiceSound;
+                OpenDetailsSound = response.Data.OpenDetailsSound;
+                MessageReceivedSound = response.Data.MessageReceivedSound;
+                NotificationReceivedSound = response.Data.NotificationReceivedSound;
+
                 if (!string.IsNullOrEmpty(response.Data.WelcomeMessage))
                 {
                     AppSlogan = response.Data.WelcomeMessage;
+                }
+
+                if (!string.IsNullOrEmpty(response.Data.PrimaryColor) && Microsoft.Maui.Controls.Application.Current != null)
+                {
+                    try
+                    {
+                        var primaryColor = Color.FromArgb(response.Data.PrimaryColor);
+                        Microsoft.Maui.Controls.Application.Current.Resources["Primary"] = primaryColor;
+                        
+                        if (!string.IsNullOrEmpty(response.Data.SecondaryColor))
+                        {
+                            var secondaryColor = Color.FromArgb(response.Data.SecondaryColor);
+                            Microsoft.Maui.Controls.Application.Current.Resources["Secondary"] = secondaryColor;
+                        }
+                    }
+                    catch { }
                 }
 
                 if (!string.IsNullOrEmpty(response.Data.LogoUrl))

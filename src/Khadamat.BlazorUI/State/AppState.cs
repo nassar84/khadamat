@@ -67,9 +67,18 @@ public class AppState
 
     // Global Settings
     public string AppName { get; set; } = "خدمات";
+    public string AppNameAr { get; set; } = "خدمات";
+    public string AppNameEn { get; set; } = "Khadamawi";
     public string AppLogo { get; set; } = "";
     public string PrimaryColor { get; set; } = "#6366f1";
     public string SecondaryColor { get; set; } = "#a855f7";
+
+    // Sound Settings
+    public string? OpenAppSound { get; set; }
+    public string? FindServiceSound { get; set; }
+    public string? OpenDetailsSound { get; set; }
+    public string? MessageReceivedSound { get; set; }
+    public string? NotificationReceivedSound { get; set; }
    // UI State
     public bool IsSidebarOpen { get; set; }
     private bool _isMobileApp;

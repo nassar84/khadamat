@@ -17,7 +17,7 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.1")
+                .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -699,7 +699,23 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.Property<bool>("AllowUserRegistration")
                         .HasColumnType("bit");
 
+                    b.Property<string>("ApkFilename")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ApkIconUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("ApplicationName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ApplicationNameAr")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ApplicationNameEn")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -727,6 +743,10 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("FacebookUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FindServiceSound")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -758,6 +778,22 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("MaxServicesPerProvider")
                         .HasColumnType("int");
+
+                    b.Property<string>("MessageReceivedSound")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NotificationReceivedSound")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OpenAppSound")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OpenDetailsSound")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PrimaryColor")
                         .IsRequired()

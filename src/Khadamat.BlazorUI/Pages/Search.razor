@@ -118,6 +118,8 @@
     }
 </style>
 
+@inject Khadamat.BlazorUI.Services.SoundService SoundService
+
 @code {
     private string? currentQuery;
     private List<ServiceDto>? results;
@@ -140,6 +142,7 @@
     {
         if (string.IsNullOrWhiteSpace(term)) return;
         
+        _ = SoundService.PlayFindServiceAsync();
         currentQuery = term;
         results = null;
 

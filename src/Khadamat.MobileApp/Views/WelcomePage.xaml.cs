@@ -12,17 +12,19 @@ namespace Khadamat.MobileApp.Views
     public partial class WelcomePage : ContentPage
     {
         private readonly AppShell _shell;
+        private readonly IAudioService _audioService;
         private readonly IAudioManager _audioManager;
         private readonly IExternalAuthService _externalAuth;
         private readonly IConfiguration _configuration;
 
-        public WelcomePage(AppShell shell, IAudioManager audioManager, IExternalAuthService externalAuth, IConfiguration configuration)
+        public WelcomePage(AppShell shell, IAudioManager audioManager, IExternalAuthService externalAuth, IConfiguration configuration, IAudioService audioService)
         {
             InitializeComponent();
             _shell = shell;
             _audioManager = audioManager;
             _externalAuth = externalAuth;
             _configuration = configuration;
+            _audioService = audioService;
             BindingContext = _shell.BindingContext;
         }
 
@@ -69,16 +71,70 @@ namespace Khadamat.MobileApp.Views
         protected override async void OnAppearing()
         {
             base.OnAppearing();
-            try 
+            
+            // Check connectivity and reachability of the API on startup
+            await CheckApiConnection();
+            
+            // Load Settings and play startup sound
+            if (_shell.BindingContext is ViewModels.ShellViewModel vm)
             {
-                var player = _audioManager.CreatePlayer(await FileSystem.OpenAppPackageFileAsync("startup_sound.mp3"));
-                player.Play();
+                await vm.LoadSettingsAsync();
+                if (!string.IsNullOrEmpty(vm.OpenAppSound))
+                {
+                    await _audioService.PlaySoundAsync(vm.OpenAppSound);
+                }
             }
-            catch { /* File might be missing */ }
+        }
+
+        private async Task CheckApiConnection()
+        {
+            try
+            {
+                var apiBaseUrl = _configuration["ApiSettings:BaseUrl"] ?? "https://jobsek.eis-dev.com";
+                Console.WriteLine($"ANTIGRAVITY_LOG: Testing connectivity to: {apiBaseUrl}");
+                
+                using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+                var response = await client.GetAsync($"{apiBaseUrl.TrimEnd('/')}/v1/settings");
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine("ANTIGRAVITY_LOG: API is REACHABLE! (Success)");
+                }
+                else
+                {
+                    Console.WriteLine($"ANTIGRAVITY_LOG: [WARNING] API response was {response.StatusCode} for URL {apiBaseUrl}");
+                    // Do not show error to user immediately, maybe it's fine for some cases, 
+                    // but log it extensively.
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ANTIGRAVITY_LOG: [ERROR] API UNREACHABLE: {ex.Message}");
+                // This is critical. Might be wrong URL or no internet.
+                await DisplayAlert("تنبيه الاتصال", 
+                    "لا يمكن الوصول إلى السيرفر حالياً. قد يؤثر هذا على عمل التطبيق.", 
+                    "موافق");
+            }
         }
 
         public AppShell GetShell() => _shell;
         public AppShell AppShellInstance => _shell;
+
+        private async void OnDevSettingsTriggered(object sender, EventArgs e)
+        {
+            string currentUrl = Preferences.Default.Get("WebAppBaseUrl", "http://10.0.2.2:5144");
+            string result = await DisplayPromptAsync("إعدادات المطور", 
+                "أدخل عنوان الـ IP الخاص بجهازك (مثلاً 192.168.1.5:5144):", 
+                "حفظ", "إلغاء", 
+                "http://", 200, Keyboard.Url, currentUrl);
+
+            if (!string.IsNullOrWhiteSpace(result))
+            {
+                if (!result.StartsWith("http")) result = "http://" + result;
+                Preferences.Default.Set("WebAppBaseUrl", result);
+                await DisplayAlert("نجاح", "تم حفظ الإعدادات. سيتم استخدام العنوان الجديد عند بدء التطبيق.", "تم");
+            }
+        }
 
         private async void OnTermsClicked(object sender, EventArgs e)
         {

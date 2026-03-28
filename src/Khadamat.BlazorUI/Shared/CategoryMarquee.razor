@@ -34,9 +34,9 @@ else
                         <div class="category-shape-wrapper">
                             @if (!string.IsNullOrEmpty(c.ImageUrl))
                             {
-                                <img src="/images/maincategories/@c.ImageUrl"
+                                <img src="@Api.GetAbsoluteUrl(c.ImageUrl ?? "images/maincategories/default.jpg")"
                                      class="cat-img" alt="@c.Name"
-                                     onerror="this.onerror=null;this.src='/images/maincategories/default.jpg';" />
+                                     onerror="this.onerror=null;this.src='/images/maincategories/default.jpg';" loading="lazy" />
                             }
                             else if (!string.IsNullOrEmpty(c.Icon))
                             {
@@ -60,9 +60,9 @@ else
                         <div class="category-shape-wrapper">
                             @if (!string.IsNullOrEmpty(c.ImageUrl))
                             {
-                                <img src="/images/maincategories/@c.ImageUrl"
+                                <img src="@Api.GetAbsoluteUrl(c.ImageUrl ?? "images/maincategories/default.jpg")"
                                      class="cat-img" alt="@c.Name"
-                                     onerror="this.onerror=null;this.src='/images/maincategories/default.jpg';" />
+                                     onerror="this.onerror=null;this.src='/images/maincategories/default.jpg';" loading="lazy" />
                             }
                             else if (!string.IsNullOrEmpty(c.Icon))
                             {

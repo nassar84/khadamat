@@ -201,6 +201,11 @@ public partial class WebContainerPage : ContentPage
                     }
 
                     vm.SetAuthenticated(true, name, image, isAdmin, isProvider);
+                    
+                    // Force navigation to Home page after a successful login to refresh the UI
+                    MainThread.BeginInvokeOnMainThread(async () => {
+                        await Shell.Current.GoToAsync("//HomePage");
+                    });
                 }
             }
             else if (url.Contains("auth_logout"))

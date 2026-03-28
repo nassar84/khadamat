@@ -78,15 +78,7 @@
             @for (int i = 0; i < 6; i++)
             {
                 <div class="col-12 col-md-6 mb-3">
-                    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden bg-white">
-                        <div class="d-flex p-3">
-                            <div class="skeleton-box" style="width: 70px; height: 70px; border-radius: 50%; min-width: 70px;"></div>
-                            <div class="ms-3 flex-grow-1 py-1">
-                                <div class="skeleton-box rounded-pill mb-2" style="height: 18px; width: 80%;"></div>
-                                <div class="skeleton-box rounded-pill" style="height: 14px; width: 50%;"></div>
-                            </div>
-                        </div>
-                    </div>
+                    <Khadamat.BlazorUI.Shared.SkeletonLoader Type="card" Count="1" />
                 </div>
             }
         }

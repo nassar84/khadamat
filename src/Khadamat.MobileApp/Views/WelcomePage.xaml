@@ -32,7 +32,11 @@
                            FontAttributes="Bold" 
                            TextColor="White" 
                            HorizontalOptions="Center" 
-                           FontFamily="OpenSansRegular" />
+                           FontFamily="OpenSansRegular">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer NumberOfTapsRequired="5" Tapped="OnDevSettingsTriggered" />
+                        </Label.GestureRecognizers>
+                    </Label>
                     <Label Text="خدماتك في مكان واحد.. لكل المصريين" 
                            FontSize="16" 
                            TextColor="#94a3b8" 

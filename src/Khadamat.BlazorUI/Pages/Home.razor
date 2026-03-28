@@ -718,9 +718,14 @@
     {
         try 
         {
-            // 1. Instant Load from Cache (Offline-First)
-            var cachedServices = await OfflineData.GetServicesAsync();
-            var cachedCats = await OfflineData.GetMainCategoriesAsync();
+            // 1. Instant Load from Cache (Offline-First) - Parallelized
+            var cacheServicesTask = OfflineData.GetServicesAsync();
+            var cacheCatsTask = OfflineData.GetMainCategoriesAsync();
+            
+            await Task.WhenAll(cacheServicesTask, cacheCatsTask);
+            
+            var cachedServices = cacheServicesTask.Result;
+            var cachedCats = cacheCatsTask.Result;
             
             if (cachedServices != null && cachedServices.Any())
             {
@@ -732,7 +737,7 @@
                 mainCategories = cachedCats;
             }
             
-            // Show cached data immediately
+            // Show cached data immediately if we have it
             if (featuredServices != null || mainCategories != null)
             {
                 await InvokeAsync(StateHasChanged);

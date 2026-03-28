@@ -33,10 +33,13 @@ public class SettingsController : ControllerBase
 
     [Authorize(Roles = "SuperAdmin")]
     [HttpPost("build-apk")]
-    public IActionResult BuildApk([FromBody] string newApiUrl)
+    public async Task<IActionResult> BuildApk([FromBody] string newApiUrl)
     {
         try
         {
+            var settings = await _settingsService.GetSettingsAsync();
+            var apkFilename = settings.Data?.ApkFilename ?? "khadamat.apk";
+
             var basePath = System.IO.Directory.GetCurrentDirectory();
             // Up to the src folder
             var srcPath = System.IO.Path.GetFullPath(System.IO.Path.Combine(basePath, ".."));
@@ -60,9 +63,9 @@ public class SettingsController : ControllerBase
             }
 
             // Create a background task to build and copy the APK
-            Task.Run(() =>
+            _ = Task.Run(() =>
             {
-                var processInfo = new System.Diagnostics.ProcessStartInfo("dotnet", "publish -f net9.0-android -c Release")
+                var processInfo = new System.Diagnostics.ProcessStartInfo("dotnet", "publish -f net8.0-android -c Release")
                 {
                     WorkingDirectory = mobileAppPath,
                     UseShellExecute = false,
@@ -77,14 +80,14 @@ public class SettingsController : ControllerBase
 
                     if (process.ExitCode == 0)
                     {
-                        var apkSourceDir = System.IO.Path.Combine(mobileAppPath, "bin", "Release", "net9.0-android");
+                        var apkSourceDir = System.IO.Path.Combine(mobileAppPath, "bin", "Release", "net8.0-android");
                         var apkFile = System.IO.Directory.GetFiles(apkSourceDir, "*-Signed.apk", System.IO.SearchOption.AllDirectories).FirstOrDefault();
                         if (string.IsNullOrEmpty(apkFile))
                             apkFile = System.IO.Directory.GetFiles(apkSourceDir, "*.apk", System.IO.SearchOption.AllDirectories).FirstOrDefault();
 
                         if (!string.IsNullOrEmpty(apkFile))
                         {
-                            var targetPath = System.IO.Path.Combine(webApiWwwroot, "khadamat.apk");
+                            var targetPath = System.IO.Path.Combine(webApiWwwroot, apkFilename);
                             System.IO.File.Copy(apkFile, targetPath, true);
                         }
                     }
@@ -111,20 +114,23 @@ public class SettingsController : ControllerBase
 
         try
         {
+            var settings = await _settingsService.GetSettingsAsync();
+            var apkFilename = settings.Data?.ApkFilename ?? "khadamat.apk";
+
             var basePath = System.IO.Directory.GetCurrentDirectory();
             var webApiWwwroot = System.IO.Path.Combine(basePath, "wwwroot");
 
             if (!System.IO.Directory.Exists(webApiWwwroot))
                 System.IO.Directory.CreateDirectory(webApiWwwroot);
 
-            var filePath = System.IO.Path.Combine(webApiWwwroot, "khadamat.apk");
+            var filePath = System.IO.Path.Combine(webApiWwwroot, apkFilename);
 
             using (var stream = new System.IO.FileStream(filePath, System.IO.FileMode.Create))
             {
                 await file.CopyToAsync(stream);
             }
 
-            return Ok(new { success = true, message = "تم رفع ملف APK بنجاح ووضعه في رابط التحميل." });
+            return Ok(new { success = true, message = $"تم رفع ملف APK بنجاح ووضعه كـ {apkFilename} في رابط التحميل." });
         }
         catch (System.Exception ex)
         {

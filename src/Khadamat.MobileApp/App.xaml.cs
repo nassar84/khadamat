@@ -49,6 +49,8 @@ public partial class App : MauiApp
 
     protected override Window CreateWindow(IActivationState? activationState)
     {
-        return new Window(_welcomePage) { Title = "Khadamat" };
+        var window = new Window(_welcomePage) { Title = "Khadamat" };
+        window.FlowDirection = FlowDirection.RightToLeft;
+        return window;
     }
 }

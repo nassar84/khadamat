@@ -259,9 +259,18 @@
             if (settingsResult?.Success == true && settingsResult.Data != null)
             {
                 AppState.AppName = settingsResult.Data.ApplicationName;
+                AppState.AppNameAr = settingsResult.Data.ApplicationNameAr;
+                AppState.AppNameEn = settingsResult.Data.ApplicationNameEn;
                 AppState.AppLogo = settingsResult.Data.LogoUrl;
                 AppState.PrimaryColor = settingsResult.Data.PrimaryColor;
                 AppState.SecondaryColor = settingsResult.Data.SecondaryColor;
+
+                AppState.OpenAppSound = settingsResult.Data.OpenAppSound;
+                AppState.FindServiceSound = settingsResult.Data.FindServiceSound;
+                AppState.OpenDetailsSound = settingsResult.Data.OpenDetailsSound;
+                AppState.MessageReceivedSound = settingsResult.Data.MessageReceivedSound;
+                AppState.NotificationReceivedSound = settingsResult.Data.NotificationReceivedSound;
+
                 AppState.TriggerStateChanged();
                 
                 try { await JS.InvokeVoidAsync("updateWebDetails", AppState.AppName, AppState.AppLogo); } catch { }
@@ -347,14 +356,12 @@
                         // صوت الترحيب
                         await SoundService.PlayStartupAsync();
 
-                        // تأخير قبل إخفاء شاشة التحميل لضمان اكتمال الرسم
-                        await Task.Delay(500);
+                        // إخفاء شاشة التحميل (Splash Screen) بعد اكتمال كل شيء
                         await JS.InvokeVoidAsync("hideLoadingScreen");
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine($"ANTIGRAVITY_LOG: MainLayout Startup Error: {ex.Message}");
-                        try { await JS.InvokeVoidAsync("hideLoadingScreen"); } catch { }
                     }
                 });
             });

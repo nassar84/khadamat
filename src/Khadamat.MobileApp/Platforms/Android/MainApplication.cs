@@ -3,6 +3,7 @@ using Android.Runtime;
 
 namespace Khadamat.MobileApp;
 
+[Register("com.khadamat.app.MainApplication")]
 [Application]
 public class MainApplication : MauiApplication
 {

@@ -12,7 +12,7 @@
         <Nullable>enable</Nullable>
 
         <!-- Display name -->
-        <ApplicationTitle>خدمات</ApplicationTitle>
+        <ApplicationTitle>خدماوي</ApplicationTitle>
 
         <!-- App Identifier -->
         <ApplicationId>com.khadamat.app</ApplicationId>
@@ -28,7 +28,7 @@
         
         <!-- Fix for JAVA0000 R8/D8 Build errors -->
         <AndroidDexTool>d8</AndroidDexTool>
-        <AndroidEnableMultiDex>true</AndroidEnableMultiDex>
+        <AndroidEnableMultiDex>false</AndroidEnableMultiDex>
         
         <!-- Debug Configurations (No optimizations) -->
         <UseR8 Condition="'$(Configuration)' == 'Debug'">false</UseR8>
@@ -37,13 +37,17 @@
 
     </PropertyGroup>
 
-    <!-- Release Configurations (Maximum compression and optimizations) -->
+    <!-- Release Configurations (Maximum safety for startup) -->
     <PropertyGroup Condition="'$(Configuration)' == 'Release' and '$(TargetFramework)' == 'net8.0-android'">
+        <RuntimeIdentifiers>android-arm;android-arm64</RuntimeIdentifiers>
+        <AndroidSupportedAbis>armeabi-v7a;arm64-v8a</AndroidSupportedAbis>
         <UseR8>false</UseR8>
-        <AndroidLinkMode>SdkOnly</AndroidLinkMode>
+        <AndroidLinkMode>None</AndroidLinkMode>
         <PublishTrimmed>false</PublishTrimmed>
         <RunAOTCompilation>false</RunAOTCompilation>
         <AndroidPackageFormat>apk</AndroidPackageFormat>
+        <AndroidManagedSymbols>true</AndroidManagedSymbols>
+        <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -61,7 +65,7 @@
 
     <ItemGroup>
         <!-- App Icon -->
-        <MauiIcon Include="Resources\AppIcon\khadamat_icon.png" Color="#6366f1" />
+        <MauiIcon Include="Resources\AppIcon\khadamat_icon.png" Color="#FFFFFF" />
 
         <!-- Splash Screen -->
         <MauiSplashScreen Include="Resources\Splash\khadamat_splash.png" Color="#0f172a" />
@@ -116,4 +120,10 @@
         <ProjectReference Include="..\Khadamat.Shared\Khadamat.Shared.csproj" />
     </ItemGroup>
 
+    <Target Name="CreateAaptRules" AfterTargets="_MakeAaptRules" Condition="'$(TargetFramework)' == 'net8.0-android'">
+        <MakeDir Directories="$(IntermediateOutputPath)android\manifest\" Condition="!Exists('$(IntermediateOutputPath)android\manifest\')" />
+        <WriteLinesToFile File="$(IntermediateOutputPath)android\manifest\aapt_rules.txt" Lines=" " Overwrite="false" />
+    </Target>
+
 </Project>
+

@@ -65,52 +65,44 @@
                         <i class="fa-solid fa-heart"></i>
                         <span class="item-label">المفضلة</span>
                     </NavLink>
-                    <NavLink class="menu-item" href="/profile/my-ads">
-                        <i class="fa-solid fa-rectangle-ad" style="color: #f59e0b;"></i>
-                        <span class="item-label text-warning-emphasis fw-bold">إحصائيات إعلاناتي</span>
+                </div>
+            </Authorized>
+            <NotAuthorized>
+                <div class="menu-section auth-menu">
+                    <div class="section-label">انضم إلينا</div>
+                    <NavLink class="menu-item login-link" href="/login">
+                        <i class="fa-solid fa-sign-in-alt"></i>
+                        <span class="item-label">تسجيل الدخول</span>
+                    </NavLink>
+                    <NavLink class="menu-item register-link" href="/register">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <span class="item-label">إنشاء حساب</span>
                     </NavLink>
                 </div>
+            </NotAuthorized>
+        </AuthorizeView>
 
-                @if (State.IsProvider)
-                {
-                    <div class="menu-section">
-                        <div class="section-label">مزود الخدمة</div>
-                        <NavLink class="menu-item" href="/provider/dashboard">
-                            <i class="fa-solid fa-chart-line"></i>
-                            <span class="item-label">لوحة المزود</span>
-                        </NavLink>
-                        <NavLink class="menu-item" href="/provider/referrals">
-                            <i class="fa-solid fa-users-viewfinder text-primary"></i>
-                            <span class="item-label text-primary fw-bold">نظام الإحالة والنقاط</span>
-                        </NavLink>
-                        <NavLink class="menu-item" href="/provider/ad-analytics">
-                            <i class="fa-solid fa-chart-pie text-success"></i>
-                            <span class="item-label text-success fw-bold">إحصائيات الإعلانات</span>
-                        </NavLink>
-                    </div>
-                }
+        <AuthorizeView Roles="Provider">
+            <Authorized>
+                <div class="menu-section">
+                    <div class="section-label">مزود الخدمة</div>
+                    <NavLink class="menu-item" href="/provider/dashboard">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <span class="item-label">لوحة المزود</span>
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
 
-                <AuthorizeView Roles="SystemAdmin,SuperAdmin" Context="adminContext">
-                    <div class="menu-section">
-                        <div class="section-label">الإدارة</div>
-                        <NavLink class="menu-item" href="/admin">
-                            <i class="fa-solid fa-gauge-high"></i>
-                            <span class="item-label">لوحة المدير</span>
-                        </NavLink>
-                        <NavLink class="menu-item" href="/admin/ads">
-                            <i class="fa-solid fa-rectangle-ad"></i>
-                            <span class="item-label">إدارة الإعلانات</span>
-                        </NavLink>
-                        <NavLink class="menu-item" href="/admin/ad-analytics">
-                            <i class="fa-solid fa-chart-line text-success"></i>
-                            <span class="item-label">إحصائيات الإعلانات</span>
-                        </NavLink>
-                        <NavLink class="menu-item" href="/admin/ad-packages">
-                            <i class="fa-solid fa-gem text-info"></i>
-                            <span class="item-label text-info fw-bold">باقات الإعلانات</span>
-                        </NavLink>
-                    </div>
-                </AuthorizeView>
+        <AuthorizeView Roles="SystemAdmin,SuperAdmin">
+             <Authorized>
+                <div class="menu-section">
+                    <div class="section-label">الإدارة</div>
+                    <NavLink class="menu-item" href="/admin">
+                        <i class="fa-solid fa-gauge-high"></i>
+                        <span class="item-label">لوحة المدير</span>
+                    </NavLink>
+                </div>
             </Authorized>
         </AuthorizeView>
 
@@ -128,7 +120,7 @@
                 <div class="theme-info" @onclick='() => Navigation.NavigateTo("/profile")'>
                     <img src="@State.UserImageUrl" class="footer-avatar" />
                     <div class="footer-user-info">
-                        <div class="footer-user-name">@State.UserName</div>
+                        <div class="footer-user-name" title="@State.UserName">@State.UserName</div>
                         <div class="footer-user-role">@DisplayName</div>
                     </div>
                 </div>
@@ -142,7 +134,7 @@
         width: 280px;
         height: 100vh;
         background: var(--glass-bg);
-        border-left: 2px solid var(--glass-border);
+        border-left: 1px solid rgba(0,0,0,0.05);
         display: flex;
         flex-direction: column;
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -151,7 +143,7 @@
         z-index: 1001;
         backdrop-filter: blur(var(--glass-blur));
         -webkit-backdrop-filter: blur(var(--glass-blur));
-        box-shadow: var(--glass-shadow);
+        box-shadow: -4px 0 15px rgba(0,0,0,0.03);
     }
 
     .app-sidebar.collapsed {
@@ -232,13 +224,14 @@
     }
 
     .section-label {
-        font-size: 0.7rem;
+        font-size: 0.72rem;
         font-weight: 800;
         text-transform: uppercase;
-        color: #94a3b8;
-        margin-bottom: 10px;
+        color: #64748b;
+        margin-bottom: 12px;
         padding-right: 15px;
         transition: opacity 0.3s;
+        letter-spacing: 0.05em;
     }
 
     .collapsed .section-label {
@@ -251,11 +244,12 @@
         gap: 15px;
         padding: 12px 15px;
         border-radius: 14px;
-        color: #64748b;
+        color: #334155;
         text-decoration: none;
         transition: all 0.2s;
         margin-bottom: 5px;
         white-space: nowrap;
+        font-weight: 600;
     }
 
     .menu-item i {
@@ -267,7 +261,7 @@
     .menu-item:hover {
         background: var(--theme-light);
         color: var(--theme-primary);
-        transform: translateX(-5px);
+        transform: translateX(5px);
     }
 
     .menu-item.active {
