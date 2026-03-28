@@ -112,7 +112,9 @@ public class AuthService : IAuthService
                 var roles = string.Join(",", p.Roles);
                 var is_admin = p.Roles.Any(r => r == "SystemAdmin" || r == "SuperAdmin").ToString().ToLower();
                 var nativeData = $"name={p.UserName}&image={p.ImageUrl}&is_admin={is_admin}&is_provider={p.IsProvider.ToString().ToLower()}";
-                _ = NotifyNativeApp("auth_success", nativeData);
+                // Notify native app with full profile data ONLY if we just logged in (handled by Login/LoginWithToken)
+                // or if specifically requested. For background refresh, we skip it to avoid loops.
+                // _ = NotifyNativeApp("auth_success", nativeData);
             }
             return response!;
         }
@@ -170,7 +172,9 @@ public class AuthService : IAuthService
             // هذا كان يُطلق Full-App Re-render في نفس لحظة First Render مما يُسبب خطأ:
             // "No element is currently associated with component"
             
-            await NotifyNativeApp("auth_success");
+            // NotifyNativeApp is no longer needed here as it's triggered during login/registration
+            // and during app start we don't want to trigger a Shell navigation loop.
+            // await NotifyNativeApp("auth_success");
             
             // Try to load profile in background
             _ = GetProfileAsync();

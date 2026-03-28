@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:views="clr-namespace:Khadamat.MobileApp.Views"
     xmlns:viewModels="clr-namespace:Khadamat.MobileApp.ViewModels"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     x:DataType="viewModels:ShellViewModel"
     Title="{Binding AppName}"
     FlyoutBackgroundColor="#ffffff"
@@ -13,12 +14,25 @@
 
     <Shell.Resources>
         <ResourceDictionary>
+            <!-- Converters -->
+            <toolkit:BoolToObjectConverter x:Key="BooleanToColorConverter" 
+                                           TrueObject="#6366f1" 
+                                           FalseObject="#94a3b8" />
+
             <Style TargetType="Label" Class="FlyoutItemLabel">
                 <Setter Property="TextColor" Value="#0f172a" />
                 <Setter Property="FontAttributes" Value="Bold" />
                 <Setter Property="FontSize" Value="15" />
                 <Setter Property="VerticalOptions" Value="Center" />
                 <Setter Property="Margin" Value="10,0" />
+            </Style>
+
+            <!-- TabBar Styling for Glassmorphism-ish look -->
+            <Style TargetType="TabBar">
+                <Setter Property="Shell.TabBarBackgroundColor" Value="#F8FAFC" />
+                <Setter Property="Shell.TabBarForegroundColor" Value="{DynamicResource Primary}" />
+                <Setter Property="Shell.TabBarTitleColor" Value="{DynamicResource Primary}" />
+                <Setter Property="Shell.TabBarUnselectedColor" Value="#94a3b8" />
             </Style>
         </ResourceDictionary>
     </Shell.Resources>
@@ -158,26 +172,42 @@
     </Shell.FlyoutFooter>
 
     <TabBar x:Name="MainTabBar">
-        <Tab Title="المتجر" Route="MarketplacePage">
-            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F6CD;" /></Tab.Icon>
+        <!-- 1. Categories (th-large) - \uf009 -->
+        <Tab Title="الأقسام" Route="CategoriesPage" IsVisible="{Binding IsClientMode}">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4C2;" Color="{Binding IsClientMode, Converter={StaticResource BooleanToColorConverter}}" /></Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:CategoriesPage}" />
+        </Tab>
+
+        <!-- 2. Marketplace (store) - \uf54e -->
+        <Tab Title="المتجر" Route="MarketplacePage" IsVisible="{Binding IsClientMode}">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F6CD;" Color="#f59e0b" /></Tab.Icon>
             <ShellContent ContentTemplate="{DataTemplate views:MarketplacePage}" />
         </Tab>
-        <Tab Title="المفضلة" Route="FavoritesPage">
-             <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2764;" /></Tab.Icon>
-             <ShellContent ContentTemplate="{DataTemplate views:FavoritesPage}" />
-        </Tab>
+
+        <!-- 3. Home (house) - \uf015 (Prominent style in MAUI via contrast) -->
         <Tab Title="الرئيسية" Route="HomePage">
-            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F3E0;" /></Tab.Icon>
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F3E0;" Color="#6366f1" /></Tab.Icon>
             <ShellContent ContentTemplate="{DataTemplate views:HomePage}" />
         </Tab>
-        <Tab Title="الرسائل" Route="MessagesPage">
-            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4AC;" /></Tab.Icon>
-            <ShellContent ContentTemplate="{DataTemplate views:MessagesPage}" />
+
+        <!-- 4. Client: Favorites (heart) - \uf004 | Provider: My Services (briefcase) - \uf0b1 -->
+        <Tab Title="المفضلة" Route="FavoritesPage" IsVisible="{Binding IsClientMode}">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2764;" Color="#ef4444" /></Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:FavoritesPage}" />
         </Tab>
+        
+        <Tab Title="خدماتي" Route="MyServicesPage" IsVisible="{Binding IsProviderMode}">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4BC;" Color="#6366f1" /></Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:MyServicesPage}" />
+        </Tab>
+
+        <!-- 5. Profile/Account -->
         <Tab Title="{Binding UserTitle}" Route="ProfileTab">
-            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F464;" /></Tab.Icon>
-            <ShellContent Title="الملف الشخصي" ContentTemplate="{DataTemplate views:ProfilePage}" IsVisible="{Binding IsAuthenticated}" />
-            <ShellContent Title="تسجيل الدخول" ContentTemplate="{DataTemplate views:LoginPage}" IsVisible="{Binding IsNotAuthenticated}" />
+            <Tab.Icon>
+                <FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F464;" Color="#64748b" />
+            </Tab.Icon>
+            <ShellContent Title="الحساب" ContentTemplate="{DataTemplate views:ProfilePage}" IsVisible="{Binding IsAuthenticated}" />
+            <ShellContent Title="دخول" ContentTemplate="{DataTemplate views:LoginPage}" IsVisible="{Binding IsNotAuthenticated}" />
         </Tab>
     </TabBar>
 

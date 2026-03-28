@@ -53,3 +53,7 @@ logs/
 .config/
 temp_wasm/
 server_architecture_guide.md
+
+# Security
+*.keystore
+*.jks

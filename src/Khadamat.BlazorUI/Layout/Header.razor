@@ -20,6 +20,14 @@
             <span class="fw-bold fs-5 text-dark">@(string.IsNullOrEmpty(State.AppNameAr) ? State.AppName : State.AppNameAr)</span>
         </div>
 
+        <!-- Hamburger Menu (Resized Browser Only) -->
+        @if (!State.IsNativeApp)
+        {
+            <div class="icon-action-btn d-lg-none" @onclick="ToggleSidebar" title="القائمة" style="margin-right: -10px;">
+                <i class="fa-solid fa-bars-staggered" style="font-size: 1.2rem;"></i>
+            </div>
+        }
+
         
         <!-- Search Section (Expanded & Elegant) -->
         <div class="header-search-section flex-grow-1 d-flex align-items-center" style="max-width: 600px;">
@@ -798,6 +806,12 @@
     private bool isThemeMenuOpen = false;
     private bool isUserMenuOpen = false;
     private bool _disposed = false;
+
+    private void ToggleSidebar()
+    {
+        State.IsSidebarOpen = !State.IsSidebarOpen;
+        State.TriggerStateChanged();
+    }
     private string DisplayName => State.IsProvider ? "مزود خدمة" : "عميل";
     
     // Search

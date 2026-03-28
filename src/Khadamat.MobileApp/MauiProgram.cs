@@ -120,12 +120,19 @@ public static class MauiProgram
         AppDomain.CurrentDomain.UnhandledException += (_, e) =>
         {
             if (e.ExceptionObject is Exception ex)
-                Console.WriteLine($"[UNHANDLED] {ex.GetType().Name}: {ex.Message}");
+            {
+                var errorMsg = $"[FATAL] {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}";
+                Console.WriteLine(errorMsg);
+                // Save to Preferences so it can be viewed if the app survives a partial start
+                Preferences.Default.Set("LastStartupError", errorMsg);
+            }
         };
         TaskScheduler.UnobservedTaskException += (_, e) =>
         {
-            Console.WriteLine($"[UNOBSERVED TASK] {e.Exception.Message}");
-            e.SetObserved(); // Prevent app crash on unobserved task exceptions
+            var errorMsg = $"[UNOBSERVED TASK] {e.Exception.Message}";
+            Console.WriteLine(errorMsg);
+            Preferences.Default.Set("LastTaskError", errorMsg);
+            e.SetObserved(); 
         };
 
 

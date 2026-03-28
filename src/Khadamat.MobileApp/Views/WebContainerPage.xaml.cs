@@ -73,7 +73,7 @@ public partial class WebContainerPage : ContentPage
     private void LoadContent()
     {
         // Optional: Resolve base url from preferences or configuration if needed
-        string baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "http://10.0.2.2:5144");
+        string baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "https://jobsek.eis-dev.com");
 
         string routePart = !string.IsNullOrEmpty(DeepLinkRoute) ? DeepLinkRoute : (_route ?? "").TrimStart('/');
 
@@ -108,6 +108,13 @@ public partial class WebContainerPage : ContentPage
             url += url.Contains("?") ? $"&theme={savedTheme}" : $"?theme={savedTheme}";
         }
 
+        // Prevent reload if already on the same URL (especially for Home root)
+        if (MainWebView.Source is UrlWebViewSource current && current.Url == url)
+        {
+            Console.WriteLine($"ANTIGRAVITY_LOG: WebView already at target URL: {url}. Skipping reload.");
+            return;
+        }
+
         _currentUrl = url;
         Console.WriteLine($"ANTIGRAVITY_LOG: WebView loading URL: {url}");
         MainWebView.Source = new UrlWebViewSource { Url = url };
@@ -117,9 +124,11 @@ public partial class WebContainerPage : ContentPage
     {
         try
         {
-            if (MainWebView != null)
+            if (MainWebView != null && !string.IsNullOrEmpty(theme))
             {
-                await MainWebView.EvaluateJavaScriptAsync($"(function() {{ sessionStorage.setItem('theme', '{theme}'); window.setBodyTheme('{theme}'); }})();");
+                // Inject into sessionStorage and call the body theme helper defined in index.html
+                await MainWebView.EvaluateJavaScriptAsync($"(function() {{ sessionStorage.setItem('theme', '{theme}'); if (window.setBodyTheme) {{ window.setBodyTheme('{theme}'); }} else {{ document.body.setAttribute('data-theme', '{theme}'); }} }})();");
+                Console.WriteLine($"ANTIGRAVITY_LOG: Theme '{theme}' injected into WebView");
             }
         }
         catch (Exception ex)

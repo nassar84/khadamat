@@ -28,7 +28,7 @@
         
         <!-- Fix for JAVA0000 R8/D8 Build errors -->
         <AndroidDexTool>d8</AndroidDexTool>
-        <AndroidEnableMultiDex>false</AndroidEnableMultiDex>
+        <AndroidEnableMultiDex>true</AndroidEnableMultiDex>
         
         <!-- Debug Configurations (No optimizations) -->
         <UseR8 Condition="'$(Configuration)' == 'Debug'">false</UseR8>
@@ -40,7 +40,6 @@
     <!-- Release Configurations (Maximum safety for startup) -->
     <PropertyGroup Condition="'$(Configuration)' == 'Release' and '$(TargetFramework)' == 'net8.0-android'">
         <RuntimeIdentifiers>android-arm;android-arm64</RuntimeIdentifiers>
-        <AndroidSupportedAbis>armeabi-v7a;arm64-v8a</AndroidSupportedAbis>
         <UseR8>false</UseR8>
         <AndroidLinkMode>None</AndroidLinkMode>
         <PublishTrimmed>false</PublishTrimmed>
@@ -104,10 +103,6 @@
         <PackageReference Include="CommunityToolkit.Maui" Version="8.0.1" />
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
         
-        <!-- Notifications -->
-        <!-- Notifications -->
-        <!-- <PackageReference Include="Plugin.LocalNotification" Version="11.1.5" /> -->
-        
         <!-- Storage -->
         <PackageReference Include="Plugin.Fingerprint" Version="2.1.5" />
         <PackageReference Include="Plugin.Maui.Audio" Version="3.1.1" />
@@ -120,10 +115,4 @@
         <ProjectReference Include="..\Khadamat.Shared\Khadamat.Shared.csproj" />
     </ItemGroup>
 
-    <Target Name="CreateAaptRules" AfterTargets="_MakeAaptRules" Condition="'$(TargetFramework)' == 'net8.0-android'">
-        <MakeDir Directories="$(IntermediateOutputPath)android\manifest\" Condition="!Exists('$(IntermediateOutputPath)android\manifest\')" />
-        <WriteLinesToFile File="$(IntermediateOutputPath)android\manifest\aapt_rules.txt" Lines=" " Overwrite="false" />
-    </Target>
-
 </Project>
-

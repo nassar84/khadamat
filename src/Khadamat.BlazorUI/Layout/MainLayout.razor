@@ -5,13 +5,10 @@
 <div class="khadamat-app @(AppState.IsMobileApp ? "mobile-mode" : "") @(isSidebarCollapsed ? "collapsed" : "")" dir="rtl">
     @if (!AppState.IsNativeApp)
     {
+        <MobileSidebar />
         @if (!AppState.IsMobileApp)
         {
             <Sidebar @bind-IsCollapsed="isSidebarCollapsed" />
-        }
-        else
-        {
-            <MobileSidebar />
         }
     }
     

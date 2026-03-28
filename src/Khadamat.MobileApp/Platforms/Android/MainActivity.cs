@@ -1,4 +1,4 @@
-﻿using Android.App;
+using Android.App;
 using Android.Content.PM;
 using Android.OS;
 using Android.Runtime;
@@ -14,7 +14,14 @@ public class MainActivity : MauiAppCompatActivity
 {
     protected override void OnCreate(Bundle? savedInstanceState)
     {
-        base.OnCreate(savedInstanceState);
-        Plugin.Fingerprint.CrossFingerprint.SetCurrentActivityResolver(() => this);
+        try 
+        {
+            base.OnCreate(savedInstanceState);
+            Plugin.Fingerprint.CrossFingerprint.SetCurrentActivityResolver(() => this);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ANTIGRAVITY_LOG: [ERROR] MainActivity OnCreate: {ex.Message}");
+        }
     }
 }

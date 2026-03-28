@@ -54,11 +54,34 @@ public partial class ShellViewModel : ObservableObject
     [ObservableProperty]
     private bool isProvider = false;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsClientMode))]
+    private bool isProviderMode = false;
+
+    public bool IsClientMode => !IsProviderMode;
+
+    [RelayCommand]
+    private void ToggleMode()
+    {
+        if (!IsProvider) return;
+        IsProviderMode = !IsProviderMode;
+        
+        // Navigate based on mode
+        if (IsProviderMode)
+            _ = Shell.Current.GoToAsync("//HomePage?route=provider/dashboard");
+        else
+            _ = Shell.Current.GoToAsync("//HomePage");
+    }
+
     public void SetAuthenticated(bool value, string? name = null, string? image = null, bool admin = false, bool provider = false)
     {
         IsAuthenticated = value;
         IsAdmin = admin;
         IsProvider = provider;
+        
+        // Default to client mode on login unless they are only a provider? 
+        // We'll keep current mode or reset to Client for safety.
+        IsProviderMode = false; 
         
         if (value)
         {
@@ -83,6 +106,10 @@ public partial class ShellViewModel : ObservableObject
     {
         _httpClient = httpClient;
         _configuration = configuration;
+        
+        // Apply saved theme at startup
+        string savedTheme = Microsoft.Maui.Storage.Preferences.Default.Get("AppTheme", "default");
+        ApplyThemeResources(savedTheme);
     }
 
     [RelayCommand]
@@ -161,22 +188,7 @@ public partial class ShellViewModel : ObservableObject
         if (theme != null)
         {
             Microsoft.Maui.Storage.Preferences.Default.Set("AppTheme", theme);
-            
-            // Set the native app theme color
-            string primaryHex = theme switch
-            {
-                "sunset" => "#ea580c",
-                "ocean" => "#0ea5e9",
-                "forest" => "#10b981",
-                "lavender" => "#8b5cf6",
-                "royal" => "#eab308",
-                _ => "#6366f1" // default
-            };
-            
-            if (Microsoft.Maui.Controls.Application.Current != null)
-            {
-                Microsoft.Maui.Controls.Application.Current.Resources["Primary"] = Color.FromArgb(primaryHex);
-            }
+            ApplyThemeResources(theme);
             
             // If we are currently on a web container, tell it to update JS immediately
             var currentPage = Shell.Current.CurrentPage;
@@ -186,6 +198,30 @@ public partial class ShellViewModel : ObservableObject
             {
                 await webPage.ApplyThemeToWebView(theme);
             }
+        }
+    }
+
+    private void ApplyThemeResources(string theme)
+    {
+        // Hex codes from khadamat.css
+        var colors = theme.ToLower() switch
+        {
+            "sunset" => ("#ff4e50", "#f9d423"),
+            "ocean" => ("#00c6ff", "#0072ff"),
+            "forest" => ("#00f260", "#0575e6"),
+            "lavender" => ("#bf5af2", "#5e5ce6"),
+            "royal" => ("#f093fb", "#f5576c"),
+            _ => ("#6366f1", "#f43f5e") // Aurora / Default
+        };
+
+        if (Microsoft.Maui.Controls.Application.Current != null)
+        {
+            var res = Microsoft.Maui.Controls.Application.Current.Resources;
+            res["Primary"] = Color.FromArgb(colors.Item1);
+            res["Secondary"] = Color.FromArgb(colors.Item2);
+            
+            // Update TabBar and Header specifically if needed (handled via DynamicResource in XAML)
+            Console.WriteLine($"ANTIGRAVITY_LOG: Global Theme Applied: {theme} (Primary: {colors.Item1})");
         }
     }
 
