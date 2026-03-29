@@ -16,7 +16,8 @@ public class SoundService
 
     public async Task PlayStartupAsync()
     {
-        await PlaySoundAsync(_state.OpenAppSound ?? "startup.mp3");
+        string sound = string.IsNullOrEmpty(_state.OpenAppSound) ? "bic_ring1.mp3" : _state.OpenAppSound;
+        await PlaySoundAsync(sound);
     }
 
     public async Task PlayNotificationAsync()
@@ -44,10 +45,8 @@ public class SoundService
         if (string.IsNullOrEmpty(soundFile)) return;
         try 
         { 
-            var audioUrl = $"/audio/{soundFile}";
-            if (soundFile.StartsWith("http")) audioUrl = soundFile;
-            
-            await _js.InvokeVoidAsync("eval", $"new Audio('{audioUrl}').play()"); 
+            // Call the JS function for robust playback and fallback
+            await _js.InvokeVoidAsync("KhadamatSounds.playStoredSound", soundFile); 
         } 
         catch { }
     }

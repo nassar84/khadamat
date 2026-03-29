@@ -20,7 +20,7 @@ public class AppSettings : BaseEntity
     public string WelcomeMessage { get; set; } = "مرحباً بكم في منصة خدماوي";
     
     // Sound Settings (Filenames in wwwroot/audio or similar)
-    public string OpenAppSound { get; set; } = "open_app.mp3";
+    public string OpenAppSound { get; set; } = "bic_ring1.mp3";
     public string FindServiceSound { get; set; } = "find_service.mp3";
     public string OpenDetailsSound { get; set; } = "open_details.mp3";
     public string MessageReceivedSound { get; set; } = "message_received.mp3";

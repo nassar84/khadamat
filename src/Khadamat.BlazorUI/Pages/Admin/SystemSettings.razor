@@ -561,7 +561,7 @@
     {
         if (string.IsNullOrEmpty(soundFile)) return;
         
-        var audioUrl = $"audio/{soundFile}";
+        var audioUrl = $"/sounds/{soundFile}";
         if (soundFile.StartsWith("http")) audioUrl = soundFile;
         
         await JS.InvokeVoidAsync("eval", $"new Audio('{audioUrl}').play()");

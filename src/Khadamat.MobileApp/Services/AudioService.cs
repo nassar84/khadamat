@@ -36,7 +36,7 @@ public class AudioService : IAudioService
             {
                 string url = soundFileName.StartsWith("http") 
                     ? soundFileName 
-                    : $"{_baseUrl}/audio/{soundFileName}";
+                    : $"{_baseUrl}/sounds/{soundFileName}";
 
                 audioData = await _httpClient.GetByteArrayAsync(url);
                 _cache.TryAdd(soundFileName, audioData);

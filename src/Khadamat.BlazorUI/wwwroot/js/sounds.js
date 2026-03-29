@@ -11,17 +11,20 @@ window.KhadamatSounds = {
     },
 
     playStoredSound: function(name) {
-        const audio = new Audio(`/sounds/${name}.mp3`);
+        if (!name) return;
+        let filename = name;
+        if (!filename.includes('.')) filename += '.mp3';
+        const audio = new Audio(`/sounds/${filename}`);
         audio.play().catch(e => {
-            console.warn("Could not play sound file, using synth fallback:", name);
-            if (name === 'startup') this.playSynthBeep(440, 0.4);
-            else if (name === 'message') this.playSynthBeep(880, 0.1);
+            console.warn("Could not play sound file, using synth fallback:", filename);
+            if (name.includes('bic_ring1') || name.includes('startup')) this.playSynthBeep(440, 0.4);
+            else if (name.includes('message')) this.playSynthBeep(880, 0.1);
             else this.playSynthBeep(660, 0.2);
         });
     },
 
     playStartup: function() {
-        this.playStoredSound('startup');
+        this.playStoredSound('bic_ring1');
     },
 
     playNotification: function() {

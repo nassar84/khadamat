@@ -79,10 +79,8 @@ namespace Khadamat.MobileApp.Views
             if (_shell.BindingContext is ViewModels.ShellViewModel vm)
             {
                 await vm.LoadSettingsAsync();
-                if (!string.IsNullOrEmpty(vm.OpenAppSound))
-                {
-                    await _audioService.PlaySoundAsync(vm.OpenAppSound);
-                }
+                string soundFile = string.IsNullOrEmpty(vm.OpenAppSound) ? "bic_ring1.mp3" : vm.OpenAppSound;
+                await _audioService.PlaySoundAsync(soundFile);
             }
         }
 
