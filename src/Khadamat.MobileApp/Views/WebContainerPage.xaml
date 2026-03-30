@@ -1,30 +1,47 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:Khadamat.MobileApp.Views.Controls"
              x:Class="Khadamat.MobileApp.Views.WebContainerPage"
              Shell.NavBarIsVisible="True"
+             Shell.TabBarIsVisible="False"
              BackgroundColor="White"
              FlowDirection="RightToLeft">
 
-    <Grid>
-        <RefreshView x:Name="PullToRefresh" Refreshing="PullToRefresh_Refreshing" RefreshColor="#6366f1">
+    <!-- Row 0 = WebView  |  Row 1 = Custom Bottom Nav -->
+    <Grid RowDefinitions="*,Auto">
+
+        <!-- ═══ WebView ═══ -->
+        <RefreshView Grid.Row="0"
+                     x:Name="PullToRefresh"
+                     Refreshing="PullToRefresh_Refreshing"
+                     RefreshColor="#6366f1">
             <WebView x:Name="MainWebView"
                      Navigating="MainWebView_Navigating"
                      Navigated="MainWebView_Navigated"
-                     HorizontalOptions="FillAndExpand" 
-                     VerticalOptions="FillAndExpand"/>
+                     HorizontalOptions="FillAndExpand"
+                     VerticalOptions="FillAndExpand" />
         </RefreshView>
-                 
 
-
-        <!-- Offline Overlay -->
-        <Grid x:Name="OfflineOverlay" BackgroundColor="White" IsVisible="False">
+        <!-- ═══ Offline Overlay (spans both rows) ═══ -->
+        <Grid Grid.RowSpan="2"
+              x:Name="OfflineOverlay"
+              BackgroundColor="White"
+              IsVisible="False">
             <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="20">
                 <Label Text="📶" FontSize="60" HorizontalOptions="Center" />
-                <Label Text="No Internet Connection" FontSize="20" FontAttributes="Bold" HorizontalOptions="Center" TextColor="Black" />
-                <Label Text="Please check your connection and try again." FontSize="14" HorizontalOptions="Center" TextColor="Gray" />
-                <Button Text="Retry" Clicked="RetryButton_Clicked" BackgroundColor="#0f172a" TextColor="White" CornerRadius="8" WidthRequest="200" />
+                <Label Text="No Internet Connection" FontSize="20" FontAttributes="Bold"
+                       HorizontalOptions="Center" TextColor="Black" />
+                <Label Text="Please check your connection and try again."
+                       FontSize="14" HorizontalOptions="Center" TextColor="Gray" />
+                <Button Text="Retry" Clicked="RetryButton_Clicked"
+                        BackgroundColor="#0f172a" TextColor="White"
+                        CornerRadius="8" WidthRequest="200" />
             </VerticalStackLayout>
         </Grid>
+
+        <!-- ═══ Custom Bottom Nav Bar ═══ -->
+        <controls:BottomNavBar Grid.Row="1" x:Name="BottomNav" />
+
     </Grid>
 </ContentPage>

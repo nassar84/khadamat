@@ -43,6 +43,24 @@ namespace Khadamat.MobileApp
             if (args.Target != null)
             {
                 var targetLoc = args.Target.Location.ToString();
+                
+                // Intercept Custom Flyout Navigation to prevent replacing TabBar root
+                if (targetLoc.Contains("flyout_"))
+                {
+                    args.Cancel(); // Stop the native flyout navigation (so we don't jump to a new page without TabBar)
+                    
+                    // Extract the actual route
+                    var actualRoute = targetLoc.Split('/').Last().Replace("flyout_", "");
+                    
+                    // Delay execution slightly so Shell can finish cancelling this event before we trigger a new navigation
+                    MainThread.BeginInvokeOnMainThread(async () =>
+                    {
+                        Shell.Current.FlyoutIsPresented = false;
+                        await _viewModel.NavigateCommand.ExecuteAsync(actualRoute);
+                    });
+                    return;
+                }
+
                 var targetPath = targetLoc.Split('?')[0];
                 
                 // If navigating to the Home page (either by tab click or menu)

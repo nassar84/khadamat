@@ -214,54 +214,54 @@
     <!-- Side Menu (Flyout) Navigation Groups -->
     
     <!-- ==== الاستكشاف ==== -->
-    <FlyoutItem Title="الرئيسية" FlyoutDisplayOptions="AsSingleItem">
+    <FlyoutItem Title="الرئيسية" Route="flyout_home" FlyoutDisplayOptions="AsSingleItem">
         <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F3E0;" Color="#0f172a" /></FlyoutItem.Icon>
         <ShellContent ContentTemplate="{DataTemplate views:HomePage}" />
     </FlyoutItem>
 
-    <FlyoutItem Title="التصنيفات" FlyoutDisplayOptions="AsSingleItem">
+    <FlyoutItem Title="التصنيفات" Route="flyout_categories" FlyoutDisplayOptions="AsSingleItem">
         <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4C2;" Color="#0f172a" /></FlyoutItem.Icon>
         <ShellContent ContentTemplate="{DataTemplate views:CategoriesPage}" />
     </FlyoutItem>
 
-    <FlyoutItem Title="المتجر" FlyoutDisplayOptions="AsSingleItem">
+    <FlyoutItem Title="المتجر" Route="flyout_marketplace" FlyoutDisplayOptions="AsSingleItem">
         <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F6CD;" Color="#0f172a" /></FlyoutItem.Icon>
         <ShellContent ContentTemplate="{DataTemplate views:MarketplacePage}" />
     </FlyoutItem>
 
-    <FlyoutItem Title="أضف إعلان" FlyoutDisplayOptions="AsSingleItem">
+    <FlyoutItem Title="أضف إعلان" Route="flyout_provider/apply" FlyoutDisplayOptions="AsSingleItem">
         <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2795;" Color="#0f172a" /></FlyoutItem.Icon>
         <ShellContent ContentTemplate="{DataTemplate views:PostServicePage}" />
     </FlyoutItem>
 
     <!-- ==== نشاطاتي (Visible Only if Authenticated) ==== -->
-    <FlyoutItem Title="إعلاناتي" IsVisible="{Binding IsAuthenticated}" FlyoutDisplayOptions="AsSingleItem">
+    <FlyoutItem Title="إعلاناتي" Route="flyout_my-services" IsVisible="{Binding IsAuthenticated}" FlyoutDisplayOptions="AsSingleItem">
         <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4BC;" Color="#0f172a" /></FlyoutItem.Icon>
         <ShellContent ContentTemplate="{DataTemplate views:MyServicesPage}" />
     </FlyoutItem>
 
-    <FlyoutItem Title="خدماتي" IsVisible="{Binding IsAuthenticated}" FlyoutDisplayOptions="AsSingleItem">
+    <FlyoutItem Title="خدماتي" Route="flyout_services" IsVisible="{Binding IsAuthenticated}" FlyoutDisplayOptions="AsSingleItem">
         <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2705;" Color="#0f172a" /></FlyoutItem.Icon>
         <ShellContent ContentTemplate="{DataTemplate views:ServicesPage}" />
     </FlyoutItem>
 
-    <FlyoutItem Title="المفضلة" IsVisible="{Binding IsAuthenticated}" FlyoutDisplayOptions="AsSingleItem">
+    <FlyoutItem Title="المفضلة" Route="flyout_favorites" IsVisible="{Binding IsAuthenticated}" FlyoutDisplayOptions="AsSingleItem">
         <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2764;" Color="#0f172a" /></FlyoutItem.Icon>
         <ShellContent ContentTemplate="{DataTemplate views:FavoritesPage}" />
     </FlyoutItem>
 
-    <FlyoutItem Title="الرسائل" IsVisible="{Binding IsAuthenticated}" FlyoutDisplayOptions="AsSingleItem">
+    <FlyoutItem Title="الرسائل" Route="flyout_messages" IsVisible="{Binding IsAuthenticated}" FlyoutDisplayOptions="AsSingleItem">
         <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4AC;" Color="#0f172a" /></FlyoutItem.Icon>
         <ShellContent ContentTemplate="{DataTemplate views:MessagesPage}" />
     </FlyoutItem>
 
     <!-- ==== الإدارة (Visible Only if Admin) ==== -->
-    <FlyoutItem Title="لوحة المدير" IsVisible="{Binding IsAdmin}" FlyoutDisplayOptions="AsSingleItem">
+    <FlyoutItem Title="لوحة المدير" Route="flyout_admin" IsVisible="{Binding IsAdmin}" FlyoutDisplayOptions="AsSingleItem">
         <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F6E1;" Color="#0f172a" /></FlyoutItem.Icon>
         <ShellContent ContentTemplate="{DataTemplate views:AdminPage}" />
     </FlyoutItem>
 
-    <FlyoutItem Title="إدارة الإعلانات" IsVisible="{Binding IsAdmin}" FlyoutDisplayOptions="AsSingleItem">
+    <FlyoutItem Title="إدارة الإعلانات" Route="flyout_admin/ads" IsVisible="{Binding IsAdmin}" FlyoutDisplayOptions="AsSingleItem">
         <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4DC;" Color="#0f172a" /></FlyoutItem.Icon>
         <ShellContent ContentTemplate="{DataTemplate views:AdminAdsPage}" />
     </FlyoutItem>
@@ -270,17 +270,17 @@
     <MenuItem Text="━━━━━━━━━━━━" IsEnabled="False" />
 
     <!-- ==== النظام ==== -->
-    <FlyoutItem Title="الإعدادات" IsVisible="{Binding IsAuthenticated}" FlyoutDisplayOptions="AsSingleItem">
+    <FlyoutItem Title="الإعدادات" Route="flyout_settings" IsVisible="{Binding IsAuthenticated}" FlyoutDisplayOptions="AsSingleItem">
         <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2699;" Color="#0f172a" /></FlyoutItem.Icon>
         <ShellContent ContentTemplate="{DataTemplate views:SettingsPage}" />
     </FlyoutItem>
 
-    <FlyoutItem Title="الدعم والمساعدة" FlyoutDisplayOptions="AsSingleItem">
+    <FlyoutItem Title="الدعم والمساعدة" Route="flyout_support" FlyoutDisplayOptions="AsSingleItem">
         <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F198;" Color="#0f172a" /></FlyoutItem.Icon>
         <ShellContent ContentTemplate="{DataTemplate views:SupportPage}" />
     </FlyoutItem>
 
-    <FlyoutItem Title="الشروط والأحكام" FlyoutDisplayOptions="AsSingleItem">
+    <FlyoutItem Title="الشروط والأحكام" Route="flyout_terms" FlyoutDisplayOptions="AsSingleItem">
         <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4DC;" Color="#0f172a" /></FlyoutItem.Icon>
         <ShellContent ContentTemplate="{DataTemplate views:TermsPage}" />
     </FlyoutItem>

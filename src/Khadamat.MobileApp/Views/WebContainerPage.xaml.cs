@@ -210,7 +210,10 @@ public partial class WebContainerPage : ContentPage
                     }
 
                     vm.SetAuthenticated(true, name, image, isAdmin, isProvider);
-                    
+
+                    // Sync native bottom nav auth state
+                    MainThread.BeginInvokeOnMainThread(() => BottomNav.RefreshAuthState());
+
                     // Force navigation to Home page after a successful login to refresh the UI
                     MainThread.BeginInvokeOnMainThread(async () => {
                         await Shell.Current.GoToAsync("//HomePage");
@@ -220,7 +223,10 @@ public partial class WebContainerPage : ContentPage
             else if (url.Contains("auth_logout"))
             {
                 if (Shell.Current.BindingContext is ViewModels.ShellViewModel vm)
+                {
                     vm.SetAuthenticated(false);
+                    MainThread.BeginInvokeOnMainThread(() => BottomNav.RefreshAuthState());
+                }
             }
             return;
         }

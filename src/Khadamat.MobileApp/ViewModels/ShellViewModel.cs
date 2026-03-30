@@ -129,22 +129,32 @@ public partial class ShellViewModel : ObservableObject
             await Shell.Current.GoToAsync("//HomePage");
             return;
         }
+        else if (route == "marketplace")
+            route = IsClientMode ? "//MarketplacePage" : "//HomePage?route=marketplace";
         else if (route == "profile")
             route = "//ProfileTab";
         else if (route == "favorites")
-            route = IsAuthenticated ? "favorites" : "//ProfileTab";
+            route = IsAuthenticated ? (IsClientMode ? "//FavoritesPage" : "//HomePage?route=client/favorites") : "//ProfileTab";
         else if (route == "messages")
-            route = IsAuthenticated ? "messages" : "//ProfileTab";
-        else if (route == "provider/dashboard")
-            route = IsAuthenticated ? "provider/dashboard" : "//ProfileTab";
-        else if (route == "my-services")
-            route = IsAuthenticated ? "my-services" : "//ProfileTab";
+            route = IsAuthenticated ? "//HomePage?route=messages" : "//ProfileTab";
+        else if (route == "provider/dashboard" || route == "my-services")
+            route = IsAuthenticated ? (IsProviderMode ? "//MyServicesPage" : "//HomePage?route=provider/dashboard") : "//ProfileTab";
+        else if (route == "services")
+            route = IsAuthenticated ? "//HomePage?route=services" : "//ProfileTab";
         else if (route == "settings")
-            route = IsAuthenticated ? "settings" : "//ProfileTab";
-        else if (route == "explore")
-            route = "//HomePage?route=explore";
-        else if (route == "categories")
-            route = "//HomePage?route=categories";
+            route = IsAuthenticated ? "//HomePage?route=settings" : "//ProfileTab";
+        else if (route == "admin")
+            route = "//HomePage?route=admin";
+        else if (route == "admin/ads")
+            route = "//HomePage?route=admin/ads";
+        else if (route == "terms")
+            route = "//HomePage?route=terms";
+        else if (route == "home")
+            route = "//HomePage";
+        else if (route == "provider/apply")
+            route = IsAuthenticated ? "//HomePage?route=provider/apply" : "//ProfileTab";
+        else if (route == "explore" || route == "categories")
+            route = IsClientMode ? "//CategoriesPage" : "//HomePage?route=explore";
         else if (route == "support")
         {
             await Shell.Current.GoToAsync($"//HomePage?route=contact"); 

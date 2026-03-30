@@ -1,0 +1,9 @@
+﻿C:\Program Files\dotnet\sdk\9.0.312\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(266,5): error NETSDK1005: Assets file 'D:\DEV\khadamat\src\Khadamat.MobileApp\obj\project.assets.json' doesn't have a target for 'net9.0-android'. Ensure that restore has run and that you have included 'net9.0-android' in the TargetFrameworks for your project. [D:\DEV\khadamat\src\Khadamat.MobileApp\Khadamat.MobileApp.csproj::TargetFramework=net9.0-android]
+
+Build FAILED.
+
+C:\Program Files\dotnet\sdk\9.0.312\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(266,5): error NETSDK1005: Assets file 'D:\DEV\khadamat\src\Khadamat.MobileApp\obj\project.assets.json' doesn't have a target for 'net9.0-android'. Ensure that restore has run and that you have included 'net9.0-android' in the TargetFrameworks for your project. [D:\DEV\khadamat\src\Khadamat.MobileApp\Khadamat.MobileApp.csproj::TargetFramework=net9.0-android]
+    0 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:01.75
