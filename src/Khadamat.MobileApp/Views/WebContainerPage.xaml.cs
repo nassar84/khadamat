@@ -169,7 +169,10 @@ public partial class WebContainerPage : ContentPage
         if (url.StartsWith("khadamat://auth/"))
         {
             e.Cancel = true;
-            if (url.Contains("auth_success"))
+            bool isSuccess = url.Contains("auth_success");
+            bool isSync = url.Contains("auth_sync");
+
+            if (isSuccess || isSync)
             {
                 if (Shell.Current.BindingContext is ViewModels.ShellViewModel vm)
                 {
@@ -181,7 +184,7 @@ public partial class WebContainerPage : ContentPage
                     // Parse data if available in query params
                     try
                     {
-                        var uri = new Uri(url.Replace("khadamat://auth/", "http://localhost/"));
+                        var uri = new Uri(url.Replace("khadamat://auth/", "http://localhost/").Replace("auth_success", "auth").Replace("auth_sync", "auth"));
                         var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
 
                         string data = query["data"];
@@ -214,10 +217,13 @@ public partial class WebContainerPage : ContentPage
                     // Sync native bottom nav auth state
                     MainThread.BeginInvokeOnMainThread(() => BottomNav.RefreshAuthState());
 
-                    // Force navigation to Home page after a successful login to refresh the UI
-                    MainThread.BeginInvokeOnMainThread(async () => {
-                        await Shell.Current.GoToAsync("//HomePage");
-                    });
+                    // ONLY navigate to Home if it's a real login (auth_success), NOT for daily sync (auth_sync)
+                    if (isSuccess)
+                    {
+                        MainThread.BeginInvokeOnMainThread(async () => {
+                            await Shell.Current.GoToAsync("//HomePage");
+                        });
+                    }
                 }
             }
             else if (url.Contains("auth_logout"))

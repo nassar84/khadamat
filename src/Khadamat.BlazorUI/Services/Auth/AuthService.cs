@@ -62,12 +62,23 @@ public class AuthService : IAuthService
                 await _secureStorage.SaveAsync("refreshToken", result.Data.RefreshToken);
 
                 _appState.UserToken = result.Data.Token;
-
                 ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsAuthenticated(result.Data.Token);
-                await NotifyNativeApp("auth_success");
                 
-                // Fetch full profile immediately to populate AppState before returning
-                await GetProfileAsync(); 
+                // Fetch full profile immediately
+                var profile = await GetProfileAsync(); 
+                
+                // Notify native app with full profile data
+                if (profile?.Success == true && profile.Data != null)
+                {
+                    var p = profile.Data;
+                    var is_admin = p.Roles.Any(r => r == "SystemAdmin" || r == "SuperAdmin").ToString().ToLower();
+                    var nativeData = $"name={p.UserName}&image={p.ImageUrl}&is_admin={is_admin}&is_provider={p.IsProvider.ToString().ToLower()}";
+                    await NotifyNativeApp("auth_success", nativeData);
+                }
+                else 
+                {
+                    await NotifyNativeApp("auth_success");
+                } 
                 
                 return result.Data;
             }
@@ -108,13 +119,13 @@ public class AuthService : IAuthService
                 _appState.GovernorateId = p.GovernorateId;
                 _appState.PhoneNumber = p.PhoneNumber;
 
-                // Notify native app with full profile data
+                // Notify native app with full profile data for UI sync (Background Refresh - no navigation)
                 var roles = string.Join(",", p.Roles);
                 var is_admin = p.Roles.Any(r => r == "SystemAdmin" || r == "SuperAdmin").ToString().ToLower();
                 var nativeData = $"name={p.UserName}&image={p.ImageUrl}&is_admin={is_admin}&is_provider={p.IsProvider.ToString().ToLower()}";
-                // Notify native app with full profile data ONLY if we just logged in (handled by Login/LoginWithToken)
-                // or if specifically requested. For background refresh, we skip it to avoid loops.
-                // _ = NotifyNativeApp("auth_success", nativeData);
+                
+                // We use "auth_sync" to update native UI (name, avatar) WITHOUT triggering a shell navigation to Home
+                _ = NotifyNativeApp("auth_sync", nativeData);
             }
             return response!;
         }
