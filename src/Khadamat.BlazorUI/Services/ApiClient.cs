@@ -168,11 +168,16 @@ public class ApiClient
     {
         try
         {
-            var response = await _http.GetFromJsonAsync<ApiResponse<List<CategoryDto>>>($"v1/categories/main/{mainId}/categories");
+            var url = $"v1/categories/main/{mainId}/categories";
+            Console.WriteLine($"ApiClient.GetCategoriesByMainIdAsync: {url}");
+            var response = await _http.GetFromJsonAsync<ApiResponse<List<CategoryDto>>>(url);
+            var count = response?.Data?.Count ?? 0;
+            Console.WriteLine($"ApiClient.GetCategoriesByMainIdAsync success: {count} items");
             return response?.Data ?? new List<CategoryDto>();
         }
-        catch
-      {
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ApiClient.GetCategoriesByMainIdAsync ERROR: {ex.Message}");
             return new List<CategoryDto>();
         }
     }

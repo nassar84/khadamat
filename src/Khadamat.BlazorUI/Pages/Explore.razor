@@ -177,18 +177,22 @@
     private List<ServiceDto>? services;
     private List<EnhancedAdDto>? categoryAds;
     private List<BreadcrumbItem> breadcrumbItems = new();
+    private string? errorMessage;
 
     protected override void OnParametersSet()
     {
+        Console.WriteLine($"Explore.OnParametersSet: Level={Level}, Id={Id}, Name={Name}");
         // Execute fetch without awaiting to allow immediate render of Skeletons
         _ = FetchDataAsync();
     }
 
     private async Task FetchDataAsync()
     {
+        Console.WriteLine($"Explore.FetchDataAsync started: Level={Level}, Id={Id}");
         categories = null;
         subCategories = null;
         services = null;
+        errorMessage = null;
         breadcrumbItems.Clear();
 
         try
@@ -246,9 +250,10 @@
                 categoryAds = categoryAdsTask.Result;
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Handle error logic if needed, e.g., show an empty state or error message
+            Console.WriteLine($"Explore.FetchDataAsync ERROR: {ex.Message}");
+            errorMessage = $"حدث خطأ أثناء تحميل البيانات: {ex.Message}";
         }
         finally
         {
