@@ -201,54 +201,38 @@
                 </div>
             </Authorized>
             <NotAuthorized>
-                <div class="sidebar-top-modern guest-bg">
-                    <div class="guest-header-content">
-                        <div class="logo-circle">
-                            @if (!string.IsNullOrEmpty(State.AppLogo))
-                            {
-                                <img src="@State.GetAbsoluteUrl(State.AppLogo)" class="logo-img-sidebar" alt="Logo" />
-                            }
-                            else
-                            {
-                                <i class="fa-solid fa-bolt-lightning text-primary"></i>
-                            }
-                        </div>
-                        <div class="welcome-section">
-                            <h4 class="welcome-title">مرحباً بك في @State.AppName</h4>
-                            <p class="welcome-subtitle">مرحباً بكم في تطبيق خدمات</p>
-                        </div>
-                        <button class="btn-auth-pill" @onclick='() => NavigateTo("/login")'>
-                            دخول / تسجيل
-                        </button>
+                <!-- Guest Header: White bg, logo + app name -->
+                <div class="guest-header-white px-4 pt-5 pb-3">
+                    <div class="d-flex align-items-center gap-2 mb-3" style="cursor:pointer" @onclick='() => NavigateTo("/")'>
+                        <span style="font-size:1.6rem; color: var(--theme-primary);">⚡</span>
+                        <span style="font-size:1.3rem; font-weight:800; color: var(--theme-primary);">@State.AppName</span>
+                    </div>
+                    <hr class="my-2" style="border-color:#f1f5f9;" />
+                    <!-- Section label -->
+                    <p class="section-title mb-2">إكتشف @State.AppName</p>
+                    <!-- Home Button - active/filled -->
+                    <div class="menu-item active mb-2" @onclick='() => NavigateTo("/")'>
+                        <i class="fa-solid fa-house"></i>
+                        <span>الرئيسية</span>
+                    </div>
+                    <!-- Refresh -->
+                    <div class="menu-item" @onclick="RefreshApp">
+                        <i class="fa-solid fa-rotate"></i>
+                        <span>تحديث التطبيق</span>
                     </div>
                 </div>
 
-                <div class="menu-sections-wrapper">
-                    <div class="menu-section">
-                        <h6 class="section-title">القائمة الرئيسية</h6>
-                        <div class="menu-items">
-                            <div class="menu-item @GetActiveClass("")" @onclick='() => NavigateTo("/")'>
-                                <i class="fa-solid fa-house"></i>
-                                <span>الرئيسية</span>
-                            </div>
-                             <div class="menu-item @GetActiveClass("marketplace")" @onclick='() => NavigateTo("/marketplace")'>
-                                <i class="fa-solid fa-store text-primary"></i>
-                                <span>المتجر</span>
-                            </div>
+                <!-- Join Card -->
+                <div class="px-3 mt-2">
+                    <div class="join-card-web">
+                        <div class="join-icon-circle">
+                            <i class="fa-solid fa-user-plus"></i>
                         </div>
-                    </div>
-
-                    <div class="menu-section mt-auto pt-5">
-                        <h6 class="section-title">المساعدة</h6>
-                        <div class="menu-items">
-                            <div class="menu-item" @onclick='() => NavigateTo("/support")'>
-                                <i class="fa-solid fa-circle-question text-secondary"></i>
-                                <span>الدعم والمساعدة</span>
-                            </div>
-                            <div class="menu-item" @onclick='() => NavigateTo("/terms")'>
-                                <i class="fa-solid fa-file-contract text-secondary"></i>
-                                <span>الشروط والأحكام</span>
-                            </div>
+                        <h5 class="join-title">انضم إلينا الآن</h5>
+                        <p class="join-subtitle">سجل دخولك لتتمكن من طلب الخدمات والتواصل مع المزودين</p>
+                        <div class="d-flex gap-2 mt-3">
+                            <button class="btn-join-primary flex-fill" @onclick='() => NavigateTo("/login")'>دخول</button>
+                            <button class="btn-join-outline flex-fill" @onclick='() => NavigateTo("/login?tab=register")'>حساب جديد</button>
                         </div>
                     </div>
                 </div>
@@ -433,6 +417,79 @@
         font-size: 0.75rem;
         border-top: 1px solid #f1f5f9;
     }
+
+    /* ── Guest Join Card ── */
+    .guest-header-white {
+        background: #ffffff;
+    }
+
+    .join-card-web {
+        background: #ffffff;
+        border: 1px solid #f1f5f9;
+        border-radius: 16px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    .join-icon-circle {
+        width: 60px;
+        height: 60px;
+        background: #f3f0ff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 12px;
+    }
+
+    .join-icon-circle i {
+        font-size: 1.5rem;
+        color: var(--theme-primary);
+        width: auto;
+    }
+
+    .join-title {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 8px;
+    }
+
+    .join-subtitle {
+        font-size: 0.8rem;
+        color: #64748b;
+        line-height: 1.5;
+        margin-bottom: 0;
+    }
+
+    .btn-join-primary {
+        background: var(--theme-primary);
+        color: #ffffff;
+        border: none;
+        border-radius: 10px;
+        padding: 10px 0;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+
+    .btn-join-primary:hover { opacity: 0.85; }
+
+    .btn-join-outline {
+        background: #ffffff;
+        color: var(--theme-primary);
+        border: 1.5px solid var(--theme-primary);
+        border-radius: 10px;
+        padding: 10px 0;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .btn-join-outline:hover { background: rgba(var(--theme-primary-rgb), 0.05); }
 </style>
 
 @code {

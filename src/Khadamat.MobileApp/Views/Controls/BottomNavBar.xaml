@@ -46,41 +46,20 @@
               ColumnDefinitions="*,*,64,*,*"
               HorizontalOptions="Fill" VerticalOptions="Fill">
 
-            <!-- Col 0 (RTL right) ═ الأقسام -->
+            <!-- Col 0 (RTL right) ═ المتجر -->
             <VerticalStackLayout Grid.Column="0"
-                                 HorizontalOptions="Center"
-                                 VerticalOptions="Center"
-                                 Spacing="2">
-                <VerticalStackLayout.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnCategoriesTapped" />
-                </VerticalStackLayout.GestureRecognizers>
-                <Label x:Name="CategoriesIcon"
-                       Text="&#x1F4C2;"
-                       FontSize="20"
-                       TextColor="#94a3b8"
-                       HorizontalOptions="Center" />
-                <Label x:Name="CategoriesLabel"
-                       Text="الأقسام"
-                       FontSize="10"
-                       FontAttributes="Bold"
-                       TextColor="#94a3b8"
-                       HorizontalOptions="Center" />
-            </VerticalStackLayout>
-
-            <!-- Col 1 ═ المتجر -->
-            <VerticalStackLayout Grid.Column="1"
                                  HorizontalOptions="Center"
                                  VerticalOptions="Center"
                                  Spacing="2">
                 <VerticalStackLayout.GestureRecognizers>
                     <TapGestureRecognizer Tapped="OnMarketplaceTapped" />
                 </VerticalStackLayout.GestureRecognizers>
-                <Label x:Name="MarketplaceIcon"
-                       Text="&#x1F6CD;"
+                <Label x:Name="MarketplaceRightIcon"
+                       Text="&#x1F3EA;"
                        FontSize="20"
                        TextColor="#f59e0b"
                        HorizontalOptions="Center" />
-                <Label x:Name="MarketplaceLabel"
+                <Label x:Name="MarketplaceRightLabel"
                        Text="المتجر"
                        FontSize="10"
                        FontAttributes="Bold"
@@ -88,24 +67,45 @@
                        HorizontalOptions="Center" />
             </VerticalStackLayout>
 
-            <!-- Col 2 ═ Center spacer for home circle -->
-            <ContentView Grid.Column="2" />
-
-            <!-- Col 3 ═ المفضلة -->
-            <VerticalStackLayout Grid.Column="3"
+            <!-- Col 1 ═ المفضلة -->
+            <VerticalStackLayout Grid.Column="1"
                                  HorizontalOptions="Center"
                                  VerticalOptions="Center"
                                  Spacing="2">
                 <VerticalStackLayout.GestureRecognizers>
                     <TapGestureRecognizer Tapped="OnFavoritesTapped" />
                 </VerticalStackLayout.GestureRecognizers>
-                <Label x:Name="FavoritesIcon"
+                <Label x:Name="FavoritesRightIcon"
                        Text="&#x2764;"
                        FontSize="20"
                        TextColor="#ef4444"
                        HorizontalOptions="Center" />
-                <Label x:Name="FavoritesLabel"
+                <Label x:Name="FavoritesRightLabel"
                        Text="المفضلة"
+                       FontSize="10"
+                       FontAttributes="Bold"
+                       TextColor="#94a3b8"
+                       HorizontalOptions="Center" />
+            </VerticalStackLayout>
+
+            <!-- Col 2 ═ Center spacer for home circle -->
+            <ContentView Grid.Column="2" />
+
+            <!-- Col 3 ═ الرسائل -->
+            <VerticalStackLayout Grid.Column="3"
+                                 HorizontalOptions="Center"
+                                 VerticalOptions="Center"
+                                 Spacing="2">
+                <VerticalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnMessagesTapped" />
+                </VerticalStackLayout.GestureRecognizers>
+                <Label x:Name="MessagesIcon"
+                       Text="&#x2709;"
+                       FontSize="20"
+                       TextColor="#94a3b8"
+                       HorizontalOptions="Center" />
+                <Label x:Name="MessagesLabel"
+                       Text="الرسائل"
                        FontSize="10"
                        FontAttributes="Bold"
                        TextColor="#94a3b8"

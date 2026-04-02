@@ -164,6 +164,9 @@ namespace Khadamat.MobileApp.Views
                 await ((VisualElement)sender).ScaleTo(1.0, 100);
                 
                 MauiApp.Current.MainPage = _shell;
+                
+                // Explicitly navigate to Home page so it always opens first
+                await Shell.Current.GoToAsync("//HomePage");
             }
         }
     }

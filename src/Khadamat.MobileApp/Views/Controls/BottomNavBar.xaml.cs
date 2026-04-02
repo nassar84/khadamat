@@ -53,26 +53,29 @@ public partial class BottomNavBar : ContentView
         var primaryColor = GetPrimaryColor();
         var defaultColor = Color.FromArgb("#94a3b8");
 
-        // Reset all non-home labels to default grey
-        CategoriesLabel.TextColor  = defaultColor;
-        FavoritesLabel.TextColor   = defaultColor;
-        ProfileLabel.TextColor     = defaultColor;
+        // Reset all labels to default grey
+        FavoritesRightLabel.TextColor  = defaultColor;
+        MessagesLabel.TextColor        = defaultColor;
+        ProfileLabel.TextColor         = defaultColor;
         
-        // Marketplace uses distinct premium color on web
-        MarketplaceIcon.TextColor = Color.FromArgb("#f59e0b");
-        MarketplaceLabel.TextColor = Color.FromArgb("#d97706");
+        // Marketplace uses distinct premium color always
+        MarketplaceRightIcon.TextColor  = Color.FromArgb("#f59e0b");
+        MarketplaceRightLabel.TextColor = Color.FromArgb("#d97706");
+        
+        // Favorites heart stays red always
+        FavoritesRightIcon.TextColor = Color.FromArgb("#ef4444");
 
         // "home" is always styled via the circle button; no label change needed
         switch (_activeTab)
         {
-            case "categories":
-                CategoriesLabel.TextColor = primaryColor;
-                break;
             case "marketplace":
-                MarketplaceLabel.TextColor = primaryColor;
+                MarketplaceRightLabel.TextColor = primaryColor;
                 break;
             case "favorites":
-                FavoritesLabel.TextColor = primaryColor;
+                FavoritesRightLabel.TextColor = primaryColor;
+                break;
+            case "messages":
+                MessagesLabel.TextColor = primaryColor;
                 break;
             case "profile":
                 ProfileLabel.TextColor = primaryColor;
@@ -111,7 +114,6 @@ public partial class BottomNavBar : ContentView
         var vm = Shell.Current?.BindingContext as ViewModels.ShellViewModel;
         if (vm?.IsAuthenticated == false)
         {
-            // Redirect unauthenticated users to login
             await Shell.Current.GoToAsync("//ProfileTab");
             return;
         }
@@ -119,10 +121,16 @@ public partial class BottomNavBar : ContentView
         await Shell.Current.GoToAsync("//FavoritesPage");
     }
 
-    private async void OnCategoriesTapped(object sender, TappedEventArgs e)
+    private async void OnMessagesTapped(object sender, TappedEventArgs e)
     {
-        SetActiveTab("categories");
-        await Shell.Current.GoToAsync("//CategoriesPage");
+        var vm = Shell.Current?.BindingContext as ViewModels.ShellViewModel;
+        if (vm?.IsAuthenticated == false)
+        {
+            await Shell.Current.GoToAsync("//ProfileTab");
+            return;
+        }
+        SetActiveTab("messages");
+        await Shell.Current.GoToAsync("//MessagesPage");
     }
 
     private async void OnProfileTapped(object sender, TappedEventArgs e)
