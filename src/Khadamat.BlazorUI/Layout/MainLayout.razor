@@ -25,6 +25,13 @@
             }
         }
         
+        @if (!IsAdminPage && !IsProviderPage)
+        {
+            <div class="sticky-categories-bar pb-0 pt-1 border-bottom" style="min-height: 95px; display: block !important;">
+                <Khadamat.BlazorUI.Shared.CategoryMarquee />
+            </div>
+        }
+        
         @if (ShowHeroAds && !AppState.IsMobileApp)
         {
             <div class="mt-3">

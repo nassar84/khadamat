@@ -3,16 +3,17 @@
 @inject ApiClient Api
 @inject NavigationManager Navigation
 @inject Khadamat.Application.Interfaces.IOfflineDataService OfflineData
+@inject IJSRuntime JS
 @implements IDisposable
 
 @if (DisplayCategories == null)
 {
-    <div class="marquee-outer">
-        <div class="marquee-track" style="animation:none;">
+    <div class="drag-scroll-outer">
+        <div class="drag-scroll-track">
             <div class="marquee-copy">
                 @for (int i = 0; i < 8; i++)
                 {
-                    <div class="category-item">
+                    <div class="category-item border-0">
                         <div class="category-shape-wrapper skeleton-glow"></div>
                         <div class="skeleton-glow rounded-pill mt-2" style="width:40px;height:10px;"></div>
                     </div>
@@ -23,19 +24,19 @@
 }
 else
 {
-    <div class="marquee-outer">
-        <div class="marquee-track">
+    <div class="drag-scroll-outer" id="@containerId">
+        <div class="drag-scroll-track">
             @* Copy 1 *@
             <div class="marquee-copy">
                 @foreach (var cat in DisplayCategories)
                 {
                     var c = cat;
-                    <div class="category-item" @onclick="() => OnCategorySelected(c)">
+                    <div class="category-item border-0" @onclick="() => OnCategorySelected(c)">
                         <div class="category-shape-wrapper">
                             @if (!string.IsNullOrEmpty(c.ImageUrl))
                             {
                                 <img src="@Api.GetAbsoluteUrl(c.ImageUrl ?? "images/maincategories/default.jpg")"
-                                     class="cat-img" alt="@c.Name"
+                                     class="cat-img draggable-img" alt="@c.Name"
                                      onerror="this.onerror=null;this.src='/images/maincategories/default.jpg';" loading="lazy" />
                             }
                             else if (!string.IsNullOrEmpty(c.Icon))
@@ -47,21 +48,21 @@ else
                                 <span class="cat-icon">📁</span>
                             }
                         </div>
-                        <span class="category-name-small">@c.Name</span>
+                        <span class="category-name-smalltext px-1">@c.Name</span>
                     </div>
                 }
             </div>
-            @* Copy 2 — visual duplicate for seamless loop *@
+            @* Copy 2 for seamless infinite scroll *@
             <div class="marquee-copy" aria-hidden="true">
                 @foreach (var cat in DisplayCategories)
                 {
                     var c = cat;
-                    <div class="category-item" @onclick="() => OnCategorySelected(c)">
+                    <div class="category-item border-0" @onclick="() => OnCategorySelected(c)">
                         <div class="category-shape-wrapper">
                             @if (!string.IsNullOrEmpty(c.ImageUrl))
                             {
                                 <img src="@Api.GetAbsoluteUrl(c.ImageUrl ?? "images/maincategories/default.jpg")"
-                                     class="cat-img" alt="@c.Name"
+                                     class="cat-img draggable-img" alt="@c.Name"
                                      onerror="this.onerror=null;this.src='/images/maincategories/default.jpg';" loading="lazy" />
                             }
                             else if (!string.IsNullOrEmpty(c.Icon))
@@ -73,7 +74,7 @@ else
                                 <span class="cat-icon">📁</span>
                             }
                         </div>
-                        <span class="category-name-small">@c.Name</span>
+                        <span class="category-name-smalltext px-1">@c.Name</span>
                     </div>
                 }
             </div>
@@ -82,56 +83,52 @@ else
 }
 
 <style>
-    /* ── Outer container: clips overflow ── */
-    .marquee-outer {
+    .drag-scroll-outer {
         width: 100%;
-        overflow: hidden;
-        min-height: 110px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        min-height: 95px;
         display: flex;
         align-items: center;
-        padding: 8px 0;
-        /* disable RTL reversal for the marquee */
-        direction: ltr;
+        /* Disable RTL here to ensure cross-browser scrollLeft math works correctly */
+        direction: ltr; 
+        cursor: grab;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+        scroll-behavior: auto; /* Required for JS continuous scroll */
+    }
+    .drag-scroll-outer::-webkit-scrollbar {
+        display: none;
+    }
+    .drag-scroll-outer.active {
+        cursor: grabbing;
     }
 
-    /* ── Track: two copies side by side, grows to content width ── */
-    .marquee-track {
+    .drag-scroll-track {
         display: flex;
-        width: max-content;          /* critical: track IS its content width */
-        flex-shrink: 0;
-        animation: marquee-rtl 28s linear infinite;
-        will-change: transform;
+        flex-direction: row;
+        align-items: center;
+        width: max-content;
+        padding: 8px 16px;
     }
 
-    /* Pause on hover so users can click */
-    .marquee-outer:hover .marquee-track {
-        animation-play-state: paused;
-    }
-
-    /* ── Each copy: a horizontal row of items ── */
     .marquee-copy {
         display: flex;
         flex-direction: row;
         align-items: center;
         flex-shrink: 0;
         gap: 16px;
-        /* trailing padding equals gap → seam between copies = gap between items */
-        padding-right: 16px;
+        padding-right: 16px; /* Must equal gap size for seamless looping */
     }
 
-    /*
-      Animation: move left by exactly the width of one .marquee-copy
-      = 50% of the .marquee-track  (because track = 2 * copy + no extra)
-      Wait: track width = copy1 + copy2, each copy has trailing padding-right:16px
-      So track = 2 * copy_computed_width
-      → translateX(-50%) = -copy_computed_width → seamless jump ✅
-    */
-    @@keyframes marquee-rtl {
-        0%   { transform: translateX(0); }
-        100% { transform: translateX(-50%); }
+    /* Prevent images from being dragged using default browser behavior */
+    .draggable-img {
+        pointer-events: none;
+        user-select: none;
+        -webkit-user-drag: none;
     }
 
-    /* ── Category item ── */
+    /* Category Item Styles */
     .category-item {
         display: flex;
         flex-direction: column;
@@ -146,8 +143,11 @@ else
     .category-item:hover {
         transform: translateY(-5px) scale(1.05);
     }
+    
+    .category-item:active {
+        transform: scale(0.95);
+    }
 
-    /* ── Circle ── */
     .category-shape-wrapper {
         width: 62px;
         height: 62px;
@@ -207,8 +207,7 @@ else
         transform: scale(1.15) rotate(-5deg);
     }
 
-    /* ── Label ── */
-    .category-name-small {
+    .category-name-smalltext {
         font-size: 0.78rem;
         font-weight: 700;
         color: #334155;
@@ -218,10 +217,10 @@ else
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        direction: rtl; /* restore RTL for Arabic text */
+        /* Restore RTL for Arabic texts inside the LTR container */
+        direction: rtl; 
     }
 
-    /* ── Skeleton ── */
     .skeleton-glow {
         background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
         background-size: 200% 100%;
@@ -236,7 +235,7 @@ else
     @@media (max-width: 991px) {
         .category-shape-wrapper { width: 52px !important; height: 52px !important; }
         .category-item { min-width: 60px; }
-        .category-name-small { font-size: 0.72rem !important; }
+        .category-name-smalltext { font-size: 0.72rem !important; }
     }
 </style>
 
@@ -245,6 +244,7 @@ else
 
     private List<MainCategoryDto>? internalCategories;
     private bool _disposed = false;
+    private string containerId = "drag-scroll-" + Guid.NewGuid().ToString("N");
 
     private List<MainCategoryDto>? DisplayCategories
     {
@@ -262,13 +262,144 @@ else
             _ = LoadCategoriesAsync();
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender || DisplayCategories != null)
+        {
+            await InitDragScrollAsync();
+        }
+    }
+
+    private async Task InitDragScrollAsync()
+    {
+        try
+        {
+            var script = @"
+                (function() {
+                    var el = document.getElementById('" + containerId + @"');
+                    if (!el || el.dataset.dragInit) return;
+                    el.dataset.dragInit = 'true';
+
+                    var track = el.querySelector('.drag-scroll-track');
+                    if (!track) return;
+                    
+                    // Force hidden native overflow, we handle drag manually via transform
+                    el.style.overflowX = 'hidden'; 
+                    track.style.willChange = 'transform';
+                    
+                    let currentX = 0;
+                    let isDown = false;
+                    let startMouseX = 0;
+                    let startCurrentX = 0;
+                    let isDragging = false;
+                    
+                    function getEventX(e) {
+                        return (e.touches && e.touches.length > 0) ? e.touches[0].pageX : e.pageX;
+                    }
+
+                    function onStart(e) {
+                        isDown = true;
+                        isDragging = false;
+                        el.classList.add('active');
+                        startMouseX = getEventX(e);
+                        startCurrentX = currentX;
+                    }
+
+                    function onMove(e) {
+                        if (!isDown) return;
+                        
+                        let x = getEventX(e);
+                        let deltaX = x - startMouseX;
+                        if (Math.abs(deltaX) > 5) {
+                            isDragging = true;
+                        }
+                        
+                        currentX = startCurrentX + deltaX;
+                        
+                        let w = track.offsetWidth / 2;
+                        if (w > 0) {
+                            if (currentX > 0) {
+                                currentX -= w;
+                                startCurrentX -= w;
+                            } else if (Math.abs(currentX) >= w) {
+                                currentX += w;
+                                startCurrentX += w;
+                            }
+                        }
+                        track.style.transform = `translateX(${currentX}px)`;
+                    }
+
+                    function onEnd() { 
+                        isDown = false; 
+                        el.classList.remove('active'); 
+                    }
+                    
+                    el.addEventListener('mousedown', onStart);
+                    el.addEventListener('touchstart', onStart, {passive: true});
+                    
+                    el.addEventListener('mousemove', onMove, {passive: true});
+                    el.addEventListener('touchmove', onMove, {passive: true});
+                    
+                    el.addEventListener('mouseleave', onEnd);
+                    el.addEventListener('mouseup', onEnd);
+                    el.addEventListener('touchend', onEnd);
+                    el.addEventListener('touchcancel', onEnd);
+
+                    // Auto Rotate Logic
+                    let lastTime = 0;
+                    function animate(time) {
+                        if (lastTime === 0) lastTime = time;
+                        let dt = time - lastTime;
+                        lastTime = time;
+
+                        if (!isDown && !el.matches(':hover')) {
+                            currentX -= dt * 0.04; // Adjust speed (e.g., 0.04 px per ms)
+                            let w = track.offsetWidth / 2;
+                            if (w > 0 && Math.abs(currentX) >= w) {
+                                currentX += w;
+                            }
+                            track.style.transform = `translateX(${currentX}px)`;
+                        }
+                        requestAnimationFrame(animate);
+                    }
+                    requestAnimationFrame(animate);
+
+                    // Prevent clicking on links when dragging happened
+                    var items = track.querySelectorAll('.category-item');
+                    items.forEach(item => {
+                        item.addEventListener('click', function(e) {
+                            if (isDragging) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                            }
+                        });
+                    });
+                })();
+            ";
+            await JS.InvokeVoidAsync("eval", script);
+        }
+        catch { }
+    }
+
     private async Task LoadCategoriesAsync()
     {
         try
         {
+            // First load from offline cache
+            var cached = await OfflineData.GetMainCategoriesAsync();
+            if (cached != null && cached.Any())
+            {
+                internalCategories = cached;
+                StateHasChanged();
+            }
+
+            // Then fetch from API
             var results = await Api.GetMainCategoriesAsync();
             if (results != null && results.Any())
+            {
                 internalCategories = results;
+                await OfflineData.SaveMainCategoriesAsync(results);
+            }
         }
         catch (Exception ex)
         {
