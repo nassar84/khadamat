@@ -398,14 +398,14 @@
         
         var request = new UpdateAppSettingsRequest
         {
-            ApplicationName = settings.ApplicationNameAr ?? settings.ApplicationName,
-            ApplicationNameAr = settings.ApplicationNameAr,
-            ApplicationNameEn = settings.ApplicationNameEn,
-            LogoUrl = settings.LogoUrl,
-            ApkFilename = settings.ApkFilename,
-            ApkIconUrl = settings.ApkIconUrl,
-            PrimaryColor = settings.PrimaryColor,
-            SecondaryColor = settings.SecondaryColor,
+            ApplicationName = settings.ApplicationNameAr ?? settings.ApplicationName ?? string.Empty,
+            ApplicationNameAr = settings.ApplicationNameAr ?? string.Empty,
+            ApplicationNameEn = settings.ApplicationNameEn ?? string.Empty,
+            LogoUrl = settings.LogoUrl ?? string.Empty,
+            ApkFilename = settings.ApkFilename ?? string.Empty,
+            ApkIconUrl = settings.ApkIconUrl ?? string.Empty,
+            PrimaryColor = settings.PrimaryColor ?? string.Empty,
+            SecondaryColor = settings.SecondaryColor ?? string.Empty,
             ContactEmail = settings.ContactEmail,
             ContactPhone = settings.ContactPhone,
             IsMaintenanceMode = settings.IsMaintenanceMode,
@@ -439,10 +439,10 @@
                 statusMessage = "تم حفظ الإعدادات بنجاح.";
                 
                 // Update AppState
-                AppState.AppName = settings.ApplicationName;
-                AppState.AppLogo = settings.LogoUrl;
-                AppState.PrimaryColor = settings.PrimaryColor;
-                AppState.SecondaryColor = settings.SecondaryColor;
+                AppState.AppName = settings.ApplicationName ?? string.Empty;
+                AppState.AppLogo = settings.LogoUrl ?? string.Empty;
+                AppState.PrimaryColor = settings.PrimaryColor ?? string.Empty;
+                AppState.SecondaryColor = settings.SecondaryColor ?? string.Empty;
                 AppState.TriggerStateChanged();
             }
             else

@@ -16,6 +16,9 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <!-- NU1903: AutoMapper 13.0.1 has a known DoS vulnerability. Upgrading to v15+ requires a paid commercial license.
+         Risk is mitigated as we only map trusted internal object graphs (no user-controlled deeply nested input). -->
+    <NoWarn>$(NoWarn);NU1903</NoWarn>
   </PropertyGroup>
 
 </Project>

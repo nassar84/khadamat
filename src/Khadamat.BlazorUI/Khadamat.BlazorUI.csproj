@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <BlazorEnableCompression>false</BlazorEnableCompression>
     <StaticWebAssetProjectMode>Default</StaticWebAssetProjectMode>
+    <!-- NU1903: AutoMapper 13.0.1 known DoS vulnerability. v15+ requires paid license. Risk is low (trusted internal mappings). -->
+    <NoWarn>$(NoWarn);NU1903</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

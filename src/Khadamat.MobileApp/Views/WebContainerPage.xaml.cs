@@ -23,7 +23,7 @@ public partial class WebContainerPage : ContentPage
             }
         }
     }
-    protected string _route;
+    protected string _route = string.Empty;
 
     public WebContainerPage()
     {
@@ -147,7 +147,7 @@ public partial class WebContainerPage : ContentPage
     {
         if (MainWebView.Source is UrlWebViewSource urlSource)
         {
-            LoadUrl(urlSource.Url);
+            LoadUrl(urlSource.Url ?? string.Empty);
         }
         else
         {
@@ -187,7 +187,7 @@ public partial class WebContainerPage : ContentPage
                         var uri = new Uri(url.Replace("khadamat://auth/", "http://localhost/").Replace("auth_success", "auth").Replace("auth_sync", "auth"));
                         var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
 
-                        string data = query["data"];
+                        string? data = query["data"];
                         if (!string.IsNullOrEmpty(data))
                         {
                             var parts = data.Split('&');

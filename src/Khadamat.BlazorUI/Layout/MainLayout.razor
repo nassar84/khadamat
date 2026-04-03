@@ -79,6 +79,7 @@
         width: 100%;
         background: transparent;
         position: relative;
+        overflow-x: hidden; /* Prevent horizontal scroll from layout shifts */
     }
 
     .app-main-view {
@@ -87,10 +88,9 @@
         flex-direction: column;
         min-height: 100vh;
         position: relative;
-        max-width: calc(100% - 280px); /* Account for sidebar width */
-        margin-left: auto;
-        margin-right: auto;
-        overflow: visible !important; /* Critical for sticky children */
+        min-width: 0; /* Flexbox fix for overflow children */
+        margin: 0; /* Reset margins by default */
+        overflow: visible !important;
     }
 
     .app-content {
@@ -102,10 +102,7 @@
         overflow: visible !important;
     }
 
-    .khadamat-app.collapsed .app-main-view {
-        max-width: calc(100% - 80px);
-    }
-
+    /* Full width for small screens */
     @@media (max-width: 991px) {
         .khadamat-app {
             flex-direction: column;
@@ -113,6 +110,28 @@
         .app-main-view {
             width: 100%;
             max-width: 100%;
+            margin: 0 !important;
+        }
+    }
+
+    /* Handling sidebar space on desktop */
+    @@media (min-width: 992px) {
+        .khadamat-app:not(.mobile-mode) .app-main-view {
+            /* Keep centered but account for sidebar if needed */
+            max-width: calc(100% - 280px);
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .khadamat-app.collapsed:not(.mobile-mode) .app-main-view {
+            max-width: calc(100% - 80px);
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* If mobile mode is forced on desktop */
+        .khadamat-app.mobile-mode .app-main-view {
+            max-width: 100%;
+            margin: 0;
         }
     }
     

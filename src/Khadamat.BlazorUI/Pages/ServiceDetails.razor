@@ -1218,13 +1218,15 @@
 
         try
         {
-            var success = await Api.RequestServiceEditAsync(service.Id, new 
-            {
-                ServiceId = service.Id,
-                Reason = editReason,
-                ProposedName = editProposedName,
-                ProposedPhone1 = editProposedPhone
-            });
+        if (service == null) return;
+
+        var success = await Api.RequestServiceEditAsync(service.Id, new 
+        {
+            ServiceId = service.Id,
+            Reason = editReason,
+            ProposedName = editProposedName,
+            ProposedPhone1 = editProposedPhone
+        });
 
             if (success)
             {

@@ -1,5 +1,5 @@
 @using Khadamat.Application.DTOs
-@using Khadamat.BlazorUI.Services
+@using Khadamat.BlazorUI.Helpers
 @inject IJSRuntime JS
 @inject ApiClient Api
 
@@ -23,9 +23,11 @@
                 {
                     <div class="simple-cat-card" @onclick="() => OnCategoryClick(cat)">
                         <div class="icon-circle @(string.IsNullOrEmpty(cat.ImageUrl) ? "" : "p-0 overflow-hidden")">
-                            @if (!string.IsNullOrEmpty(cat.ImageUrl))
+                            @if (!string.IsNullOrEmpty(cat.Name))
                             {
-                                <img src="@Api.GetAbsoluteUrl($"/images/maincategories/{cat.ImageUrl}")" class="w-100 h-100 object-fit-cover" alt="@cat.Name" style="border-radius: 50%; opacity: 0.9;" />
+                                <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.CategoryIconResolver.GetIconUrl(cat.Name, cat.ImageUrl, "images/maincategories"))" 
+                                     onerror="this.onerror=null;this.src='/images/categories/gen/other_services.png';"
+                                     class="w-100 h-100 object-fit-cover" alt="@cat.Name" style="border-radius: 50%; opacity: 0.9;" />
                             }
                             else
                             {
