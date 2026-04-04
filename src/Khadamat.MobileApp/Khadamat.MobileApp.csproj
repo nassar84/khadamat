@@ -40,9 +40,10 @@
     <!-- Release Configurations (Maximum safety for startup) -->
     <PropertyGroup Condition="'$(Configuration)' == 'Release' and '$(TargetFramework)' == 'net8.0-android'">
         <RuntimeIdentifiers>android-arm;android-arm64</RuntimeIdentifiers>
-        <UseR8>false</UseR8>
-        <AndroidLinkMode>None</AndroidLinkMode>
-        <PublishTrimmed>false</PublishTrimmed>
+        <JavaMaxHeapSize>1G</JavaMaxHeapSize>
+        <UseR8>true</UseR8>
+        <AndroidLinkMode>SdkOnly</AndroidLinkMode>
+        <PublishTrimmed>true</PublishTrimmed>
         <RunAOTCompilation>false</RunAOTCompilation>
         <AndroidPackageFormat>apk</AndroidPackageFormat>
         <AndroidManagedSymbols>true</AndroidManagedSymbols>

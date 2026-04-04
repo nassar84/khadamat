@@ -33,10 +33,6 @@ public static class CategoryIconResolver
         { "صيدليات", "pharmacies" },
         { "مستشفيات", "hospitals" },
         { "معامل تحاليل", "labs" },
-        { "معامل", "labs" },
-        { "مراكز طبية", "hospitals" },
-        { "علاج طبيعي", "physical_therapy" },
-        { "علاج طبيعى", "physical_therapy" },
         { "مراكز اشعة", "radiology" },
 
         { "دروس خصوصية", "tutoring" },

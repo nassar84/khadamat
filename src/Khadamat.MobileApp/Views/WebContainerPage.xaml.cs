@@ -60,6 +60,9 @@ public partial class WebContainerPage : ContentPage
     {
         Console.WriteLine("ANTIGRAVITY_LOG: WebContainerPage OnNavigatedTo started");
         base.OnNavigatedTo(args);
+        // Always sync BottomNav auth state when any page becomes visible.
+        // This fixes the case where login happened on ProfileTab but HomePage's BottomNav wasn't notified.
+        BottomNav.RefreshAuthState();
         LoadContent();
     }
 

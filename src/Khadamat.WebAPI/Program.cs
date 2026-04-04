@@ -30,12 +30,14 @@ try
     builder.Services.AddSwaggerGen();
     builder.Services.AddSignalR();
     
+    /*
     // Performance: Response Compression (Brotli/Gzip)
     builder.Services.AddResponseCompression(options => {
         options.EnableForHttps = true;
         options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProvider>();
         options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProvider>();
     });
+    */
 
     // 3. Clean Architecture Layers
     builder.Services.AddInfrastructure(builder.Configuration);
@@ -115,7 +117,7 @@ try
         app.UseHttpsRedirection();
     }
 
-    app.UseResponseCompression();
+    // app.UseResponseCompression();
     
     // Global Error Handling (Standardized)
     app.UseExceptionHandler(exceptionHandlerApp =>

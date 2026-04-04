@@ -25,15 +25,19 @@ public partial class BottomNavBar : ContentView
 
                 if (vm.IsAuthenticated)
                 {
-                    // Show first word of user's name (matches website behaviour)
+                    // Show first word of user's name — matches web "حسابي" behaviour
                     var title = vm.UserTitle;
                     ProfileLabel.Text = string.IsNullOrWhiteSpace(title) ? "حسابي" : title.Split(' ')[0];
-                    ProfileIcon.Text = "\U0001F464"; // 👤  person silhouette
+                    // fa-circle-user (FA6Solid \uf2bd) — indicates logged-in state
+                    ProfileIcon.Text = "\uf2bd";
+                    ProfileIcon.FontFamily = "FA6Solid";
                 }
                 else
                 {
                     ProfileLabel.Text = "دخول";
-                    ProfileIcon.Text = "\U0001F464";
+                    // fa-user (FA6Solid \uf007) — default login icon
+                    ProfileIcon.Text = "\uf007";
+                    ProfileIcon.FontFamily = "FA6Solid";
                 }
             }
             catch { /* ignore if Shell not ready */ }
@@ -51,35 +55,39 @@ public partial class BottomNavBar : ContentView
     private void UpdateActiveColors()
     {
         var primaryColor = GetPrimaryColor();
-        var defaultColor = Color.FromArgb("#94a3b8");
+        // Matches web: .nav-item { color: #475569 } (inactive)
+        var defaultColor = Color.FromArgb("#475569");
 
-        // Reset all labels to default grey
-        FavoritesRightLabel.TextColor  = defaultColor;
-        MessagesLabel.TextColor        = defaultColor;
-        ProfileLabel.TextColor         = defaultColor;
-        
-        // Marketplace uses distinct premium color always
-        MarketplaceRightIcon.TextColor  = Color.FromArgb("#f59e0b");
-        MarketplaceRightLabel.TextColor = Color.FromArgb("#d97706");
-        
-        // Favorites heart stays red always
-        FavoritesRightIcon.TextColor = Color.FromArgb("#ef4444");
+        // Reset ALL items to default gray (icon + label) — same as web default state
+        MarketplaceRightIcon.TextColor  = defaultColor;
+        MarketplaceRightLabel.TextColor = defaultColor;
+        FavoritesRightIcon.TextColor    = defaultColor;
+        FavoritesRightLabel.TextColor   = defaultColor;
+        MessagesIcon.TextColor          = defaultColor;
+        MessagesLabel.TextColor         = defaultColor;
+        ProfileIcon.TextColor           = defaultColor;
+        ProfileLabel.TextColor          = defaultColor;
 
-        // "home" is always styled via the circle button; no label change needed
+        // Apply primary purple to active tab (icon + label) — matches web .nav-item.active
         switch (_activeTab)
         {
             case "marketplace":
+                MarketplaceRightIcon.TextColor  = primaryColor;
                 MarketplaceRightLabel.TextColor = primaryColor;
                 break;
             case "favorites":
+                FavoritesRightIcon.TextColor  = primaryColor;
                 FavoritesRightLabel.TextColor = primaryColor;
                 break;
             case "messages":
+                MessagesIcon.TextColor  = primaryColor;
                 MessagesLabel.TextColor = primaryColor;
                 break;
             case "profile":
+                ProfileIcon.TextColor  = primaryColor;
                 ProfileLabel.TextColor = primaryColor;
                 break;
+            // "home" is always styled by the circle + HomeLabel; no extra change needed
         }
     }
 

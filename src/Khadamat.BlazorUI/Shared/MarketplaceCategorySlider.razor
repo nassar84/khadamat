@@ -2,6 +2,7 @@
 @using Khadamat.BlazorUI.Services
 @inject ApiClient Api
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 <div class="market-categories-slider mb-4">
     <div class="d-flex align-items-center mb-3 px-1">
@@ -9,35 +10,44 @@
         <h5 class="fw-bold mb-0">التصنيفات</h5>
     </div>
     
-    <div class="d-flex gap-3 overflow-auto pb-2">
-        <div class="category-item @(SelectedId == null ? "active" : "")" @onclick="() => OnCategorySelected(null)">
-            <div class="category-icon-box">
-                <i class="fa-solid fa-border-all"></i>
-            </div>
-            <span class="category-label">الكل</span>
-        </div>
-
-        @if (Categories != null)
-        {
-            @foreach (var cat in Categories)
+    <div class="drag-scroll-outer" id="@containerId">
+        <div class="drag-scroll-track">
+            @for (int i = 0; i < 2; i++)
             {
-                <div class="category-item @(SelectedId == cat.Id ? "active" : "")" @onclick="() => OnCategorySelected(cat.Id)">
-                    <div class="category-icon-box">
-                        @if (!string.IsNullOrEmpty(cat.ImageUrl))
-                        {
-                            <img src="/images/categories/@cat.ImageUrl" 
-                                 onerror="this.onerror=null;this.src='/images/categories/default.jpg';" 
-                                 alt="@cat.Name" />
-                        }
-                        else
-                        {
-                            <i class="@GetIconForCategory(cat.Name) fs-3"></i>
-                        }
+                <div class="marquee-copy" aria-hidden="@(i == 1 ? "true" : "false")">
+                    <div class="category-item @(SelectedId == null ? "active" : "")" @onclick="() => OnCategorySelected(null)">
+                        <div class="category-icon-box">
+                            <i class="fa-solid fa-border-all"></i>
+                        </div>
+                        <span class="category-label text-truncate text-center w-100 px-1" style="max-width: 80px; direction: rtl;">الكل</span>
                     </div>
-                    <span class="category-label">@cat.Name</span>
+
+                    @if (Categories != null)
+                    {
+                        @foreach (var cat in Categories)
+                        {
+                            var c = cat; // For closure
+                            <div class="category-item @(SelectedId == c.Id ? "active" : "")" @onclick="() => OnCategorySelected(c.Id)">
+                                <div class="category-icon-box">
+                                    @if (!string.IsNullOrEmpty(c.ImageUrl))
+                                    {
+                                        <img src="/images/categories/@c.ImageUrl" 
+                                             class="draggable-img"
+                                             onerror="this.onerror=null;this.src='/images/categories/default.jpg';" 
+                                             alt="@c.Name" />
+                                    }
+                                    else
+                                    {
+                                        <i class="@GetIconForCategory(c.Name) fs-3"></i>
+                                    }
+                                </div>
+                                <span class="category-label text-truncate text-center w-100 px-1" style="max-width: 80px; direction: rtl;">@c.Name</span>
+                            </div>
+                        }
+                    }
                 </div>
             }
-        }
+        </div>
     </div>
 </div>
 
@@ -46,23 +56,42 @@
         padding: 5px 0;
     }
 
-    .market-categories-slider .d-flex {
-        scrollbar-width: thin;
-        scrollbar-color: #cbd5e1 transparent;
-        -webkit-overflow-scrolling: touch;
+    .drag-scroll-outer {
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        min-height: 95px;
+        display: flex;
+        align-items: center;
+        /* Disable RTL to ensure cross-browser scrollLeft math works correctly */
+        direction: ltr; 
+        cursor: grab;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        scroll-behavior: auto;
+    }
+    .drag-scroll-outer::-webkit-scrollbar {
+        display: none;
+    }
+    .drag-scroll-outer.active {
+        cursor: grabbing;
     }
 
-    .market-categories-slider .d-flex::-webkit-scrollbar {
-        height: 4px;
+    .drag-scroll-track {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        width: max-content;
+        padding: 8px 0;
     }
 
-    .market-categories-slider .d-flex::-webkit-scrollbar-track {
-        background: transparent;
-    }
-
-    .market-categories-slider .d-flex::-webkit-scrollbar-thumb {
-        background-color: #cbd5e1;
-        border-radius: 20px;
+    .marquee-copy {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        flex-shrink: 0;
+        gap: 16px;
+        padding-right: 16px;
     }
 
     .category-item {
@@ -73,8 +102,17 @@
         cursor: pointer;
         min-width: 80px;
         flex-shrink: 0;
-        transition: all 0.2s;
+        transition: transform 0.25s ease;
         padding: 4px;
+        user-select: none;
+    }
+    
+    .category-item:hover {
+        transform: translateY(-5px) scale(1.05);
+    }
+    
+    .category-item:active {
+        transform: scale(0.95);
     }
 
     .category-icon-box {
@@ -99,20 +137,20 @@
         object-fit: cover;
     }
 
-    .cat-emoji {
-        font-size: 1.8rem;
+    .draggable-img {
+        pointer-events: none;
+        user-select: none;
+        -webkit-user-drag: none;
     }
 
     .category-label {
         font-size: 0.75rem;
         font-weight: 700;
         color: #475569;
-        text-align: center;
-        white-space: nowrap;
     }
 
     .category-item:hover .category-icon-box {
-        transform: translateY(-5px) scale(1.05);
+        transform: translateY(-2px) scale(1.05);
         border-color: var(--theme-primary, #3b82f6);
         color: var(--theme-primary, #3b82f6);
     }
@@ -133,6 +171,124 @@
     [Parameter] public List<MarketplaceCategoryDto>? Categories { get; set; }
     [Parameter] public int? SelectedId { get; set; }
     [Parameter] public EventCallback<int?> OnSelected { get; set; }
+
+    private string containerId = "market-drag-scroll-" + Guid.NewGuid().ToString("N");
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender || Categories != null)
+        {
+            await InitDragScrollAsync();
+        }
+    }
+
+    private async Task InitDragScrollAsync()
+    {
+        try
+        {
+            var script = @"
+                (function() {
+                    var el = document.getElementById('" + containerId + @"');
+                    if (!el || el.dataset.dragInit) return;
+                    el.dataset.dragInit = 'true';
+
+                    var track = el.querySelector('.drag-scroll-track');
+                    if (!track) return;
+                    
+                    el.style.overflowX = 'hidden'; 
+                    track.style.willChange = 'transform';
+                    
+                    let currentX = 0;
+                    let isDown = false;
+                    let startMouseX = 0;
+                    let startCurrentX = 0;
+                    let isDragging = false;
+                    
+                    function getEventX(e) {
+                        return (e.touches && e.touches.length > 0) ? e.touches[0].pageX : e.pageX;
+                    }
+
+                    function onStart(e) {
+                        isDown = true;
+                        isDragging = false;
+                        el.classList.add('active');
+                        startMouseX = getEventX(e);
+                        startCurrentX = currentX;
+                    }
+
+                    function onMove(e) {
+                        if (!isDown) return;
+                        
+                        let x = getEventX(e);
+                        let deltaX = x - startMouseX;
+                        if (Math.abs(deltaX) > 5) {
+                            isDragging = true;
+                        }
+                        
+                        currentX = startCurrentX + deltaX;
+                        
+                        let w = track.offsetWidth / 2;
+                        if (w > 0) {
+                            if (currentX > 0) {
+                                currentX -= w;
+                                startCurrentX -= w;
+                            } else if (Math.abs(currentX) >= w) {
+                                currentX += w;
+                                startCurrentX += w;
+                            }
+                        }
+                        track.style.transform = `translateX(${currentX}px)`;
+                    }
+
+                    function onEnd() { 
+                        isDown = false; 
+                        el.classList.remove('active'); 
+                    }
+                    
+                    el.addEventListener('mousedown', onStart);
+                    el.addEventListener('touchstart', onStart, {passive: true});
+                    
+                    el.addEventListener('mousemove', onMove, {passive: true});
+                    el.addEventListener('touchmove', onMove, {passive: true});
+                    
+                    el.addEventListener('mouseleave', onEnd);
+                    el.addEventListener('mouseup', onEnd);
+                    el.addEventListener('touchend', onEnd);
+                    el.addEventListener('touchcancel', onEnd);
+
+                    let lastTime = 0;
+                    function animate(time) {
+                        if (lastTime === 0) lastTime = time;
+                        let dt = time - lastTime;
+                        lastTime = time;
+
+                        if (!isDown && !el.matches(':hover')) {
+                            currentX -= dt * 0.04;
+                            let w = track.offsetWidth / 2;
+                            if (w > 0 && Math.abs(currentX) >= w) {
+                                currentX += w;
+                            }
+                            track.style.transform = `translateX(${currentX}px)`;
+                        }
+                        requestAnimationFrame(animate);
+                    }
+                    requestAnimationFrame(animate);
+
+                    var items = track.querySelectorAll('.category-item');
+                    items.forEach(item => {
+                        item.addEventListener('click', function(e) {
+                            if (isDragging) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                            }
+                        });
+                    });
+                })();
+            ";
+            await JS.InvokeVoidAsync("eval", script);
+        }
+        catch { }
+    }
 
     private async Task OnCategorySelected(int? id)
     {

@@ -157,15 +157,27 @@
             height: 100%;
             border-radius: 50%;
             object-fit: cover;
-            border: 1.5px solid var(--theme-primary, #8e2de2);
+            border: none;
+            box-shadow: 0 0 0 2px var(--theme-primary, #8b5cf6);
         }
 
-        .nav-item button {
+        button.nav-item {
             background: none;
             border: none;
+            outline: none;
+            box-shadow: none;
             padding: 0;
             color: inherit;
             font: inherit;
+            -webkit-tap-highlight-color: transparent;
+            cursor: pointer;
+        }
+
+        button.nav-item:focus,
+        button.nav-item:focus-visible {
+            outline: none;
+            box-shadow: none;
+            border: none;
         }
     }
 </style>
