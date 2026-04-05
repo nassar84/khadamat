@@ -128,12 +128,31 @@
                 <VerticalStackLayout.GestureRecognizers>
                     <TapGestureRecognizer Tapped="OnProfileTapped" />
                 </VerticalStackLayout.GestureRecognizers>
-                <Label x:Name="ProfileIcon"
-                       Text="&#xF007;"
-                       FontFamily="FA6Solid"
-                       FontSize="20"
-                       TextColor="#475569"
-                       HorizontalOptions="Center" />
+                <Grid WidthRequest="24" HeightRequest="24" HorizontalOptions="Center">
+                    <Label x:Name="ProfileIcon"
+                           Text="&#xF007;"
+                           FontFamily="FA6Solid"
+                           FontSize="20"
+                           TextColor="#475569"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+
+                    <Border x:Name="ProfileImageBorder"
+                            IsVisible="False"
+                            WidthRequest="24"
+                            HeightRequest="24"
+                            StrokeThickness="0"
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center">
+                        <Border.StrokeShape>
+                            <Ellipse />
+                        </Border.StrokeShape>
+                        <Image x:Name="ProfileImage"
+                               Aspect="AspectFill"
+                               WidthRequest="24"
+                               HeightRequest="24" />
+                    </Border>
+                </Grid>
                 <Label x:Name="ProfileLabel"
                        Text="دخول"
                        FontSize="10"

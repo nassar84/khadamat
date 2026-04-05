@@ -64,7 +64,7 @@
     </Shell.MenuItemTemplate>
 
     <Shell.TitleView>
-        <Grid Padding="10,0" VerticalOptions="Fill">
+        <Grid Padding="10,0" VerticalOptions="Fill" FlowDirection="RightToLeft">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />

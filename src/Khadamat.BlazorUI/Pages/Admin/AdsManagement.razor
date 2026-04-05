@@ -456,6 +456,16 @@
     }
     .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
     .glass-panel { background: white; }
+
+    @@media (max-width: 767px) {
+        .glass-card { padding: 1rem !important; }
+        .row > .col-md-3, .row > .col-md-4, .row > .col-md-6, .row > .col-12 { margin-bottom: 0.5rem; }
+        .form-control, .form-select, .btn { font-size: 0.9rem !important; }
+        h4 { font-size: 1.2rem !important; }
+        .px-2 { padding-left: 8px !important; padding-right: 8px !important; }
+        .ad-preview-img { height: 140px !important; }
+        .modal-overlay .glass-card { width: 100% !important; border-radius: 0 !important; max-height: 100vh !important; height: 100vh !important; margin: 0 !important; }
+    }
 </style>
 
 @code {

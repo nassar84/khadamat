@@ -49,7 +49,20 @@ public partial class App : MauiApp
 
     protected override Window CreateWindow(IActivationState? activationState)
     {
-        var window = new Window(_welcomePage) { Title = "Khadamat" };
+        Page initialPage;
+        bool hasCompleted = Microsoft.Maui.Storage.Preferences.Default.Get("HasCompletedOnboarding", false);
+        
+        if (hasCompleted)
+        {
+            // By-pass the Welcome page if they have already opened the app before
+            initialPage = _welcomePage.GetShell();
+        }
+        else
+        {
+            initialPage = _welcomePage;
+        }
+
+        var window = new Window(initialPage) { Title = "Khadamat" };
         window.FlowDirection = FlowDirection.RightToLeft;
         return window;
     }

@@ -34,6 +34,7 @@ public static class DependencyInjection
         services.AddScoped<Khadamat.Application.Interfaces.INotificationService, Khadamat.Infrastructure.Services.NotificationService>();
         services.AddScoped<Khadamat.Application.Interfaces.IMarketplaceService, Khadamat.Infrastructure.Services.MarketplaceService>();
         services.AddScoped(typeof(Khadamat.Application.Interfaces.IGenericRepository<>), typeof(Khadamat.Infrastructure.Persistence.Repositories.GenericRepository<>));
+        services.AddScoped<Khadamat.Application.Interfaces.IUserService, Khadamat.Infrastructure.Identity.UserService>();
 
         // Advertisement & Growth System
         services.AddScoped<Khadamat.Application.Interfaces.IAdvertisementService, AdvertisementService>();

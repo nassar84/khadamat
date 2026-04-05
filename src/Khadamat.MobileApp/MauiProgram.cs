@@ -125,7 +125,7 @@ public static class MauiProgram
                 var errorMsg = $"[FATAL] {ex.GetType().Name}: {ex.Message}\n{ex.StackTrace}";
                 Console.WriteLine(errorMsg);
                 // Save to Preferences so it can be viewed if the app survives a partial start
-                Preferences.Default.Set("LastStartupError", errorMsg);
+                try { Preferences.Default.Set("LastStartupError", errorMsg); } catch { }
             }
         };
         TaskScheduler.UnobservedTaskException += (_, e) =>

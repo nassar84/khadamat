@@ -14,17 +14,20 @@ public class GetServiceByIdHandler : IRequestHandler<GetServiceByIdQuery, Servic
     private readonly IGenericRepository<ProviderProfile> _providerRepo;
     private readonly IGenericRepository<Post> _postRepo;
     private readonly IMapper _mapper;
+    private readonly IUserService _userService;
 
     public GetServiceByIdHandler(
         IGenericRepository<Service> serviceRepo,
         IGenericRepository<ProviderProfile> providerRepo,
         IGenericRepository<Post> postRepo,
-        IMapper mapper)
+        IMapper mapper,
+        IUserService userService)
     {
         _serviceRepo = serviceRepo;
         _providerRepo = providerRepo;
         _postRepo = postRepo;
         _mapper = mapper;
+        _userService = userService;
     }
 
     public async Task<ServiceDto?> Handle(GetServiceByIdQuery request, CancellationToken cancellationToken)
@@ -106,13 +109,20 @@ public class GetServiceByIdHandler : IRequestHandler<GetServiceByIdQuery, Servic
         // Map Ratings to Reviews manually if Mapper didn't do it (Mapper handles basic mapping but customization here is fine)
         if (service.Ratings != null && service.Ratings.Any())
         {
-            dto.Reviews = service.Ratings.Select(r => new ReviewDto
-            {
-                Id = r.Id,
-                Rating = r.Stars,
-                Comment = r.Comment,
-                CreatedAt = r.Date,
-                UserName = r.UserId // In real app, would fetch user info
+            var userIds = service.Ratings.Select(r => r.UserId).Distinct().ToList();
+            var userDict = await _userService.GetUsersBasicInfoAsync(userIds);
+
+            dto.Reviews = service.Ratings.Select(r => {
+                userDict.TryGetValue(r.UserId, out var userInfo);
+                return new ReviewDto
+                {
+                    Id = r.Id,
+                    Rating = r.Stars,
+                    Comment = r.Comment,
+                    CreatedAt = r.Date,
+                    UserName = !string.IsNullOrEmpty(userInfo.Name) ? userInfo.Name : "مستخدم بدون اسم",
+                    UserAvatar = userInfo.Avatar
+                };
             }).OrderByDescending(r => r.CreatedAt).ToList();
             
             dto.Rating = service.Ratings.Average(r => r.Stars);

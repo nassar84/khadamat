@@ -57,7 +57,10 @@ namespace Khadamat.MobileApp.Views
                         vm.SetAuthenticated(true);
                         
                         if (MauiApp.Current != null)
+                        {
+                            Preferences.Default.Set("HasCompletedOnboarding", true);
                             MauiApp.Current.MainPage = _shell;
+                        }
                     }
                 }
             }
@@ -163,6 +166,7 @@ namespace Khadamat.MobileApp.Views
                 await ((VisualElement)sender).ScaleTo(0.9, 100);
                 await ((VisualElement)sender).ScaleTo(1.0, 100);
                 
+                Preferences.Default.Set("HasCompletedOnboarding", true);
                 MauiApp.Current.MainPage = _shell;
                 
                 // Explicitly navigate to Home page so it always opens first

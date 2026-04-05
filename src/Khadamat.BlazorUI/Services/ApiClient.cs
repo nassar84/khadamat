@@ -728,21 +728,45 @@ public class ApiClient
     // Messages
     public async Task<List<ConversationDto>> GetConversationsAsync()
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<List<ConversationDto>>>("v1/messages");
-        return response?.Data ?? new List<ConversationDto>();
+        try
+        {
+            var response = await _http.GetFromJsonAsync<ApiResponse<List<ConversationDto>>>("v1/messages");
+            return response?.Data ?? new List<ConversationDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching conversations: {ex.Message}");
+            return new List<ConversationDto>();
+        }
     }
 
     public async Task<List<MessageDto>> GetMessagesAsync(string userId)
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<List<MessageDto>>>($"v1/messages/{userId}");
-        return response?.Data ?? new List<MessageDto>();
+        try
+        {
+            var response = await _http.GetFromJsonAsync<ApiResponse<List<MessageDto>>>($"v1/messages/{userId}");
+            return response?.Data ?? new List<MessageDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching messages: {ex.Message}");
+            return new List<MessageDto>();
+        }
     }
 
     public async Task<bool> SendMessageAsync(string receiverId, string content)
     {
-        var request = new { ReceiverId = receiverId, Content = content };
-        var response = await _http.PostAsJsonAsync("v1/messages", request);
-        return response.IsSuccessStatusCode;
+        try
+        {
+            var request = new { ReceiverId = receiverId, Content = content };
+            var response = await _http.PostAsJsonAsync("v1/messages", request);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error sending message: {ex.Message}");
+            return false;
+        }
     }
 
     // Subscriptions

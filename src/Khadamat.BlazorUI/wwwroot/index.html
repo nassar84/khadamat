@@ -29,7 +29,7 @@
             font-family: 'Tajawal', 'Outfit', sans-serif;
             background-color: #f8fafc;
             color: var(--text-main);
-            overflow-x: hidden;
+            overflow-x: clip;
             margin: 0;
             padding: 0;
             -webkit-tap-highlight-color: transparent;
@@ -258,7 +258,21 @@
             if (el) el.focus();
         };
 
+        // Hardware Back Button Compatibility Handler
+        window.handleBackNavigation = () => {
+             if (window.history.length > 1) {
+                 window.history.back();
+                 return true;
+             }
+             return false;
+        };
 
+        // Listen for hardware-like keys
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+                // Potentially handle back navigation if logic dictates
+            }
+        });
     </script>
 </body>
 

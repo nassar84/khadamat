@@ -40,7 +40,7 @@ public partial class ShellViewModel : ObservableObject
     private string userName = "مستخدم";
 
     [ObservableProperty]
-    private string userImage = "profile_icon.png";
+    private string userImage = "app_logo.png";
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotAuthenticated))]
@@ -86,14 +86,20 @@ public partial class ShellViewModel : ObservableObject
         if (value)
         {
             UserName = !string.IsNullOrEmpty(name) ? name : "مستخدم";
-            UserImage = !string.IsNullOrEmpty(image) ? image : "profile_icon.png";
+            
+            // Check if image looks like a real path; if not, use fallback logo instead of a missing file name
+            if (!string.IsNullOrEmpty(image) && (image.Contains("/") || image.Contains(".") || image.StartsWith("http")))
+                UserImage = image;
+            else
+                UserImage = "app_logo.png";
+                
             UserTitle = string.IsNullOrEmpty(name) ? "حسابي" : name.Split(' ')[0];
         }
         else
         {
             UserName = "زائر";
             UserTitle = "دخول";
-            UserImage = "profile_icon.png";
+            UserImage = "app_logo.png";
             IsAdmin = false;
             IsProvider = false;
         }

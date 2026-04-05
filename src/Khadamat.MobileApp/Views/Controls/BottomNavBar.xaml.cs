@@ -28,19 +28,55 @@ public partial class BottomNavBar : ContentView
                     // Show first word of user's name — matches web "حسابي" behaviour
                     var title = vm.UserTitle;
                     ProfileLabel.Text = string.IsNullOrWhiteSpace(title) ? "حسابي" : title.Split(' ')[0];
-                    // fa-circle-user (FA6Solid \uf2bd) — indicates logged-in state
-                    ProfileIcon.Text = "\uf2bd";
-                    ProfileIcon.FontFamily = "FA6Solid";
+
+                    // Profile Image Logic: Show image if it exists and looks like a valid path/url
+                    bool hasImage = !string.IsNullOrEmpty(vm.UserImage) && 
+                                    vm.UserImage != "profile_icon.png" && 
+                                    !vm.UserImage.ToLower().Contains("default") &&
+                                    (vm.UserImage.EndsWith(".png") || vm.UserImage.EndsWith(".jpg") || vm.UserImage.EndsWith(".jpeg") || vm.UserImage.Contains("/profiles/"));
+
+                    if (hasImage)
+                    {
+                        ProfileIcon.IsVisible = false;
+                        ProfileImageBorder.IsVisible = true;
+                        
+                        // Handle relative vs absolute URLs (Fetch baseUrl from settings)
+                        if (vm.UserImage.StartsWith("http") || vm.UserImage.StartsWith("https"))
+                        {
+                            ProfileImage.Source = vm.UserImage;
+                        }
+                        else
+                        {
+                            // Use the same base URL used for settings
+                            string baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "https://jobsek.eis-dev.com");
+                            ProfileImage.Source = $"{baseUrl.TrimEnd('/')}/{vm.UserImage.TrimStart('/')}";
+                            
+                            Console.WriteLine($"ANTIGRAVITY_LOG: Setting User Image Source: {ProfileImage.Source}");
+                        }
+                    }
+                    else
+                    {
+                        ProfileIcon.IsVisible = true;
+                        ProfileImageBorder.IsVisible = false;
+                        // fa-circle-user (FA6Solid \uf2bd) — indicates logged-in state
+                        ProfileIcon.Text = "\uf2bd";
+                        ProfileIcon.FontFamily = "FA6Solid";
+                    }
                 }
                 else
                 {
+                    ProfileIcon.IsVisible = true;
+                    ProfileImageBorder.IsVisible = false;
                     ProfileLabel.Text = "دخول";
                     // fa-user (FA6Solid \uf007) — default login icon
                     ProfileIcon.Text = "\uf007";
                     ProfileIcon.FontFamily = "FA6Solid";
                 }
             }
-            catch { /* ignore if Shell not ready */ }
+            catch (Exception ex) 
+            { 
+                Console.WriteLine($"ANTIGRAVITY_LOG: Error in RefreshAuthState: {ex.Message}");
+            }
         });
     }
 
@@ -67,6 +103,8 @@ public partial class BottomNavBar : ContentView
         MessagesLabel.TextColor         = defaultColor;
         ProfileIcon.TextColor           = defaultColor;
         ProfileLabel.TextColor          = defaultColor;
+        ProfileImageBorder.Stroke       = Colors.Transparent;
+        ProfileImageBorder.StrokeThickness = 0;
 
         // Apply primary purple to active tab (icon + label) — matches web .nav-item.active
         switch (_activeTab)
@@ -86,6 +124,8 @@ public partial class BottomNavBar : ContentView
             case "profile":
                 ProfileIcon.TextColor  = primaryColor;
                 ProfileLabel.TextColor = primaryColor;
+                ProfileImageBorder.Stroke = primaryColor;
+                ProfileImageBorder.StrokeThickness = 2;
                 break;
             // "home" is always styled by the circle + HomeLabel; no extra change needed
         }
@@ -106,45 +146,69 @@ public partial class BottomNavBar : ContentView
 
     private async void OnHomeTapped(object sender, TappedEventArgs e)
     {
-        SetActiveTab("home");
-        await AnimateHomeCircleAsync();
-        await Shell.Current.GoToAsync("//HomePage");
+        try 
+        {
+            SetActiveTab("home");
+            await AnimateHomeCircleAsync();
+            await Shell.Current.GoToAsync("//HomePage");
+        }
+        catch { }
     }
 
     private async void OnMarketplaceTapped(object sender, TappedEventArgs e)
     {
-        SetActiveTab("marketplace");
-        await Shell.Current.GoToAsync("//MarketplacePage");
+        try
+        {
+            SetActiveTab("marketplace");
+            await Shell.Current.GoToAsync("//MarketplacePage");
+        }
+        catch { }
     }
 
     private async void OnFavoritesTapped(object sender, TappedEventArgs e)
     {
-        var vm = Shell.Current?.BindingContext as ViewModels.ShellViewModel;
-        if (vm?.IsAuthenticated == false)
+        try
         {
-            await Shell.Current.GoToAsync("//ProfileTab");
-            return;
+            var vm = Shell.Current?.BindingContext as ViewModels.ShellViewModel;
+            if (vm?.IsAuthenticated == false)
+            {
+                await Shell.Current.GoToAsync("//ProfileTab");
+                return;
+            }
+            SetActiveTab("favorites");
+            await Shell.Current.GoToAsync("//FavoritesPage");
         }
-        SetActiveTab("favorites");
-        await Shell.Current.GoToAsync("//FavoritesPage");
+        catch { }
     }
 
     private async void OnMessagesTapped(object sender, TappedEventArgs e)
     {
-        var vm = Shell.Current?.BindingContext as ViewModels.ShellViewModel;
-        if (vm?.IsAuthenticated == false)
+        try
         {
-            await Shell.Current.GoToAsync("//ProfileTab");
-            return;
+            var vm = Shell.Current?.BindingContext as ViewModels.ShellViewModel;
+            if (vm?.IsAuthenticated == false)
+            {
+                await Shell.Current.GoToAsync("//ProfileTab");
+                return;
+            }
+            SetActiveTab("messages");
+            // Fix: Use the generic route to avoid crashes if MessagesPage is not in the Shell root stack
+            await Shell.Current.GoToAsync("//HomePage?route=messages");
         }
-        SetActiveTab("messages");
-        await Shell.Current.GoToAsync("//MessagesPage");
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ANTIGRAVITY_LOG: Messages Nav Error: {ex.Message}");
+        }
     }
 
     private async void OnProfileTapped(object sender, TappedEventArgs e)
     {
-        SetActiveTab("profile");
-        await Shell.Current.GoToAsync("//ProfileTab");
+        try
+        {
+            SetActiveTab("profile");
+            await Shell.Current.GoToAsync("//ProfileTab");
+        }
+        catch { }
     }
 
     // ─── Animations ──────────────────────────────────────────────────────────

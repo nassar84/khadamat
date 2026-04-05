@@ -75,8 +75,14 @@ public partial class WebContainerPage : ContentPage
 
     private void LoadContent()
     {
-        // Optional: Resolve base url from preferences or configuration if needed
+        // 1. Resolve base url from preferences or configuration
         string baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "https://jobsek.eis-dev.com");
+        
+        // Sync with API settings if available in ShellViewModel
+        if (Shell.Current?.BindingContext is ViewModels.ShellViewModel vm)
+        {
+             // If we have a local dev URL or explicit override, use it
+        }
 
         string routePart = !string.IsNullOrEmpty(DeepLinkRoute) ? DeepLinkRoute : (_route ?? "").TrimStart('/');
 
@@ -119,6 +125,16 @@ public partial class WebContainerPage : ContentPage
         }
 
         _currentUrl = url;
+        
+        // Save the base part for image loading in other components
+        try 
+        {
+            var uri = new Uri(url);
+            var basePart = uri.GetLeftPart(UriPartial.Authority);
+            Microsoft.Maui.Storage.Preferences.Default.Set("WebAppBaseUrl", basePart);
+        }
+        catch { }
+
         Console.WriteLine($"ANTIGRAVITY_LOG: WebView loading URL: {url}");
         MainWebView.Source = new UrlWebViewSource { Url = url };
     }
@@ -166,8 +182,6 @@ public partial class WebContainerPage : ContentPage
     private async void MainWebView_Navigating(object sender, WebNavigatingEventArgs e)
     {
         var url = e.Url;
-
-
 
         if (url.StartsWith("khadamat://auth/"))
         {
@@ -316,11 +330,16 @@ public partial class WebContainerPage : ContentPage
             return true;
         }
 
-        // 3. Fallback: If we are not on the HomePage, go there instead of exiting
-        var currentRoute = Shell.Current.CurrentState.Location.ToString();
-        if (!currentRoute.Contains("HomePage") && !currentRoute.EndsWith("//"))
+        // 3. Fallback: If we are not on the HomePage root, go there instead of exiting
+        var currentState = Shell.Current.CurrentState;
+        var currentRoute = currentState.Location.ToString();
+        
+        // If we are on Marketplace/Favorites/Profile, return to Home Tab
+        if (!currentRoute.EndsWith("//HomePage") && !currentRoute.EndsWith("//"))
         {
-            Console.WriteLine($"ANTIGRAVITY_LOG: Not on HomePage ({currentRoute}), returning to Home.");
+            Console.WriteLine($"ANTIGRAVITY_LOG: Not on HomePage ({currentRoute}), returning to Home Tab.");
+            
+            // If we are in Marketplace root, but want to go back to Home:
             Shell.Current.GoToAsync("//HomePage");
             return true;
         }

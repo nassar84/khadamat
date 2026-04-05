@@ -79,7 +79,7 @@
         width: 100%;
         background: transparent;
         position: relative;
-        overflow-x: hidden; /* Prevent horizontal scroll from layout shifts */
+        /* overflow-x: hidden; - Removed to prevent breaking 'position: sticky' */
     }
 
     .app-main-view {
@@ -106,6 +106,7 @@
     @@media (max-width: 991px) {
         .khadamat-app {
             flex-direction: column;
+            overflow-x: clip; /* Safer than hidden for sticky */
         }
         .app-main-view {
             width: 100%;
@@ -136,20 +137,29 @@
     }
     
     .sticky-categories-bar {
+        position: -webkit-sticky; /* iOS support */
         position: sticky;
-        top: 0; /* Default for mobile/integrated */
+        top: 72px; /* Set for desktop/shrunk view by default */
         z-index: 998;
-        background: rgba(255, 255, 255, 0.95);
+        background: rgba(255, 255, 255, 0.98);
         backdrop-filter: blur(15px);
         -webkit-backdrop-filter: blur(15px);
         border-bottom: 1px solid rgba(0,0,0,0.05);
-        padding: 8px 0;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        padding: 5px 0;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
     }
-    
-    /* When header is visible, push sticky bar down */
-    .khadamat-app:not(.mobile-mode) .sticky-categories-bar {
-        top: 72px; 
+
+    /* Adjust for mobile header which is slightly taller in total sticky space */
+    .mobile-mode .sticky-categories-bar {
+        top: 76px; /* Sits right under floating mobile glass header */
+        background: white; 
+    }
+
+    /* Small screens resizing on desktop */
+    @@media (max-width: 991px) {
+        .sticky-categories-bar {
+            top: 72px; /* Consistent with Consolidated Desktop Header height */
+        }
     }
 </style>
 

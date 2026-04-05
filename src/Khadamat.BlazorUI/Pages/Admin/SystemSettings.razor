@@ -39,8 +39,8 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold">شعار الموقع (Logo)</label>
-                        <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-4">
-                            <div class="logo-preview-box bg-white p-2 rounded-3 border d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                        <div class="d-flex flex-column flex-md-row align-items-center gap-3 p-3 bg-light rounded-4">
+                            <div class="logo-preview-box bg-white p-2 rounded-3 border d-flex align-items-center justify-content-center flex-shrink-0" style="width: 80px; height: 80px;">
                                 @if (!string.IsNullOrEmpty(settings.LogoUrl))
                                 {
                                     <img src="@settings.LogoUrl" style="max-width: 100%; max-height: 100%;" />
@@ -50,13 +50,13 @@
                                     <i class="fa-solid fa-image text-muted fs-3"></i>
                                 }
                             </div>
-                            <div class="flex-grow-1">
-                                <label class="btn btn-outline-primary btn-sm rounded-pill px-3 cursor-pointer">
+                            <div class="flex-grow-1 text-center text-md-start w-100">
+                                <label class="btn btn-outline-primary btn-sm rounded-pill px-4 cursor-pointer">
                                     <i class="fa-solid fa-upload me-1"></i> رفع شعار جديد
                                     <InputFile OnChange="HandleLogoUpload" class="d-none" accept=".jpg,.jpeg,.png,.svg" />
                                 </label>
                                 <div class="x-small text-muted mt-2">يفضل استخدام صورة شفافة (PNG) وبأبعاد متناسقة.</div>
-                                <input type="text" @bind="settings.LogoUrl" class="form-control form-control-sm mt-2 rounded-pill opacity-50" placeholder="أو أدخل رابطاً مباشراً...">
+                                <input type="text" @bind="settings.LogoUrl" class="form-control form-control-sm mt-3 rounded-pill opacity-75" placeholder="أو أدخل رابطاً مباشراً...">
                             </div>
                         </div>
                     </div>
@@ -346,6 +346,30 @@
         }
     }
 </div>
+
+<style>
+    @@media (max-width: 767px) {
+        .glass-card {
+            padding: 1.25rem 0.75rem !important;
+            margin-bottom: 1rem !important;
+            border-radius: 12px !important;
+        }
+        .form-control, .btn {
+            font-size: 0.85rem !important;
+            padding-top: 0.6rem !important;
+            padding-bottom: 0.6rem !important;
+        }
+        .logo-preview-box {
+            width: 70px !important; height: 70px !important;
+        }
+        h5 { font-size: 1rem !important; margin-bottom: 1rem !important; }
+        label { font-size: 0.75rem !important; margin-bottom: 0.35rem !important; }
+        .row > .col-md-6, .row > .col-md-12 {
+            margin-bottom: 1rem !important;
+        }
+        .px-2 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+    }
+</style>
 
 @code {
     private AppSettingsDto settings = new();

@@ -127,7 +127,7 @@
         <!-- Items Table -->
         <div class="admin-table-card rounded-4 overflow-hidden">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table table-hover align-middle mb-0" style="min-width: 950px;">
                     <thead>
                         <tr>
                             <th class="ps-3">الإعلان</th>
@@ -739,9 +739,39 @@
 
     .empty-box { background: white; border-radius: 20px; border: 2px dashed #e2e8f0; }
 
-    @@keyframes fadeIn    { from { opacity: 0; } to { opacity: 1; } }
-    @@keyframes slideUp   { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     @@keyframes slideUpFade { from { transform: translateX(-50%) translateY(20px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+
+    @@media (max-width: 767px) {
+        .admin-stat-card {
+            padding: 0.65rem !important;
+            margin-bottom: 0.5rem;
+        }
+        .stat-num { font-size: 1.1rem !important; }
+        .stat-label { font-size: 0.6rem !important; }
+        
+        .search-filter-bar {
+            padding: 0.75rem !important;
+        }
+        .form-control, .form-select {
+            font-size: 0.8rem !important;
+            padding: 0.5rem 0.75rem !important;
+        }
+        
+        .admin-table-card thead th {
+            font-size: 0.7rem !important;
+            padding: 0.6rem 0.5rem !important;
+        }
+        
+        .modal-box {
+            margin: 0.5rem;
+            border-radius: 16px !important;
+        }
+        .modal-box-header { padding: 1rem; }
+        .modal-box-body { padding: 1rem; }
+        
+        h3 { font-size: 1.25rem !important; }
+        .gap-3 { gap: 0.5rem !important; }
+    }
 </style>
 
 @code {

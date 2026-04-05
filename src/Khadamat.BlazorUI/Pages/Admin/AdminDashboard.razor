@@ -195,6 +195,24 @@
         -webkit-text-fill-color: transparent;
     }
 
+    @@media (max-width: 767px) {
+        .mgmt-module-card {
+            padding: 0.85rem !important;
+            border-radius: 12px !important;
+            margin-bottom: 5px !important;
+        }
+        .module-icon {
+            width: 36px !important; height: 36px !important;
+            font-size: 1rem !important;
+            margin-bottom: 0.4rem !important;
+        }
+        .module-title { font-size: 0.75rem !important; font-weight: 800 !important; }
+        .module-desc { display: none !important; } /* Hide description on mobile to save space */
+        
+        .row.g-3, .row.g-4 { --bs-gutter-x: 0.5rem; --bs-gutter-y: 0.5rem; }
+        .px-3 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+    }
+
     .btn-icon-glass {
         width: 42px; height: 42px;
         border-radius: 12px;
