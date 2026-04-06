@@ -258,6 +258,16 @@
         opacity: 1;
     }
 
+    .mobile-content {
+        flex: 1;
+        overflow-x: auto; /* Enable horizontal scrolling */
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        padding: 15px;
+        background: #f8fafc;
+        width: 100%;
+    }
+
     /* Mobile Responsive Styles */
     @@media (max-width: 991px) {
         .admin-sidebar {
@@ -281,6 +291,8 @@
         .admin-content {
             width: 100%;
             padding: 15px;
+            overflow-x: auto; /* Enable horizontal scrolling specifically for mobile layouts */
+            -webkit-overflow-scrolling: touch;
         }
 
         .admin-header {
