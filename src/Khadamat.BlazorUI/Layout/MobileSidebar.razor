@@ -285,6 +285,15 @@
         flex-direction: column;
         box-shadow: -10px 0 30px rgba(0, 0, 0, 0.05);
         direction: rtl; /* Ensure internal content is RTL too */
+        
+        /* Enable scrolling and hide scrollbar */
+        overflow-y: auto;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+    }
+
+    .mobile-sidebar-drawer::-webkit-scrollbar {
+        display: none; /* Chrome, Safari and Opera */
     }
 
     .mobile-sidebar-drawer.open {
