@@ -2,7 +2,7 @@
 @implements IDisposable
 
 <PageTitle>@AppState.AppName</PageTitle>
-<div class="khadamat-app @(AppState.IsMobileApp ? "mobile-mode" : "") @(isSidebarCollapsed ? "collapsed" : "")" dir="rtl">
+<div class="khadamat-app @(AppState.IsMobileApp ? "mobile-mode" : "") @(AppState.IsNativeApp ? "native-mode" : "") @(isSidebarCollapsed ? "collapsed" : "")" dir="rtl">
     @if (!AppState.IsNativeApp)
     {
         <MobileSidebar />
@@ -150,16 +150,26 @@
     }
 
     /* Adjust for mobile header which is slightly taller in total sticky space */
-    .mobile-mode .sticky-categories-bar {
+    .mobile-mode:not(.native-mode) .sticky-categories-bar {
         top: 76px; /* Sits right under floating mobile glass header */
         background: white; 
     }
 
     /* Small screens resizing on desktop */
     @@media (max-width: 991px) {
-        .sticky-categories-bar {
+        .sticky-categories-bar:not(.native-mode .sticky-categories-bar) {
             top: 72px; /* Consistent with Consolidated Desktop Header height */
         }
+    }
+
+    .native-mode .sticky-categories-bar {
+        top: 0 !important; /* In native app, it sits right under the native header */
+        background: white;
+    }
+
+    .native-mode .app-main-view {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
     }
 </style>
 
