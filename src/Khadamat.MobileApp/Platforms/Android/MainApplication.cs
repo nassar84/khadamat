@@ -3,8 +3,8 @@ using Android.Runtime;
 
 namespace Khadamat.MobileApp;
 
-[Register("com.khadamat.app.MainApplication")]
-[Application(Name = "com.khadamat.app.MainApplication")]
+[Register("com.nassar84.khadamat.MainApplication")]
+[Application(Name = "com.nassar84.khadamat.MainApplication")]
 public class MainApplication : MauiApplication
 {
 	public MainApplication(IntPtr handle, JniHandleOwnership ownership)

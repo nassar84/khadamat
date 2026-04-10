@@ -83,6 +83,17 @@ try
 
     var app = builder.Build();
 
+    // Support for Bulk Import via Command Line
+    if (args.Contains("--import-services"))
+    {
+        Log.Information("Manual Import Mode Triggered.");
+        using (var scope = app.Services.CreateScope())
+        {
+            await Khadamat.Infrastructure.Persistence.ServiceImporter.Run(scope.ServiceProvider, "services_import_template.csv");
+        }
+        return;
+    }
+
     // 6. Automatic Database Seeding & Migration Management
     using (var scope = app.Services.CreateScope())
     {

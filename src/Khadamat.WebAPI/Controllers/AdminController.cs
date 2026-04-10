@@ -168,15 +168,56 @@ public class AdminController : ControllerBase
         var user = await _userManager.FindByIdAsync(id);
         if (user == null) return NotFound(ApiResponse<bool>.Fail("المستخدم غير موجود"));
 
+        var currentUser = await _userManager.GetUserAsync(User);
         var targetRoles = await _userManager.GetRolesAsync(user);
+        
+        // Security Check: 
+        // 1. Only SuperAdmin can edit other Admins (SystemAdmin or SuperAdmin).
+        // 2. SystemAdmin can edit themselves.
+        // 3. SystemAdmin can edit regular Users and Providers.
         if (!User.IsInRole("SuperAdmin") && (targetRoles.Contains("SuperAdmin") || targetRoles.Contains("SystemAdmin")))
         {
-            return Forbid("لا يمكنك تعديل بيانات هذا المستخدم.");
+            if (user.Id != currentUser?.Id)
+            {
+                return Forbid("لا يمكنك تعديل بيانات هذا المستخدم.");
+            }
         }
 
         user.FullName = dto.FullName;
-        user.Email = dto.Email;
-        user.UserName = dto.UserName;
+        
+        // Handle Email & UserName sync
+        var emailChanged = user.Email != dto.Email;
+        if (emailChanged)
+        {
+            // Check if new email is taken
+            var emailUser = await _userManager.FindByEmailAsync(dto.Email);
+            if (emailUser != null && emailUser.Id != id)
+            {
+                return BadRequest(ApiResponse<bool>.Fail("البريد الإلكتروني مستخدم بالفعل لمستخدم آخر"));
+            }
+            
+            user.Email = dto.Email;
+            user.NormalizedEmail = dto.Email.ToUpper();
+            
+            // If UserName was previously matching Email, keep them in sync
+            if (user.UserName == user.Email || string.IsNullOrEmpty(user.UserName))
+            {
+                user.UserName = dto.Email;
+                user.NormalizedUserName = dto.Email.ToUpper();
+            }
+        }
+
+        if (!string.IsNullOrEmpty(dto.UserName) && user.UserName != dto.UserName)
+        {
+            var nameUser = await _userManager.FindByNameAsync(dto.UserName);
+            if (nameUser != null && nameUser.Id != id)
+            {
+                return BadRequest(ApiResponse<bool>.Fail("اسم المستخدم مستخدم بالفعل"));
+            }
+            user.UserName = dto.UserName;
+            user.NormalizedUserName = dto.UserName.ToUpper();
+        }
+
         user.PhoneNumber = dto.PhoneNumber;
         user.CityId = dto.CityId;
         user.IsActive = dto.IsActive;
@@ -190,6 +231,33 @@ public class AdminController : ControllerBase
         user.FacebookUrl = dto.FacebookUrl;
         user.LinkedInUrl = dto.LinkedInUrl;
         user.TikTokUrl = dto.TikTokUrl;
+
+        // Role Update Support (convenience for the Admin Dashboard)
+        if (!string.IsNullOrEmpty(dto.Role))
+        {
+            var currentRole = (await _userManager.GetRolesAsync(user)).FirstOrDefault();
+            if (currentRole != dto.Role)
+            {
+                // Restriction: SystemAdmin cannot promote to Admin roles
+                if (!User.IsInRole("SuperAdmin") && (dto.Role == "SuperAdmin" || dto.Role == "SystemAdmin"))
+                {
+                    // Ignore role change if not allowed, or return error? 
+                    // Let's just ignore it or keep the old one for non-SuperAdmins.
+                }
+                else 
+                {
+                    var userRoles = await _userManager.GetRolesAsync(user);
+                    if (userRoles.Any()) await _userManager.RemoveFromRolesAsync(user, userRoles);
+                    await _userManager.AddToRoleAsync(user, dto.Role);
+                    
+                    // Update the user.Role enum too
+                    if (Enum.TryParse<UserRole>(dto.Role, out var roleEnum))
+                    {
+                        user.Role = roleEnum;
+                    }
+                }
+            }
+        }
 
         var result = await _userManager.UpdateAsync(user);
         if (!result.Succeeded) 

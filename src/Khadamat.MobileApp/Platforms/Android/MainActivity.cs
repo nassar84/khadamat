@@ -5,9 +5,9 @@ using Android.Runtime;
 
 namespace Khadamat.MobileApp;
 
-[Register("com.khadamat.app.MainActivity")]
+[Register("com.nassar84.khadamat.MainActivity")]
 [Activity(
-    Name = "com.khadamat.app.MainActivity",
+    Name = "com.nassar84.khadamat.MainActivity",
     Theme = "@style/Maui.SplashTheme", 
     MainLauncher = true, 
     Exported = true,

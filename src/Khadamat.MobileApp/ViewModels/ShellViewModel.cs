@@ -73,6 +73,8 @@ public partial class ShellViewModel : ObservableObject
             _ = Shell.Current.GoToAsync("//HomePage");
     }
 
+    public static event EventHandler? AuthChanged;
+
     public void SetAuthenticated(bool value, string? name = null, string? image = null, bool admin = false, bool provider = false)
     {
         IsAuthenticated = value;
@@ -93,7 +95,7 @@ public partial class ShellViewModel : ObservableObject
             else
                 UserImage = "app_logo.png";
                 
-            UserTitle = string.IsNullOrEmpty(name) ? "حسابي" : name.Split(' ')[0];
+            UserTitle = string.IsNullOrEmpty(name) ? name : name.Split(' ')[0];
         }
         else
         {
@@ -103,6 +105,8 @@ public partial class ShellViewModel : ObservableObject
             IsAdmin = false;
             IsProvider = false;
         }
+
+        AuthChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private readonly HttpClient _httpClient;
@@ -121,70 +125,97 @@ public partial class ShellViewModel : ObservableObject
     [RelayCommand]
     private async Task Navigate(string route)
     {
-        if (string.IsNullOrEmpty(route)) return;
+        if (string.IsNullOrEmpty(route) || IsBusy) return;
         
-        // Close flyout first
-        Shell.Current.FlyoutIsPresented = false;
-        
-        if (route == "logout")
-        {
-            if (!IsAuthenticated) return;
-            SetAuthenticated(false);
-            // Inform Blazor part about logout via WebView if possible, or reload HomePage
-            await Refresh();
-            await Shell.Current.GoToAsync("//HomePage");
-            return;
-        }
-        else if (route == "marketplace")
-            route = IsClientMode ? "//MarketplacePage" : "//HomePage?route=marketplace";
-        else if (route == "profile")
-            route = "//ProfileTab";
-        else if (route == "favorites")
-            route = IsAuthenticated ? (IsClientMode ? "//FavoritesPage" : "//HomePage?route=client/favorites") : "//ProfileTab";
-        else if (route == "messages")
-            route = IsAuthenticated ? "//HomePage?route=messages" : "//ProfileTab";
-        else if (route == "provider/dashboard" || route == "my-services")
-            route = IsAuthenticated ? (IsProviderMode ? "//MyServicesPage" : "//HomePage?route=provider/dashboard") : "//ProfileTab";
-        else if (route == "services")
-            route = IsAuthenticated ? "//HomePage?route=services" : "//ProfileTab";
-        else if (route == "settings")
-            route = IsAuthenticated ? "//HomePage?route=settings" : "//ProfileTab";
-        else if (route == "admin")
-            route = "//HomePage?route=admin";
-        else if (route == "admin/ads")
-            route = "//HomePage?route=admin/ads";
-        else if (route == "terms")
-            route = "//HomePage?route=terms";
-        else if (route == "home")
-            route = "//HomePage";
-        else if (route == "provider/apply")
-            route = IsAuthenticated ? "//HomePage?route=provider/apply" : "//ProfileTab";
-        else if (route == "explore" || route == "categories")
-            route = IsClientMode ? "//CategoriesPage" : "//HomePage?route=explore";
-        else if (route == "support")
-        {
-            await Shell.Current.GoToAsync($"//HomePage?route=contact"); 
-            return;
-        }
-        else if (route == "notifications" || route == "search")
-        {
-            await Shell.Current.GoToAsync($"//HomePage?route={route}");
-            return;
-        }
-        else if (route == "//HomePage")
-            route = "//HomePage?route=";
-        else if (!route.StartsWith("//"))
-            route = "//HomePage?route=" + Uri.EscapeDataString(route);
-
         try
         {
+            IsBusy = true;
+            Console.WriteLine($"ANTIGRAVITY_LOG: Navigating to {route}");
+
+            // Close flyout first
+            Shell.Current.FlyoutIsPresented = false;
+            
+            if (route == "logout")
+            {
+                if (!IsAuthenticated) return;
+                
+                try
+                {
+                    var currentPage = Shell.Current.CurrentPage;
+                    if (currentPage is NavigationPage navPage) currentPage = navPage.CurrentPage;
+                    
+                    if (currentPage is Views.WebContainerPage webPage)
+                    {
+                        await webPage.ForceLogoutInWebView();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"ANTIGRAVITY_LOG: Error clearing web auth: {ex.Message}");
+                }
+
+                SetAuthenticated(false);
+                await Shell.Current.GoToAsync("//HomePage");
+                return;
+            }
+            
+            if (route == "marketplace")
+                route = IsClientMode ? "//MarketplacePage" : "//HomePage?route=marketplace";
+            else if (route == "profile" || route == "login")
+                route = "//ProfileTab";
+            else if (route == "register")
+                route = "//HomePage?route=register"; 
+            else if (route == "favorites")
+                route = IsAuthenticated ? (IsClientMode ? "//FavoritesPage" : "//HomePage?route=client/favorites") : "//ProfileTab";
+            else if (route == "messages")
+                route = IsAuthenticated ? "//HomePage?route=messages" : "//ProfileTab";
+            else if (route == "provider/dashboard" || route == "my-services")
+                route = IsAuthenticated ? (IsProviderMode ? "//MyServicesPage" : "//HomePage?route=provider/dashboard") : "//ProfileTab";
+            else if (route == "services")
+                route = IsAuthenticated ? "//HomePage?route=services" : "//ProfileTab";
+            else if (route == "settings")
+                route = IsAuthenticated ? "//HomePage?route=settings" : "//ProfileTab";
+            else if (route == "admin")
+                route = "//HomePage?route=admin";
+            else if (route == "admin/ads")
+                route = "//HomePage?route=admin/ads";
+            else if (route == "terms")
+                route = "//HomePage?route=terms";
+            else if (route == "home")
+                route = "//HomePage";
+            else if (route == "provider/apply")
+                route = IsAuthenticated ? "//HomePage?route=provider/apply" : "//ProfileTab";
+            else if (route == "explore" || route == "categories")
+                route = IsClientMode ? "//CategoriesPage" : "//HomePage?route=explore";
+            else if (route == "support")
+                route = "//HomePage?route=contact";
+            else if (route == "notifications" || route == "search")
+                route = "//HomePage?route=" + route;
+            else if (route == "//HomePage")
+                route = "//HomePage?route=";
+            else if (!route.StartsWith("//"))
+                route = "//HomePage?route=" + Uri.EscapeDataString(route);
+
+            Console.WriteLine($"ANTIGRAVITY_LOG: Final Route Path: {route}");
+            
+            // Update CurrentTab for UI Highlighting
+            if (route.Contains("Marketplace")) CurrentTab = "marketplace";
+            else if (route.Contains("Favorites")) CurrentTab = "favorites";
+            else if (route.Contains("messages")) CurrentTab = "messages";
+            else if (route.Contains("ProfileTab")) CurrentTab = "profile";
+            else if (route.Contains("HomePage") && !route.Contains("route=")) CurrentTab = "home";
+            else if (route == "//HomePage") CurrentTab = "home";
+
             await Shell.Current.GoToAsync(route);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"ANTIGRAVITY_LOG: Navigate Error for {route}: {ex.Message}");
-            // Fallback to home
+            Console.WriteLine($"ANTIGRAVITY_LOG: Navigation Error for {route}: {ex.Message}");
             await Shell.Current.GoToAsync("//HomePage");
+        }
+        finally
+        {
+            IsBusy = false;
         }
     }
 

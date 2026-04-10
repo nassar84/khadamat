@@ -15,7 +15,7 @@
         <ApplicationTitle>خدماوي</ApplicationTitle>
 
         <!-- App Identifier -->
-        <ApplicationId>com.khadamat.app</ApplicationId>
+        <ApplicationId>com.nassar84.khadamat</ApplicationId>
 
         <!-- Versions -->
         <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
@@ -25,6 +25,7 @@
         <UseInterpreter Condition="'$(Configuration)' == 'Debug'">True</UseInterpreter>
         <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
         <AndroidUseFastDeployment>false</AndroidUseFastDeployment>
+        <AndroidUseAssemblyStore>false</AndroidUseAssemblyStore>
         
         <!-- Fix for JAVA0000 R8/D8 Build errors -->
         <AndroidDexTool>d8</AndroidDexTool>
@@ -41,13 +42,15 @@
     <PropertyGroup Condition="'$(Configuration)' == 'Release' and '$(TargetFramework)' == 'net8.0-android'">
         <RuntimeIdentifiers>android-arm;android-arm64;android-x64</RuntimeIdentifiers>
         <JavaMaxHeapSize>4G</JavaMaxHeapSize>
-        <UseR8>true</UseR8>
-        <AndroidLinkMode>SdkOnly</AndroidLinkMode>
-        <PublishTrimmed>true</PublishTrimmed>
-        <RunAOTCompilation>true</RunAOTCompilation>
+        <!-- Use safe settings to avoid XAGJS7001 -->
+        <UseR8>false</UseR8>
+        <AndroidLinkMode>None</AndroidLinkMode>
+        <PublishTrimmed>false</PublishTrimmed>
+        <RunAOTCompilation>false</RunAOTCompilation>
         <AndroidPackageFormat>apk</AndroidPackageFormat>
         <AndroidManagedSymbols>true</AndroidManagedSymbols>
         <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+        <AndroidUseAssemblyStore>false</AndroidUseAssemblyStore>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -79,8 +82,8 @@
         <!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
         <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
         
-        <!-- Google Services Json for Android -->
-        <GoogleServicesJson Condition="$(TargetFramework.Contains('-android'))" Include="Platforms\Android\google-services.json" />
+        <!-- Google Services Json for Android - Disabled since FCM is not in use -->
+        <!-- <GoogleServicesJson Condition="$(TargetFramework.Contains('-android'))" Include="Platforms\Android\google-services.json" /> -->
     </ItemGroup>
 
     <ItemGroup>

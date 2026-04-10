@@ -51,6 +51,23 @@ public partial class WebContainerPage : ContentPage
         });
     }
 
+    public async Task ForceLogoutInWebView()
+    {
+        try
+        {
+            if (MainWebView != null)
+            {
+                Console.WriteLine("ANTIGRAVITY_LOG: Clearing Auth state in WebView via JS injection");
+                // Clear tokens from localStorage
+                await MainWebView.EvaluateJavaScriptAsync("(function() { localStorage.removeItem('authToken'); localStorage.removeItem('refreshToken'); localStorage.removeItem('is_authenticated'); sessionStorage.clear(); })();");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ANTIGRAVITY_LOG: Error in ForceLogoutInWebView JS: {ex.Message}");
+        }
+    }
+
     public WebContainerPage(string route) : this()
     {
         _route = route;

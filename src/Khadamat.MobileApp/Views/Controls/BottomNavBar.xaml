@@ -20,11 +20,16 @@
         Inactive color: #475569 (slate-600) — same as web .nav-item color
         Active color:   Primary (purple) — same as web .nav-item.active color
     -->
-    <Grid VerticalOptions="End">
+    <Grid VerticalOptions="End" x:Name="RootGrid" x:DataType="viewModels:ShellViewModel">
         <Grid.RowDefinitions>
             <RowDefinition Height="30" />
             <RowDefinition Height="68" />
         </Grid.RowDefinitions>
+
+        <Grid.Resources>
+            <Color x:Key="InactiveColor">#475569</Color>
+            <Color x:Key="ActiveColor">#6366f1</Color>
+        </Grid.Resources>
 
         <!-- ═══════ Bar Background (Row 1) ═══════ -->
         <Border Grid.Row="1"
@@ -32,17 +37,14 @@
                 StrokeThickness="0"
                 Padding="0">
             <Border.StrokeShape>
-                <!-- Matches web: border-top-left-radius:20px; border-top-right-radius:20px -->
                 <RoundRectangle CornerRadius="20,20,0,0" />
             </Border.StrokeShape>
             <Border.Shadow>
-                <!-- Matches web: box-shadow: 0 -8px 25px rgba(0,0,0,0.06) -->
                 <Shadow Brush="#000000" Offset="0,-8" Radius="25" Opacity="0.06" />
             </Border.Shadow>
             <ContentView />
         </Border>
 
-        <!-- Top separator line — matches web: border-top: 2px solid rgba(0,0,0,0.04) -->
         <BoxView Grid.Row="1" VerticalOptions="Start"
                  HeightRequest="1" Color="#f1f5f9" />
 
@@ -51,114 +53,129 @@
               ColumnDefinitions="*,*,64,*,*"
               HorizontalOptions="Fill" VerticalOptions="Fill">
 
-            <!-- Col 0 (RTL right) ═ المتجر — fa-shop (&#xF54F;) -->
-            <VerticalStackLayout Grid.Column="0"
-                                 HorizontalOptions="Center"
-                                 VerticalOptions="Center"
-                                 Spacing="3">
+            <!-- Col 0 (RTL right) ═ المتجر -->
+            <VerticalStackLayout Grid.Column="0" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
                 <VerticalStackLayout.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnMarketplaceTapped" />
+                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="marketplace" />
                 </VerticalStackLayout.GestureRecognizers>
-                <Label x:Name="MarketplaceRightIcon"
-                       Text="&#xF54F;"
-                       FontFamily="FA6Solid"
-                       FontSize="20"
-                       TextColor="#475569"
-                       HorizontalOptions="Center" />
-                <Label x:Name="MarketplaceRightLabel"
-                       Text="المتجر"
-                       FontSize="10"
-                       FontAttributes="Bold"
-                       TextColor="#475569"
-                       HorizontalOptions="Center" />
+                <Label Text="&#xF54F;" FontFamily="FA6Solid" FontSize="20" HorizontalOptions="Center">
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="marketplace">
+                            <Setter Property="TextColor" Value="{DynamicResource Primary}" />
+                        </DataTrigger>
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" IsNotEqualTo="marketplace">
+                            <Setter Property="TextColor" Value="{StaticResource InactiveColor}" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+                <Label Text="المتجر" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center">
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="marketplace">
+                            <Setter Property="TextColor" Value="{DynamicResource Primary}" />
+                        </DataTrigger>
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" IsNotEqualTo="marketplace">
+                            <Setter Property="TextColor" Value="{StaticResource InactiveColor}" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
             </VerticalStackLayout>
 
-            <!-- Col 1 ═ المفضلة — fa-heart (&#xF004;) -->
-            <VerticalStackLayout Grid.Column="1"
-                                 HorizontalOptions="Center"
-                                 VerticalOptions="Center"
-                                 Spacing="3">
+            <!-- Col 1 ═ المفضلة -->
+            <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
                 <VerticalStackLayout.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnFavoritesTapped" />
+                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="favorites" />
                 </VerticalStackLayout.GestureRecognizers>
-                <Label x:Name="FavoritesRightIcon"
-                       Text="&#xF004;"
-                       FontFamily="FA6Solid"
-                       FontSize="20"
-                       TextColor="#475569"
-                       HorizontalOptions="Center" />
-                <Label x:Name="FavoritesRightLabel"
-                       Text="المفضلة"
-                       FontSize="10"
-                       FontAttributes="Bold"
-                       TextColor="#475569"
-                       HorizontalOptions="Center" />
+                <Label Text="&#xF004;" FontFamily="FA6Solid" FontSize="20" HorizontalOptions="Center">
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="favorites">
+                            <Setter Property="TextColor" Value="#ef4444" />
+                        </DataTrigger>
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" IsNotEqualTo="favorites">
+                            <Setter Property="TextColor" Value="{StaticResource InactiveColor}" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+                <Label Text="المفضلة" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center">
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="favorites">
+                            <Setter Property="TextColor" Value="#ef4444" />
+                        </DataTrigger>
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" IsNotEqualTo="favorites">
+                            <Setter Property="TextColor" Value="{StaticResource InactiveColor}" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
             </VerticalStackLayout>
 
-            <!-- Col 2 ═ Center spacer for home circle -->
             <ContentView Grid.Column="2" />
 
-            <!-- Col 3 ═ الرسائل — fa-envelope (&#xF0E0;) -->
-            <VerticalStackLayout Grid.Column="3"
-                                 HorizontalOptions="Center"
-                                 VerticalOptions="Center"
-                                 Spacing="3">
+            <!-- Col 3 ═ الرسائل -->
+            <VerticalStackLayout Grid.Column="3" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
                 <VerticalStackLayout.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnMessagesTapped" />
+                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="messages" />
                 </VerticalStackLayout.GestureRecognizers>
-                <Label x:Name="MessagesIcon"
-                       Text="&#xF0E0;"
-                       FontFamily="FA6Solid"
-                       FontSize="20"
-                       TextColor="#475569"
-                       HorizontalOptions="Center" />
-                <Label x:Name="MessagesLabel"
-                       Text="الرسائل"
-                       FontSize="10"
-                       FontAttributes="Bold"
-                       TextColor="#475569"
-                       HorizontalOptions="Center" />
+                <Label Text="&#xF0E0;" FontFamily="FA6Solid" FontSize="20" HorizontalOptions="Center">
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="messages">
+                            <Setter Property="TextColor" Value="{DynamicResource Primary}" />
+                        </DataTrigger>
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" IsNotEqualTo="messages">
+                            <Setter Property="TextColor" Value="{StaticResource InactiveColor}" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+                <Label Text="الرسائل" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center">
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="messages">
+                            <Setter Property="TextColor" Value="{DynamicResource Primary}" />
+                        </DataTrigger>
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" IsNotEqualTo="messages">
+                            <Setter Property="TextColor" Value="{StaticResource InactiveColor}" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
             </VerticalStackLayout>
 
-            <!-- Col 4 (RTL left) ═ حسابي / دخول — fa-user (&#xF007;) -->
-            <VerticalStackLayout Grid.Column="4"
-                                 HorizontalOptions="Center"
-                                 VerticalOptions="Center"
-                                 Spacing="3">
+            <!-- Col 4 ═ حسابي / دخول -->
+            <VerticalStackLayout Grid.Column="4" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
                 <VerticalStackLayout.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnProfileTapped" />
+                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="profile" />
                 </VerticalStackLayout.GestureRecognizers>
                 <Grid WidthRequest="24" HeightRequest="24" HorizontalOptions="Center">
-                    <Label x:Name="ProfileIcon"
-                           Text="&#xF007;"
-                           FontFamily="FA6Solid"
-                           FontSize="20"
-                           TextColor="#475569"
-                           HorizontalOptions="Center"
-                           VerticalOptions="Center" />
+                    <Label x:Name="ProfileIcon" Text="&#xF007;" FontFamily="FA6Solid" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="profile">
+                                <Setter Property="TextColor" Value="{DynamicResource Primary}" />
+                            </DataTrigger>
+                            <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" IsNotEqualTo="profile">
+                                <Setter Property="TextColor" Value="{StaticResource InactiveColor}" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
 
-                    <Border x:Name="ProfileImageBorder"
-                            IsVisible="False"
-                            WidthRequest="24"
-                            HeightRequest="24"
-                            StrokeThickness="0"
-                            HorizontalOptions="Center"
-                            VerticalOptions="Center">
-                        <Border.StrokeShape>
-                            <Ellipse />
-                        </Border.StrokeShape>
-                        <Image x:Name="ProfileImage"
-                               Aspect="AspectFill"
-                               WidthRequest="24"
-                               HeightRequest="24" />
+                    <Border x:Name="ProfileImageBorder" IsVisible="False" WidthRequest="24" HeightRequest="24" StrokeThickness="2" HorizontalOptions="Center" VerticalOptions="Center">
+                         <Border.StrokeShape><Ellipse /></Border.StrokeShape>
+                         <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding CurrentTab}" Value="profile">
+                                <Setter Property="Stroke" Value="{DynamicResource Primary}" />
+                            </DataTrigger>
+                            <DataTrigger TargetType="Border" Binding="{Binding CurrentTab}" IsNotEqualTo="profile">
+                                <Setter Property="Stroke" Value="Transparent" />
+                            </DataTrigger>
+                        </Border.Triggers>
+                        <Image x:Name="ProfileImage" Aspect="AspectFill" WidthRequest="24" HeightRequest="24" />
                     </Border>
                 </Grid>
-                <Label x:Name="ProfileLabel"
-                       Text="دخول"
-                       FontSize="10"
-                       FontAttributes="Bold"
-                       TextColor="#475569"
-                       HorizontalOptions="Center" />
+                <Label x:Name="ProfileLabel" Text="{Binding UserTitle}" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center">
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="profile">
+                            <Setter Property="TextColor" Value="{DynamicResource Primary}" />
+                        </DataTrigger>
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" IsNotEqualTo="profile">
+                            <Setter Property="TextColor" Value="{StaticResource InactiveColor}" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
             </VerticalStackLayout>
         </Grid>
 

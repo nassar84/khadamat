@@ -198,14 +198,14 @@
                                 <Border Grid.Column="0" BackgroundColor="{DynamicResource Primary}" StrokeThickness="0">
                                     <Border.StrokeShape><RoundRectangle CornerRadius="10" /></Border.StrokeShape>
                                     <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="profile" />
+                                        <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="login" />
                                     </Border.GestureRecognizers>
                                     <Label Text="دخول" TextColor="White" FontAttributes="Bold" FontSize="14" HorizontalOptions="Center" Padding="0,12" />
                                 </Border>
                                 <Border Grid.Column="1" BackgroundColor="White" StrokeThickness="1.5" Stroke="{DynamicResource Primary}">
                                     <Border.StrokeShape><RoundRectangle CornerRadius="10" /></Border.StrokeShape>
                                     <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="profile" />
+                                        <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="register" />
                                     </Border.GestureRecognizers>
                                     <Label Text="حساب جديد" TextColor="{DynamicResource Primary}" FontAttributes="Bold" FontSize="13" HorizontalOptions="Center" Padding="0,12" />
                                 </Border>
@@ -410,22 +410,22 @@
 
 
     <TabBar x:Name="MainTabBar">
-        <!-- 1. Categories (th-large) - \uf009 -->
+        <!-- 1. Home (house) - \uf015 (Prominent style in MAUI via contrast) -->
+        <Tab Title="الرئيسية" Route="HomePage">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F3E0;" Color="#6366f1" /></Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:HomePage}" />
+        </Tab>
+
+        <!-- 2. Categories (th-large) - \uf009 -->
         <Tab Title="الأقسام" Route="CategoriesPage" IsVisible="{Binding IsClientMode}">
             <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4C2;" Color="{Binding IsClientMode, Converter={StaticResource BooleanToColorConverter}}" /></Tab.Icon>
             <ShellContent ContentTemplate="{DataTemplate views:CategoriesPage}" />
         </Tab>
 
-        <!-- 2. Marketplace (store) - \uf54e -->
+        <!-- 3. Marketplace (store) - \uf54e -->
         <Tab Title="المتجر" Route="MarketplacePage" IsVisible="{Binding IsClientMode}">
             <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F6CD;" Color="#f59e0b" /></Tab.Icon>
             <ShellContent ContentTemplate="{DataTemplate views:MarketplacePage}" />
-        </Tab>
-
-        <!-- 3. Home (house) - \uf015 (Prominent style in MAUI via contrast) -->
-        <Tab Title="الرئيسية" Route="HomePage">
-            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F3E0;" Color="#6366f1" /></Tab.Icon>
-            <ShellContent ContentTemplate="{DataTemplate views:HomePage}" />
         </Tab>
 
         <!-- 4. Client: Favorites (heart) - \uf004 | Provider: My Services (briefcase) - \uf0b1 -->

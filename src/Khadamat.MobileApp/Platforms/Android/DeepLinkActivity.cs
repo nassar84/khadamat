@@ -6,7 +6,7 @@ using Khadamat.MobileApp.Services;
 
 namespace Khadamat.MobileApp;
 
-[Register("com.khadamat.app.DeepLinkActivity")]
+[Register("com.nassar84.khadamat.DeepLinkActivity")]
 [Activity(NoHistory = true, LaunchMode = global::Android.Content.PM.LaunchMode.SingleTask, Exported = true)]
 [IntentFilter(new[] { Intent.ActionView }, 
     Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable }, 

@@ -7,74 +7,55 @@ public partial class BottomNavBar : ContentView
     public BottomNavBar()
     {
         InitializeComponent();
+        
+        // Subscribe to global auth changes to keep UI in sync
+        ViewModels.ShellViewModel.AuthChanged += OnAuthChanged;
+
+        Unloaded += (s, e) => {
+            ViewModels.ShellViewModel.AuthChanged -= OnAuthChanged;
+        };
     }
 
-    // ─── Auth State ──────────────────────────────────────────────────────────
-
-    /// <summary>
-    /// Call this whenever auth state changes to update the profile label/icon.
-    /// </summary>
-    public void RefreshAuthState()
+    private void OnAuthChanged(object? sender, EventArgs e)
     {
+        RefreshAuthState();
+    }
+
+    // ─── Auth State ─────────────────────────────────────────────────────────    public void RefreshAuthState()
+    {
+        // Now partially handled by bindings in XAML (ProfileLabel)
+        // Manual sync for legacy ProfileImage logic
         MainThread.BeginInvokeOnMainThread(() =>
         {
             try
             {
-                var vm = Shell.Current?.BindingContext as ViewModels.ShellViewModel;
+                var vm = BindingContext as ViewModels.ShellViewModel;
                 if (vm == null) return;
 
-                if (vm.IsAuthenticated)
+                bool hasImage = !string.IsNullOrEmpty(vm.UserImage) && 
+                                vm.UserImage != "profile_icon.png" && 
+                                vm.UserImage != "app_logo.png" &&
+                                !vm.UserImage.ToLower().Contains("default");
+
+                ProfileIcon.IsVisible = !hasImage;
+                ProfileImageBorder.IsVisible = hasImage;
+
+                if (hasImage)
                 {
-                    // Show first word of user's name — matches web "حسابي" behaviour
-                    var title = vm.UserTitle;
-                    ProfileLabel.Text = string.IsNullOrWhiteSpace(title) ? "حسابي" : title.Split(' ')[0];
-
-                    // Profile Image Logic: Show image if it exists and looks like a valid path/url
-                    bool hasImage = !string.IsNullOrEmpty(vm.UserImage) && 
-                                    vm.UserImage != "profile_icon.png" && 
-                                    !vm.UserImage.ToLower().Contains("default") &&
-                                    (vm.UserImage.EndsWith(".png") || vm.UserImage.EndsWith(".jpg") || vm.UserImage.EndsWith(".jpeg") || vm.UserImage.Contains("/profiles/"));
-
-                    if (hasImage)
+                    if (vm.UserImage.StartsWith("http") || vm.UserImage.StartsWith("https") || vm.UserImage.StartsWith("data:image"))
                     {
-                        ProfileIcon.IsVisible = false;
-                        ProfileImageBorder.IsVisible = true;
-                        
-                        // Handle relative vs absolute URLs (Fetch baseUrl from settings)
-                        if (vm.UserImage.StartsWith("http") || vm.UserImage.StartsWith("https"))
-                        {
-                            ProfileImage.Source = vm.UserImage;
-                        }
-                        else
-                        {
-                            // Use the same base URL used for settings
-                            string baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "https://jobsek.eis-dev.com");
-                            ProfileImage.Source = $"{baseUrl.TrimEnd('/')}/{vm.UserImage.TrimStart('/')}";
-                            
-                            Console.WriteLine($"ANTIGRAVITY_LOG: Setting User Image Source: {ProfileImage.Source}");
-                        }
+                        ProfileImage.Source = vm.UserImage;
                     }
                     else
                     {
-                        ProfileIcon.IsVisible = true;
-                        ProfileImageBorder.IsVisible = false;
-                        // fa-circle-user (FA6Solid \uf2bd) — indicates logged-in state
-                        ProfileIcon.Text = "\uf2bd";
-                        ProfileIcon.FontFamily = "FA6Solid";
+                        string baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "https://khadamat.com");
+                        ProfileImage.Source = $"{baseUrl.TrimEnd('/')}/{vm.UserImage.TrimStart('/')}";
                     }
                 }
-                else
-                {
-                    ProfileIcon.IsVisible = true;
-                    ProfileImageBorder.IsVisible = false;
-                    ProfileLabel.Text = "دخول";
-                    // fa-user (FA6Solid \uf007) — default login icon
-                    ProfileIcon.Text = "\uf007";
-                    ProfileIcon.FontFamily = "FA6Solid";
-                }
             }
-            catch (Exception ex) 
-            { 
+            catch { }
+        });
+    }            { 
                 Console.WriteLine($"ANTIGRAVITY_LOG: Error in RefreshAuthState: {ex.Message}");
             }
         });
@@ -144,72 +125,18 @@ public partial class BottomNavBar : ContentView
 
     // ─── Tap Handlers ────────────────────────────────────────────────────────
 
-    private async void OnHomeTapped(object sender, TappedEventArgs e)
+    private void OnHomeTapped(object sender, TappedEventArgs e)
     {
-        try 
+        if (BindingContext is ViewModels.ShellViewModel vm)
         {
-            SetActiveTab("home");
-            await AnimateHomeCircleAsync();
-            await Shell.Current.GoToAsync("//HomePage");
-        }
-        catch { }
-    }
-
-    private async void OnMarketplaceTapped(object sender, TappedEventArgs e)
-    {
-        try
-        {
-            SetActiveTab("marketplace");
-            await Shell.Current.GoToAsync("//MarketplacePage");
-        }
-        catch { }
-    }
-
-    private async void OnFavoritesTapped(object sender, TappedEventArgs e)
-    {
-        try
-        {
-            var vm = Shell.Current?.BindingContext as ViewModels.ShellViewModel;
-            if (vm?.IsAuthenticated == false)
-            {
-                await Shell.Current.GoToAsync("//ProfileTab");
-                return;
-            }
-            SetActiveTab("favorites");
-            await Shell.Current.GoToAsync("//FavoritesPage");
-        }
-        catch { }
-    }
-
-    private async void OnMessagesTapped(object sender, TappedEventArgs e)
-    {
-        try
-        {
-            var vm = Shell.Current?.BindingContext as ViewModels.ShellViewModel;
-            if (vm?.IsAuthenticated == false)
-            {
-                await Shell.Current.GoToAsync("//ProfileTab");
-                return;
-            }
-            SetActiveTab("messages");
-            // Fix: Use the generic route to avoid crashes if MessagesPage is not in the Shell root stack
-            await Shell.Current.GoToAsync("//HomePage?route=messages");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"ANTIGRAVITY_LOG: Messages Nav Error: {ex.Message}");
+            vm.NavigateCommand.Execute("home");
+            _ = AnimateHomeCircleAsync();
         }
     }
 
-    private async void OnProfileTapped(object sender, TappedEventArgs e)
-    {
-        try
-        {
-            SetActiveTab("profile");
-            await Shell.Current.GoToAsync("//ProfileTab");
-        }
-        catch { }
-    }
+    // Handlers for side items are now handled via Command bindings in XAML, 
+    // but we can keep these as empty or remove if we remove their Tapped attributes in XAML.
+    // I already removed Tapped attributes in XAML for side items.
 
     // ─── Animations ──────────────────────────────────────────────────────────
 
