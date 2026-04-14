@@ -73,13 +73,12 @@
             </div>
 
             <div class="qr-scan-section mt-4 pt-4 border-top border-white border-opacity-10 text-center">
-                <div class="qr-frame mx-auto mb-3">
+                <div class="qr-frame mx-auto mb-3" id="app-download-qr">
                     <div class="qr-corner top-left"></div>
                     <div class="qr-corner top-right"></div>
                     <div class="qr-corner bottom-left"></div>
                     <div class="qr-corner bottom-right"></div>
                     <div class="qr-scanner-line"></div>
-                    <i class="fa-solid fa-qrcode fa-4x text-white opacity-25"></i> <!-- Reduced fa-5x to fa-4x -->
                 </div>
                 <span class="text-white opacity-75 x-small">امسح الكود ضوئياً لتحميل التطبيق مباشرة</span>
             </div>
@@ -400,7 +399,16 @@
         }
     }
 
-    private void ToggleExpand() => isExpanded = !isExpanded;
+    private async Task ToggleExpand() 
+    {
+        isExpanded = !isExpanded;
+        if (isExpanded)
+        {
+            await Task.Delay(100); // Give time for DOM to render if needed
+            var downloadUrl = Navigation.BaseUri + "downloads/khadamat.apk";
+            await JS.InvokeVoidAsync("generateQRCode", "app-download-qr", downloadUrl);
+        }
+    }
 
     private async Task ShareAppInvitation()
     {

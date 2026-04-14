@@ -109,6 +109,19 @@
                         </Grid>
                     </VerticalStackLayout>
 
+                    <Button Text="تسجيل الدخول" 
+                            Clicked="OnStandardLoginClicked"
+                            BackgroundColor="#0f766e" 
+                            TextColor="White" 
+                            HeightRequest="52" 
+                            CornerRadius="26" 
+                            FontAttributes="Bold" 
+                            FontSize="16">
+                        <Button.Shadow>
+                            <Shadow Brush="#000000" Offset="0,4" Radius="8" Opacity="0.4" />
+                        </Button.Shadow>
+                    </Button>
+
                     <Button Text="ابدأ الآن كزائر" 
                             Clicked="OnStartClicked"
                             BackgroundColor="#3b82f6" 

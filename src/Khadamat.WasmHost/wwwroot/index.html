@@ -180,7 +180,7 @@
     <script src="lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="_content/Khadamat.BlazorUI/lib/swiper/swiper-bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="js/qrcode.min.js"></script>
     <script>
         window.shareServiceAsImage = async (elementId, qrText, fileName) => {
             const element = document.getElementById(elementId);
@@ -238,6 +238,26 @@
                 element.style.display = originalDisplay;
                 element.style.position = '';
                 element.style.left = '';
+            }
+        };
+
+        window.generateQRCode = (elementId, text) => {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            el.innerHTML = "";
+            new QRCode(el, {
+                text: text,
+                width: 128,
+                height: 128,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            const qrImg = el.querySelector('img');
+            if(qrImg) {
+                qrImg.style.display = "block";
+                qrImg.style.margin = "auto";
+                qrImg.style.borderRadius = "8px";
             }
         };
 

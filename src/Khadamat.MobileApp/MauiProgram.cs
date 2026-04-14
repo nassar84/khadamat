@@ -93,8 +93,8 @@ public static class MauiProgram
         builder.Services.AddSingleton<IExternalAuthService, MauiExternalAuthService>();
         builder.Services.AddSingleton<Khadamat.Application.Interfaces.IOfflineDataService, LocalDataService>();
         builder.Services.AddScoped<IBiometricService, MauiBiometricService>();
-        // Mobile specific services
-        builder.Services.AddHttpClient();
+        // Register HttpClient as a singleton for simple injection
+        builder.Services.AddSingleton(sp => new HttpClient { Timeout = TimeSpan.FromSeconds(20) });
         builder.Services.AddSingleton<IAudioService, AudioService>();
         builder.Services.AddSingleton<ViewModels.ShellViewModel>();
         builder.Services.AddSingleton<AppShell>();
@@ -137,6 +137,16 @@ public static class MauiProgram
         };
 
 
-        return builder.Build();
+        try 
+        {
+            return builder.Build();
+        }
+        catch (Exception ex)
+        {
+            var fatalMsg = $"[BOOTSTRAP FATAL] {ex.Message}\n{ex.StackTrace}";
+            Console.WriteLine(fatalMsg);
+            try { Preferences.Default.Set("LastBootstrapError", fatalMsg); } catch { }
+            throw; // Still throw to avoid running in unstable state, but we logged it
+        }
     }
 }

@@ -173,5 +173,20 @@ namespace Khadamat.MobileApp.Views
                 await Shell.Current.GoToAsync("//HomePage");
             }
         }
+
+        private async void OnStandardLoginClicked(object sender, EventArgs e)
+        {
+            if (MauiApp.Current != null)
+            {
+                await ((VisualElement)sender).ScaleTo(0.9, 100);
+                await ((VisualElement)sender).ScaleTo(1.0, 100);
+                
+                Preferences.Default.Set("HasCompletedOnboarding", true);
+                MauiApp.Current.MainPage = _shell;
+                
+                // Navigate to login page
+                await Shell.Current.GoToAsync("//HomePage?route=login");
+            }
+        }
     }
 }

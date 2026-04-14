@@ -9,42 +9,46 @@ public partial class App : MauiApp
 
     public App(Views.WelcomePage welcomePage)
     {
-        InitializeComponent();
-        
-        // Initial Theme Load
-        string savedTheme = Microsoft.Maui.Storage.Preferences.Default.Get("AppTheme", "default");
-        string primaryHex = savedTheme switch
+        try 
         {
-            "sunset" => "#ea580c",
-            "ocean" => "#0ea5e9",
-            "forest" => "#10b981",
-            "lavender" => "#8b5cf6",
-            "royal" => "#eab308",
-            _ => "#6366f1" // default
-        };
-        Resources["Primary"] = Color.FromArgb(primaryHex);
-        
-        _welcomePage = welcomePage;
-        
-        DeepLinkBridge.OnDeepLinkReceived += async (url) => 
-        {
-            if (MauiApp.Current != null && MauiApp.Current.MainPage != _welcomePage.AppShellInstance)
-            {
-                // Note: I need to expose AppShell in WelcomePage or have a way to access it.
-                // Actually, since WelcomePage has it injected, I can use it.
-            }
-            
-            // Simplified: If we get a deep link, we probably should ensure we are in the Shell.
-            if (MauiApp.Current != null && Shell.Current == null)
-            {
-                MauiApp.Current.MainPage = _welcomePage.GetShell();
-            }
+            InitializeComponent();
+            _welcomePage = welcomePage;
 
-            if (Shell.Current is AppShell appShell)
+            // Simple safe theme initialization
+            string savedTheme = Microsoft.Maui.Storage.Preferences.Default.Get("AppTheme", "default");
+            ApplyInitialTheme(savedTheme);
+
+            // Handle DeepLink
+            DeepLinkBridge.OnDeepLinkReceived += async (url) => 
             {
-                await appShell.HandleDeepLink(url);
-            }
-        };
+                if (Microsoft.Maui.Controls.Application.Current != null && Shell.Current != null)
+                {
+                    await Shell.Current.GoToAsync(url);
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ANTIGRAVITY_LOG: [CRITICAL APP INIT ERROR] {ex.Message}");
+        }
+    }
+
+    private void ApplyInitialTheme(string theme)
+    {
+        try 
+        {
+            string primaryHex = theme switch
+            {
+                "sunset" => "#ea580c",
+                "ocean" => "#0284c7",
+                "forest" => "#16a34a",
+                "lavender" => "#9333ea",
+                "royal" => "#db2777",
+                _ => "#6366f1"
+            };
+            Resources["Primary"] = Color.FromArgb(primaryHex);
+        }
+        catch { }
     }
 
     protected override Window CreateWindow(IActivationState? activationState)
@@ -55,7 +59,7 @@ public partial class App : MauiApp
         if (hasCompleted)
         {
             // By-pass the Welcome page if they have already opened the app before
-            initialPage = _welcomePage.GetShell();
+            initialPage = _welcomePage.AppShellInstance;
         }
         else
         {
