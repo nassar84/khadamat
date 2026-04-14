@@ -80,7 +80,22 @@
                     <div class="qr-corner bottom-right"></div>
                     <div class="qr-scanner-line"></div>
                 </div>
-                <span class="text-white opacity-75 x-small">امسح الكود ضوئياً لتحميل التطبيق مباشرة</span>
+            <div class="share-options mt-4">
+                <p class="text-white opacity-75 small mb-3">شارك التطبيق مع أصدقائك:</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <button class="share-btn whatsapp" @onclick='() => ShareTo("whatsapp")' title="واتساب">
+                        <i class="fa-brands fa-whatsapp"></i>
+                    </button>
+                    <button class="share-btn facebook" @onclick='() => ShareTo("facebook")' title="فيسبوك">
+                        <i class="fa-brands fa-facebook-f"></i>
+                    </button>
+                    <button class="share-btn twitter" @onclick='() => ShareTo("twitter")' title="تويتر">
+                        <i class="fa-brands fa-x-twitter"></i>
+                    </button>
+                    <button class="share-btn generic" @onclick="ShareAppInvitation" title="المزيد">
+                        <i class="fa-solid fa-share-nodes"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -379,6 +394,37 @@
             padding: 20px;
         }
     }
+    .share-options .share-btn {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: white;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(5px);
+    }
+
+    .share-options .share-btn:hover {
+        transform: translateY(-5px) scale(1.1);
+    }
+
+    .share-options .share-btn.whatsapp:hover { background: #25D366; box-shadow: 0 5px 15px rgba(37, 211, 102, 0.4); }
+    .share-options .share-btn.facebook:hover { background: #1877F2; box-shadow: 0 5px 15px rgba(24, 119, 242, 0.4); }
+    .share-options .share-btn.twitter:hover { background: #000000; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4); }
+    .share-options .share-btn.generic:hover { background: var(--primary-color); box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4); }
+
+    .x-small { font-size: 0.75rem; }
+    
+    @media (max-width: 576px) {
+        .app-download-card {
+            width: 320px;
+        }
+    }
 </style>
 
 @code {
@@ -413,10 +459,45 @@
     private async Task ShareAppInvitation()
     {
         var shareUrl = Navigation.BaseUri;
-        var shareTitle = $"حمّل تطبيق {State.AppName}";
-        var shareText = $"🚀 كن جزءاً من مجتمع {State.AppName}!\nكل الخدمات التي تحتاجها (تمريض، تعليم، حرف، توصيل، قانون) في مكان واحد.\n\nحمّل التطبيق الآن مباشرة من هنا:\n{shareUrl}";
+        var shareTitle = $"خمّل تطبيق {State.AppName} - عالم من الخدمات";
+        var shareText = $"🌟 اكتشف تطبيق {State.AppName} الجديد!\n\n" +
+                        "كل ما تحتاجه من خدمات في تطبيق واحد:\n" +
+                        "✅ خدمات طبية وتمريضية منزلية\n" +
+                        "✅ صيانة منزلية (سباكة، كهرباء، نجارة)\n" +
+                        "✅ خدمات تعليمية وتدريبية\n" +
+                        "✅ توصيل وخدمات لوجستية\n" +
+                        "✅ استشارات قانونية ومهنية\n\n" +
+                        "🚀 تجربة عصرية، سهولة في الطلب، وأمان تام.\n\n" +
+                        "جربه الآن عبر الرابط:";
         
         await JS.InvokeVoidAsync("shareApp", shareTitle, shareText, shareUrl);
+    }
+
+    private async Task ShareTo(string platform)
+    {
+        var shareUrl = Navigation.BaseUri;
+        var shareText = $"اكتشف تطبيق {State.AppName} المتكامل لكل الخدمات!\n" +
+                        "تمريض، تعليم، حرف، توصيل.. كل شيء في مكان واحد.\n" +
+                        "جربه الآن: " + shareUrl;
+        
+        string url = "";
+        switch (platform)
+        {
+            case "whatsapp":
+                url = $"https://wa.me/?text={Uri.EscapeDataString(shareText)}";
+                break;
+            case "facebook":
+                url = $"https://www.facebook.com/sharer/sharer.php?u={Uri.EscapeDataString(shareUrl)}";
+                break;
+            case "twitter":
+                url = $"https://twitter.com/intent/tweet?text={Uri.EscapeDataString(shareText)}";
+                break;
+        }
+
+        if (!string.IsNullOrEmpty(url))
+        {
+            await JS.InvokeVoidAsync("open", url, "_blank");
+        }
     }
 
     public void Dispose()

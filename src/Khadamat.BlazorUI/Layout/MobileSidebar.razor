@@ -204,8 +204,15 @@
                 <!-- Guest Header: White bg, logo + app name -->
                 <div class="guest-header-white px-4 pt-5 pb-3">
                     <div class="d-flex align-items-center gap-2 mb-3" style="cursor:pointer" @onclick='() => NavigateTo("/")'>
-                        <span style="font-size:1.6rem; color: var(--theme-primary);">⚡</span>
-                        <span style="font-size:1.3rem; font-weight:800; color: var(--theme-primary);">@State.AppName</span>
+                        @if (!string.IsNullOrEmpty(State.AppLogo))
+                        {
+                            <img src="@State.GetAbsoluteUrl(State.AppLogo)" alt="Logo" style="height: 38px; width: auto; object-fit: contain;" />
+                        }
+                        else
+                        {
+                            <span style="font-size:1.6rem; color: var(--theme-primary);">⚡</span>
+                        }
+                        <span style="font-size:1.3rem; font-weight:800; color: var(--theme-primary);">@(string.IsNullOrEmpty(State.AppNameAr) ? State.AppName : State.AppNameAr)</span>
                     </div>
                     <hr class="my-2" style="border-color:#f1f5f9;" />
                     <!-- Section label -->

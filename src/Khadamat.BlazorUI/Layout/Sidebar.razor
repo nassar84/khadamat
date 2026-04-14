@@ -7,16 +7,16 @@
 
 <div class="app-sidebar @(IsCollapsed ? "collapsed" : "") d-none d-lg-flex">
     <div class="sidebar-header">
-        <div class="logo-box">
+        <div class="logo-box" @onclick='() => Navigation.NavigateTo("/")' style="cursor:pointer">
             @if (!string.IsNullOrEmpty(State.AppLogo))
             {
-                <img src="@State.AppLogo" class="logo-img" alt="Logo" style="height: 32px; width: auto;" />
+                <img src="@State.GetAbsoluteUrl(State.AppLogo)" class="logo-img" alt="Logo" style="height: 35px; width: auto; object-fit: contain;" />
             }
             else
             {
                 <i class="fa-solid fa-bolt-lightning logo-icon"></i>
             }
-            <span class="logo-text">@State.AppName</span>
+            <span class="logo-text">@(string.IsNullOrEmpty(State.AppNameAr) ? State.AppName : State.AppNameAr)</span>
         </div>
         <button class="collapse-btn" @onclick="ToggleCollapse">
             <i class="fa-solid @(IsCollapsed ? "fa-chevron-left" : "fa-chevron-right")"></i>

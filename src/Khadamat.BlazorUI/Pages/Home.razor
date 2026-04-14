@@ -156,7 +156,7 @@
                         <i class="fa-solid fa-bolt-lightning text-white fs-3"></i>
                     </div>
                     <div>
-                        <h2 class="fw-bold premium-text-glow mb-1 text-white">تطبيق خدمات موبايل</h2>
+                        <h2 class="fw-bold premium-text-glow mb-1 text-white">تطبيق @AppState.AppName</h2>
                         <p class="text-white-50 mb-0">كل ما تحتاجه في متناول يدك</p>
                     </div>
                 </div>
@@ -812,8 +812,8 @@
     private async Task ShareApp()
     {
         var shareUrl = Navigation.BaseUri;
-        var shareTitle = "تطبيق خدمات موبايل";
-        var shareText = "حمل أفضل تطبيق للخدمات في مصر! كل ما تحتاجه في تطبيق واحد 🚀";
+        var shareTitle = $"تطبيق {AppState.AppName}";
+        var shareText = $"حمل أفضل تطبيق للخدمات! كل ما تحتاجه في تطبيق واحد مع {AppState.AppName} 🚀";
         await JS.InvokeVoidAsync("shareApp", shareTitle, shareText, shareUrl);
     }
 }
