@@ -23,6 +23,14 @@
                      VerticalOptions="FillAndExpand" />
         </RefreshView>
 
+        <!-- ═══ Native Loading Overlay ═══ -->
+        <Grid Grid.Row="0" x:Name="LoadingOverlay" BackgroundColor="White">
+            <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="15">
+                <ActivityIndicator IsRunning="True" Color="#6366f1" HeightRequest="50" WidthRequest="50" />
+                <Label Text="جاري التحميل..." HorizontalOptions="Center" FontSize="14" TextColor="#6366f1" />
+            </VerticalStackLayout>
+        </Grid>
+
         <!-- ═══ Offline Overlay (spans both rows) ═══ -->
         <Grid Grid.RowSpan="2"
               x:Name="OfflineOverlay"

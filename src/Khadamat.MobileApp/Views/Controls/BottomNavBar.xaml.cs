@@ -21,7 +21,8 @@ public partial class BottomNavBar : ContentView
         RefreshAuthState();
     }
 
-    // ─── Auth State ─────────────────────────────────────────────────────────    public void RefreshAuthState()
+    // ─── Auth State ─────────────────────────────────────────────────────────
+    public void RefreshAuthState()
     {
         // Now partially handled by bindings in XAML (ProfileLabel)
         // Manual sync for legacy ProfileImage logic
@@ -53,9 +54,8 @@ public partial class BottomNavBar : ContentView
                     }
                 }
             }
-            catch { }
-        });
-    }            { 
+            catch (Exception ex)
+            {
                 Console.WriteLine($"ANTIGRAVITY_LOG: Error in RefreshAuthState: {ex.Message}");
             }
         });
@@ -66,61 +66,6 @@ public partial class BottomNavBar : ContentView
     public void SetActiveTab(string tab)
     {
         _activeTab = tab;
-        UpdateActiveColors();
-    }
-
-    private void UpdateActiveColors()
-    {
-        var primaryColor = GetPrimaryColor();
-        // Matches web: .nav-item { color: #475569 } (inactive)
-        var defaultColor = Color.FromArgb("#475569");
-
-        // Reset ALL items to default gray (icon + label) — same as web default state
-        MarketplaceRightIcon.TextColor  = defaultColor;
-        MarketplaceRightLabel.TextColor = defaultColor;
-        FavoritesRightIcon.TextColor    = defaultColor;
-        FavoritesRightLabel.TextColor   = defaultColor;
-        MessagesIcon.TextColor          = defaultColor;
-        MessagesLabel.TextColor         = defaultColor;
-        ProfileIcon.TextColor           = defaultColor;
-        ProfileLabel.TextColor          = defaultColor;
-        ProfileImageBorder.Stroke       = Colors.Transparent;
-        ProfileImageBorder.StrokeThickness = 0;
-
-        // Apply primary purple to active tab (icon + label) — matches web .nav-item.active
-        switch (_activeTab)
-        {
-            case "marketplace":
-                MarketplaceRightIcon.TextColor  = primaryColor;
-                MarketplaceRightLabel.TextColor = primaryColor;
-                break;
-            case "favorites":
-                FavoritesRightIcon.TextColor  = primaryColor;
-                FavoritesRightLabel.TextColor = primaryColor;
-                break;
-            case "messages":
-                MessagesIcon.TextColor  = primaryColor;
-                MessagesLabel.TextColor = primaryColor;
-                break;
-            case "profile":
-                ProfileIcon.TextColor  = primaryColor;
-                ProfileLabel.TextColor = primaryColor;
-                ProfileImageBorder.Stroke = primaryColor;
-                ProfileImageBorder.StrokeThickness = 2;
-                break;
-            // "home" is always styled by the circle + HomeLabel; no extra change needed
-        }
-    }
-
-    private static Color GetPrimaryColor()
-    {
-        try
-        {
-            if (Microsoft.Maui.Controls.Application.Current?.Resources.TryGetValue("Primary", out var c) == true && c is Color color)
-                return color;
-        }
-        catch { }
-        return Color.FromArgb("#6366f1");
     }
 
     // ─── Tap Handlers ────────────────────────────────────────────────────────

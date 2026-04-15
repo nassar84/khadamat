@@ -153,6 +153,7 @@ public partial class WebContainerPage : ContentPage
         catch { }
 
         Console.WriteLine($"ANTIGRAVITY_LOG: WebView loading URL: {url}");
+        LoadingOverlay.IsVisible = true;
         MainWebView.Source = new UrlWebViewSource { Url = url };
     }
 
@@ -198,6 +199,7 @@ public partial class WebContainerPage : ContentPage
 
     private async void MainWebView_Navigating(object sender, WebNavigatingEventArgs e)
     {
+        LoadingOverlay.IsVisible = true;
         var url = e.Url;
 
         if (url.StartsWith("khadamat://auth/"))
@@ -300,6 +302,7 @@ public partial class WebContainerPage : ContentPage
 
     private async void MainWebView_Navigated(object sender, WebNavigatedEventArgs e)
     {
+        LoadingOverlay.IsVisible = false;
         PullToRefresh.IsRefreshing = false;
 
         if (e.Result != WebNavigationResult.Success)

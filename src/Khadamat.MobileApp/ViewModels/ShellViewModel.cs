@@ -18,6 +18,12 @@ public partial class ShellViewModel : ObservableObject
     [ObservableProperty]
     private string appNameEn = "Khadamawi";
 
+    [ObservableProperty]
+    private bool isBusy;
+
+    [ObservableProperty]
+    private string currentTab = "home";
+
     // Sound filenames
     [ObservableProperty]
     private string? openAppSound;
