@@ -19,13 +19,7 @@
                 <span class="ms-1 text-muted">@Service.Rating</span>
             </div>
         </div>
-        <div class="d-flex justify-content-between align-items-center">
-            <span class="distance-badge">
-                <i class="fa-solid fa-location-dot me-1"></i>
-                @Distance km
-            </span>
-            <span class="price-text small fw-bold text-primary">@Service.Price?.ToString("C0")</span>
-        </div>
+        <p class="nearby-description">@Service.Description</p>
     </div>
 </div>
 
@@ -83,6 +77,17 @@
 
     .nearby-meta {
         margin-bottom: 6px;
+    }
+
+    .nearby-description {
+        font-size: 0.78rem;
+        color: var(--text-muted, #888);
+        margin: 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        line-height: 1.4;
     }
 
     .distance-badge {

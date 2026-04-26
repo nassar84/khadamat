@@ -19,8 +19,8 @@
 
     @if (services == null)
     {
-        <div class="d-flex justify-content-center py-5">
-            <div class="spinner-border text-primary" role="status"></div>
+        <div class="row g-4">
+            <Khadamat.BlazorUI.Shared.SkeletonLoader Type="card" Count="3" />
         </div>
     }
     else if (!services.Any())

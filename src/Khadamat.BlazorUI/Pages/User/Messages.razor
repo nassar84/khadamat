@@ -35,8 +35,8 @@
                 <div class="conversation-list overflow-auto">
                     @if (conversations == null)
                     {
-                        <div class="p-4 text-center">
-                            <div class="spinner-border spinner-border-sm text-primary"></div>
+                        <div class="p-3">
+                            <Khadamat.BlazorUI.Shared.SkeletonLoader Type="list" Count="6" />
                         </div>
                     }
                     else if (!conversations.Any())
@@ -109,8 +109,10 @@
                     <div class="chat-messages p-3 flex-grow-1 overflow-auto bg-light-soft" id="chatMessages">
                         @if (messages == null)
                         {
-                            <div class="h-100 d-flex justify-content-center align-items-center">
-                                <div class="spinner-border text-primary"></div>
+                            <div class="h-100 p-4">
+                                <Khadamat.BlazorUI.Shared.SkeletonLoader Type="text" Count="4" />
+                                <div class="text-end mt-4"><Khadamat.BlazorUI.Shared.SkeletonLoader Type="text" Count="2" /></div>
+                                <Khadamat.BlazorUI.Shared.SkeletonLoader Type="text" Count="3" />
                             </div>
                         }
                         else

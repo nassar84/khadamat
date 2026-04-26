@@ -292,14 +292,25 @@
             const el = document.getElementById(elementId);
             if (!el) return;
             el.innerHTML = "";
-            new QRCode(el, {
-                text: text,
-                width: 128,
-                height: 128,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
+            
+            if (typeof QRCode === 'undefined') {
+                console.error("QRCode library not loaded. Make sure js/qrcode.min.js is included.");
+                el.innerHTML = "<p style='color:white;font-size:10px;'>QR Code unavailable</p>";
+                return;
+            }
+
+            try {
+                new QRCode(el, {
+                    text: text,
+                    width: 128,
+                    height: 128,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            } catch (e) {
+                console.error("Error generating QR code:", e);
+            }
             const qrImg = el.querySelector('img');
             if(qrImg) {
                 qrImg.style.display = "block";
@@ -543,22 +554,46 @@
             navigator.serviceWorker.register('service-worker.js');
         }
         window.shareApp = async (title, text, url) => {
-            const fullText = `${text}\n${url}`;
-            if (navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-                try {
-                    await navigator.share({ title, text, url });
-                    return true;
-                } catch (e) {
-                    if (e.name !== 'AbortError') console.error('Share failed:', e);
-                }
-            }
-            // Fallback: Copy to clipboard
             try {
-                await navigator.clipboard.writeText(fullText);
-                alert('تم نسخ رابط الدعوة! يمكنك الآن لصقه ومشاركته مع أصدقائك.');
-                return true;
-            } catch (err) {
-                console.error('Clipboard copy failed:', err);
+                const fullText = `${text}\n${url}`;
+                // Check if it's a mobile device and navigator.share is available
+                if (navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                    try {
+                        await navigator.share({ title, text, url });
+                        return true;
+                    } catch (e) {
+                        if (e.name !== 'AbortError') {
+                            console.error('Share failed, falling back to clipboard:', e);
+                        } else {
+                            return true; // User cancelled, not an error
+                        }
+                    }
+                }
+                
+                // Fallback: Copy to clipboard
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(fullText);
+                    alert('تم نسخ رابط الدعوة! يمكنك الآن لصقه ومشاركته مع أصدقائك.');
+                    return true;
+                } else {
+                    // Manual selection fallback if clipboard API is not available
+                    const textArea = document.createElement("textarea");
+                    textArea.value = fullText;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        alert('تم نسخ رابط الدعوة!');
+                    } catch (err) {
+                        console.error('Final fallback failed', err);
+                        alert('رابط المشاركة: ' + url);
+                    }
+                    document.body.removeChild(textArea);
+                    return true;
+                }
+            } catch (globalErr) {
+                console.error('Global shareApp error:', globalErr);
+                alert('عذراً، تعذر تنفيذ المشاركة حالياً.');
                 return false;
             }
         };

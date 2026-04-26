@@ -28,11 +28,13 @@ public class GetProviderServicesHandler : IRequestHandler<Queries.GetProviderSer
         var provider = await _providerRepository.GetAsync(p => p.UserId == request.UserId);
         int providerId = provider?.Id ?? 0;
 
-        string includes = "Category,SubCategory,City,City.Governorate";
+        string includes = "Category,SubCategory,City,City.Governorate,Ratings,Likes";
 
         var pagedItems = await _repository.GetPagedAsync(request.Page, request.PageSize, 
             filter: s => s.ProviderProfileId == providerId, 
-            orderBy: q => q.OrderByDescending(s => s.CreatedAt), 
+            orderBy: q => q.OrderByDescending(s => s.DisplayOrder)
+                           .ThenByDescending(s => s.Ratings.Any() ? s.Ratings.Average(r => (double?)r.Stars) : 0)
+                           .ThenByDescending(s => s.CreatedAt),
             includeProperties: includes);
             
         var totalCount = await _repository.CountAsync(s => s.ProviderProfileId == providerId);

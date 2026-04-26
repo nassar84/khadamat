@@ -48,6 +48,18 @@
                 </div>
             </div>
 
+            <div class="mb-4">
+                <div class="d-flex flex-wrap gap-2 mb-2">
+                    <span class="category-tag">@service.MainCategoryName</span>
+                    <span class="category-tag bg-indigo-light text-indigo">@service.CategoryName</span>
+                    @if (!string.IsNullOrEmpty(service.SubCategoryName))
+                    {
+                        <span class="category-tag bg-purple-light text-purple">@service.SubCategoryName</span>
+                    }
+                </div>
+                <h1 class="fw-900 mb-0 display-5 text-dark">@service.Title</h1>
+            </div>
+
             <!-- Main Info Row -->
             <div class="row g-4 mb-5">
                 <!-- Physycal Right (Start in RTL): Image & Stats -->
@@ -76,8 +88,33 @@
                             </div>
                         }
                     </div>
+                    
+                    <!-- Star Rating Display -->
+                    <div class="rating-display-v3 mb-3 text-center py-2 bg-light bg-opacity-50 rounded-4">
+                        <div class="stars-v3 text-warning">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                @if (i <= Math.Floor(service.Rating))
+                                {
+                                    <i class="fa-solid fa-star fs-3"></i>
+                                }
+                                else if (i == Math.Ceiling(service.Rating) && service.Rating % 1 >= 0.3)
+                                {
+                                    <i class="fa-solid fa-star-half-stroke fs-3"></i>
+                                }
+                                else
+                                {
+                                    <i class="fa-regular fa-star fs-3"></i>
+                                }
+                            }
+                        </div>
+                        <div class="fw-bold mt-1" style="color: #444;">
+                            @service.Rating.ToString("0.1")
+                            <span class="text-muted small fw-normal ms-1">(@service.RatersCount تقييم)</span>
+                        </div>
+                    </div>
 
-                    <!-- Stats Box moved here (Below Image) -->
+                    <!-- Stats Box (Below Image) -->
                     <div class="stats-box-v3 p-4 rounded-5 shadow-sm border bg-white mb-4">
                         <div class="row g-2 align-items-center text-center">
                             <div class="col-4 border-start">
@@ -85,23 +122,21 @@
                                 <div class="fw-900 fs-5 text-gradient">@service.Price?.ToString("N0") ج.م</div>
                             </div>
                             <div class="col-4 border-start">
-                                <div class="x-small text-muted">التقييم</div>
-                                <div class="fw-900 fs-5">
-                                    @service.Rating.ToString("0.1") <i class="fa-solid fa-star text-warning small"></i>
-                                    <span class="raters-count-v3 d-block">(@service.RatersCount تقييم)</span>
+                                <div class="x-small text-muted">المشاهدات</div>
+                                <div class="fw-900 fs-5 text-indigo">
+                                    <i class="fa-solid fa-eye"></i> @service.ViewsCount
                                 </div>
                             </div>
                             <div class="col-4">
                                 <div class="x-small text-muted">إعجاب</div>
                                 <div class="fw-900 fs-5 text-danger">
-                                     <i class="fa-solid fa-heart"></i> @(new Random(service.Id).Next(10, 100))
+                                     <i class="fa-solid fa-heart"></i> @service.LikesCount
                                 </div>
                             </div>
                         </div>
                         <hr class="my-3 opacity-10" />
-                        <div class="d-flex justify-content-between x-small text-muted px-2">
-                            <span><i class="fa-solid fa-eye me-1"></i> @service.ViewsCount مشاهدة</span>
-                            <span><i class="fa-solid fa-calendar-alt me-1"></i> منذ @service.CreatedAt.ToString("yyyy/MM/dd")</span>
+                        <div class="text-center x-small text-muted px-2">
+                             <span><i class="fa-solid fa-calendar-alt me-1"></i> تم النشر في @service.CreatedAt.ToString("yyyy/MM/dd")</span>
                         </div>
                     </div>
 
@@ -122,17 +157,7 @@
                 <!-- Physycal Left (End in RTL): Details -->
                 <div class="col-12 col-md-7">
                     <div class="details-content-v3 ps-md-3">
-                        <div class="d-flex flex-wrap gap-2 mb-2">
-                            <span class="category-tag">@service.MainCategoryName</span>
-                            <span class="category-tag bg-indigo-light text-indigo">@service.CategoryName</span>
-                            @if (!string.IsNullOrEmpty(service.SubCategoryName))
-                            {
-                                <span class="category-tag bg-purple-light text-purple">@service.SubCategoryName</span>
-                            }
-                        </div>
-                        <h1 class="fw-900 mb-2 display-5">@service.Title</h1>
-                        
-                        <!-- Description below title -->
+                        <!-- Description -->
                         <div class="service-description-v3 mb-4">
                             <p class="text-muted fs-5 leading-relaxed">@service.Description</p>
                         </div>
@@ -213,6 +238,22 @@
                             <button class="btn btn-call flex-grow-1" @onclick="CallProvider">
                                 <i class="fa-solid fa-phone me-1"></i> اتصال
                             </button>
+                        </div>
+
+                        <!-- New Request Edit Enhancement Button -->
+                        <div class="edit-request-banner p-4 rounded-5 mt-4 mb-4 shadow-sm border border-info border-opacity-25 bg-info bg-opacity-5 animate-up">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="icon-circle bg-info text-white shadow-sm">
+                                    <i class="fa-solid fa-circle-info fs-4"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="fw-800 mb-1">هل لاحظت شيئاً غير دقيق؟</h6>
+                                    <p class="small text-muted mb-0">ساعدنا وساعد بقية المستخدمين بتصحيح بيانات هذه الخدمة لتبقى تجربتكم دائماً الأفضل.</p>
+                                </div>
+                                <button class="btn btn-info rounded-pill px-4 py-2 text-white fw-bold shadow-sm" @onclick="OpenRequestEditModal">
+                                    تحديث البيانات <i class="fa-solid fa-magic-wand-sparkles ms-1"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -319,11 +360,11 @@
 
             <!-- Similar Services -->
             <div class="mb-5 pt-4 border-top">
-                <h4 class="fw-900 mb-4 border-right-styled pe-3">خدمات مشابهة قد تهمك</h4>
+                <h4 class="fw-900 mb-4 border-right-styled pe-3">@similarServicesLabel</h4>
                 @if (similarServices == null)
                 {
-                    <div class="d-flex justify-content-center py-4">
-                        <div class="spinner-border text-primary spinner-border-sm"></div>
+                    <div class="row g-3">
+                        <Khadamat.BlazorUI.Shared.SkeletonLoader Type="card" Count="3" />
                     </div>
                 }
                 else if (!similarServices.Any())
@@ -340,7 +381,7 @@
                                     <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(s.CategoryName, s.Images.FirstOrDefault())" class="w-100 aspect-square object-fit-cover" />
                                     <div class="p-2">
                                         <div class="fw-bold x-small text-truncate">@s.Title</div>
-                                        <div class="text-primary fw-bold xx-small">@s.Price?.ToString("N0") ج.م</div>
+                                        <div class="text-muted xx-small" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">@s.Description</div>
                                     </div>
                                 </div>
                             </div>
@@ -498,18 +539,24 @@
             <p class="text-muted small text-center mb-4">@service?.Title</p>
             
             <div class="mb-3">
-                <label class="form-label fw-bold small">سبب التعديل <span class="text-danger">*</span></label>
-                <textarea @bind="editReason" class="form-control" rows="2" placeholder="مثال: رقم الهاتف تغير، السعر خطأ..."></textarea>
+                <label class="form-label fw-bold small">سبب التعديل أو الملاحظة <span class="text-danger">*</span></label>
+                <textarea @bind="editReason" class="form-control" rows="3" placeholder="مثال: رقم الهاتف (012...) قديم، الرقم الجديد هو (010...). السعر الصحيح هو 500 بدلاً من 300..."></textarea>
             </div>
             
-            <div class="mb-3">
-                <label class="form-label fw-bold small">الاسم المقترح (اختياري)</label>
-                <input type="text" @bind="editProposedName" class="form-control" />
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <label class="form-label fw-bold x-small text-muted">الاسم المقترح</label>
+                    <input type="text" @bind="editProposedName" class="form-control form-control-sm" placeholder="الاسم الصحيح" />
+                </div>
+                <div class="col-6">
+                    <label class="form-label fw-bold x-small text-muted">رقم الهاتف المقترح</label>
+                    <input type="text" @bind="editProposedPhone" class="form-control form-control-sm" placeholder="الرقم الصحيح" />
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label fw-bold small">رقم التواصل المقترح (اختياري)</label>
-                <input type="text" @bind="editProposedPhone" class="form-control" />
+            <div class="p-3 bg-light rounded-4 small text-muted border mb-2">
+                <i class="fa-solid fa-shield-halved text-info me-2"></i>
+                سيتم مراجعة طلبك من قبل فريق خدماتو وتحديث البيانات فور التأكد. شكراً لمساهمتك!
             </div>
 
             <div class="d-flex gap-2 mt-4">
@@ -567,7 +614,7 @@
 
     /* Image Box */
     .main-image-v3 {
-        height: 400px;
+        height: 200px;
         background: #eee;
     }
     .gallery-preview-mini {
@@ -800,6 +847,35 @@
         0%, 100% { background-color: #f1f5f9; }
         50% { background-color: #e2e8f0; }
     }
+    .animate-up {
+        animation: slideUp 0.5s ease-out;
+    }
+
+    @@keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    .edit-request-banner {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .edit-request-banner:hover {
+        background-color: rgba(13, 202, 240, 0.08) !important;
+        transform: scale(1.01);
+    }
+    
+    .icon-circle {
+        width: 50px; height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    
+    .fw-800 { font-weight: 800; }
+    .fw-900 { font-weight: 900; }
+    .leading-relaxed { line-height: 1.6; }
 </style>
 
 @code {
@@ -807,6 +883,7 @@
     
     private ServiceDto? service;
     private List<ServiceDto>? similarServices;
+    private string similarServicesLabel = "خدمات مشابهة قد تهمك";
     private string activeTab = "details";
     private bool showRateModal = false;
     private int userRating = 0;
@@ -857,11 +934,10 @@
             return;
         }
 
-        // Fetch similar services
+        // Fetch similar services — smart cascading algorithm
         try
         {
-            var similarResult = await Api.GetSimilarServicesAsync(Id, 4);
-            similarServices = similarResult.Items;
+            similarServices = await LoadSmartSimilarServicesAsync(service);
         }
         catch { similarServices = new(); }
 
@@ -915,6 +991,85 @@
         // Ensure location strings have a fallback
         if (string.IsNullOrEmpty(service.GovernorateName)) service.GovernorateName = service.Location ?? "غير محدد";
         if (string.IsNullOrEmpty(service.CityName)) service.CityName = "غير محدد";
+    }
+
+    /// <summary>
+    /// Smart similar services loader:
+    /// 1. Same subCategory + same city
+    /// 2. Same category + same city
+    /// 3. Same subCategory + same governorate
+    /// 4. Same category + same governorate
+    /// 5. Latest services (fallback)
+    /// </summary>
+    private async Task<List<ServiceDto>> LoadSmartSimilarServicesAsync(ServiceDto current)
+    {
+        const int needed = 3;
+        var results = new List<ServiceDto>();
+        var excludeId = current.Id;
+
+        // Helper: filter out current service and already-collected ids
+        List<ServiceDto> Filter(IEnumerable<ServiceDto> items)
+            => items.Where(s => s.Id != excludeId && results.All(r => r.Id != s.Id))
+                    .Take(needed - results.Count)
+                    .ToList();
+
+        // --- Step 1: Same sub-category + same city ---
+        if (current.SubCategoryId.HasValue && current.CityId.HasValue)
+        {
+            var r = await Api.GetServicesAsync(subCategoryId: current.SubCategoryId, cityId: current.CityId, pageSize: 10);
+            results.AddRange(Filter(r.Items));
+            if (results.Count >= needed)
+            {
+                similarServicesLabel = $"خدمات مشابهة في {current.CityName}";
+                return results;
+            }
+        }
+
+        // --- Step 2: Same category + same city ---
+        if (current.CategoryId.HasValue && current.CityId.HasValue)
+        {
+            var r = await Api.GetServicesAsync(categoryId: current.CategoryId, cityId: current.CityId, pageSize: 10);
+            results.AddRange(Filter(r.Items));
+            if (results.Count >= needed)
+            {
+                similarServicesLabel = $"خدمات في نفس الفئة بـ {current.CityName}";
+                return results;
+            }
+        }
+
+        // --- Step 3: Same sub-category + same governorate ---
+        if (current.SubCategoryId.HasValue && current.GovernorateId.HasValue)
+        {
+            var r = await Api.GetServicesAsync(subCategoryId: current.SubCategoryId, governorateId: current.GovernorateId, pageSize: 10);
+            results.AddRange(Filter(r.Items));
+            if (results.Count >= needed)
+            {
+                similarServicesLabel = $"خدمات مشابهة في محافظة {current.GovernorateName}";
+                return results;
+            }
+        }
+
+        // --- Step 4: Same category + same governorate ---
+        if (current.CategoryId.HasValue && current.GovernorateId.HasValue)
+        {
+            var r = await Api.GetServicesAsync(categoryId: current.CategoryId, governorateId: current.GovernorateId, pageSize: 10);
+            results.AddRange(Filter(r.Items));
+            if (results.Count >= needed)
+            {
+                similarServicesLabel = $"خدمات في محافظة {current.GovernorateName}";
+                return results;
+            }
+        }
+
+        // --- Step 5: Fallback — latest services ---
+        if (results.Count < needed)
+        {
+            var r = await Api.GetServicesAsync(pageSize: 10, sortBy: "latest");
+            results.AddRange(Filter(r.Items));
+            similarServicesLabel = "خدمات مقترحة لك";
+        }
+
+        return results.Take(needed).ToList();
     }
 
     private void SetTab(string tab) => activeTab = tab;

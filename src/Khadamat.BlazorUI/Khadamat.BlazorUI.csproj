@@ -5,18 +5,21 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <BlazorEnableCompression>false</BlazorEnableCompression>
-    <StaticWebAssetProjectMode>Default</StaticWebAssetProjectMode>
-    <!-- NU1903: AutoMapper 13.0.1 known DoS vulnerability. v15+ requires paid license. Risk is low (trusted internal mappings). -->
+
     <NoWarn>$(NoWarn);NU1903</NoWarn>
+    <UseRazorSourceGenerator>false</UseRazorSourceGenerator>
+    <RazorCompileOnBuild>true</RazorCompileOnBuild>
   </PropertyGroup>
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="13.0.1" />
     <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />

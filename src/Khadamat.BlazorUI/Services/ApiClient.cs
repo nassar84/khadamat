@@ -610,6 +610,21 @@ public class ApiClient
         return response.IsSuccessStatusCode;
     }
 
+    public async Task<List<ServiceEditRequestDto>> GetServiceEditRequestsAsync(string? status = null)
+    {
+        var url = "v1/admin/services/edit-requests";
+        if (!string.IsNullOrEmpty(status)) url += $"?status={status}";
+        
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<ServiceEditRequestDto>>>(url);
+        return response?.Data ?? new List<ServiceEditRequestDto>();
+    }
+
+    public async Task<bool> UpdateServiceEditRequestStatusAsync(int id, Khadamat.Application.Features.Services.Commands.UpdateServiceEditRequestCommand command)
+    {
+        var response = await _http.PostAsJsonAsync($"v1/admin/services/edit-requests/{id}/status", command);
+        return response.IsSuccessStatusCode;
+    }
+
     // Posts
     public async Task<List<PostDto>> GetProviderPostsAsync(int providerId)
     {

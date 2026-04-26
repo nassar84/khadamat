@@ -94,4 +94,19 @@ public class AdminService : IAdminService
         var response = await _http.PutAsJsonAsync($"v1/admin/services/{id}", dto);
         response.EnsureSuccessStatusCode();
     }
+
+    public async Task<List<ServiceEditRequestDto>> GetServiceEditRequests(string? status = null)
+    {
+        var url = "v1/admin/services/edit-requests";
+        if (!string.IsNullOrEmpty(status)) url += $"?status={status}";
+        
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<ServiceEditRequestDto>>>(url);
+        return response?.Data ?? new List<ServiceEditRequestDto>();
+    }
+
+    public async Task<bool> UpdateServiceEditRequestStatus(int id, Khadamat.Application.Features.Services.Commands.UpdateServiceEditRequestCommand command)
+    {
+        var response = await _http.PostAsJsonAsync($"v1/admin/services/edit-requests/{id}/status", command);
+        return response.IsSuccessStatusCode;
+    }
 }

@@ -28,8 +28,8 @@
     }
     else if (isLoading)
     {
-        <div class="d-flex justify-content-center py-5">
-            <div class="spinner-border text-primary" role="status"></div>
+        <div class="row g-3">
+            <Khadamat.BlazorUI.Shared.SkeletonLoader Type="card" Count="4" />
         </div>
     }
     else if (favoriteServices == null || !favoriteServices.Any())

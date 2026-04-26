@@ -10,13 +10,13 @@ namespace Khadamat.MobileApp.ViewModels;
 public partial class ShellViewModel : ObservableObject
 {
     [ObservableProperty]
-    private string appName = "خدماوي";
+    private string appName = "خدماتو";
 
     [ObservableProperty]
-    private string appNameAr = "خدماوي";
+    private string appNameAr = "خدماتو";
 
     [ObservableProperty]
-    private string appNameEn = "Khadamawi";
+    private string appNameEn = "Khadamato";
 
     [ObservableProperty]
     private bool isBusy;
@@ -113,6 +113,23 @@ public partial class ShellViewModel : ObservableObject
         }
 
         AuthChanged?.Invoke(this, EventArgs.Empty);
+
+        // Persist auth state
+        var prefs = Microsoft.Maui.Storage.Preferences.Default;
+        prefs.Set("IsAuthenticated", value);
+        prefs.Set("IsAdmin", admin);
+        prefs.Set("IsProvider", provider);
+        
+        if (value)
+        {
+            prefs.Set("UserName", UserName);
+            prefs.Set("UserImage", UserImage);
+        }
+        else
+        {
+            prefs.Remove("UserName");
+            prefs.Remove("UserImage");
+        }
     }
 
     private readonly HttpClient _httpClient;
@@ -124,8 +141,33 @@ public partial class ShellViewModel : ObservableObject
         _configuration = configuration;
         
         // Apply saved theme at startup
-        string savedTheme = Microsoft.Maui.Storage.Preferences.Default.Get("AppTheme", "default");
+        var prefs = Microsoft.Maui.Storage.Preferences.Default;
+        string savedTheme = prefs.Get("AppTheme", "default");
         ApplyThemeResources(savedTheme);
+
+        // Restore auth state from preferences
+        isAuthenticated = prefs.Get("IsAuthenticated", false);
+        isAdmin = prefs.Get("IsAdmin", false);
+        isProvider = prefs.Get("IsProvider", false);
+        
+        if (isAuthenticated)
+        {
+            userName = prefs.Get("UserName", "مستخدم");
+            userImage = prefs.Get("UserImage", "app_logo.png");
+            userTitle = userName.Split(' ')[0];
+        }
+
+        // Restore Brand Colors from Cache
+        string cachedPrimary = prefs.Get("BrandPrimary", "");
+        string cachedSecondary = prefs.Get("BrandSecondary", "");
+        if (!string.IsNullOrEmpty(cachedPrimary) && savedTheme == "default")
+        {
+            try { 
+                var res = Microsoft.Maui.Controls.Application.Current.Resources;
+                res["Primary"] = Color.FromArgb(cachedPrimary);
+                if (!string.IsNullOrEmpty(cachedSecondary)) res["Secondary"] = Color.FromArgb(cachedSecondary);
+            } catch { }
+        }
     }
 
     [RelayCommand]
@@ -147,12 +189,12 @@ public partial class ShellViewModel : ObservableObject
                 
                 try
                 {
-                    var currentPage = Shell.Current.CurrentPage;
-                    if (currentPage is NavigationPage navPage) currentPage = navPage.CurrentPage;
+                    var cPage = Shell.Current.CurrentPage;
+                    if (cPage is NavigationPage nPage) cPage = nPage.CurrentPage;
                     
-                    if (currentPage is Views.WebContainerPage webPage)
+                    if (cPage is Views.WebContainerPage wPage)
                     {
-                        await webPage.ForceLogoutInWebView();
+                        await wPage.ForceLogoutInWebView();
                     }
                 }
                 catch (Exception ex)
@@ -165,54 +207,71 @@ public partial class ShellViewModel : ObservableObject
                 return;
             }
             
-            if (route == "marketplace")
-                route = IsClientMode ? "//MarketplacePage" : "//HomePage?route=marketplace";
-            else if (route == "profile" || route == "login")
-                route = "//ProfileTab";
-            else if (route == "register")
-                route = "//HomePage?route=register"; 
-            else if (route == "favorites")
-                route = IsAuthenticated ? (IsClientMode ? "//FavoritesPage" : "//HomePage?route=client/favorites") : "//ProfileTab";
-            else if (route == "messages")
-                route = IsAuthenticated ? "//HomePage?route=messages" : "//ProfileTab";
-            else if (route == "provider/dashboard" || route == "my-services")
-                route = IsAuthenticated ? (IsProviderMode ? "//MyServicesPage" : "//HomePage?route=provider/dashboard") : "//ProfileTab";
-            else if (route == "services")
-                route = IsAuthenticated ? "//HomePage?route=services" : "//ProfileTab";
-            else if (route == "settings")
-                route = IsAuthenticated ? "//HomePage?route=settings" : "//ProfileTab";
-            else if (route == "admin")
-                route = "//HomePage?route=admin";
-            else if (route == "admin/ads")
-                route = "//HomePage?route=admin/ads";
-            else if (route == "terms")
-                route = "//HomePage?route=terms";
-            else if (route == "home")
-                route = "//HomePage";
-            else if (route == "provider/apply")
-                route = IsAuthenticated ? "//HomePage?route=provider/apply" : "//ProfileTab";
-            else if (route == "explore" || route == "categories")
-                route = IsClientMode ? "//CategoriesPage" : "//HomePage?route=explore";
-            else if (route == "support")
-                route = "//HomePage?route=contact";
-            else if (route == "notifications" || route == "search")
-                route = "//HomePage?route=" + route;
-            else if (route == "//HomePage")
-                route = "//HomePage?route=";
-            else if (!route.StartsWith("//"))
-                route = "//HomePage?route=" + Uri.EscapeDataString(route);
-
-            Console.WriteLine($"ANTIGRAVITY_LOG: Final Route Path: {route}");
+            // Map the route to the exact Blazor web route path
+            string blazorRoute = route;
             
-            // Update CurrentTab for UI Highlighting
-            if (route.Contains("Marketplace")) CurrentTab = "marketplace";
-            else if (route.Contains("Favorites")) CurrentTab = "favorites";
-            else if (route.Contains("messages")) CurrentTab = "messages";
-            else if (route.Contains("ProfileTab")) CurrentTab = "profile";
-            else if (route.Contains("HomePage") && !route.Contains("route=")) CurrentTab = "home";
-            else if (route == "//HomePage") CurrentTab = "home";
+            if (route == "marketplace")
+                blazorRoute = "marketplace";
+            else if (route == "profile")
+                blazorRoute = "profile";
+            else if (route == "login")
+                blazorRoute = "login";
+            else if (route == "register")
+                blazorRoute = "register";
+            else if (route == "favorites")
+                blazorRoute = IsClientMode ? "client/favorites" : "provider/dashboard";
+            else if (route == "messages")
+                blazorRoute = "messages";
+            else if (route == "provider/dashboard" || route == "my-services")
+                blazorRoute = IsProviderMode ? "provider/services" : "provider/dashboard";
+            else if (route == "services")
+                blazorRoute = "client/services";
+            else if (route == "settings")
+                blazorRoute = "settings";
+            else if (route == "admin")
+                blazorRoute = "admin";
+            else if (route == "admin/ads")
+                blazorRoute = "admin/ads";
+            else if (route == "terms")
+                blazorRoute = "terms";
+            else if (route == "home" || route == "//HomePage")
+                blazorRoute = "";
+            else if (route == "provider/apply")
+                blazorRoute = "provider/apply";
+            else if (route == "explore" || route == "categories")
+                blazorRoute = "explore";
+            else if (route == "support")
+                blazorRoute = "contact";
+            else if (route == "notifications" || route == "search")
+                blazorRoute = route;
+            else if (!route.StartsWith("//"))
+                blazorRoute = route;
+            else if (route.StartsWith("//"))
+                blazorRoute = ""; // Fallback
 
-            await Shell.Current.GoToAsync(route);
+            // Update CurrentTab for UI Highlighting enthusiastically (it will eventually be corrected by JS listener if wrong)
+            var lowerRoute = blazorRoute.ToLower();
+            if (lowerRoute.Contains("marketplace")) CurrentTab = "marketplace";
+            else if (lowerRoute.Contains("favorite") || lowerRoute.Contains("my-services") || lowerRoute.Contains("provider/services")) CurrentTab = "favorites";
+            else if (lowerRoute.Contains("messages")) CurrentTab = "messages";
+            else if (lowerRoute.Contains("profile") || lowerRoute.Contains("login") || lowerRoute.Contains("register")) CurrentTab = "profile";
+            else if (lowerRoute == "" || lowerRoute.Contains("home")) CurrentTab = "home";
+
+            // Identify if we can do an inject-based navigation instead of MAUI shell push
+            var currentPage = Shell.Current.CurrentPage;
+            if (currentPage is NavigationPage navPage) currentPage = navPage.CurrentPage;
+            
+            if (currentPage is Views.WebContainerPage webPage)
+            {
+                Console.WriteLine($"ANTIGRAVITY_LOG: Routing inside WebView to: /{blazorRoute}");
+                await webPage.NavigateToInternalRoute(blazorRoute);
+            }
+            else
+            {
+                // Fallback to native Home page load if we aren't already in one
+                string routeParams = string.IsNullOrEmpty(blazorRoute) ? "" : $"?route={Uri.EscapeDataString(blazorRoute)}";
+                await Shell.Current.GoToAsync($"//HomePage{routeParams}");
+            }
         }
         catch (Exception ex)
         {
@@ -354,6 +413,11 @@ public partial class ShellViewModel : ObservableObject
                             var secondaryColor = Color.FromArgb(response.Data.SecondaryColor);
                             Microsoft.Maui.Controls.Application.Current.Resources["Secondary"] = secondaryColor;
                         }
+
+                        // Save to cache for next startup
+                        var p = Microsoft.Maui.Storage.Preferences.Default;
+                        p.Set("BrandPrimary", response.Data.PrimaryColor);
+                        p.Set("BrandSecondary", response.Data.SecondaryColor);
                     }
                     catch { }
                 }

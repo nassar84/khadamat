@@ -10,7 +10,15 @@ using Polly;
 using Polly.Extensions.Http;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
-builder.RootComponents.Add<App>("#app");
+builder.RootComponents.Add<Khadamat.BlazorUI.AppMain>("#app");
+var test = typeof(Khadamat.BlazorUI.DummyClass);
+var test2 = typeof(Khadamat.BlazorUI.TestComponent);
+var test3 = typeof(Khadamat.BlazorUI.Layout.MainLayout);
+var test4 = typeof(Khadamat.BlazorUI.Layout.LayoutDummy);
+
+
+
+
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 // 1. Configure HttpClient with Resilience (Polly)

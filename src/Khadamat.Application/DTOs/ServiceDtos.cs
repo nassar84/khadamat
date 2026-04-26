@@ -58,6 +58,7 @@ public class ServiceDto
     // Rich Details (Added)
     public double Rating { get; set; }
     public int RatersCount { get; set; }
+    public int LikesCount { get; set; }
     public bool IsFavorite { get; set; }
     public List<ReviewDto> Reviews { get; set; } = new();
     public List<PostDto> Posts { get; set; } = new();
@@ -101,4 +102,46 @@ public class CommentDto
     public string UserName { get; set; } = string.Empty;
     public string Text { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
+}
+
+public class ServiceEditRequestDto
+{
+    public int Id { get; set; }
+    public int ServiceId { get; set; }
+    public string ServiceName { get; set; } = string.Empty;
+    public string RequesterId { get; set; } = string.Empty;
+    public string RequesterName { get; set; } = string.Empty;
+    public string Reason { get; set; } = string.Empty;
+    
+    // Current Values
+    public string CurrentName { get; set; } = string.Empty;
+    public string CurrentDescription { get; set; } = string.Empty;
+    public string CurrentAddress { get; set; } = string.Empty;
+    public decimal? CurrentPrice { get; set; }
+    public string? CurrentPhone1 { get; set; }
+
+    // Proposed Values
+    public string? ProposedName { get; set; }
+    public string? ProposedDescription { get; set; }
+    public string? ProposedAddress { get; set; }
+    public decimal? ProposedPrice { get; set; }
+    public string? ProposedPhone1 { get; set; }
+    public string? ProposedPhone2 { get; set; }
+    public string? ProposedWhatsApp { get; set; }
+    
+    public string Status { get; set; } = "Pending";
+    public string? AdminNotes { get; set; }
+    public string? ProviderNotes { get; set; }
+    public DateTime CreatedAt { get; set; }
+
+    // Approval status
+    public bool ApprovedName { get; set; }
+    public bool ApprovedDescription { get; set; }
+    public bool ApprovedAddress { get; set; }
+    public bool ApprovedPrice { get; set; }
+    public bool ApprovedPhone1 { get; set; }
+
+    // Logic context
+    public bool HasOwner { get; set; }
+    public string? OwnerUserId { get; set; }
 }

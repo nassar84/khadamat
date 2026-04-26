@@ -32,7 +32,7 @@ public class GetServiceByIdHandler : IRequestHandler<GetServiceByIdQuery, Servic
 
     public async Task<ServiceDto?> Handle(GetServiceByIdQuery request, CancellationToken cancellationToken)
     {
-        string includes = "Category,Category.MainCategory,SubCategory,Ratings,SubCategory.Category,SubCategory.Category.MainCategory,City,City.Governorate";
+        string includes = "Category,Category.MainCategory,SubCategory,Ratings,Likes,SubCategory.Category,SubCategory.Category.MainCategory,City,City.Governorate";
         
         var services = await _serviceRepo.GetPagedAsync(1, 1, 
             filter: s => s.Id == request.Id, 
@@ -42,7 +42,12 @@ public class GetServiceByIdHandler : IRequestHandler<GetServiceByIdQuery, Servic
 
         if (service == null) return null;
 
+        // Increment ViewsCount
+        service.IncrementViews();
+        await _serviceRepo.UpdateAsync(service);
+
         var dto = _mapper.Map<ServiceDto>(service);
+        dto.LikesCount = service.Likes?.Count ?? 0;
         
         // Map City and Governorate information
         if (service.City != null)
@@ -93,7 +98,15 @@ public class GetServiceByIdHandler : IRequestHandler<GetServiceByIdQuery, Servic
 
         if (provider != null)
         {
-            dto.ProviderName = provider.BusinessName ?? service.Name;
+            var pUserDict = await _userService.GetUsersBasicInfoAsync(new List<string> { provider.UserId });
+            string actualUserName = pUserDict.TryGetValue(provider.UserId, out var pUserInfo) && !string.IsNullOrWhiteSpace(pUserInfo.Name)
+                ? pUserInfo.Name
+                : "مقدم خدمة";
+
+            dto.ProviderName = !string.IsNullOrWhiteSpace(provider.BusinessName) 
+                ? provider.BusinessName 
+                : actualUserName;
+                
             dto.ProviderPhoto = provider.Photo;
             
             // Fetch Posts

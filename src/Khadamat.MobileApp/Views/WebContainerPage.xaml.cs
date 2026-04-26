@@ -19,7 +19,7 @@ public partial class WebContainerPage : ContentPage
             {
                 _deepLinkRoute = value;
                 // If the parameter is changed while the page is already there, force a load
-                if (MainWebView != null) LoadContent();
+                if (MainWebView != null) LoadContent(true);
             }
         }
     }
@@ -68,6 +68,33 @@ public partial class WebContainerPage : ContentPage
         }
     }
 
+    public async Task NavigateToInternalRoute(string route)
+    {
+        try
+        {
+            if (MainWebView != null)
+            {
+                Console.WriteLine($"ANTIGRAVITY_LOG: Injecting JS to navigate to '{route}'");
+                await MainWebView.EvaluateJavaScriptAsync($@"
+                    (function() {{
+                        const newUrl = '/{route.TrimStart('/')}';
+                        if (window.Blazor) {{
+                            // Let the Blazor router take over without reloading
+                            history.pushState(null, '', newUrl);
+                            window.dispatchEvent(new Event('popstate'));
+                        }} else {{
+                            window.location.href = newUrl;
+                        }}
+                    }})();
+                ");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ANTIGRAVITY_LOG: Error navigating internal route JS: {ex.Message}");
+        }
+    }
+
     public WebContainerPage(string route) : this()
     {
         _route = route;
@@ -80,17 +107,17 @@ public partial class WebContainerPage : ContentPage
         // Always sync BottomNav auth state when any page becomes visible.
         // This fixes the case where login happened on ProfileTab but HomePage's BottomNav wasn't notified.
         BottomNav.RefreshAuthState();
-        LoadContent();
+        LoadContent(true); // Force reload when navigating to a page to ensure latest auth state
     }
 
     public void ReturnToRoot()
     {
         // Reset route to its original base route and reload
         DeepLinkRoute = "";
-        LoadContent();
+        LoadContent(true);
     }
 
-    private void LoadContent()
+    private void LoadContent(bool force = false)
     {
         // 1. Resolve base url from preferences or configuration
         string baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "https://jobsek.eis-dev.com");
@@ -114,10 +141,10 @@ public partial class WebContainerPage : ContentPage
         // Append nativeapp=1 once to inform the Blazor side to hide website bars
         finalUrl += finalUrl.Contains("?") ? "&nativeapp=1" : "?nativeapp=1";
 
-        LoadUrl(finalUrl);
+        LoadUrl(finalUrl, force);
     }
 
-    private void LoadUrl(string url)
+    private void LoadUrl(string url, bool force = false)
     {
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
         {
@@ -135,7 +162,7 @@ public partial class WebContainerPage : ContentPage
         }
 
         // Prevent reload if already on the same URL (especially for Home root)
-        if (MainWebView.Source is UrlWebViewSource current && current.Url == url)
+        if (!force && MainWebView.Source is UrlWebViewSource current && current.Url == url)
         {
             Console.WriteLine($"ANTIGRAVITY_LOG: WebView already at target URL: {url}. Skipping reload.");
             return;
@@ -199,8 +226,33 @@ public partial class WebContainerPage : ContentPage
 
     private async void MainWebView_Navigating(object sender, WebNavigatingEventArgs e)
     {
-        LoadingOverlay.IsVisible = true;
         var url = e.Url;
+
+        // Catch internal history routing sync
+        if (url.StartsWith("khadamat://routechange"))
+        {
+            e.Cancel = true;
+            try {
+                var uri = new Uri(url);
+                var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+                var path = (query["path"] ?? "").ToLower().Trim('/');
+                
+                if (Shell.Current.BindingContext is ViewModels.ShellViewModel vm)
+                {
+                    MainThread.BeginInvokeOnMainThread(() => {
+                        if (path.Contains("marketplace")) vm.CurrentTab = "marketplace";
+                        else if (path.Contains("favorites") || path.Contains("my-services") || path.Contains("provider/services")) vm.CurrentTab = "favorites";
+                        else if (path.Contains("messages")) vm.CurrentTab = "messages";
+                        else if (path.Contains("profile") || path.Contains("login") || path.Contains("register")) vm.CurrentTab = "profile";
+                        else if (path == "" || path.Contains("home")) vm.CurrentTab = "home";
+                    });
+                }
+            } catch {}
+            LoadingOverlay.IsVisible = false;
+            return;
+        }
+
+        // (The show loading moved down to after the interception checks)
 
         if (url.StartsWith("khadamat://auth/"))
         {
@@ -298,6 +350,7 @@ public partial class WebContainerPage : ContentPage
 
         // Add parameter mobileapp=1 automatically contextually if not present?
         // Navigation within the same domain
+        LoadingOverlay.IsVisible = true;
     }
 
     private async void MainWebView_Navigated(object sender, WebNavigatedEventArgs e)
@@ -317,13 +370,45 @@ public partial class WebContainerPage : ContentPage
         // Update current URL for refresh functionality
         _currentUrl = e.Url;
 
-        // Inject JS to persist nativeapp=1 across session
+        // Inject JS to persist nativeapp=1 across session and sync routing
         try
         {
             await MainWebView.EvaluateJavaScriptAsync(@"
                 (function() {
                     // Save nativeapp flag in sessionStorage so Blazor can read it
                     sessionStorage.setItem('nativeapp', '1');
+                    
+                    if (window.__khadamat_nav_sync) return;
+                    window.__khadamat_nav_sync = true;
+
+                    function notifyMaui(url) {
+                        try {
+                            const iframe = document.createElement('iframe');
+                            iframe.style.display = 'none';
+                            iframe.src = 'khadamat://routechange?path=' + encodeURIComponent(url);
+                            document.body.appendChild(iframe);
+                            setTimeout(() => iframe.remove(), 200);
+                        } catch(e) {}
+                    }
+
+                    const originalPush = history.pushState;
+                    history.pushState = function() {
+                        originalPush.apply(this, arguments);
+                        notifyMaui(arguments[2] || location.pathname);
+                    };
+
+                    const originalReplace = history.replaceState;
+                    history.replaceState = function() {
+                        originalReplace.apply(this, arguments);
+                        notifyMaui(arguments[2] || location.pathname);
+                    };
+
+                    window.addEventListener('popstate', () => {
+                        notifyMaui(location.pathname + location.search);
+                    });
+
+                    // Send initial route configuration
+                    notifyMaui(location.pathname + location.search);
                 })();
             ");
         }

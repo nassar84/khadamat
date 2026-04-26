@@ -21,4 +21,8 @@ public interface IAdminService
     Task UpdateUserRole(string id, string role);
     Task ChangePassword(ChangePasswordDto dto);
     Task UpdateService(int id, ServiceDto dto);
+    
+    // Service Edit Requests
+    Task<List<ServiceEditRequestDto>> GetServiceEditRequests(string? status = null);
+    Task<bool> UpdateServiceEditRequestStatus(int id, Khadamat.Application.Features.Services.Commands.UpdateServiceEditRequestCommand command);
 }

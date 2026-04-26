@@ -46,6 +46,7 @@ public class CategoriesController : ControllerBase
     {
         var categories = await _context.Categories
             .Where(c => c.MainCategoryId == mainCategoryId)
+            .OrderBy(c => c.DisplayOrder)
             .Include(c => c.MainCategory)
             .Select(c => new CategoryDto 
             { 
@@ -53,7 +54,8 @@ public class CategoriesController : ControllerBase
                 Name = c.Name,
                 MainCategoryId = c.MainCategoryId,
                 MainCategoryName = c.MainCategory.Name,
-                ImageUrl = c.ImageUrl
+                ImageUrl = c.ImageUrl,
+                DisplayOrder = c.DisplayOrder
             })
             .ToListAsync();
         
@@ -72,7 +74,8 @@ public class CategoriesController : ControllerBase
                 Name = c.Name,
                 MainCategoryId = c.MainCategoryId,
                 MainCategoryName = c.MainCategory.Name,
-                ImageUrl = c.ImageUrl
+                ImageUrl = c.ImageUrl,
+                DisplayOrder = c.DisplayOrder
             })
             .FirstOrDefaultAsync();
         
@@ -95,7 +98,8 @@ public class CategoriesController : ControllerBase
                 CategoryName = s.Category.Name,
                 MainCategoryId = s.Category.MainCategoryId,
                 MainCategoryName = s.Category.MainCategory.Name,
-                ImageUrl = s.ImageUrl
+                ImageUrl = s.ImageUrl,
+                DisplayOrder = s.DisplayOrder
             })
             .FirstOrDefaultAsync();
         
@@ -108,6 +112,7 @@ public class CategoriesController : ControllerBase
     {
         var subCategories = await _context.SubCategories
             .Where(s => s.CategoryId == categoryId)
+            .OrderBy(s => s.DisplayOrder)
             .Include(s => s.Category)
                 .ThenInclude(c => c.MainCategory)
             .Select(s => new SubCategoryDto 
@@ -118,7 +123,8 @@ public class CategoriesController : ControllerBase
                 CategoryName = s.Category.Name,
                 MainCategoryId = s.Category.MainCategoryId,
                 MainCategoryName = s.Category.MainCategory.Name,
-                ImageUrl = s.ImageUrl
+                ImageUrl = s.ImageUrl,
+                DisplayOrder = s.DisplayOrder
             })
             .ToListAsync();
         
@@ -167,7 +173,7 @@ public class CategoriesController : ControllerBase
     [Authorize(Policy = "RequireAdmin")]
     public async Task<ActionResult<ApiResponse<int>>> CreateCategory(CategoryDto dto)
     {
-        var category = new Category(dto.Name, dto.MainCategoryId, dto.ImageUrl);
+        var category = new Category(dto.Name, dto.MainCategoryId, dto.ImageUrl, dto.DisplayOrder);
         _context.Categories.Add(category);
         await _context.SaveChangesAsync();
         return Ok(ApiResponse<int>.Succeed(category.Id));
@@ -180,7 +186,7 @@ public class CategoriesController : ControllerBase
         var category = await _context.Categories.FindAsync(id);
         if (category == null) return NotFound(ApiResponse<bool>.Fail("Not found"));
         
-        category.Update(dto.Name, dto.MainCategoryId, dto.ImageUrl);
+        category.Update(dto.Name, dto.MainCategoryId, dto.ImageUrl, dto.DisplayOrder);
         await _context.SaveChangesAsync();
         return Ok(ApiResponse<bool>.Succeed(true));
     }
@@ -202,7 +208,7 @@ public class CategoriesController : ControllerBase
     [Authorize(Policy = "RequireAdmin")]
     public async Task<ActionResult<ApiResponse<int>>> CreateSubCategory(SubCategoryDto dto)
     {
-        var sub = new SubCategory(dto.Name, dto.CategoryId, dto.ImageUrl);
+        var sub = new SubCategory(dto.Name, dto.CategoryId, dto.ImageUrl, dto.DisplayOrder);
         _context.SubCategories.Add(sub);
         await _context.SaveChangesAsync();
         return Ok(ApiResponse<int>.Succeed(sub.Id));
@@ -215,7 +221,7 @@ public class CategoriesController : ControllerBase
         var sub = await _context.SubCategories.FindAsync(id);
         if (sub == null) return NotFound(ApiResponse<bool>.Fail("Not found"));
         
-        sub.Update(dto.Name, dto.CategoryId, dto.ImageUrl);
+        sub.Update(dto.Name, dto.CategoryId, dto.ImageUrl, dto.DisplayOrder);
         await _context.SaveChangesAsync();
         return Ok(ApiResponse<bool>.Succeed(true));
     }

@@ -72,9 +72,12 @@
         <!-- Loading -->
         @if (isLoading)
         {
-            <div class="text-center py-5">
-                <div class="spinner-border text-primary" role="status"></div>
-                <p class="mt-2 text-muted">جاري تحميل إعلاناتك...</p>
+            <div class="row g-3">
+                @for(int i=0; i<6; i++) {
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <Khadamat.BlazorUI.Shared.SkeletonLoader Type="card" Count="1" />
+                    </div>
+                }
             </div>
         }
         else if (!items.Any())

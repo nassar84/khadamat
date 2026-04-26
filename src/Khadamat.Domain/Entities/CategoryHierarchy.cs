@@ -37,24 +37,27 @@ public class Category : BaseEntity
     public int MainCategoryId { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? ImageUrl { get; set; }
+    public int DisplayOrder { get; set; }
     
     public virtual MainCategory MainCategory { get; set; } = null!;
     public virtual ICollection<SubCategory> SubCategories { get; set; } = new List<SubCategory>();
     public virtual ICollection<Service> Services { get; set; } = new List<Service>();
 
     public Category() { }
-    public Category(string name, int mainCategoryId, string? imageUrl = null)
+    public Category(string name, int mainCategoryId, string? imageUrl = null, int displayOrder = 0)
     {
         Name = name;
         MainCategoryId = mainCategoryId;
         ImageUrl = imageUrl;
+        DisplayOrder = displayOrder;
     }
 
-    public void Update(string name, int mainCategoryId, string? imageUrl = null)
+    public void Update(string name, int mainCategoryId, string? imageUrl = null, int displayOrder = 0)
     {
         Name = name;
         MainCategoryId = mainCategoryId;
         ImageUrl = imageUrl;
+        DisplayOrder = displayOrder;
         UpdatedAt = System.DateTime.UtcNow;
     }
 }
@@ -64,23 +67,26 @@ public class SubCategory : BaseEntity
     public int CategoryId { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? ImageUrl { get; set; }
+    public int DisplayOrder { get; set; }
     
     public virtual Category Category { get; set; } = null!;
     public virtual ICollection<Service> Services { get; set; } = new List<Service>();
 
     public SubCategory() { }
-    public SubCategory(string name, int categoryId, string? imageUrl = null)
+    public SubCategory(string name, int categoryId, string? imageUrl = null, int displayOrder = 0)
     {
         Name = name;
         CategoryId = categoryId;
         ImageUrl = imageUrl;
+        DisplayOrder = displayOrder;
     }
 
-    public void Update(string name, int categoryId, string? imageUrl = null)
+    public void Update(string name, int categoryId, string? imageUrl = null, int displayOrder = 0)
     {
         Name = name;
         CategoryId = categoryId;
         ImageUrl = imageUrl;
+        DisplayOrder = displayOrder;
         UpdatedAt = System.DateTime.UtcNow;
     }
 }

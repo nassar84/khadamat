@@ -8,7 +8,7 @@ public static class DefaultImages
     public const string DefaultAvatar = "https://ui-avatars.com/api/?name=User&background=6B7280&color=fff&size=128&bold=true&format=png";
     
     // Services
-    public const string DefaultService = "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&h=600&fit=crop&q=80";
+    public const string DefaultService = "images/placeholders/default_service.png";
     public const string PlumbingService = "https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=800&h=600&fit=crop&q=80";
     public const string ElectricianService = "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=800&h=600&fit=crop&q=80";
     public const string CarpentryService = "https://images.unsplash.com/photo-1504148455328-c376907d081c?w=800&h=600&fit=crop&q=80";

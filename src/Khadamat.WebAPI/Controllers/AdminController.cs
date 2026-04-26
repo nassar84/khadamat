@@ -8,6 +8,8 @@ using Khadamat.Infrastructure.Identity;
 using Khadamat.Infrastructure.Persistence;
 using Khadamat.Domain.Entities;
 using Khadamat.Domain.Enums;
+using Khadamat.Application.Features.Services.Commands;
+using Khadamat.Application.Features.Services.Queries;
 
 namespace Khadamat.WebAPI.Controllers;
 
@@ -18,11 +20,13 @@ public class AdminController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly KhadamatDbContext _context;
+    private readonly MediatR.IMediator _mediator;
 
-    public AdminController(UserManager<ApplicationUser> userManager, KhadamatDbContext context)
+    public AdminController(UserManager<ApplicationUser> userManager, KhadamatDbContext context, MediatR.IMediator mediator)
     {
         _userManager = userManager;
         _context = context;
+        _mediator = mediator;
     }
 
     [HttpGet("users")]
@@ -583,5 +587,21 @@ public class AdminController : ControllerBase
             .ToListAsync();
 
         return Ok(ApiResponse<List<object>>.Succeed(logs.Cast<object>().ToList()));
+    }
+
+    [HttpGet("services/edit-requests")]
+    public async Task<IActionResult> GetEditRequests([FromQuery] string? status)
+    {
+        var result = await _mediator.Send(new GetServiceEditRequestsQuery { Status = status });
+        return Ok(ApiResponse<List<ServiceEditRequestDto>>.Succeed(result));
+    }
+
+    [HttpPost("services/edit-requests/{id}/status")]
+    public async Task<IActionResult> UpdateEditRequestStatus(int id, [FromBody] UpdateServiceEditRequestCommand command)
+    {
+        if (id != command.RequestId) return BadRequest("ID mismatch");
+        var result = await _mediator.Send(command);
+        if (!result) return NotFound();
+        return Ok(ApiResponse<bool>.Succeed(true));
     }
 }

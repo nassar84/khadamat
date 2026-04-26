@@ -1,5 +1,6 @@
-﻿<CascadingAuthenticationState>
-    <Router AppAssembly="@typeof(App).Assembly">
+@namespace Khadamat.BlazorUI
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(AppMain).Assembly">
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
                 <NotAuthorized>

@@ -15,12 +15,13 @@ public class MappingProfile : Profile
             .ForMember(d => d.CategoryId, opt => opt.MapFrom(s => s.CategoryId ?? (s.SubCategory != null ? s.SubCategory.CategoryId : 0)))
             .ForMember(d => d.MainCategoryId, opt => opt.MapFrom(s => s.Category != null ? s.Category.MainCategoryId : (s.SubCategory != null && s.SubCategory.Category != null ? s.SubCategory.Category.MainCategoryId : 0)))
             .ForMember(d => d.MainCategoryName, opt => opt.MapFrom(s => s.Category != null && s.Category.MainCategory != null ? s.Category.MainCategory.Name : (s.SubCategory != null && s.SubCategory.Category != null && s.SubCategory.Category.MainCategory != null ? s.SubCategory.Category.MainCategory.Name : string.Empty)))
-            .ForMember(d => d.Images, opt => opt.MapFrom(s => !string.IsNullOrEmpty(s.ImageUrl) ? new List<string> { s.ImageUrl } : new List<string>()))
+            .ForMember(d => d.Images, opt => opt.MapFrom(s => !string.IsNullOrEmpty(s.ImageUrl) ? new List<string> { s.ImageUrl } : (s.SubCategory != null && !string.IsNullOrEmpty(s.SubCategory.ImageUrl) ? new List<string> { s.SubCategory.ImageUrl } : new List<string>())))
             .ForMember(d => d.WorkDays, opt => opt.MapFrom(s => s.Work_Days))
             .ForMember(d => d.WorkHours, opt => opt.MapFrom(s => s.Work_Houers))
             .ForMember(d => d.IsApproved, opt => opt.MapFrom(s => s.Approved))
             .ForMember(d => d.Rating, opt => opt.MapFrom(s => s.Ratings.Any() ? s.Ratings.Average(r => r.Stars) : 0))
-            .ForMember(d => d.RatersCount, opt => opt.MapFrom(s => s.Ratings.Count));
+            .ForMember(d => d.RatersCount, opt => opt.MapFrom(s => s.Ratings.Count))
+            .ForMember(d => d.LikesCount, opt => opt.MapFrom(s => s.Likes.Count));
             
         CreateMap<Post, PostDto>()
             .ForMember(d => d.LikesCount, opt => opt.MapFrom(s => s.Likes.Count));

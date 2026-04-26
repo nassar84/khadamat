@@ -15,8 +15,8 @@
 
     @if (isLoading)
     {
-        <div class="d-flex justify-content-center py-5">
-            <div class="spinner-border text-primary" role="status"></div>
+        <div class="px-2">
+            <Khadamat.BlazorUI.Shared.SkeletonLoader Type="list" Count="6" />
         </div>
     }
     else if (requests == null || !requests.Any())

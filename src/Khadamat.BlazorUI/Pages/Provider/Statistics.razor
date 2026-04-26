@@ -90,8 +90,8 @@
 
         @if (isLoading)
         {
-            <div class="py-5 text-center">
-                <div class="spinner-border text-primary"></div>
+            <div class="py-4">
+                <Khadamat.BlazorUI.Shared.SkeletonLoader Type="list" Count="4" />
             </div>
         }
         else if (!myServices.Any())

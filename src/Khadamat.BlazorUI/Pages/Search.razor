@@ -93,7 +93,9 @@
             }
             else
             {
-                <LoadingSpinner Message="جاري البحث..." />
+                <div class="row g-3">
+                    <Khadamat.BlazorUI.Shared.SkeletonLoader Type="card" Count="4" />
+                </div>
             }
         </div>
     }

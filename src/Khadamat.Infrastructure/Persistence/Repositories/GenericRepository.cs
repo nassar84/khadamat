@@ -14,19 +14,34 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
         _dbContext = dbContext;
     }
 
-    public virtual async Task<T?> GetByIdAsync(int id)
+    public virtual async Task<T?> GetByIdAsync(int id, string includeProperties = "")
     {
-        return await _dbContext.Set<T>().FindAsync(id);
+        IQueryable<T> query = _dbContext.Set<T>();
+        foreach (var includeProperty in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            query = query.Include(includeProperty);
+        }
+        return await query.FirstOrDefaultAsync(e => e.Id == id);
     }
 
-    public async Task<IReadOnlyList<T>> ListAllAsync()
+    public async Task<IReadOnlyList<T>> ListAllAsync(string includeProperties = "")
     {
-        return await _dbContext.Set<T>().ToListAsync();
+        IQueryable<T> query = _dbContext.Set<T>();
+        foreach (var includeProperty in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            query = query.Include(includeProperty);
+        }
+        return await query.ToListAsync();
     }
 
-    public async Task<IReadOnlyList<T>> ListAsync(Expression<Func<T, bool>> filter)
+    public async Task<IReadOnlyList<T>> ListAsync(Expression<Func<T, bool>> filter, string includeProperties = "")
     {
-        return await _dbContext.Set<T>().Where(filter).ToListAsync();
+        IQueryable<T> query = _dbContext.Set<T>();
+        foreach (var includeProperty in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            query = query.Include(includeProperty);
+        }
+        return await query.Where(filter).ToListAsync();
     }
 
     public async Task<int> CountAsync(Expression<Func<T, bool>>? filter = null)
@@ -58,9 +73,14 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<T?> GetAsync(Expression<Func<T, bool>> predicate)
+    public async Task<T?> GetAsync(Expression<Func<T, bool>> predicate, string includeProperties = "")
     {
-        return await _dbContext.Set<T>().FirstOrDefaultAsync(predicate);
+        IQueryable<T> query = _dbContext.Set<T>();
+        foreach (var includeProperty in includeProperties.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            query = query.Include(includeProperty);
+        }
+        return await query.FirstOrDefaultAsync(predicate);
     }
 
     public async Task<IReadOnlyList<T>> GetPagedAsync(int page, int pageSize, Expression<Func<T, bool>>? filter = null, Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null, string includeProperties = "")

@@ -49,7 +49,7 @@
             </div>
 
             <div class="portal-actions d-grid gap-2">
-                <a href="/downloads/khadamat.apk" download="@($"{State.AppName.ToLower()}.apk")" class="store-link play-store-glow d-flex align-items-center p-2 rounded-4 text-decoration-none">
+                <a href="/downloads/khadamat.apk" download="@($"{(State.AppName ?? "khadamat").ToLower()}.apk")" class="store-link play-store-glow d-flex align-items-center p-2 rounded-4 text-decoration-none">
                     <div class="store-icon bg-white text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width:32px;height:32px;min-width:32px;">
                         <i class="fa-brands fa-android fs-6"></i>
                     </div>
@@ -99,6 +99,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <style>
@@ -420,7 +421,7 @@
 
     .x-small { font-size: 0.75rem; }
     
-    @media (max-width: 576px) {
+    @@media (max-width: 576px) {
         .app-download-card {
             width: 320px;
         }
@@ -447,56 +448,84 @@
 
     private async Task ToggleExpand() 
     {
-        isExpanded = !isExpanded;
-        if (isExpanded)
+        try
         {
-            await Task.Delay(100); // Give time for DOM to render if needed
-            var downloadUrl = Navigation.BaseUri + "downloads/khadamat.apk";
-            await JS.InvokeVoidAsync("generateQRCode", "app-download-qr", downloadUrl);
+            isExpanded = !isExpanded;
+            if (isExpanded)
+            {
+                await Task.Delay(200); // Increased delay
+                var downloadUrl = Navigation.BaseUri.TrimEnd('/') + "/downloads/khadamat.apk";
+                
+                if (JS != null)
+                {
+                    await JS.InvokeVoidAsync("generateQRCode", "app-download-qr", downloadUrl);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in ToggleExpand: {ex.Message}");
         }
     }
 
     private async Task ShareAppInvitation()
     {
-        var shareUrl = Navigation.BaseUri;
-        var shareTitle = $"خمّل تطبيق {State.AppName} - عالم من الخدمات";
-        var shareText = $"🌟 اكتشف تطبيق {State.AppName} الجديد!\n\n" +
-                        "كل ما تحتاجه من خدمات في تطبيق واحد:\n" +
-                        "✅ خدمات طبية وتمريضية منزلية\n" +
-                        "✅ صيانة منزلية (سباكة، كهرباء، نجارة)\n" +
-                        "✅ خدمات تعليمية وتدريبية\n" +
-                        "✅ توصيل وخدمات لوجستية\n" +
-                        "✅ استشارات قانونية ومهنية\n\n" +
-                        "🚀 تجربة عصرية، سهولة في الطلب، وأمان تام.\n\n" +
-                        "جربه الآن عبر الرابط:";
-        
-        await JS.InvokeVoidAsync("shareApp", shareTitle, shareText, shareUrl);
+        try
+        {
+            var shareUrl = Navigation.BaseUri;
+            var shareTitle = $"حمّل تطبيق {State.AppName ?? "خدماتو"} - عالم من الخدمات";
+            var shareText = $"🌟 اكتشف تطبيق {State.AppName ?? "خدماتو"} الجديد!\n\n" +
+                            "كل ما تحتاجه من خدمات في تطبيق واحد:\n" +
+                            "✅ خدمات طبية وتمريضية منزلية\n" +
+                            "✅ صيانة منزلية (سباكة، كهرباء، نجارة)\n" +
+                            "✅ خدمات تعليمية وتدريبية\n" +
+                            "✅ توصيل وخدمات لوجستية\n" +
+                            "✅ استشارات قانونية ومهنية\n\n" +
+                            "🚀 تجربة عصرية، سهولة في الطلب، وأمان تام.\n\n" +
+                            "جربه الآن عبر الرابط:";
+            
+            if (JS != null)
+            {
+                await JS.InvokeVoidAsync("shareApp", shareTitle, shareText, shareUrl);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in ShareAppInvitation: {ex.Message}");
+        }
     }
 
     private async Task ShareTo(string platform)
     {
-        var shareUrl = Navigation.BaseUri;
-        var shareText = $"اكتشف تطبيق {State.AppName} المتكامل لكل الخدمات!\n" +
-                        "تمريض، تعليم، حرف، توصيل.. كل شيء في مكان واحد.\n" +
-                        "جربه الآن: " + shareUrl;
-        
-        string url = "";
-        switch (platform)
+        try
         {
-            case "whatsapp":
-                url = $"https://wa.me/?text={Uri.EscapeDataString(shareText)}";
-                break;
-            case "facebook":
-                url = $"https://www.facebook.com/sharer/sharer.php?u={Uri.EscapeDataString(shareUrl)}";
-                break;
-            case "twitter":
-                url = $"https://twitter.com/intent/tweet?text={Uri.EscapeDataString(shareText)}";
-                break;
-        }
+            var shareUrl = Navigation.BaseUri;
+            var shareText = $"اكتشف تطبيق {State.AppName ?? "خدماتو"} المتكامل لكل الخدمات!\n" +
+                            "تمريض، تعليم، حرف، توصيل.. كل شيء في مكان واحد.\n" +
+                            "جربه الآن: " + shareUrl;
+            
+            string url = "";
+            switch (platform)
+            {
+                case "whatsapp":
+                    url = $"https://wa.me/?text={Uri.EscapeDataString(shareText)}";
+                    break;
+                case "facebook":
+                    url = $"https://www.facebook.com/sharer/sharer.php?u={Uri.EscapeDataString(shareUrl)}";
+                    break;
+                case "twitter":
+                    url = $"https://twitter.com/intent/tweet?text={Uri.EscapeDataString(shareText)}";
+                    break;
+            }
 
-        if (!string.IsNullOrEmpty(url))
+            if (!string.IsNullOrEmpty(url) && JS != null)
+            {
+                await JS.InvokeVoidAsync("open", url, "_blank");
+            }
+        }
+        catch (Exception ex)
         {
-            await JS.InvokeVoidAsync("open", url, "_blank");
+            Console.WriteLine($"Error in ShareTo: {ex.Message}");
         }
     }
 

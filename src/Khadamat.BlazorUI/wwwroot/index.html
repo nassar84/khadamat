@@ -4,18 +4,18 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>خدماوي | KhadaMAWI</title>
+    <title>خدماتو | Khadamato</title>
     <base href="/" />
 
     <!-- Social Media Meta Tags (Open Graph) -->
-    <meta property="og:title" content="خدماوي - تطبيق الخدمات المتكامل" />
-    <meta property="og:description" content="اكتشف وطلب أفضل الخدمات في مكان واحد. تطبيق خدمات يوفر لك كل ما تحتاجه بسهولة وأمان." />
+    <meta property="og:title" content="خدماتو - تطبيق الخدمات المتكامل" />
+    <meta property="og:description" content="اكتشف وطلب أفضل الخدمات في مكان واحد. تطبيق خدماتو يوفر لك كل ما تحتاجه بسهولة وأمان." />
     <meta property="og:image" content="https://khadamat.vercel.app/images/app-preview.png" /> <!-- User should replace with real URL -->
     <meta property="og:url" content="https://khadamat.vercel.app" />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="خدماوي - تطبيق الخدمات المتكامل" />
-    <meta name="twitter:description" content="اكتشف وطلب أفضل الخدمات في مكان واحد." />
+    <meta name="twitter:title" content="خدماتو - تطبيق الخدمات المتكامل" />
+    <meta name="twitter:description" content="اكتشف وطلب أفضل الخدمات في مكان واحد عبر تطبيق خدماتو." />
     <meta name="twitter:image" content="https://khadamat.vercel.app/images/app-preview.png" />
 
     <!-- Fonts -->
@@ -129,7 +129,41 @@
 </head>
 
 <body>
-    <div id="app"></div>
+    <div id="app">
+        <!-- Modern Splash Screen -->
+        <div id="loading-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 99999; transition: opacity 0.5s ease-out;">
+            <div style="width: 100px; height: 100px; position: relative; margin-bottom: 30px;">
+                <img src="favicon.png" style="width: 100%; height: 100%; object-fit: contain; animation: logo-pulse 2s infinite ease-in-out;" />
+                <svg viewBox="0 0 100 100" style="position: absolute; top: -10px; left: -10px; width: 120px; height: 120px; transform: rotate(-90deg);">
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="#f1f5f9" stroke-width="4"></circle>
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="#6366f1" stroke-width="4" stroke-dasharray="283" stroke-dashoffset="283" style="animation: circle-fill 3s forwards ease-in-out;"></circle>
+                </svg>
+            </div>
+            <h2 style="font-family: 'Tajawal', sans-serif; font-weight: bold; color: #1e293b; margin: 0;">خدماوي</h2>
+            <p style="font-family: 'Tajawal', sans-serif; color: #64748b; margin-top: 10px; font-size: 0.9rem;">جاري تحميل عالم الخدمات...</p>
+        </div>
+
+        <style>
+            @keyframes logo-pulse {
+                0%, 100% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.1); opacity: 0.8; }
+            }
+            @keyframes circle-fill {
+                0% { stroke-dashoffset: 283; }
+                100% { stroke-dashoffset: 0; }
+            }
+        </style>
+    </div>
+
+    <script>
+        window.hideLoadingScreen = () => {
+            const screen = document.getElementById('loading-screen');
+            if (screen) {
+                screen.style.opacity = '0';
+                setTimeout(() => screen.remove(), 500);
+            }
+        };
+    </script>
 
     <div id="blazor-error-ui">
         حدث خطأ غير متوقع.
