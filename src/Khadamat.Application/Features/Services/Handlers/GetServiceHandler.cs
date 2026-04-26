@@ -25,16 +25,19 @@ public class GetServiceHandler : IRequestHandler<Queries.GetServiceQuery, Pagina
 
     public async Task<PaginatedResult<ServiceDto>> Handle(Queries.GetServiceQuery request, CancellationToken cancellationToken)
     {
+        var page = request.Page > 0 ? request.Page : 1;
+        var pageSize = request.PageSize > 0 ? request.PageSize : 10;
         var search = request.Search?.ToLower();
 
         Expression<Func<Service, bool>> filter = s => 
             (!request.IsApproved.HasValue || s.Approved == request.IsApproved.Value) &&
             (string.IsNullOrEmpty(search) || s.Name.ToLower().Contains(search) || s.Description.ToLower().Contains(search)) &&
-            (!request.CategoryId.HasValue || s.CategoryId == request.CategoryId) &&
+            // Fix: If categoryId is provided, also check services through their sub-categories
+            (!request.CategoryId.HasValue || s.CategoryId == request.CategoryId || (s.SubCategory != null && s.SubCategory.CategoryId == request.CategoryId)) &&
             (!request.SubCategoryId.HasValue || s.SubCategoryId == request.SubCategoryId) &&
             (!request.CityId.HasValue || s.CityId == request.CityId) &&
-            (!request.GovernorateId.HasValue || s.City.GovernorateId == request.GovernorateId) &&
-            (string.IsNullOrEmpty(request.Location) || s.Address.Contains(request.Location));
+            (!request.GovernorateId.HasValue || (s.City != null && s.City.GovernorateId == request.GovernorateId)) &&
+            (string.IsNullOrEmpty(request.Location) || (s.Address != null && s.Address.Contains(request.Location)));
         
         // Includes for mapping
         string includes = "Category,SubCategory,City,City.Governorate,Ratings,Likes";
@@ -51,7 +54,7 @@ public class GetServiceHandler : IRequestHandler<Queries.GetServiceQuery, Pagina
                        .ThenByDescending(s => s.CreatedAt)
         };
 
-        var pagedItems = await _repository.GetPagedAsync(request.Page, request.PageSize, filter, 
+        var pagedItems = await _repository.GetPagedAsync(page, pageSize, filter, 
             orderBy: orderBy, 
             includeProperties: includes);
             
@@ -77,6 +80,6 @@ public class GetServiceHandler : IRequestHandler<Queries.GetServiceQuery, Pagina
             }
         }
         
-        return new PaginatedResult<ServiceDto>(dtos, totalCount, request.Page, request.PageSize);
+        return new PaginatedResult<ServiceDto>(dtos, totalCount, page, pageSize);
     }
 }

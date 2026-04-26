@@ -27,11 +27,11 @@ public class MappingProfile : Profile
             .ForMember(d => d.LikesCount, opt => opt.MapFrom(s => s.Likes.Count));
             
         CreateMap<Category, CategoryDto>()
-            .ForMember(d => d.MainCategoryName, opt => opt.MapFrom(s => s.MainCategory.Name));
+            .ForMember(d => d.MainCategoryName, opt => opt.MapFrom(s => s.MainCategory != null ? s.MainCategory.Name : string.Empty));
             
         CreateMap<SubCategory, SubCategoryDto>()
-             .ForMember(d => d.CategoryName, opt => opt.MapFrom(s => s.Category.Name))
-             .ForMember(d => d.MainCategoryName, opt => opt.MapFrom(s => s.Category.MainCategory.Name));
+             .ForMember(d => d.CategoryName, opt => opt.MapFrom(s => s.Category != null ? s.Category.Name : string.Empty))
+             .ForMember(d => d.MainCategoryName, opt => opt.MapFrom(s => s.Category != null && s.Category.MainCategory != null ? s.Category.MainCategory.Name : string.Empty));
              
         CreateMap<MainCategory, MainCategoryDto>();
 

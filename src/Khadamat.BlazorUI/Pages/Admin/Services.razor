@@ -223,7 +223,7 @@
         try 
         {
             var mainCats = await Api.GetMainCategoriesAsync(); // Refresh in case changed
-            var allServicesResult = await Api.GetServicesAsync(pageSize: 1000); // 1000 is optimization cap
+            var allServicesResult = await Api.GetServicesAsync(pageSize: 1000, isApproved: null); // 1000 is optimization cap
             var allServices = allServicesResult.Items;
 
             foreach (var mc in mainCats)

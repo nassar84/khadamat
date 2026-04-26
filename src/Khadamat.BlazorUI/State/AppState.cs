@@ -143,8 +143,10 @@ public class AppState
     public string GetAbsoluteUrl(string? path)
     {
         if (string.IsNullOrEmpty(path)) return "/";
-        if (path.StartsWith("http")) return path;
-        return $"http://localhost:5144/{path.TrimStart('/')}";
+        if (path.StartsWith("http") || path.StartsWith("data:")) return path;
+        
+        // Return relative path. The browser will resolve it against the site origin.
+        return path.StartsWith("/") ? path : $"/{path}";
     }
 
     public event Action? OnChange;

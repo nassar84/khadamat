@@ -7,7 +7,7 @@ using System.Security.Claims;
 namespace Khadamat.WebAPI.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("v1/[controller]")]
 public class MarketplaceController : ControllerBase
 {
     private readonly IMarketplaceService _marketplaceService;

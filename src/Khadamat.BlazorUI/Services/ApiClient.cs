@@ -83,7 +83,7 @@ public class ApiClient
         if (governorateId.HasValue) url += $"&governorateId={governorateId}";
         if (cityId.HasValue) url += $"&cityId={cityId}";
         if (!string.IsNullOrEmpty(userId)) url += $"&userId={Uri.EscapeDataString(userId)}";
-        if (isApproved.HasValue) url += $"&isApproved={isApproved}";
+        if (isApproved.HasValue) url += $"&isApproved={isApproved.Value.ToString().ToLower()}";
         if (!string.IsNullOrEmpty(sortBy)) url += $"&sortBy={sortBy}";
         
         try
@@ -99,8 +99,16 @@ public class ApiClient
 
     public async Task<PaginatedResult<ServiceDto>> GetMyServicesAsync(int page = 1)
     {
-        return await _http.GetFromJsonAsync<PaginatedResult<ServiceDto>>($"v1/services/myservices?page={page}") 
-               ?? new PaginatedResult<ServiceDto>(new List<ServiceDto>(), 0, page, 10);
+        try
+        {
+            return await _http.GetFromJsonAsync<PaginatedResult<ServiceDto>>($"v1/services/myservices?page={page}") 
+                   ?? new PaginatedResult<ServiceDto>(new List<ServiceDto>(), 0, page, 10);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching my services: {ex.Message}");
+            return new PaginatedResult<ServiceDto>(new List<ServiceDto>(), 0, page, 10);
+        }
     }
 
     public async Task<ServiceDto?> GetServiceByIdAsync(int id)
@@ -913,7 +921,7 @@ public class ApiClient
     {
         try
         {
-            return await _http.GetFromJsonAsync<List<MarketplaceItemDto>>($"Marketplace/latest?count={count}") ?? new List<MarketplaceItemDto>();
+            return await _http.GetFromJsonAsync<List<MarketplaceItemDto>>($"v1/Marketplace/latest?count={count}") ?? new List<MarketplaceItemDto>();
         }
         catch { return new List<MarketplaceItemDto>(); }
     }
@@ -922,7 +930,7 @@ public class ApiClient
     {
         try
         {
-            return await _http.GetFromJsonAsync<List<MarketplaceItemDto>>($"Marketplace/featured?count={count}") ?? new List<MarketplaceItemDto>();
+            return await _http.GetFromJsonAsync<List<MarketplaceItemDto>>($"v1/Marketplace/featured?count={count}") ?? new List<MarketplaceItemDto>();
         }
         catch { return new List<MarketplaceItemDto>(); }
     }
@@ -931,7 +939,7 @@ public class ApiClient
     {
         try
         {
-            var url = $"Marketplace/search?page={page}&pageSize={pageSize}";
+            var url = $"v1/Marketplace/search?page={page}&pageSize={pageSize}";
             if (!string.IsNullOrEmpty(q)) url += $"&q={Uri.EscapeDataString(q)}";
             if (categoryId.HasValue && categoryId > 0) url += $"&categoryId={categoryId}";
             if (subCategoryId.HasValue && subCategoryId > 0) url += $"&subCategoryId={subCategoryId}";
@@ -941,7 +949,8 @@ public class ApiClient
             if (minPrice.HasValue && minPrice > 0) url += $"&minPrice={minPrice}";
             if (maxPrice.HasValue && maxPrice > 0) url += $"&maxPrice={maxPrice}";
 
-            return await _http.GetFromJsonAsync<List<MarketplaceItemDto>>(url) ?? new List<MarketplaceItemDto>();
+            var result = await _http.GetFromJsonAsync<PaginatedResult<MarketplaceItemDto>>(url);
+            return result?.Items ?? new List<MarketplaceItemDto>();
         }
         catch (Exception ex)
         {
@@ -989,13 +998,13 @@ public class ApiClient
 
     public async Task<bool> DeleteMarketplaceItemAsync(int id)
     {
-        var response = await _http.DeleteAsync($"Marketplace/{id}");
+        var response = await _http.DeleteAsync($"v1/Marketplace/{id}");
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> MarkMarketplaceItemAsSoldAsync(int id)
     {
-        var response = await _http.PostAsync($"Marketplace/{id}/sold", null);
+        var response = await _http.PostAsync($"v1/Marketplace/{id}/sold", null);
         return response.IsSuccessStatusCode;
     }
 
@@ -1004,7 +1013,7 @@ public class ApiClient
         try
         {
             var request = new { Status = status };
-            var response = await _http.PostAsJsonAsync($"Marketplace/{id}/change-status", request);
+            var response = await _http.PostAsJsonAsync($"v1/Marketplace/{id}/change-status", request);
             return response.IsSuccessStatusCode;
         }
         catch { return false; }
@@ -1012,13 +1021,13 @@ public class ApiClient
 
     public async Task<bool> LockMarketplaceItemAsync(int id)
     {
-        var response = await _http.PostAsync($"Marketplace/{id}/lock", null);
+        var response = await _http.PostAsync($"v1/Marketplace/{id}/lock", null);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> ToggleMarketplaceFavoriteAsync(int id)
     {
-        var response = await _http.PostAsync($"Marketplace/{id}/favorite", null);
+        var response = await _http.PostAsync($"v1/Marketplace/{id}/favorite", null);
         return response.IsSuccessStatusCode;
     }
 
@@ -1026,7 +1035,7 @@ public class ApiClient
     {
         try
         {
-            return await _http.GetFromJsonAsync<bool>($"Marketplace/{id}/is-favorite");
+            return await _http.GetFromJsonAsync<bool>($"v1/Marketplace/{id}/is-favorite");
         }
         catch { return false; }
     }
@@ -1036,7 +1045,7 @@ public class ApiClient
     {
         try
         {
-            return await _http.GetFromJsonAsync<List<MarketplaceItemDto>>($"Marketplace/admin/items?pageSize={pageSize}") ?? new List<MarketplaceItemDto>();
+            return await _http.GetFromJsonAsync<List<MarketplaceItemDto>>($"v1/Marketplace/admin/items?pageSize={pageSize}") ?? new List<MarketplaceItemDto>();
         }
         catch (Exception ex)
         {
@@ -1049,14 +1058,14 @@ public class ApiClient
     {
         try
         {
-            return await _http.GetFromJsonAsync<MarketplaceSettingsDto>("Marketplace/settings");
+            return await _http.GetFromJsonAsync<MarketplaceSettingsDto>("v1/Marketplace/settings");
         }
         catch { return null; }
     }
 
     public async Task<bool> ApproveMarketplaceItemAsync(int id, string? notes = null)
     {
-        var response = await _http.PostAsync($"Marketplace/{id}/approve?notes={Uri.EscapeDataString(notes ?? "")}", null);
+        var response = await _http.PostAsync($"v1/Marketplace/{id}/approve?notes={Uri.EscapeDataString(notes ?? "")}", null);
         return response.IsSuccessStatusCode;
     }
 
@@ -1064,7 +1073,7 @@ public class ApiClient
     {
         try
         {
-            var url = $"Marketplace/{id}/approve?startDate={startDate:yyyy-MM-dd}&endDate={endDate:yyyy-MM-dd}";
+            var url = $"v1/Marketplace/{id}/approve?startDate={startDate:yyyy-MM-dd}&endDate={endDate:yyyy-MM-dd}";
             if (!string.IsNullOrEmpty(notes))
                 url += $"&notes={Uri.EscapeDataString(notes)}";
             var response = await _http.PostAsync(url, null);
@@ -1075,19 +1084,19 @@ public class ApiClient
 
     public async Task<bool> RejectMarketplaceItemAsync(int id, string? notes = null)
     {
-        var response = await _http.PostAsync($"Marketplace/{id}/reject?notes={Uri.EscapeDataString(notes ?? "")}", null);
+        var response = await _http.PostAsync($"v1/Marketplace/{id}/reject?notes={Uri.EscapeDataString(notes ?? "")}", null);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> SetMarketplaceItemFeaturedAsync(int id, int days = 7)
     {
-        var response = await _http.PostAsync($"Marketplace/{id}/set-featured?days={days}", null);
+        var response = await _http.PostAsync($"v1/Marketplace/{id}/set-featured?days={days}", null);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> SetMarketplaceItemPromotedAsync(int id, int days = 7)
     {
-        var response = await _http.PostAsync($"Marketplace/{id}/set-promoted?days={days}", null);
+        var response = await _http.PostAsync($"v1/Marketplace/{id}/set-promoted?days={days}", null);
         return response.IsSuccessStatusCode;
     }
 
@@ -1095,9 +1104,14 @@ public class ApiClient
     {
         try
         {
-            return await _http.GetFromJsonAsync<List<MarketplaceItemDto>>("Marketplace/my-items") ?? new List<MarketplaceItemDto>();
+            var response = await _http.GetFromJsonAsync<PaginatedResult<MarketplaceItemDto>>("v1/Marketplace/my-items");
+            return response?.Items ?? new List<MarketplaceItemDto>();
         }
-        catch { return new List<MarketplaceItemDto>(); }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching my marketplace items: {ex.Message}");
+            return new List<MarketplaceItemDto>();
+        }
     }
 
     public async Task<List<MarketplaceCategoryDto>> GetMarketplaceCategoriesAsync()
@@ -1105,7 +1119,7 @@ public class ApiClient
         if (_marketCategoriesCache != null) return _marketCategoriesCache;
         try
         {
-            _marketCategoriesCache = await _http.GetFromJsonAsync<List<MarketplaceCategoryDto>>("Marketplace/categories") ?? new List<MarketplaceCategoryDto>();
+            _marketCategoriesCache = await _http.GetFromJsonAsync<List<MarketplaceCategoryDto>>("v1/Marketplace/categories") ?? new List<MarketplaceCategoryDto>();
             return _marketCategoriesCache;
         }
         catch (Exception ex)
@@ -1119,7 +1133,7 @@ public class ApiClient
     {
         try
         {
-            return await _http.GetFromJsonAsync<List<MarketplaceSubCategoryDto>>($"Marketplace/categories/{categoryId}/subcategories") ?? new List<MarketplaceSubCategoryDto>();
+            return await _http.GetFromJsonAsync<List<MarketplaceSubCategoryDto>>($"v1/Marketplace/categories/{categoryId}/subcategories") ?? new List<MarketplaceSubCategoryDto>();
         }
         catch (Exception ex)
         {

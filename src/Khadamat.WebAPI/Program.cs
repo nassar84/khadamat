@@ -44,7 +44,10 @@ try
     builder.Services.AddApplication();
 
     // MediatR & Notification logic
-    builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Khadamat.Infrastructure.DependencyInjection).Assembly));
+    builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(
+        typeof(Khadamat.Application.DependencyInjection).Assembly,
+        typeof(Khadamat.Infrastructure.DependencyInjection).Assembly
+    ));
     builder.Services.AddScoped<Khadamat.Application.Interfaces.INotificationNotifier, Khadamat.WebAPI.Services.SignalRNotificationNotifier>();
 
     // 4. Production-Ready Authorization Policies
