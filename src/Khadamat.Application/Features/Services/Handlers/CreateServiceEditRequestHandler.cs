@@ -32,6 +32,8 @@ public class CreateServiceEditRequestHandler : IRequestHandler<Commands.CreateSe
             ProposedAddress = request.ProposedAddress,
             ProposedPrice = request.ProposedPrice,
             ProposedPhone1 = request.ProposedPhone1,
+            ProposedPhone2 = request.ProposedPhone2,
+            ProposedWhatsApp = request.ProposedWhatsApp,
             Status = "Pending"
         };
 

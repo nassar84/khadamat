@@ -538,20 +538,35 @@
             <h5 class="fw-bold text-center mb-3">اقتراح تعديل بيانات</h5>
             <p class="text-muted small text-center mb-4">@service?.Title</p>
             
-            <div class="mb-3">
-                <label class="form-label fw-bold small">سبب التعديل أو الملاحظة <span class="text-danger">*</span></label>
-                <textarea @bind="editReason" class="form-control" rows="3" placeholder="مثال: رقم الهاتف (012...) قديم، الرقم الجديد هو (010...). السعر الصحيح هو 500 بدلاً من 300..."></textarea>
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="form-label fw-bold small mb-0">البيانات المطلوب تعديلها</label>
+                    <button class="btn btn-sm btn-outline-info rounded-pill" @onclick="AddFieldEdit">
+                        <i class="fa-solid fa-plus me-1"></i> إضافة بيان
+                    </button>
+                </div>
+                
+                @foreach (var edit in fieldEdits)
+                {
+                    <div class="row g-2 mb-2 animate-fade-in">
+                        <div class="col-5">
+                            <input type="text" @bind="edit.FieldName" class="form-control form-control-sm" placeholder="اسم البيان (مثلاً: السعر)" />
+                        </div>
+                        <div class="col-5">
+                            <input type="text" @bind="edit.ProposedValue" class="form-control form-control-sm" placeholder="التعديل المقترح" />
+                        </div>
+                        <div class="col-2">
+                            <button class="btn btn-sm btn-outline-danger w-100" @onclick="() => RemoveFieldEdit(edit)">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                }
             </div>
-            
-            <div class="row g-2 mb-3">
-                <div class="col-6">
-                    <label class="form-label fw-bold x-small text-muted">الاسم المقترح</label>
-                    <input type="text" @bind="editProposedName" class="form-control form-control-sm" placeholder="الاسم الصحيح" />
-                </div>
-                <div class="col-6">
-                    <label class="form-label fw-bold x-small text-muted">رقم الهاتف المقترح</label>
-                    <input type="text" @bind="editProposedPhone" class="form-control form-control-sm" placeholder="الرقم الصحيح" />
-                </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold small">سبب التعديل أو ملاحظات إضافية <span class="text-danger">*</span></label>
+                <textarea @bind="editReason" class="form-control" rows="3" placeholder="لماذا تطلب هذا التعديل؟"></textarea>
             </div>
 
             <div class="p-3 bg-light rounded-4 small text-muted border mb-2">
@@ -1369,10 +1384,18 @@
     private bool IsAuthenticated = false;
     private bool showRequestEditModal = false;
     private string editReason = "";
-    private string? editProposedName;
-    private string? editProposedPhone;
+    private List<FieldEdit> fieldEdits = new() { new FieldEdit() };
     private bool isSubmittingEditRequest = false;
     private string? editRequestError;
+
+    public class FieldEdit 
+    { 
+        public string FieldName { get; set; } = ""; 
+        public string ProposedValue { get; set; } = ""; 
+    }
+
+    private void AddFieldEdit() => fieldEdits.Add(new FieldEdit());
+    private void RemoveFieldEdit(FieldEdit edit) => fieldEdits.Remove(edit);
 
     private void OpenRequestEditModal()
     {
@@ -1383,8 +1406,7 @@
             return;
         }
         editReason = "";
-        editProposedName = "";
-        editProposedPhone = "";
+        fieldEdits = new() { new FieldEdit() };
         editRequestError = null;
         showRequestEditModal = true;
     }
@@ -1402,15 +1424,43 @@
 
         try
         {
-        if (service == null) return;
+            if (service == null) return;
 
-        var success = await Api.RequestServiceEditAsync(service.Id, new 
-        {
-            ServiceId = service.Id,
-            Reason = editReason,
-            ProposedName = editProposedName,
-            ProposedPhone1 = editProposedPhone
-        });
+            // Map dynamic edits to specific fields if they match, or add to reason
+            string? proposedName = fieldEdits.FirstOrDefault(e => e.FieldName == "الاسم" || e.FieldName.ToLower() == "name")?.ProposedValue;
+            string? proposedPhone = fieldEdits.FirstOrDefault(e => e.FieldName == "الهاتف" || e.FieldName.ToLower() == "phone")?.ProposedValue;
+            string? proposedPrice = fieldEdits.FirstOrDefault(e => e.FieldName == "السعر" || e.FieldName.ToLower() == "price")?.ProposedValue;
+            string? proposedAddress = fieldEdits.FirstOrDefault(e => e.FieldName == "العنوان" || e.FieldName.ToLower() == "address")?.ProposedValue;
+            string? proposedDesc = fieldEdits.FirstOrDefault(e => e.FieldName == "الوصف" || e.FieldName.ToLower() == "description")?.ProposedValue;
+
+            // Build full reason including other edits
+            var fullReason = editReason;
+            var otherEdits = fieldEdits.Where(e => 
+                e.FieldName != "الاسم" && e.FieldName.ToLower() != "name" &&
+                e.FieldName != "الهاتف" && e.FieldName.ToLower() != "phone" &&
+                e.FieldName != "السعر" && e.FieldName.ToLower() != "price" &&
+                e.FieldName != "العنوان" && e.FieldName.ToLower() != "address" &&
+                e.FieldName != "الوصف" && e.FieldName.ToLower() != "description" &&
+                !string.IsNullOrWhiteSpace(e.FieldName));
+
+            if (otherEdits.Any())
+            {
+                fullReason += "\nتعديلات إضافية:\n" + string.Join("\n", otherEdits.Select(e => $"- {e.FieldName}: {e.ProposedValue}"));
+            }
+
+            decimal? priceVal = null;
+            if (decimal.TryParse(proposedPrice, out var p)) priceVal = p;
+
+            var success = await Api.RequestServiceEditAsync(service.Id, new 
+            {
+                ServiceId = service.Id,
+                Reason = fullReason,
+                ProposedName = proposedName,
+                ProposedPhone1 = proposedPhone,
+                ProposedDescription = proposedDesc,
+                ProposedAddress = proposedAddress,
+                ProposedPrice = priceVal
+            });
 
             if (success)
             {

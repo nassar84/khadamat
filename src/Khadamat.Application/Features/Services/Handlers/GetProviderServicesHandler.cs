@@ -32,8 +32,7 @@ public class GetProviderServicesHandler : IRequestHandler<Queries.GetProviderSer
 
         var pagedItems = await _repository.GetPagedAsync(request.Page, request.PageSize, 
             filter: s => s.ProviderProfileId == providerId, 
-            orderBy: q => q.OrderByDescending(s => s.DisplayOrder)
-                           .ThenByDescending(s => s.Ratings.Any() ? s.Ratings.Average(r => (double?)r.Stars) : 0)
+            orderBy: q => q.OrderByDescending(s => s.Ratings.Any() ? s.Ratings.Average(r => (double?)r.Stars) : 0)
                            .ThenByDescending(s => s.CreatedAt),
             includeProperties: includes);
             

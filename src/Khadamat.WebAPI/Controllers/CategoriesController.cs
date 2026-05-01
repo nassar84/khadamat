@@ -44,22 +44,26 @@ public class CategoriesController : ControllerBase
     [HttpGet("main/{mainCategoryId}/categories")]
     public async Task<ActionResult<ApiResponse<IEnumerable<CategoryDto>>>> GetCategories(int mainCategoryId)
     {
-        var categories = await _context.Categories
-            .Where(c => c.MainCategoryId == mainCategoryId)
-            .OrderBy(c => c.DisplayOrder)
-            .Include(c => c.MainCategory)
-            .Select(c => new CategoryDto 
-            { 
-                Id = c.Id, 
-                Name = c.Name,
-                MainCategoryId = c.MainCategoryId,
-                MainCategoryName = c.MainCategory.Name,
-                ImageUrl = c.ImageUrl,
-                DisplayOrder = c.DisplayOrder
-            })
-            .ToListAsync();
-        
-        return Ok(ApiResponse<IEnumerable<CategoryDto>>.Succeed(categories));
+        try {
+            var categories = await _context.Categories
+                .Where(c => c.MainCategoryId == mainCategoryId)
+                //.OrderBy(c => c.DisplayOrder)
+                .Include(c => c.MainCategory)
+                .Select(c => new CategoryDto 
+                { 
+                    Id = c.Id, 
+                    Name = c.Name,
+                    MainCategoryId = c.MainCategoryId,
+                    MainCategoryName = c.MainCategory.Name,
+                    ImageUrl = c.ImageUrl,
+                    //DisplayOrder = c.DisplayOrder
+                })
+                .ToListAsync();
+            
+            return Ok(ApiResponse<IEnumerable<CategoryDto>>.Succeed(categories));
+        } catch (Exception ex) {
+            return StatusCode(500, ex.ToString());
+        }
     }
 
     [HttpGet("categories/{id}")]
@@ -112,7 +116,7 @@ public class CategoriesController : ControllerBase
     {
         var subCategories = await _context.SubCategories
             .Where(s => s.CategoryId == categoryId)
-            .OrderBy(s => s.DisplayOrder)
+            //.OrderBy(s => s.DisplayOrder)
             .Include(s => s.Category)
                 .ThenInclude(c => c.MainCategory)
             .Select(s => new SubCategoryDto 
@@ -124,7 +128,7 @@ public class CategoriesController : ControllerBase
                 MainCategoryId = s.Category.MainCategoryId,
                 MainCategoryName = s.Category.MainCategory.Name,
                 ImageUrl = s.ImageUrl,
-                DisplayOrder = s.DisplayOrder
+                //DisplayOrder = s.DisplayOrder
             })
             .ToListAsync();
         

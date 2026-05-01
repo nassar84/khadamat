@@ -182,7 +182,7 @@
 @inject Khadamat.BlazorUI.Services.SoundService SoundService
 
 @code {
-    private bool isSidebarCollapsed = false;
+    private bool isSidebarCollapsed = true;
     private bool _disposed = false;
     private bool IsAdminPage => Navigation.Uri.Contains("/admin", StringComparison.OrdinalIgnoreCase);
     private bool IsProfilePage => Navigation.Uri.Contains("/profile", StringComparison.OrdinalIgnoreCase) || Navigation.Uri.Contains("/settings", StringComparison.OrdinalIgnoreCase);

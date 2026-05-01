@@ -16,4 +16,6 @@ public class CreateServiceEditRequestCommand : IRequest<bool>
     public string? ProposedAddress { get; set; }
     public decimal? ProposedPrice { get; set; }
     public string? ProposedPhone1 { get; set; }
+    public string? ProposedPhone2 { get; set; }
+    public string? ProposedWhatsApp { get; set; }
 }

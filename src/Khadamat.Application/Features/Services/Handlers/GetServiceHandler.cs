@@ -44,13 +44,10 @@ public class GetServiceHandler : IRequestHandler<Queries.GetServiceQuery, Pagina
 
         Func<IQueryable<Service>, IOrderedQueryable<Service>> orderBy = request.SortBy switch
         {
-            "price-asc" => q => q.OrderByDescending(s => s.DisplayOrder)
-                                 .ThenBy(s => s.Price ?? decimal.MaxValue),
-            "rating" => q => q.OrderByDescending(s => s.DisplayOrder)
-                              .ThenByDescending(s => s.Ratings.Any() ? s.Ratings.Average(r => (double?)r.Stars) : 0)
+            "price-asc" => q => q.OrderBy(s => s.Price ?? decimal.MaxValue),
+            "rating" => q => q.OrderByDescending(s => s.Ratings.Any() ? s.Ratings.Average(r => (double?)r.Stars) : 0)
                               .ThenByDescending(s => s.CreatedAt),
-            _ => q => q.OrderByDescending(s => s.DisplayOrder)
-                       .ThenByDescending(s => s.Ratings.Any() ? s.Ratings.Average(r => (double?)r.Stars) : 0)
+            _ => q => q.OrderByDescending(s => s.Ratings.Any() ? s.Ratings.Average(r => (double?)r.Stars) : 0)
                        .ThenByDescending(s => s.CreatedAt)
         };
 

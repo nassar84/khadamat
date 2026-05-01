@@ -13,6 +13,14 @@
     <div class="explore-content-inner px-3">
         <!-- Ads Slider (Dynamic System) -->
         <Khadamat.BlazorUI.Components.Ads.AdsSlider />
+        <!-- Error Message -->
+        @if (errorMessage != null)
+        {
+            <div class="alert alert-warning rounded-4 mb-3">
+                <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                @errorMessage
+            </div>
+        }
 
         <!-- Breadcrumbs -->
         <BreadcrumbNav Items="breadcrumbItems" OnItemClick="HandleBreadcrumbClick" />
@@ -208,7 +216,13 @@
             else if (Level == "main")
             {
                 breadcrumbItems.Add(new BreadcrumbItem { Label = Name, IsActive = true });
+                Console.WriteLine($"Explore: Loading categories for MainCategoryId={Id}");
                 categories = await Api.GetCategoriesByMainIdAsync(Id);
+                Console.WriteLine($"Explore: Got {categories?.Count ?? 0} categories");
+                if (categories != null && !categories.Any())
+                {
+                    errorMessage = $"لا توجد تصنيفات فرعية تحت \u201c{Name}\u201d حالياً";
+                }
             }
             else if (Level == "category")
             {
@@ -222,7 +236,13 @@
                     });
                     breadcrumbItems.Add(new BreadcrumbItem { Label = Name, IsActive = true });
                 }
+                Console.WriteLine($"Explore: Loading subcategories for CategoryId={Id}");
                 subCategories = await Api.GetSubCategoriesByCategoryIdAsync(Id);
+                Console.WriteLine($"Explore: Got {subCategories?.Count ?? 0} subcategories");
+                if (subCategories != null && !subCategories.Any())
+                {
+                    errorMessage = $"لا توجد أنواع فرعية تحت \u201c{Name}\u201d حالياً";
+                }
             }
             else if (Level == "subcategory")
             {
@@ -254,7 +274,7 @@
         catch (Exception ex)
         {
             Console.WriteLine($"Explore.FetchDataAsync ERROR: {ex.Message}");
-            errorMessage = $"حدث خطأ أثناء تحميل البيانات: {ex.Message}";
+            errorMessage = $"حدث خطأ أثناء تحميل البيانات. يرجى المحاولة مرة أخرى.";
         }
         finally
         {
@@ -264,10 +284,9 @@
 
     private void HandleBreadcrumbClick(BreadcrumbItem item)
     {
-        if (item.Data != null)
+        if (!string.IsNullOrEmpty(item.Url))
         {
-            dynamic data = item.Data;
-            Navigation.NavigateTo($"/explore/{data.Level}/{data.Id}/{Uri.EscapeDataString(data.Name)}");
+            Navigation.NavigateTo(item.Url);
         }
     }
 
