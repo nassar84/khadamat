@@ -109,7 +109,7 @@ try
 
             // In production, you might want to run migrations manually via CI/CD, 
             // but for this hosting environment, auto-apply is safer for updates.
-            context.Database.Migrate();
+            await context.Database.MigrateAsync();
             await KhadamatDbContextSeed.SeedAsync(context, userManager, roleManager);
         }
         catch (Exception ex)

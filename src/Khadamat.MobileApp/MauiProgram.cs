@@ -73,6 +73,7 @@ public static class MauiProgram
         
         // Save base web app URL config dynamically to Preferences for easy access in parameterless pages
         Preferences.Default.Set("WebAppBaseUrl", webAppBaseUrl.TrimEnd('/') + "/");
+        Preferences.Default.Set("ApiBaseUrl", apiBaseUrl.TrimEnd('/') + "/");
         
         // Print it to help with debugging
         Console.WriteLine($"ANTIGRAVITY_LOG: Using API Base URL: {apiBaseUrl}");

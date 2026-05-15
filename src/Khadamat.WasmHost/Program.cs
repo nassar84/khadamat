@@ -35,7 +35,24 @@ builder.Services.AddScoped<Khadamat.BlazorUI.Services.Auth.AuthenticationHandler
 
 builder.Services.AddHttpClient("KhadamatAPI", client => 
 {
-    var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "http://localhost:5144/";
+    // Try to get api_url from query string (passed by mobile wrapper)
+    var uri = new Uri(builder.HostEnvironment.BaseAddress);
+    var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+    
+    string? apiBaseUrl = null;
+    if (query.TryGetValue("api_url", out var qUrl))
+    {
+        apiBaseUrl = qUrl.ToString();
+    }
+    
+    // Fallback to config or current host address (Essential for production hosted model)
+    apiBaseUrl ??= builder.Configuration["ApiSettings:BaseUrl"];
+    
+    if (string.IsNullOrEmpty(apiBaseUrl) || apiBaseUrl.Contains("localhost"))
+    {
+        apiBaseUrl = builder.HostEnvironment.BaseAddress;
+    }
+    
     client.BaseAddress = new Uri(apiBaseUrl);
 })
 .AddHttpMessageHandler<Khadamat.BlazorUI.Services.Auth.AuthenticationHandler>()

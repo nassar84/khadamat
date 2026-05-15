@@ -121,13 +121,8 @@ public partial class WebContainerPage : ContentPage
     {
         // 1. Resolve base url from preferences or configuration
         string baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "https://jobsek.eis-dev.com");
+        string apiBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("ApiBaseUrl", "https://jobsek.eis-dev.com");
         
-        // Sync with API settings if available in ShellViewModel
-        if (Shell.Current?.BindingContext is ViewModels.ShellViewModel vm)
-        {
-             // If we have a local dev URL or explicit override, use it
-        }
-
         string routePart = !string.IsNullOrEmpty(DeepLinkRoute) ? DeepLinkRoute : (_route ?? "").TrimStart('/');
 
         string finalUrl = baseUrl.TrimEnd('/') + "/";
@@ -140,6 +135,9 @@ public partial class WebContainerPage : ContentPage
 
         // Append nativeapp=1 once to inform the Blazor side to hide website bars
         finalUrl += finalUrl.Contains("?") ? "&nativeapp=1" : "?nativeapp=1";
+        
+        // Append API URL to ensure synchronization
+        finalUrl += "&api_url=" + Uri.EscapeDataString(apiBaseUrl.TrimEnd('/') + "/");
 
         LoadUrl(finalUrl, force);
     }

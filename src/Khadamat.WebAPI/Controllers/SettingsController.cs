@@ -55,9 +55,18 @@ public class SettingsController : ControllerBase
             {
                 var json = System.IO.File.ReadAllText(appsettingsPath);
                 var jsonObj = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.Nodes.JsonObject>(json);
-                if (jsonObj != null && jsonObj.ContainsKey("ApiBaseUrl"))
+                if (jsonObj != null)
                 {
-                    jsonObj["ApiBaseUrl"] = newApiUrl;
+                    if (jsonObj.TryGetPropertyValue("ApiSettings", out var apiSettingsNode) && apiSettingsNode is System.Text.Json.Nodes.JsonObject apiSettings)
+                    {
+                        apiSettings["BaseUrl"] = newApiUrl;
+                        apiSettings["WebAppBaseUrl"] = newApiUrl;
+                    }
+                    else 
+                    {
+                        // Fallback if structure is different
+                        jsonObj["ApiBaseUrl"] = newApiUrl;
+                    }
                     System.IO.File.WriteAllText(appsettingsPath, jsonObj.ToJsonString(new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
                 }
             }

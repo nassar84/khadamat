@@ -11,12 +11,7 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<int>(
-                name: "DisplayOrder",
-                table: "SubCategories",
-                type: "int",
-                nullable: false,
-                defaultValue: 0);
+            migrationBuilder.Sql("IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[SubCategories]') AND name = 'DisplayOrder') BEGIN ALTER TABLE [SubCategories] ADD [DisplayOrder] int NOT NULL DEFAULT 0; END");
 
             migrationBuilder.AddColumn<string>(
                 name: "AdminNotes",
@@ -77,21 +72,9 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                 type: "nvarchar(max)",
                 nullable: true);
 
+            migrationBuilder.Sql("IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[Categories]') AND name = 'DisplayOrder') BEGIN ALTER TABLE [Categories] ADD [DisplayOrder] int NOT NULL DEFAULT 0; END");
 
-
-            migrationBuilder.AddColumn<int>(
-                name: "DisplayOrder",
-                table: "Categories",
-                type: "int",
-                nullable: false,
-                defaultValue: 0);
-
-            migrationBuilder.AddColumn<int>(
-                name: "DisplayOrder",
-                table: "Services",
-                type: "int",
-                nullable: false,
-                defaultValue: 0);
+            migrationBuilder.Sql("IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'[Services]') AND name = 'DisplayOrder') BEGIN ALTER TABLE [Services] ADD [DisplayOrder] int NOT NULL DEFAULT 0; END");
         }
 
         /// <inheritdoc />
@@ -136,8 +119,6 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
             migrationBuilder.DropColumn(
                 name: "ProviderNotes",
                 table: "ServiceEditRequests");
-
-
 
             migrationBuilder.DropColumn(
                 name: "DisplayOrder",

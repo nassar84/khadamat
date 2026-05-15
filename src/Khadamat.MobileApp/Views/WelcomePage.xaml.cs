@@ -89,9 +89,9 @@ namespace Khadamat.MobileApp.Views
 
         private async Task CheckApiConnection()
         {
+            string apiBaseUrl = Preferences.Default.Get("ApiBaseUrl", _configuration["ApiSettings:BaseUrl"] ?? "https://jobsek.eis-dev.com");
             try
             {
-                var apiBaseUrl = _configuration["ApiSettings:BaseUrl"] ?? "https://jobsek.eis-dev.com";
                 Console.WriteLine($"ANTIGRAVITY_LOG: Testing connectivity to: {apiBaseUrl}");
                 
                 using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
@@ -113,7 +113,7 @@ namespace Khadamat.MobileApp.Views
                 Console.WriteLine($"ANTIGRAVITY_LOG: [ERROR] API UNREACHABLE: {ex.Message}");
                 // This is critical. Might be wrong URL or no internet.
                 await DisplayAlert("تنبيه الاتصال", 
-                    "لا يمكن الوصول إلى السيرفر حالياً. قد يؤثر هذا على عمل التطبيق.", 
+                    $"لا يمكن الوصول إلى السيرفر حالياً على العنوان:\n{apiBaseUrl}\n\nيرجى التأكد من اتصال الإنترنت أو إعدادات السيرفر.", 
                     "موافق");
             }
         }
@@ -123,17 +123,30 @@ namespace Khadamat.MobileApp.Views
 
         private async void OnDevSettingsTriggered(object sender, EventArgs e)
         {
-            string currentUrl = Preferences.Default.Get("WebAppBaseUrl", "http://10.0.2.2:5144");
-            string result = await DisplayPromptAsync("إعدادات المطور", 
-                "أدخل عنوان الـ IP الخاص بجهازك (مثلاً 192.168.1.5:5144):", 
-                "حفظ", "إلغاء", 
-                "http://", 200, Keyboard.Url, currentUrl);
+            string currentWebUrl = Preferences.Default.Get("WebAppBaseUrl", "http://10.0.2.2:5144");
+            string currentApiUrl = Preferences.Default.Get("ApiBaseUrl", "http://10.0.2.2:5144");
 
-            if (!string.IsNullOrWhiteSpace(result))
+            string webUrl = await DisplayPromptAsync("إعدادات المطور (Web)", 
+                "أدخل عنوان الـ Web App:", 
+                "التالي", "إلغاء", 
+                "http://", 200, Keyboard.Url, currentWebUrl);
+
+            if (string.IsNullOrWhiteSpace(webUrl)) return;
+
+            string apiUrl = await DisplayPromptAsync("إعدادات المطور (API)", 
+                "أدخل عنوان الـ API:", 
+                "حفظ", "إلغاء", 
+                "http://", 200, Keyboard.Url, currentApiUrl);
+
+            if (!string.IsNullOrWhiteSpace(apiUrl))
             {
-                if (!result.StartsWith("http")) result = "http://" + result;
-                Preferences.Default.Set("WebAppBaseUrl", result);
-                await DisplayAlert("نجاح", "تم حفظ الإعدادات. سيتم استخدام العنوان الجديد عند بدء التطبيق.", "تم");
+                if (!webUrl.StartsWith("http")) webUrl = "http://" + webUrl;
+                if (!apiUrl.StartsWith("http")) apiUrl = "http://" + apiUrl;
+
+                Preferences.Default.Set("WebAppBaseUrl", webUrl);
+                Preferences.Default.Set("ApiBaseUrl", apiUrl);
+
+                await DisplayAlert("نجاح", "تم حفظ الإعدادات. سيتم استخدام العناوين الجديدة عند إعادة تحميل الصفحة.", "تم");
             }
         }
 
