@@ -75,6 +75,10 @@
                     <i class="fas fa-clipboard-check"></i> 
                     <span class="nav-text">طلبات الخدمات</span>
                 </NavLink>
+                 <NavLink class="nav-link" href="/admin/service-edits" @onclick="CloseSidebar">
+                    <i class="fas fa-edit"></i> 
+                    <span class="nav-text">طلبات التعديل</span>
+                </NavLink>
                  <NavLink class="nav-link" href="/admin/categories" @onclick="CloseSidebar">
                     <i class="fas fa-th-large"></i> 
                     <span class="nav-text">التصنيفات</span>
@@ -91,6 +95,10 @@
                     <NavLink class="nav-link" href="/admin/ad-analytics" @onclick="CloseSidebar">
                         <i class="fas fa-chart-pie"></i> 
                         <span class="nav-text">إحصائيات الإعلانات</span>
+                    </NavLink>
+                    <NavLink class="nav-link" href="/admin/marketplace" @onclick="CloseSidebar">
+                        <i class="fas fa-store"></i> 
+                        <span class="nav-text">إدارة المتجر</span>
                     </NavLink>
                     <NavLink class="nav-link" href="/admin/adsmanagement" @onclick="CloseSidebar">
                         <i class="fas fa-rectangle-ad"></i> 
@@ -113,6 +121,10 @@
                      <NavLink class="nav-link" href="/admin/logs" @onclick="CloseSidebar">
                         <i class="fas fa-history"></i> 
                         <span class="nav-text">سجل النشاط</span>
+                    </NavLink>
+                     <NavLink class="nav-link" href="/admin/complaints" @onclick="CloseSidebar">
+                        <i class="fas fa-headset"></i> 
+                        <span class="nav-text">الشكاوى</span>
                     </NavLink>
                      <NavLink class="nav-link" href="/admin/subscriptions" @onclick="CloseSidebar">
                         <i class="fas fa-credit-card"></i> 
