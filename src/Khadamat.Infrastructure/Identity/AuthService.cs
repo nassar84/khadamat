@@ -9,10 +9,8 @@ using Khadamat.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-
 using Google.Apis.Auth;
 using System.Net.Http.Json;
 
@@ -111,14 +109,14 @@ public class AuthService : IAuthService
 
     public async Task<ApiResponse<AuthResponse>> RegisterAsync(RegisterRequest request)
     {
-        var existingUserByEmail = await _userManager.FindByEmailAsync(request.Email);
-        if (existingUserByEmail != null)
+        var existingUserByEmail = await _userManager.Users.AnyAsync(u => u.Email.ToLower() == request.Email.ToLower());
+        if (existingUserByEmail)
         {
             return ApiResponse<AuthResponse>.Fail("البريد الإلكتروني مسجل مسبقاً.");
         }
 
-        var existingUserByName = await _userManager.FindByNameAsync(request.UserName);
-        if (existingUserByName != null)
+        var existingUserByName = await _userManager.Users.AnyAsync(u => u.UserName.ToLower() == request.UserName.ToLower());
+        if (existingUserByName)
         {
             return ApiResponse<AuthResponse>.Fail("اسم المستخدم مسجل مسبقاً.");
         }
@@ -188,20 +186,10 @@ public class AuthService : IAuthService
 
     public async Task<ApiResponse<AuthResponse>> LoginAsync(LoginRequest request)
     {
-        // Try finding by username (default behavior is usually case-insensitive if configured in Identity options, but let's be explicit)
-        var user = await _userManager.FindByNameAsync(request.UserName);
-        
-        // If not found by username, try finding by email (common alternative login)
-        if (user == null && request.UserName.Contains("@"))
-        {
-            user = await _userManager.FindByEmailAsync(request.UserName);
-        }
-
-        // Final fallback: manually search to ensure case-insensitivity if Identity options are strict
-        if (user == null)
-        {
-            user = await _userManager.Users.FirstOrDefaultAsync(u => u.UserName.ToLower() == request.UserName.ToLower());
-        }
+        // Try finding by username OR email (case-insensitive)
+        var user = await _userManager.Users.FirstOrDefaultAsync(u => 
+            u.UserName.ToLower() == request.UserName.ToLower() || 
+            u.Email.ToLower() == request.UserName.ToLower());
 
         if (user == null)
             return ApiResponse<AuthResponse>.Fail("بيانات الاعتماد غير صالحة.");
@@ -424,9 +412,17 @@ public class AuthService : IAuthService
 
             if (user == null)
             {
+                var baseUsername = email.Split('@')[0].Replace(".", "_");
+                var username = baseUsername;
+                var counter = 1;
+                while (await _userManager.FindByNameAsync(username) != null)
+                {
+                    username = $"{baseUsername}{counter++}";
+                }
+
                 user = new ApplicationUser
                 {
-                    UserName = email, // Or generate unique username base on name
+                    UserName = username,
                     Email = email,
                     FullName = name,
                     IsActive = true,
@@ -466,5 +462,44 @@ public class AuthService : IAuthService
             return ApiResponse<AuthResponse>.Fail("الحساب معطل حالياً.");
 
         return await GenerateAuthResponse(user, "تم تسجيل الدخول بنجاح");
+    }
+
+    public async Task<ApiResponse<bool>> ForgotPasswordAsync(ForgotPasswordRequest request)
+    {
+        var user = await _userManager.FindByEmailAsync(request.Email);
+        if (user == null)
+        {
+            // Security: Don't reveal that the user doesn't exist
+            return ApiResponse<bool>.Succeed(true, "إذا كان البريد الإلكتروني مسجلاً، فقد تم إرسال رابط إعادة تعيين كلمة المرور.");
+        }
+
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+        
+        // Generate reset link
+        var webAppBaseUrl = _configuration["ApiSettings:WebAppBaseUrl"] ?? "http://localhost:5028/";
+        var resetLink = $"{webAppBaseUrl}reset-password?email={Uri.EscapeDataString(user.Email!)}&token={Uri.EscapeDataString(token)}";
+
+        // TODO: Send Email. For now, we will log it and return it in the response for development/testing
+        Console.WriteLine($"Reset Password Link for {user.Email}: {resetLink}");
+
+        return ApiResponse<bool>.Succeed(true, $"تم إرسال رابط إعادة التعيين بنجاح. (للتطوير: {resetLink})");
+    }
+
+    public async Task<ApiResponse<bool>> ResetPasswordAsync(ResetPasswordRequest request)
+    {
+        var user = await _userManager.FindByEmailAsync(request.Email);
+        if (user == null)
+        {
+            return ApiResponse<bool>.Fail("المستخدم غير موجود.");
+        }
+
+        var result = await _userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
+        if (result.Succeeded)
+        {
+            return ApiResponse<bool>.Succeed(true, "تم إعادة تعيين كلمة المرور بنجاح.");
+        }
+
+        var errors = result.Errors.Select(e => e.Description).ToList();
+        return ApiResponse<bool>.Fail("فشل إعادة تعيين كلمة المرور.", errors);
     }
 }

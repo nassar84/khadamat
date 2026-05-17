@@ -110,10 +110,10 @@
                                     <i class="fa-solid fa-briefcase text-primary"></i>
                                     <span>إدارة الخدمات</span>
                                 </div>
-                                <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.05);" @onclick='() => NavigateTo("/admin/ads")'>
-                                    <i class="fa-solid fa-rectangle-ad text-primary"></i>
-                                    <span>إدارة الإعلانات</span>
-                                </div>
+                                <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.05);" @onclick='() => NavigateTo("/admin/adsmanagement")'>
+    <i class="fa-solid fa-rectangle-ad text-primary"></i>
+    <span>إدارة الإعلانات</span>
+</div>
                                 <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.05);" @onclick='() => NavigateTo("/admin/categories")'>
                                     <i class="fa-solid fa-th-large text-primary"></i>
                                     <span>التصنيفات</span>
@@ -149,7 +149,7 @@
                                         <i class="fa-solid fa-gauge-high"></i>
                                         <span>لوحة المزود</span>
                                     </div>
-                                    <div class="menu-item @GetActiveClass("provider/myservices")" @onclick='() => NavigateTo("/provider/myservices")'>
+                                    <div class="menu-item @GetActiveClass("provider/my-services")" @onclick='() => NavigateTo("/provider/my-services")'>
                                         <i class="fa-solid fa-briefcase"></i>
                                         <span>خدماتي</span>
                                     </div>
@@ -165,7 +165,7 @@
                                         <i class="fa-solid fa-chart-pie text-success"></i>
                                         <span class="text-success fw-bold">إحصائيات الإعلانات</span>
                                     </div>
-                                    <div class="menu-item @GetActiveClass("provider/createpost")" @onclick='() => NavigateTo("/provider/createpost")'>
+                                    <div class="menu-item @GetActiveClass("provider/create-service")" @onclick='() => NavigateTo("/provider/create-service")'>
                                         <i class="fa-solid fa-pen-to-square"></i>
                                         <span>منشور جديد</span>
                                     </div>
@@ -545,7 +545,6 @@
 
     private async Task HandleLogout()
     {
-        CloseSidebar();
         await AuthService.Logout();
         Navigation.NavigateTo("/login", forceLoad: false);
     }

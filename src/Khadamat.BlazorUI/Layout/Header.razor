@@ -800,6 +800,13 @@
     .fluffy-btn.active .fluffy-glass {
         box-shadow: 0 0 0 2.5px #f472b6, 0 6px 18px rgba(244,114,182,0.45);
     }
+    .menu-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 1001;
+        background: transparent;
+        cursor: default;
+    }
 </style>
 
 @code {
@@ -903,7 +910,6 @@
 
     private async Task HandleLogout()
     {
-        CloseMenus();
         await AuthService.Logout();
         Navigation.NavigateTo("/login");
     }

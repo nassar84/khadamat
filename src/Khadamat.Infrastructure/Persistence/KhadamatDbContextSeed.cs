@@ -439,15 +439,64 @@ public static class KhadamatDbContextSeed
     {
         if (await context.Governorates.AnyAsync()) return;
 
-        var cairo = new Governorate { Governorate_Name_AR = "القاهرة", Governorate_Name_EN = "Cairo", DisplayOrder = 1, Approved = true };
-        context.Governorates.Add(cairo);
-        await context.SaveChangesAsync();
+        var locationData = new List<(string NameAr, string NameEn, List<(string NameAr, string NameEn)> Cities)>
+        {
+            ("القاهرة", "Cairo", new List<(string, string)> { ("مدينة نصر", "Nasr City"), ("المعادي", "Maadi"), ("القاهرة الجديدة", "New Cairo"), ("الشروق", "Sherouk"), ("مدينتي", "Madinaty"), ("وسط البلد", "Downtown"), ("مصر الجديدة", "Heliopolis"), ("حلوان", "Helwan") }),
+            ("الجيزة", "Giza", new List<(string, string)> { ("السادس من أكتوبر", "6th of October"), ("الشيخ زايد", "Sheikh Zayed"), ("الهرم", "Haram"), ("فيصل", "Faisal"), ("الدقي", "Dokki"), ("المهندسين", "Mohandessin"), ("العجوزة", "Agouza") }),
+            ("الإسكندرية", "Alexandria", new List<(string, string)> { ("سموحة", "Smouha"), ("سيدي جابر", "Sidi Gaber"), ("المنتزة", "Montaza"), ("العجمي", "Agami"), ("برج العرب", "Borg El Arab") }),
+            ("الدقهلية", "Dakahlia", new List<(string, string)> { ("المنصورة", "Mansoura"), ("ميت غمر", "Mit Ghamr"), ("السنبلاوين", "Senbellawein") }),
+            ("البحر الأحمر", "Red Sea", new List<(string, string)> { ("الغردقة", "Hurghada"), ("سفاجا", "Safaga"), ("مرسى علم", "Marsa Alam"), ("الجونة", "Gouna") }),
+            ("البحيرة", "Beheira", new List<(string, string)> { ("دمنهور", "Damanhur"), ("كفر الدوار", "Kafr El Dawwar") }),
+            ("الفيوم", "Fayoum", new List<(string, string)> { ("الفيوم", "Fayoum City"), ("طامية", "Tamia") }),
+            ("الغربية", "Gharbia", new List<(string, string)> { ("طنطا", "Tanta"), ("المحلة الكبرى", "El Mahalla El Kubra") }),
+            ("الإسماعيلية", "Ismailia", new List<(string, string)> { ("الإسماعيلية", "Ismailia City"), ("فايد", "Fayed") }),
+            ("المنوفية", "Monufia", new List<(string, string)> { ("شبين الكوم", "Shibin El Kom"), ("قويسنا", "Quwaysina"), ("السادات", "Sadat City") }),
+            ("المنيا", "Minya", new List<(string, string)> { ("المنيا", "Minya City"), ("ملوي", "Mallawi") }),
+            ("القليوبية", "Qalyubia", new List<(string, string)> { ("بنها", "Banha"), ("شبرا الخيمة", "Shubra El Kheima"), ("العبور", "Obour City") }),
+            ("الوادي الجديد", "New Valley", new List<(string, string)> { ("الخارجة", "Kharga"), ("الداخلة", "Dakhla") }),
+            ("السويس", "Suez", new List<(string, string)> { ("السويس", "Suez City") }),
+            ("اسوان", "Aswan", new List<(string, string)> { ("اسوان", "Aswan City"), ("كوم امبو", "Kom Ombo") }),
+            ("اسيوط", "Assiut", new List<(string, string)> { ("اسيوط", "Assiut City"), ("ديروط", "Dayrut") }),
+            ("بني سويف", "Beni Suef", new List<(string, string)> { ("بني سويف", "Beni Suef City") }),
+            ("بورسعيد", "Port Said", new List<(string, string)> { ("بورسعيد", "Port Said City"), ("بورفؤاد", "Port Fuad") }),
+            ("دمياط", "Damietta", new List<(string, string)> { ("دمياط", "Damietta City"), ("رأس البر", "Ras El Bar") }),
+            ("الشرقية", "Sharkia", new List<(string, string)> { ("الزقازيق", "Zagazig"), ("العاشر من رمضان", "10th of Ramadan") }),
+            ("جنوب سيناء", "South Sinai", new List<(string, string)> { ("شرم الشيخ", "Sharm El Sheikh"), ("دهب", "Dahab"), ("طور سيناء", "Tur Sinai") }),
+            ("كفر الشيخ", "Kafr El Sheikh", new List<(string, string)> { ("كفر الشيخ", "Kafr El Sheikh City"), ("دسوق", "Desouk") }),
+            ("مطروح", "Matrouh", new List<(string, string)> { ("مرسى مطروح", "Marsa Matrouh"), ("الساحل الشمالي", "North Coast"), ("سيوة", "Siwa") }),
+            ("قنا", "Qena", new List<(string, string)> { ("قنا", "Qena City"), ("نجع حمادي", "Nag Hammadi") }),
+            ("شمال سيناء", "North Sinai", new List<(string, string)> { ("العريش", "Arish") }),
+            ("سوهاج", "Sohag", new List<(string, string)> { ("سوهاج", "Sohag City"), ("طما", "Tama") }),
+            ("الاقصر", "Luxor", new List<(string, string)> { ("الاقصر", "Luxor City") })
+        };
 
-        context.Cities.AddRange(
-            new City { GovernorateId = cairo.Id, City_Name_AR = "مدينة نصر", City_Name_EN = "Nasr City", Approved = true, DisplayOrder = 1 },
-            new City { GovernorateId = cairo.Id, City_Name_AR = "المعادي", City_Name_EN = "Maadi", Approved = true, DisplayOrder = 2 }
-        );
-        await context.SaveChangesAsync();
+        int govOrder = 1;
+        foreach (var govData in locationData)
+        {
+            var gov = new Governorate 
+            { 
+                Governorate_Name_AR = govData.NameAr, 
+                Governorate_Name_EN = govData.NameEn, 
+                DisplayOrder = govOrder++, 
+                Approved = true 
+            };
+            context.Governorates.Add(gov);
+            await context.SaveChangesAsync();
+
+            int cityOrder = 1;
+            foreach (var cityData in govData.Cities)
+            {
+                context.Cities.Add(new City 
+                { 
+                    GovernorateId = gov.Id, 
+                    City_Name_AR = cityData.NameAr, 
+                    City_Name_EN = cityData.NameEn, 
+                    Approved = true, 
+                    DisplayOrder = cityOrder++ 
+                });
+            }
+            await context.SaveChangesAsync();
+        }
     }
 
     private static async Task SeedAdsAsync(KhadamatDbContext context)

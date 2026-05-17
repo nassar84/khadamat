@@ -1,10 +1,11 @@
 @inherits LayoutComponentBase
 @implements IDisposable
 @inject NavigationManager Navigation
+@inject Khadamat.BlazorUI.Services.Auth.IAuthService AuthService
 @inject Khadamat.BlazorUI.State.AppState State
 @inject IJSRuntime JS
 
-<div class="provider-layout" dir="rtl">
+<div class="provider-layout @(IsCollapsed ? "collapsed" : "")" dir="rtl">
     @if (State.IsNativeApp)
     {
         <main class="mobile-content">
@@ -22,13 +23,335 @@
     }
     else
     {
+        <div class="sidebar-overlay @(SidebarOpen ? "visible" : "")" @onclick="ToggleSidebar"></div>
+
+        <aside class="admin-sidebar glass-card @(SidebarOpen ? "open" : "") @(IsCollapsed ? "collapsed" : "")">
+            <div class="sidebar-header d-flex justify-content-between align-items-center">
+                <div class="logo-box d-flex align-items-center gap-2 overflow-hidden">
+                    @if (!string.IsNullOrEmpty(State.AppLogo))
+                    {
+                        <img src="@State.AppLogo" alt="Logo" style="height: 25px; width: auto; min-width: 25px;" />
+                    }
+                    <h3 class="brand-name mb-0 text-nowrap">@State.AppName <span class="badge">Pro</span></h3>
+                </div>
+                
+                <!-- Desktop Collapse Button -->
+                <button class="btn btn-sm btn-light d-none d-lg-flex collapse-toggle" @onclick="ToggleCollapse">
+                    <i class="fas @(IsCollapsed ? "fa-chevron-left" : "fa-chevron-right")"></i>
+                </button>
+
+                <!-- Mobile Close Button -->
+                <button class="btn btn-link text-muted d-lg-none" @onclick="ToggleSidebar">
+                    <i class="fas fa-times fs-5"></i>
+                </button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <NavLink class="nav-link" href="/provider/dashboard" Match="NavLinkMatch.All" @onclick="CloseSidebar">
+                    <i class="fas fa-chart-line"></i> 
+                    <span class="nav-text">لوحة المزود</span>
+                </NavLink>
+
+                <!-- My Work Group -->
+                <div class="nav-group-label text-muted x-small fw-bold mt-3 mb-2 px-3">عملي</div>
+                
+                <NavLink class="nav-link" href="/provider/my-services" @onclick="CloseSidebar">
+                    <i class="fas fa-briefcase"></i> 
+                    <span class="nav-text">خدماتي</span>
+                </NavLink>
+                 <NavLink class="nav-link" href="/provider/incoming-requests" @onclick="CloseSidebar">
+                    <i class="fas fa-clipboard-list"></i> 
+                    <span class="nav-text">الطلبات الواردة</span>
+                </NavLink>
+                 <NavLink class="nav-link" href="/provider/create-service" @onclick="CloseSidebar">
+                    <i class="fas fa-plus-circle"></i> 
+                    <span class="nav-text">إضافة خدمة</span>
+                </NavLink>
+
+                <!-- Engagement Group -->
+                <div class="nav-group-label text-muted x-small fw-bold mt-3 mb-2 px-3">التواصل</div>
+                
+                 <NavLink class="nav-link" href="/user/messages" @onclick="CloseSidebar">
+                    <i class="fas fa-envelope"></i> 
+                    <span class="nav-text">الرسائل</span>
+                </NavLink>
+                 <NavLink class="nav-link" href="/provider/my-posts" @onclick="CloseSidebar">
+                    <i class="fas fa-pen-nib"></i> 
+                    <span class="nav-text">منشوراتي</span>
+                </NavLink>
+
+                <!-- Analytics & Growth -->
+                <div class="nav-group-label text-muted x-small fw-bold mt-3 mb-2 px-3">النمو والإحصائيات</div>
+                
+                <NavLink class="nav-link" href="/provider/statistics" @onclick="CloseSidebar">
+                    <i class="fas fa-chart-bar"></i> 
+                    <span class="nav-text">الإحصائيات</span>
+                </NavLink>
+                <NavLink class="nav-link" href="/provider/ad-analytics" @onclick="CloseSidebar">
+                    <i class="fas fa-rectangle-ad"></i> 
+                    <span class="nav-text">إعلاناتي</span>
+                </NavLink>
+                <NavLink class="nav-link" href="/provider/referrals" @onclick="CloseSidebar">
+                    <i class="fas fa-users-viewfinder"></i> 
+                    <span class="nav-text">نظام الإحالة</span>
+                </NavLink>
+
+                <!-- Account Group -->
+                <div class="nav-group-label text-muted x-small fw-bold mt-3 mb-2 px-3">الحساب</div>
+                
+                 <NavLink class="nav-link" href="/provider/subscription" @onclick="CloseSidebar">
+                    <i class="fas fa-gem"></i> 
+                    <span class="nav-text">الاشتراك</span>
+                </NavLink>
+                 <NavLink class="nav-link" href="/provider/settings" @onclick="CloseSidebar">
+                    <i class="fas fa-user-gear"></i> 
+                    <span class="nav-text">إعدادات الحساب</span>
+                </NavLink>
+                
+                 <div class="mt-auto"></div>
+                 <NavLink class="nav-link text-primary" href="/" @onclick="CloseSidebar">
+                    <i class="fas fa-home"></i> 
+                    <span class="nav-text">العودة للموقع</span>
+                </NavLink>
+                 <button class="nav-link btn-logout" @onclick="HandleLogout">
+                    <i class="fas fa-sign-out-alt"></i> 
+                    <span class="nav-text">تسجيل الخروج</span>
+                </button>
+            </nav>
+        </aside>
+
         <main class="provider-content">
-            @Body
+            <div class="admin-header glass-card">
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Mobile Toggle Button -->
+                    <button class="btn btn-link text-dark p-0 d-lg-none" @onclick="ToggleSidebar">
+                        <i class="fas fa-bars fs-4"></i>
+                    </button>
+                    <h4 class="mb-0">لوحة المزود</h4>
+                </div>
+
+                <div class="admin-user-info">
+                    <AuthorizeView>
+                        <Authorized>
+                            <span class="d-none d-md-inline">مرحباً، @context.User.Identity?.Name</span>
+                            <i class="fas fa-user-circle fs-4 d-md-none text-primary"></i>
+                        </Authorized>
+                    </AuthorizeView>
+                </div>
+            </div>
+
+            <div class="content-body">
+                @Body
+            </div>
         </main>
     }
 </div>
 
+<style>
+    .provider-layout {
+        display: flex;
+        min-height: 100vh;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .admin-sidebar {
+        width: 280px;
+        margin: 20px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        border-radius: 20px;
+        height: calc(100vh - 40px);
+        position: sticky;
+        top: 20px;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(20px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    }
+
+    .admin-sidebar.collapsed {
+        width: 85px;
+        padding: 20px 15px;
+    }
+
+    .admin-sidebar.collapsed .brand-name,
+    .admin-sidebar.collapsed .nav-text,
+    .admin-sidebar.collapsed .nav-group-label,
+    .admin-sidebar.collapsed .badge {
+        display: none !important;
+    }
+
+    .sidebar-header {
+        margin-bottom: 25px;
+        min-height: 40px;
+    }
+
+    .collapse-toggle {
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        padding: 0;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        color: #64748b;
+    }
+
+    .sidebar-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        flex: 1;
+        padding-right: 2px;
+    }
+
+    /* Custom Scrollbar for Sidebar */
+    .sidebar-nav::-webkit-scrollbar {
+        width: 4px;
+    }
+    .sidebar-nav::-webkit-scrollbar-thumb {
+        background: rgba(0,0,0,0.05);
+        border-radius: 10px;
+    }
+
+    .nav-link {
+        color: #475569;
+        padding: 12px 14px;
+        border-radius: 14px;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .nav-link i {
+        font-size: 1.15rem;
+        width: 24px;
+        text-align: center;
+        flex-shrink: 0;
+    }
+
+    .nav-link:hover, .nav-link.active {
+        background: var(--theme-secondary);
+        color: white;
+        box-shadow: 0 4px 15px rgba(var(--theme-secondary-rgb), 0.3);
+        transform: translateX(-5px);
+    }
+
+    .collapsed .nav-link {
+        justify-content: center;
+        padding: 12px 0;
+    }
+    
+    .collapsed .nav-link:hover, .collapsed .nav-link.active {
+        transform: scale(1.1);
+    }
+
+    .btn-logout {
+        background: none;
+        border: none;
+        width: 100%;
+        cursor: pointer;
+        margin-top: 15px;
+        color: #ef4444;
+    }
+    
+    .btn-logout:hover {
+        background: #fef2f2;
+        color: #ef4444;
+    }
+
+    .provider-content {
+        flex: 1;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        width: calc(100% - 320px); 
+        transition: all 0.4s ease;
+    }
+
+    .collapsed + .provider-content {
+        width: calc(100% - 125px);
+    }
+
+    .admin-header {
+        padding: 15px 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+    }
+
+    .content-body {
+        flex: 1;
+    }
+    
+    .badge {
+        font-size: 0.65rem;
+        background: #10b981;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 8px;
+        margin-right: 5px;
+    }
+
+    .sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.3);
+        backdrop-filter: blur(4px);
+        z-index: 999;
+        display: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .sidebar-overlay.visible {
+        display: block;
+        opacity: 1;
+    }
+
+    /* Mobile Responsive Styles */
+    @@media (max-width: 991px) {
+        .admin-sidebar {
+            position: fixed;
+            top: 0;
+            right: -280px;
+            left: auto;
+            height: 100vh;
+            margin: 0;
+            width: 280px;
+            border-radius: 20px 0 0 20px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+        }
+
+        .admin-sidebar.open {
+            right: 0;
+        }
+
+        .provider-content {
+            width: 100% !important;
+            padding: 15px;
+        }
+    }
+</style>
+
 @code {
+    private bool SidebarOpen { get; set; } = false;
+    private bool IsCollapsed { get; set; } = false;
     private bool _disposed = false;
 
     protected override void OnInitialized()
@@ -44,6 +367,11 @@
         try { await InvokeAsync(StateHasChanged); }
         catch (ObjectDisposedException) { }
         catch (InvalidOperationException) { }
+    }
+
+    private void ToggleCollapse()
+    {
+        IsCollapsed = !IsCollapsed;
     }
 
     private void CheckMobileMode()
@@ -111,5 +439,21 @@
         _disposed = true;
         Navigation.LocationChanged -= HandleLocationChanged;
         State.OnChange -= OnStateChange;
+    }
+
+    private void ToggleSidebar()
+    {
+        SidebarOpen = !SidebarOpen;
+    }
+
+    private void CloseSidebar()
+    {
+        SidebarOpen = false;
+    }
+
+    private async Task HandleLogout()
+    {
+        await AuthService.Logout();
+        Navigation.NavigateTo("/login");
     }
 }

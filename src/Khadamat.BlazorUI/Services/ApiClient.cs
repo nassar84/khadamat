@@ -55,6 +55,7 @@ public class ApiClient
     private static List<MainCategoryDto>? _mainCategoriesCache;
     private static List<GovernorateDto>? _governoratesCache;
     private static List<MarketplaceCategoryDto>? _marketCategoriesCache;
+    private static readonly System.Collections.Generic.Dictionary<int, List<CityDto>> _citiesCache = new();
 
     // Settings
     public async Task<ApiResponse<AppSettingsDto>> GetSettingsAsync()
@@ -295,10 +296,26 @@ public class ApiClient
 
     public async Task<List<CityDto>> GetCitiesAsync(int governorateId)
     {
+        lock (_citiesCache)
+        {
+            if (_citiesCache.TryGetValue(governorateId, out var cachedCities))
+            {
+                return cachedCities;
+            }
+        }
+
         try
         {
             var response = await _http.GetFromJsonAsync<ApiResponse<List<CityDto>>>($"v1/locations/governorates/{governorateId}/cities");
-            return response?.Data ?? new List<CityDto>();
+            var cities = response?.Data ?? new List<CityDto>();
+            if (cities.Any())
+            {
+                lock (_citiesCache)
+                {
+                    _citiesCache[governorateId] = cities;
+                }
+            }
+            return cities;
         }
         catch (Exception ex)
         {
@@ -341,18 +358,39 @@ public class ApiClient
     public async Task<bool> CreateCityAsync(CityDto dto)
     {
         var response = await _http.PostAsJsonAsync("v1/locations/cities", dto);
+        if (response.IsSuccessStatusCode)
+        {
+            lock (_citiesCache)
+            {
+                _citiesCache.Remove(dto.GovernorateId);
+            }
+        }
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> UpdateCityAsync(int id, CityDto dto)
     {
         var response = await _http.PutAsJsonAsync($"v1/locations/cities/{id}", dto);
+        if (response.IsSuccessStatusCode)
+        {
+            lock (_citiesCache)
+            {
+                _citiesCache.Clear();
+            }
+        }
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> DeleteCityAsync(int id)
     {
         var response = await _http.DeleteAsync($"v1/locations/cities/{id}");
+        if (response.IsSuccessStatusCode)
+        {
+            lock (_citiesCache)
+            {
+                _citiesCache.Clear();
+            }
+        }
         return response.IsSuccessStatusCode;
     }
 
@@ -963,7 +1001,7 @@ public class ApiClient
     {
         try
         {
-            return await _http.GetFromJsonAsync<MarketplaceItemDto>($"Marketplace/{id}");
+            return await _http.GetFromJsonAsync<MarketplaceItemDto>($"v1/Marketplace/{id}");
         }
         catch { return null; }
     }
@@ -972,7 +1010,7 @@ public class ApiClient
     {
         try 
         {
-            var response = await _http.PostAsJsonAsync("Marketplace", request);
+            var response = await _http.PostAsJsonAsync("v1/Marketplace", request);
             if (response.IsSuccessStatusCode)
             {
                 var item = await response.Content.ReadFromJsonAsync<MarketplaceItemDto>();
@@ -992,7 +1030,7 @@ public class ApiClient
 
     public async Task<bool> UpdateMarketplaceItemAsync(int id, CreateMarketplaceItemRequest request)
     {
-        var response = await _http.PutAsJsonAsync($"Marketplace/{id}", request);
+        var response = await _http.PutAsJsonAsync($"v1/Marketplace/{id}", request);
         return response.IsSuccessStatusCode;
     }
 

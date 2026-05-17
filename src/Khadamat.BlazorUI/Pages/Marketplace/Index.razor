@@ -163,11 +163,17 @@
         }
         else if (items == null || !items.Any())
         {
-            <div class="no-results-card text-center py-5">
-                <i class="fa-solid fa-box-open fa-3x mb-3 text-muted opacity-25"></i>
-                <h4 class="text-muted">لا توجد منتجات معروضة حالياً</h4>
-                <p class="text-muted small">كن أول من يعرض سلعة في هذا التصنيف!</p>
-                <a href="/marketplace/create" class="btn btn-outline-primary rounded-pill mt-2">عرض سلعة للبيع</a>
+            <div class="glass-card text-center p-5 mx-auto mt-4" style="max-width: 600px;">
+                <div class="mb-4">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-light rounded-circle" style="width: 100px; height: 100px;">
+                        <i class="fa-solid fa-store fa-3x text-primary opacity-50"></i>
+                    </div>
+                </div>
+                <h4 class="fw-bold mb-2">لا توجد منتجات معروضة حالياً</h4>
+                <p class="text-muted mb-4">كن أول من يعرض سلعة للبيع في هذا التصنيف وابدأ في كسب المال!</p>
+                <a href="/marketplace/create" class="btn btn-primary rounded-pill px-5 py-2 shadow-sm">
+                    <i class="fa-solid fa-plus me-2"></i> عرض سلعة للبيع
+                </a>
             </div>
         }
         else

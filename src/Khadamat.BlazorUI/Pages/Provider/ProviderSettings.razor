@@ -4,7 +4,7 @@
 @using Khadamat.BlazorUI.State
 @using Khadamat.Application.DTOs
 @using Microsoft.AspNetCore.Authorization
-@attribute [Authorize(Roles = "Provider")]
+@attribute [Authorize]
 @inject IAuthService AuthService
 @inject ApiClient Api
 @inject NavigationManager Navigation

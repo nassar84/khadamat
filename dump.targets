@@ -1,0 +1,6 @@
+<Project>
+  <Target Name="DumpRazor" AfterTargets="PrepareForBuild">
+    <Message Importance="High" Text="RazorComponent: @(RazorComponent)" />
+    <Message Importance="High" Text="Content: @(Content)" />
+  </Target>
+</Project>

@@ -13,4 +13,6 @@ public interface IAuthService
     Task<Khadamat.Application.Common.Models.ApiResponse<bool>> ChangePassword(ChangeMyPasswordRequest request);
     Task<bool> LoginWithToken(string token, string refreshToken);
     Task InitializeAsync();
+    Task<ApiResponse<bool>> ForgotPassword(ForgotPasswordRequest request);
+    Task<ApiResponse<bool>> ResetPassword(ResetPasswordRequest request);
 }

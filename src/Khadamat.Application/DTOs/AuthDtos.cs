@@ -9,7 +9,7 @@ public class RegisterRequest
     public string FullName { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "اسم المستخدم مطلوب")]
-    [RegularExpression(@"^[a-zA-Z0-9_]*$", ErrorMessage = "اسم المستخدم يجب أن يحتوي على أحرف وأرقام وجرار سفلي فقط")]
+    [RegularExpression(@"^[a-zA-Z0-9_]{3,20}$", ErrorMessage = "اسم المستخدم يجب أن يتكون من 3 إلى 20 حرف (أحرف، أرقام، أو _) ولا يسمح بعلامة @")]
     public string UserName { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "البريد الإلكتروني مطلوب")]
@@ -152,4 +152,28 @@ public class ExternalTokenLoginRequest
     public string Provider { get; set; } = string.Empty;
     [Required]
     public string Token { get; set; } = string.Empty;
+}
+
+public class ForgotPasswordRequest
+{
+    [Required(ErrorMessage = "البريد الإلكتروني مطلوب")]
+    [EmailAddress(ErrorMessage = "صيغة البريد الإلكتروني غير صحيحة")]
+    public string Email { get; set; } = string.Empty;
+}
+
+public class ResetPasswordRequest
+{
+    [Required(ErrorMessage = "البريد الإلكتروني مطلوب")]
+    [EmailAddress(ErrorMessage = "صيغة البريد الإلكتروني غير صحيحة")]
+    public string Email { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "كود التحقق مطلوب")]
+    public string Token { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "كلمة المرور الجديدة مطلوبة")]
+    [MinLength(6, ErrorMessage = "كلمة المرور يجب أن لا تقل عن 6 أحرف")]
+    public string NewPassword { get; set; } = string.Empty;
+
+    [Compare("NewPassword", ErrorMessage = "كلمة المرور الجديدة غير متطابقة")]
+    public string ConfirmPassword { get; set; } = string.Empty;
 }

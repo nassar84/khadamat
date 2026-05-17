@@ -191,4 +191,18 @@ public class AuthService : IAuthService
             _ = GetProfileAsync();
         }
     }
+
+    public async Task<ApiResponse<bool>> ForgotPassword(ForgotPasswordRequest request)
+    {
+        var response = await _httpClient.PostAsJsonAsync("v1/auth/forgot-password", request);
+        var result = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
+        return result!;
+    }
+
+    public async Task<ApiResponse<bool>> ResetPassword(ResetPasswordRequest request)
+    {
+        var response = await _httpClient.PostAsJsonAsync("v1/auth/reset-password", request);
+        var result = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
+        return result!;
+    }
 }
