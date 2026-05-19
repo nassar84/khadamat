@@ -251,6 +251,21 @@
                     </div>
 
                     <div class="col-md-8">
+                        <label class="form-label small fw-bold">الخدمة المرتبطة (اختياري)</label>
+                        <select class="form-select rounded-pill" value="@(currentAd.ServiceId ?? 0)" @onchange="OnLinkedServiceChanged">
+                            <option value="0">-- بدون ربط بخدمة --</option>
+                            @foreach (var svc in availableServices)
+                            {
+                                <option value="@svc.Id">[@svc.Id] @svc.Title</option>
+                            }
+                        </select>
+                        <div class="form-text extra-small mt-1 text-success">
+                            <i class="fa-solid fa-circle-info me-1"></i>
+                            عند اختيار خدمة، سيفتح زر "عرض التفاصيل" صفحة الخدمة مباشرة.
+                        </div>
+                    </div>
+
+                    <div class="col-md-8">
                         <label class="form-label small fw-bold">الرابط الموجه (URL)</label>
                         <input type="text" class="form-control rounded-pill" @bind="currentAd.TargetUrl" placeholder="https://...">
                     </div>
@@ -471,6 +486,7 @@
 @code {
     private List<EnhancedAdDto>? ads;
     private List<EnhancedAdDto>? filteredAds;
+    private List<ServiceDto> availableServices = new();
     private List<MainCategoryDto> mainCategories = new();
     private List<CategoryDto> subCategories = new();
     private List<SubCategoryDto> deepSubCategories = new();
@@ -511,6 +527,8 @@
         {
             await LoadAds();
             mainCategories = await Api.GetMainCategoriesAsync();
+            var svcResult = await Api.GetServicesAsync(isApproved: true, pageSize: 200);
+            availableServices = svcResult?.Items ?? new();
         }
         catch (Exception ex)
         {
@@ -601,7 +619,8 @@
             StartDate = DateTime.Now,
             EndDate = DateTime.Now.AddMonths(1),
             TargetUserGender = "All",
-            TargetDays = "Sat,Sun,Mon,Tue,Wed,Thu,Fri"
+            TargetDays = "Sat,Sun,Mon,Tue,Wed,Thu,Fri",
+            ServiceId = null
         };
         selectedMainCategoryId = 0;
         selectedSubCategoryId = 0;
@@ -625,6 +644,7 @@
             VideoUrl = ad.VideoUrl,
             TextContent = ad.TextContent,
             TargetUrl = ad.TargetUrl,
+            ServiceId = ad.ServiceId,
             Placement = ad.Placement,
             DisplayOrder = ad.DisplayOrder,
             StartDate = ad.StartDate,
@@ -700,6 +720,20 @@
             await LoadAds();
             showModal = false;
             imagePreview = null;
+        }
+    }
+
+    private void OnLinkedServiceChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int sid) && sid > 0)
+        {
+            currentAd.ServiceId = sid;
+            currentAd.TargetUrl = $"/service/{sid}";
+        }
+        else
+        {
+            currentAd.ServiceId = null;
+            currentAd.TargetUrl = null;
         }
     }
 

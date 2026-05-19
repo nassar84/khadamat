@@ -8,7 +8,18 @@
 @attribute [Authorize(Roles = "SuperAdmin")]
 
 <div class="px-2 pb-1">
-    <div class="mb-4"></div>
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3 mt-2">
+        <div>
+            <h1 class="fw-bold mb-1 text-primary"><i class="fa-solid fa-gears me-2"></i>إعدادات النظام</h1>
+            <p class="text-muted small mb-0">تحكم في هوية الموقع، اللوجو، الألوان، وإعدادات تطبيق الموبايل</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary-premium px-4 rounded-pill shadow-sm" @onclick="SaveSettings" disabled="@isSaving">
+                @if (isSaving) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                <i class="fa-solid fa-save me-2"></i>حفظ التغييرات
+            </button>
+        </div>
+    </div>
 
     @if (isLoading)
     {
@@ -331,8 +342,9 @@
             </div>
 
             <!-- Actions -->
-            <div class="col-12 text-end mb-4">
-                <button class="btn btn-primary-premium px-5 rounded-pill shadow" @onclick="SaveSettings" disabled="@isSaving">
+            <div class="col-12 text-end mb-5 pb-5">
+                <hr class="my-4 opacity-25" />
+                <button class="btn btn-primary-premium btn-lg px-5 rounded-pill shadow" @onclick="SaveSettings" disabled="@isSaving">
                     @if (isSaving) { <span class="spinner-border spinner-border-sm me-2"></span> }
                     <i class="fa-solid fa-save me-2"></i>حفظ جميع التغييرات
                 </button>

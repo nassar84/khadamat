@@ -22,6 +22,7 @@ public class EnhancedAdDto
     
     // الاستهداف المتطور - Advanced Targeting
     public string? TargetUrl { get; set; }
+    public int? ServiceId { get; set; } // Direct link to a specific service page
     public string? TargetCategories { get; set; } // Comma-separated category IDs
     public string? TargetSubCategories { get; set; } // Comma-separated category IDs (L2)
     public string? TargetDeepSubCategories { get; set; } // Comma-separated sub-category IDs (L3)

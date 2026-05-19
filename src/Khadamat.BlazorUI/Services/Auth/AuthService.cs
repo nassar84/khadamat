@@ -72,7 +72,8 @@ public class AuthService : IAuthService
                 {
                     var p = profile.Data;
                     var is_admin = p.Roles.Any(r => r == "SystemAdmin" || r == "SuperAdmin").ToString().ToLower();
-                    var nativeData = $"name={p.UserName}&image={p.ImageUrl}&is_admin={is_admin}&is_provider={p.IsProvider.ToString().ToLower()}";
+                    var is_super = p.Roles.Any(r => r == "SuperAdmin").ToString().ToLower();
+                    var nativeData = $"name={p.UserName}&image={p.ImageUrl}&is_admin={is_admin}&is_super_admin={is_super}&is_provider={p.IsProvider.ToString().ToLower()}";
                     await NotifyNativeApp("auth_success", nativeData);
                 }
                 else 
@@ -122,7 +123,8 @@ public class AuthService : IAuthService
                 // Notify native app with full profile data for UI sync (Background Refresh - no navigation)
                 var roles = string.Join(",", p.Roles);
                 var is_admin = p.Roles.Any(r => r == "SystemAdmin" || r == "SuperAdmin").ToString().ToLower();
-                var nativeData = $"name={p.UserName}&image={p.ImageUrl}&is_admin={is_admin}&is_provider={p.IsProvider.ToString().ToLower()}";
+                var is_super = p.Roles.Any(r => r == "SuperAdmin").ToString().ToLower();
+                var nativeData = $"name={p.UserName}&image={p.ImageUrl}&is_admin={is_admin}&is_super_admin={is_super}&is_provider={p.IsProvider.ToString().ToLower()}";
                 
                 // We use "auth_sync" to update native UI (name, avatar) WITHOUT triggering a shell navigation to Home
                 _ = NotifyNativeApp("auth_sync", nativeData);

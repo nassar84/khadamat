@@ -37,7 +37,11 @@
               BackgroundColor="White"
               IsVisible="False">
             <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="20">
-                <Label Text="📶" FontSize="60" HorizontalOptions="Center" />
+                <Label Text="📶" FontSize="60" HorizontalOptions="Center">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="ChangeUrl_Tapped" />
+                    </Label.GestureRecognizers>
+                </Label>
                 <Label Text="No Internet Connection" FontSize="20" FontAttributes="Bold"
                        HorizontalOptions="Center" TextColor="Black" />
                 <Label Text="Please check your connection and try again."

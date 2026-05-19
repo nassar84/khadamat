@@ -25,7 +25,16 @@
                         {
                             <p class="ad-desc-mini">@ad.Description</p>
                         }
-                        <span class="ad-cta-mini">عرض المزيد <i class="fa-solid fa-arrow-left ms-1"></i></span>
+                        <span class="ad-cta-mini">
+                            @if (ad.ServiceId.HasValue)
+                            {
+                                @("عرض الخدمة") <i class="fa-solid fa-arrow-left ms-1"></i>
+                            }
+                            else
+                            {
+                                @("عرض المزيد") <i class="fa-solid fa-arrow-left ms-1"></i>
+                            }
+                        </span>
                     </div>
                     <div class="ad-badge-mini">إعلان</div>
                 </div>
@@ -145,7 +154,11 @@
     private async Task OnAdClick(EnhancedAdDto ad)
     {
         _ = Api.TrackAdClickAsync(ad.Id); // Track click
-        if (!string.IsNullOrEmpty(ad.TargetUrl))
+        if (ad.ServiceId.HasValue && ad.ServiceId.Value > 0)
+        {
+            Navigation.NavigateTo($"/service/{ad.ServiceId.Value}");
+        }
+        else if (!string.IsNullOrEmpty(ad.TargetUrl))
         {
             Navigation.NavigateTo(ad.TargetUrl);
         }

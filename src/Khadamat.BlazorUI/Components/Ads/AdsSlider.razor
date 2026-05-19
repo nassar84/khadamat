@@ -39,7 +39,16 @@
                             {
                                 <p class="ad-desc animate-fade-in shadow-text">@ad.Description</p>
                             }
-                            <button class="btn btn-light rounded-pill px-4 btn-sm fw-bold mt-2">عرض التفاصيل</button>
+                            <button class="btn btn-light rounded-pill px-4 btn-sm fw-bold mt-2">
+                                @if (ad.ServiceId.HasValue)
+                                {
+                                    <i class="fa-solid fa-arrow-left me-1"></i>@("عرض الخدمة")
+                                }
+                                else
+                                {
+                                    <span>عرض التفاصيل</span>
+                                }
+                            </button>
                         </div>
                         <div class="ad-decoration">
                             <i class="fa-solid fa-star-of-life floating"></i>
@@ -253,7 +262,11 @@
     private void OnAdClick(EnhancedAdDto ad)
     {
         _ = Api.TrackAdClickAsync(ad.Id);
-        if (!string.IsNullOrEmpty(ad.TargetUrl))
+        if (ad.ServiceId.HasValue && ad.ServiceId.Value > 0)
+        {
+            Navigation.NavigateTo($"/service/{ad.ServiceId.Value}");
+        }
+        else if (!string.IsNullOrEmpty(ad.TargetUrl))
         {
             Navigation.NavigateTo(ad.TargetUrl);
         }

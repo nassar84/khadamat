@@ -89,7 +89,6 @@ namespace Khadamat.MobileApp.Views
 
         private async Task CheckApiConnection()
         {
-            string apiBaseUrl = Preferences.Default.Get("ApiBaseUrl", _configuration["ApiSettings:BaseUrl"] ?? "https://jobsek.eis-dev.com");
             try
             {
                 Console.WriteLine($"ANTIGRAVITY_LOG: Testing connectivity to: {apiBaseUrl}");
@@ -104,16 +103,13 @@ namespace Khadamat.MobileApp.Views
                 else
                 {
                     Console.WriteLine($"ANTIGRAVITY_LOG: [WARNING] API response was {response.StatusCode} for URL {apiBaseUrl}");
-                    // Do not show error to user immediately, maybe it's fine for some cases, 
-                    // but log it extensively.
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"ANTIGRAVITY_LOG: [ERROR] API UNREACHABLE: {ex.Message}");
-                // This is critical. Might be wrong URL or no internet.
                 await DisplayAlert("تنبيه الاتصال", 
-                    $"لا يمكن الوصول إلى السيرفر حالياً على العنوان:\n{apiBaseUrl}\n\nيرجى التأكد من اتصال الإنترنت أو إعدادات السيرفر.", 
+                    "لا يمكن الوصول إلى السيرفر حالياً. قد يؤثر هذا على عمل التطبيق.", 
                     "موافق");
             }
         }

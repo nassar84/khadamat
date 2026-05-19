@@ -42,6 +42,7 @@ public class AdsController : ControllerBase
                 VideoUrl = a.VideoUrl,
                 TextContent = a.TextContent,
                 TargetUrl = a.RedirectUrl,
+                ServiceId = a.ServiceID,
                 TargetCategories = a.CategoryID.HasValue ? a.CategoryID.ToString() : null,
                 TargetKeywords = a.TargetKeywords,
                 Placement = a.Placement,
@@ -81,6 +82,7 @@ public class AdsController : ControllerBase
                 VideoUrl = a.VideoUrl,
                 TextContent = a.TextContent,
                 TargetUrl = a.RedirectUrl,
+                ServiceId = a.ServiceID,
                 TargetCategories = a.CategoryID.HasValue ? a.CategoryID.ToString() : null,
                 TargetKeywords = a.TargetKeywords,
                 Placement = a.Placement,
@@ -165,7 +167,9 @@ public class AdsController : ControllerBase
             dto.EndDate ?? DateTime.UtcNow.AddMonths(1),
             dto.AdType ?? "Image",
             null, // ActivityId
-            categoryId
+            categoryId,
+            null, // subCategoryId
+            dto.ServiceId // Linked service ID
         );
 
         ad.UpdateDetails(
@@ -192,7 +196,7 @@ public class AdsController : ControllerBase
             dto.TargetTimeEnd,
             categoryId,
             null, // subCategoryId
-            null, // serviceId
+            dto.ServiceId, // Linked service ID
             dto.AmountPaid
         );
 

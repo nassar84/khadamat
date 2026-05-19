@@ -19,7 +19,7 @@ public partial class ShellViewModel : ObservableObject
     private string appNameEn = "Khadamato";
 
     [ObservableProperty]
-    private bool isBusy;
+    private bool isBusy = false;
 
     [ObservableProperty]
     private string currentTab = "home";
@@ -58,6 +58,9 @@ public partial class ShellViewModel : ObservableObject
     private bool isAdmin = false;
 
     [ObservableProperty]
+    private bool isSuperAdmin = false;
+
+    [ObservableProperty]
     private bool isProvider = false;
 
     [ObservableProperty]
@@ -81,10 +84,11 @@ public partial class ShellViewModel : ObservableObject
 
     public static event EventHandler? AuthChanged;
 
-    public void SetAuthenticated(bool value, string? name = null, string? image = null, bool admin = false, bool provider = false)
+    public void SetAuthenticated(bool value, string? name = null, string? image = null, bool admin = false, bool provider = false, bool superAdmin = false)
     {
         IsAuthenticated = value;
         IsAdmin = admin;
+        IsSuperAdmin = superAdmin;
         IsProvider = provider;
         
         // Default to client mode on login unless they are only a provider? 
@@ -109,6 +113,7 @@ public partial class ShellViewModel : ObservableObject
             UserTitle = "دخول";
             UserImage = "app_logo.png";
             IsAdmin = false;
+            IsSuperAdmin = false;
             IsProvider = false;
         }
 

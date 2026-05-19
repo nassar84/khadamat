@@ -17,7 +17,11 @@
             <h6 class="ad-title">@Ad.Title</h6>
             <p class="ad-desc">@Ad.Description</p>
             <div class="ad-footer mt-auto">
-                @if (!string.IsNullOrEmpty(Ad.TargetUrl))
+                @if (Ad.ServiceId.HasValue && Ad.ServiceId.Value > 0)
+                {
+                    <span class="btn btn-sm btn-outline-primary rounded-pill px-3">عرض الخدمة <i class="fa-solid fa-arrow-left ms-1"></i></span>
+                }
+                else if (!string.IsNullOrEmpty(Ad.TargetUrl))
                 {
                     <span class="btn btn-sm btn-outline-primary rounded-pill px-3">تصفح الآن <i class="fa-solid fa-arrow-left ms-1"></i></span>
                 }
@@ -103,9 +107,17 @@
 
     private void OnClick()
     {
-        if (Ad != null && !string.IsNullOrEmpty(Ad.TargetUrl))
+        if (Ad != null)
         {
-            Navigation.NavigateTo(Ad.TargetUrl);
+            _ = Api.TrackAdClickAsync(Ad.Id);
+            if (Ad.ServiceId.HasValue && Ad.ServiceId.Value > 0)
+            {
+                Navigation.NavigateTo($"/service/{Ad.ServiceId.Value}");
+            }
+            else if (!string.IsNullOrEmpty(Ad.TargetUrl))
+            {
+                Navigation.NavigateTo(Ad.TargetUrl);
+            }
         }
     }
 }

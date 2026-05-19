@@ -128,8 +128,18 @@
                                 </div>
                                 <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.05);" @onclick='() => NavigateTo("/admin/settings")'>
                                     <i class="fa-solid fa-cogs text-primary"></i>
-                                    <span>الإعدادات العامة</span>
+                                    <span>إعدادات لوحة التحكم</span>
                                 </div>
+                                <AuthorizeView Roles="SuperAdmin" Context="superCtx">
+                                    <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.08);" @onclick='() => NavigateTo("/admin/systemsettings")'>
+                                        <i class="fa-solid fa-gears text-primary"></i>
+                                        <span>إعدادات الموقع والتطبيق</span>
+                                    </div>
+                                    <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.08);" @onclick='() => NavigateTo("/admin/auditlogs")'>
+                                        <i class="fa-solid fa-shield-halved text-primary"></i>
+                                        <span>سجلات النشاط</span>
+                                    </div>
+                                </AuthorizeView>
                             </AuthorizeView>
                         </div>
                     </div>
@@ -293,14 +303,22 @@
         box-shadow: -10px 0 30px rgba(0, 0, 0, 0.05);
         direction: rtl; /* Ensure internal content is RTL too */
         
-        /* Enable scrolling and hide scrollbar */
+        /* Enable scrolling */
         overflow-y: auto;
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none; /* IE and Edge */
     }
 
+    /* Modern & Subtle Scrollbar for Mobile Sidebar */
     .mobile-sidebar-drawer::-webkit-scrollbar {
-        display: none; /* Chrome, Safari and Opera */
+        width: 4px;
+    }
+
+    .mobile-sidebar-drawer::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .mobile-sidebar-drawer::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
     }
 
     .mobile-sidebar-drawer.open {

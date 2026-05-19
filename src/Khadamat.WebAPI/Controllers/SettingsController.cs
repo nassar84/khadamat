@@ -50,7 +50,7 @@ public class SettingsController : ControllerBase
                 System.IO.Directory.CreateDirectory(webApiWwwroot);
 
             // Update appsettings.json in MobileApp
-            var appsettingsPath = System.IO.Path.Combine(mobileAppPath, "appsettings.json");
+            var appsettingsPath = System.IO.Path.Combine(mobileAppPath, "Resources", "Raw", "appsettings.json");
             if (System.IO.File.Exists(appsettingsPath))
             {
                 var json = System.IO.File.ReadAllText(appsettingsPath);

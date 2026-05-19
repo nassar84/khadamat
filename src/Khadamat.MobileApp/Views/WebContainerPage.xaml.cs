@@ -205,15 +205,27 @@ public partial class WebContainerPage : ContentPage
         PullToRefresh.IsVisible = !isOffline;
     }
 
-    private void RetryButton_Clicked(object sender, EventArgs e)
+    private async void RetryButton_Clicked(object sender, EventArgs e)
     {
-        if (MainWebView.Source is UrlWebViewSource urlSource)
+        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
         {
-            LoadUrl(urlSource.Url ?? string.Empty);
+            await DisplayAlert("لا يوجد اتصال", "برجاء التأكد من اتصالك بالإنترنت والمحاولة مرة أخرى.", "حسنًا");
+            return;
         }
-        else
+        
+        LoadContent(true);
+    }
+
+    private async void ChangeUrl_Tapped(object sender, EventArgs e)
+    {
+        string currentUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "http://10.0.2.2:5144/");
+        string result = await DisplayPromptAsync("إعدادات الاتصال", "أدخل رابط السيرفر (API Base URL):", "حفظ", "إلغاء", "https://...", initialValue: currentUrl);
+        
+        if (!string.IsNullOrWhiteSpace(result))
         {
-            LoadUrl(""); // Re-trigger initial load logic
+            if (!result.EndsWith("/")) result += "/";
+            Microsoft.Maui.Storage.Preferences.Default.Set("WebAppBaseUrl", result);
+            LoadContent(true);
         }
     }
 
@@ -265,6 +277,7 @@ public partial class WebContainerPage : ContentPage
                     string name = "مستخدم";
                     string image = "profile_icon.png";
                     bool isAdmin = false;
+                    bool isSuperAdmin = false;
                     bool isProvider = false;
 
                     // Parse data if available in query params
@@ -282,12 +295,13 @@ public partial class WebContainerPage : ContentPage
                                 var firstEqual = part.IndexOf('=');
                                 if (firstEqual > 0)
                                 {
-                                    var key = part.Substring(0, firstEqual);
-                                    var val = part.Substring(firstEqual + 1);
+                                    var key = part.Substring(0, firstEqual).ToLower();
+                                    var val = part.Substring(firstEqual + 1).ToLower();
 
                                     if (key == "name") name = Uri.UnescapeDataString(val);
                                     else if (key == "image") image = Uri.UnescapeDataString(val);
                                     else if (key == "is_admin") isAdmin = val == "true";
+                                    else if (key == "is_super_admin") isSuperAdmin = val == "true";
                                     else if (key == "is_provider") isProvider = val == "true";
                                 }
                             }
@@ -298,7 +312,7 @@ public partial class WebContainerPage : ContentPage
                         Console.WriteLine($"ANTIGRAVITY_LOG: Error parsing auth data: {ex.Message}");
                     }
 
-                    vm.SetAuthenticated(true, name, image, isAdmin, isProvider);
+                    vm.SetAuthenticated(true, name, image, isAdmin, isProvider, isSuperAdmin);
 
                     // Sync native bottom nav auth state
                     MainThread.BeginInvokeOnMainThread(() => BottomNav.RefreshAuthState());

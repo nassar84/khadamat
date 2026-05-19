@@ -205,7 +205,12 @@
         if (popupAd != null)
         {
             _ = Api.TrackAdClickAsync(popupAd.Id); // Track click
-            if (!string.IsNullOrEmpty(popupAd.TargetUrl))
+            if (popupAd.ServiceId.HasValue && popupAd.ServiceId.Value > 0)
+            {
+                Navigation.NavigateTo($"/service/{popupAd.ServiceId.Value}");
+                ClosePopup();
+            }
+            else if (!string.IsNullOrEmpty(popupAd.TargetUrl))
             {
                 Navigation.NavigateTo(popupAd.TargetUrl);
                 ClosePopup();

@@ -94,7 +94,7 @@
             </Authorized>
         </AuthorizeView>
 
-        <AuthorizeView Roles="SystemAdmin,SuperAdmin">
+        <AuthorizeView Roles="SystemAdmin,SuperAdmin" Context="adminContext">
              <Authorized>
                 <div class="menu-section">
                     <div class="section-label">الإدارة</div>
@@ -102,6 +102,16 @@
                         <i class="fa-solid fa-gauge-high"></i>
                         <span class="item-label">لوحة المدير</span>
                     </NavLink>
+                    <AuthorizeView Roles="SuperAdmin" Context="superAdminContext">
+                        <NavLink class="menu-item" href="/admin/systemsettings">
+                            <i class="fa-solid fa-gears"></i>
+                            <span class="item-label">إعدادات النظام</span>
+                        </NavLink>
+                        <NavLink class="menu-item" href="/admin/auditlogs">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <span class="item-label">سجلات النشاط</span>
+                        </NavLink>
+                    </AuthorizeView>
                 </div>
             </Authorized>
         </AuthorizeView>
@@ -211,12 +221,24 @@
         padding: 10px 15px;
         overflow-y: auto;
         overflow-x: hidden;
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none; /* IE and Edge */
     }
 
+    /* Modern & Subtle Scrollbar */
     .sidebar-content::-webkit-scrollbar {
-        display: none; /* Chrome, Safari, and Opera */
+        width: 4px;
+    }
+
+    .sidebar-content::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .sidebar-content::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+    }
+
+    .sidebar-content:hover::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.2);
     }
 
     .menu-section {

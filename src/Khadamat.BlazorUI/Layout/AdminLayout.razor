@@ -197,6 +197,15 @@
         background: rgba(255, 255, 255, 0.85);
         backdrop-filter: blur(20px);
         box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        
+        /* Enable scrolling and hide scrollbar */
+        overflow-y: auto;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+    }
+
+    .admin-sidebar::-webkit-scrollbar {
+        display: none; /* Chrome, Safari and Opera */
     }
 
     .admin-sidebar.collapsed {
