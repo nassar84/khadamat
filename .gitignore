@@ -57,3 +57,22 @@ server_architecture_guide.md
 # Security
 *.keystore
 *.jks
+
+# Application Secrets
+
+appsettings.Secrets.json
+**/appsettings.Secrets.json
+
+# Development settings containing secrets
+
+**/appsettings.Development.json
+
+# Google Firebase / Mobile secrets
+
+google-services.json
+**/google-services.json
+
+# Apple/iOS secrets
+
+GoogleService-Info.plist
+**/GoogleService-Info.plist
