@@ -276,7 +276,7 @@
                     // Fallback to simple download or alert
                     const link = document.createElement('a');
                     link.download = fileName + '.png';
-                    link.href = canvas.toDataValue('image/png');
+                    link.href = canvas.toDataURL('image/png');
                     link.click();
                 }
             } catch (err) {
