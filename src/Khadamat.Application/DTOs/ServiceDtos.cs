@@ -92,7 +92,7 @@ public class PostDto
     public string? ImageUrl { get; set; }
     public DateTime CreatedAt { get; set; }
     public int LikesCount { get; set; }
-    public int? CommentsCount { get; set; }
+    public int CommentsCount { get; set; }
     public List<CommentDto> Comments { get; set; } = new();
 }
 
@@ -102,6 +102,20 @@ public class CommentDto
     public string UserName { get; set; } = string.Empty;
     public string Text { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
+}
+
+public class PublicPostDto
+{
+    public int Id { get; set; }
+    public string Content { get; set; } = string.Empty;
+    public string? ImageUrl { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public int LikesCount { get; set; }
+    public int CommentsCount { get; set; }
+    public int ProviderId { get; set; }
+    public string ProviderName { get; set; } = string.Empty;
+    public string? ProviderPhoto { get; set; }
+    public int? ServiceId { get; set; }
 }
 
 public class ServiceEditRequestDto

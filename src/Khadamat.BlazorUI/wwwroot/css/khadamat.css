@@ -182,6 +182,155 @@ body[data-theme="fluffy"]::after {
     box-sizing: border-box;
 }
 
+/* ===================================================
+   🖼️ GLOBAL IMAGE CONSTRAINT SYSTEM
+   يمنع أي صورة مرفوعة من كسر التخطيط
+   Prevents any uploaded image from breaking layouts
+   =================================================== */
+
+/* ── 1. Universal image guard — no image expands beyond its container ── */
+img {
+    max-width: 100%;
+    display: block;
+}
+
+/* ── 2. Avatar / Profile Images ── */
+.user-avatar,
+.header-avatar-img,
+.menu-avatar {
+    object-fit: cover !important;
+    flex-shrink: 0 !important;
+}
+.user-avatar        { width: 40px !important; height: 40px !important; border-radius: 12px !important; }
+.header-avatar-img  { width: 40px !important; height: 40px !important; border-radius: 12px !important; }
+.menu-avatar        { width: 50px !important; height: 50px !important; border-radius: 15px !important; }
+.avatar-large       { width: 90px !important; height: 90px !important; border-radius: 50%  !important; object-fit: cover !important; flex-shrink: 0 !important; }
+.avatar-sm          { width: 35px !important; height: 35px !important; border-radius: 50%  !important; object-fit: cover !important; flex-shrink: 0 !important; }
+.provider-avatar    { width: 60px !important; height: 60px !important; border-radius: 50%  !important; object-fit: cover !important; flex-shrink: 0 !important; }
+
+/* Fixed-size avatars in tables / cards via HTML width/height attributes */
+img.rounded-circle[width="35"]  { width: 35px !important; height: 35px !important; object-fit: cover !important; flex-shrink: 0 !important; }
+img.rounded-circle[width="45"]  { width: 45px !important; height: 45px !important; object-fit: cover !important; flex-shrink: 0 !important; }
+img[width="60"][height="60"]    { width: 60px !important; height: 60px !important; object-fit: cover !important; flex-shrink: 0 !important; }
+
+/* ── 3. Service Card Image (ServiceCard component) ── */
+.service-img img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
+/* ── 4. NearbyServiceCard Image ── */
+.nearby-image-wrapper img,
+.nearby-image {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
+/* ── 5. Marketplace Item Cards (aspect-ratio: 1/1 container) ── */
+.item-image-container img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
+/* ── 6. Market Mini-Items — Home Page Horizontal Scroll ── */
+.mini-img-wrapper img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
+/* ── 7. Service Detail Thumbnails ── */
+.mini-img,
+.mini-thumb {
+    width: 70px !important;
+    height: 70px !important;
+    object-fit: cover !important;
+    border-radius: 10px !important;
+    flex-shrink: 0 !important;
+    display: block !important;
+}
+
+/* ── 8. Marketplace Item Detail — Main Image ── */
+.main-img {
+    width: 100% !important;
+    max-height: 450px !important;
+    object-fit: contain !important;
+    background: #f8fafc !important;
+    border-radius: 16px !important;
+    display: block !important;
+}
+
+/* ── 9. Post / Feed Images — capped height ── */
+img.w-100.rounded-4.mb-3,
+img.w-100.rounded-3.mb-3 {
+    max-height: 400px !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
+/* ── 10. Auth Pages — Logo Images ── */
+.auth-logo {
+    max-height: 80px !important;
+    max-width: 160px !important;
+    object-fit: contain !important;
+    margin: 0 auto !important;
+    display: block !important;
+}
+
+/* ── 11. Admin Services Approval Table ── */
+.table img.rounded-3.object-fit-cover,
+.table img.rounded-circle {
+    flex-shrink: 0 !important;
+    display: block !important;
+}
+
+/* ── 12. Provide settings / profile image ── */
+img.provider-avatar.shadow-sm {
+    object-fit: cover !important;
+}
+
+/* ── 13. Any img inside glass / card containers without explicit size ── */
+.glass-card img:not([class*="auth-logo"]):not([width]):not([height]),
+.service-card img:not([class*="auth-logo"]):not([width]):not([height]),
+.market-item-card img:not([class*="auth-logo"]):not([width]):not([height]),
+.market-item-mini img:not([class*="auth-logo"]):not([width]):not([height]) {
+    max-width: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
+/* ── 14. Mobile safety — no image can overflow viewport width ── */
+@media (max-width: 768px) {
+    img {
+        max-width: 100% !important;
+    }
+
+    /* Cap unconstrained inline images in cards on mobile */
+    .card img:not([width]):not([height]),
+    .card-body img:not([width]):not([height]) {
+        max-height: 300px;
+        object-fit: cover;
+    }
+
+    /* Service detail main image on mobile */
+    .w-100.h-100.object-fit-cover {
+        max-height: 300px;
+    }
+}
+
+/* ===================================================
+   End of Global Image Constraint System
+   =================================================== */
+
+
+
 body {
     background-color: #fbfbfe;
     /* Very very light tint */

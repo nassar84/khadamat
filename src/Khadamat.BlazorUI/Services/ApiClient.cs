@@ -571,11 +571,11 @@ public class ApiClient
         return await _http.GetFromJsonAsync<ApiResponse<AuthResponse>>("v1/auth/profile");
     }
 
-    public async Task<dynamic?> GetProviderProfileAsync(string userId)
+    public async Task<ProviderProfileDto?> GetProviderProfileAsync(string userId)
     {
         try
         {
-            return await _http.GetFromJsonAsync<dynamic>($"v1/providers/{userId}");
+            return await _http.GetFromJsonAsync<ProviderProfileDto>($"v1/providers/{userId}");
         }
         catch
         {
@@ -678,6 +678,19 @@ public class ApiClient
         return response?.Data ?? new List<PostDto>();
     }
 
+    public async Task<List<PublicPostDto>> GetPublicPostsAsync(int page = 1, int pageSize = 20)
+    {
+        try
+        {
+            var response = await _http.GetFromJsonAsync<ApiResponse<List<PublicPostDto>>>($"v1/posts/public?page={page}&pageSize={pageSize}");
+            return response?.Data ?? new List<PublicPostDto>();
+        }
+        catch
+        {
+            return new List<PublicPostDto>();
+        }
+    }
+
     public async Task<bool> CreatePostAsync(CreatePostRequest request)
     {
         var response = await _http.PostAsJsonAsync("v1/posts", request);
@@ -687,6 +700,12 @@ public class ApiClient
     public async Task<bool> DeletePostAsync(int id)
     {
         var response = await _http.DeleteAsync($"v1/posts/{id}");
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> ToggleLikePostAsync(int postId)
+    {
+        var response = await _http.PostAsync($"v1/posts/{postId}/like", null);
         return response.IsSuccessStatusCode;
     }
 
@@ -1249,4 +1268,28 @@ public class ImageUploadResponse
     public bool Success { get; set; }
     public string? Message { get; set; }
     public string? ImageUrl { get; set; }
+}
+
+public class ProviderProfileDto
+{
+    public int Id { get; set; }
+    public string UserId { get; set; } = string.Empty;
+    public string BusinessName { get; set; } = string.Empty;
+    public string? Bio { get; set; }
+    public string? Photo { get; set; }
+    public bool IsVerified { get; set; }
+}
+
+public class PublicPostDto
+{
+    public int Id { get; set; }
+    public string Content { get; set; } = string.Empty;
+    public string? ImageUrl { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public int LikesCount { get; set; }
+    public int CommentsCount { get; set; }
+    public int ProviderId { get; set; }
+    public string ProviderName { get; set; } = string.Empty;
+    public string? ProviderPhoto { get; set; }
+    public int? ServiceId { get; set; }
 }

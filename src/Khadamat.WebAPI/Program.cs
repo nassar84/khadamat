@@ -22,6 +22,7 @@ try
     Log.Information("Starting Khadamat Web API...");
 
     var builder = WebApplication.CreateBuilder(args);
+    builder.Configuration.AddJsonFile("appsettings.Secrets.json", optional: true, reloadOnChange: true);
     builder.Host.UseSerilog();
 
     // 2. Add Core services

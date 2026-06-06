@@ -62,8 +62,8 @@
                                 <div class="p-3 bg-white border rounded-3 italic text-muted">"@req.Reason"</div>
                             </div>
 
-                            <div class="table-responsive">
-                                <table class="table table-bordered bg-white rounded-3 overflow-hidden shadow-sm align-middle">
+                            <div class="table-responsive-custom shadow-sm mb-3">
+                                <table class="table table-bordered bg-white rounded-3 overflow-hidden align-middle service-edits-table">
                                     <thead class="bg-light">
                                         <tr>
                                             <th style="width: 150px;">الحقل</th>
@@ -169,6 +169,35 @@
     }
     .bg-light-subtle {
         background-color: #f8f9fa !important;
+    }
+    .table-responsive-custom {
+        display: block;
+        width: 100%;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 12px;
+        background: #fff;
+    }
+    .service-edits-table {
+        min-width: 800px !important;
+        width: 100%;
+        margin-bottom: 0;
+    }
+    /* Premium elegant scrollbar */
+    .table-responsive-custom::-webkit-scrollbar {
+        height: 6px;
+    }
+    .table-responsive-custom::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+    .table-responsive-custom::-webkit-scrollbar-thumb {
+        background: var(--theme-primary, #8e2de2);
+        border-radius: 10px;
+    }
+    .table-responsive-custom::-webkit-scrollbar-thumb:hover {
+        background: var(--theme-secondary, #4a00e0);
     }
 </style>
 

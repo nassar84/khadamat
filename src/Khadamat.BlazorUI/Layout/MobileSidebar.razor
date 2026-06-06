@@ -31,6 +31,10 @@
                                 <i class="fa-solid fa-house"></i>
                                 <span>الرئيسية</span>
                             </div>
+                            <div class="menu-item @GetActiveClass("feed")" @onclick='() => NavigateTo("/feed")'>
+                                <i class="fa-regular fa-newspaper text-info"></i>
+                                <span>آخر التحديثات</span>
+                            </div>
                             <h6 class="section-title">التصنيفات</h6>
                             <div class="menu-item @GetActiveClass("marketplace")" @onclick='() => NavigateTo("/marketplace")'>
                                 <i class="fa-solid fa-store text-primary"></i>
@@ -228,9 +232,13 @@
                     <!-- Section label -->
                     <p class="section-title mb-2">إكتشف @State.AppName</p>
                     <!-- Home Button - active/filled -->
-                    <div class="menu-item active mb-2" @onclick='() => NavigateTo("/")'>
+                    <div class="menu-item mb-2" @onclick='() => NavigateTo("/")'>
                         <i class="fa-solid fa-house"></i>
                         <span>الرئيسية</span>
+                    </div>
+                    <div class="menu-item mb-2" @onclick='() => NavigateTo("/feed")'>
+                        <i class="fa-regular fa-newspaper"></i>
+                        <span>آخر التحديثات</span>
                     </div>
                     <!-- Refresh -->
                     <div class="menu-item" @onclick="RefreshApp">

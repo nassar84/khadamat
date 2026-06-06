@@ -59,7 +59,7 @@
                     <div class="d-flex gap-3 overflow-auto pb-2" style="scrollbar-width: none; -ms-overflow-style: none;">
                         @foreach (var service in featuredServices)
                         {
-                            <div style="min-width: 280px;">
+                            <div style="min-width: 280px; max-width: 280px; flex-shrink: 0;">
                                 <ServiceCard Service="service" OnClick="OnServiceSelected" />
                             </div>
                         }
@@ -481,7 +481,10 @@
         z-index: 0;
     }
     .market-item-mini {
+        width: 140px;
         min-width: 140px;
+        max-width: 140px;
+        flex-shrink: 0;
         background: white;
         border-radius: 16px;
         overflow: hidden;
@@ -491,6 +494,7 @@
     }
     .market-item-mini:hover { transform: scale(1.05); }
     .mini-img-wrapper {
+        width: 100%;
         aspect-ratio: 1/1;
         position: relative;
         overflow: hidden;

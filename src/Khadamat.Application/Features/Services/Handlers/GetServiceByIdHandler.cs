@@ -114,9 +114,31 @@ public class GetServiceByIdHandler : IRequestHandler<GetServiceByIdQuery, Servic
             var posts = await _postRepo.GetPagedAsync(1, 5, 
                 filter: p => p.ProviderId == provider.Id,
                 orderBy: q => q.OrderByDescending(x => x.CreatedAt),
-                includeProperties: "Likes");
+                includeProperties: "Likes,Comments");
             
-            dto.Posts = _mapper.Map<List<PostDto>>(posts);
+            var commentUserIds = posts.SelectMany(p => p.Comments ?? Enumerable.Empty<Comment>()).Select(c => c.UserId).Distinct().ToList();
+            var commentUserDict = await _userService.GetUsersBasicInfoAsync(commentUserIds);
+
+            dto.Posts = posts.Select(p => new PostDto
+            {
+                Id = p.Id,
+                Content = p.Content,
+                ImageUrl = p.ImageUrl,
+                CreatedAt = p.CreatedAt,
+                LikesCount = p.Likes?.Count ?? 0,
+                CommentsCount = p.Comments?.Count ?? 0,
+                Comments = (p.Comments ?? Enumerable.Empty<Comment>()).Select(c =>
+                {
+                    commentUserDict.TryGetValue(c.UserId, out var cUser);
+                    return new CommentDto
+                    {
+                        Id = c.Id,
+                        Text = c.Text,
+                        CreatedAt = c.CreatedAt,
+                        UserName = !string.IsNullOrEmpty(cUser.Name) ? cUser.Name : "مستخدم"
+                    };
+                }).OrderByDescending(c => c.CreatedAt).ToList()
+            }).ToList();
         }
 
         // Map Ratings to Reviews manually if Mapper didn't do it (Mapper handles basic mapping but customization here is fine)

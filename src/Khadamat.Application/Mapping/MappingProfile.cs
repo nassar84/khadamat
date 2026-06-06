@@ -24,7 +24,10 @@ public class MappingProfile : Profile
             .ForMember(d => d.LikesCount, opt => opt.MapFrom(s => s.Likes.Count));
             
         CreateMap<Post, PostDto>()
-            .ForMember(d => d.LikesCount, opt => opt.MapFrom(s => s.Likes.Count));
+            .ForMember(d => d.LikesCount, opt => opt.MapFrom(s => s.Likes.Count))
+            .ForMember(d => d.CommentsCount, opt => opt.MapFrom(s => s.Comments.Count));
+            
+        CreateMap<Comment, CommentDto>();
             
         CreateMap<Category, CategoryDto>()
             .ForMember(d => d.MainCategoryName, opt => opt.MapFrom(s => s.MainCategory != null ? s.MainCategory.Name : string.Empty));

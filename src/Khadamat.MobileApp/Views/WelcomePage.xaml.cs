@@ -91,10 +91,14 @@ namespace Khadamat.MobileApp.Views
         {
             try
             {
+                var apiBaseUrl = Preferences.Default.Get("ApiBaseUrl", 
+                    _configuration["ApiSettings:BaseUrl"] ?? "https://jobsek.eis-dev.com");
+                apiBaseUrl = apiBaseUrl.TrimEnd('/');
+                
                 Console.WriteLine($"ANTIGRAVITY_LOG: Testing connectivity to: {apiBaseUrl}");
                 
                 using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
-                var response = await client.GetAsync($"{apiBaseUrl.TrimEnd('/')}/v1/settings");
+                var response = await client.GetAsync($"{apiBaseUrl}/v1/settings");
                 
                 if (response.IsSuccessStatusCode)
                 {

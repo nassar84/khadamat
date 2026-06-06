@@ -146,27 +146,11 @@
             var profile = await AuthService.GetProfileAsync();
             if (profile?.Data != null)
             {
-                // We assume there is a way to get ProviderID from User profile or another call
-                // For now, let's assume we can fetch "My Provider Profile" to get ID
                 var providerProfile = await Api.GetProviderProfileAsync(profile.Data.Id);
-                // Dynamic parsing or DTO
                 if (providerProfile != null)
                 {
-                    // Assuming JSON element or object with Id
-                    // This part depends on how GetProviderProfileAsync returns data. 
-                    // Let's assume we can traverse it.
-                    try 
-                    {
-                        var json = System.Text.Json.JsonSerializer.Serialize(providerProfile);
-                        var pDict = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(json);
-                        System.Text.Json.JsonElement idProp;
-                        if (pDict.TryGetProperty("id", out idProp))
-                        {
-                            providerId = idProp.GetInt32();
-                            await LoadPosts();
-                        }
-                    }
-                    catch { /* handle error */ }
+                    providerId = providerProfile.Id;
+                    await LoadPosts();
                 }
             }
         }

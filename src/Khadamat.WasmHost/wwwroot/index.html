@@ -233,18 +233,22 @@
             const element = document.getElementById(elementId);
             if (!element) return;
 
-            // Show element temporarily if it's hidden
-            const originalDisplay = element.style.display;
-            element.style.display = 'block';
-            element.style.position = 'fixed';
-            element.style.left = '-9999px';
-            element.style.top = '0';
+            // Clone the element so the visible modal is not disturbed
+            const clone = element.cloneNode(true);
+            clone.style.position = 'fixed';
+            clone.style.left = '-9999px';
+            clone.style.top = '0';
+            clone.style.width = element.offsetWidth + 'px';
+            clone.style.zIndex = '-1';
+            clone.style.display = 'block';
+            document.body.appendChild(clone);
 
-            // Generate QR Code
-            const qrContainer = document.getElementById(elementId + '-qrcode');
-            if (qrContainer) {
-                qrContainer.innerHTML = '';
-                new QRCode(qrContainer, {
+            // Re-generate QR Code inside the clone
+            const cloneQrContainer = clone.querySelector('#' + elementId + '-qrcode') || clone.querySelector('[id$="-qrcode"]');
+            if (cloneQrContainer) {
+                cloneQrContainer.innerHTML = '';
+                cloneQrContainer.id = elementId + '-qrcode-clone';
+                new QRCode(cloneQrContainer, {
                     text: qrText,
                     width: 100,
                     height: 100,
@@ -252,15 +256,16 @@
                     colorLight: "#ffffff",
                     correctLevel: QRCode.CorrectLevel.H
                 });
-                // Wait a bit for QR to render
-                await new TaskWait(200);
+                // Wait for QR to render
+                await new Promise(resolve => setTimeout(resolve, 300));
             }
 
             try {
-                const canvas = await html2canvas(element, {
+                const canvas = await html2canvas(clone, {
                     useCORS: true,
-                    scale: 2, // Higher quality
-                    backgroundColor: null
+                    scale: 2,
+                    backgroundColor: '#ffffff',
+                    logging: false
                 });
 
                 const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
@@ -273,7 +278,7 @@
                         text: 'شاهد هذه الخدمة الرائعة على تطبيق وموقع خدمات'
                     });
                 } else {
-                    // Fallback to simple download or alert
+                    // Fallback: download as image
                     const link = document.createElement('a');
                     link.download = fileName + '.png';
                     link.href = canvas.toDataURL('image/png');
@@ -281,10 +286,9 @@
                 }
             } catch (err) {
                 console.error('Sharing failed', err);
+                throw err;
             } finally {
-                element.style.display = originalDisplay;
-                element.style.position = '';
-                element.style.left = '';
+                document.body.removeChild(clone);
             }
         };
 

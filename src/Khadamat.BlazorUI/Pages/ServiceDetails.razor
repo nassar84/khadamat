@@ -222,13 +222,12 @@
                                         {
                                             <a href="@service.Facebook" target="_blank" title="فيسبوك" class="social-icon-btn facebook"><i class="fa-brands fa-facebook"></i></a>
                                         }
-                                        <button class="social-icon-btn share" @onclick="ShareService" title="مشاركة"><i class="fa-solid fa-share-alt"></i></button>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="action-buttons-v3 d-flex gap-2 mb-4">
+                        <div class="action-buttons-v3 d-flex gap-2 mb-2">
                             @if (!string.IsNullOrEmpty(service.WhatsApp))
                             {
                                 <button class="btn btn-whatsapp flex-grow-1" @onclick="ContactWhatsApp">
@@ -239,6 +238,10 @@
                                 <i class="fa-solid fa-phone me-1"></i> اتصال
                             </button>
                         </div>
+
+                        <button class="btn btn-share-premium w-100 mb-4 py-3 shadow" @onclick="OpenShareModal">
+                            <i class="fa-solid fa-share-nodes me-2"></i> شارك الخدمة كبطاقة أو رابط
+                        </button>
 
                         <!-- New Request Edit Enhancement Button -->
                         <div class="edit-request-banner p-4 rounded-5 mt-4 mb-4 shadow-sm border border-info border-opacity-25 bg-info bg-opacity-5 animate-up">
@@ -309,7 +312,7 @@
                                     <div class="d-flex gap-3 pt-3 border-top x-small">
                                         <span><i class="fa-regular fa-heart"></i> @post.LikesCount</span>
                                         <span class="cursor-pointer" @onclick="() => ToggleComments(post.Id)">
-                                            <i class="fa-regular fa-comment"></i> @(post.CommentsCount ?? 0) تعليقات
+                                            <i class="fa-regular fa-comment"></i> @post.CommentsCount تعليقات
                                         </span>
                                     </div>
 
@@ -422,53 +425,158 @@
     }
 </div>
 
-<!-- Hidden Share Card for Social Media Captures -->
-<div id="service-share-card" class="share-capture-card" style="display: none;">
-    <div class="share-card-content p-4 text-center">
-        <!-- Logo Header -->
-        <div class="d-flex align-items-center justify-content-center mb-3">
-            <div class="share-logo-container me-2">
-                <img src="/favicon.png" width="40" height="40" alt="Logo" />
+<!-- Share Modal -->
+@if (showShareModal)
+{
+    <div class="modal-overlay" @onclick="() => showShareModal = false">
+        <div class="glass-card p-4 rounded-4 animate-pop share-modal-container" @onclick:stopPropagation="true">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0 text-dark"><i class="fa-solid fa-share-nodes text-primary me-2"></i>مشاركة الخدمة</h5>
+                <button class="btn-close shadow-none border-0 bg-transparent text-muted" @onclick="() => showShareModal = false">
+                    <i class="fa-solid fa-xmark fs-5"></i>
+                </button>
             </div>
-            <div class="share-brand">
-                <div class="fw-900 fs-4 text-primary">@State.AppName</div>
-                <div class="x-small text-muted">@($"{State.AppName}.com")</div>
+
+            <!-- Share Preview Card (rendered inside modal for preview + capture) -->
+            <div class="share-preview-wrapper mb-4 border rounded-4 overflow-hidden shadow-sm bg-light">
+                <div id="service-share-card" class="share-capture-card">
+                    <div class="share-card-content p-4 text-end bg-white">
+                        <!-- Top Header/Categories -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="share-logo-container me-2">
+                                    <img src="/favicon.png" width="36" height="36" alt="Logo" />
+                                </div>
+                                <div class="share-brand text-start">
+                                    <div class="fw-900 small text-primary" style="line-height: 1.1;">@State.AppName</div>
+                                    <div class="xx-small text-muted" style="line-height: 1.1;">@($"{State.AppName}.com")</div>
+                                </div>
+                            </div>
+                            <!-- Rating -->
+                            <div class="share-rating-box bg-warning bg-opacity-10 text-warning px-3 py-1 rounded-pill d-flex align-items-center gap-1">
+                                <i class="fa-solid fa-star small"></i>
+                                <span class="fw-bold x-small">@service?.Rating.ToString("0.0")</span>
+                            </div>
+                        </div>
+
+                        <!-- Categories Path -->
+                        <div class="share-categories-path mb-3 text-muted x-small text-start bg-light p-2 rounded-3" dir="rtl">
+                            <i class="fa-solid fa-layer-group text-primary me-1"></i>
+                            <span>@service?.MainCategoryName</span>
+                            <i class="fa-solid fa-chevron-left mx-1 small"></i>
+                            <span>@service?.CategoryName</span>
+                            @if (!string.IsNullOrEmpty(service?.SubCategoryName))
+                            {
+                                <i class="fa-solid fa-chevron-left mx-1 small"></i>
+                                <span>@service?.SubCategoryName</span>
+                            }
+                        </div>
+
+                        <!-- Main Image -->
+                        <div class="share-main-img-container mb-3 position-relative rounded-4 overflow-hidden border">
+                            <img src="@mainImage" class="w-100 object-fit-cover" style="height: 200px;" alt="Service Image" />
+                            @if (service?.Price > 0)
+                            {
+                                <div class="position-absolute bottom-0 start-0 m-3 px-3 py-1 bg-success text-white rounded-pill fw-bold small">
+                                    @service.Price?.ToString("N0") ج.م
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Service Details -->
+                        <h4 class="fw-bold text-dark mb-2 text-start">@service?.Title</h4>
+                        
+                        <p class="share-description text-muted small text-start mb-3 leading-relaxed" style="max-height: 80px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">
+                            @service?.Description
+                        </p>
+
+                        <!-- Location & Address -->
+                        <div class="share-info-item mb-2 text-start d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-location-dot text-danger flex-shrink-0" style="width: 16px;"></i>
+                            <span class="small text-dark">@service?.GovernorateName - @service?.CityName @(string.IsNullOrEmpty(service?.Address) ? "" : $" ({service?.Address})")</span>
+                        </div>
+
+                        <!-- Contact details -->
+                        <div class="share-contacts-row p-3 rounded-4 bg-light mb-3 text-start">
+                            <div class="fw-bold text-muted x-small mb-2">معلومات الاتصال المباشر:</div>
+                            <div class="d-flex flex-wrap gap-3">
+                                @if (!string.IsNullOrEmpty(service?.Phone1))
+                                {
+                                    <div class="d-flex align-items-center gap-1">
+                                        <i class="fa-solid fa-phone text-success x-small"></i>
+                                        <span class="x-small fw-bold">@service.Phone1</span>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(service?.Phone2))
+                                {
+                                    <div class="d-flex align-items-center gap-1">
+                                        <i class="fa-solid fa-phone text-success x-small"></i>
+                                        <span class="x-small fw-bold">@service.Phone2</span>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(service?.WhatsApp))
+                                {
+                                    <div class="d-flex align-items-center gap-1">
+                                        <i class="fa-brands fa-whatsapp text-success x-small"></i>
+                                        <span class="x-small fw-bold">@service.WhatsApp</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Divider with QR -->
+                        <div class="d-flex align-items-center justify-content-between pt-3 border-top">
+                            <div id="service-share-card-qrcode" class="qr-container shadow-sm border rounded-3 p-1 bg-white"></div>
+                            <div class="text-end">
+                                <div class="fw-bold small text-primary mb-1">امسح الكود لزيارة الخدمة</div>
+                                <div class="xx-small text-muted">متوفر على التطبيق والموقع</div>
+                                <div class="badges-mini d-flex gap-1 justify-content-end mt-1">
+                                    <i class="fa-brands fa-google-play text-muted x-small"></i>
+                                    <i class="fa-brands fa-apple text-muted x-small"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <!-- Service Image -->
-        <div class="share-main-img-container mb-3">
-            <img src="@mainImage" class="w-100 rounded-4 shadow-sm" style="max-height: 250px; object-fit: cover;" />
-        </div>
+            <!-- Action buttons inside modal -->
+            <div class="d-flex flex-column gap-3">
+                <button class="btn btn-primary w-100 rounded-pill py-2.5 fw-bold" @onclick="DownloadCardImage">
+                    <i class="fa-solid fa-image me-2"></i> تحميل بطاقة الخدمة كصورة
+                </button>
 
-        <!-- Service Info -->
-        <div class="share-service-title fw-900 fs-3 mb-2">@service?.Title</div>
-        <div class="share-service-price fs-4 text-success fw-bold mb-3">@service?.Price?.ToString("N0") ج.م</div>
-        
-        <p class="share-description text-muted small px-3 mb-4">
-            @((service?.Description?.Length > 150) ? service.Description.Substring(0, 147) + "..." : service?.Description)
-        </p>
+                <!-- Copy Link Option -->
+                <div class="input-group">
+                    <input type="text" class="form-control rounded-start-pill bg-light border-light text-start" dir="ltr" readonly value="@Navigation.Uri" />
+                    <button class="btn btn-outline-primary rounded-end-pill px-3 fw-bold" @onclick="CopyShareLink">
+                        <i class="fa-solid fa-copy me-1"></i> نسخ الرابط
+                    </button>
+                </div>
+                @if (!string.IsNullOrEmpty(shareCopyStatus))
+                {
+                    <div class="text-success text-center x-small mt-1 animate-fade-in fw-bold">@shareCopyStatus</div>
+                }
 
-        <!-- Divider with CTA -->
-        <div class="share-divider mb-4">
-            <span class="share-cta">امسح الكود لمعرفة التفاصيل والطلب</span>
-        </div>
-
-        <!-- QR and App Promo -->
-        <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded-4">
-            <div id="service-share-card-qrcode" class="qr-container shadow-sm border rounded-3 p-1 bg-white"></div>
-            <div class="text-end ms-3">
-                <div class="fw-bold small mb-1">متوفر الآن للتطبيق والموقع</div>
-                <div class="badges-mini d-flex gap-1 justify-content-end">
-                    <i class="fa-brands fa-google-play text-muted"></i>
-                    <i class="fa-brands fa-apple text-muted"></i>
+                <!-- Direct Social Sharing Links -->
+                <div class="d-flex justify-content-center gap-3 mt-2 pt-3 border-top">
+                    <!-- WhatsApp: share the OG page URL so WhatsApp can show a preview -->
+                    <a href="https://wa.me/?text=@Uri.EscapeDataString($"{service?.Title}\n{SharePageUrl}")" target="_blank" class="btn btn-outline-success rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="fa-brands fa-whatsapp fs-5"></i>
+                    </a>
+                    <!-- Telegram: pass OG page as the URL for rich preview -->
+                    <a href="https://t.me/share/url?url=@Uri.EscapeDataString(SharePageUrl)&text=@Uri.EscapeDataString(service?.Title ?? "")" target="_blank" class="btn btn-outline-info rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="fa-brands fa-telegram fs-5"></i>
+                    </a>
+                    <!-- Facebook: must use the server-side OG page so the bot can scrape it -->
+                    <a href="https://www.facebook.com/sharer/sharer.php?u=@Uri.EscapeDataString(SharePageUrl)" target="_blank" class="btn btn-outline-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="fa-brands fa-facebook-f fs-5"></i>
+                    </a>
                 </div>
             </div>
         </div>
-        
-        <div class="mt-4 x-small text-primary opacity-50">@State.AppName &copy; 2026 - منصة جميع الخدمات في مكان واحد</div>
     </div>
-</div>
+}
 
 <!-- Simple Modals (rendered as overlays for now) -->
 @if (showRateModal)
@@ -790,40 +898,96 @@
     }
 
     /* Share Card Capture Styles */
-    .share-capture-card {
-        width: 450px;
-        background: white;
-        border-radius: 20px;
-        overflow: hidden;
-        font-family: 'Tajawal', sans-serif;
+    .btn-share-premium {
+        background: linear-gradient(135deg, var(--theme-primary, #6366f1) 0%, var(--theme-secondary, #4f46e5) 100%);
+        color: white;
+        border: none;
+        border-radius: 15px;
+        font-weight: 800;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2) !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
     }
-    .share-card-content {
-        background: linear-gradient(180deg, rgba(99, 102, 241, 0.05) 0%, #ffffff 20%);
+    .btn-share-premium:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3) !important;
+        filter: brightness(1.05);
+        color: white;
     }
-    .share-logo-container {
-        background: white;
-        padding: 5px;
-        border-radius: 12px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    .btn-share-premium:active {
+        transform: translateY(0);
     }
-    .share-brand div { line-height: 1; }
-    .share-divider {
-        height: 1px;
-        background: #e2e8f0;
-        position: relative;
+    .share-modal-container {
+        max-width: 480px;
+        width: 95%;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    .share-preview-wrapper {
+        background: #f1f5f9;
+        padding: 20px;
         display: flex;
         justify-content: center;
         align-items: center;
     }
-    .share-cta {
+    .share-capture-card {
+        width: 100%;
         background: white;
-        padding: 0 15px;
-        font-size: 0.75rem;
-        color: #64748b;
-        font-weight: 700;
-        position: absolute;
+        border-radius: 24px;
+        overflow: hidden;
+        font-family: 'Tajawal', sans-serif;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        text-align: right;
     }
-    .qr-container { width: 110px; height: 110px; }
+    .share-card-content {
+        background: #ffffff;
+        padding: 24px;
+    }
+    .share-logo-container {
+        background: white;
+        padding: 4px;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .share-brand {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .share-rating-box {
+        font-size: 0.8rem;
+    }
+    .share-categories-path {
+        background: #f8fafc;
+        border: 1px solid #f1f5f9;
+        color: #64748b;
+        padding: 8px 12px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .share-main-img-container {
+        position: relative;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid #f1f5f9;
+    }
+    .share-contacts-row {
+        background: #f8fafc;
+        border: 1px solid #f1f5f9;
+        padding: 12px;
+        border-radius: 16px;
+    }
+    .qr-container {
+        width: 100px;
+        height: 100px;
+    }
 
     /* Skeleton Loading System */
     .skeleton-box {
@@ -924,7 +1088,23 @@
     private string similarServicesLabel = "خدمات مشابهة قد تهمك";
     private string activeTab = "details";
     private bool showRateModal = false;
+    private bool showShareModal = false;
+    private string? shareCopyStatus;
     private int userRating = 0;
+
+    /// <summary>
+    /// Server-side OG page URL — Facebook/WhatsApp/Telegram bots can scrape this
+    /// because it returns static HTML with og:title, og:image, og:description.
+    /// Human visitors are auto-redirected back to the SPA page.
+    /// </summary>
+    private string SharePageUrl
+    {
+        get
+        {
+            var uri = new Uri(Navigation.Uri);
+            return $"{uri.Scheme}://{uri.Authority}/share/service/{Id}";
+        }
+    }
     private string userComment = "";
     private string mainImage => Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(service?.CategoryName, service?.Images?.FirstOrDefault());
 
@@ -1022,9 +1202,36 @@
         service.Reviews ??= new List<ReviewDto>();
         service.Posts   ??= new List<PostDto>();
 
-        // Add a placeholder image if none exist
+        // Add a category/subcategory image if none exist
         if (!service.Images.Any())
-            service.Images.Add($"https://picsum.photos/seed/{service.Id}/800/600");
+        {
+            string categoryImage = "";
+            if (!string.IsNullOrEmpty(service.SubCategoryName))
+            {
+                categoryImage = Khadamat.BlazorUI.Helpers.CategoryIconResolver.GetIconUrl(service.SubCategoryName, null, null, service.CategoryName);
+            }
+            else if (!string.IsNullOrEmpty(service.CategoryName))
+            {
+                categoryImage = Khadamat.BlazorUI.Helpers.CategoryIconResolver.GetIconUrl(service.CategoryName, null, null, service.MainCategoryName);
+            }
+            else if (!string.IsNullOrEmpty(service.MainCategoryName))
+            {
+                categoryImage = Khadamat.BlazorUI.Helpers.CategoryIconResolver.GetIconUrl(service.MainCategoryName);
+            }
+
+            if (string.IsNullOrEmpty(categoryImage) || categoryImage.Contains("other_services"))
+            {
+                categoryImage = $"https://picsum.photos/seed/{service.Id}/800/600";
+            }
+            else
+            {
+                if (!categoryImage.StartsWith("/") && !categoryImage.StartsWith("http"))
+                {
+                    categoryImage = "/" + categoryImage;
+                }
+            }
+            service.Images.Add(categoryImage);
+        }
 
         // Ensure location strings have a fallback
         if (string.IsNullOrEmpty(service.GovernorateName)) service.GovernorateName = service.Location ?? "غير محدد";
@@ -1134,22 +1341,53 @@
 
     private async Task ShareService()
     {
+        await OpenShareModal();
+    }
+
+    private async Task OpenShareModal()
+    {
+        showShareModal = true;
+        shareCopyStatus = null;
+        StateHasChanged();
+        await Task.Delay(150); // Give Blazor UI a moment to render the modal DOM
+        try
+        {
+            await JS.InvokeVoidAsync("generateQRCode", "service-share-card-qrcode", Navigation.Uri);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error rendering QR: {ex.Message}");
+        }
+    }
+
+    private async Task CopyShareLink()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", Navigation.Uri);
+            shareCopyStatus = "تم نسخ رابط الخدمة بنجاح!";
+            _ = Api.RecordShareAsync("Service", Id);
+        }
+        catch (Exception ex)
+        {
+            shareCopyStatus = "فشل نسخ الرابط تلقائياً.";
+            Console.WriteLine($"Clipboard error: {ex.Message}");
+        }
+    }
+
+    private async Task DownloadCardImage()
+    {
         try 
         {
             var fileName = $"Khadamat_Service_{service?.Id}";
             var shareUrl = Navigation.Uri;
             
-            // Invoke the JS we added to index.html
             await JS.InvokeVoidAsync("shareServiceAsImage", "service-share-card", shareUrl, fileName);
-
-            // Record the share for points
-            await Api.RecordShareAsync("Service", Id);
+            _ = Api.RecordShareAsync("Service", Id);
         }
         catch (Exception ex)
         {
-            // Fallback to simple link if complex share fails
-            await DeviceShareService.ShareLinkAsync(Navigation.Uri, service?.Title ?? "خدمة");
-            Console.WriteLine($"Advanced share failed: {ex.Message}");
+            Console.WriteLine($"Download image failed: {ex.Message}");
         }
     }
 
@@ -1258,7 +1496,7 @@
                         Text = newCommentText,
                         CreatedAt = DateTime.Now
                     });
-                    post.CommentsCount = (post.CommentsCount ?? 0) + 1;
+                    post.CommentsCount = post.CommentsCount + 1;
                 }
                 newCommentText = "";
             }

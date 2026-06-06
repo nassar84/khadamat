@@ -275,6 +275,29 @@
             return;
         }
 
+        // Parse query string for errors (e.g. from social login redirection on mobile/web)
+        try
+        {
+            var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+            var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+            if (query.TryGetValue("error", out var errVal))
+            {
+                var errStr = errVal.ToString();
+                if (errStr == "user_cancelled")
+                {
+                    errorMessage = "تم إلغاء عملية تسجيل الدخول.";
+                }
+                else if (!string.IsNullOrEmpty(errStr))
+                {
+                    errorMessage = $"فشل تسجيل الدخول: {errStr}";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Query string parsing error: {ex.Message}");
+        }
+
         try
         {
             isBiometricAvailable = await BiometricService.IsAvailableAsync();

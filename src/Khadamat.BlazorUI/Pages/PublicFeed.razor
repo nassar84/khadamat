@@ -1,0 +1,330 @@
+@page "/feed"
+@using Khadamat.BlazorUI.Services
+@using Khadamat.BlazorUI.Services.Auth
+@using Khadamat.BlazorUI.State
+@inject ApiClient Api
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@inject AppState AppStateInstance
+
+<div class="container py-4" style="max-width: 800px;">
+    <!-- Page Header -->
+    <div class="text-center mb-5 animate-fade-in">
+        <span class="badge bg-primary-soft text-primary px-3 py-2 rounded-pill fw-bold mb-2">📢 آخر الأخبار والتحديثات</span>
+        <h2 class="fw-bold mb-2">منشورات مزودي الخدمات</h2>
+        <p class="text-muted">تابع آخر العروض والتحديثات والمنشورات من مقدمي الخدمات المعتمدين</p>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="d-flex flex-column align-items-center justify-content-center py-5">
+            <div class="spinner-border text-primary mb-3" role="status"></div>
+            <span class="text-muted">جاري تحميل المنشورات...</span>
+        </div>
+    }
+    else if (posts == null || !posts.Any())
+    {
+        <div class="glass-card text-center p-5 animate-fade-in">
+            <i class="fa-regular fa-newspaper display-3 text-muted opacity-50 mb-3"></i>
+            <h5 class="fw-bold">لا توجد منشورات حالياً</h5>
+            <p class="text-muted mb-0">لم يقم مقدمو الخدمات بنشر أي تحديثات بعد. تحقق لاحقاً!</p>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex flex-column gap-4 animate-fade-in">
+            @foreach (var post in posts)
+            {
+                var capturedPostId = post.Id;
+                <div class="post-card glass-card p-4 rounded-4 shadow-sm border border-light position-relative overflow-hidden">
+                    <!-- Provider Header -->
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(post.ProviderName, null, post.ProviderPhoto)"
+                             class="rounded-circle object-fit-cover shadow-sm border"
+                             style="width: 48px; height: 48px;" alt="Provider" />
+                        <div>
+                            <h6 class="fw-bold mb-0 text-dark">@post.ProviderName</h6>
+                            <span class="text-muted x-small">@post.CreatedAt.ToString("dd MMMM yyyy - hh:mm tt")</span>
+                        </div>
+                        <button class="btn btn-outline-primary btn-sm rounded-pill ms-auto" @onclick="() => GoToProvider(post.ProviderId)">
+                            زيارة الملف <i class="fa-solid fa-arrow-left ms-1 small"></i>
+                        </button>
+                    </div>
+
+                    <!-- Post Body -->
+                    <p class="post-text text-dark mb-3">@post.Content</p>
+
+                    @if (!string.IsNullOrEmpty(post.ImageUrl))
+                    {
+                        <div class="post-img-frame mb-3 rounded-4 overflow-hidden border">
+                            <img src="@Api.GetAbsoluteUrl(post.ImageUrl)" class="w-100 object-fit-cover" style="max-height: 400px;" alt="Post Image" />
+                        </div>
+                    }
+
+                    <!-- Stats Row -->
+                    <div class="d-flex gap-3 pt-3 border-top x-small text-muted align-items-center">
+                        <button class="btn-interaction @(likedPostIds.Contains(capturedPostId) ? "liked" : "")" @onclick="() => ToggleLike(capturedPostId)">
+                            <i class="@(likedPostIds.Contains(capturedPostId) ? "fa-solid" : "fa-regular") fa-heart me-1"></i>
+                            @post.LikesCount تفضيل
+                        </button>
+                        <button class="btn-interaction" @onclick="() => ToggleComments(capturedPostId)">
+                            <i class="fa-regular fa-comment me-1"></i> @post.CommentsCount تعليق
+                        </button>
+                    </div>
+
+                    <!-- Comments Drawer -->
+                    @if (expandedPostId == capturedPostId)
+                    {
+                        <div class="comments-section mt-3 pt-3 border-top animate-fade-in">
+                            @if (isCommentsLoading)
+                            {
+                                <div class="text-center py-3">
+                                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="comments-list mb-3 d-flex flex-column gap-2" style="max-height: 250px; overflow-y: auto;">
+                                    @if (currentComments != null && currentComments.Any())
+                                    {
+                                        @foreach (var comment in currentComments)
+                                        {
+                                            <div class="comment-item p-2 rounded-3 bg-light-soft">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <span class="fw-bold x-small text-dark">@comment.UserName</span>
+                                                    <span class="text-muted xx-small">@comment.CreatedAt.ToString("dd/MM hh:mm tt")</span>
+                                                </div>
+                                                <p class="mb-0 x-small text-muted">@comment.Text</p>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="text-center py-2 text-muted x-small">
+                                            لا توجد تعليقات بعد. كن أول من يعلق!
+                                        </div>
+                                    }
+                                </div>
+
+                                <AuthorizeView Context="feedAuthCtx">
+                                    <Authorized>
+                                        <div class="input-group input-group-sm">
+                                            <input type="text"
+                                                   class="form-control rounded-start-pill border-light bg-light px-3"
+                                                   placeholder="اكتب تعليقاً..."
+                                                   @bind="newCommentText"
+                                                   @onkeyup="HandleCommentKeyUp" />
+                                            <button class="btn btn-primary rounded-end-pill px-3" type="button"
+                                                    @onclick="() => SubmitComment(capturedPostId)">
+                                                إرسال
+                                            </button>
+                                        </div>
+                                    </Authorized>
+                                    <NotAuthorized>
+                                        <div class="text-center py-2 bg-light-soft rounded-3 x-small">
+                                            <a href="login" class="text-primary fw-bold text-decoration-none">سجل دخولك</a> لإضافة تعليق.
+                                        </div>
+                                    </NotAuthorized>
+                                </AuthorizeView>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .bg-primary-soft {
+        background: rgba(99, 102, 241, 0.1);
+    }
+    .post-card {
+        background: white;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .post-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.07) !important;
+    }
+    .post-text {
+        white-space: pre-wrap;
+        font-size: 0.95rem;
+        line-height: 1.7;
+    }
+    .post-img-frame {
+        max-height: 400px;
+        background: #f8fafc;
+    }
+    .btn-interaction {
+        background: none;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+    .btn-interaction:hover {
+        background: #f1f5f9;
+        color: var(--theme-primary, #6366f1);
+    }
+    .btn-interaction.liked {
+        color: #ef4444;
+        background: #fef2f2;
+    }
+    .bg-light-soft {
+        background: #f8fafc;
+        border: 1px solid #f1f5f9;
+    }
+    .comment-item {
+        background: #f8fafc;
+        border: 1px solid #f1f5f9;
+    }
+    .x-small { font-size: 0.8rem; }
+    .xx-small { font-size: 0.7rem; }
+</style>
+
+@code {
+    private List<Khadamat.BlazorUI.Services.PublicPostDto>? posts;
+    private bool isLoading = true;
+
+    private int? expandedPostId;
+    private bool isCommentsLoading = false;
+    private List<CommentDto> currentComments = new();
+    private string newCommentText = "";
+    private HashSet<int> likedPostIds = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadFeedAsync();
+    }
+
+    private async Task LoadFeedAsync()
+    {
+        isLoading = true;
+        try
+        {
+            posts = await Api.GetPublicPostsAsync(1, 20);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading public feed: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void GoToProvider(int providerId)
+    {
+        Navigation.NavigateTo($"/services?providerId={providerId}");
+    }
+
+    private async Task ToggleLike(int postId)
+    {
+        if (!AppStateInstance.IsAuthenticated)
+        {
+            Navigation.NavigateTo("login");
+            return;
+        }
+
+        try
+        {
+            var success = await Api.ToggleLikePostAsync(postId);
+            if (success)
+            {
+                var post = posts?.FirstOrDefault(p => p.Id == postId);
+                if (post != null)
+                {
+                    if (likedPostIds.Contains(postId))
+                    {
+                        likedPostIds.Remove(postId);
+                        post.LikesCount = Math.Max(0, post.LikesCount - 1);
+                    }
+                    else
+                    {
+                        likedPostIds.Add(postId);
+                        post.LikesCount++;
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error liking post: {ex.Message}");
+        }
+    }
+
+    private async Task ToggleComments(int postId)
+    {
+        if (expandedPostId == postId)
+        {
+            expandedPostId = null;
+            return;
+        }
+
+        expandedPostId = postId;
+        isCommentsLoading = true;
+        currentComments.Clear();
+
+        try
+        {
+            var providerPosts = await Api.GetProviderPostsAsync(
+                posts?.FirstOrDefault(p => p.Id == postId)?.ProviderId ?? 0);
+            var fullPost = providerPosts.FirstOrDefault(p => p.Id == postId);
+            if (fullPost != null)
+                currentComments = fullPost.Comments;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching comments: {ex.Message}");
+        }
+        finally
+        {
+            isCommentsLoading = false;
+        }
+    }
+
+    private async Task HandleCommentKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && expandedPostId.HasValue)
+            await SubmitComment(expandedPostId.Value);
+    }
+
+    private async Task SubmitComment(int postId)
+    {
+        if (string.IsNullOrWhiteSpace(newCommentText)) return;
+
+        try
+        {
+            var success = await Api.CreateCommentAsync(new CreateCommentRequest
+            {
+                PostId = postId,
+                Text = newCommentText
+            });
+
+            if (success)
+            {
+                currentComments.Insert(0, new CommentDto
+                {
+                    UserName = "أنت",
+                    Text = newCommentText,
+                    CreatedAt = DateTime.Now
+                });
+
+                var post = posts?.FirstOrDefault(p => p.Id == postId);
+                if (post != null) post.CommentsCount++;
+
+                newCommentText = "";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating comment: {ex.Message}");
+        }
+    }
+}

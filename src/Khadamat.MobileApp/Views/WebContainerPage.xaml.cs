@@ -2,6 +2,7 @@ using Microsoft.Maui.Networking;
 using Microsoft.Maui.Controls;
 using System;
 using System.Threading.Tasks;
+using Khadamat.MobileApp.Security;
 
 namespace Khadamat.MobileApp.Views;
 
@@ -238,6 +239,29 @@ public partial class WebContainerPage : ContentPage
     {
         var url = e.Url;
 
+        // Catch social login / external login requests to trigger native WebAuthenticator
+        if (url.Contains("/v1/auth/external-login"))
+        {
+            e.Cancel = true;
+            string provider = "Google";
+            try
+            {
+                var uri = new Uri(url);
+                var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+                provider = query["provider"] ?? "Google";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ANTIGRAVITY_LOG: Error parsing provider: {ex.Message}");
+            }
+
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                await HandleNativeExternalLogin(provider);
+            });
+            return;
+        }
+
         // Catch internal history routing sync
         if (url.StartsWith("khadamat://routechange"))
         {
@@ -464,6 +488,56 @@ public partial class WebContainerPage : ContentPage
         // 4. Default: Exit the app (we are at the home root)
         Console.WriteLine("ANTIGRAVITY_LOG: No back history, exiting application.");
         return false;
+    }
+
+    private async Task HandleNativeExternalLogin(string provider)
+    {
+        try
+        {
+            string apiBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("ApiBaseUrl", "https://jobsek.eis-dev.com");
+            string webAppBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "https://jobsek.eis-dev.com");
+            
+            var callbackUrl = "khadamat://callback";
+            var authUrl = $"{apiBaseUrl.TrimEnd('/')}/v1/auth/external-login?provider={provider}&redirectUrl={Uri.EscapeDataString(callbackUrl)}";
+            
+            Console.WriteLine($"ANTIGRAVITY_LOG: Starting native external login for {provider} using URL: {authUrl}");
+            
+            var authenticator = new MauiExternalAuthService();
+            var authResult = await authenticator.AuthenticateAsync(provider, authUrl, "khadamat");
+            
+            if (authResult != null && !string.IsNullOrEmpty(authResult.Token))
+            {
+                Console.WriteLine($"ANTIGRAVITY_LOG: Native auth succeeded. Token received.");
+                
+                // Redirect the WebView to the login-callback page with the tokens
+                var targetUrl = $"{webAppBaseUrl.TrimEnd('/')}/login-callback?token={Uri.EscapeDataString(authResult.Token)}&refreshToken={Uri.EscapeDataString(authResult.RefreshToken ?? "")}&nativeapp=1";
+                
+                LoadUrl(targetUrl, true);
+            }
+            else if (authResult != null && !string.IsNullOrEmpty(authResult.Error))
+            {
+                Console.WriteLine($"ANTIGRAVITY_LOG: Native auth failed. Error: {authResult.Error}");
+                
+                // Redirect back to login page with error
+                var targetUrl = $"{webAppBaseUrl.TrimEnd('/')}/login?error={Uri.EscapeDataString(authResult.Error)}&nativeapp=1";
+                LoadUrl(targetUrl, true);
+            }
+            else
+            {
+                Console.WriteLine($"ANTIGRAVITY_LOG: Native auth was cancelled by the user.");
+                // User cancelled, redirect back to login page with a cancelled error
+                var targetUrl = $"{webAppBaseUrl.TrimEnd('/')}/login?error={Uri.EscapeDataString("user_cancelled")}&nativeapp=1";
+                LoadUrl(targetUrl, true);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ANTIGRAVITY_LOG: Exception in HandleNativeExternalLogin: {ex.Message}");
+            
+            string webAppBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "https://jobsek.eis-dev.com");
+            var targetUrl = $"{webAppBaseUrl.TrimEnd('/')}/login?error={Uri.EscapeDataString(ex.Message)}&nativeapp=1";
+            LoadUrl(targetUrl, true);
+        }
     }
 }
 
