@@ -15,11 +15,19 @@ namespace Khadamat.Application.Features.Services.Handlers;
 public class GetServiceHandler : IRequestHandler<Queries.GetServiceQuery, PaginatedResult<ServiceDto>>
 {
     private readonly IGenericRepository<Service> _repository;
+    private readonly IGenericRepository<ProviderProfile> _providerRepo;
+    private readonly IUserService _userService;
     private readonly IMapper _mapper;
 
-    public GetServiceHandler(IGenericRepository<Service> repository, IMapper mapper)
+    public GetServiceHandler(
+        IGenericRepository<Service> repository, 
+        IGenericRepository<ProviderProfile> providerRepo,
+        IUserService userService,
+        IMapper mapper)
     {
         _repository = repository;
+        _providerRepo = providerRepo;
+        _userService = userService;
         _mapper = mapper;
     }
 
@@ -40,15 +48,20 @@ public class GetServiceHandler : IRequestHandler<Queries.GetServiceQuery, Pagina
             (string.IsNullOrEmpty(request.Location) || (s.Address != null && s.Address.Contains(request.Location)));
         
         // Includes for mapping
-        string includes = "Category,SubCategory,City,City.Governorate,Ratings,Likes";
+        string includes = "Category,Category.MainCategory,SubCategory,SubCategory.Category,SubCategory.Category.MainCategory,City,City.Governorate,Ratings,Likes";
 
         Func<IQueryable<Service>, IOrderedQueryable<Service>> orderBy = request.SortBy switch
         {
-            "price-asc" => q => q.OrderBy(s => s.Price ?? decimal.MaxValue),
-            "rating" => q => q.OrderByDescending(s => s.Ratings.Any() ? s.Ratings.Average(r => (double?)r.Stars) : 0)
-                              .ThenByDescending(s => s.CreatedAt),
-            _ => q => q.OrderByDescending(s => s.Ratings.Any() ? s.Ratings.Average(r => (double?)r.Stars) : 0)
-                       .ThenByDescending(s => s.CreatedAt)
+            "price-asc"      => q => q.OrderBy(s => s.Price ?? decimal.MaxValue),
+            "price-desc"     => q => q.OrderByDescending(s => s.Price ?? 0),
+            "rating"         => q => q.OrderByDescending(s => s.Ratings.Any() ? s.Ratings.Average(r => (double?)r.Stars) : 0)
+                                      .ThenByDescending(s => s.CreatedAt),
+            "latest"         => q => q.OrderByDescending(s => s.CreatedAt),
+            "display-order"  => q => q.OrderBy(s => s.DisplayOrder).ThenByDescending(s => s.CreatedAt),
+            // Default: DisplayOrder first (admin-controlled priority), then by rating
+            _                => q => q.OrderBy(s => s.DisplayOrder == 0 ? int.MaxValue : s.DisplayOrder)
+                                      .ThenByDescending(s => s.Ratings.Any() ? s.Ratings.Average(r => (double?)r.Stars) : 0)
+                                      .ThenByDescending(s => s.CreatedAt)
         };
 
         var pagedItems = await _repository.GetPagedAsync(page, pageSize, filter, 
@@ -59,7 +72,19 @@ public class GetServiceHandler : IRequestHandler<Queries.GetServiceQuery, Pagina
         
         var dtos = _mapper.Map<List<ServiceDto>>(pagedItems);
         
-        // Map City and Governorate information for each service
+        // Fetch Provider Details for all services in the page
+        var providerProfileIds = pagedItems.Select(s => s.ProviderProfileId).Distinct().ToList();
+        var providers = providerProfileIds.Any()
+            ? await _providerRepo.GetPagedAsync(1, providerProfileIds.Count, p => providerProfileIds.Contains(p.Id))
+            : new List<ProviderProfile>();
+        var providersDict = providers.ToDictionary(p => p.Id, p => p);
+        
+        var userIds = providers.Select(p => p.UserId).Distinct().ToList();
+        var userDict = userIds.Any()
+            ? await _userService.GetUsersBasicInfoAsync(userIds)
+            : new Dictionary<string, (string Name, string Avatar)>();
+        
+        // Map City, Governorate, and Provider information for each service
         foreach (var dto in dtos)
         {
             var service = pagedItems.FirstOrDefault(s => s.Id == dto.Id);
@@ -74,6 +99,17 @@ public class GetServiceHandler : IRequestHandler<Queries.GetServiceQuery, Pagina
                     dto.GovernorateName = service.City.Governorate.Governorate_Name_AR;
                     dto.GovernorateNameEn = service.City.Governorate.Governorate_Name_EN;
                 }
+            }
+
+            if (service != null && providersDict.TryGetValue(service.ProviderProfileId, out var provider))
+            {
+                userDict.TryGetValue(provider.UserId, out var userInfo);
+                string actualUserName = !string.IsNullOrWhiteSpace(userInfo.Name) ? userInfo.Name : "مقدم خدمة";
+                
+                dto.ProviderName = !string.IsNullOrWhiteSpace(provider.BusinessName)
+                    ? provider.BusinessName
+                    : actualUserName;
+                dto.ProviderPhoto = provider.Photo;
             }
         }
         

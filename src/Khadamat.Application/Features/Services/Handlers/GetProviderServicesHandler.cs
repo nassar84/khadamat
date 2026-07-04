@@ -14,12 +14,18 @@ public class GetProviderServicesHandler : IRequestHandler<Queries.GetProviderSer
 {
     private readonly IGenericRepository<Service> _repository;
     private readonly IGenericRepository<ProviderProfile> _providerRepository;
+    private readonly IUserService _userService;
     private readonly IMapper _mapper;
 
-    public GetProviderServicesHandler(IGenericRepository<Service> repository, IGenericRepository<ProviderProfile> providerRepository, IMapper mapper)
+    public GetProviderServicesHandler(
+        IGenericRepository<Service> repository, 
+        IGenericRepository<ProviderProfile> providerRepository, 
+        IUserService userService,
+        IMapper mapper)
     {
         _repository = repository;
         _providerRepository = providerRepository;
+        _userService = userService;
         _mapper = mapper;
     }
 
@@ -28,7 +34,7 @@ public class GetProviderServicesHandler : IRequestHandler<Queries.GetProviderSer
         var provider = await _providerRepository.GetAsync(p => p.UserId == request.UserId);
         int providerId = provider?.Id ?? 0;
 
-        string includes = "Category,SubCategory,City,City.Governorate,Ratings,Likes";
+        string includes = "Category,Category.MainCategory,SubCategory,SubCategory.Category,SubCategory.Category.MainCategory,City,City.Governorate,Ratings,Likes";
 
         var pagedItems = await _repository.GetPagedAsync(request.Page, request.PageSize, 
             filter: s => s.ProviderProfileId == providerId, 
@@ -40,7 +46,23 @@ public class GetProviderServicesHandler : IRequestHandler<Queries.GetProviderSer
         
         var dtos = _mapper.Map<List<ServiceDto>>(pagedItems);
         
-        // Map City and Governorate information for each service
+        // Fetch Provider Name & Photo
+        string actualUserName = "مقدم خدمة";
+        if (provider != null)
+        {
+            var pUserDict = await _userService.GetUsersBasicInfoAsync(new List<string> { provider.UserId });
+            if (pUserDict.TryGetValue(provider.UserId, out var pUserInfo) && !string.IsNullOrWhiteSpace(pUserInfo.Name))
+            {
+                actualUserName = pUserInfo.Name;
+            }
+        }
+
+        string providerName = provider != null && !string.IsNullOrWhiteSpace(provider.BusinessName)
+            ? provider.BusinessName
+            : actualUserName;
+        string providerPhoto = provider?.Photo ?? string.Empty;
+        
+        // Map City, Governorate, and Provider information for each service
         foreach (var dto in dtos)
         {
             var service = pagedItems.FirstOrDefault(s => s.Id == dto.Id);
@@ -56,6 +78,9 @@ public class GetProviderServicesHandler : IRequestHandler<Queries.GetProviderSer
                     dto.GovernorateNameEn = service.City.Governorate.Governorate_Name_EN;
                 }
             }
+
+            dto.ProviderName = providerName;
+            dto.ProviderPhoto = providerPhoto;
         }
         
         return new PaginatedResult<ServiceDto>(dtos, totalCount, request.Page, request.PageSize);

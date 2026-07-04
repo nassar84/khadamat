@@ -6,6 +6,9 @@ using System.Text.Json;
 using Khadamat.Application.Features.Services.Commands;
 using Microsoft.AspNetCore.Components.Forms;
 using System.Net.Http.Headers;
+using Khadamat.BlazorUI.Models;
+using Khadamat.BlazorUI.Helpers;
+
 
 namespace Khadamat.BlazorUI.Services;
 
@@ -49,6 +52,72 @@ public class ApiClient
         if (response.IsSuccessStatusCode)
             return await response.Content.ReadFromJsonAsync<T>();
         return default;
+    }
+
+    /// <summary>
+    /// رفع صورة إلى الخادم وإعادة نتيجة الرفع.
+    ///
+    /// ما يُخزَّن في قاعدة البيانات: result.Filename (اسم الملف فقط)
+    /// ما يُستخدم في img src: result.Url (المسار الكامل)
+    ///
+    /// مثال:
+    ///   var result = await Api.UploadImageAsync(file, EntityImageType.Service);
+    ///   if (result != null) service.ImageUrl = result.Filename; // ← save to DB
+    ///   // في العرض: <img src="@ImagePathResolver.Service(service.ImageUrl)" />
+    /// </summary>
+    public async Task<UploadResult?> UploadImageAsync(IBrowserFile file, Khadamat.BlazorUI.Helpers.EntityImageType entityType, long maxSizeBytes = 10 * 1024 * 1024)
+    {
+        try
+        {
+            var uploadType = Khadamat.BlazorUI.Helpers.ImagePathResolver.GetUploadType(entityType);
+            using var content = new MultipartFormDataContent();
+            using var stream = file.OpenReadStream(maxSizeBytes);
+            var fileContent = new StreamContent(stream);
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+            content.Add(fileContent, "file", file.Name);
+
+            var response = await _http.PostAsync($"v1/upload?type={uploadType}", content);
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<UploadResult>();
+            }
+            var error = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"[UploadImageAsync] Failed: {response.StatusCode} — {error}");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[UploadImageAsync] Error: {ex.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// رفع صورة بنوع مخصص (string) — للحالات الاستثنائية.
+    /// استخدم UploadImageAsync(IBrowserFile, EntityImageType) عادةً.
+    /// </summary>
+    public async Task<UploadResult?> UploadImageAsync(IBrowserFile file, string uploadType = "services", long maxSizeBytes = 10 * 1024 * 1024)
+    {
+        try
+        {
+            using var content = new MultipartFormDataContent();
+            using var stream = file.OpenReadStream(maxSizeBytes);
+            var fileContent = new StreamContent(stream);
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+            content.Add(fileContent, "file", file.Name);
+
+            var response = await _http.PostAsync($"v1/upload?type={uploadType}", content);
+            if (response.IsSuccessStatusCode)
+                return await response.Content.ReadFromJsonAsync<UploadResult>();
+
+            Console.WriteLine($"[UploadImageAsync] Failed: {response.StatusCode}");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[UploadImageAsync] Error: {ex.Message}");
+            return null;
+        }
     }
 
     private static ApiResponse<AppSettingsDto>? _settingsCache;
@@ -114,7 +183,17 @@ public class ApiClient
 
     public async Task<ServiceDto?> GetServiceByIdAsync(int id)
     {
-        return await _http.GetFromJsonAsync<ServiceDto>($"v1/services/{id}");
+        try
+        {
+            var response = await _http.GetAsync($"v1/services/{id}");
+            if (!response.IsSuccessStatusCode) return null;
+            return await response.Content.ReadFromJsonAsync<ServiceDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GetServiceByIdAsync] Error: {ex.Message}");
+            return null;
+        }
     }
 
     public async Task<PaginatedResult<ServiceDto>> GetSimilarServicesAsync(int id, int count = 4)
@@ -783,6 +862,21 @@ public class ApiClient
         return response.IsSuccessStatusCode;
     }
 
+    public async Task<(bool Success, string? ImageUrl)> GenerateShareCardAsync(int serviceId)
+    {
+        try
+        {
+            var response = await _http.PostAsync($"share/service/{serviceId}/generate-card", null);
+            if (!response.IsSuccessStatusCode) return (false, null);
+            var json = await response.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();
+            return (json.GetProperty("success").GetBoolean(), json.GetProperty("imageUrl").GetString());
+        }
+        catch
+        {
+            return (false, null);
+        }
+    }
+
     public async Task<bool> MarkAllNotificationsAsReadAsync()
     {
         var response = await _http.PostAsync("v1/notifications/read-all", null);
@@ -1199,7 +1293,7 @@ public class ApiClient
         }
     }
 
-    public async Task<ImageUploadResponse> UploadImageAsync(IBrowserFile file)
+    public async Task<ImageUploadResponse> UploadImageAsync(IBrowserFile file, string uploadType = "services")
     {
         try
         {
@@ -1208,9 +1302,14 @@ public class ApiClient
             fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
             content.Add(fileContent, "file", file.Name);
 
-            var response = await _http.PostAsync("v1/upload", content);
-            return await response.Content.ReadFromJsonAsync<ImageUploadResponse>() 
-                   ?? new ImageUploadResponse { Success = false, Message = "Failed to parse upload response" };
+            var response = await _http.PostAsync($"v1/upload?type={uploadType}", content);
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<ImageUploadResponse>();
+                return result ?? new ImageUploadResponse { Success = false, Message = "Failed to parse upload response" };
+            }
+            var error = await response.Content.ReadAsStringAsync();
+            return new ImageUploadResponse { Success = false, Message = $"Upload failed ({response.StatusCode}): {error}" };
         }
         catch (Exception ex)
         {
@@ -1225,6 +1324,7 @@ public class CreatePostRequest
 {
     public string Content { get; set; } = string.Empty;
     public string? ImageUrl { get; set; }
+    public int? ServiceId { get; set; }
 }
 
 public class CreateReviewRequest
@@ -1267,7 +1367,10 @@ public class ImageUploadResponse
 {
     public bool Success { get; set; }
     public string? Message { get; set; }
-    public string? ImageUrl { get; set; }
+    /// <summary>Relative URL returned by UploadController (e.g. /images/services/xxx.jpg)</summary>
+    public string? Url { get; set; }
+    /// <summary>Legacy alias kept for backward compatibility</summary>
+    public string? ImageUrl { get => Url; set => Url = value; }
 }
 
 public class ProviderProfileDto
