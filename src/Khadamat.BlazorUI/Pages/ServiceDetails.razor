@@ -620,7 +620,7 @@
                 {
                     <div class="d-flex justify-content-center gap-3 my-2">
                         <!-- WhatsApp -->
-                        <a href="https://wa.me/?text=@(Uri.EscapeDataString(GetShareText()))" target="_blank" class="share-social-btn share-whatsapp" @onclick="RecordShare">
+                        <a href="https://wa.me/?text=@(Uri.EscapeDataString(GetWhatsAppShareText()))" target="_blank" class="share-social-btn share-whatsapp" @onclick="RecordShare">
                             <i class="fa-brands fa-whatsapp"></i>
                             <span>واتساب</span>
                         </a>
@@ -1533,6 +1533,19 @@
         var desc = service?.Description ?? "";
         if (desc.Length > 120) desc = desc.Substring(0, 117) + "...";
         return $"📢 تم مشاركة هذه الخدمة من تطبيق وموقع خدماوي 📲\n\n🌟 الخدمة: *{title}*\n📝 التفاصيل: {desc}\n\n💡 منصة خدماوي هي سوق الخدمات والأعمال الأول في مصر. تصفح آلاف الخدمات والمنتجات القريبة منك وتواصل مباشرة مع أصحابها مجاناً وبدون عمولات!\n\n📲 حمل التطبيق الآن واستفد من خدماتنا المتنوعة:\n🔗 رابط تحميل التطبيق مجاناً: https://play.google.com/store/apps/details?id=com.nassar84.khadamat\n\n🔗 رابط تفاصيل الخدمة على الموقع:\n{SharePageUrl}";
+    }
+
+    private string GetWhatsAppShareText()
+    {
+        var title = service?.Title ?? "";
+        var desc = service?.Description ?? "";
+        if (desc.Length > 120) desc = desc.Substring(0, 117) + "...";
+        
+        var priceText = service?.Price.HasValue == true ? $"{service.Price:N0} ج.م" : "مجاناً";
+        var location = $"{service?.GovernorateName ?? ""} - {service?.CityName ?? ""}";
+        
+        // Placing the SharePageUrl first guarantees that WhatsApp loads the rich link preview with the service image/details card.
+        return $"{SharePageUrl}\n\n📢 تم مشاركة هذه الخدمة من تطبيق وموقع خدماوي 📲\n\n🌟 الخدمة: *{title}*\n📍 المنطقة: {location}\n💰 السعر: {priceText}\n📝 التفاصيل: {desc}\n\n💡 منصة خدماوي هي سوق الخدمات والأعمال الأول في مصر. تصفح آلاف الخدمات والمنتجات القريبة منك وتواصل مباشرة مع أصحابها مجاناً وبدون عمولات!\n\n📲 حمل التطبيق الآن واستفد من خدماتنا المتنوعة:\n🔗 رابط تحميل التطبيق مجاناً: https://play.google.com/store/apps/details?id=com.nassar84.khadamat";
     }
 
     private void RecordShare()
