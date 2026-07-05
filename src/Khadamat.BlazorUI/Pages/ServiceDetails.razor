@@ -62,14 +62,37 @@
             </div>
 
             <div class="mb-4">
-                <div class="d-flex flex-wrap gap-2 mb-2">
-                    <span class="category-tag">@service.MainCategoryName</span>
-                    <span class="category-tag bg-indigo-light text-indigo">@service.CategoryName</span>
-                    @if (!string.IsNullOrEmpty(service.SubCategoryName))
-                    {
-                        <span class="category-tag bg-purple-light text-purple">@service.SubCategoryName</span>
-                    }
-                </div>
+                <nav aria-label="breadcrumb" class="mb-2">
+                    <ol class="breadcrumb-v3 d-flex flex-wrap align-items-center gap-1 mb-0 p-0 list-unstyled">
+                        <li>
+                            <a class="category-tag breadcrumb-link"
+                               href="/explore/main/@service.MainCategoryId/@Uri.EscapeDataString(service.MainCategoryName ?? "")">
+                                <i class="fa-solid fa-house-chimney me-1 opacity-75" style="font-size:0.7rem"></i>
+                                @service.MainCategoryName
+                            </a>
+                        </li>
+                        @if (!string.IsNullOrEmpty(service.CategoryName) && service.CategoryId.HasValue)
+                        {
+                            <li class="breadcrumb-sep"><i class="fa-solid fa-chevron-left"></i></li>
+                            <li>
+                                <a class="category-tag bg-indigo-light text-indigo breadcrumb-link"
+                                   href="/explore/category/@service.CategoryId/@Uri.EscapeDataString(service.CategoryName ?? "")">
+                                    @service.CategoryName
+                                </a>
+                            </li>
+                        }
+                        @if (!string.IsNullOrEmpty(service.SubCategoryName) && service.SubCategoryId.HasValue)
+                        {
+                            <li class="breadcrumb-sep"><i class="fa-solid fa-chevron-left"></i></li>
+                            <li>
+                                <a class="category-tag bg-purple-light text-purple breadcrumb-link"
+                                   href="/explore/subcategory/@service.SubCategoryId/@Uri.EscapeDataString(service.SubCategoryName ?? "")">
+                                    @service.SubCategoryName
+                                </a>
+                            </li>
+                        }
+                    </ol>
+                </nav>
                 <h1 class="fw-900 mb-0 display-5 text-dark">@service.Title</h1>
             </div>
 
@@ -851,6 +874,22 @@
         border-radius: 50px;
         font-size: 0.8rem;
         font-weight: 700;
+    }
+    a.breadcrumb-link {
+        text-decoration: none;
+        transition: opacity 0.18s, transform 0.15s;
+        cursor: pointer;
+    }
+    a.breadcrumb-link:hover {
+        opacity: 0.75;
+        transform: translateY(-1px);
+        text-decoration: none;
+    }
+    .breadcrumb-sep {
+        color: #94a3b8;
+        font-size: 0.6rem;
+        line-height: 1;
+        padding: 0 2px;
     }
     .provider-strip {
         display: flex;
