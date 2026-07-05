@@ -164,9 +164,11 @@
                     </div>
 
                     <div class="contact-actions-v3 d-flex flex-column gap-2 mt-auto">
+                        @* زر طلب الخدمة — مخفي مؤقتاً بناءً على طلب الإدارة
                         <button class="btn btn-request-main w-100 py-3 shadow-lg" @onclick="OpenRequestModal">
                             <i class="fa-solid fa-calendar-check fs-4"></i> طلب الخدمة الآن
                         </button>
+                        *@
                         
                         @if (!string.IsNullOrEmpty(service.YouTubeUrl))
                         {
