@@ -1,0 +1,402 @@
+﻿diff --git a/src/Khadamat.WasmHost/wwwroot/index.html b/src/Khadamat.WasmHost/wwwroot/index.html
+index 12bd1e1..c59bdb8 100644
+--- a/src/Khadamat.WasmHost/wwwroot/index.html
++++ b/src/Khadamat.WasmHost/wwwroot/index.html
+@@ -4,19 +4,24 @@
+ <head>
+     <meta charset="utf-8" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+-    <title>خدمات</title>
++    <title>خدماوي | Khidmawy</title>
+     <base href="/" />
+ 
+     <!-- Social Media Meta Tags (Open Graph) -->
+-    <meta property="og:title" content="خدماوي - تطبيق الخدمات المتكامل" />
+-    <meta property="og:description" content="اكتشف وطلب أفضل الخدمات في مكان واحد. تطبيق خدمات يوفر لك كل ما تحتاجه بسهولة وأمان." />
+-    <meta property="og:image" content="https://khadamat.vercel.app/images/app-preview.png" />
++    <meta property="og:title" content="خدماوي - Khidmawy | منصة الخدمات المتكاملة" />
++    <meta property="og:description" content="اكتشف وطلب أفضل الخدمات في مكان واحد. خدماوي يوفر لك فنيين محترفين وخدمات متنوعة بسهولة وأمان." />
++    <meta property="og:image" content="/logo.png" />
+     <meta property="og:url" content="https://khadamat.vercel.app" />
+     <meta property="og:type" content="website" />
++    <meta property="og:site_name" content="خدماوي - Khidmawy" />
+     <meta name="twitter:card" content="summary_large_image" />
+-    <meta name="twitter:title" content="خدماوي - تطبيق الخدمات المتكامل" />
++    <meta name="twitter:title" content="خدماوي - Khidmawy | منصة الخدمات المتكاملة" />
+     <meta name="twitter:description" content="اكتشف وطلب أفضل الخدمات في مكان واحد." />
+-    <meta name="twitter:image" content="https://khadamat.vercel.app/images/app-preview.png" />
++    <meta name="twitter:image" content="/logo.png" />
++    <meta name="theme-color" content="#2a7f8f" />
++    <meta name="apple-mobile-web-app-title" content="خدماوي" />
++    <meta name="apple-mobile-web-app-capable" content="yes" />
++    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+ 
+     <!-- Fonts -->
+     <link rel="preconnect" href="https://fonts.googleapis.com">
+@@ -31,7 +36,8 @@
+     <link rel="stylesheet" href="_content/Khadamat.BlazorUI/css/app.css" />
+     <link rel="stylesheet" href="_content/Khadamat.BlazorUI/lib/fontawesome/css/all.min.css" />
+     <link rel="stylesheet" href="_content/Khadamat.BlazorUI/lib/swiper/swiper-bundle.min.css" />
+-    <link rel="icon" type="image/png" href="favicon.png" />
++    <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=3" />
++    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=3" />
+     <link rel="manifest" href="manifest.json" />
+     <!-- Antigravity Update: 2026-03-18 (Fixed API Routes & Loading Overlay) -->
+     <meta name="version" content="1.1.0-Fixed" />
+@@ -39,9 +45,9 @@
+ 
+     <style>
+         :root {
+-            --primary-color: #6366f1;
+-            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+-            --secondary-color: #f43f5e;
++            --primary-color: #2a7f8f;
++            --primary-gradient: linear-gradient(135deg, #2a7f8f 0%, #1d6070 100%);
++            --secondary-color: #f47c30;
+             --bg-glass: rgba(255, 255, 255, 0.7);
+             --bg-glass-dark: rgba(15, 23, 42, 0.8);
+             --text-main: #1e293b;
+@@ -229,35 +235,62 @@
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+     <script src="js/qrcode.min.js"></script>
+     <script>
+-        window.shareServiceAsImage = async (elementId, qrText, fileName) => {
++        // Internal helper: capture an element as a data URL using a clone
++        window._captureElementAsCanvas = async (elementId, qrText) => {
+             const element = document.getElementById(elementId);
+-            if (!element) return;
++            if (!element) throw new Error('Element not found: ' + elementId);
+ 
+-            // Clone the element so the visible modal is not disturbed
++            console.log('[ShareCard] Cloning element:', elementId);
+             const clone = element.cloneNode(true);
+             clone.style.position = 'fixed';
+             clone.style.left = '-9999px';
+             clone.style.top = '0';
+-            clone.style.width = element.offsetWidth + 'px';
++            clone.style.width = '600px';
++            clone.style.height = '315px';
++            clone.style.transform = 'none';
+             clone.style.zIndex = '-1';
+             clone.style.display = 'block';
++            clone.style.opacity = '1';  // ensure visible for html2canvas even if parent was opacity:0
+             document.body.appendChild(clone);
+ 
+-            // Re-generate QR Code inside the clone
+-            const cloneQrContainer = clone.querySelector('#' + elementId + '-qrcode') || clone.querySelector('[id$="-qrcode"]');
+-            if (cloneQrContainer) {
+-                cloneQrContainer.innerHTML = '';
+-                cloneQrContainer.id = elementId + '-qrcode-clone';
+-                new QRCode(cloneQrContainer, {
+-                    text: qrText,
+-                    width: 100,
+-                    height: 100,
+-                    colorDark: "#000000",
+-                    colorLight: "#ffffff",
+-                    correctLevel: QRCode.CorrectLevel.H
+-                });
+-                // Wait for QR to render
+-                await new Promise(resolve => setTimeout(resolve, 300));
++            // Regenerate QR in clone
++            const qrId = elementId + '-qrcode';
++            const qrContainer = clone.querySelector('#' + qrId);
++            if (qrContainer) {
++                if (typeof QRCode !== 'undefined') {
++                    qrContainer.innerHTML = '';
++                    try {
++                        new QRCode(qrContainer, {
++                            text: qrText,
++                            width: 128,
++                            height: 128,
++                            colorDark: "#000000",
++                            colorLight: "#ffffff",
++                            correctLevel: QRCode.CorrectLevel.H
++                        });
++                    } catch (qrErr) {
++                        console.warn('[ShareCard] QR generation failed:', qrErr.message);
++                    }
++                    // Wait for QR image element to render
++                    await new Promise(resolve => setTimeout(resolve, 400));
++                } else {
++                    console.warn('[ShareCard] QRCode library not loaded, skipping QR generation');
++                }
++            }
++
++            // Wait for all images inside clone to finish loading
++            const imgs = Array.from(clone.querySelectorAll('img'));
++            if (imgs.length > 0) {
++                console.log('[ShareCard] Waiting for', imgs.length, 'image(s) to load...');
++                await Promise.allSettled(imgs.map(img => {
++                    if (img.complete && img.naturalWidth > 0) return Promise.resolve();
++                    return new Promise(resolve => {
++                        img.onload = resolve;
++                        img.onerror = resolve;  // resolve on error so we don't hang
++                        setTimeout(resolve, 3000); // safety timeout per image
++                    });
++                }));
++                console.log('[ShareCard] All images ready, starting capture...');
+             }
+ 
+             try {
+@@ -265,56 +298,189 @@
+                     useCORS: true,
+                     scale: 2,
+                     backgroundColor: '#ffffff',
+-                    logging: false
++                    logging: false,
++                    allowTaint: false,
++                    imageTimeout: 5000
+                 });
++                console.log('[ShareCard] Capture success:', canvas.width, 'x', canvas.height);
++                return canvas;
++            } finally {
++                document.body.removeChild(clone);
++            }
++        };
+ 
+-                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+-                const file = new File([blob], fileName + '.png', { type: 'image/png' });
+ 
+-                if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+-                    await navigator.share({
+-                        files: [file],
+-                        title: 'مشاركة الخدمة',
+-                        text: 'شاهد هذه الخدمة الرائعة على تطبيق وموقع خدمات'
+-                    });
++        // 1. Capture the share card and upload it to the API
++        window.uploadShareCardImage = async (elementId, shareUrl, serviceId) => {
++            try {
++                const canvas = await window._captureElementAsCanvas(elementId, shareUrl);
++                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
++                if (!blob) throw new Error('Blob creation failed');
++
++                const formData = new FormData();
++                formData.append('file', blob, `card_${serviceId}.png`);
++                const uploadUrl = `${window.location.origin}/share/service/${serviceId}/image`;
++                const resp = await fetch(uploadUrl, { method: 'POST', body: formData });
++                if (resp.ok) {
++                    console.log('[ShareCard] Card uploaded successfully for service', serviceId);
+                 } else {
+-                    // Fallback: download as image
+-                    const link = document.createElement('a');
+-                    link.download = fileName + '.png';
+-                    link.href = canvas.toDataURL('image/png');
+-                    link.click();
++                    console.warn('[ShareCard] Upload failed:', resp.status, await resp.text());
+                 }
+-            } catch (err) {
+-                console.error('Sharing failed', err);
+-                throw err;
+-            } finally {
+-                document.body.removeChild(clone);
++            } catch (ex) {
++                console.warn('[ShareCard] uploadShareCardImage error:', ex.message);
+             }
+         };
+ 
+-        window.generateQRCode = (elementId, text) => {
+-            const el = document.getElementById(elementId);
+-            if (!el) return;
+-            el.innerHTML = "";
+-            
+-            if (typeof QRCode === 'undefined') {
+-                console.error("QRCode library not loaded. Make sure js/qrcode.min.js is included.");
+-                el.innerHTML = "<p style='color:white;font-size:10px;'>QR Code unavailable</p>";
+-                return;
++        // 2. Capture card and return data URL (for preview in modal)
++        window.captureServiceCardAsImage = async (elementId, shareUrl) => {
++            try {
++                const canvas = await window._captureElementAsCanvas(elementId, shareUrl);
++                return canvas.toDataURL('image/png');
++            } catch (ex) {
++                console.error('[ShareCard] captureServiceCardAsImage error:', ex.message);
++                return null;
++            }
++        };
++
++        // 3. Download card as image file
++        window.shareServiceAsImage = async (elementId, shareUrl, fileName) => {
++            try {
++                const canvas = await window._captureElementAsCanvas(elementId, shareUrl);
++                const a = document.createElement('a');
++                a.href = canvas.toDataURL('image/png');
++                a.download = (fileName || 'khadamat_service') + '.png';
++                a.click();
++            } catch (ex) {
++                console.error('[ShareCard] shareServiceAsImage error:', ex.message);
+             }
++        };
++
++        // 4. Download card image (alias)
++        window.downloadServiceCard = async (elementId, shareUrl, fileName) => {
++            await window.shareServiceAsImage(elementId, shareUrl, fileName);
++        };
++
++        // 5. Native share on mobile or custom share dialog on desktop
++        window.shareCardWithPlatform = async (elementId, shareUrl, fileName, shareText) => {
++            let dataUrl = null;
++            let file = null;
+ 
+             try {
+-                new QRCode(el, {
+-                    text: text,
+-                    width: 128,
+-                    height: 128,
+-                    colorDark: "#000000",
+-                    colorLight: "#ffffff",
+-                    correctLevel: QRCode.CorrectLevel.H
++                const canvas = await window._captureElementAsCanvas(elementId, shareUrl);
++                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
++                if (blob) {
++                    dataUrl = canvas.toDataURL('image/png');
++                    file = new File([blob], (fileName || 'khadamat_service') + '.png', { type: 'image/png' });
++                }
++            } catch (err) {
++                console.warn('[ShareCard] Canvas capture failed, falling back to text-only share:', err.message);
++            }
++
++            // Try native share only on mobile devices where gesture context survives
++            if (navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
++                try {
++                    if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
++                        await navigator.share({ title: 'خدماوي', text: shareText || '', files: [file] });
++                    } else {
++                        await navigator.share({ title: 'خدماوي', text: shareText || '', url: shareUrl });
++                    }
++                    return 'shared';
++                } catch (e) {
++                    if (e.name === 'AbortError') return 'cancelled';
++                    console.warn('[ShareCard] Native share failed, falling back to custom dialog:', e.message);
++                }
++            }
++
++            // Desktop or fallback: custom bottom-sheet share dialog
++            window._showShareOptions(dataUrl, shareUrl, shareText, fileName);
++            return 'dialog';
++        };
++
++        // Custom bottom-sheet share dialog (modal fallback for desktop or native failure)
++        window._showShareOptions = (imageDataUrl, shareUrl, shareText, fileName) => {
++            const existing = document.getElementById('khadamat-share-dialog');
++            if (existing) existing.remove();
++
++            const encodedText = encodeURIComponent(shareText || shareUrl);
++            const encodedUrl  = encodeURIComponent(shareUrl);
++
++            const dialog = document.createElement('div');
++            dialog.id = 'khadamat-share-dialog';
++
++            const imgHtml = imageDataUrl ? `<img src="${imageDataUrl}" style="width:100%;border-radius:14px;margin-bottom:18px;box-shadow:0 6px 20px rgba(0,0,0,0.12);" />` : '';
++            const downloadBtnHtml = imageDataUrl ? `
++                <button id="ksd-download-btn" style="width:100%;padding:14px;background:linear-gradient(135deg,#6366f1 0%,#4f46e5 100%);color:white;border:none;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:10px;box-shadow:0 4px 12px rgba(99,102,241,0.35);">
++                    📥 تحميل البطاقة كصورة
++                </button>` : '';
++
++            dialog.innerHTML = `
++                <div id="khadamat-share-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:999999;display:flex;align-items:flex-end;justify-content:center;animation:ksdo-in 0.25s ease;">
++                    <div onclick="event.stopPropagation()" style="background:white;border-radius:28px 28px 0 0;padding:24px 20px 36px;width:100%;max-width:560px;font-family:'Tajawal',sans-serif;direction:rtl;animation:ksds-in 0.3s cubic-bezier(.4,0,.2,1);">
++                        <div style="width:44px;height:5px;background:#e2e8f0;border-radius:3px;margin:0 auto 18px;"></div>
++                        <p style="font-weight:800;font-size:1.1rem;color:#1e293b;margin:0 0 14px;text-align:center;">🔗 شارك الخدمة</p>
++                        ${imgHtml}
++                        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
++                            <a href="https://wa.me/?text=${encodedText}" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px;background:#dcfce7;border-radius:16px;text-decoration:none;color:#166534;font-size:0.78rem;font-weight:700;">
++                                <span style="font-size:1.7rem;line-height:1;">💬</span>واتساب
++                            </a>
++                            <a href="https://t.me/share/url?url=${encodedUrl}&text=${encodedText}" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px;background:#eff6ff;border-radius:16px;text-decoration:none;color:#1e40af;font-size:0.78rem;font-weight:700;">
++                                <span style="font-size:1.7rem;line-height:1;">✈️</span>تيليجرام
++                            </a>
++                            <a href="https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px;background:#eff6ff;border-radius:16px;text-decoration:none;color:#1d4ed8;font-size:0.78rem;font-weight:700;">
++                                <span style="font-size:1.7rem;line-height:1;">📘</span>فيسبوك
++                            </a>
++                            <button id="ksd-copy-btn" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px;background:#f5f3ff;border-radius:16px;border:none;color:#6d28d9;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif;">
++                                <span style="font-size:1.7rem;line-height:1;">📋</span>نسخ الرابط
++                            </button>
++                        </div>
++                        ${downloadBtnHtml}
++                        <button id="ksd-close-btn" style="width:100%;padding:12px;background:#f1f5f9;color:#475569;border:none;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:0.95rem;font-weight:600;cursor:pointer;">
++                            إغلاق
++                        </button>
++                    </div>
++                </div>
++                <style>
++                    @keyframes ksdo-in { from { opacity:0 } to { opacity:1 } }
++                    @keyframes ksds-in { from { transform:translateY(100%) } to { transform:translateY(0) } }
++                </style>`;
++            document.body.appendChild(dialog);
++
++            document.getElementById('khadamat-share-overlay').addEventListener('click', () => dialog.remove());
++            document.getElementById('ksd-close-btn').addEventListener('click', () => dialog.remove());
++            
++            const downloadBtn = document.getElementById('ksd-download-btn');
++            if (downloadBtn) {
++                downloadBtn.addEventListener('click', () => {
++                    const a = document.createElement('a');
++                    a.href = imageDataUrl;
++                    a.download = (fileName || 'khadamat_service') + '.png';
++                    a.click();
++                    dialog.remove();
+                 });
+-            } catch (e) {
+-                console.error("Error generating QR code:", e);
+             }
++
++            document.getElementById('ksd-copy-btn').addEventListener('click', async () => {
++                try {
++                    await navigator.clipboard.writeText(shareUrl);
++                    document.getElementById('ksd-copy-btn').innerHTML = '<span style="font-size:1.7rem;line-height:1;">✅</span>تم النسخ!';
++                    setTimeout(() => dialog.remove(), 1200);
++                } catch (_) { alert(shareUrl); }
++            });
++        };
++
++        window.generateQRCode = (elementId, text) => {
++            console.log("Generating QR Code for: " + text);
++            const el = document.getElementById(elementId);
++            if (!el) return;
++            el.innerHTML = "";
++            new QRCode(el, {
++                text: text,
++                width: 128,
++                height: 128,
++                colorDark: "#000000",
++                colorLight: "#ffffff",
++                correctLevel: QRCode.CorrectLevel.H
++            });
+             const qrImg = el.querySelector('img');
+             if(qrImg) {
+                 qrImg.style.display = "block";
+@@ -552,6 +718,34 @@
+             }
+         };
+     </script>
++    <script>
++        // Native share bridge for Blazor WebView / MAUI Hybrid
++        window.nativeShare = async (title, text, url) => {
++            const shareData = { title: title || '', text: text || '', url: url || '' };
++            // First try the Web Share API (works in modern Android WebViews with user gesture)
++            if (navigator.share) {
++                try {
++                    await navigator.share(shareData);
++                    return { success: true };
++                } catch (e) {
++                    if (e.name === 'AbortError') return { success: true };
++                    console.warn('navigator.share failed:', e);
++                }
++            }
++            // Fallback: try deep-link to native MAUI share handler
++            try {
++                const query = 'title=' + encodeURIComponent(title || '') + '&text=' + encodeURIComponent(text || '');
++                if (url) shareData.text = (text ? text + '\n' : '') + url;
++                const shareUrl = 'khadamat://share?' + query;
++                // Use location.href change which triggers WebView Navigating event
++                window.location.href = shareUrl;
++                return { success: true };
++            } catch (e) {
++                console.error('Deep-link share failed:', e);
++                return { success: false, error: e.message };
++            }
++        };
++    </script>
+     <script src="_framework/blazor.webassembly.js"></script>
+     <script>
+         if ('serviceWorker' in navigator) {

@@ -16,7 +16,7 @@ namespace Khadamat.MobileApp;
 [IntentFilter(new[] { Intent.ActionView }, 
     Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable }, 
     DataScheme = "https", 
-    DataHost = "jobsek.eis-dev.com", 
+    DataHost = "khadamawy.eis-dev.com", 
     AutoVerify = true)]
 public class DeepLinkActivity : Activity
 {

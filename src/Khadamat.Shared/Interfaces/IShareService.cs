@@ -26,4 +26,9 @@ public interface IShareService
     /// Share multiple files
     /// </summary>
     Task ShareFilesAsync(List<string> filePaths, string title = "مشاركة ملفات");
+
+    /// <summary>
+    /// Share an image (downloaded from imageUrl) along with text content (native share sheet)
+    /// </summary>
+    Task ShareImageWithTextAsync(string imageUrl, string text, string title = "مشاركة خدمة");
 }

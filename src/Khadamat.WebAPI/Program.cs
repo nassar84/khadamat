@@ -1,5 +1,6 @@
 using Khadamat.Infrastructure;
 using Khadamat.Application;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -154,7 +155,12 @@ try
     app.UseBlazorFrameworkFiles();
     app.UseStaticFiles(new StaticFileOptions
     {
-        ContentTypeProvider = provider
+        ContentTypeProvider = provider,
+        OnPrepareResponse = ctx =>
+        {
+            ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
+            ctx.Context.Response.Headers.Append("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+        }
     });
 
     app.UseCors("DefaultCors");
@@ -167,12 +173,45 @@ try
     app.MapHub<Khadamat.WebAPI.Hubs.NotificationHub>("/notificationHub");
     app.MapHub<Khadamat.WebAPI.Hubs.ChatHub>("/chatHub");
 
+    // Bot Redirect Middleware for Social Sharing
+    app.Use(async (context, next) =>
+    {
+        var path = context.Request.Path.Value;
+        if (path != null && path.StartsWith("/service/", StringComparison.OrdinalIgnoreCase))
+        {
+            var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            if (segments.Length == 2 && segments[0].Equals("service", StringComparison.OrdinalIgnoreCase) && int.TryParse(segments[1], out var serviceId))
+            {
+                var userAgent = context.Request.Headers["User-Agent"].ToString().ToLower();
+                var isBot = userAgent.Contains("bot") || 
+                            userAgent.Contains("crawler") || 
+                            userAgent.Contains("spider") || 
+                            userAgent.Contains("scraper") || 
+                            userAgent.Contains("facebookexternalhit") || 
+                            userAgent.Contains("facebot") || 
+                            userAgent.Contains("twitterbot") || 
+                            userAgent.Contains("whatsapp") || 
+                            userAgent.Contains("telegram");
+
+                if (isBot)
+                {
+                    context.Response.Redirect($"/share/service/{serviceId}");
+                    return;
+                }
+            }
+        }
+        await next();
+    });
+
+    // Version check endpoint
+    app.MapGet("/version", () => Results.Ok(new { version = "v2.0.0-fix", date = "2026-06-26", note = "لو شايف ده يبقى التعديلات وصلت" }));
+
     // SPA Fallback
     app.MapFallbackToFile("index.html");
 
     app.Run();
 }
-catch (Exception ex)
+catch (Exception ex) when (ex.GetType().Name != "HostAbortedException")
 {
     Log.Fatal(ex, "Host terminated unexpectedly");
 }

@@ -5,12 +5,12 @@
 
 /* ===== THEME VARIABLES (BRIGHT METALLIC) ===== */
 :root {
-    /* Default Theme - Aurora (Metalic Bloom) */
-    --theme-primary: #8e2de2;
-    --theme-secondary: #4a00e0;
-    --theme-accent: #00d2ff;
-    --theme-light: rgba(142, 45, 226, 0.15);
-    --theme-glow: rgba(0, 210, 255, 0.4);
+    /* Default Theme - Khidmawy (Teal + Orange) */
+    --theme-primary: #2a7f8f;
+    --theme-secondary: #f47c30;
+    --theme-accent: #1d6070;
+    --theme-light: rgba(42, 127, 143, 0.15);
+    --theme-glow: rgba(244, 124, 48, 0.35);
 
     /* Metalic Glass Effect */
     --glass-bg: rgba(255, 255, 255, 0.22);
@@ -189,9 +189,9 @@ body[data-theme="fluffy"]::after {
    =================================================== */
 
 /* ── 1. Universal image guard — no image expands beyond its container ── */
+/* Note: display:block is intentionally NOT set here — it breaks inline-flex / inline contexts */
 img {
     max-width: 100%;
-    display: block;
 }
 
 /* ── 2. Avatar / Profile Images ── */
@@ -247,14 +247,18 @@ img[width="60"][height="60"]    { width: 60px !important; height: 60px !importan
 }
 
 /* ── 7. Service Detail Thumbnails ── */
-.mini-img,
+/* mini-img: size is controlled by the component's own <style> (50px in ServiceDetails).  
+   We only enforce object-fit so no overflow occurs regardless of image dimensions. */
+.mini-img {
+    object-fit: cover !important;
+    flex-shrink: 0 !important;
+}
 .mini-thumb {
     width: 70px !important;
     height: 70px !important;
     object-fit: cover !important;
     border-radius: 10px !important;
     flex-shrink: 0 !important;
-    display: block !important;
 }
 
 /* ── 8. Marketplace Item Detail — Main Image ── */
@@ -312,16 +316,11 @@ img.provider-avatar.shadow-sm {
         max-width: 100% !important;
     }
 
-    /* Cap unconstrained inline images in cards on mobile */
-    .card img:not([width]):not([height]),
-    .card-body img:not([width]):not([height]) {
+    /* Cap unconstrained inline images in cards on mobile only if they have no container */
+    .card > img:not([width]):not([height]),
+    .card-body > img:not([width]):not([height]) {
         max-height: 300px;
         object-fit: cover;
-    }
-
-    /* Service detail main image on mobile */
-    .w-100.h-100.object-fit-cover {
-        max-height: 300px;
     }
 }
 

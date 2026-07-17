@@ -35,14 +35,36 @@ public static class CategoryIconResolver
         { "معامل تحاليل", "labs" },
         { "معامل", "labs" },
         { "مراكز طبية", "hospitals" },
-        { "علاج طبيعي", "physical_therapy" },
-        { "علاج طبيعى", "physical_therapy" },
+        { "علاج طبيعي", "health" },
+        { "علاج طبيعى", "health" },
         { "مراكز اشعة", "radiology" },
+        // Extended medical subcategory names (matching DB exact names)
+        { "جلدية وتناسلية", "dermatology" },
+        { "نساء وتوليد", "clinics" },
+        { "مسالك بولية", "hospitals" },
+        { "جراحة", "hospitals" },
+        { "جراحة عامة", "hospitals" },
+        { "جراحة عظام", "orthopedics" },
+        { "جراحة تجميلية", "clinics" },
+        { "نفسية", "clinics" },
+        { "طوارق", "emergency" },
+        { "قلب واوعية دموية", "clinics" },
+        { "صدر وجهاز تنفسي", "clinics" },
+        { "كبد وجهاز هضمي", "clinics" },
+        { "جهاز هضمي", "clinics" },
+        { "غدد صماء", "clinics" },
+        { "اورام", "hospitals" },
+        { "اطفال وحديثي الولادة", "pediatrics" },
+        { "امراض نساء", "clinics" },
+        { "مركز نساء وتوليد", "clinics" },
 
         { "دروس خصوصية", "tutoring" },
         { "كورسات", "courses" },
         { "حضانات", "nurseries" },
         { "مراكز تدريب", "training_centers" },
+        { "محفظين قرآن", "education" },
+        { "تحفيظ قران", "education" },
+        { "مدارس", "education" },
 
         { "سباكة", "plumbing" },
         { "كهرباء", "electricity" },
@@ -215,60 +237,61 @@ public static class CategoryIconResolver
 
     /// <summary>
     /// Returns the local path to the colorful icon for a given category name.
-    /// Falls back to the parent's icon, original image URL, or a default icon if neither is available.
+    /// Slug icons (generic) come from images/categories/.
+    /// Prioritizes database-stored images (original, parent, grandparent),
+    /// falling back to the slug map, and then to a default icon.
     /// </summary>
-    public static string GetIconUrl(string categoryName, string? originalImageUrl = null, string? fallbackPrefix = null, string? parentCategoryName = null)
+    public static string GetIconUrl(
+        string categoryName, 
+        string? originalImageUrl = null, 
+        string? entityFolder = null, 
+        string? parentCategoryName = null,
+        string? parentImageUrl = null,
+        string? parentEntityFolder = null,
+        string? grandparentImageUrl = null,
+        string? grandparentEntityFolder = null)
     {
-        if (string.IsNullOrEmpty(categoryName))
-        {
-            if (string.IsNullOrEmpty(originalImageUrl)) return "images/categories/gen/other_services.png";
-            return ConstructFallbackUrl(originalImageUrl, fallbackPrefix);
-        }
+        const string slugFolder = "images/categories";
 
-        string key = categoryName.Trim();
-        if (_slugMap.TryGetValue(key, out string? slug))
-        {
-            return $"images/categories/gen/{slug}.png";
-        }
+        // 1. Check database images first (original, parent, then grandparent)
+        if (!string.IsNullOrEmpty(originalImageUrl))
+            return ImagePathResolver.Resolve(originalImageUrl, entityFolder ?? slugFolder);
 
-        // 🟢 Hierarchical Fallback: If child fails, try parent
-        if (!string.IsNullOrEmpty(parentCategoryName))
+        if (!string.IsNullOrEmpty(parentImageUrl))
+            return ImagePathResolver.Resolve(parentImageUrl, parentEntityFolder ?? slugFolder);
+
+        if (!string.IsNullOrEmpty(grandparentImageUrl))
+            return ImagePathResolver.Resolve(grandparentImageUrl, grandparentEntityFolder ?? slugFolder);
+
+        // 2. Try to resolve a slug icon from the generic slug folder based on name
+        if (!string.IsNullOrEmpty(categoryName))
         {
-            string parentKey = parentCategoryName.Trim();
-            if (_slugMap.TryGetValue(parentKey, out string? parentSlug))
+            string key = categoryName.Trim();
+            if (_slugMap.TryGetValue(key, out string? slug))
+                return $"{slugFolder}/{slug}.png";
+
+            // Hierarchical fallback: try parent
+            if (!string.IsNullOrEmpty(parentCategoryName))
             {
-                return $"images/categories/gen/{parentSlug}.png";
+                string parentKey = parentCategoryName.Trim();
+                if (_slugMap.TryGetValue(parentKey, out string? parentSlug))
+                    return $"{slugFolder}/{parentSlug}.png";
             }
         }
 
-        // If no match in slugMap, fallback to originalImageUrl or a default generic icon
-        if (string.IsNullOrEmpty(originalImageUrl))
-        {
-            return "images/categories/gen/other_services.png";
-        }
-        
-        return ConstructFallbackUrl(originalImageUrl, fallbackPrefix);
+        // 3. Ultimate fallback
+        return $"{slugFolder}/other_services.png";
     }
 
-    private static string ConstructFallbackUrl(string? originalImageUrl, string? fallbackPrefix)
-    {
-        if (string.IsNullOrEmpty(originalImageUrl)) return "images/categories/default.jpg";
-        
-        // Handle absolute URLs
-        if (originalImageUrl.StartsWith("http") || originalImageUrl.StartsWith("//"))
-        {
-            return originalImageUrl;
-        }
+    /// <summary>Resolve with entity folder set to images/maincategories</summary>
+    public static string GetMainCategoryIcon(string categoryName, string? originalImageUrl = null, string? parentCategoryName = null)
+        => GetIconUrl(categoryName, originalImageUrl, ImagePathResolver.MainCategories, parentCategoryName);
 
-        // Normalize: Remove leading slash if any
-        string fileName = originalImageUrl.TrimStart('/');
+    /// <summary>Resolve with entity folder set to images/categories</summary>
+    public static string GetCategoryIcon(string categoryName, string? originalImageUrl = null, string? parentCategoryName = null, string? parentImageUrl = null)
+        => GetIconUrl(categoryName, originalImageUrl, ImagePathResolver.Categories, parentCategoryName, parentImageUrl, ImagePathResolver.MainCategories);
 
-        // Apply prefix if it's just a filename
-        if (!string.IsNullOrEmpty(fallbackPrefix) && !fileName.Contains("/"))
-        {
-            return $"{fallbackPrefix}/{fileName}";
-        }
-
-        return fileName;
-    }
+    /// <summary>Resolve with entity folder set to images/subcategories</summary>
+    public static string GetSubCategoryIcon(string categoryName, string? originalImageUrl = null, string? parentCategoryName = null, string? parentImageUrl = null, string? grandparentImageUrl = null)
+        => GetIconUrl(categoryName, originalImageUrl, ImagePathResolver.SubCategories, parentCategoryName, parentImageUrl, ImagePathResolver.Categories, grandparentImageUrl, ImagePathResolver.MainCategories);
 }

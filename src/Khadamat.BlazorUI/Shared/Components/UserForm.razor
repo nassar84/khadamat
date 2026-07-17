@@ -28,9 +28,9 @@
                         <ImageUploader @bind-ImageUrl="Model.ProfileImageUrl" 
                                       ReadOnly="@IsReadOnly"
                                       Height="120px" Width="120px"
-                                      ContainerClass="mx-auto"
+                                      Class="mx-auto"
                                       PickerLabel="صورك"
-                                      ShowUrlInput="!IsReadOnly" />
+                                      ShowUrlInput="@(!IsReadOnly)" />
                     </div>
 
                     <div class="col-md-12">

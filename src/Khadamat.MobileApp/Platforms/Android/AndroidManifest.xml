@@ -6,7 +6,7 @@
         android:supportsRtl="true"
         android:label="خدماوي"
         android:icon="@mipmap/khadamat_icon"
-        android:roundIcon="@mipmap/khadamat_icon"
+        android:roundIcon="@mipmap/khadamat_icon_round"
         android:theme="@style/Maui.SplashTheme"
         android:networkSecurityConfig="@xml/network_security_config">
 

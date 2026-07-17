@@ -43,7 +43,7 @@
             @foreach (var req in requests)
             {
                 <div class="col-12">
-                    <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 15px;">
+                    <div class="card border-0 shadow-sm edit-request-card">
                         <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="bg-primary-subtle p-2 rounded-3">
@@ -128,6 +128,28 @@
                                                 </td>
                                             </tr>
                                         }
+                                        @if (!string.IsNullOrEmpty(req.ProposedPhone2))
+                                        {
+                                            <tr>
+                                                <td class="fw-bold small">الهاتف الثاني</td>
+                                                <td class="text-muted">@req.CurrentPhone2</td>
+                                                <td class="fw-bold text-success">@req.ProposedPhone2</td>
+                                                <td class="text-center">
+                                                    <input type="checkbox" class="form-check-input" @bind="approvalStates[req.Id].ApprovePhone2" />
+                                                </td>
+                                            </tr>
+                                        }
+                                        @if (!string.IsNullOrEmpty(req.ProposedWhatsApp))
+                                        {
+                                            <tr>
+                                                <td class="fw-bold small">رقم الواتساب</td>
+                                                <td class="text-muted">@req.CurrentWhatsApp</td>
+                                                <td class="fw-bold text-success">@req.ProposedWhatsApp</td>
+                                                <td class="text-center">
+                                                    <input type="checkbox" class="form-check-input" @bind="approvalStates[req.Id].ApproveWhatsApp" />
+                                                </td>
+                                            </tr>
+                                        }
                                     </tbody>
                                 </table>
                             </div>
@@ -170,21 +192,33 @@
     .bg-light-subtle {
         background-color: #f8f9fa !important;
     }
+    /* Card keeps rounded corners without overflow-hidden clipping scroll */
+    .edit-request-card {
+        border-radius: 15px !important;
+        overflow: visible !important;
+    }
+    .edit-request-card .card-header {
+        border-radius: 15px 15px 0 0 !important;
+    }
+    /* Scrollable table wrapper - works in both LTR and RTL */
     .table-responsive-custom {
         display: block;
         width: 100%;
         overflow-x: auto !important;
+        overflow-y: visible;
         -webkit-overflow-scrolling: touch;
         border: 1px solid rgba(0,0,0,0.08);
         border-radius: 12px;
         background: #fff;
+        position: relative;
     }
     .service-edits-table {
         min-width: 800px !important;
         width: 100%;
         margin-bottom: 0;
+        table-layout: auto;
     }
-    /* Premium elegant scrollbar */
+    /* Premium scrollbar */
     .table-responsive-custom::-webkit-scrollbar {
         height: 6px;
     }
@@ -226,7 +260,9 @@
                 ApproveDescription = !string.IsNullOrEmpty(r.ProposedDescription),
                 ApproveAddress = !string.IsNullOrEmpty(r.ProposedAddress),
                 ApprovePrice = r.ProposedPrice.HasValue,
-                ApprovePhone1 = !string.IsNullOrEmpty(r.ProposedPhone1)
+                ApprovePhone1 = !string.IsNullOrEmpty(r.ProposedPhone1),
+                ApprovePhone2 = !string.IsNullOrEmpty(r.ProposedPhone2),
+                ApproveWhatsApp = !string.IsNullOrEmpty(r.ProposedWhatsApp)
             });
         }
         catch (Exception ex)

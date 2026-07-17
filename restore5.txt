@@ -1,0 +1,6 @@
+  Determining projects to restore...
+D:\DEV\khadamat\src\Khadamat.MobileApp\Khadamat.MobileApp.csproj : warning NU1903: Package 'AutoMapper' 13.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x [TargetFramework=net9.0-android]
+  Restored D:\DEV\khadamat\src\Khadamat.Domain\Khadamat.Domain.csproj (in 1.6 sec).
+  Restored D:\DEV\khadamat\src\Khadamat.Shared\Khadamat.Shared.csproj (in 1.6 sec).
+  Restored D:\DEV\khadamat\src\Khadamat.Application\Khadamat.Application.csproj (in 1.6 sec).
+  1 of 4 projects are up-to-date for restore.

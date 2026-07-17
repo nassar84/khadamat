@@ -10,6 +10,8 @@ using Khadamat.Domain.Entities;
 using Khadamat.Domain.Enums;
 using Khadamat.Application.Features.Services.Commands;
 using Khadamat.Application.Features.Services.Queries;
+using Khadamat.Infrastructure.Services;
+using System.IO;
 
 namespace Khadamat.WebAPI.Controllers;
 
@@ -226,7 +228,38 @@ public class AdminController : ControllerBase
         user.CityId = dto.CityId;
         user.IsActive = dto.IsActive;
         user.IsVerified = dto.IsVerified;
-        user.ProfileImageUrl = dto.ProfileImageUrl;
+
+        var cleanImage = ImageNamingHelper.ExtractFileName(dto.ProfileImageUrl);
+        if (!string.IsNullOrEmpty(cleanImage) && cleanImage != user.ProfileImageUrl)
+        {
+            // Delete old file
+            if (!string.IsNullOrEmpty(user.ProfileImageUrl) && !user.ProfileImageUrl.StartsWith("http"))
+            {
+                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "users", user.ProfileImageUrl);
+                if (System.IO.File.Exists(oldPath))
+                {
+                    try { System.IO.File.Delete(oldPath); } catch { }
+                }
+            }
+            user.ProfileImageUrl = ImageNamingHelper.RenameImage(cleanImage, "users", $"u_{user.Id}");
+        }
+        else if (string.IsNullOrEmpty(cleanImage))
+        {
+            if (!string.IsNullOrEmpty(user.ProfileImageUrl) && !user.ProfileImageUrl.StartsWith("http"))
+            {
+                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "users", user.ProfileImageUrl);
+                if (System.IO.File.Exists(oldPath))
+                {
+                    try { System.IO.File.Delete(oldPath); } catch { }
+                }
+            }
+            user.ProfileImageUrl = null;
+        }
+        else
+        {
+            user.ProfileImageUrl = cleanImage;
+        }
+
         user.Gender = dto.Gender;
         user.Bio = dto.Bio;
         user.WebsiteUrl = dto.WebsiteUrl;
@@ -565,6 +598,40 @@ public class AdminController : ControllerBase
         if (dto.CityId.HasValue)
         {
             service.UpdateLocation(dto.CityId);
+        }
+
+        // Handle service image update, renaming, and cleanup
+        var oldImageName = service.ImageUrl;
+        var newImage = dto.Images?.FirstOrDefault();
+        var cleanNewImage = ImageNamingHelper.ExtractFileName(newImage);
+
+        if (!string.IsNullOrEmpty(cleanNewImage) && cleanNewImage != oldImageName)
+        {
+            // Delete old file
+            if (!string.IsNullOrEmpty(oldImageName))
+            {
+                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "services", oldImageName);
+                if (System.IO.File.Exists(oldPath))
+                {
+                    try { System.IO.File.Delete(oldPath); } catch { }
+                }
+            }
+
+            // Rename the new temp file to the standard format
+            var categoryIdVal = service.SubCategoryId ?? service.CategoryId ?? dto.SubCategoryId ?? dto.CategoryId ?? 0;
+            var targetName = $"s_{categoryIdVal}_{service.Id}";
+            var finalName = ImageNamingHelper.RenameImage(cleanNewImage, "services", targetName);
+            service.SetImage(finalName);
+        }
+        else if (string.IsNullOrEmpty(cleanNewImage) && !string.IsNullOrEmpty(oldImageName))
+        {
+            // If the image was cleared, delete the old file
+            var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "services", oldImageName);
+            if (System.IO.File.Exists(oldPath))
+            {
+                try { System.IO.File.Delete(oldPath); } catch { }
+            }
+            service.SetImage(null);
         }
 
         await _context.SaveChangesAsync();

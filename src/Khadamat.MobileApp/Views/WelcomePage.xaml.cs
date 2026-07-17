@@ -71,28 +71,34 @@ namespace Khadamat.MobileApp.Views
             }
         }
 
-        protected override async void OnAppearing()
+        protected override void OnAppearing()
         {
             base.OnAppearing();
             
-            // Check connectivity and reachability of the API on startup
-            await CheckApiConnection();
-            
-            // Load Settings and play startup sound
-            if (_shell.BindingContext is ViewModels.ShellViewModel vm)
+            // Run startup checks and settings loading in the background to prevent main thread blocking/ANR
+            Task.Run(async () =>
             {
-                await vm.LoadSettingsAsync();
-                string soundFile = string.IsNullOrEmpty(vm.OpenAppSound) ? "bic_ring1.mp3" : vm.OpenAppSound;
-                await _audioService.PlaySoundAsync(soundFile);
-            }
+                await CheckApiConnectionSilent();
+                
+                if (_shell.BindingContext is ViewModels.ShellViewModel vm)
+                {
+                    await vm.LoadSettingsAsync();
+                    
+                    // Play startup sound only if configured on server (avoid 404 errors)
+                    if (!string.IsNullOrEmpty(vm.OpenAppSound))
+                    {
+                        await _audioService.PlaySoundAsync(vm.OpenAppSound);
+                    }
+                }
+            });
         }
 
-        private async Task CheckApiConnection()
+        private async Task CheckApiConnectionSilent()
         {
             try
             {
                 var apiBaseUrl = Preferences.Default.Get("ApiBaseUrl", 
-                    _configuration["ApiSettings:BaseUrl"] ?? "https://jobsek.eis-dev.com");
+                    _configuration["ApiSettings:BaseUrl"] ?? "https://khadamawy.eis-dev.com");
                 apiBaseUrl = apiBaseUrl.TrimEnd('/');
                 
                 Console.WriteLine($"ANTIGRAVITY_LOG: Testing connectivity to: {apiBaseUrl}");
@@ -112,9 +118,6 @@ namespace Khadamat.MobileApp.Views
             catch (Exception ex)
             {
                 Console.WriteLine($"ANTIGRAVITY_LOG: [ERROR] API UNREACHABLE: {ex.Message}");
-                await DisplayAlert("تنبيه الاتصال", 
-                    "لا يمكن الوصول إلى السيرفر حالياً. قد يؤثر هذا على عمل التطبيق.", 
-                    "موافق");
             }
         }
 
@@ -123,32 +126,107 @@ namespace Khadamat.MobileApp.Views
 
         private async void OnDevSettingsTriggered(object sender, EventArgs e)
         {
-            string currentWebUrl = Preferences.Default.Get("WebAppBaseUrl", "http://10.0.2.2:5144");
-            string currentApiUrl = Preferences.Default.Get("ApiBaseUrl", "http://10.0.2.2:5144");
+            string currentWebUrl = Preferences.Default.Get("WebAppBaseUrl", "https://khadamawy.eis-dev.com");
+            string currentApiUrl = Preferences.Default.Get("ApiBaseUrl", "https://khadamawy.eis-dev.com");
 
-            string webUrl = await DisplayPromptAsync("إعدادات المطور (Web)", 
-                "أدخل عنوان الـ Web App:", 
-                "التالي", "إلغاء", 
-                "http://", 200, Keyboard.Url, currentWebUrl);
+            string action = await DisplayActionSheet("خيارات المطور والاتصال", "إلغاء", null, 
+                "تعديل عناوين الخادم", "اختبار الاتصال والتحميل الحالي");
 
-            if (string.IsNullOrWhiteSpace(webUrl)) return;
-
-            string apiUrl = await DisplayPromptAsync("إعدادات المطور (API)", 
-                "أدخل عنوان الـ API:", 
-                "حفظ", "إلغاء", 
-                "http://", 200, Keyboard.Url, currentApiUrl);
-
-            if (!string.IsNullOrWhiteSpace(apiUrl))
+            if (action == "تعديل عناوين الخادم")
             {
-                if (!webUrl.StartsWith("http")) webUrl = "http://" + webUrl;
-                if (!apiUrl.StartsWith("http")) apiUrl = "http://" + apiUrl;
+                string webUrl = await DisplayPromptAsync("إعدادات المطور (Web)", 
+                    "أدخل عنوان الـ Web App:", 
+                    "التالي", "إلغاء", 
+                    "https://", 200, Keyboard.Url, currentWebUrl);
 
-                Preferences.Default.Set("WebAppBaseUrl", webUrl);
-                Preferences.Default.Set("ApiBaseUrl", apiUrl);
+                if (string.IsNullOrWhiteSpace(webUrl)) return;
 
-                await DisplayAlert("نجاح", "تم حفظ الإعدادات. سيتم استخدام العناوين الجديدة عند إعادة تحميل الصفحة.", "تم");
+                string apiUrl = await DisplayPromptAsync("إعدادات المطور (API)", 
+                    "أدخل عنوان الـ API:", 
+                    "حفظ", "إلغاء", 
+                    "https://", 200, Keyboard.Url, currentApiUrl);
+
+                if (!string.IsNullOrWhiteSpace(apiUrl))
+                {
+                    if (!webUrl.StartsWith("http")) webUrl = "https://" + webUrl;
+                    if (!apiUrl.StartsWith("http")) apiUrl = "https://" + apiUrl;
+
+                    Preferences.Default.Set("WebAppBaseUrl", webUrl);
+                    Preferences.Default.Set("ApiBaseUrl", apiUrl);
+
+                    await DisplayAlert("نجاح", "تم حفظ الإعدادات. سيتم استخدام العناوين الجديدة عند إعادة تحميل الصفحة.", "تم");
+                    
+                    bool test = await DisplayAlert("اختبار الاتصال", "هل تريد اختبار الاتصال بالعناوين الجديدة الآن؟", "نعم", "لا");
+                    if (test)
+                    {
+                        await RunDiagnosticsAsync(webUrl, apiUrl);
+                    }
+                }
+            }
+            else if (action == "اختبار الاتصال والتحميل الحالي")
+            {
+                await RunDiagnosticsAsync(currentWebUrl, currentApiUrl);
             }
         }
+
+        private async Task RunDiagnosticsAsync(string webUrl, string apiUrl)
+        {
+            var report = new System.Text.StringBuilder();
+            report.AppendLine("=== تقرير تشخيص الاتصال ===");
+            report.AppendLine($"وقت الاختبار: {DateTime.Now}");
+            report.AppendLine($"نوع الشبكة: {Connectivity.Current.NetworkAccess}");
+            
+            // Test 1: Web URL
+            report.AppendLine("\n1. اختبار رابط موقع الويب:");
+            report.AppendLine($"الرابط: {webUrl}");
+            try
+            {
+                using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
+                var response = await client.GetAsync(webUrl);
+                report.AppendLine($"حالة الرد: {response.StatusCode} ({(int)response.StatusCode})");
+                report.AppendLine($"النجاح: {response.IsSuccessStatusCode}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    report.AppendLine($"حجم الصفحة: {content.Length} حرف");
+                }
+            }
+            catch (Exception ex)
+            {
+                report.AppendLine($"[خطأ في الاتصال]: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    report.AppendLine($"[التفاصيل]: {ex.InnerException.Message}");
+                }
+            }
+
+            // Test 2: API URL
+            report.AppendLine("\n2. اختبار رابط الـ API:");
+            report.AppendLine($"الرابط: {apiUrl}");
+            try
+            {
+                using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
+                var response = await client.GetAsync($"{apiUrl.TrimEnd('/')}/v1/settings");
+                report.AppendLine($"حالة الرد: {response.StatusCode} ({(int)response.StatusCode})");
+                report.AppendLine($"النجاح: {response.IsSuccessStatusCode}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    report.AppendLine($"الرد: {content.Substring(0, Math.Min(100, content.Length))}...");
+                }
+            }
+            catch (Exception ex)
+            {
+                report.AppendLine($"[خطأ في الاتصال]: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    report.AppendLine($"[التفاصيل]: {ex.InnerException.Message}");
+                }
+            }
+
+            await DisplayAlert("نتائج اختبار التحميل", report.ToString(), "موافق");
+        }
+
 
         private async void OnTermsClicked(object sender, EventArgs e)
         {

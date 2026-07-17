@@ -13,9 +13,7 @@ namespace Khadamat.MobileApp
             BindingContext = _viewModel;
 
             RegisterRoutes();
-            
-            // Load settings in background
-            Task.Run(async () => await _viewModel.LoadSettingsAsync());
+            // Note: LoadSettingsAsync is called by WelcomePage.OnAppearing() — no need to duplicate here.
         }
 
         private void RegisterRoutes()

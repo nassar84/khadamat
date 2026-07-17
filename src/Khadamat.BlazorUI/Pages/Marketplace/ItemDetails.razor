@@ -660,6 +660,7 @@
 
 @inject IJSRuntime JS
 @inject Khadamat.Shared.Interfaces.IShareService DeviceShareService
+@inject Khadamat.BlazorUI.State.AppState AppState
 
 @code {
     [Parameter] public int Id { get; set; }
@@ -689,8 +690,8 @@
 
         if (item != null)
         {
-            activeImageUrl = item.Images?.FirstOrDefault()?.ImageUrl
-                ?? "/images/defaults/default-product.png";
+            activeImageUrl = Khadamat.BlazorUI.Helpers.ImagePathResolver.MarketplaceItem(
+                item.Images?.FirstOrDefault()?.ImageUrl);
 
             // Check if current user is owner
             isOwner = isAuthenticated && item.SellerId == currentUserId;
@@ -717,12 +718,27 @@
         ShowToast(isFavorite ? "تمت الإضافة للمفضلة ❤️" : "تمت الإزالة من المفضلة");
     }
 
+    private string SharePageUrl
+    {
+        get
+        {
+            var uri = new Uri(Navigation.Uri);
+            return $"{uri.Scheme}://{uri.Authority}/marketplace/item/{Id}";
+        }
+    }
+
     private async Task ShareItem()
     {
+        if (AppState.IsNativeApp)
+        {
+            await DeviceShareService.ShareLinkAsync(SharePageUrl, item?.Title ?? "إعلان");
+            return;
+        }
+
         try 
         {
             var fileName = $"Khadamat_Market_{item?.Id}";
-            var shareUrl = Navigation.Uri;
+            var shareUrl = SharePageUrl;
             
             // Invoke the JS from index.html
             await JS.InvokeVoidAsync("shareServiceAsImage", "item-share-card", shareUrl, fileName);
@@ -730,7 +746,7 @@
         catch (Exception ex)
         {
             // Fallback
-            await DeviceShareService.ShareLinkAsync(Navigation.Uri, item?.Title ?? "إعلان");
+            await DeviceShareService.ShareLinkAsync(SharePageUrl, item?.Title ?? "إعلان");
             Console.WriteLine($"Advanced share failed: {ex.Message}");
         }
     }

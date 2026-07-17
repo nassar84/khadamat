@@ -30,7 +30,7 @@
                 <div class="hero-cover"></div>
                 <div class="hero-content p-4 d-flex align-items-end">
                     <div class="avatar-large-wrapper">
-                        <img src="@(string.IsNullOrEmpty(model.ProfileImageUrl) ? AppState.UserImageUrl : model.ProfileImageUrl)" class="avatar-large" />
+                        <img src="@Api.GetAbsoluteUrl(string.IsNullOrEmpty(model.ProfileImageUrl) ? AppState.UserImageUrl : model.ProfileImageUrl)" class="avatar-large" />
                         <div class="avatar-edit-badge">
                             <InputFile id="profilePicInput" OnChange="HandleFileSelected" style="display:none" accept="image/*" />
                             <label for="profilePicInput" class="cursor-pointer mb-0">
@@ -225,7 +225,9 @@
                                     <div class="col-md-6">
                                         <div class="service-item-compact p-3 rounded-4 border bg-white cursor-pointer" @onclick='() => Navigation.NavigateTo($"/service/{s.Id}")'>
                                             <div class="d-flex align-items-center">
-                                                <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(s.CategoryName, s.Images?.FirstOrDefault())" class="rounded-3 me-3" width="60" height="60" style="object-fit: cover;" />
+                                                <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(s.Images?.FirstOrDefault(), s.SubCategoryName, s.CategoryName, s.MainCategoryName, s.SubCategoryImageUrl, s.CategoryImageUrl, s.MainCategoryImageUrl))" 
+                                                     onerror="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImageOnError(s.SubCategoryName, s.CategoryName, s.MainCategoryName, s.SubCategoryImageUrl, s.CategoryImageUrl, s.MainCategoryImageUrl, Api.BaseUrl)"
+                                                     class="rounded-3 me-3" width="60" height="60" style="object-fit: cover;" />
                                                 <div class="flex-grow-1 min-w-0">
                                                     <h6 class="fw-bold mb-1 text-truncate">@s.Title</h6>
                                                     <div class="d-flex justify-content-between align-items-center">
@@ -265,7 +267,7 @@
                                     <div class="col-md-6">
                                         <div class="service-item-compact p-3 rounded-4 border bg-white cursor-pointer" @onclick='() => Navigation.NavigateTo($"/marketplace/item/{m.Id}")'>
                                             <div class="d-flex align-items-center">
-                                                <img src="@(m.Images?.FirstOrDefault()?.ImageUrl ?? "images/defaults/default-product.png")" class="rounded-3 me-3" width="60" height="60" style="object-fit: cover;" />
+                                                <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.ImagePathResolver.MarketplaceItem(m.Images?.FirstOrDefault()?.ImageUrl))" class="rounded-3 me-3" width="60" height="60" style="object-fit: cover;" />
                                                 <div class="flex-grow-1 min-w-0">
                                                     <h6 class="fw-bold mb-1 text-truncate">@m.Title</h6>
                                                     <div class="d-flex justify-content-between align-items-center">

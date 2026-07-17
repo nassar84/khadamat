@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Khadamat.Application.DTOs;
 using System.Net.Http.Json;
@@ -10,13 +10,13 @@ namespace Khadamat.MobileApp.ViewModels;
 public partial class ShellViewModel : ObservableObject
 {
     [ObservableProperty]
-    private string appName = "خدماتو";
+    private string appName = "خدماوى";
 
     [ObservableProperty]
-    private string appNameAr = "خدماتو";
+    private string appNameAr = "خدماوى";
 
     [ObservableProperty]
-    private string appNameEn = "Khadamato";
+    private string appNameEn = "Khadamawy";
 
     [ObservableProperty]
     private bool isBusy = false;

@@ -9,6 +9,8 @@ using Khadamat.Application.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using System.Linq;
 using System;
+using Khadamat.Infrastructure.Services;
+using System.IO;
 
 namespace Khadamat.WebAPI.Controllers;
 
@@ -207,21 +209,25 @@ public class AdsController : ControllerBase
             ad.SetOwner(userId);
         }
 
-        if (!string.IsNullOrEmpty(dto.ImageBase64))
-        {
-            var imageUrl = await SaveImage(dto.ImageBase64, ad.Id);
-            ad.SetMainImage(imageUrl);
-        }
-        else
-        {
-            ad.SetMainImage(dto.ImageUrl);
-        }
-        
         if (dto.IsActive) ad.Approve(); else ad.Reject();
         ad.SetDisplayOrder(dto.DisplayOrder);
         
         _context.Ads.Add(ad);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(); // Save first to get ad.Id
+
+        if (!string.IsNullOrEmpty(dto.ImageBase64))
+        {
+            var imageUrl = await SaveImage(dto.ImageBase64, ad.Id);
+            ad.SetMainImage(imageUrl);
+            await _context.SaveChangesAsync();
+        }
+        else if (!string.IsNullOrEmpty(dto.ImageUrl))
+        {
+            var cleanFilename = ImageNamingHelper.ExtractFileName(dto.ImageUrl);
+            var finalName = ImageNamingHelper.RenameImage(cleanFilename, "ads", $"ad_{ad.Id}_1");
+            ad.SetMainImage(finalName);
+            await _context.SaveChangesAsync();
+        }
         
         return Ok(ApiResponse<int>.Succeed(ad.Id));
     }
@@ -230,22 +236,22 @@ public class AdsController : ControllerBase
     {
         try
         {
-            var folderPath = Path.Combine("wwwroot", "uploads", "ads");
+            var folderPath = Path.Combine("wwwroot", "images", "ads");
             if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
 
-            var fileName = $"ad_{adId}_{DateTime.UtcNow.Ticks}.jpg";
+            var fileName = $"ad_{adId}_1.jpg";
             var filePath = Path.Combine(folderPath, fileName);
 
             var data = base64Data.Contains(",") ? base64Data.Split(',')[1] : base64Data;
             var bytes = Convert.FromBase64String(data);
             await System.IO.File.WriteAllBytesAsync(filePath, bytes);
 
-            return $"/uploads/ads/{fileName}";
+            return fileName; // Return ONLY the filename!
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error saving ad image: {ex.Message}");
-            return "/images/defaults/default-ad.png";
+            return "default-ad.png"; // Return only the filename!
         }
     }
 
@@ -286,12 +292,49 @@ public class AdsController : ControllerBase
 
         if (!string.IsNullOrEmpty(dto.ImageBase64))
         {
+            // Delete old file
+            var currentFilename = ImageNamingHelper.ExtractFileName(ad.ImagePath);
+            if (!string.IsNullOrEmpty(currentFilename))
+            {
+                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "ads", currentFilename);
+                if (System.IO.File.Exists(oldPath))
+                {
+                    try { System.IO.File.Delete(oldPath); } catch { }
+                }
+            }
+
             var imageUrl = await SaveImage(dto.ImageBase64, ad.Id);
             ad.SetMainImage(imageUrl);
         }
+        else if (!string.IsNullOrEmpty(dto.ImageUrl))
+        {
+            var cleanFilename = ImageNamingHelper.ExtractFileName(dto.ImageUrl);
+            var currentFilename = ImageNamingHelper.ExtractFileName(ad.ImagePath);
+            if (!string.IsNullOrEmpty(currentFilename) && currentFilename != cleanFilename)
+            {
+                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "ads", currentFilename);
+                if (System.IO.File.Exists(oldPath))
+                {
+                    try { System.IO.File.Delete(oldPath); } catch { }
+                }
+            }
+
+            var finalName = ImageNamingHelper.RenameImage(cleanFilename, "ads", $"ad_{ad.Id}_1");
+            ad.SetMainImage(finalName);
+        }
         else
         {
-            ad.SetMainImage(dto.ImageUrl);
+            // Clear image
+            var currentFilename = ImageNamingHelper.ExtractFileName(ad.ImagePath);
+            if (!string.IsNullOrEmpty(currentFilename))
+            {
+                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "ads", currentFilename);
+                if (System.IO.File.Exists(oldPath))
+                {
+                    try { System.IO.File.Delete(oldPath); } catch { }
+                }
+            }
+            ad.SetMainImage(null);
         }
 
         ad.SetDisplayOrder(dto.DisplayOrder);

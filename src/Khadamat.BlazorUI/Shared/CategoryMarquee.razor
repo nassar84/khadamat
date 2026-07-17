@@ -35,7 +35,7 @@ else
                         <div class="category-shape-wrapper">
                             @if (!string.IsNullOrEmpty(c.ImageUrl))
                             {
-                                <img src="@Api.GetAbsoluteUrl(c.ImageUrl ?? "images/maincategories/default.jpg")"
+                                <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.ImagePathResolver.MainCategory(c.ImageUrl))"
                                      class="cat-img draggable-img" alt="@c.Name"
                                      onerror="this.onerror=null;this.src='/images/maincategories/default.jpg';" loading="lazy" />
                             }
@@ -61,7 +61,7 @@ else
                         <div class="category-shape-wrapper">
                             @if (!string.IsNullOrEmpty(c.ImageUrl))
                             {
-                                <img src="@Api.GetAbsoluteUrl(c.ImageUrl ?? "images/maincategories/default.jpg")"
+                                <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.ImagePathResolver.MainCategory(c.ImageUrl))"
                                      class="cat-img draggable-img" alt="@c.Name"
                                      onerror="this.onerror=null;this.src='/images/maincategories/default.jpg';" loading="lazy" />
                             }
@@ -214,9 +214,8 @@ else
         margin-top: 6px;
         text-align: center;
         max-width: 80px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        white-space: normal; /* Allow wrap */
+        line-height: 1.2;
         /* Restore RTL for Arabic texts inside the LTR container */
         direction: rtl; 
     }

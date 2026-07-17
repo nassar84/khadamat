@@ -50,7 +50,8 @@
                     <tr>
                         <td class="p-3">
                             <div class="d-flex align-items-center gap-3">
-                                <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(service.CategoryName, service.Images.FirstOrDefault())" 
+                                <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(service.Images.FirstOrDefault(), service.SubCategoryName, service.CategoryName, service.MainCategoryName, service.SubCategoryImageUrl, service.CategoryImageUrl, service.MainCategoryImageUrl))" 
+                                     onerror="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImageOnError(service.SubCategoryName, service.CategoryName, service.MainCategoryName, service.SubCategoryImageUrl, service.CategoryImageUrl, service.MainCategoryImageUrl, Api.BaseUrl)"
                                      class="rounded-3 object-fit-cover" width="60" height="60" />
                                 <div>
                                     <h6 class="fw-bold mb-1 text-truncate" style="max-width: 250px;">@service.Title</h6>
@@ -63,7 +64,7 @@
                         </td>
                         <td class="p-3">
                             <div class="d-flex align-items-center gap-2">
-                                <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(service.ProviderName, null, service.ProviderPhoto)" 
+                                <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(service.ProviderName, null, service.ProviderPhoto))" 
                                      class="rounded-circle" width="35" height="35" />
                                 <div>
                                     <div class="fw-bold small">@service.ProviderName</div>

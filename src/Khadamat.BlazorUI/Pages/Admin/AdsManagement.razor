@@ -131,7 +131,7 @@
                             else
                             {
                                 <div class="ad-preview-img @(ad.ImageUrl?.StartsWith("hero-gradient") == true || string.IsNullOrEmpty(ad.ImageUrl) ? (ad.ImageUrl ?? "hero-gradient-1") : "")"
-                                     style="height: 180px; @(ad.ImageUrl?.StartsWith("hero-gradient") != true && !string.IsNullOrEmpty(ad.ImageUrl) ? $"background-image: url('{Api.GetAbsoluteUrl(ad.ImageUrl)}'); background-size: cover; background-position: center;" : "")">
+                                     style="height: 180px; @(ad.ImageUrl?.StartsWith("hero-gradient") != true && !string.IsNullOrEmpty(ad.ImageUrl) ? $"background-image: url('{Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.ImagePathResolver.Ad(ad.ImageUrl))}'); background-size: cover; background-position: center;" : "")">
                                 </div>
                             }
                             <div class="ad-actions position-absolute top-0 end-0 p-2 d-flex gap-2">

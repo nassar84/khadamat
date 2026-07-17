@@ -13,7 +13,7 @@ public partial class MainPage : ContentPage
         InitializeComponent();
         
         // Connect directly to the production website
-        _webUrl = "https://jobsek.eis-dev.com";
+        _webUrl = "https://khadamawy.eis-dev.com";
 
         AppWebView.Source = _webUrl;
     }

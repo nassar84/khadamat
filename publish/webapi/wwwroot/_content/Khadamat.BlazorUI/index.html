@@ -4,8 +4,24 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>خدماوي | KhadaMAWI</title>
+    <title>خدماوي | Khadamawy</title>
     <base href="/" />
+
+    <!-- Social Media Meta Tags (Open Graph) -->
+    <meta property="og:title" content="خدماوي - Khadamawy | منصة الخدمات المتكاملة" />
+    <meta property="og:description" content="اكتشف وطلب أفضل الخدمات في مكان واحد. خدماوي يوفر لك فنيين محترفين وخدمات متنوعة بسهولة وأمان." />
+    <meta property="og:image" content="/logo.png" />
+    <meta property="og:url" content="https://khadamat.vercel.app" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="خدماوي - Khadamawy" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="خدماوي - Khadamawy | منصة الخدمات المتكاملة" />
+    <meta name="twitter:description" content="اكتشف وطلب أفضل الخدمات في مكان واحد." />
+    <meta name="twitter:image" content="/logo.png" />
+    <meta name="theme-color" content="#2a7f8f" />
+    <meta name="apple-mobile-web-app-title" content="خدماوي" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,15 +37,470 @@
     <link rel="stylesheet" href="lib/fontawesome/css/all.min.css" />
     <link rel="stylesheet" href="lib/swiper/swiper-bundle.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
-    <link rel="icon" type="image/png" href="favicon.png?v=2" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=3" />
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=3" />
     <link href="Khadamat.WasmHost.styles.css" rel="stylesheet" />
+    <script src="js/qrcode.min.js"></script>
+    <!-- html2canvas for card capture & upload -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
+    <script>
+        // ============================================================
+        //  SHARE CARD FUNCTIONS
+        //  Used by ServiceDetails.razor for capturing & sharing cards
+        // ============================================================
+
+        // Helper: fetch an image URL and convert to a data URL
+        // Tries same-origin first (no CORS headers needed for static files on same host),
+        // then falls back to CORS mode for cross-origin images.
+        window._fetchImageAsDataUrl = async (url) => {
+            const toDataUrl = (blob) => new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => resolve(null);
+                reader.readAsDataURL(blob);
+            });
+
+            // Normalise relative URLs to absolute
+            let absUrl = url;
+            try {
+                absUrl = new URL(url, window.location.origin).href;
+            } catch (_) { absUrl = url; }
+
+            const isSameOrigin = absUrl.startsWith(window.location.origin);
+
+            // --- Attempt 1: same-origin (no CORS preflight, works for IIS static files) ---
+            if (isSameOrigin) {
+                try {
+                    const resp = await fetch(absUrl, { mode: 'same-origin', credentials: 'same-origin' });
+                    if (resp.ok) {
+                        const blob = await resp.blob();
+                        const dataUrl = await toDataUrl(blob);
+                        if (dataUrl) return dataUrl;
+                    }
+                } catch (e) {
+                    console.warn('[ShareCard] same-origin fetch failed, trying cors mode:', absUrl, e.message);
+                }
+            }
+
+            // --- Attempt 2: CORS mode (for cross-origin or if same-origin failed) ---
+            try {
+                const resp = await fetch(absUrl, { mode: 'cors', credentials: 'omit' });
+                if (!resp.ok) return null;
+                const blob = await resp.blob();
+                return await toDataUrl(blob);
+            } catch (e) {
+                console.warn('[ShareCard] Fetch image failed:', absUrl, e.message);
+                return null;
+            }
+        };
+
+        // Internal helper: capture an element as a data URL using a clone
+        window._captureElementAsCanvas = async (elementId, qrText) => {
+            const element = document.getElementById(elementId);
+            if (!element) throw new Error('Element not found: ' + elementId);
+
+            console.log('[ShareCard] Cloning element:', elementId);
+
+            // Get natural rendered size BEFORE cloning
+            const rect = element.getBoundingClientRect();
+            let captureWidth = Math.max(rect.width, 600);
+
+            const clone = element.cloneNode(true);
+            
+            // Fix all images: remove onerror, add crossOrigin, ensure visible
+            clone.querySelectorAll('img').forEach(img => {
+                img.removeAttribute('onerror');
+                img.crossOrigin = 'anonymous';
+                if (img.style.display === 'none') img.style.display = '';
+            });
+
+            clone.style.position = 'fixed';
+            clone.style.left = '-9999px';
+            clone.style.top = '0';
+            clone.style.transform = 'none';
+            clone.style.zIndex = '-1';
+            clone.style.display = 'block';
+            clone.style.opacity = '1';
+            clone.style.overflow = 'visible';
+
+            // Enforce perfect 1.91:1 aspect ratio (764x400) for service-share-wrapper to prevent Facebook cropping
+            if (elementId === 'service-share-wrapper') {
+                captureWidth = 764;
+                clone.style.width = '764px';
+                clone.style.height = '400px';
+                clone.style.minHeight = '400px';
+                clone.style.maxHeight = '400px';
+                clone.style.boxSizing = 'border-box';
+
+                // Find card inside clone and set to 764x315
+                const card = clone.querySelector('#service-share-card');
+                if (card) {
+                    card.style.width = '764px';
+                    card.style.minWidth = '764px';
+                    card.style.maxWidth = '764px';
+                    card.style.height = '315px';
+                    card.style.minHeight = '315px';
+                    card.style.maxHeight = '315px';
+                    card.style.boxSizing = 'border-box';
+                }
+
+                // Find promo box inside clone and set to 764x85
+                const promoBox = clone.lastElementChild;
+                if (promoBox && promoBox !== card) {
+                    promoBox.style.width = '764px';
+                    promoBox.style.height = '85px';
+                    promoBox.style.minHeight = '85px';
+                    promoBox.style.maxHeight = '85px';
+                    promoBox.style.boxSizing = 'border-box';
+                    promoBox.style.padding = '8px 16px';
+                    promoBox.style.display = 'flex';
+                    promoBox.style.alignItems = 'center';
+                }
+            } else {
+                clone.style.width = captureWidth + 'px';
+                clone.style.height = 'auto';
+                clone.style.minHeight = '315px';
+            }
+
+            // Reset preview scaler heights and scales inside the clone to capture full size and full quality
+            clone.querySelectorAll('.share-preview-scaler').forEach(s => {
+                s.style.height = 'auto';
+                s.style.overflow = 'visible';
+                s.style.display = 'block';
+            });
+            clone.querySelectorAll('.share-capture-card').forEach(c => {
+                c.style.transform = 'none';
+                c.style.webkitTransform = 'none';
+            });
+            
+            // Optimize font smoothing for cleaner text rendering
+            clone.style.textRendering = 'optimizeLegibility';
+            clone.style.webkitFontSmoothing = 'antialiased';
+            clone.style.mozOsxFontSmoothing = 'grayscale';
+
+            document.body.appendChild(clone);
+
+            // Wait for clone layout to stabilize
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // Regenerate QR in clone (search by id inside clone)
+            const qrContainer = clone.querySelector('#service-share-card-qrcode');
+            if (qrContainer && typeof QRCode !== 'undefined') {
+                qrContainer.innerHTML = '';
+                try {
+                    new QRCode(qrContainer, {
+                        text: qrText,
+                        width: 128,
+                        height: 128,
+                        colorDark: "#000000",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                } catch (qrErr) {
+                    console.warn('[ShareCard] QR generation failed:', qrErr.message);
+                }
+                await new Promise(resolve => setTimeout(resolve, 400));
+            }
+
+            // Convert all images to data URLs (bypasses CORS issues with html2canvas)
+            const FALLBACK_GRAY = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+            const imgs = Array.from(clone.querySelectorAll('img'));
+            if (imgs.length > 0) {
+                console.log('[ShareCard] Converting', imgs.length, 'image(s) to data URLs...');
+                const seen = {};
+                await Promise.allSettled(imgs.map(async (img) => {
+                    const src = img.getAttribute('src');
+                    if (!src || src.startsWith('data:')) return;
+
+                    let dataUrl = seen[src];
+                    if (!dataUrl) {
+                        dataUrl = await window._fetchImageAsDataUrl(src);
+                        if (!dataUrl) dataUrl = FALLBACK_GRAY;
+                        seen[src] = dataUrl;
+                    }
+                    img.src = dataUrl;
+                    img.removeAttribute('crossorigin');
+                    img.removeAttribute('onerror');
+                }));
+                console.log('[ShareCard] All images converted to data URLs');
+            }
+
+            // Extra wait after image conversion for layout repaint
+            await new Promise(resolve => setTimeout(resolve, 200));
+
+            try {
+                const canvas = await html2canvas(clone, {
+                    useCORS: true,
+                    allowTaint: true,
+                    scale: 2,
+                    backgroundColor: '#ffffff',
+                    logging: false,
+                    imageTimeout: 8000,
+                    width: captureWidth,
+                    windowWidth: captureWidth
+                });
+                console.log('[ShareCard] Capture success:', canvas.width, 'x', canvas.height);
+                return canvas;
+            } finally {
+                if (clone.parentNode) document.body.removeChild(clone);
+            }
+        };
+
+        // 1. Capture the share card and upload it to the API
+        window.uploadShareCardImage = async (elementId, shareUrl, serviceId) => {
+            try {
+                const canvas = await window._captureElementAsCanvas(elementId, shareUrl);
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.85));
+                if (!blob) throw new Error('Blob creation failed');
+
+                const formData = new FormData();
+                formData.append('file', blob, `card_${serviceId}.jpg`);
+                const uploadUrl = `${window.location.origin}/share/service/${serviceId}/image`;
+                const resp = await fetch(uploadUrl, { method: 'POST', body: formData });
+                if (resp.ok) {
+                    console.log('[ShareCard] Card uploaded successfully for service', serviceId);
+                } else {
+                    console.warn('[ShareCard] Upload failed:', resp.status, await resp.text());
+                }
+            } catch (ex) {
+                console.warn('[ShareCard] uploadShareCardImage error:', ex.message);
+            }
+        };
+
+        // 2. Capture card and return data URL (for preview in modal)
+        window.captureServiceCardAsImage = async (elementId, shareUrl) => {
+            try {
+                const canvas = await window._captureElementAsCanvas(elementId, shareUrl);
+                return canvas.toDataURL('image/png');
+            } catch (ex) {
+                console.error('[ShareCard] captureServiceCardAsImage error:', ex.message);
+                return null;
+            }
+        };
+
+        // 3. Download card as image file
+        window.shareServiceAsImage = async (elementId, shareUrl, fileName) => {
+            try {
+                const canvas = await window._captureElementAsCanvas(elementId, shareUrl);
+                const a = document.createElement('a');
+                a.href = canvas.toDataURL('image/png');
+                a.download = (fileName || 'khadamat_service') + '.png';
+                a.click();
+            } catch (ex) {
+                console.error('[ShareCard] shareServiceAsImage error:', ex.message);
+            }
+        };
+
+        // 4. Download card image (alias)
+        window.downloadServiceCard = async (elementId, shareUrl, fileName) => {
+            await window.shareServiceAsImage(elementId, shareUrl, fileName);
+        };
+
+        // 5. Native share on mobile or custom share dialog on desktop
+        window.shareCardWithPlatform = async (elementId, shareUrl, fileName, shareText) => {
+            let dataUrl = null;
+            let file = null;
+
+            try {
+                const canvas = await window._captureElementAsCanvas(elementId, shareUrl);
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                if (blob) {
+                    dataUrl = canvas.toDataURL('image/png');
+                    file = new File([blob], (fileName || 'khadamat_service') + '.png', { type: 'image/png' });
+                }
+            } catch (err) {
+                console.warn('[ShareCard] Canvas capture failed, falling back to text-only share:', err.message);
+            }
+
+            // Try native share only on mobile devices where gesture context survives
+            if (navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                try {
+                    if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+                        await navigator.share({ title: 'خدماوي', text: shareText || '', files: [file] });
+                    } else {
+                        await navigator.share({ title: 'خدماوي', text: shareText || '', url: shareUrl });
+                    }
+                    return 'shared';
+                } catch (e) {
+                    if (e.name === 'AbortError') return 'cancelled';
+                    console.warn('[ShareCard] Native share failed, falling back to custom dialog:', e.message);
+                }
+            }
+
+            // Desktop or fallback: custom bottom-sheet share dialog
+            try {
+                window._showShareOptions(dataUrl, shareUrl, shareText, fileName);
+            } catch (err) {
+                console.error('[ShareCard] Share dialog failed:', err.message);
+                window.open(shareUrl, '_blank');
+            }
+            return 'dialog';
+        };
+
+        // Custom bottom-sheet share dialog (modal fallback for desktop or native failure)
+        window._showShareOptions = (imageDataUrl, shareUrl, shareText, fileName) => {
+            try {
+                const existing = document.getElementById('khadamat-share-dialog');
+                if (existing) existing.remove();
+
+                const encodedText = encodeURIComponent(shareText || shareUrl);
+                const encodedUrl  = encodeURIComponent(shareUrl);
+
+                const dialog = document.createElement('div');
+                dialog.id = 'khadamat-share-dialog';
+
+                const imgHtml = imageDataUrl ? `<img src="${imageDataUrl}" style="width:100%;border-radius:14px;margin-bottom:18px;box-shadow:0 6px 20px rgba(0,0,0,0.12);" />` : '';
+                const downloadBtnHtml = imageDataUrl ? `
+                    <button id="ksd-download-btn" style="width:100%;padding:14px;background:linear-gradient(135deg,#6366f1 0%,#4f46e5 100%);color:white;border:none;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:10px;box-shadow:0 4px 12px rgba(99,102,241,0.35);">
+                        📥 تحميل البطاقة كصورة
+                    </button>` : '';
+
+                dialog.innerHTML = `
+                    <div id="khadamat-share-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:999999;display:flex;align-items:flex-end;justify-content:center;animation:ksdo-in 0.25s ease;">
+                        <div onclick="event.stopPropagation()" style="background:white;border-radius:28px 28px 0 0;padding:24px 20px 36px;width:100%;max-width:560px;font-family:'Tajawal',sans-serif;direction:rtl;animation:ksds-in 0.3s cubic-bezier(.4,0,.2,1);">
+                            <div style="width:44px;height:5px;background:#e2e8f0;border-radius:3px;margin:0 auto 18px;"></div>
+                            <p style="font-weight:800;font-size:1.1rem;color:#1e293b;margin:0 0 14px;text-align:center;">🔗 شارك الخدمة <span style="font-size:0.6rem;color:#94a3b8;font-weight:400;">v2</span></p>
+                            ${imgHtml}
+                            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
+                                <a href="https://wa.me/?text=${encodedText}" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 4px;background:#dcfce7;border-radius:16px;text-decoration:none;color:#166534;font-size:0.78rem;font-weight:700;">
+                                    <svg width="28" height="28" viewBox="0 0 448 512" fill="#25D366" xmlns="http://www.w3.org/2000/svg"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-6.9c-18.5-29.1-28.2-62.7-28.2-97.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.1 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/></svg>
+                                    واتساب
+                                </a>
+                                <a href="https://t.me/share/url?url=${encodedUrl}&text=${encodedText}" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 4px;background:#e0f2fe;border-radius:16px;text-decoration:none;color:#0369a1;font-size:0.78rem;font-weight:700;">
+                                    <svg width="28" height="28" viewBox="0 0 496 512" fill="#229ED9" xmlns="http://www.w3.org/2000/svg"><path d="M248 8C111 8 0 119 0 256s111 248 248 248 248-111 248-248S385 8 248 8zm121.8 169.9l-40.7 191.8c-3 13.6-11.1 16.9-22.4 10.5l-62-45.7-29.9 28.8c-3.3 3.3-6.1 6.1-12.5 6.1l4.4-63.1 114.9-103.8c5-4.5-1.1-7-7.7-2.5l-142 89.4-61.2-19.1c-13.3-4.2-13.6-13.3 2.8-19.7l239.1-92.2c11.1-4 20.8 2.7 17.2 19.5z"/></svg>
+                                    تيليجرام
+                                </a>
+                                <a href="https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 4px;background:#eff6ff;border-radius:16px;text-decoration:none;color:#1d4ed8;font-size:0.78rem;font-weight:700;">
+                                    <svg width="28" height="28" viewBox="0 0 448 512" fill="#1877F2" xmlns="http://www.w3.org/2000/svg"><path d="M400 32H48A48 48 0 0 0 0 80v352a48 48 0 0 0 48 48h137.3V327.7h-63V256h63v-54.6c0-62.2 37-96.5 93.7-96.5 27.1 0 55.5 4.8 55.5 4.8v61h-31.3c-30.8 0-40.4 19.1-40.4 38.7V256h68.8l-11 71.7h-57.8V480H400a48 48 0 0 0 48-48V80a48 48 0 0 0-48-48z"/></svg>
+                                    فيسبوك
+                                </a>
+                                <button id="ksd-copy-btn" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 4px;background:#f5f3ff;border-radius:16px;border:none;color:#6d28d9;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif;">
+                                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="16" cy="16" r="16" fill="#7C3AED"/>
+                                        <path d="M21 10h-7a1 1 0 0 0-1 1v1h-1a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1v-1h1a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1zm-2 11H12v-8h7v8zm2-2h-1v-7a1 1 0 0 0-1-1h-6v-1h8v9z" fill="white"/>
+                                    </svg>
+                                    نسخ الرابط
+                                </button>
+                            </div>
+                            ${downloadBtnHtml}
+                            <button id="ksd-close-btn" style="width:100%;padding:12px;background:#f1f5f9;color:#475569;border:none;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:0.95rem;font-weight:600;cursor:pointer;">
+                                إغلاق
+                            </button>
+                        </div>
+                    </div>
+                    <style>
+                        @keyframes ksdo-in { from { opacity:0 } to { opacity:1 } }
+                        @keyframes ksds-in { from { transform:translateY(100%) } to { transform:translateY(0) } }
+                    </style>`;
+                document.body.appendChild(dialog);
+
+                const overlay = document.getElementById('khadamat-share-overlay');
+                if (overlay) overlay.addEventListener('click', () => dialog.remove());
+
+                const closeBtn = document.getElementById('ksd-close-btn');
+                if (closeBtn) closeBtn.addEventListener('click', () => dialog.remove());
+
+                const downloadBtn = document.getElementById('ksd-download-btn');
+                if (downloadBtn) {
+                    downloadBtn.addEventListener('click', () => {
+                        const a = document.createElement('a');
+                        a.href = imageDataUrl;
+                        a.download = (fileName || 'khadamat_service') + '.png';
+                        a.click();
+                        dialog.remove();
+                    });
+                }
+
+                const copyBtn = document.getElementById('ksd-copy-btn');
+                if (copyBtn) {
+                    copyBtn.addEventListener('click', async () => {
+                        try {
+                            await navigator.clipboard.writeText(shareUrl);
+                            copyBtn.innerHTML = '<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#10B981"/><path d="M9 16l5 5 9-10" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>تم النسخ!';
+                            setTimeout(() => dialog.remove(), 1200);
+                        } catch (_) { alert(shareUrl); }
+                    });
+                }
+            } catch (err) {
+                console.error('[ShareDialog] Error showing share options:', err.message, err);
+            }
+        };
+    </script>
+    <script>
+        window.generateQRCode = (elementId, text) => {
+            console.log('[QR] Generating QR Code for:', text);
+            const el = document.getElementById(elementId);
+            if (!el) { console.warn('[QR] Element not found:', elementId); return; }
+            if (typeof QRCode === 'undefined') { console.warn('[QR] QRCode library not loaded yet'); return; }
+            el.innerHTML = "";
+            try {
+                new QRCode(el, {
+                    text: text,
+                    width: 128,
+                    height: 128,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            } catch (e) {
+                console.error('[QR] Error generating QR code:', e);
+                return;
+            }
+            const qrImg = el.querySelector('img');
+            if (qrImg) {
+                qrImg.style.display = "block";
+                qrImg.style.margin = "auto";
+                qrImg.style.borderRadius = "8px";
+            }
+        };
+    </script>
+    <script>
+        window.shareApp = async (title, text, url) => {
+            if (navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                try {
+                    await navigator.share({ title, text, url });
+                    return true;
+                } catch (err) {
+                    if (err.name !== 'AbortError') console.warn('shareApp error:', err);
+                }
+            }
+            // Fallback: open share dialog
+            window._showShareOptions(null, url || '', text || '', null);
+        };
+    </script>
+    <script>
+        // Native share bridge — used by WebShareService (IShareService) via IJSRuntime
+        window.nativeShare = async (title, text, url) => {
+            const shareData = {};
+            if (title) shareData.title = title;
+            if (text)  shareData.text  = text;
+            if (url)   shareData.url   = url;
+
+            // Try Web Share API (requires user gesture — works on mobile browsers)
+            if (navigator.share) {
+                try {
+                    await navigator.share(shareData);
+                    return { success: true };
+                } catch (e) {
+                    if (e.name === 'AbortError') return { success: true }; // user cancelled — not an error
+                    console.warn('[nativeShare] navigator.share failed:', e.message);
+                }
+            }
+
+            // Fallback: open custom bottom-sheet dialog
+            const displayUrl = url || '';
+            const displayText = text ? (url ? text + '\n' + url : text) : url;
+            window._showShareOptions(null, displayUrl, displayText, null);
+            return { success: true };
+        };
+    </script>
 
     <style>
         body {
             font-family: 'Tajawal', 'Outfit', sans-serif;
             background-color: #f8fafc;
             color: var(--text-main);
-            overflow-x: hidden;
+            overflow-x: clip;
             margin: 0;
             padding: 0;
             -webkit-tap-highlight-color: transparent;
@@ -80,51 +551,76 @@
 </head>
 
 <body>
-    <div id="app"></div>
-
-    <div class="loading-container"
-        style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; background-color: #f8fafc; z-index: 9999;">
-        <div style="text-align: center;">
-            <div class="pulsing-logo" style="width: 100px; height: 100px; margin: 0 auto 20px;">
-                <img src="logo.png?v=2" style="width: 100%; height: 100%; object-fit: contain;" />
+    <div id="app">
+        <!-- Modern Splash Screen -->
+        <div id="loading-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 99999; transition: opacity 0.5s ease-out;">
+            <div style="width: 120px; height: 120px; position: relative; margin-bottom: 24px;">
+                <img src="favicon.png?v=3" style="width: 100%; height: 100%; object-fit: contain; animation: logo-pulse 2s infinite ease-in-out; border-radius: 20px;" />
+                <svg viewBox="0 0 100 100" style="position: absolute; top: -12px; left: -12px; width: 144px; height: 144px; transform: rotate(-90deg);">
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="#e2e8f0" stroke-width="4"></circle>
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="#2a7f8f" stroke-width="4" stroke-dasharray="283" stroke-dashoffset="283" style="animation: circle-fill 3s forwards ease-in-out;"></circle>
+                </svg>
             </div>
-            <div class="loading-bar-container"
-                style="width: 200px; height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden; margin: 0 auto;">
-                <div class="loading-bar-fill"
-                    style="width: 40%; height: 100%; background: var(--primary-color, #6366f1); border-radius: 2px; animation: loadingBar 2s infinite ease-in-out;">
-                </div>
-            </div>
+            <h2 style="font-family: 'Tajawal', sans-serif; font-weight: 800; color: #1e293b; margin: 0; font-size: 1.6rem; letter-spacing: 0;">خدماوي</h2>
+            <p style="font-family: 'Tajawal', sans-serif; color: #2a7f8f; margin-top: 8px; font-size: 0.95rem; font-weight: 500;">Khadamawy</p>
+            <p style="font-family: 'Tajawal', sans-serif; color: #94a3b8; margin-top: 6px; font-size: 0.85rem;">جاري تحميل عالم الخدمات...</p>
+            <p style="font-family: 'Tajawal', sans-serif; color: #cbd5e1; margin-top: 4px; font-size: 0.65rem;">v2.0.0-fix</p>
         </div>
+
         <style>
-            .pulsing-logo {
-                animation: pulseLogo 2s infinite ease-in-out;
+            @keyframes logo-pulse {
+                0%, 100% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.1); opacity: 0.8; }
             }
-
-            @keyframes pulseLogo {
-
-                0%,
-                100% {
-                    transform: scale(1);
-                    opacity: 0.8;
-                }
-
-                50% {
-                    transform: scale(1.05);
-                    opacity: 1;
-                }
-            }
-
-            @keyframes loadingBar {
-                0% {
-                    transform: translateX(-100%);
-                }
-
-                100% {
-                    transform: translateX(200%);
-                }
+            @keyframes circle-fill {
+                0% { stroke-dashoffset: 283; }
+                100% { stroke-dashoffset: 0; }
             }
         </style>
     </div>
+
+    <script>
+        window.hideLoadingScreen = () => {
+            const screen = document.getElementById('loading-screen');
+            if (screen) {
+                screen.style.opacity = '0';
+                setTimeout(() => screen.remove(), 500);
+            }
+        };
+
+        window.handleServiceImageError = (img, fallbacks) => {
+            if (!img) return;
+            if (!fallbacks || !fallbacks.length) {
+                img.onerror = null;
+                img.src = '/images/placeholders/default_service.png';
+                return;
+            }
+
+            // Get the current fallback index or start at 0
+            let currentIdx = img.dataset.fallbackIndex !== undefined ? parseInt(img.dataset.fallbackIndex) : 0;
+            
+            // Find the next unique fallback source that is different from the current source
+            while (currentIdx < fallbacks.length) {
+                const nextSrc = fallbacks[currentIdx++];
+                img.dataset.fallbackIndex = currentIdx;
+                
+                if (nextSrc) {
+                    const tempAnchor = document.createElement('a');
+                    tempAnchor.href = nextSrc;
+                    const nextAbsoluteUrl = tempAnchor.href;
+                    
+                    if (img.src !== nextAbsoluteUrl) {
+                        img.src = nextSrc;
+                        return;
+                    }
+                }
+            }
+            
+            // If all fail, use hardcoded default and stop error tracking
+            img.onerror = null;
+            img.src = '/images/placeholders/default_service.png';
+        };
+    </script>
 
     <div id="blazor-error-ui">
         حدث خطأ غير متوقع.
@@ -138,6 +634,7 @@
     <script src="_framework/blazor.webassembly.js"></script>
     <script>
         window.initCategoriesSlider = () => {
+
             const el = document.querySelector('.categories-swiper');
             if (!el) {
                 console.warn("Categories slider element not found yet.");
@@ -302,14 +799,21 @@
             if (el) el.focus();
         };
 
-        window.hideLoadingScreen = () => {
-            const loader = document.querySelector('.loading-container');
-            if (loader) {
-                loader.style.transition = 'opacity 0.6s ease-out';
-                loader.style.opacity = '0';
-                setTimeout(() => loader.remove(), 600);
-            }
+        // Hardware Back Button Compatibility Handler
+        window.handleBackNavigation = () => {
+             if (window.history.length > 1) {
+                 window.history.back();
+                 return true;
+             }
+             return false;
         };
+
+        // Listen for hardware-like keys
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+                // Potentially handle back navigation if logic dictates
+            }
+        });
     </script>
 </body>
 

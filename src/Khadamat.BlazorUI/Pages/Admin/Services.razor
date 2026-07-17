@@ -225,6 +225,9 @@
             var mainCats = await Api.GetMainCategoriesAsync(); // Refresh in case changed
             var allServicesResult = await Api.GetServicesAsync(pageSize: 1000, isApproved: null); // 1000 is optimization cap
             var allServices = allServicesResult.Items;
+            
+            // Track which services were placed in the tree
+            var placedServiceIds = new HashSet<int>();
 
             foreach (var mc in mainCats)
             {
@@ -240,7 +243,7 @@
                     {
                         var subNode = new ServiceTreeNode { Id = sub.Id, Name = sub.Name, Level = 2 };
                         
-                        // Add services
+                        // Add services linked to this sub-category
                         var subServices = allServices.Where(s => s.SubCategoryId == sub.Id);
                         foreach (var s in subServices)
                         {
@@ -251,10 +254,26 @@
                                 Level = 3, 
                                 IsApproved = s.IsApproved 
                             });
+                            placedServiceIds.Add(s.Id);
                         }
 
                         if (subNode.ChildrenCount > 0)
                             catNode.Children.Add(subNode);
+                    }
+                    
+                    // Add services linked directly to this category (no SubCategoryId)
+                    var catDirectServices = allServices.Where(s => 
+                        !s.SubCategoryId.HasValue && s.CategoryId == cat.Id && !placedServiceIds.Contains(s.Id));
+                    foreach (var s in catDirectServices)
+                    {
+                        catNode.Children.Add(new ServiceTreeNode 
+                        { 
+                            Id = s.Id, 
+                            Name = s.Title, 
+                            Level = 3, 
+                            IsApproved = s.IsApproved 
+                        });
+                        placedServiceIds.Add(s.Id);
                     }
                     
                     if (catNode.ChildrenCount > 0)
@@ -263,6 +282,24 @@
                 
                 if (mcNode.ChildrenCount > 0)
                     treeNodes.Add(mcNode);
+            }
+            
+            // Add orphan services (no SubCategoryId and no matching CategoryId in tree)
+            var orphanServices = allServices.Where(s => !placedServiceIds.Contains(s.Id)).ToList();
+            if (orphanServices.Any())
+            {
+                var orphanNode = new ServiceTreeNode { Id = -1, Name = "غير مصنفة", Level = 0 };
+                foreach (var s in orphanServices)
+                {
+                    orphanNode.Children.Add(new ServiceTreeNode 
+                    { 
+                        Id = s.Id, 
+                        Name = s.Title, 
+                        Level = 3, 
+                        IsApproved = s.IsApproved 
+                    });
+                }
+                treeNodes.Add(orphanNode);
             }
         }
         catch (Exception ex)

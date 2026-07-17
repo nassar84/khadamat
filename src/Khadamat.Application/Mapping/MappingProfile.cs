@@ -21,7 +21,10 @@ public class MappingProfile : Profile
             .ForMember(d => d.IsApproved, opt => opt.MapFrom(s => s.Approved))
             .ForMember(d => d.Rating, opt => opt.MapFrom(s => s.Ratings.Any() ? s.Ratings.Average(r => r.Stars) : 0))
             .ForMember(d => d.RatersCount, opt => opt.MapFrom(s => s.Ratings.Count))
-            .ForMember(d => d.LikesCount, opt => opt.MapFrom(s => s.Likes.Count));
+            .ForMember(d => d.LikesCount, opt => opt.MapFrom(s => s.Likes.Count))
+            .ForMember(d => d.SubCategoryImageUrl, opt => opt.MapFrom(s => s.SubCategory != null ? s.SubCategory.ImageUrl : string.Empty))
+            .ForMember(d => d.CategoryImageUrl, opt => opt.MapFrom(s => s.Category != null ? s.Category.ImageUrl : (s.SubCategory != null && s.SubCategory.Category != null ? s.SubCategory.Category.ImageUrl : string.Empty)))
+            .ForMember(d => d.MainCategoryImageUrl, opt => opt.MapFrom(s => s.Category != null && s.Category.MainCategory != null ? s.Category.MainCategory.ImageUrl : (s.SubCategory != null && s.SubCategory.Category != null && s.SubCategory.Category.MainCategory != null ? s.SubCategory.Category.MainCategory.ImageUrl : string.Empty)));
             
         CreateMap<Post, PostDto>()
             .ForMember(d => d.LikesCount, opt => opt.MapFrom(s => s.Likes.Count))
@@ -30,11 +33,14 @@ public class MappingProfile : Profile
         CreateMap<Comment, CommentDto>();
             
         CreateMap<Category, CategoryDto>()
-            .ForMember(d => d.MainCategoryName, opt => opt.MapFrom(s => s.MainCategory != null ? s.MainCategory.Name : string.Empty));
+            .ForMember(d => d.MainCategoryName, opt => opt.MapFrom(s => s.MainCategory != null ? s.MainCategory.Name : string.Empty))
+            .ForMember(d => d.MainCategoryImageUrl, opt => opt.MapFrom(s => s.MainCategory != null ? s.MainCategory.ImageUrl : string.Empty));
             
         CreateMap<SubCategory, SubCategoryDto>()
              .ForMember(d => d.CategoryName, opt => opt.MapFrom(s => s.Category != null ? s.Category.Name : string.Empty))
-             .ForMember(d => d.MainCategoryName, opt => opt.MapFrom(s => s.Category != null && s.Category.MainCategory != null ? s.Category.MainCategory.Name : string.Empty));
+             .ForMember(d => d.MainCategoryName, opt => opt.MapFrom(s => s.Category != null && s.Category.MainCategory != null ? s.Category.MainCategory.Name : string.Empty))
+             .ForMember(d => d.CategoryImageUrl, opt => opt.MapFrom(s => s.Category != null ? s.Category.ImageUrl : string.Empty))
+             .ForMember(d => d.MainCategoryImageUrl, opt => opt.MapFrom(s => s.Category != null && s.Category.MainCategory != null ? s.Category.MainCategory.ImageUrl : string.Empty));
              
         CreateMap<MainCategory, MainCategoryDto>();
 

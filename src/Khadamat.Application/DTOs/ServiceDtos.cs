@@ -62,6 +62,11 @@ public class ServiceDto
     public bool IsFavorite { get; set; }
     public List<ReviewDto> Reviews { get; set; } = new();
     public List<PostDto> Posts { get; set; } = new();
+
+    // Parent/Grandparent category image paths
+    public string? SubCategoryImageUrl { get; set; }
+    public string? CategoryImageUrl { get; set; }
+    public string? MainCategoryImageUrl { get; set; }
 }
 
 public class ServiceCreateDto
@@ -133,6 +138,8 @@ public class ServiceEditRequestDto
     public string CurrentAddress { get; set; } = string.Empty;
     public decimal? CurrentPrice { get; set; }
     public string? CurrentPhone1 { get; set; }
+    public string? CurrentPhone2 { get; set; }
+    public string? CurrentWhatsApp { get; set; }
 
     // Proposed Values
     public string? ProposedName { get; set; }

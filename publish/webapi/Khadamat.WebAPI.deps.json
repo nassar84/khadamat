@@ -1583,7 +1583,6 @@
           "Khadamat.Application": "1.0.0",
           "Khadamat.Shared": "1.0.0",
           "Microsoft.AspNetCore.Components.Authorization": "8.0.0",
-          "Microsoft.AspNetCore.Components.Web": "8.0.0",
           "Microsoft.AspNetCore.Components.WebAssembly": "8.0.0",
           "Microsoft.AspNetCore.SignalR.Client": "8.0.0",
           "Microsoft.AspNetCore.WebUtilities": "8.0.0",

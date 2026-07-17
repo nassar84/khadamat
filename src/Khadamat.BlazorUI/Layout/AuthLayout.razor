@@ -1,4 +1,4 @@
-@inherits LayoutComponentBase
+﻿@inherits LayoutComponentBase
 @inject Khadamat.BlazorUI.State.AppState AppState
 @inject Khadamat.BlazorUI.Services.ApiClient Api
 @inject IJSRuntime JS
@@ -44,7 +44,7 @@
         CheckNativeModeFromUrl();
 
         // Load global settings if not already loaded (e.g. if arriving directly at login)
-        if (AppState.AppName == "خدمات" || AppState.AppName == "خدماتو")
+        if (AppState.AppName == "خدمات" || AppState.AppName == "خدماوى")
         {
             try
             {

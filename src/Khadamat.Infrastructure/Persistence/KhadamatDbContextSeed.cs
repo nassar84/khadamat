@@ -39,29 +39,9 @@ public static class KhadamatDbContextSeed
                 await context.MainCategories.AddRangeAsync(mainCategories);
                 await context.SaveChangesAsync();
             }
-            else 
-            {
-                // Fix existing categories if they were seeded without images or incorrect paths
-                var existing = await context.MainCategories.ToListAsync();
-                bool changed = false;
-                var imageMap = new Dictionary<string, string>
-                {
-                    { "صحة", "images/maincategories/cat_1.png" }, { "تعليم", "images/maincategories/cat_2.png" }, { "متاجر", "images/maincategories/cat_3.png" },
-                    { "ماكولات ومشروبات", "images/maincategories/cat_4.png" }, { "مكاتب", "images/maincategories/cat_5.png" }, { "حرفيون", "images/maincategories/cat_8.png" },
-                    { "تسوق اون لين", "images/maincategories/cat_9.png" }, { "مواصلات", "images/maincategories/cat_10.png" }, { "صيانة سيارات", "images/maincategories/cat_11.png" },
-                    { "خدمات حكومية", "images/maincategories/cat_12.png" }, { "متجر السلع", "images/maincategories/cat_7.png" }, { "خدمات اخرى", "images/maincategories/cat_6.png" }
-                };
-
-                foreach (var cat in existing)
-                {
-                    if (imageMap.TryGetValue(cat.Name, out var img) && cat.ImageUrl != img)
-                    {
-                        cat.ImageUrl = img;
-                        changed = true;
-                    }
-                }
-                if (changed) await context.SaveChangesAsync();
-            }
+            // NOTE: If MainCategories table already has data, do NOT modify it.
+            // ImageUrl and all other fields are managed exclusively through the Admin UI.
+            // Agreed policy: Seed data only runs once when the table is empty.
 
             if (!await context.Categories.AnyAsync())
             {
@@ -502,10 +482,39 @@ public static class KhadamatDbContextSeed
     private static async Task SeedAdsAsync(KhadamatDbContext context)
     {
         var now = DateTime.UtcNow;
-        var ad = new Ad("مرحباً بكم في خدمات", "اكتشف أفضل المحترفين في مدينتك الآن.", now, now.AddMonths(1), "Slider");
-        ad.SetMainImage("https://picsum.photos/seed/ad/1200/400");
-        ad.Approve();
-        context.Ads.Add(ad);
+        var end = now.AddYears(4);
+
+        // 1. Slider Ads — تستخدم ألوان متدرجة (hero-gradient) لأن ملفات الصور الافتراضية غير موجودة
+        var ad1 = new Ad("مرحباً بكم في خدماوي", "اكتشف واطلب أفضل الخدمات في مكان واحد بسهولة وأمان.", now, end, "Image");
+        ad1.UpdateDetails(ad1.Title, ad1.Description, ad1.StartDate, ad1.EndDate, placement: "Slider");
+        ad1.SetMainImage("hero-gradient-1");
+        ad1.Approve();
+        ad1.SetDisplayOrder(1);
+        context.Ads.Add(ad1);
+
+        var ad2 = new Ad("انضم كمزود خدمة معنا", "سجل مهاراتك ووصّل خدماتك لآلاف العملاء في منطقتك مجاناً.", now, end, "Image");
+        ad2.UpdateDetails(ad2.Title, ad2.Description, ad2.StartDate, ad2.EndDate, placement: "Slider");
+        ad2.SetMainImage("hero-gradient-2");
+        ad2.Approve();
+        ad2.SetDisplayOrder(2);
+        context.Ads.Add(ad2);
+
+        // 2. Bottom Ads
+        var adBottom = new Ad("تخفيضات الصيف الكبرى", "خصومات تصل إلى 40% على خدمات الصيانة المنزلية والتركيبات.", now, end, "Image");
+        adBottom.UpdateDetails(adBottom.Title, adBottom.Description, adBottom.StartDate, adBottom.EndDate, placement: "Bottom");
+        adBottom.SetMainImage("hero-gradient-3");
+        adBottom.Approve();
+        adBottom.SetDisplayOrder(1);
+        context.Ads.Add(adBottom);
+
+        // 3. Sidebar Ads
+        var adSidebar = new Ad("مستشار قانوني في خدمتك", "احصل على استشارات قانونية سريعة وموثوقة من أفضل المحامين.", now, end, "Image");
+        adSidebar.UpdateDetails(adSidebar.Title, adSidebar.Description, adSidebar.StartDate, adSidebar.EndDate, placement: "Sidebar");
+        adSidebar.SetMainImage("hero-gradient-4");
+        adSidebar.Approve();
+        adSidebar.SetDisplayOrder(1);
+        context.Ads.Add(adSidebar);
+
         await context.SaveChangesAsync();
     }
 

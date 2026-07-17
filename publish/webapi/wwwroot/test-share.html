@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>🧪 اختبار بطاقة المشاركة - خدماوي</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f1f5f9; padding: 20px; color: #1e293b; }
+        h1 { text-align: center; margin-bottom: 24px; color: #4f46e5; }
+        .controls { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; }
+        button { padding: 10px 24px; border-radius: 50px; border: none; cursor: pointer; font-size: 0.95rem; font-weight: 700; transition: all 0.2s; }
+        #btn-capture { background: #4f46e5; color: white; }
+        #btn-capture:hover { background: #4338ca; transform: translateY(-1px); }
+        #btn-share { background: #10b981; color: white; }
+        #btn-share:hover { background: #059669; }
+        #btn-download { background: #f59e0b; color: white; }
+        #btn-download:hover { background: #d97706; }
+        .log-area { background: #0f172a; color: #94a3b8; font-family: monospace; font-size: 0.8rem; padding: 16px; border-radius: 12px; max-height: 200px; overflow-y: auto; margin-bottom: 24px; }
+        .log-area .ok  { color: #4ade80; }
+        .log-area .err { color: #f87171; }
+        .log-area .inf { color: #60a5fa; }
+        .preview-wrap {
+            display: flex; justify-content: center; align-items: center;
+            background: #e2e8f0; border-radius: 12px; padding: 12px;
+            margin-bottom: 24px; overflow: hidden;
+        }
+        .preview-wrap .share-capture-card {
+            transform: scale(0.65);
+            transform-origin: center;
+            flex-shrink: 0;
+        }
+        #result-img { display: block; max-width: 100%; border-radius: 12px; border: 2px solid #4f46e5; margin: 16px auto; box-shadow: 0 8px 32px rgba(0,0,0,0.15); }
+
+        /* ---- THE CARD (same as in Blazor) ---- */
+        #service-share-card {
+            width: 600px; min-width: 600px; height: 315px; max-height: 315px;
+            overflow: hidden; background: white; display: flex; flex-direction: column; border-radius: 0;
+        }
+        .card-body { display: flex; flex: 1; overflow: hidden; }
+        .card-img { width: 220px; min-width: 220px; position: relative; overflow: hidden; background: #f8fafc; display: flex; align-items: center; justify-content: center; }
+        .card-img img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
+        .price-badge {
+            position: absolute; bottom: 8px; left: 8px;
+            background: #10b981; color: white; font-size: 0.7rem; font-weight: 700;
+            padding: 3px 8px; border-radius: 50px;
+        }
+        .gradient-overlay {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 60px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.5));
+        }
+        .card-details {
+            flex: 1; padding: 12px 18px; display: flex; flex-direction: column;
+            justify-content: space-between; background: white; direction: rtl; text-align: center; align-items: center; position: relative; overflow: hidden;
+        }
+        .brand-row { display: flex; align-items: center; gap: 6px; justify-content: center; margin-top: 4px; margin-bottom: 2px; }
+        .brand-name { display: flex; align-items: center; gap: 6px; }
+        .brand-name img { width: 18px; height: 18px; border-radius: 4px; }
+        .brand-name span { font-size: 0.8rem; font-weight: 800; color: #4f46e5; font-family: Tajawal, sans-serif; }
+        .rating-badge {
+            position: absolute; top: 12px; left: 12px;
+            background: #fef08a; color: #854d0e; padding: 3px 8px; border-radius: 8px;
+            font-size: 0.72rem; font-weight: 700; display: flex; align-items: center; gap: 3px; z-index: 10; direction: ltr;
+        }
+        .category-path { font-size: 0.65rem; color: #94a3b8; display: flex; align-items: center; gap: 4px; justify-content: center; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+        .service-title { font-size: 1.1rem; font-weight: 800; color: #0f172a; margin: 0 0 4px 0; line-height: 1.3; text-align: center; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; width: 100%; }
+        .provider-name { font-size: 0.72rem; color: #94a3b8; display: flex; align-items: center; gap: 4px; justify-content: center; margin-bottom: 4px; }
+        .location-container { display: flex; justify-content: center; margin-bottom: 6px; }
+        .pill { background: #eff6ff; color: #2563eb; padding: 4px 12px; border-radius: 50px; font-size: 0.72rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
+        .card-desc { font-size: 0.75rem; color: #94a3b8; line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; margin-bottom: 6px; text-align: center; width: 100%; }
+        .contacts-row { display: flex; gap: 16px; justify-content: center; align-items: center; width: 100%; margin-top: 2px; direction: rtl; }
+        .contact-item { font-size: 0.75rem; font-weight: 800; display: flex; align-items: center; gap: 4px; }
+        .contact-phone { color: #991b1b; }
+        .contact-whatsapp { color: #16a34a; }
+        .card-footer {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            padding: 6px 18px; display: flex; justify-content: space-between; align-items: center; direction: rtl;
+        }
+        .footer-qr { display: flex; align-items: center; gap: 6px; }
+        .qr-box { width: 48px; height: 48px; background: white; padding: 2px; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+        .qr-box img { width: 44px; height: 44px; }
+        .footer-text { color: white; }
+        .footer-text .title { font-size: 0.72rem; font-weight: 800; }
+        .footer-text .url { font-size: 0.6rem; opacity: 0.85; }
+        .footer-icons { display: flex; gap: 6px; color: white; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+    <h1>🧪 اختبار بطاقة المشاركة - خدماوي</h1>
+
+    <div class="log-area" id="log">
+        <div class="inf">[INFO] صفحة الاختبار جاهزة. اضغط أحد الأزرار أدناه.</div>
+    </div>
+
+    <div class="controls">
+        <button id="btn-capture" onclick="testCapture()"><i class="fa fa-camera me-1"></i> التقاط البطاقة</button>
+        <button id="btn-share" onclick="testShare()"><i class="fa fa-share-nodes me-1"></i> مشاركة (Native Share)</button>
+        <button id="btn-download" onclick="testDownload()"><i class="fa fa-download me-1"></i> تحميل الصورة</button>
+    </div>
+
+    <!-- The share card preview (scaled) -->
+    <div class="preview-wrap">
+        <div id="service-share-card" class="share-capture-card">
+            <div class="card-body">
+                <!-- Details side -->
+                <div class="card-details">
+                    <!-- Top Left Rating Badge (absolutely positioned in details) -->
+                    <div class="rating-badge">
+                        <span>4.8</span>
+                        <span>⭐</span>
+                    </div>
+
+                    <!-- Brand Name centered -->
+                    <div class="brand-row">
+                        <div class="brand-name">
+                            <span>خدماوي</span>
+                            <img src="/favicon.png" alt="Logo" onerror="this.style.display='none'"/>
+                        </div>
+                    </div>
+
+                    <!-- Category Path centered with folder icon on right -->
+                    <div class="category-path">
+                        <span>خدمات المنازل ، تنظيف</span>
+                        <span style="color: #eab308; font-size: 0.75rem;">📁</span>
+                    </div>
+
+                    <!-- Title centered -->
+                    <h4 class="service-title">خدمة تنظيف منازل احترافية بأحدث المعدات والمواد الآمنة</h4>
+
+                    <!-- Provider Name centered with icon on right -->
+                    <div class="provider-name">
+                        <span>أحمد محمد العمري</span>
+                        <span>👤</span>
+                    </div>
+
+                    <!-- Location Badge centered with pin on right -->
+                    <div class="location-container">
+                        <span class="pill">
+                            <span>القاهرة - مدينة نصر</span>
+                            <span style="color: #ef4444; font-size: 0.75rem;">📍</span>
+                        </span>
+                    </div>
+
+                    <!-- Description centered -->
+                    <div class="card-desc">نقدم خدمات تنظيف شاملة للشقق والفلل والمكاتب مع ضمان الجودة وفريق متخصص ومدرب على أعلى مستوى من الاحترافية.</div>
+
+                    <!-- Contacts Row -->
+                    <div class="contacts-row">
+                        <span class="contact-item contact-phone">
+                            <span style="font-size: 0.85rem;">📞</span>
+                            <span>01234567890</span>
+                        </span>
+                        <span class="contact-item contact-whatsapp">
+                            <span style="font-size: 0.85rem;">💬</span>
+                            <span>01234567890</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Image side -->
+                <div class="card-img">
+                    <img src="https://picsum.photos/seed/khadamat1/440/630"
+                         crossorigin="anonymous"
+                         onerror="this.src='/images/placeholders/default_service.png'"
+                         alt="Service Image"/>
+                    <div class="gradient-overlay" style="height: 40px; background: linear-gradient(transparent, rgba(0,0,0,0.15));"></div>
+                    <div class="price-badge">💰 500 ج.م</div>
+                </div>
+            </div>
+            <!-- Footer -->
+            <div class="card-footer">
+                <div class="footer-qr">
+                    <div class="qr-box">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=44x44&data=http://localhost:5144/service/details/2"
+                             alt="QR"/>
+                    </div>
+                    <div class="footer-text">
+                        <div class="title">امسح الكود</div>
+                        <div class="url">لزيارة الخدمة</div>
+                    </div>
+                </div>
+                <div class="footer-text" style="text-align:left">
+                    <div class="title">📲 خدماوي — سوق الخدمات الأول</div>
+                    <div class="url">khadamawy.eis-dev.com</div>
+                </div>
+                <div class="footer-icons">
+                    <i class="fa-brands fa-google-play"></i>
+                    <i class="fa-brands fa-apple"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result image will appear here -->
+    <div id="result-container" style="display:none; text-align:center; margin-top:16px;">
+        <p style="font-weight:700; color:#4f46e5; margin-bottom:8px;">✅ صورة البطاقة الملتقطة:</p>
+        <img id="result-img" alt="Captured Card"/>
+        <p id="result-size" style="font-size:0.8rem; color:#64748b; margin-top:6px;"></p>
+    </div>
+
+    <script>
+        const log = document.getElementById('log');
+        function addLog(msg, type='inf') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            log.appendChild(div);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        async function captureCard() {
+            const el = document.getElementById('service-share-card');
+            if (!el) { addLog('❌ عنصر البطاقة غير موجود!', 'err'); return null; }
+
+            addLog('📸 بدء استنساخ البطاقة...');
+            const clone = el.cloneNode(true);
+            clone.style.position = 'fixed';
+            clone.style.left = '-9999px';
+            clone.style.top = '0';
+            clone.style.width = '600px';
+            clone.style.height = '315px';
+            clone.style.transform = 'none';
+            clone.style.zIndex = '-1';
+            document.body.appendChild(clone);
+
+            try {
+                addLog('🎨 تشغيل html2canvas...');
+                const canvas = await html2canvas(clone, {
+                    useCORS: true,
+                    scale: 2,
+                    backgroundColor: '#ffffff',
+                    logging: false,
+                    allowTaint: false
+                });
+                addLog(`✅ التقاط ناجح! الأبعاد: ${canvas.width}×${canvas.height}`, 'ok');
+                return canvas;
+            } catch(ex) {
+                addLog(`❌ خطأ html2canvas: ${ex.message}`, 'err');
+                return null;
+            } finally {
+                document.body.removeChild(clone);
+            }
+        }
+
+        async function testCapture() {
+            addLog('--- بدء اختبار الالتقاط ---');
+            const canvas = await captureCard();
+            if (!canvas) return;
+
+            const dataUrl = canvas.toDataURL('image/png');
+            const img = document.getElementById('result-img');
+            img.src = dataUrl;
+            document.getElementById('result-container').style.display = 'block';
+            document.getElementById('result-size').textContent =
+                `الحجم: ${Math.round(dataUrl.length / 1024)} KB | الأبعاد: ${canvas.width}×${canvas.height}px`;
+            addLog('🖼️ الصورة معروضة أدناه', 'ok');
+        }
+
+        async function testShare() {
+            addLog('--- بدء اختبار المشاركة الأصلية ---');
+            const canvas = await captureCard();
+            if (!canvas) return;
+
+            const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+            if (!blob) { addLog('❌ فشل إنشاء Blob', 'err'); return; }
+            addLog(`📦 حجم Blob: ${Math.round(blob.size/1024)} KB`, 'ok');
+
+            const file = new File([blob], 'khadamat_service_test.png', { type: 'image/png' });
+            const shareText = 'شاهد هذه الخدمة المميزة على تطبيق وموقع خدماوي! 🌟\n\nمنصة خدماوي هي سوق الخدمات والأعمال الأول في مصر. تصفح آلاف الخدمات والوظائف المتنوعة القريبة منك، وتواصل مباشرة مع مقدميها بكل سهولة وأمان مجاناً وبدون أي عمولات!\n\n📲 حمل التطبيق الآن واستفد من خدماتنا المتنوعة:\n🔗 رابط تحميل التطبيق: https://play.google.com/store/apps/details?id=com.nassar84.khadamat\n\n🔗 رابط الخدمة: http://localhost:5144/service/details/2';
+
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                addLog('📱 Web Share API متاح مع دعم الملفات — جاري فتح نافذة المشاركة...', 'ok');
+                try {
+                    await navigator.share({ title: 'خدماوي — خدمة', text: shareText, files: [file] });
+                    addLog('✅ تمت المشاركة بنجاح!', 'ok');
+                } catch(ex) {
+                    addLog(`⚠️ المستخدم ألغى المشاركة أو خطأ: ${ex.message}`, 'inf');
+                }
+            } else if (navigator.share) {
+                addLog('📱 Web Share API متاح بدون دعم الملفات — مشاركة رابط فقط...', 'inf');
+                try {
+                    await navigator.share({ title: 'خدماوي — خدمة', text: shareText, url: 'http://localhost:5144/service/details/2' });
+                    addLog('✅ تمت مشاركة الرابط بنجاح!', 'ok');
+                } catch(ex) {
+                    addLog(`⚠️ إلغاء أو خطأ: ${ex.message}`, 'inf');
+                }
+            } else {
+                addLog('🖥️ المتصفح لا يدعم Web Share API (سلوك سطح المكتب المتوقع)', 'inf');
+                addLog('📥 سيتم تحميل الصورة + نسخ النص إلى الحافظة كـ Fallback...', 'inf');
+
+                // Fallback: download + clipboard
+                const a = document.createElement('a');
+                a.href = canvas.toDataURL('image/png');
+                a.download = 'khadamat_service_test.png';
+                a.click();
+                addLog('✅ تم تحميل الصورة!', 'ok');
+
+                try {
+                    await navigator.clipboard.writeText(shareText);
+                    addLog('✅ تم نسخ النص التسويقي إلى الحافظة!', 'ok');
+                } catch(_) {
+                    addLog('⚠️ لم يتم نسخ النص (مطلوب تفاعل المستخدم)', 'inf');
+                }
+            }
+        }
+
+        async function testDownload() {
+            addLog('--- بدء اختبار التحميل ---');
+            const canvas = await captureCard();
+            if (!canvas) return;
+
+            const a = document.createElement('a');
+            a.href = canvas.toDataURL('image/png');
+            a.download = 'khadamat_test_card.png';
+            a.click();
+            addLog('✅ تم تحميل بطاقة الخدمة كملف PNG!', 'ok');
+        }
+
+        // AUTO-RUN: start capture test immediately after page loads
+        window.addEventListener('load', async () => {
+            addLog('🔄 بدء الاختبار التلقائي...', 'inf');
+            addLog('=== اختبار تلقائي: التقاط البطاقة ===');
+            await testCapture();
+            addLog('=== انتهى الاختبار التلقائي ===', 'ok');
+            document.title = '✅ اكتمل الاختبار';
+        });
+    </script>
+</body>
+</html>

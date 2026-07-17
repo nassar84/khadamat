@@ -23,10 +23,11 @@
                 var ad = ads[i];
                 <div class="ad-slide @(i == currentIndex ? "active" : "")" @onclick="() => OnAdClick(ad)">
                     @{
-                        var isRealImage = !string.IsNullOrEmpty(ad.ImageUrl) && !ad.ImageUrl.StartsWith("hero-gradient");
-                        var imageUrl = isRealImage ? Api.GetAbsoluteUrl(ad.ImageUrl) : ad.ImageUrl;
-                        var bgStyle = isRealImage ? $"background-image: url({imageUrl}); background-size: cover; background-position: center;" : "";
-                        var cardClass = !isRealImage ? ad.ImageUrl : "";
+                        var hasGradient = !string.IsNullOrEmpty(ad.ImageUrl) && ad.ImageUrl.StartsWith("hero-gradient");
+                        var hasRealImage = !string.IsNullOrEmpty(ad.ImageUrl) && !ad.ImageUrl.StartsWith("hero-gradient");
+                        var imageUrl = hasRealImage ? Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.ImagePathResolver.Ad(ad.ImageUrl)) : null;
+                        var bgStyle = hasRealImage ? $"background-image: url({imageUrl}); background-size: cover; background-position: center;" : "";
+                        var cardClass = hasGradient ? ad.ImageUrl : (string.IsNullOrEmpty(ad.ImageUrl) ? "hero-gradient-1" : "");
                     }
                     <div class="ad-content-card @cardClass" style="@bgStyle">
                         <div class="glass-overlay"></div>

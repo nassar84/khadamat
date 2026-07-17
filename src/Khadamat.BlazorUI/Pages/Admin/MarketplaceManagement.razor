@@ -147,7 +147,7 @@
                                 <td class="ps-3" style="min-width:220px;">
                                     <div class="d-flex align-items-center gap-3">
                                         <div class="item-thumb">
-                                            <img src="@(item.Images.FirstOrDefault()?.ImageUrl ?? "/images/defaults/default-product.png")"
+                                            <img src="@Khadamat.BlazorUI.Helpers.ImagePathResolver.MarketplaceItem(item.Images.FirstOrDefault()?.ImageUrl)"
                                                  alt="@item.Title" />
                                             @if (item.ItemStatus == "Sold")
                                             {
@@ -369,7 +369,7 @@
             <div class="modal-box-body">
                 <div class="item-preview-card mb-4">
                     <div class="d-flex gap-3 align-items-center">
-                        <img src="@(selectedItem.Images.FirstOrDefault()?.ImageUrl ?? "/images/defaults/default-product.png")"
+                        <img src="@Khadamat.BlazorUI.Helpers.ImagePathResolver.MarketplaceItem(selectedItem.Images.FirstOrDefault()?.ImageUrl)"
                              class="rounded-3" width="60" height="60" style="object-fit:cover;" />
                         <div>
                             <div class="fw-bold">@selectedItem.Title</div>
@@ -436,7 +436,7 @@
             <div class="modal-box-body">
                 <div class="item-preview-card mb-4">
                     <div class="d-flex gap-3 align-items-center">
-                        <img src="@(selectedItem.Images.FirstOrDefault()?.ImageUrl ?? "/images/defaults/default-product.png")"
+                        <img src="@Khadamat.BlazorUI.Helpers.ImagePathResolver.MarketplaceItem(selectedItem.Images.FirstOrDefault()?.ImageUrl)"
                              class="rounded-3" width="60" height="60" style="object-fit:cover;" />
                         <div>
                             <div class="fw-bold">@selectedItem.Title</div>

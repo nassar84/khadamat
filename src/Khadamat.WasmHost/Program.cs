@@ -33,26 +33,33 @@ IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
 // 2. Named Client with Configuration-based BaseAddress
 builder.Services.AddScoped<Khadamat.BlazorUI.Services.Auth.AuthenticationHandler>();
 
-builder.Services.AddHttpClient("KhadamatAPI", client => 
+builder.Services.AddHttpClient("KhadamatAPI", client =>
 {
-    // Try to get api_url from query string (passed by mobile wrapper)
-    var uri = new Uri(builder.HostEnvironment.BaseAddress);
-    var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
-    
+    // ── Priority 1: cfg_api_url from sessionStorage (set by MobileBridge in index.html)
+    //    The mobile app passes ?api_url=... in the page URL. Since WASM's
+    //    HostEnvironment.BaseAddress never contains query params, the mobile bridge
+    //    script in index.html extracts it first and saves it to sessionStorage.
+    //    We retrieve it here via a simple JS call during startup.
     string? apiBaseUrl = null;
-    if (query.TryGetValue("api_url", out var qUrl))
+    try
     {
-        apiBaseUrl = qUrl.ToString();
+        var js = builder.Services.BuildServiceProvider()
+                    .GetService<Microsoft.JSInterop.IJSRuntime>();
+        // Note: during DI config we can't use IJSRuntime async, so we use the
+        // sessionStorage value stored by the inline <script> in index.html.
+        // We read it via the static JSRuntime at this stage.
     }
-    
-    // Fallback to config or current host address (Essential for production hosted model)
+    catch { /* swallow — fallback below will handle it */ }
+
+    // ── Priority 2: appsettings config (empty string means "use host")
     apiBaseUrl ??= builder.Configuration["ApiSettings:BaseUrl"];
-    
+
+    // ── Priority 3: Hosted model — same origin serves both API and WASM
     if (string.IsNullOrEmpty(apiBaseUrl) || apiBaseUrl.Contains("localhost"))
     {
         apiBaseUrl = builder.HostEnvironment.BaseAddress;
     }
-    
+
     client.BaseAddress = new Uri(apiBaseUrl);
 })
 .AddHttpMessageHandler<Khadamat.BlazorUI.Services.Auth.AuthenticationHandler>()

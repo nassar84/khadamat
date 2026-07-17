@@ -129,7 +129,7 @@
                                 <!-- Product Image -->
                                 <div class="listing-image"
                                      @onclick='() => Navigation.NavigateTo($"/marketplace/item/{item.Id}")'>
-                                    <img src="@(item.Images.FirstOrDefault()?.ImageUrl ?? "/images/defaults/default-product.png")"
+                                    <img src="@Khadamat.BlazorUI.Helpers.ImagePathResolver.MarketplaceItem(item.Images.FirstOrDefault()?.ImageUrl)"
                                          alt="@item.Title" />
                                     @if (item.ItemStatus == "Sold")
                                     {

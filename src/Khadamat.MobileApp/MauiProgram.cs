@@ -66,8 +66,8 @@ public static class MauiProgram
 #endif
 
         // Configure HttpClient for API
-        var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "https://jobsek.eis-dev.com";
-        var webAppBaseUrl = builder.Configuration["ApiSettings:WebAppBaseUrl"] ?? "https://jobsek.eis-dev.com";
+        var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "https://khadamawy.eis-dev.com";
+        var webAppBaseUrl = builder.Configuration["ApiSettings:WebAppBaseUrl"] ?? "https://khadamawy.eis-dev.com";
         
         // Ensure URLs end with slash for consistency if needed, but here we prefer consistency with config
         

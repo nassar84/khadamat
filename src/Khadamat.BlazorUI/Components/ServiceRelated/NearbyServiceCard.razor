@@ -4,7 +4,8 @@
 
 <div class="nearby-card" @onclick="OnClickInternal">
     <div class="nearby-image-wrapper">
-        <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(Service.CategoryName, Service.Images?.FirstOrDefault()))" 
+        <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(Service.Images?.FirstOrDefault(), Service.SubCategoryName, Service.CategoryName, Service.MainCategoryName, Service.SubCategoryImageUrl, Service.CategoryImageUrl, Service.MainCategoryImageUrl))" 
+             onerror="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImageOnError(Service.SubCategoryName, Service.CategoryName, Service.MainCategoryName, Service.SubCategoryImageUrl, Service.CategoryImageUrl, Service.MainCategoryImageUrl, Api.BaseUrl)"
              alt="@Service.Title" 
              class="nearby-image">
     </div>

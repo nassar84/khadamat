@@ -38,7 +38,7 @@ public class GetServiceEditRequestsHandler : IRequestHandler<GetServiceEditReque
 
         foreach (var req in editRequests)
         {
-             userInfos.TryGetValue(req.RequesterId, out var info);
+             var requesterName = userInfos.TryGetValue(req.RequesterId, out var info) ? info.Name : "مستخدم";
             
             results.Add(new ServiceEditRequestDto
             {
@@ -46,7 +46,7 @@ public class GetServiceEditRequestsHandler : IRequestHandler<GetServiceEditReque
                 ServiceId = req.ServiceId,
                 ServiceName = req.Service?.Name ?? "خدمة غير معروفة",
                 RequesterId = req.RequesterId,
-                RequesterName = info.Name ?? "مستخدم",
+                RequesterName = requesterName,
                 Reason = req.Reason,
                 
                 CurrentName = req.Service?.Name ?? "",
@@ -54,6 +54,8 @@ public class GetServiceEditRequestsHandler : IRequestHandler<GetServiceEditReque
                 CurrentAddress = req.Service?.Address ?? "",
                 CurrentPrice = req.Service?.Price,
                 CurrentPhone1 = req.Service?.Phone1,
+                CurrentPhone2 = req.Service?.Phone2,
+                CurrentWhatsApp = req.Service?.WhatsApp,
 
                 ProposedName = req.ProposedName,
                 ProposedDescription = req.ProposedDescription,

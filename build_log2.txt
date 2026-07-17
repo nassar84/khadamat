@@ -1,0 +1,16 @@
+D:\DEV\khadamat\src\Khadamat.MobileApp\Khadamat.MobileApp.csproj : warning NU1903: Package 'AutoMapper' 13.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x [TargetFramework=net9.0-android]
+  Khadamat.Domain -> D:\DEV\khadamat\src\Khadamat.Domain\bin\Debug\net8.0\Khadamat.Domain.dll
+  Khadamat.Shared -> D:\DEV\khadamat\src\Khadamat.Shared\bin\Debug\net8.0\Khadamat.Shared.dll
+  Khadamat.Application -> D:\DEV\khadamat\src\Khadamat.Application\bin\Debug\net8.0\Khadamat.Application.dll
+  Khadamat.MobileApp -> D:\DEV\khadamat\src\Khadamat.MobileApp\bin\Debug\net9.0-android\Khadamat.MobileApp.dll
+D:\DEV\khadamat\src\Khadamat.MobileApp\Khadamat.MobileApp.csproj : warning NU1903: Package 'AutoMapper' 13.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x [TargetFramework=net9.0-android]
+D:\DEV\khadamat\src\Khadamat.MobileApp\Khadamat.MobileApp.csproj : warning NU1903: Package 'AutoMapper' 13.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x [TargetFramework=net9.0-android]
+  Khadamat.Shared -> D:\DEV\khadamat\src\Khadamat.Shared\bin\Debug\net8.0\Khadamat.Shared.dll
+  Khadamat.Domain -> D:\DEV\khadamat\src\Khadamat.Domain\bin\Debug\net8.0\Khadamat.Domain.dll
+  Khadamat.Application -> D:\DEV\khadamat\src\Khadamat.Application\bin\Debug\net8.0\Khadamat.Application.dll
+obj\Debug\net9.0-android\proguard\proguard_xamarin.cfg : warning XA4304: ProGuard configuration file 'obj\Debug\net9.0-android\proguard\proguard_xamarin.cfg' was not found. [D:\DEV\khadamat\src\Khadamat.MobileApp\Khadamat.MobileApp.csproj::TargetFramework=net9.0-android]
+obj\Debug\net9.0-android\android-x64\proguard\proguard_project_references.cfg : warning XA4304: ProGuard configuration file 'obj\Debug\net9.0-android\android-x64\proguard\proguard_project_references.cfg' was not found. [D:\DEV\khadamat\src\Khadamat.MobileApp\Khadamat.MobileApp.csproj::TargetFramework=net9.0-android]
+obj\Debug\net9.0-android\proguard\proguard_project_primary.cfg : warning XA4304: ProGuard configuration file 'obj\Debug\net9.0-android\proguard\proguard_project_primary.cfg' was not found. [D:\DEV\khadamat\src\Khadamat.MobileApp\Khadamat.MobileApp.csproj::TargetFramework=net9.0-android]
+MSBUILD : error MSB4166: Child node "3" exited prematurely. Shutting down. Diagnostic information may be found in files in "C:\Users\Administrator\AppData\Local\Temp\MSBuildTemp\" and will be named MSBuild_*.failure.txt. This location can be changed by setting the MSBUILDDEBUGPATH environment variable to a different directory.
+C:\Program Files\dotnet\packs\Microsoft.Android.Sdk.Windows\35.0.105\tools\Xamarin.Android.D8.targets(56,5): warning MSB5021: Terminating the task executable "java" and its child processes because the build was canceled. [D:\DEV\khadamat\src\Khadamat.MobileApp\Khadamat.MobileApp.csproj::TargetFramework=net9.0-android]
+MSBUILD : error MSB4166: Child node "2" exited prematurely. Shutting down. Diagnostic information may be found in files in "C:\Users\Administrator\AppData\Local\Temp\MSBuildTemp\" and will be named MSBuild_*.failure.txt. This location can be changed by setting the MSBUILDDEBUGPATH environment variable to a different directory.

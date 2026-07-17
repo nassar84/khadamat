@@ -16,4 +16,6 @@ public class UpdateServiceEditRequestCommand : IRequest<bool>
     public bool ApproveAddress { get; set; }
     public bool ApprovePrice { get; set; }
     public bool ApprovePhone1 { get; set; }
+    public bool ApprovePhone2 { get; set; }
+    public bool ApproveWhatsApp { get; set; }
 }

@@ -15,12 +15,13 @@
             
             <div class="ad-popup-content shadow-2xl" @onclick="OnAdClick">
                 @{
-                    var isRealImage = !string.IsNullOrEmpty(popupAd.ImageUrl) && !popupAd.ImageUrl.StartsWith("hero-gradient");
-                    var imageUrl = isRealImage ? Api.GetAbsoluteUrl(popupAd.ImageUrl) : popupAd.ImageUrl;
-                    var cardClass = !isRealImage ? popupAd.ImageUrl : "has-bg-image";
+                    var hasGradient = !string.IsNullOrEmpty(popupAd.ImageUrl) && popupAd.ImageUrl.StartsWith("hero-gradient");
+                    var hasRealImage = !string.IsNullOrEmpty(popupAd.ImageUrl) && !popupAd.ImageUrl.StartsWith("hero-gradient");
+                    var imageUrl = hasRealImage ? Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.ImagePathResolver.Ad(popupAd.ImageUrl)) : null;
+                    var cardClass = hasGradient ? popupAd.ImageUrl : (string.IsNullOrEmpty(popupAd.ImageUrl) ? "hero-gradient-1" : "has-bg-image");
                 }
                 
-                <div class="ad-popup-image @cardClass" style="@(isRealImage ? $"background-image: url('{imageUrl}');" : "")">
+                <div class="ad-popup-image @cardClass" style="@(hasRealImage ? $"background-image: url('{imageUrl}');" : "")">
                     <div class="ad-popup-badge">إعلان مميز</div>
                     <div class="ad-popup-info">
                         @if (!string.IsNullOrEmpty(popupAd.Title))

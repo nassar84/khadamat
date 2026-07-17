@@ -197,7 +197,17 @@ public class MarketplaceService : IMarketplaceService
         {
             for (int i = 0; i < request.Images.Count; i++)
             {
-                var imageUrl = await SaveImage(request.Images[i], item.Id, i);
+                var img = request.Images[i];
+                string imageUrl = "";
+                if (img.StartsWith("data:", StringComparison.OrdinalIgnoreCase) || img.Contains(","))
+                {
+                    imageUrl = await SaveImage(img, item.Id, i);
+                }
+                else
+                {
+                    var cleanFilename = ImageNamingHelper.ExtractFileName(img);
+                    imageUrl = ImageNamingHelper.RenameImage(cleanFilename, "marketplace", $"mp_{item.Id}_{i + 1}") ?? "";
+                }
                 _context.MarketplaceImages.Add(new MarketplaceImage(item.Id, imageUrl, i, i == 0));
             }
             await _context.SaveChangesAsync();
@@ -208,24 +218,23 @@ public class MarketplaceService : IMarketplaceService
 
     private async Task<string> SaveImage(string base64Data, int itemId, int index)
     {
-        // Simple base64 saving logic (for production, use a more robust storage service)
         try
         {
-            var folderPath = Path.Combine("wwwroot", "uploads", "marketplace");
-            if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
+            var folderPath = System.IO.Path.Combine("wwwroot", "images", "marketplace");
+            if (!System.IO.Directory.Exists(folderPath)) System.IO.Directory.CreateDirectory(folderPath);
 
-            var fileName = $"item_{itemId}_{index}_{DateTime.UtcNow.Ticks}.jpg";
-            var filePath = Path.Combine(folderPath, fileName);
+            var fileName = $"mp_{itemId}_{index + 1}.jpg";
+            var filePath = System.IO.Path.Combine(folderPath, fileName);
 
             var data = base64Data.Contains(",") ? base64Data.Split(',')[1] : base64Data;
             var bytes = Convert.FromBase64String(data);
-            await File.WriteAllBytesAsync(filePath, bytes);
+            await System.IO.File.WriteAllBytesAsync(filePath, bytes);
 
-            return $"/uploads/marketplace/{fileName}";
+            return fileName; // Return ONLY filename!
         }
         catch
         {
-            return "/images/defaults/default-product.png";
+            return "default-product.png";
         }
     }
 

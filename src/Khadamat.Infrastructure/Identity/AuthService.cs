@@ -13,6 +13,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Google.Apis.Auth;
 using System.Net.Http.Json;
+using System.IO;
+using Khadamat.Infrastructure.Services;
 
 namespace Khadamat.Infrastructure.Identity;
 
@@ -140,29 +142,7 @@ public class AuthService : IAuthService
             IsActive = true
         };
 
-        // Handle Profile Image
-        if (!string.IsNullOrEmpty(request.ProfileImageBase64))
-        {
-            try 
-            {
-                var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "users");
-                if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
-
-                var fileName = $"{Guid.NewGuid()}.jpg"; // Assume JPG for simplicity or detect mime
-                var filePath = Path.Combine(folderPath, fileName);
-                var imageBytes = Convert.FromBase64String(request.ProfileImageBase64);
-                
-                await File.WriteAllBytesAsync(filePath, imageBytes);
-                user.ProfileImageUrl = $"/uploads/users/{fileName}";
-            }
-            catch (Exception ex)
-            {
-                // Fallback or log error
-                Console.WriteLine($"Error saving profile image: {ex.Message}");
-            }
-        }
-        
-        if (string.IsNullOrEmpty(user.ProfileImageUrl))
+        if (string.IsNullOrEmpty(user.ProfileImageUrl) && string.IsNullOrEmpty(request.ProfileImageBase64))
         {
             // Default based on gender
             if (request.Gender == "Female")
@@ -177,6 +157,13 @@ public class AuthService : IAuthService
         {
             var errors = result.Errors.Select(e => e.Description).ToList();
             return ApiResponse<AuthResponse>.Fail("فشل إنشاء الحساب", errors);
+        }
+
+        // Save profile image as u_{userid}.jpg after successful user creation
+        if (!string.IsNullOrEmpty(request.ProfileImageBase64))
+        {
+            user.ProfileImageUrl = await SaveUserProfileImageAsync(request.ProfileImageBase64, user.Id);
+            await _userManager.UpdateAsync(user);
         }
 
         await _userManager.AddToRoleAsync(user, role.ToString());
@@ -235,6 +222,63 @@ public class AuthService : IAuthService
         return await GenerateAuthResponse(user, "تم استرداد البيانات بنجاح");
     }
 
+    private void DeleteOldProfileImage(string? currentImageName)
+    {
+        if (string.IsNullOrEmpty(currentImageName) || currentImageName.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        try
+        {
+            var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "users", currentImageName);
+            if (File.Exists(oldPath))
+            {
+                File.Delete(oldPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting old profile image: {ex.Message}");
+        }
+    }
+
+    private async Task<string?> SaveUserProfileImageAsync(string? base64OrUrlOrFilename, string userId)
+    {
+        if (string.IsNullOrEmpty(base64OrUrlOrFilename)) return null;
+
+        // If it's a social external URL, keep it
+        if (base64OrUrlOrFilename.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+        {
+            return base64OrUrlOrFilename;
+        }
+
+        var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "users");
+        if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
+
+        var targetFileName = $"u_{userId}.jpg";
+        var filePath = Path.Combine(folderPath, targetFileName);
+
+        if (base64OrUrlOrFilename.StartsWith("data:", StringComparison.OrdinalIgnoreCase) || base64OrUrlOrFilename.Contains(","))
+        {
+            try
+            {
+                var data = base64OrUrlOrFilename.Contains(",") ? base64OrUrlOrFilename.Split(',')[1] : base64OrUrlOrFilename;
+                var bytes = Convert.FromBase64String(data);
+                await File.WriteAllBytesAsync(filePath, bytes);
+                return targetFileName;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving base64 profile image: {ex.Message}");
+                return null;
+            }
+        }
+
+        var cleanFilename = ImageNamingHelper.ExtractFileName(base64OrUrlOrFilename);
+        if (string.IsNullOrEmpty(cleanFilename)) return null;
+
+        return ImageNamingHelper.RenameImage(cleanFilename, "users", $"u_{userId}");
+    }
+
     public async Task<ApiResponse<bool>> UpdateProfileAsync(UpdateProfileRequest request)
     {
         var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -246,7 +290,6 @@ public class AuthService : IAuthService
         user.FullName = request.FullName;
         user.PhoneNumber = request.PhoneNumber;
         user.CityId = request.CityId;
-        user.ProfileImageUrl = request.ProfileImageUrl;
         user.Bio = request.Bio;
         user.WebsiteUrl = request.WebsiteUrl;
         user.InstagramUrl = request.InstagramUrl;
@@ -255,6 +298,18 @@ public class AuthService : IAuthService
         user.LinkedInUrl = request.LinkedInUrl;
         user.TikTokUrl = request.TikTokUrl;
         user.Gender = request.Gender;
+
+        // Process profile image
+        var cleanRequestImage = ImageNamingHelper.ExtractFileName(request.ProfileImageUrl);
+        if (cleanRequestImage != user.ProfileImageUrl)
+        {
+            DeleteOldProfileImage(user.ProfileImageUrl);
+            user.ProfileImageUrl = await SaveUserProfileImageAsync(request.ProfileImageUrl, user.Id);
+        }
+        else
+        {
+            user.ProfileImageUrl = cleanRequestImage;
+        }
 
         var result = await _userManager.UpdateAsync(user);
         if (!result.Succeeded)

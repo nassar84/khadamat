@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using Khadamat.Application.Common.Models;
 using Khadamat.Domain.Entities;
+using Khadamat.Infrastructure.Services;
+using System.IO;
 
 namespace Khadamat.WebAPI.Controllers;
 
@@ -47,7 +49,7 @@ public class CategoriesController : ControllerBase
         try {
             var categories = await _context.Categories
                 .Where(c => c.MainCategoryId == mainCategoryId)
-                //.OrderBy(c => c.DisplayOrder)
+                .OrderBy(c => c.DisplayOrder)
                 .Include(c => c.MainCategory)
                 .Select(c => new CategoryDto 
                 { 
@@ -56,7 +58,7 @@ public class CategoriesController : ControllerBase
                     MainCategoryId = c.MainCategoryId,
                     MainCategoryName = c.MainCategory.Name,
                     ImageUrl = c.ImageUrl,
-                    //DisplayOrder = c.DisplayOrder
+                    DisplayOrder = c.DisplayOrder
                 })
                 .ToListAsync();
             
@@ -116,7 +118,7 @@ public class CategoriesController : ControllerBase
     {
         var subCategories = await _context.SubCategories
             .Where(s => s.CategoryId == categoryId)
-            //.OrderBy(s => s.DisplayOrder)
+            .OrderBy(s => s.DisplayOrder)
             .Include(s => s.Category)
                 .ThenInclude(c => c.MainCategory)
             .Select(s => new SubCategoryDto 
@@ -128,12 +130,13 @@ public class CategoriesController : ControllerBase
                 MainCategoryId = s.Category.MainCategoryId,
                 MainCategoryName = s.Category.MainCategory.Name,
                 ImageUrl = s.ImageUrl,
-                //DisplayOrder = s.DisplayOrder
+                DisplayOrder = s.DisplayOrder
             })
             .ToListAsync();
         
         return Ok(ApiResponse<IEnumerable<SubCategoryDto>>.Succeed(subCategories));
     }
+
     // --- Main Categories ---
     [HttpPost("main")]
     [Authorize(Policy = "RequireAdmin")]
@@ -141,10 +144,20 @@ public class CategoriesController : ControllerBase
     {
         var category = new MainCategory(dto.Name, dto.Icon, dto.Color, dto.DisplayOrder)
         {
-            ImageUrl = dto.ImageUrl
+            ImageUrl = ImageNamingHelper.ExtractFileName(dto.ImageUrl)
         };
         _context.MainCategories.Add(category);
         await _context.SaveChangesAsync();
+
+        if (!string.IsNullOrEmpty(category.ImageUrl))
+        {
+            var finalName = ImageNamingHelper.RenameImage(category.ImageUrl, "maincategories", $"cat_{category.Id}");
+            if (finalName != category.ImageUrl)
+            {
+                category.ImageUrl = finalName;
+                await _context.SaveChangesAsync();
+            }
+        }
         return Ok(ApiResponse<int>.Succeed(category.Id));
     }
 
@@ -155,7 +168,35 @@ public class CategoriesController : ControllerBase
         var category = await _context.MainCategories.FindAsync(id);
         if (category == null) return NotFound(ApiResponse<bool>.Fail("Not found"));
         
-        category.Update(dto.Name, dto.Icon, dto.Color, dto.DisplayOrder, dto.ImageUrl);
+        var cleanDtoImage = ImageNamingHelper.ExtractFileName(dto.ImageUrl);
+
+        if (!string.IsNullOrEmpty(cleanDtoImage) && cleanDtoImage != category.ImageUrl)
+        {
+            // Delete old file
+            if (!string.IsNullOrEmpty(category.ImageUrl))
+            {
+                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "maincategories", category.ImageUrl);
+                if (System.IO.File.Exists(oldPath))
+                {
+                    try { System.IO.File.Delete(oldPath); } catch { }
+                }
+            }
+            cleanDtoImage = ImageNamingHelper.RenameImage(cleanDtoImage, "maincategories", $"cat_{id}");
+        }
+        else if (string.IsNullOrEmpty(cleanDtoImage) && !string.IsNullOrEmpty(category.ImageUrl))
+        {
+            // Delete old file
+            if (!string.IsNullOrEmpty(category.ImageUrl))
+            {
+                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "maincategories", category.ImageUrl);
+                if (System.IO.File.Exists(oldPath))
+                {
+                    try { System.IO.File.Delete(oldPath); } catch { }
+                }
+            }
+        }
+
+        category.Update(dto.Name, dto.Icon, dto.Color, dto.DisplayOrder, cleanDtoImage);
         await _context.SaveChangesAsync();
         return Ok(ApiResponse<bool>.Succeed(true));
     }
@@ -167,6 +208,16 @@ public class CategoriesController : ControllerBase
         var category = await _context.MainCategories.FindAsync(id);
         if (category == null) return NotFound(ApiResponse<bool>.Fail("Not found"));
         
+        // Delete image file if exists
+        if (!string.IsNullOrEmpty(category.ImageUrl))
+        {
+            var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "maincategories", category.ImageUrl);
+            if (System.IO.File.Exists(path))
+            {
+                try { System.IO.File.Delete(path); } catch { }
+            }
+        }
+
         _context.MainCategories.Remove(category);
         await _context.SaveChangesAsync();
         return Ok(ApiResponse<bool>.Succeed(true));
@@ -177,9 +228,19 @@ public class CategoriesController : ControllerBase
     [Authorize(Policy = "RequireAdmin")]
     public async Task<ActionResult<ApiResponse<int>>> CreateCategory(CategoryDto dto)
     {
-        var category = new Category(dto.Name, dto.MainCategoryId, dto.ImageUrl, dto.DisplayOrder);
+        var category = new Category(dto.Name, dto.MainCategoryId, ImageNamingHelper.ExtractFileName(dto.ImageUrl), dto.DisplayOrder);
         _context.Categories.Add(category);
         await _context.SaveChangesAsync();
+
+        if (!string.IsNullOrEmpty(category.ImageUrl))
+        {
+            var finalName = ImageNamingHelper.RenameImage(category.ImageUrl, "categories", $"c_{dto.MainCategoryId}_{category.Id}");
+            if (finalName != category.ImageUrl)
+            {
+                category.ImageUrl = finalName;
+                await _context.SaveChangesAsync();
+            }
+        }
         return Ok(ApiResponse<int>.Succeed(category.Id));
     }
 
@@ -190,7 +251,35 @@ public class CategoriesController : ControllerBase
         var category = await _context.Categories.FindAsync(id);
         if (category == null) return NotFound(ApiResponse<bool>.Fail("Not found"));
         
-        category.Update(dto.Name, dto.MainCategoryId, dto.ImageUrl, dto.DisplayOrder);
+        var cleanDtoImage = ImageNamingHelper.ExtractFileName(dto.ImageUrl);
+
+        if (!string.IsNullOrEmpty(cleanDtoImage) && cleanDtoImage != category.ImageUrl)
+        {
+            // Delete old file
+            if (!string.IsNullOrEmpty(category.ImageUrl))
+            {
+                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "categories", category.ImageUrl);
+                if (System.IO.File.Exists(oldPath))
+                {
+                    try { System.IO.File.Delete(oldPath); } catch { }
+                }
+            }
+            cleanDtoImage = ImageNamingHelper.RenameImage(cleanDtoImage, "categories", $"c_{dto.MainCategoryId}_{id}");
+        }
+        else if (string.IsNullOrEmpty(cleanDtoImage) && !string.IsNullOrEmpty(category.ImageUrl))
+        {
+            // Delete old file
+            if (!string.IsNullOrEmpty(category.ImageUrl))
+            {
+                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "categories", category.ImageUrl);
+                if (System.IO.File.Exists(oldPath))
+                {
+                    try { System.IO.File.Delete(oldPath); } catch { }
+                }
+            }
+        }
+
+        category.Update(dto.Name, dto.MainCategoryId, cleanDtoImage, dto.DisplayOrder);
         await _context.SaveChangesAsync();
         return Ok(ApiResponse<bool>.Succeed(true));
     }
@@ -202,6 +291,16 @@ public class CategoriesController : ControllerBase
         var category = await _context.Categories.FindAsync(id);
         if (category == null) return NotFound(ApiResponse<bool>.Fail("Not found"));
         
+        // Delete image file if exists
+        if (!string.IsNullOrEmpty(category.ImageUrl))
+        {
+            var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "categories", category.ImageUrl);
+            if (System.IO.File.Exists(path))
+            {
+                try { System.IO.File.Delete(path); } catch { }
+            }
+        }
+
         _context.Categories.Remove(category);
         await _context.SaveChangesAsync();
         return Ok(ApiResponse<bool>.Succeed(true));
@@ -212,9 +311,19 @@ public class CategoriesController : ControllerBase
     [Authorize(Policy = "RequireAdmin")]
     public async Task<ActionResult<ApiResponse<int>>> CreateSubCategory(SubCategoryDto dto)
     {
-        var sub = new SubCategory(dto.Name, dto.CategoryId, dto.ImageUrl, dto.DisplayOrder);
+        var sub = new SubCategory(dto.Name, dto.CategoryId, ImageNamingHelper.ExtractFileName(dto.ImageUrl), dto.DisplayOrder);
         _context.SubCategories.Add(sub);
         await _context.SaveChangesAsync();
+
+        if (!string.IsNullOrEmpty(sub.ImageUrl))
+        {
+            var finalName = ImageNamingHelper.RenameImage(sub.ImageUrl, "subcategories", $"subc_{dto.CategoryId}_{sub.Id}");
+            if (finalName != sub.ImageUrl)
+            {
+                sub.ImageUrl = finalName;
+                await _context.SaveChangesAsync();
+            }
+        }
         return Ok(ApiResponse<int>.Succeed(sub.Id));
     }
 
@@ -225,7 +334,35 @@ public class CategoriesController : ControllerBase
         var sub = await _context.SubCategories.FindAsync(id);
         if (sub == null) return NotFound(ApiResponse<bool>.Fail("Not found"));
         
-        sub.Update(dto.Name, dto.CategoryId, dto.ImageUrl, dto.DisplayOrder);
+        var cleanDtoImage = ImageNamingHelper.ExtractFileName(dto.ImageUrl);
+
+        if (!string.IsNullOrEmpty(cleanDtoImage) && cleanDtoImage != sub.ImageUrl)
+        {
+            // Delete old file
+            if (!string.IsNullOrEmpty(sub.ImageUrl))
+            {
+                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "subcategories", sub.ImageUrl);
+                if (System.IO.File.Exists(oldPath))
+                {
+                    try { System.IO.File.Delete(oldPath); } catch { }
+                }
+            }
+            cleanDtoImage = ImageNamingHelper.RenameImage(cleanDtoImage, "subcategories", $"subc_{dto.CategoryId}_{id}");
+        }
+        else if (string.IsNullOrEmpty(cleanDtoImage) && !string.IsNullOrEmpty(sub.ImageUrl))
+        {
+            // Delete old file
+            if (!string.IsNullOrEmpty(sub.ImageUrl))
+            {
+                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "subcategories", sub.ImageUrl);
+                if (System.IO.File.Exists(oldPath))
+                {
+                    try { System.IO.File.Delete(oldPath); } catch { }
+                }
+            }
+        }
+
+        sub.Update(dto.Name, dto.CategoryId, cleanDtoImage, dto.DisplayOrder);
         await _context.SaveChangesAsync();
         return Ok(ApiResponse<bool>.Succeed(true));
     }
@@ -237,6 +374,16 @@ public class CategoriesController : ControllerBase
         var sub = await _context.SubCategories.FindAsync(id);
         if (sub == null) return NotFound(ApiResponse<bool>.Fail("Not found"));
         
+        // Delete image file if exists
+        if (!string.IsNullOrEmpty(sub.ImageUrl))
+        {
+            var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "subcategories", sub.ImageUrl);
+            if (System.IO.File.Exists(path))
+            {
+                try { System.IO.File.Delete(path); } catch { }
+            }
+        }
+
         _context.SubCategories.Remove(sub);
         await _context.SaveChangesAsync();
         return Ok(ApiResponse<bool>.Succeed(true));

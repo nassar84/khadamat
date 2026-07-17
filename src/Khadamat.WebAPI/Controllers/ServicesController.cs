@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using MediatR;
+using Khadamat.Infrastructure.Persistence;
+using Khadamat.Infrastructure.Services;
+using System.IO;
 
 namespace Khadamat.WebAPI.Controllers;
 
@@ -13,10 +16,12 @@ namespace Khadamat.WebAPI.Controllers;
 public class ServicesController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly KhadamatDbContext _context;
 
-    public ServicesController(IMediator mediator)
+    public ServicesController(IMediator mediator, KhadamatDbContext context)
     {
         _mediator = mediator;
+        _context = context;
     }
 
     [HttpGet]
@@ -44,6 +49,24 @@ public class ServicesController : ControllerBase
         command.UserId = userId;
         var serviceId = await _mediator.Send(command);
         
+        // Handle service image renaming to subc_{CategoryId}_{ServiceId}.ext
+        var service = await _context.Services.FindAsync(serviceId);
+        if (service != null && !string.IsNullOrEmpty(service.ImageUrl))
+        {
+            var cleanImage = ImageNamingHelper.ExtractFileName(service.ImageUrl);
+            if (!string.IsNullOrEmpty(cleanImage))
+            {
+                var categoryIdVal = service.SubCategoryId ?? service.CategoryId ?? 0;
+                var targetName = $"s_{categoryIdVal}_{service.Id}";
+                var finalName = ImageNamingHelper.RenameImage(cleanImage, "services", targetName);
+                if (finalName != service.ImageUrl)
+                {
+                    service.SetImage(finalName);
+                    await _context.SaveChangesAsync();
+                }
+            }
+        }
+        
         return CreatedAtAction(nameof(GetServices), new { id = serviceId }, new { id = serviceId });
     }
 
@@ -56,10 +79,61 @@ public class ServicesController : ControllerBase
 
         if (id != command.Id) return BadRequest("ID mismatch");
 
+        // 1. Get the current service from DB (before updating) to track the old image name
+        var service = await _context.Services.FindAsync(id);
+        if (service == null) return NotFound();
+        
+        var oldImageName = service.ImageUrl;
+
+        // 2. Send the update command
         command.UserId = userId;
         var result = await _mediator.Send(command);
         
         if (!result) return NotFound();
+
+        // 3. Rename the newly uploaded temp file and clean up the old one
+        var updatedService = await _context.Services.FindAsync(id);
+        if (updatedService != null && !string.IsNullOrEmpty(updatedService.ImageUrl))
+        {
+            var cleanNewImage = ImageNamingHelper.ExtractFileName(updatedService.ImageUrl);
+            if (!string.IsNullOrEmpty(cleanNewImage))
+            {
+                // Only rename and clean up if the image has changed
+                if (cleanNewImage != oldImageName)
+                {
+                    // Clean up the old image file if it exists
+                    if (!string.IsNullOrEmpty(oldImageName))
+                    {
+                        var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "services", oldImageName);
+                        if (System.IO.File.Exists(oldPath))
+                        {
+                            try { System.IO.File.Delete(oldPath); } catch { }
+                        }
+                    }
+
+                    // Rename the new temp file to the standard format
+                    var categoryIdVal = updatedService.SubCategoryId ?? updatedService.CategoryId ?? 0;
+                    var targetName = $"s_{categoryIdVal}_{updatedService.Id}";
+                    var finalName = ImageNamingHelper.RenameImage(cleanNewImage, "services", targetName);
+                    
+                    if (finalName != updatedService.ImageUrl)
+                    {
+                        updatedService.SetImage(finalName);
+                        await _context.SaveChangesAsync();
+                    }
+                }
+            }
+        }
+        else if (updatedService != null && string.IsNullOrEmpty(updatedService.ImageUrl) && !string.IsNullOrEmpty(oldImageName))
+        {
+            // If the image was cleared, delete the old file
+            var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "services", oldImageName);
+            if (System.IO.File.Exists(oldPath))
+            {
+                try { System.IO.File.Delete(oldPath); } catch { }
+            }
+        }
+
         return NoContent();
     }
 

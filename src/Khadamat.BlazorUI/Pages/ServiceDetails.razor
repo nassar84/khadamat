@@ -637,21 +637,40 @@
                 else
                 {
                     <div class="d-flex justify-content-center gap-3 my-2">
-                        <!-- WhatsApp -->
-                        <a href="https://wa.me/?text=@(Uri.EscapeDataString(GetWhatsAppShareText()))" target="_blank" class="share-social-btn share-whatsapp" @onclick="RecordShare">
-                            <i class="fa-brands fa-whatsapp"></i>
-                            <span>واتساب</span>
-                        </a>
-                        <!-- Telegram -->
-                        <a href="https://t.me/share/url?url=@(Uri.EscapeDataString(SharePageUrl))&text=@(Uri.EscapeDataString(GetTelegramShareText()))" target="_blank" class="share-social-btn share-telegram" @onclick="RecordShare">
-                            <i class="fa-brands fa-telegram"></i>
-                            <span>تليجرام</span>
-                        </a>
-                        <!-- Facebook -->
-                        <a href="https://www.facebook.com/sharer/sharer.php?u=@(Uri.EscapeDataString(SharePageUrl))" target="_blank" class="share-social-btn share-facebook" @onclick="RecordShare">
-                            <i class="fa-brands fa-facebook"></i>
-                            <span>فيسبوك</span>
-                        </a>
+                        @if (State.IsNativeApp)
+                        {
+                            <!-- On mobile app, we show the direct share buttons calling native share with image -->
+                            <button type="button" class="share-social-btn share-whatsapp" @onclick='() => ShareNatively("whatsapp")'>
+                                <i class="fa-brands fa-whatsapp"></i>
+                                <span>واتساب</span>
+                            </button>
+                            <button type="button" class="share-social-btn share-telegram" @onclick='() => ShareNatively("telegram")'>
+                                <i class="fa-brands fa-telegram"></i>
+                                <span>تليجرام</span>
+                            </button>
+                            <button type="button" class="share-social-btn share-facebook" @onclick='() => ShareNatively("facebook")'>
+                                <i class="fa-brands fa-facebook"></i>
+                                <span>فيسبوك</span>
+                            </button>
+                        }
+                        else
+                        {
+                            <!-- WhatsApp -->
+                            <a href="https://wa.me/?text=@(Uri.EscapeDataString(GetWhatsAppShareText()))" target="_blank" class="share-social-btn share-whatsapp" @onclick="RecordShare">
+                                <i class="fa-brands fa-whatsapp"></i>
+                                <span>واتساب</span>
+                            </a>
+                            <!-- Telegram -->
+                            <a href="https://t.me/share/url?url=@(Uri.EscapeDataString(ServicePageUrl))&text=@(Uri.EscapeDataString(GetTelegramShareText()))" target="_blank" class="share-social-btn share-telegram" @onclick="RecordShare">
+                                <i class="fa-brands fa-telegram"></i>
+                                <span>تليجرام</span>
+                            </a>
+                            <!-- Facebook -->
+                            <a href="https://www.facebook.com/sharer/sharer.php?u=@(Uri.EscapeDataString(ServicePageUrl))" target="_blank" class="share-social-btn share-facebook" @onclick="RecordShare">
+                                <i class="fa-brands fa-facebook"></i>
+                                <span>فيسبوك</span>
+                            </a>
+                        }
                         <!-- Copy Link -->
                         <button type="button" class="share-social-btn share-copy" @onclick="CopyShareLink">
                             <i class="fa-solid fa-copy"></i>
@@ -1299,6 +1318,15 @@
             return $"{uri.Scheme}://{uri.Authority}/share/service/{Id}";
         }
     }
+
+    private string ServicePageUrl
+    {
+        get
+        {
+            var uri = new Uri(Navigation.Uri);
+            return $"{uri.Scheme}://{uri.Authority}/service/{Id}";
+        }
+    }
     private string userComment = "";
     private string mainImage => Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(service?.Images?.FirstOrDefault(), service?.SubCategoryName, service?.CategoryName, service?.MainCategoryName, service?.SubCategoryImageUrl, service?.CategoryImageUrl, service?.MainCategoryImageUrl);
 
@@ -1566,7 +1594,8 @@
         var title = service?.Title ?? "";
         var desc = service?.Description ?? "";
         if (desc.Length > 120) desc = desc.Substring(0, 117) + "...";
-        return $"📢 تم مشاركة هذه الخدمة من تطبيق وموقع خدماوي 📲\n\n🌟 الخدمة: *{title}*\n📝 التفاصيل: {desc}\n\n💡 منصة خدماوي هي سوق الخدمات والأعمال الأول في مصر. تصفح آلاف الخدمات والمنتجات القريبة منك وتواصل مباشرة مع أصحابها مجاناً وبدون عمولات!\n\n📲 حمل التطبيق الآن واستفد من خدماتنا المتنوعة:\n🔗 رابط تحميل التطبيق مجاناً: https://play.google.com/store/apps/details?id=com.nassar84.khadamat\n\n🔗 رابط تفاصيل الخدمة على الموقع:\n{SharePageUrl}";
+        var downloadUrl = $"{Navigation.BaseUri.TrimEnd('/')}/downloads/khadamat.apk";
+        return $"📢 تم مشاركة هذه الخدمة من تطبيق وموقع خدماوي 📲\n\n🌟 الخدمة: *{title}*\n📝 التفاصيل: {desc}\n\n💡 منصة خدماوي هي سوق الخدمات والأعمال الأول في مصر. تصفح آلاف الخدمات والمنتجات القريبة منك وتواصل مباشرة مع أصحابها مجاناً وبدون عمولات!\n\n📲 حمل التطبيق الآن واستفد من خدماتنا المتنوعة:\n🔗 رابط تحميل التطبيق مجاناً: {downloadUrl}\n\n🔗 رابط تفاصيل الخدمة على الموقع:\n{ServicePageUrl}";
     }
 
     private string GetWhatsAppShareText()
@@ -1577,9 +1606,10 @@
         
         var priceText = service?.Price.HasValue == true ? $"{service.Price:N0} ج.م" : "مجاناً";
         var location = $"{service?.GovernorateName ?? ""} - {service?.CityName ?? ""}";
+        var downloadUrl = $"{Navigation.BaseUri.TrimEnd('/')}/downloads/khadamat.apk";
         
-        // Placing the SharePageUrl first guarantees that WhatsApp loads the rich link preview with the service image/details card.
-        return $"{SharePageUrl}\n\n📢 تم مشاركة هذه الخدمة من تطبيق وموقع خدماوي 📲\n\n🌟 الخدمة: *{title}*\n📍 المنطقة: {location}\n💰 السعر: {priceText}\n📝 التفاصيل: {desc}\n\n💡 منصة خدماوي هي سوق الخدمات والأعمال الأول في مصر. تصفح آلاف الخدمات والمنتجات القريبة منك وتواصل مباشرة مع أصحابها مجاناً وبدون عمولات!\n\n📲 حمل التطبيق الآن واستفد من خدماتنا المتنوعة:\n🔗 رابط تحميل التطبيق مجاناً: https://play.google.com/store/apps/details?id=com.nassar84.khadamat";
+        // Placing the ServicePageUrl first guarantees that WhatsApp loads the rich link preview with the service image/details card.
+        return $"{ServicePageUrl}\n\n📢 تم مشاركة هذه الخدمة من تطبيق وموقع خدماوي 📲\n\n🌟 الخدمة: *{title}*\n📍 المنطقة: {location}\n💰 السعر: {priceText}\n📝 التفاصيل: {desc}\n\n💡 منصة خدماوي هي سوق الخدمات والأعمال الأول في مصر. تصفح آلاف الخدمات والمنتجات القريبة منك وتواصل مباشرة مع أصحابها مجاناً وبدون عمولات!\n\n📲 حمل التطبيق الآن واستفد من خدماتنا المتنوعة:\n🔗 رابط تحميل التطبيق مجاناً: {downloadUrl}";
     }
 
     private string GetTelegramShareText()
@@ -1590,14 +1620,52 @@
         
         var priceText = service?.Price.HasValue == true ? $"{service.Price:N0} ج.م" : "مجاناً";
         var location = $"{service?.GovernorateName ?? ""} - {service?.CityName ?? ""}";
+        var downloadUrl = $"{Navigation.BaseUri.TrimEnd('/')}/downloads/khadamat.apk";
         
         // Telegram uses url= for the rich preview (image + title), so text= is just the message body.
-        return $"📢 تم مشاركة هذه الخدمة من تطبيق وموقع خدماوي 📲\n\n🌟 الخدمة: *{title}*\n📍 المنطقة: {location}\n💰 السعر: {priceText}\n📝 التفاصيل: {desc}\n\n💡 منصة خدماوي هي سوق الخدمات والأعمال الأول في مصر. تصفح آلاف الخدمات والمنتجات القريبة منك وتواصل مباشرة مع أصحابها مجاناً وبدون عمولات!\n\n📲 حمل التطبيق الآن واستفد من خدماتنا المتنوعة:\n🔗 رابط تحميل التطبيق مجاناً: https://play.google.com/store/apps/details?id=com.nassar84.khadamat";
+        return $"📢 تم مشاركة هذه الخدمة من تطبيق وموقع خدماوي 📲\n\n🌟 الخدمة: *{title}*\n📍 المنطقة: {location}\n💰 السعر: {priceText}\n📝 التفاصيل: {desc}\n\n💡 منصة خدماوي هي سوق الخدمات والأعمال الأول في مصر. تصفح آلاف الخدمات والمنتجات القريبة منك وتواصل مباشرة مع أصحابها مجاناً وبدون عمولات!\n\n📲 حمل التطبيق الآن واستفد من خدماتنا المتنوعة:\n🔗 رابط تحميل التطبيق مجاناً: {downloadUrl}";
+    }
+
+    private string GetNativeShareText(string platform)
+    {
+        var title = service?.Title ?? "";
+        var desc = service?.Description ?? "";
+        if (desc.Length > 120) desc = desc.Substring(0, 117) + "...";
+        
+        var priceText = service?.Price.HasValue == true ? $"{service.Price:N0} ج.م" : "مجاناً";
+        var location = $"{service?.GovernorateName ?? ""} - {service?.CityName ?? ""}";
+        var downloadUrl = $"{Navigation.BaseUri.TrimEnd('/')}/downloads/khadamat.apk";
+        
+        string platformIntro = "";
+        if (platform == "whatsapp") platformIntro = "واتساب 💬";
+        else if (platform == "telegram") platformIntro = "تليجرام ✈️";
+        else platformIntro = "فيسبوك 📘";
+
+        return $"📢 تم مشاركة هذه الخدمة عبر {platformIntro} من تطبيق وموقع خدماوي 📲\n\n🌟 الخدمة: *{title}*\n📍 المنطقة: {location}\n💰 السعر: {priceText}\n📝 التفاصيل: {desc}\n\n💡 منصة خدماوي هي سوق الخدمات والأعمال الأول في مصر. تصفح آلاف الخدمات والمنتجات القريبة منك وتواصل مباشرة مع أصحابها مجاناً وبدون عمولات!\n\n🔗 رابط تفاصيل الخدمة على الموقع:\n{ServicePageUrl}\n\n📲 حمل التطبيق الآن مباشرة بصيغة APK:\n🔗 رابط تحميل التطبيق: {downloadUrl}";
     }
 
     private void RecordShare()
     {
         _ = Api.RecordShareAsync("Service", Id);
+    }
+
+    private async Task ShareNatively(string platform)
+    {
+        try
+        {
+            RecordShare();
+            
+            // Build direct link to the generated share card image uploaded to the server
+            var imageUrl = $"{Navigation.BaseUri.TrimEnd('/')}/images/share_cards/card_{service?.Id ?? Id}.png?v={DateTime.UtcNow.Ticks}";
+            var shareText = GetNativeShareText(platform);
+            var title = service?.Title ?? "مشاركة خدمة";
+
+            await DeviceShareService.ShareImageWithTextAsync(imageUrl, shareText, title);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ShareNatively] Error sharing native content: {ex.Message}");
+        }
     }
 
     private async Task OpenShareModal()
@@ -1613,12 +1681,12 @@
         try
         {
             // Generate QR code inside the card
-            await JS.InvokeVoidAsync("generateQRCode", "service-share-card-qrcode", Navigation.Uri);
+            await JS.InvokeVoidAsync("generateQRCode", "service-share-card-qrcode", ServicePageUrl);
             await Task.Delay(300);
 
             // Capture the card via html2canvas and upload to server
             // This updates og:image so social bots see the fresh card on next share
-            await JS.InvokeVoidAsync("uploadShareCardImage", "service-share-wrapper", SharePageUrl, service?.Id ?? Id);
+            await JS.InvokeVoidAsync("uploadShareCardImage", "service-share-wrapper", ServicePageUrl, service?.Id ?? Id);
         }
         catch (Exception ex)
         {
@@ -1635,7 +1703,7 @@
     {
         try
         {
-            await JS.InvokeVoidAsync("navigator.clipboard.writeText", SharePageUrl);
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", ServicePageUrl);
             shareCopyStatus = "تم نسخ رابط الخدمة بنجاح!";
             _ = Api.RecordShareAsync("Service", Id);
         }

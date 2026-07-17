@@ -507,17 +507,17 @@
             var file = e.File;
             if (file != null)
             {
-                // Upload to server using ApiClient
-                var result = await Api.UploadImageAsync(file);
-                if (result.Success && !string.IsNullOrEmpty(result.ImageUrl))
+                // Upload to server using ApiClient — stores filename only
+                var result = await Api.UploadImageAsync(file, EntityImageType.General);
+                if (result != null && result.Success && !string.IsNullOrEmpty(result.Url))
                 {
-                    settings.LogoUrl = result.ImageUrl;
+                    settings.LogoUrl = result.Url;  // Logo uses full URL directly
                     statusMessage = "تم رفع الشعار بنجاح. اضغط 'حفظ' لتفعيله نهائياً.";
                     isSuccess = true;
                 }
                 else
                 {
-                    statusMessage = result.Message ?? "فشل رفع الشعار.";
+                    statusMessage = result?.Message ?? "فشل رفع الشعار.";
                     isSuccess = false;
                 }
             }
@@ -528,6 +528,7 @@
             Console.WriteLine(ex.Message);
         }
     }
+
 
     private async Task BuildMobileAppClick()
     {

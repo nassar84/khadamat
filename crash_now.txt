@@ -1,0 +1,2 @@
+﻿--------- beginning of system
+06-17 11:06:20.110   615  2041 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.khadamat.app/crc6471b8d43c21118a13.MainActivity} with LAUNCH_MULTIPLE from uid 2000 result code=-92

@@ -112,7 +112,7 @@ public class Service : BaseEntity
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void SetImage(string imageUrl)
+    public void SetImage(string? imageUrl)
     {
         ImageUrl = imageUrl;
     }

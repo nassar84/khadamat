@@ -156,7 +156,7 @@
                     <div class="col-12 col-md-6 col-xl-4">
                         <div class="glass-card p-0 overflow-hidden border-0 shadow-sm h-100 animate-up">
                             <div class="position-relative">
-                                <img src="@(s.Images != null && s.Images.Any() ? s.Images.First() : "/images/default-service.jpg")" class="w-100 object-fit-cover" style="height: 180px;" onerror="this.src='/images/default-service.jpg'" />
+                                <img src="@(s.Images != null && s.Images.Any() ? s.Images.First() : "/images/services/default_service.png")" class="w-100 object-fit-cover" style="height: 180px;" onerror="this.src='/images/services/default_service.png'" />
                                 <div class="position-absolute top-0 end-0 m-2">
                                     <span class="badge @(s.IsApproved ? "bg-success" : "bg-warning text-dark") rounded-pill">
                                         @(s.IsApproved ? "مقبول" : "قيد المراجعة")

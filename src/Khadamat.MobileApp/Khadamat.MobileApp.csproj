@@ -38,15 +38,17 @@
 
     </PropertyGroup>
 
-    <!-- Release Configurations (Maximum safety for startup) -->
+    <!-- Release Configurations (AOT enabled for fast startup — fixes ANR) -->
     <PropertyGroup Condition="'$(Configuration)' == 'Release' and '$(TargetFramework)' == 'net8.0-android'">
         <RuntimeIdentifiers>android-arm;android-arm64;android-x64</RuntimeIdentifiers>
         <JavaMaxHeapSize>4G</JavaMaxHeapSize>
-        <!-- Use safe settings to avoid XAGJS7001 -->
+        <!-- AOT: Pre-compiles .NET to native ARM → eliminates Mono JIT startup delay -->
+        <RunAOTCompilation>true</RunAOTCompilation>
+        <PublishTrimmed>true</PublishTrimmed>
+        <TrimMode>partial</TrimMode>
+        <!-- Keep R8 OFF to avoid XAGJS7001, but use SdkOnly linking for safe .NET AOT -->
         <UseR8>false</UseR8>
-        <AndroidLinkMode>None</AndroidLinkMode>
-        <PublishTrimmed>false</PublishTrimmed>
-        <RunAOTCompilation>false</RunAOTCompilation>
+        <AndroidLinkMode>SdkOnly</AndroidLinkMode>
         <AndroidPackageFormat>apk</AndroidPackageFormat>
         <AndroidManagedSymbols>true</AndroidManagedSymbols>
         <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>

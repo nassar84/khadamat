@@ -41,6 +41,8 @@ public class UpdateServiceEditRequestHandler : IRequestHandler<UpdateServiceEdit
             string addr = request.ApproveAddress && !string.IsNullOrEmpty(editRequest.ProposedAddress) ? editRequest.ProposedAddress : service.Address;
             decimal? price = request.ApprovePrice && editRequest.ProposedPrice.HasValue ? editRequest.ProposedPrice : service.Price;
             string? phone1 = request.ApprovePhone1 && !string.IsNullOrEmpty(editRequest.ProposedPhone1) ? editRequest.ProposedPhone1 : service.Phone1;
+            string? phone2 = request.ApprovePhone2 && !string.IsNullOrEmpty(editRequest.ProposedPhone2) ? editRequest.ProposedPhone2 : service.Phone2;
+            string? whatsApp = request.ApproveWhatsApp && !string.IsNullOrEmpty(editRequest.ProposedWhatsApp) ? editRequest.ProposedWhatsApp : service.WhatsApp;
 
             service.UpdateDetails(
                 name, 
@@ -48,8 +50,8 @@ public class UpdateServiceEditRequestHandler : IRequestHandler<UpdateServiceEdit
                 addr, 
                 price, 
                 phone1, 
-                service.Phone2, 
-                service.WhatsApp, 
+                phone2, 
+                whatsApp, 
                 service.Facebook, 
                 service.Telegram, 
                 service.Work_Days, 

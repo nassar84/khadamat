@@ -121,21 +121,26 @@ public partial class WebContainerPage : ContentPage
     private void LoadContent(bool force = false)
     {
         // 1. Resolve base url from preferences or configuration
-        string baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "https://jobsek.eis-dev.com");
-        string apiBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("ApiBaseUrl", "https://jobsek.eis-dev.com");
+        string baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "https://khadamawy.eis-dev.com");
+        string apiBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("ApiBaseUrl", "https://khadamawy.eis-dev.com");
         
         string routePart = !string.IsNullOrEmpty(DeepLinkRoute) ? DeepLinkRoute : (_route ?? "").TrimStart('/');
 
         string finalUrl = baseUrl.TrimEnd('/') + "/";
 
+        // Cache-busting: use app version string to invalidate WebView cache after updates
+        // This prevents old cached Blazor JS/WASM files from causing startup crashes
+        string appVersion = Microsoft.Maui.ApplicationModel.AppInfo.VersionString.Replace(".", "");
+        finalUrl += "?_v=" + appVersion;
+
         // Use redirect parameter to avoid 404s on standalone WASM hosts
         if (!string.IsNullOrEmpty(routePart))
         {
-            finalUrl += "?redirect=" + Uri.EscapeDataString(routePart);
+            finalUrl += "&redirect=" + Uri.EscapeDataString(routePart);
         }
 
-        // Append nativeapp=1 once to inform the Blazor side to hide website bars
-        finalUrl += finalUrl.Contains("?") ? "&nativeapp=1" : "?nativeapp=1";
+        // Append nativeapp=1 to inform the Blazor side to hide website bars
+        finalUrl += "&nativeapp=1";
         
         // Append API URL to ensure synchronization
         finalUrl += "&api_url=" + Uri.EscapeDataString(apiBaseUrl.TrimEnd('/') + "/");
@@ -239,6 +244,41 @@ public partial class WebContainerPage : ContentPage
     {
         var url = e.Url;
 
+        // Catch native share requests
+        if (url.StartsWith("khadamat://share"))
+        {
+            e.Cancel = true;
+            try
+            {
+                var uri = new Uri(url);
+                var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+                var title = query["title"] ?? "مشاركة";
+                var text = query["text"] ?? "";
+
+                MainThread.BeginInvokeOnMainThread(async () =>
+                {
+                    try
+                    {
+                        await Microsoft.Maui.ApplicationModel.DataTransfer.Share.Default.RequestAsync(
+                            new Microsoft.Maui.ApplicationModel.DataTransfer.ShareTextRequest
+                            {
+                                Title = title,
+                                Text = text
+                            });
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"ANTIGRAVITY_LOG: Share Request Error: {ex.Message}");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ANTIGRAVITY_LOG: Error parsing share URL: {ex.Message}");
+            }
+            return;
+        }
+
         // Catch social login / external login requests to trigger native WebAuthenticator
         if (url.Contains("/v1/auth/external-login"))
         {
@@ -283,6 +323,31 @@ public partial class WebContainerPage : ContentPage
                 }
             } catch {}
             LoadingOverlay.IsVisible = false;
+            return;
+        }
+
+        // Catch native sharing from Blazor UI inside WebView
+        if (url.StartsWith("khadamat://share"))
+        {
+            e.Cancel = true;
+            try
+            {
+                var uri = new Uri(url);
+                var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+                var imageUrl = query["image"] ?? "";
+                var text = query["text"] ?? "";
+                var title = query["title"] ?? "مشاركة خدمة";
+
+                var shareService = new Khadamat.MobileApp.Services.ShareService();
+                MainThread.BeginInvokeOnMainThread(async () =>
+                {
+                    await shareService.ShareImageWithTextAsync(imageUrl, text, title);
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ANTIGRAVITY_LOG: Error handling native share: {ex.Message}");
+            }
             return;
         }
 
@@ -384,6 +449,28 @@ public partial class WebContainerPage : ContentPage
             return;
         }
 
+        // Intercept external social and sharing URLs to open them in native apps or external browser
+        if (url.StartsWith("whatsapp:", StringComparison.OrdinalIgnoreCase) || 
+            url.StartsWith("tg:", StringComparison.OrdinalIgnoreCase) || 
+            url.StartsWith("fb:", StringComparison.OrdinalIgnoreCase) || 
+            url.Contains("wa.me") || 
+            url.Contains("t.me") || 
+            url.Contains("facebook.com") || 
+            url.Contains("youtube.com") || 
+            url.Contains("youtu.be"))
+        {
+            e.Cancel = true;
+            try
+            {
+                await Microsoft.Maui.ApplicationModel.Launcher.Default.OpenAsync(new Uri(url));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ANTIGRAVITY_LOG: External launch error for {url}: {ex.Message}");
+            }
+            return;
+        }
+
         // Add parameter mobileapp=1 automatically contextually if not present?
         // Navigation within the same domain
         LoadingOverlay.IsVisible = true;
@@ -396,6 +483,19 @@ public partial class WebContainerPage : ContentPage
 
         if (e.Result != WebNavigationResult.Success)
         {
+            Console.WriteLine($"ANTIGRAVITY_LOG: WebView Navigation Failed. Result: {e.Result}, Url: {e.Url}");
+            
+            bool runDiag = await DisplayAlert("خطأ في تحميل الصفحة", 
+                $"فشل التطبيق في تحميل واجهة الموقع ({e.Result}). هل تريد تشغيل أداة تشخيص الاتصال بالخادم لمعرفة السبب؟", 
+                "تشغيل التشخيص", "إلغاء");
+                
+            if (runDiag)
+            {
+                string baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "https://khadamawy.eis-dev.com");
+                string apiBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("ApiBaseUrl", "https://khadamawy.eis-dev.com");
+                await RunWebViewDiagnosticsAsync(baseUrl, apiBaseUrl);
+            }
+
             if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
             {
                 ShowOfflineState(true);
@@ -453,6 +553,51 @@ public partial class WebContainerPage : ContentPage
             Console.WriteLine($"ANTIGRAVITY_LOG: JS injection error: {ex.Message}");
         }
     }
+
+    private async Task RunWebViewDiagnosticsAsync(string webUrl, string apiUrl)
+    {
+        var report = new System.Text.StringBuilder();
+        report.AppendLine("=== تقرير تشخيص الـ WebView ===");
+        report.AppendLine($"وقت الاختبار: {DateTime.Now}");
+        report.AppendLine($"نوع الشبكة: {Connectivity.Current.NetworkAccess}");
+        
+        // Test 1: Web URL
+        report.AppendLine("\n1. اختبار رابط موقع الويب:");
+        report.AppendLine($"الرابط: {webUrl}");
+        try
+        {
+            using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
+            var response = await client.GetAsync(webUrl);
+            report.AppendLine($"حالة الرد: {response.StatusCode} ({(int)response.StatusCode})");
+            report.AppendLine($"النجاح: {response.IsSuccessStatusCode}");
+        }
+        catch (Exception ex)
+        {
+            report.AppendLine($"[خطأ]: {ex.Message}");
+            if (ex.InnerException != null)
+                report.AppendLine($"[التفاصيل]: {ex.InnerException.Message}");
+        }
+
+        // Test 2: API URL
+        report.AppendLine("\n2. اختبار رابط الـ API:");
+        report.AppendLine($"الرابط: {apiUrl}");
+        try
+        {
+            using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(8) };
+            var response = await client.GetAsync($"{apiUrl.TrimEnd('/')}/v1/settings");
+            report.AppendLine($"حالة الرد: {response.StatusCode} ({(int)response.StatusCode})");
+            report.AppendLine($"النجاح: {response.IsSuccessStatusCode}");
+        }
+        catch (Exception ex)
+        {
+            report.AppendLine($"[خطأ]: {ex.Message}");
+            if (ex.InnerException != null)
+                report.AppendLine($"[التفاصيل]: {ex.InnerException.Message}");
+        }
+
+        await DisplayAlert("تقرير التشخيص", report.ToString(), "موافق");
+    }
+
     protected override bool OnBackButtonPressed()
     {
         // 1. Try to go back in the WebView (Blazor's internal history)
@@ -494,8 +639,8 @@ public partial class WebContainerPage : ContentPage
     {
         try
         {
-            string apiBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("ApiBaseUrl", "https://jobsek.eis-dev.com");
-            string webAppBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "https://jobsek.eis-dev.com");
+            string apiBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("ApiBaseUrl", "https://khadamawy.eis-dev.com");
+            string webAppBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "https://khadamawy.eis-dev.com");
             
             var callbackUrl = "khadamat://callback";
             var authUrl = $"{apiBaseUrl.TrimEnd('/')}/v1/auth/external-login?provider={provider}&redirectUrl={Uri.EscapeDataString(callbackUrl)}";
@@ -534,7 +679,7 @@ public partial class WebContainerPage : ContentPage
         {
             Console.WriteLine($"ANTIGRAVITY_LOG: Exception in HandleNativeExternalLogin: {ex.Message}");
             
-            string webAppBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "https://jobsek.eis-dev.com");
+            string webAppBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "https://khadamawy.eis-dev.com");
             var targetUrl = $"{webAppBaseUrl.TrimEnd('/')}/login?error={Uri.EscapeDataString(ex.Message)}&nativeapp=1";
             LoadUrl(targetUrl, true);
         }

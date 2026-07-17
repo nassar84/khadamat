@@ -11,7 +11,7 @@
             @if (!string.IsNullOrEmpty(Ad.ImageUrl))
             {
                 <div class="ad-image-mini mb-3 rounded-3 overflow-hidden">
-                    <img src="@Api.GetAbsoluteUrl(Ad.ImageUrl)" class="w-100 h-100 object-fit-cover" style="max-height: 120px;" />
+                    <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.ImagePathResolver.Ad(Ad.ImageUrl))" class="w-100 h-100 object-fit-cover" style="max-height: 120px;" />
                 </div>
             }
             <h6 class="ad-title">@Ad.Title</h6>

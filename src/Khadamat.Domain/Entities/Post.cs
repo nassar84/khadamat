@@ -6,21 +6,24 @@ namespace Khadamat.Domain.Entities;
 public class Post : BaseEntity
 {
     public int ProviderId { get; private set; }
+    public int? ServiceId { get; private set; }
     public string Content { get; private set; } = string.Empty;
     public string? ImageUrl { get; private set; }
     
     public virtual ProviderProfile Provider { get; private set; } = null!;
+    public virtual Service? Service { get; private set; }
     public virtual ICollection<Comment> Comments { get; private set; } = new List<Comment>();
     public virtual ICollection<Like> Likes { get; private set; } = new List<Like>();
 
     protected Post() { }
 
-    public Post(int providerId, string content, string? imageUrl)
+    public Post(int providerId, string content, string? imageUrl, int? serviceId = null)
     {
         if (string.IsNullOrWhiteSpace(content))
             throw new ArgumentException("Post content cannot be empty.");
             
         ProviderId = providerId;
+        ServiceId = serviceId;
         Content = content;
         ImageUrl = imageUrl;
     }

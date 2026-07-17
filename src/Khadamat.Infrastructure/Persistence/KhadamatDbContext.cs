@@ -105,14 +105,16 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
             
         builder.Entity<ProviderProfile>().HasMany(p => p.Posts).WithOne(po => po.Provider).HasForeignKey(po => po.ProviderId);
         
+        builder.Entity<Post>()
+            .HasOne(p => p.Service)
+            .WithMany()
+            .HasForeignKey(p => p.ServiceId)
+            .OnDelete(DeleteBehavior.SetNull);
+        
         // Ad Relationships
         builder.Entity<Ad>().HasMany(a => a.AdImages).WithOne(ai => ai.Ad).HasForeignKey(ai => ai.AdId);
         builder.Entity<Category>().HasMany<Ad>().WithOne(a => a.Category).HasForeignKey(a => a.CategoryID);
 
-        // Ignore DisplayOrder if not in DB
-        builder.Entity<Service>().Ignore(s => s.DisplayOrder);
-        builder.Entity<Category>().Ignore(c => c.DisplayOrder);
-        builder.Entity<SubCategory>().Ignore(s => s.DisplayOrder);
         builder.Entity<SubCategory>().HasMany<Ad>().WithOne(a => a.SubCategory).HasForeignKey(a => a.SubCategoryID);
         builder.Entity<Service>().HasMany<Ad>().WithOne(a => a.Service).HasForeignKey(a => a.ServiceID);
         

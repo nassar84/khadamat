@@ -1,4 +1,4 @@
-@inject IJSRuntime JS
+﻿@inject IJSRuntime JS
 @inject NavigationManager Navigation
 @inject Khadamat.BlazorUI.State.AppState State
 @implements IDisposable
@@ -473,8 +473,8 @@
         try
         {
             var shareUrl = Navigation.BaseUri;
-            var shareTitle = $"حمّل تطبيق {State.AppName ?? "خدماتو"} - عالم من الخدمات";
-            var shareText = $"🌟 اكتشف تطبيق {State.AppName ?? "خدماتو"} الجديد!\n\n" +
+            var shareTitle = $"حمّل تطبيق {State.AppName ?? "خدماوى"} - عالم من الخدمات";
+            var shareText = $"🌟 اكتشف تطبيق {State.AppName ?? "خدماوى"} الجديد!\n\n" +
                             "كل ما تحتاجه من خدمات في تطبيق واحد:\n" +
                             "✅ خدمات طبية وتمريضية منزلية\n" +
                             "✅ صيانة منزلية (سباكة، كهرباء، نجارة)\n" +
@@ -500,7 +500,7 @@
         try
         {
             var shareUrl = Navigation.BaseUri;
-            var shareText = $"اكتشف تطبيق {State.AppName ?? "خدماتو"} المتكامل لكل الخدمات!\n" +
+            var shareText = $"اكتشف تطبيق {State.AppName ?? "خدماوى"} المتكامل لكل الخدمات!\n" +
                             "تمريض، تعليم، حرف، توصيل.. كل شيء في مكان واحد.\n" +
                             "جربه الآن: " + shareUrl;
             

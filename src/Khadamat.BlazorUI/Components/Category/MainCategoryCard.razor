@@ -7,7 +7,7 @@
         @if (!string.IsNullOrEmpty(Category.Name))
         {
             <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.CategoryIconResolver.GetIconUrl(Category.Name, Category.ImageUrl, "images/maincategories"))" 
-                 onerror="this.onerror=null;this.src='/images/categories/gen/other_services.png';"
+                 onerror="this.onerror=null;this.src='/images/categories/other_services.png';"
                  class="w-100 h-100 object-fit-cover" />
         }
     </div>

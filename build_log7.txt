@@ -1,0 +1,15 @@
+D:\DEV\khadamat\src\Khadamat.MobileApp\Khadamat.MobileApp.csproj : warning NU1903: Package 'AutoMapper' 13.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x [TargetFramework=net9.0-android]
+C:\Program Files\dotnet\sdk\9.0.315\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(266,5): error NETSDK1005: Assets file 'D:\DEV\khadamat\src\Khadamat.Domain\obj\project.assets.json' doesn't have a target for 'net9.0'. Ensure that restore has run and that you have included 'net9.0' in the TargetFrameworks for your project. [D:\DEV\khadamat\src\Khadamat.Domain\Khadamat.Domain.csproj]
+C:\Program Files\dotnet\sdk\9.0.315\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(266,5): error NETSDK1005: Assets file 'D:\DEV\khadamat\src\Khadamat.Shared\obj\project.assets.json' doesn't have a target for 'net9.0'. Ensure that restore has run and that you have included 'net9.0' in the TargetFrameworks for your project. [D:\DEV\khadamat\src\Khadamat.Shared\Khadamat.Shared.csproj]
+C:\Program Files\dotnet\sdk\9.0.315\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(266,5): error NETSDK1005: Assets file 'D:\DEV\khadamat\src\Khadamat.Application\obj\project.assets.json' doesn't have a target for 'net9.0'. Ensure that restore has run and that you have included 'net9.0' in the TargetFrameworks for your project. [D:\DEV\khadamat\src\Khadamat.Application\Khadamat.Application.csproj]
+
+Build FAILED.
+
+D:\DEV\khadamat\src\Khadamat.MobileApp\Khadamat.MobileApp.csproj : warning NU1903: Package 'AutoMapper' 13.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x [TargetFramework=net9.0-android]
+C:\Program Files\dotnet\sdk\9.0.315\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(266,5): error NETSDK1005: Assets file 'D:\DEV\khadamat\src\Khadamat.Domain\obj\project.assets.json' doesn't have a target for 'net9.0'. Ensure that restore has run and that you have included 'net9.0' in the TargetFrameworks for your project. [D:\DEV\khadamat\src\Khadamat.Domain\Khadamat.Domain.csproj]
+C:\Program Files\dotnet\sdk\9.0.315\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(266,5): error NETSDK1005: Assets file 'D:\DEV\khadamat\src\Khadamat.Shared\obj\project.assets.json' doesn't have a target for 'net9.0'. Ensure that restore has run and that you have included 'net9.0' in the TargetFrameworks for your project. [D:\DEV\khadamat\src\Khadamat.Shared\Khadamat.Shared.csproj]
+C:\Program Files\dotnet\sdk\9.0.315\Sdks\Microsoft.NET.Sdk\targets\Microsoft.PackageDependencyResolution.targets(266,5): error NETSDK1005: Assets file 'D:\DEV\khadamat\src\Khadamat.Application\obj\project.assets.json' doesn't have a target for 'net9.0'. Ensure that restore has run and that you have included 'net9.0' in the TargetFrameworks for your project. [D:\DEV\khadamat\src\Khadamat.Application\Khadamat.Application.csproj]
+    1 Warning(s)
+    3 Error(s)
+
+Time Elapsed 00:00:19.18

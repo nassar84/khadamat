@@ -42,11 +42,12 @@
                     <div class="glass-card rounded-4 overflow-hidden border-0 shadow-sm hover-up h-100">
                         <div class="position-relative">
                             @{
-                                var isRealImage = !string.IsNullOrEmpty(ad.ImageUrl) && !ad.ImageUrl.StartsWith("hero-gradient");
-                                var imageUrl = isRealImage ? Api.GetAbsoluteUrl(ad.ImageUrl) : ad.ImageUrl;
-                                var cardClass = !isRealImage ? ad.ImageUrl : "";
+                                var hasGradient = !string.IsNullOrEmpty(ad.ImageUrl) && ad.ImageUrl.StartsWith("hero-gradient");
+                                var hasRealImage = !string.IsNullOrEmpty(ad.ImageUrl) && !ad.ImageUrl.StartsWith("hero-gradient");
+                                var imageUrl = hasRealImage ? Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.ImagePathResolver.Ad(ad.ImageUrl)) : null;
+                                var cardClass = hasGradient ? ad.ImageUrl : (string.IsNullOrEmpty(ad.ImageUrl) ? "hero-gradient-1" : "");
                             }
-                            <div class="ad-card-banner @cardClass" style="@(isRealImage ? $"background-image: url('{imageUrl}');" : "")">
+                            <div class="ad-card-banner @cardClass" style="@(hasRealImage ? $"background-image: url('{imageUrl}');" : "")">
                                 <span class="badge @(ad.IsActive ? "bg-success" : "bg-warning") position-absolute top-0 end-0 m-3 rounded-pill shadow-sm">
                                     @(ad.IsActive ? "نشط" : "قيد المراجعة")
                                 </span>

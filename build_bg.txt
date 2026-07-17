@@ -1,0 +1,20 @@
+D:\DEV\khadamat\src\Khadamat.MobileApp\Khadamat.MobileApp.csproj : warning NU1903: Package 'AutoMapper' 13.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x [TargetFramework=net9.0-android]
+  Khadamat.Domain -> D:\DEV\khadamat\src\Khadamat.Domain\bin\Debug\net9.0\Khadamat.Domain.dll
+  Khadamat.Application -> D:\DEV\khadamat\src\Khadamat.Application\bin\Debug\net9.0\Khadamat.Application.dll
+  Khadamat.Shared -> D:\DEV\khadamat\src\Khadamat.Shared\bin\Debug\net9.0\Khadamat.Shared.dll
+  Khadamat.MobileApp -> D:\DEV\khadamat\src\Khadamat.MobileApp\bin\Debug\net9.0-android\Khadamat.MobileApp.dll
+D:\DEV\khadamat\src\Khadamat.MobileApp\Khadamat.MobileApp.csproj : warning NU1903: Package 'AutoMapper' 13.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x [TargetFramework=net9.0-android]
+  Khadamat.Domain -> D:\DEV\khadamat\src\Khadamat.Domain\bin\Debug\net9.0\Khadamat.Domain.dll
+  Khadamat.Application -> D:\DEV\khadamat\src\Khadamat.Application\bin\Debug\net9.0\Khadamat.Application.dll
+  Khadamat.Shared -> D:\DEV\khadamat\src\Khadamat.Shared\bin\Debug\net9.0\Khadamat.Shared.dll
+D:\DEV\khadamat\src\Khadamat.MobileApp\Khadamat.MobileApp.csproj : warning NU1903: Package 'AutoMapper' 13.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x [TargetFramework=net9.0-android]
+
+Build succeeded.
+
+D:\DEV\khadamat\src\Khadamat.MobileApp\Khadamat.MobileApp.csproj : warning NU1903: Package 'AutoMapper' 13.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x [TargetFramework=net9.0-android]
+D:\DEV\khadamat\src\Khadamat.MobileApp\Khadamat.MobileApp.csproj : warning NU1903: Package 'AutoMapper' 13.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x [TargetFramework=net9.0-android]
+D:\DEV\khadamat\src\Khadamat.MobileApp\Khadamat.MobileApp.csproj : warning NU1903: Package 'AutoMapper' 13.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x [TargetFramework=net9.0-android]
+    3 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:55.46

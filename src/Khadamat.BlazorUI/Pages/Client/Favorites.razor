@@ -50,7 +50,8 @@
                 <div class="col-12 col-md-6">
                     <div class="glass-card p-0 overflow-hidden h-100 animate-up">
                         <div class="position-relative">
-                            <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(service.CategoryName, service.Images.FirstOrDefault())" 
+                            <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(service.Images.FirstOrDefault(), service.SubCategoryName, service.CategoryName, service.MainCategoryName, service.SubCategoryImageUrl, service.CategoryImageUrl, service.MainCategoryImageUrl))" 
+                                 onerror="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImageOnError(service.SubCategoryName, service.CategoryName, service.MainCategoryName, service.SubCategoryImageUrl, service.CategoryImageUrl, service.MainCategoryImageUrl, Api.BaseUrl)"
                                  class="w-100 object-fit-cover" style="height: 180px;" @onclick="() => OnServiceSelected(service)" />
                             
                             <div class="position-absolute top-0 end-0 m-2">

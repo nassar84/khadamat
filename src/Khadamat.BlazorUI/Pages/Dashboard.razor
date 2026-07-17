@@ -111,7 +111,8 @@
                         {
                             <div class="service-item">
                                 <div class="service-item-image">
-                                    <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(service.CategoryName, service.Images?.FirstOrDefault())" 
+                                    <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(service.Images?.FirstOrDefault(), service.SubCategoryName, service.CategoryName, service.MainCategoryName, service.SubCategoryImageUrl, service.CategoryImageUrl, service.MainCategoryImageUrl))" 
+                                         onerror="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImageOnError(service.SubCategoryName, service.CategoryName, service.MainCategoryName, service.SubCategoryImageUrl, service.CategoryImageUrl, service.MainCategoryImageUrl, Api.BaseUrl)"
                                          alt="@service.Title" class="w-100 h-100 object-fit-cover" />
                                 </div>
                                 <div class="service-item-content">

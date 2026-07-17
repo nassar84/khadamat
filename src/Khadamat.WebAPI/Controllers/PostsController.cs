@@ -110,7 +110,7 @@ public class PostsController : ControllerBase
         var provider = await _context.ProviderProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
         if (provider == null) return BadRequest("Provider profile not found");
 
-        var post = new Post(provider.Id, request.Content, request.ImageUrl);
+        var post = new Post(provider.Id, request.Content, request.ImageUrl, request.ServiceId);
         
         _context.Posts.Add(post);
         await _context.SaveChangesAsync();
@@ -171,4 +171,5 @@ public class CreatePostRequest
 {
     public string Content { get; set; } = string.Empty;
     public string? ImageUrl { get; set; }
+    public int? ServiceId { get; set; }
 }

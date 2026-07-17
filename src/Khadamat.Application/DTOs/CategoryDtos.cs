@@ -19,6 +19,7 @@ public class CategoryDto
     public int MainCategoryId { get; set; }
     public string? MainCategoryName { get; set; }
     public string? ImageUrl { get; set; }
+    public string? MainCategoryImageUrl { get; set; }
     public int DisplayOrder { get; set; }
 }
 
@@ -31,5 +32,7 @@ public class SubCategoryDto
     public int MainCategoryId { get; set; }
     public string? MainCategoryName { get; set; }
     public string? ImageUrl { get; set; }
+    public string? CategoryImageUrl { get; set; }
+    public string? MainCategoryImageUrl { get; set; }
     public int DisplayOrder { get; set; }
 }

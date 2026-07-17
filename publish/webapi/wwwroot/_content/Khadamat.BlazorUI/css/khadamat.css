@@ -5,12 +5,12 @@
 
 /* ===== THEME VARIABLES (BRIGHT METALLIC) ===== */
 :root {
-    /* Default Theme - Aurora (Metalic Bloom) */
-    --theme-primary: #8e2de2;
-    --theme-secondary: #4a00e0;
-    --theme-accent: #00d2ff;
-    --theme-light: rgba(142, 45, 226, 0.15);
-    --theme-glow: rgba(0, 210, 255, 0.4);
+    /* Default Theme - Khidmawy (Teal + Orange) */
+    --theme-primary: #2a7f8f;
+    --theme-secondary: #f47c30;
+    --theme-accent: #1d6070;
+    --theme-light: rgba(42, 127, 143, 0.15);
+    --theme-glow: rgba(244, 124, 48, 0.35);
 
     /* Metalic Glass Effect */
     --glass-bg: rgba(255, 255, 255, 0.22);
@@ -182,6 +182,154 @@ body[data-theme="fluffy"]::after {
     box-sizing: border-box;
 }
 
+/* ===================================================
+   🖼️ GLOBAL IMAGE CONSTRAINT SYSTEM
+   يمنع أي صورة مرفوعة من كسر التخطيط
+   Prevents any uploaded image from breaking layouts
+   =================================================== */
+
+/* ── 1. Universal image guard — no image expands beyond its container ── */
+/* Note: display:block is intentionally NOT set here — it breaks inline-flex / inline contexts */
+img {
+    max-width: 100%;
+}
+
+/* ── 2. Avatar / Profile Images ── */
+.user-avatar,
+.header-avatar-img,
+.menu-avatar {
+    object-fit: cover !important;
+    flex-shrink: 0 !important;
+}
+.user-avatar        { width: 40px !important; height: 40px !important; border-radius: 12px !important; }
+.header-avatar-img  { width: 40px !important; height: 40px !important; border-radius: 12px !important; }
+.menu-avatar        { width: 50px !important; height: 50px !important; border-radius: 15px !important; }
+.avatar-large       { width: 90px !important; height: 90px !important; border-radius: 50%  !important; object-fit: cover !important; flex-shrink: 0 !important; }
+.avatar-sm          { width: 35px !important; height: 35px !important; border-radius: 50%  !important; object-fit: cover !important; flex-shrink: 0 !important; }
+.provider-avatar    { width: 60px !important; height: 60px !important; border-radius: 50%  !important; object-fit: cover !important; flex-shrink: 0 !important; }
+
+/* Fixed-size avatars in tables / cards via HTML width/height attributes */
+img.rounded-circle[width="35"]  { width: 35px !important; height: 35px !important; object-fit: cover !important; flex-shrink: 0 !important; }
+img.rounded-circle[width="45"]  { width: 45px !important; height: 45px !important; object-fit: cover !important; flex-shrink: 0 !important; }
+img[width="60"][height="60"]    { width: 60px !important; height: 60px !important; object-fit: cover !important; flex-shrink: 0 !important; }
+
+/* ── 3. Service Card Image (ServiceCard component) ── */
+.service-img img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
+/* ── 4. NearbyServiceCard Image ── */
+.nearby-image-wrapper img,
+.nearby-image {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
+/* ── 5. Marketplace Item Cards (aspect-ratio: 1/1 container) ── */
+.item-image-container img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
+/* ── 6. Market Mini-Items — Home Page Horizontal Scroll ── */
+.mini-img-wrapper img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
+/* ── 7. Service Detail Thumbnails ── */
+/* mini-img: size is controlled by the component's own <style> (50px in ServiceDetails).  
+   We only enforce object-fit so no overflow occurs regardless of image dimensions. */
+.mini-img {
+    object-fit: cover !important;
+    flex-shrink: 0 !important;
+}
+.mini-thumb {
+    width: 70px !important;
+    height: 70px !important;
+    object-fit: cover !important;
+    border-radius: 10px !important;
+    flex-shrink: 0 !important;
+}
+
+/* ── 8. Marketplace Item Detail — Main Image ── */
+.main-img {
+    width: 100% !important;
+    max-height: 450px !important;
+    object-fit: contain !important;
+    background: #f8fafc !important;
+    border-radius: 16px !important;
+    display: block !important;
+}
+
+/* ── 9. Post / Feed Images — capped height ── */
+img.w-100.rounded-4.mb-3,
+img.w-100.rounded-3.mb-3 {
+    max-height: 400px !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
+/* ── 10. Auth Pages — Logo Images ── */
+.auth-logo {
+    max-height: 80px !important;
+    max-width: 160px !important;
+    object-fit: contain !important;
+    margin: 0 auto !important;
+    display: block !important;
+}
+
+/* ── 11. Admin Services Approval Table ── */
+.table img.rounded-3.object-fit-cover,
+.table img.rounded-circle {
+    flex-shrink: 0 !important;
+    display: block !important;
+}
+
+/* ── 12. Provide settings / profile image ── */
+img.provider-avatar.shadow-sm {
+    object-fit: cover !important;
+}
+
+/* ── 13. Any img inside glass / card containers without explicit size ── */
+.glass-card img:not([class*="auth-logo"]):not([width]):not([height]),
+.service-card img:not([class*="auth-logo"]):not([width]):not([height]),
+.market-item-card img:not([class*="auth-logo"]):not([width]):not([height]),
+.market-item-mini img:not([class*="auth-logo"]):not([width]):not([height]) {
+    max-width: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
+/* ── 14. Mobile safety — no image can overflow viewport width ── */
+@media (max-width: 768px) {
+    img {
+        max-width: 100% !important;
+    }
+
+    /* Cap unconstrained inline images in cards on mobile only if they have no container */
+    .card > img:not([width]):not([height]),
+    .card-body > img:not([width]):not([height]) {
+        max-height: 300px;
+        object-fit: cover;
+    }
+}
+
+/* ===================================================
+   End of Global Image Constraint System
+   =================================================== */
+
+
+
 body {
     background-color: #fbfbfe;
     /* Very very light tint */
@@ -275,33 +423,16 @@ body[data-theme="glass"]::after {
     background: transparent;
     position: relative;
     z-index: 1;
-    overflow: visible !important;
+    /* overflow-x: hidden can break position: sticky. Use clip or nothing. */
+    overflow-x: clip; 
 }
 
 .app-content {
     flex: 1;
     padding-bottom: 100px;
-    overflow: visible !important;
 }
 
-.category-marquee-container {
-    position: -webkit-sticky !important;
-    position: sticky !important;
-    top: 72px !important;
-    z-index: 999 !important;
-    background: rgba(255, 255, 255, 0.9) !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
-    width: 100% !important;
-    display: block !important;
-}
-
-@media (max-width: 991px) {
-    .category-marquee-container {
-        top: 60px !important;
-    }
-}
+/* Conflicting marker removed in favor of MainLayout.razor styles */
 
 .content-wrapper {
     width: 100%;
@@ -504,6 +635,32 @@ body[data-theme="glass"]::after {
     position: relative;
     overflow: hidden;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    max-width: 100%; /* Prevent card from overflowing screen width */
+}
+
+/* Responsive Overrides */
+@media (max-width: 768px) {
+    .glass-card {
+        padding: 15px !important;
+        border-radius: 16px !important;
+        margin-bottom: 15px !important;
+    }
+
+    .table-responsive {
+        margin: 0 -5px; /* Slight negative margin to allow table to breathe */
+        overflow-x: auto !important;
+        display: block;
+        width: 100%;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table {
+        min-width: 600px; /* Minimum width for tables to trigger scroll */
+    }
+    
+    .content-wrapper {
+        padding: 10px !important;
+    }
 }
 
 .glass-card:hover,
@@ -995,7 +1152,7 @@ body[data-theme="glass"]::after {
 
 /* ===== PREMIUM HEADER STYLES ===== */
 .app-header-premium {
-    height: 85px;
+    height: 72px;
     padding: 0 40px;
     background: rgba(255, 255, 255, 0.4);
     backdrop-filter: blur(25px);
@@ -1479,7 +1636,7 @@ body[data-theme="glass"]::after {
 
 @@media (max-width: 991px) {
     .app-header-premium {
-        height: 60px !important;
+        height: 72px !important;
         padding: 0 10px !important;
         display: flex !important;
         background: rgba(255, 255, 255, 0.95) !important;
@@ -1533,7 +1690,7 @@ body[data-theme="glass"]::after {
 @@media (max-width: 768px) {
     .app-header-premium {
         padding: 0 10px;
-        height: 70px;
+        height: 72px;
         gap: 8px;
     }
 

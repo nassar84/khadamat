@@ -106,7 +106,7 @@
                 {
                     <div class="market-item-mini" @onclick='() => Navigation.NavigateTo($"/marketplace/item/{item.Id}")'>
                         <div class="mini-img-wrapper">
-                            <img src="@Api.GetAbsoluteUrl(item.Images.FirstOrDefault()?.ImageUrl ?? "images/defaults/default-product.png")" />
+                            <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.ImagePathResolver.MarketplaceItem(item.Images.FirstOrDefault()?.ImageUrl))" />
                             <span class="mini-price">@item.Price.ToString("N0") ج.م</span>
                         </div>
                         <div class="p-2">
@@ -167,8 +167,8 @@
         <div class="row align-items-center position-relative z-1 p-4 p-md-5">
             <div class="col-lg-7 mb-4 mb-lg-0 text-center text-lg-start">
                 <div class="d-flex flex-column flex-lg-row align-items-center gap-3 mb-4">
-                    <div class="logo-orb shadow-lg">
-                        <i class="fa-solid fa-bolt-lightning text-white fs-3"></i>
+                    <div class="logo-orb shadow-lg" style="overflow: hidden; padding: 6px; background: white;">
+                        <img src="/logo.png" alt="خدماوي" style="width: 100%; height: 100%; object-fit: contain; border-radius: 10px; display: block;" />
                     </div>
                     <div>
                         <h2 class="fw-bold premium-text-glow mb-1 text-white">تطبيق @AppState.AppName</h2>
