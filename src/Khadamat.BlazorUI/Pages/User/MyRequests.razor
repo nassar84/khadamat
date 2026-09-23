@@ -63,13 +63,40 @@
                                         @r.Notes
                                     </p>
                                 }
+
+                                @if (r.HasRated && r.RatingStars.HasValue)
+                                {
+                                    <div class="mt-2 p-2 bg-warning bg-opacity-10 rounded-3 border border-warning border-opacity-25 d-inline-flex flex-column">
+                                        <div class="d-flex align-items-center gap-1">
+                                            <span class="x-small fw-bold text-dark">تقييمك:</span>
+                                            <div class="text-warning x-small">
+                                                @for (int s = 1; s <= 5; s++)
+                                                {
+                                                    <i class="@(s <= r.RatingStars.Value ? "fa-solid" : "fa-regular") fa-star"></i>
+                                                }
+                                            </div>
+                                        </div>
+                                        @if (!string.IsNullOrWhiteSpace(r.RatingComment))
+                                        {
+                                            <span class="text-muted x-small mt-1">"@r.RatingComment"</span>
+                                        }
+                                    </div>
+                                }
                             </div>
                         </div>
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-sm btn-outline-secondary rounded-pill" @onclick="() => ViewDetails(r.ServiceId)">التفاصيل</button>
+                        <div class="d-flex flex-column align-items-end gap-2">
+                            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" @onclick="() => ViewDetails(r.ServiceId)">التفاصيل</button>
+                            
+                            @if (r.Status == Khadamat.Domain.Enums.RequestStatus.Completed && !r.HasRated)
+                            {
+                                <button class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3 shadow-sm animate-pulse-subtle" @onclick="() => OpenRateModal(r)">
+                                    <i class="fa-solid fa-star me-1"></i> تقييم الخدمة
+                                </button>
+                            }
+                            
                             @if (r.Status == Khadamat.Domain.Enums.RequestStatus.Pending)
                             {
-                                <button class="btn btn-sm btn-outline-danger rounded-pill" @onclick="() => CancelRequest(r.Id)">
+                                <button class="btn btn-sm btn-outline-danger rounded-pill px-3" @onclick="() => CancelRequest(r.Id)">
                                     <i class="fa-solid fa-times me-1"></i> إلغاء
                                 </button>
                             }
@@ -81,9 +108,110 @@
     }
 </div>
 
+<!-- Rating Modal for Completed Order -->
+@if (selectedRequestForRating != null)
+{
+    <div class="modal-overlay animate-fade-in">
+        <div class="glass-card p-4 rounded-4 shadow-lg animate-pop" style="max-width: 460px; width: 92%;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0 text-dark">
+                    <i class="fa-solid fa-star text-warning me-2"></i>تقييم تجربة الخدمة
+                </h5>
+                <button class="btn-close shadow-none border-0 bg-transparent text-muted" @onclick="CloseRateModal">
+                    <i class="fa-solid fa-xmark fs-5"></i>
+                </button>
+            </div>
+
+            <div class="p-3 bg-light rounded-4 mb-3 text-center border">
+                <div class="fw-bold text-primary fs-6 mb-1">@selectedRequestForRating.ServiceTitle</div>
+                <div class="text-muted small">مقدم الخدمة: <span class="fw-bold text-dark">@selectedRequestForRating.ProviderName</span></div>
+            </div>
+
+            <div class="text-center mb-4">
+                <div class="small text-muted mb-2">كيف كانت تجربتك مع مقدم الخدمة؟</div>
+                <div class="d-flex justify-content-center gap-2 mb-2" dir="ltr">
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        int star = i;
+                        <i class="@(userRating >= star ? "fa-solid text-warning" : "fa-regular text-muted") fa-star fs-1 cursor-pointer star-hover"
+                           @onclick="() => userRating = star"></i>
+                    }
+                </div>
+                <div class="fw-bold text-warning small">
+                    @GetStarLabel(userRating)
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold small">تعليقك ورأيك (اختياري)</label>
+                <textarea @bind="userComment" class="form-control rounded-3" rows="3" placeholder="اكتب تفاصيل تجربتك، مدى التزامه بالميعاد وجودة العمل..."></textarea>
+            </div>
+
+            @if (!string.IsNullOrEmpty(ratingError))
+            {
+                <div class="alert alert-danger py-2 px-3 small rounded-3 mb-3">
+                    <i class="fa-solid fa-circle-exclamation me-1"></i> @ratingError
+                </div>
+            }
+
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary-premium flex-grow-1 rounded-pill py-2 fw-bold" @onclick="SubmitRating" disabled="@isSubmittingRating">
+                    @if (isSubmittingRating)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1"></span>
+                    }
+                    حفظ التقييم
+                </button>
+                <button class="btn btn-light flex-grow-1 rounded-pill py-2" @onclick="CloseRateModal" disabled="@isSubmittingRating">إلغاء</button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        direction: rtl;
+    }
+    .star-hover {
+        transition: transform 0.15s, color 0.15s;
+    }
+    .star-hover:hover {
+        transform: scale(1.2);
+    }
+    .animate-pop {
+        animation: popUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @@keyframes popUp {
+        0% { transform: scale(0.9); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pulse-subtle {
+        animation: pulseSubtle 2s infinite ease-in-out;
+    }
+    @@keyframes pulseSubtle {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.03); }
+    }
+</style>
+
 @code {
     private List<ServiceRequestDto>? requests;
     private bool isLoading = true;
+
+    // Rating State
+    private ServiceRequestDto? selectedRequestForRating;
+    private int userRating = 5;
+    private string userComment = "";
+    private bool isSubmittingRating = false;
+    private string? ratingError;
 
     protected override async Task OnInitializedAsync()
     {
@@ -113,15 +241,85 @@
         Khadamat.Domain.Enums.RequestStatus.Pending => "bg-warning text-dark",
         Khadamat.Domain.Enums.RequestStatus.Accepted => "bg-info text-dark",
         Khadamat.Domain.Enums.RequestStatus.InProgress => "bg-primary text-white",
-        Khadamat.Domain.Enums.RequestStatus.Completed => "bg-success",
-        Khadamat.Domain.Enums.RequestStatus.Cancelled => "bg-secondary",
-        Khadamat.Domain.Enums.RequestStatus.Rejected => "bg-danger",
+        Khadamat.Domain.Enums.RequestStatus.Completed => "bg-success text-white",
+        Khadamat.Domain.Enums.RequestStatus.Cancelled => "bg-secondary text-white",
+        Khadamat.Domain.Enums.RequestStatus.Rejected => "bg-danger text-white",
         _ => "bg-secondary"
     };
 
     private void ViewDetails(int serviceId)
     {
         Navigation.NavigateTo($"/service/{serviceId}");
+    }
+
+    private void OpenRateModal(ServiceRequestDto r)
+    {
+        selectedRequestForRating = r;
+        userRating = 5;
+        userComment = "";
+        ratingError = null;
+    }
+
+    private void CloseRateModal()
+    {
+        selectedRequestForRating = null;
+        ratingError = null;
+    }
+
+    private string GetStarLabel(int stars) => stars switch
+    {
+        5 => "ممتاز جداً ⭐⭐⭐⭐⭐",
+        4 => "جيد جداً ⭐⭐⭐⭐",
+        3 => "جيد ⭐⭐⭐",
+        2 => "مقبول ⭐⭐",
+        1 => "سيء ⭐",
+        _ => "اضغط لتقييم النجوم"
+    };
+
+    private async Task SubmitRating()
+    {
+        if (selectedRequestForRating == null) return;
+
+        if (userRating < 1 || userRating > 5)
+        {
+            ratingError = "يرجى اختيار التقييم من 1 إلى 5 نجوم";
+            return;
+        }
+
+        isSubmittingRating = true;
+        ratingError = null;
+
+        try
+        {
+            var res = await Api.CreateReviewAsync(new CreateReviewRequest
+            {
+                ServiceId = selectedRequestForRating.ServiceId,
+                ServiceRequestId = selectedRequestForRating.Id,
+                Rating = userRating,
+                Comment = userComment?.Trim() ?? string.Empty
+            });
+
+            if (res.Success)
+            {
+                selectedRequestForRating.HasRated = true;
+                selectedRequestForRating.RatingStars = userRating;
+                selectedRequestForRating.RatingComment = userComment;
+                CloseRateModal();
+                StateHasChanged();
+            }
+            else
+            {
+                ratingError = res.Message ?? "تعذر حفظ التقييم، يرجى المحاولة لاحقاً.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ratingError = ex.Message;
+        }
+        finally
+        {
+            isSubmittingRating = false;
+        }
     }
 
     private async Task CancelRequest(int requestId)

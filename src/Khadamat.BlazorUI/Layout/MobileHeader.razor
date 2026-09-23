@@ -30,11 +30,11 @@
             <div class="logo-wrapper-mobile">
                 @if (!string.IsNullOrEmpty(State.AppLogo))
                 {
-                    <img src="@State.GetAbsoluteUrl(State.AppLogo)" class="logo-img-mobile" alt="Logo" style="height: 32px; width: auto; object-fit: contain;" />
+                    <img src="@State.GetAbsoluteUrl(State.AppLogo)" class="logo-img-mobile" alt="Logo" style="height: 34px; width: auto; object-fit: contain;" />
                 }
                 else
                 {
-                    <i class="fa-solid fa-bolt-lightning logo-icon-glow"></i>
+                    <img src="images/logo.png" class="logo-img-mobile" alt="Logo" style="height: 34px; width: auto; object-fit: contain;" />
                 }
                 <span class="logo-text-premium">@(string.IsNullOrEmpty(State.AppNameAr) ? State.AppName : State.AppNameAr)</span>
             </div>
@@ -87,10 +87,17 @@
     </div>
 </header>
 
-<div class="mobile-search-bar px-3 pb-2">
-    <div class="search-input-wrapper">
-        <i class="fa-solid fa-magnifying-glass search-icon"></i>
-        <input type="text" placeholder="ابحث عن خدمات..." @bind="searchQuery" @bind:event="oninput" @onkeydown="HandleKeyDown" />
+<div class="mobile-search-bar px-3 pb-2" @onclick="GoToSearch">
+    <div class="search-tap-btn">
+        <div class="search-tap-inner">
+            <div class="search-tap-icon-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </div>
+            <span class="search-tap-placeholder">ابحث عن خدمة أو مهني...</span>
+            <div class="search-tap-filter">
+                <i class="fa-solid fa-sliders"></i>
+            </div>
+        </div>
     </div>
 </div>
 @* <CategoryMarquee /> *@
@@ -298,42 +305,73 @@
     .mobile-search-bar {
         background: transparent;
         margin-top: -5px;
+        cursor: pointer;
     }
 
-    .search-input-wrapper {
-        position: relative;
+    /* ── New tap-to-search button ── */
+    .search-tap-btn {
         width: 100%;
         padding: 0 5px;
     }
 
-    .search-input-wrapper input {
-        width: 100%;
-        padding: 12px 45px 12px 15px;
+    .search-tap-inner {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1.5px solid rgba(99, 102, 241, 0.25);
         border-radius: 18px;
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(10px);
+        padding: 11px 14px;
+        box-shadow: 0 4px 18px rgba(99, 102, 241, 0.1), 0 1px 4px rgba(0,0,0,0.04);
+        transition: all 0.2s ease;
+        direction: rtl;
+    }
+
+    .search-tap-inner:active {
+        transform: scale(0.98);
+        box-shadow: 0 2px 10px rgba(99, 102, 241, 0.15);
+        background: rgba(245, 243, 255, 0.98);
+    }
+
+    .search-tap-icon-wrap {
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--theme-primary, #6366f1), var(--theme-secondary, #a855f7));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
         font-size: 0.9rem;
+        flex-shrink: 0;
+        box-shadow: 0 3px 10px rgba(99, 102, 241, 0.35);
+    }
+
+    .search-tap-placeholder {
+        flex: 1;
+        font-size: 0.88rem;
         font-weight: 600;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        color: #94a3b8;
+        text-align: right;
+        user-select: none;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
-    [dir="rtl"] .search-input-wrapper input {
-        padding: 12px 15px 12px 45px;
-    }
-
-    .search-icon {
-        position: absolute;
-        left: 20px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--theme-primary);
-        opacity: 0.7;
-    }
-
-    [dir="rtl"] .search-icon {
-        right: 20px;
-        left: auto;
+    .search-tap-filter {
+        width: 30px;
+        height: 30px;
+        border-radius: 10px;
+        background: rgba(99, 102, 241, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--theme-primary, #6366f1);
+        font-size: 0.85rem;
+        flex-shrink: 0;
     }
     .theme-switcher-mobile {
         position: relative;
@@ -384,7 +422,6 @@
 </style>
 
 @code {
-    private string searchQuery = string.Empty;
     private bool isThemeMenuOpen;
     private bool _disposed = false;
 
@@ -415,12 +452,9 @@
         State.OnChange -= OnStateChange;
     }
 
-    private void HandleKeyDown(KeyboardEventArgs e)
+    private void GoToSearch()
     {
-        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(searchQuery))
-        {
-            NavigateTo($"/explore?search={Uri.EscapeDataString(searchQuery)}");
-        }
+        NavigateTo("/search");
     }
 
     private void NavigateTo(string path)

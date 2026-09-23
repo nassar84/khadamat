@@ -1,7 +1,8 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication;
 using Khadamat.Infrastructure.Persistence;
 using Khadamat.Infrastructure.Identity;
 using Khadamat.Infrastructure.Features;
@@ -30,6 +31,7 @@ public static class DependencyInjection
 
         
         services.AddScoped<Khadamat.Application.Interfaces.IAuthService, AuthService>();
+        services.AddScoped<Khadamat.Application.Interfaces.IEmailService, Khadamat.Infrastructure.Services.EmailService>();
         services.AddScoped<Khadamat.Application.Interfaces.ISettingsService, Khadamat.Infrastructure.Services.SettingsService>();
         services.AddScoped<Khadamat.Application.Interfaces.INotificationService, Khadamat.Infrastructure.Services.NotificationService>();
         services.AddScoped<Khadamat.Application.Interfaces.IMarketplaceService, Khadamat.Infrastructure.Services.MarketplaceService>();
@@ -65,12 +67,32 @@ public static class DependencyInjection
             options.ClientId = configuration["Authentication:Google:ClientId"]!;
             options.ClientSecret = configuration["Authentication:Google:ClientSecret"]!;
             options.SaveTokens = true;
+            options.ClaimActions.MapJsonKey("picture", "picture");
         })
         .AddFacebook(options =>
         {
             options.AppId = configuration["Authentication:Facebook:AppId"]!;
             options.AppSecret = configuration["Authentication:Facebook:AppSecret"]!;
             options.SaveTokens = true;
+            // Request email and public_profile permissions explicitly
+            options.Scope.Add("email");
+            options.Scope.Add("public_profile");
+            // Ensure we request email, name, and picture fields from Graph API
+            options.Fields.Add("email");
+            options.Fields.Add("name");
+            options.Fields.Add("picture");
+
+            // Extract the direct CDN picture URL from Facebook's picture object
+            options.ClaimActions.MapCustomJson("picture", user =>
+            {
+                if (user.TryGetProperty("picture", out var picture) &&
+                    picture.TryGetProperty("data", out var data) &&
+                    data.TryGetProperty("url", out var url))
+                {
+                    return url.GetString();
+                }
+                return null;
+            });
         });
 
         return services;

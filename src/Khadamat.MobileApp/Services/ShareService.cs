@@ -26,6 +26,7 @@ public class ShareService : IShareService
         {
             await Share.Default.RequestAsync(new ShareTextRequest
             {
+                Text = $"{title}\n{url}",
                 Uri = url,
                 Title = title
             });

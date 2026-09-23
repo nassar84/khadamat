@@ -7,7 +7,6 @@ using System.Web;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using System.IO;
-using Microsoft.AspNetCore.Hosting;
 
 namespace Khadamat.WebAPI.Controllers;
 
@@ -21,13 +20,11 @@ public class ShareController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly IConfiguration _configuration;
-    private readonly IWebHostEnvironment _webHostEnvironment;
 
-    public ShareController(IMediator mediator, IConfiguration configuration, IWebHostEnvironment webHostEnvironment)
+    public ShareController(IMediator mediator, IConfiguration configuration)
     {
         _mediator = mediator;
         _configuration = configuration;
-        _webHostEnvironment = webHostEnvironment;
     }
 
     /// <summary>
@@ -42,57 +39,43 @@ public class ShareController : ControllerBase
         if (service == null)
             return NotFound();
 
-        // Determine base URL dynamically, preferring forwarded headers or configuration
-        string? baseUrl = _configuration["ApiSettings:WebAppBaseUrl"];
-        if (string.IsNullOrEmpty(baseUrl) || baseUrl.Contains("localhost"))
-        {
-            // Fallback to proxy headers
-            var scheme = Request.Headers["X-Forwarded-Proto"].FirstOrDefault() ?? Request.Scheme;
-            var host = Request.Headers["X-Forwarded-Host"].FirstOrDefault() ?? Request.Host.ToString();
-            baseUrl = $"{scheme}://{host}";
-        }
-        
-        baseUrl = baseUrl.TrimEnd('/');
+        // Determine base URL dynamically from current incoming request
+        var scheme = Request.Headers["X-Forwarded-Proto"].FirstOrDefault() ?? Request.Scheme;
+        var host = Request.Headers["X-Forwarded-Host"].FirstOrDefault() ?? Request.Host.ToString();
+        string baseUrl = $"{scheme}://{host}".TrimEnd('/');
 
-        // If the URL still points to localhost but we are in production, try to resolve from Cors
         if (baseUrl.Contains("localhost") || baseUrl.Contains("127.0.0.1") || baseUrl.Contains("::1"))
         {
-            var allowedOrigins = _configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
-            var publicOrigin = allowedOrigins?.FirstOrDefault(o => o.StartsWith("https://") && !o.Contains("localhost"));
-            if (!string.IsNullOrEmpty(publicOrigin))
+            var configUrl = _configuration["ApiSettings:WebAppBaseUrl"];
+            if (!string.IsNullOrEmpty(configUrl) && !configUrl.Contains("localhost"))
             {
-                baseUrl = publicOrigin.TrimEnd('/');
+                baseUrl = configUrl.TrimEnd('/');
             }
-        }
-
-        // Force HTTPS in production
-        if (baseUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) && 
-            !baseUrl.Contains("localhost") && !baseUrl.Contains("127.0.0.1") && !baseUrl.Contains("::1"))
-        {
-            baseUrl = "https://" + baseUrl.Substring(7);
+            else
+            {
+                var allowedOrigins = _configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+                var publicOrigin = allowedOrigins?.FirstOrDefault(o => o.StartsWith("https://") && !o.Contains("localhost"));
+                if (!string.IsNullOrEmpty(publicOrigin))
+                {
+                    baseUrl = publicOrigin.TrimEnd('/');
+                }
+            }
         }
 
         // Build the canonical SPA URL that users land on after clicking the shared link
         var serviceUrl = $"{baseUrl}/service/{id}";
         var shareUrl = $"{baseUrl}/share/service/{id}";
 
-        // Check if a pre-rendered premium card image exists for this service (prefer JPEG for size/WhatsApp compatibility, fallback to PNG)
+        // Check if a pre-rendered premium card image exists for this service
         string imageUrl = $"{baseUrl}/images/logo.png"; // safe default — always assigned
-        var basePath = _webHostEnvironment.WebRootPath ?? Path.Combine(_webHostEnvironment.ContentRootPath, "wwwroot");
-        var cardRelativePathJpg = $"images/share_cards/card_{id}.jpg";
-        var cardPhysicalPathJpg = Path.Combine(basePath, "images", "share_cards", $"card_{id}.jpg");
-        var cardRelativePathPng = $"images/share_cards/card_{id}.png";
-        var cardPhysicalPathPng = Path.Combine(basePath, "images", "share_cards", $"card_{id}.png");
+        var basePath = Directory.GetCurrentDirectory();
+        var cardRelativePath = $"images/share_cards/card_{id}.png";
+        var cardPhysicalPath = Path.Combine(basePath, "wwwroot", cardRelativePath);
 
-        if (System.IO.File.Exists(cardPhysicalPathJpg))
+        if (System.IO.File.Exists(cardPhysicalPath))
         {
-            var lastWrite = System.IO.File.GetLastWriteTimeUtc(cardPhysicalPathJpg).Ticks;
-            imageUrl = $"{baseUrl}/{cardRelativePathJpg}?v={lastWrite}";
-        }
-        else if (System.IO.File.Exists(cardPhysicalPathPng))
-        {
-            var lastWrite = System.IO.File.GetLastWriteTimeUtc(cardPhysicalPathPng).Ticks;
-            imageUrl = $"{baseUrl}/{cardRelativePathPng}?v={lastWrite}";
+            var lastWrite = System.IO.File.GetLastWriteTimeUtc(cardPhysicalPath).Ticks;
+            imageUrl = $"{baseUrl}/{cardRelativePath}?v={lastWrite}";
         }
         else
         {
@@ -140,7 +123,7 @@ public class ShareController : ControllerBase
                     bool foundCategoryImg = false;
                     if (service.SubCategoryId.HasValue && service.CategoryId.HasValue)
                     {
-                        var catPath = Path.Combine(basePath, "images", "categories", $"c_{service.CategoryId}_{service.SubCategoryId}.png");
+                        var catPath = Path.Combine(basePath, "wwwroot", "images", "categories", $"c_{service.CategoryId}_{service.SubCategoryId}.png");
                         if (System.IO.File.Exists(catPath))
                         {
                             imageUrl = $"{baseUrl}/images/categories/c_{service.CategoryId}_{service.SubCategoryId}.png";
@@ -149,7 +132,7 @@ public class ShareController : ControllerBase
                     }
                     if (!foundCategoryImg && service.CategoryId.HasValue && service.MainCategoryId > 0)
                     {
-                        var catPath = Path.Combine(basePath, "images", "categories", $"c_{service.MainCategoryId}_{service.CategoryId}.png");
+                        var catPath = Path.Combine(basePath, "wwwroot", "images", "categories", $"c_{service.MainCategoryId}_{service.CategoryId}.png");
                         if (System.IO.File.Exists(catPath))
                         {
                             imageUrl = $"{baseUrl}/images/categories/c_{service.MainCategoryId}_{service.CategoryId}.png";
@@ -159,7 +142,7 @@ public class ShareController : ControllerBase
                     if (!foundCategoryImg)
                     {
                         // Use branded logo for best social preview when no service image exists
-                        var logoPath = Path.Combine(basePath, "images", "logo.png");
+                        var logoPath = Path.Combine(basePath, "wwwroot", "images", "logo.png");
                         imageUrl = System.IO.File.Exists(logoPath)
                             ? $"{baseUrl}/images/logo.png"
                             : $"{baseUrl}/images/defaults/default_service.png";
@@ -187,8 +170,8 @@ public class ShareController : ControllerBase
         {
             var digits = new string(service.WhatsApp.Where(char.IsDigit).ToArray());
             if (digits.StartsWith("01") && digits.Length == 11) digits = "2" + digits;
-            var waUrl = $"https://wa.me/{digits}?text=" + HttpUtility.UrlEncode($"مرحباً {service.ProviderName}، بخصوص الخدمة المعروضة: {service.Title}");
-            contactButtonsHtml.AppendLine($"      <a href=\"{waUrl}\" target=\"_blank\" class=\"btn-contact btn-whatsapp\"><span class=\"btn-icon\">💬</span> واتساب: {HttpUtility.HtmlEncode(service.WhatsApp)}</a>");
+            var waUrl = $"https://wa.me/{digits}?text=" + HttpUtility.UrlEncode($"مرحباً، بخصوص الخدمة المعروضة على منصة خدماوي: {service.Title}");
+            contactButtonsHtml.AppendLine($"      <a href=\"{waUrl}\" target=\"_blank\" class=\"btn-contact btn-whatsapp\"><span class=\"btn-icon\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 448 512\" fill=\"white\" style=\"vertical-align:middle;display:inline-block;\"><path d=\"M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z\"/></svg></span> واتساب: {HttpUtility.HtmlEncode(service.WhatsApp)}</a>");
         }
         if (!string.IsNullOrEmpty(service.Phone1))
         {
@@ -223,36 +206,46 @@ public class ShareController : ControllerBase
 
         // OG description — Must be PROMOTIONAL (not raw data) for social sharing appeal
         // WhatsApp/Facebook show this text under the title — make it enticing!
-        var cleanTitle = service.Title.Replace("\"", "").Replace("'", "");
-        var ogDesc = $"تم مشاركة هذه الخدمة من تطبيق وموقع خدماوي 📲 | {cleanTitle} | 📍 {location} | 💰 {priceText}. {(shortDesc.Length > 100 ? shortDesc[..97] + "..." : shortDesc)} — حمل تطبيق خدماوي مجاناً الآن لتصفح آلاف الخدمات والتواصل مع مقدميها مباشرة وبدون عمولات!";
-        if (ogDesc.Length > 280) ogDesc = ogDesc[..277] + "...";
-        var safeOgDesc = HttpUtility.HtmlEncode(ogDesc);
+        var ogDesc = !string.IsNullOrEmpty(shortDesc)
+            ? shortDesc
+            : $"{service.CategoryName} في {service.GovernorateName}";
+        // Add location + price context
+        var contextSuffix = $" | 📍 {service.GovernorateName}، {service.CityName} | 💰 {priceText}";
+        // Add a compelling CTA
+        var cta = " — 📲 حمل تطبيق خدماوي مجاناً واستمتع بآلاف الخدمات القريبة منك!";
+        var combined = ogDesc + contextSuffix + cta;
+        if (combined.Length > 280) combined = combined[..277] + "...";
+        var safeOgDesc = HttpUtility.HtmlEncode(combined);
 
         // Page title (also used as og:title)
         var pageTitle = HttpUtility.HtmlEncode($"{service.Title} • {service.CategoryName} في {service.CityName}");
 
         // App download URLs
-        var appStoreUrl = $"{baseUrl}/downloads/khadamat.apk";
+        var appStoreUrl = $"{baseUrl}/downloads/Khadamawy.apk";
 
         var html = new StringBuilder();
         html.AppendLine("<!DOCTYPE html>");
         html.AppendLine("<html lang=\"ar\" dir=\"rtl\">");
         html.AppendLine("<head>");
         html.AppendLine("  <meta charset=\"UTF-8\" />");
-        html.AppendLine("  <meta name=\"build-version\" content=\"v2.0.0-fix-20260626\" />");
+        html.AppendLine("  <meta name=\"build-version\" content=\"v2.0.0-fix-20260824\" />");
         html.AppendLine($"  <title>{pageTitle}</title>");
 
-        // === Standard Open Graph tags (Facebook, LinkedIn, Discord) ===
+        // === Standard Open Graph tags (Facebook, LinkedIn, Discord, WhatsApp, Telegram) ===
         html.AppendLine("  <meta property=\"og:type\"        content=\"website\" />");
         html.AppendLine($"  <meta property=\"og:url\"         content=\"{shareUrl}\" />");
         html.AppendLine($"  <meta property=\"og:title\"       content=\"{pageTitle}\" />");
         html.AppendLine($"  <meta property=\"og:description\" content=\"{safeOgDesc}\" />");
         html.AppendLine($"  <meta property=\"og:image\"       content=\"{imageUrl}\" />");
         html.AppendLine($"  <meta property=\"og:image:secure_url\" content=\"{imageUrl}\" />");
-        html.AppendLine("  <meta property=\"og:image:width\"  content=\"1200\" />");
-        html.AppendLine("  <meta property=\"og:image:height\" content=\"630\" />");
+        html.AppendLine("  <meta property=\"og:image:type\"   content=\"image/png\" />");
+        html.AppendLine("  <meta property=\"og:image:width\"  content=\"600\" />");
+        html.AppendLine("  <meta property=\"og:image:height\" content=\"315\" />");
+        html.AppendLine($"  <meta property=\"og:image:alt\"    content=\"{pageTitle}\" />");
         html.AppendLine("  <meta property=\"og:locale\"      content=\"ar_EG\" />");
         html.AppendLine("  <meta property=\"og:site_name\"   content=\"خدماوي\" />");
+        html.AppendLine($"  <link rel=\"image_src\"           href=\"{imageUrl}\" />");
+        html.AppendLine($"  <meta itemprop=\"image\"          content=\"{imageUrl}\" />");
 
         // === Facebook specific ===
         html.AppendLine("  <meta property=\"fb:app_id\"      content=\"\" />");
@@ -417,7 +410,7 @@ public class ShareController : ControllerBase
         html.AppendLine("      color: #334155;");
         html.AppendLine("      font-weight: 700;");
         html.AppendLine("      margin: 20px 0 10px 0;");
-        html.AppendLine("      border-right: 3px solid #1d6070;");
+        html.AppendLine("      border-right: 3px solid #6366f1;");
         html.AppendLine("      padding-right: 8px;");
         html.AppendLine("    }");
         html.AppendLine("    .desc-box {");
@@ -492,13 +485,13 @@ public class ShareController : ControllerBase
         html.AppendLine("      box-shadow: 0 4px 12px rgba(0,0,0,0.1);");
         html.AppendLine("    }");
         html.AppendLine("    .promo-box {");
-        html.AppendLine("      background: linear-gradient(135deg, #1d6070 0%, #2a7f8f 60%, #f47c30 100%);");
+        html.AppendLine("      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);");
         html.AppendLine("      border-radius: 20px;");
         html.AppendLine("      padding: 22px;");
         html.AppendLine("      color: white;");
         html.AppendLine("      margin-top: 25px;");
         html.AppendLine("      margin-bottom: 15px;");
-        html.AppendLine("      box-shadow: 0 10px 20px rgba(29, 96, 112, 0.15);");
+        html.AppendLine("      box-shadow: 0 10px 20px rgba(79, 70, 229, 0.15);");
         html.AppendLine("    }");
         html.AppendLine("    .promo-title {");
         html.AppendLine("      font-size: 1.1rem;");
@@ -527,58 +520,9 @@ public class ShareController : ControllerBase
         html.AppendLine("      text-align: center;");
         html.AppendLine("      transition: all 0.2s;");
         html.AppendLine("    }");
-        html.AppendLine("    .btn-promo-web { background: white; color: #1d6070; }");
+        html.AppendLine("    .btn-promo-web { background: white; color: #4f46e5; }");
         html.AppendLine("    .btn-promo-app { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); }");
         html.AppendLine("    .btn-promo:hover { transform: scale(1.03); }");
-        html.AppendLine("    /* ── Hero CTA Buttons ── */");
-        html.AppendLine("    .hero-cta {");
-        html.AppendLine("      display: flex;");
-        html.AppendLine("      flex-direction: column;");
-        html.AppendLine("      gap: 12px;");
-        html.AppendLine("      padding: 20px 20px 10px 20px;");
-        html.AppendLine("      background: #f8fafc;");
-        html.AppendLine("      border-bottom: 1px solid #e2e8f0;");
-        html.AppendLine("    }");
-        html.AppendLine("    .btn-cta {");
-        html.AppendLine("      display: flex;");
-        html.AppendLine("      align-items: center;");
-        html.AppendLine("      justify-content: center;");
-        html.AppendLine("      gap: 10px;");
-        html.AppendLine("      padding: 14px 20px;");
-        html.AppendLine("      border-radius: 14px;");
-        html.AppendLine("      text-decoration: none;");
-        html.AppendLine("      font-family: 'Tajawal', sans-serif;");
-        html.AppendLine("      font-weight: 800;");
-        html.AppendLine("      font-size: 1rem;");
-        html.AppendLine("      transition: all 0.25s ease;");
-        html.AppendLine("      border: none;");
-        html.AppendLine("      cursor: pointer;");
-        html.AppendLine("    }");
-        html.AppendLine("    .btn-cta-service {");
-        html.AppendLine("      background: linear-gradient(135deg, #1d6070 0%, #2a9d8f 100%);");
-        html.AppendLine("      color: white;");
-        html.AppendLine("      box-shadow: 0 4px 15px rgba(29, 96, 112, 0.4);");
-        html.AppendLine("    }");
-        html.AppendLine("    .btn-cta-service:hover {");
-        html.AppendLine("      transform: translateY(-2px);");
-        html.AppendLine("      box-shadow: 0 8px 20px rgba(29, 96, 112, 0.5);");
-        html.AppendLine("    }");
-        html.AppendLine("    .btn-cta-download {");
-        html.AppendLine("      background: linear-gradient(135deg, #f47c30 0%, #e05a1f 100%);");
-        html.AppendLine("      color: white;");
-        html.AppendLine("      box-shadow: 0 4px 15px rgba(244, 124, 48, 0.4);");
-        html.AppendLine("    }");
-        html.AppendLine("    .btn-cta-download:hover {");
-        html.AppendLine("      transform: translateY(-2px);");
-        html.AppendLine("      box-shadow: 0 8px 20px rgba(244, 124, 48, 0.5);");
-        html.AppendLine("    }");
-        html.AppendLine("    .btn-cta-icon {");
-        html.AppendLine("      font-size: 1.3rem;");
-        html.AppendLine("      flex-shrink: 0;");
-        html.AppendLine("    }");
-        html.AppendLine("    .btn-cta-text { line-height: 1.3; text-align: right; }");
-        html.AppendLine("    .btn-cta-label { display: block; font-size: 0.75rem; font-weight: 500; opacity: 0.85; }");
-        html.AppendLine("    .btn-cta-title { display: block; font-size: 1rem; font-weight: 800; }");
         html.AppendLine("    .footer-text {");
         html.AppendLine("      font-size: 0.75rem;");
         html.AppendLine("      color: #94a3b8;");
@@ -599,7 +543,7 @@ public class ShareController : ControllerBase
         html.AppendLine("      width: 16px;");
         html.AppendLine("      height: 16px;");
         html.AppendLine("      border: 2px solid #cbd5e1;");
-        html.AppendLine("      border-top: 2px solid #1d6070;");
+        html.AppendLine("      border-top: 2px solid #6366f1;");
         html.AppendLine("      border-radius: 50%;");
         html.AppendLine("      animation: spin 0.8s linear infinite;");
         html.AppendLine("    }");
@@ -638,41 +582,33 @@ public class ShareController : ControllerBase
         html.AppendLine("      <div class=\"brand-badge\">📲 خدماوي</div>");
         html.AppendLine("    </div>");
 
-        // ── Two CTA Buttons directly below the hero image ──
-        html.AppendLine("    <div class=\"hero-cta\">");
-        html.AppendLine($"      <a href=\"{serviceUrl}\" class=\"btn-cta btn-cta-service\">");
-        html.AppendLine("        <span class=\"btn-cta-icon\">🔗</span>");
-        html.AppendLine("        <span class=\"btn-cta-text\">");
-        html.AppendLine("          <span class=\"btn-cta-label\">انقر هنا لعرض تفاصيل الخدمة</span>");
-        html.AppendLine("          <span class=\"btn-cta-title\">زيارة صفحة الخدمة</span>");
-        html.AppendLine("        </span>");
-        html.AppendLine("      </a>");
-        html.AppendLine($"      <a href=\"{appStoreUrl}\" class=\"btn-cta btn-cta-download\">");
-        html.AppendLine("        <span class=\"btn-cta-icon\">📲</span>");
-        html.AppendLine("        <span class=\"btn-cta-text\">");
-        html.AppendLine("          <span class=\"btn-cta-label\">تحميل مجاني مباشر من الموقع</span>");
-        html.AppendLine("          <span class=\"btn-cta-title\">تحميل تطبيق خدماوي</span>");
-        html.AppendLine("        </span>");
-        html.AppendLine("      </a>");
-        html.AppendLine("    </div>");
-
         // ── Card Body ──
         html.AppendLine("    <div class=\"card-body\">");
 
-        // Title + Provider
-        html.AppendLine("        <div class=\"provider-badge\">");
-        html.AppendLine($"          👤 <span>{safeProviderName}</span>");
+        // Redirect Notice
+        html.AppendLine("    <div class=\"redirect-notice\">");
+        html.AppendLine("      <div class=\"spinner\"></div>");
+        html.AppendLine("      <span>جاري توجيهك إلى صفحة الخدمة بالموقع...</span>");
+        html.AppendLine("    </div>");
+
+        // Title & Rating
         if (service.Rating > 0)
         {
+            html.AppendLine("        <div style=\"margin-bottom: 8px;\">");
             html.AppendLine($"          <span class=\"rating-badge\">⭐ {service.Rating:0.0}</span>");
+            html.AppendLine("        </div>");
         }
-        html.AppendLine("        </div>");
         html.AppendLine($"        <h1 class=\"service-title\">{safeTitle}</h1>");
 
         // Badges Row
+        var detailedLocation = !string.IsNullOrEmpty(service.Address)
+            ? $"{service.GovernorateName} - {service.CityName} - {service.Address}"
+            : $"{service.GovernorateName} - {service.CityName}";
+        var safeDetailedLocation = HttpUtility.HtmlEncode(detailedLocation);
+
         html.AppendLine("    <div class=\"badge-row\">");
         html.AppendLine($"      <span class=\"badge-item badge-category\">🗂️ {categoryPath}</span>");
-        html.AppendLine($"      <span class=\"badge-item badge-location\">📍 {location}</span>");
+        html.AppendLine($"      <span class=\"badge-item badge-location\">📍 {safeDetailedLocation}</span>");
         html.AppendLine("    </div>");
 
         // Description
@@ -731,6 +667,10 @@ public class ShareController : ControllerBase
         html.AppendLine("    <div class=\"promo-box\">");
         html.AppendLine("      <p class=\"promo-title\">📲 حمل تطبيق خدماوي مجاناً</p>");
         html.AppendLine("      <p class=\"promo-text\">منصة خدماوي هي سوق الخدمات والأعمال الأول في مصر. تصفح آلاف الخدمات والمنتجات القريبة منك، وتواصل مباشرة مع الحرفيين ومقدمي الخدمات بكل سهولة وأمان!</p>");
+        html.AppendLine("      <div class=\"promo-actions\">");
+        html.AppendLine($"        <a href=\"{serviceUrl}\" class=\"btn-promo btn-promo-web\">🔗 عرض في الموقع</a>");
+        html.AppendLine("        <a href=\"https://play.google.com/store/apps/details?id=com.nassar84.khadamat\" target=\"_blank\" class=\"btn-promo btn-promo-app\">📲 تحميل تطبيق خدماوي</a>");
+        html.AppendLine("      </div>");
         html.AppendLine("    </div>");
 
         // Footer
@@ -778,8 +718,8 @@ public class ShareController : ControllerBase
 
         try
         {
-            var basePath = _webHostEnvironment.WebRootPath ?? Path.Combine(_webHostEnvironment.ContentRootPath, "wwwroot");
-            var folderPath = Path.Combine(basePath, "images", "share_cards");
+            var basePath = Directory.GetCurrentDirectory();
+            var folderPath = Path.Combine(basePath, "wwwroot", "images", "share_cards");
 
             if (!Directory.Exists(folderPath))
                 Directory.CreateDirectory(folderPath);

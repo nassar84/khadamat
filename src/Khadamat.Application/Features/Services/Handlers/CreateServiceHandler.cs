@@ -13,15 +13,21 @@ public class CreateServiceHandler : IRequestHandler<Commands.CreateServiceComman
     private readonly IGenericRepository<Service> _serviceRepository;
     private readonly IGenericRepository<ProviderProfile> _providerRepository;
     private readonly IAuthService _authService;
+    private readonly IGenericRepository<SubscriptionPlan> _planRepository;
+    private readonly IGenericRepository<ProviderSubscription> _subRepository;
 
     public CreateServiceHandler(
         IGenericRepository<Service> serviceRepository,
         IGenericRepository<ProviderProfile> providerRepository,
-        IAuthService authService)
+        IAuthService authService,
+        IGenericRepository<SubscriptionPlan> planRepository,
+        IGenericRepository<ProviderSubscription> subRepository)
     {
         _serviceRepository = serviceRepository;
         _providerRepository = providerRepository;
         _authService = authService;
+        _planRepository = planRepository;
+        _subRepository = subRepository;
     }
 
     public async Task<int> Handle(Commands.CreateServiceCommand request, CancellationToken cancellationToken)
@@ -55,6 +61,29 @@ public class CreateServiceHandler : IRequestHandler<Commands.CreateServiceComman
             
             // Mark user as provider in Identity System
             await _authService.SetUserIsProviderAsync(request.UserId, true);
+        }
+
+        // 1.1 Ensure Provider has an active Subscription (Free Plan - 90 days default)
+        if (provider.SubscriptionId == null)
+        {
+            try
+            {
+                var freePlans = await _planRepository.GetPagedAsync(1, 1, filter: p => p.Price == 0);
+                var freePlan = freePlans.FirstOrDefault() ?? (await _planRepository.GetPagedAsync(1, 1)).FirstOrDefault();
+
+                if (freePlan != null)
+                {
+                    int duration = freePlan.DurationInDays > 0 ? freePlan.DurationInDays : 90;
+                    var newSub = new ProviderSubscription(provider.Id, freePlan.Id, duration);
+                    await _subRepository.AddAsync(newSub);
+                    provider.SubscriptionId = newSub.Id;
+                    await _providerRepository.UpdateAsync(provider);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[CreateServiceHandler] Could not auto-assign free subscription: {ex.Message}");
+            }
         }
 
         if (request.CategoryId.HasValue == false && request.SubCategoryId.HasValue == false)

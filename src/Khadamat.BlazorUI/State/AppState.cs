@@ -66,10 +66,10 @@ public class AppState
     public bool HasUnreadMessages { get; set; }
 
     // Global Settings
-    public string AppName { get; set; } = "خدماوى";
-    public string AppNameAr { get; set; } = "خدماوى";
+    public string AppName { get; set; } = "خدماوي";
+    public string AppNameAr { get; set; } = "خدماوي";
     public string AppNameEn { get; set; } = "Khadamawy";
-    public string AppLogo { get; set; } = "/logo.png";
+    public string AppLogo { get; set; } = "";
     public string PrimaryColor { get; set; } = "#6366f1";
     public string SecondaryColor { get; set; } = "#a855f7";
 

@@ -100,12 +100,12 @@ public partial class ShellViewModel : ObservableObject
             UserName = !string.IsNullOrEmpty(name) ? name : "مستخدم";
             
             // Check if image looks like a real path; if not, use fallback logo instead of a missing file name
-            if (!string.IsNullOrEmpty(image) && (image.Contains("/") || image.Contains(".") || image.StartsWith("http")))
-                UserImage = image;
+            if (!string.IsNullOrEmpty(image) && (image.Contains("/") || image.Contains(".") || image.StartsWith("http") || image.StartsWith("data:")))
+                UserImage = ResolveFullImageUrl(image);
             else
                 UserImage = "app_logo.png";
                 
-            UserTitle = string.IsNullOrEmpty(name) ? name : name.Split(' ')[0];
+            UserTitle = (string.IsNullOrEmpty(name) || name.StartsWith("facebook_", StringComparison.OrdinalIgnoreCase) || name.StartsWith("google_", StringComparison.OrdinalIgnoreCase)) ? "حسابي" : name.Split(' ')[0];
         }
         else
         {
@@ -158,8 +158,11 @@ public partial class ShellViewModel : ObservableObject
         if (isAuthenticated)
         {
             userName = prefs.Get("UserName", "مستخدم");
-            userImage = prefs.Get("UserImage", "app_logo.png");
-            userTitle = userName.Split(' ')[0];
+            userImage = ResolveFullImageUrl(prefs.Get("UserImage", "app_logo.png"));
+            userTitle = (string.IsNullOrEmpty(userName) || userName.StartsWith("facebook_", StringComparison.OrdinalIgnoreCase) || userName.StartsWith("google_", StringComparison.OrdinalIgnoreCase)) ? "حسابي" : userName.Split(' ')[0];
+            
+            // Refresh user profile in background to validate token & ensure latest avatar and name
+            Task.Run(async () => await RefreshUserProfileAsync());
         }
 
         // Restore Brand Colors from Cache
@@ -230,36 +233,45 @@ public partial class ShellViewModel : ObservableObject
             else if (route == "provider/dashboard" || route == "my-services")
                 blazorRoute = IsProviderMode ? "provider/services" : "provider/dashboard";
             else if (route == "services")
-                blazorRoute = "client/services";
+                blazorRoute = "services";
             else if (route == "settings")
                 blazorRoute = "settings";
             else if (route == "admin")
                 blazorRoute = "admin";
             else if (route == "admin/ads")
                 blazorRoute = "admin/ads";
+            else if (route == "feed")
+                blazorRoute = "feed";
             else if (route == "terms")
                 blazorRoute = "terms";
             else if (route == "home" || route == "//HomePage")
                 blazorRoute = "";
             else if (route == "provider/apply")
                 blazorRoute = "provider/apply";
-            else if (route == "explore" || route == "categories")
+            else if (route == "categories")
+                blazorRoute = "categories";
+            else if (route == "explore")
                 blazorRoute = "explore";
+            else if (route == "search")
+                blazorRoute = "search";
             else if (route == "support")
                 blazorRoute = "contact";
-            else if (route == "notifications" || route == "search")
-                blazorRoute = route;
+            else if (route == "notifications")
+                blazorRoute = "notifications";
             else if (!route.StartsWith("//"))
                 blazorRoute = route;
             else if (route.StartsWith("//"))
                 blazorRoute = ""; // Fallback
 
-            // Update CurrentTab for UI Highlighting enthusiastically (it will eventually be corrected by JS listener if wrong)
+            // Update CurrentTab for UI Highlighting enthusiastically
             var lowerRoute = blazorRoute.ToLower();
-            if (lowerRoute.Contains("marketplace")) CurrentTab = "marketplace";
-            else if (lowerRoute.Contains("favorite") || lowerRoute.Contains("my-services") || lowerRoute.Contains("provider/services")) CurrentTab = "favorites";
+            if (lowerRoute.Contains("categories")) CurrentTab = "categories";
+            else if (lowerRoute.Contains("services") && !lowerRoute.Contains("my-services")) CurrentTab = "services";
+            else if (lowerRoute.Contains("favorite") || lowerRoute.Contains("my-services") || lowerRoute.Contains("provider/services") || lowerRoute.Contains("provider/dashboard")) CurrentTab = "favorites";
             else if (lowerRoute.Contains("messages")) CurrentTab = "messages";
             else if (lowerRoute.Contains("profile") || lowerRoute.Contains("login") || lowerRoute.Contains("register")) CurrentTab = "profile";
+            else if (lowerRoute.Contains("marketplace")) CurrentTab = "marketplace";
+            else if (lowerRoute.Contains("feed")) CurrentTab = "feed";
             else if (lowerRoute == "" || lowerRoute.Contains("home")) CurrentTab = "home";
 
             // Identify if we can do an inject-based navigation instead of MAUI shell push
@@ -318,6 +330,65 @@ public partial class ShellViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    private async Task ShareApp()
+    {
+        try
+        {
+            var text = "📲 منصة خدماوي — خدماتك في مكان واحد.. لكل المصريين!\n\n" +
+                       "تواصل مباشرة مع أفضل الحرفيين والمهنيين ومقدمي الخدمات بكل سهولة وأمان.\n\n" +
+                       "🔗 رابط تحميل التطبيق للأندرويد (APK):\nhttps://khadamawy.eis-dev.com/downloads/Khadamawy.apk\n\n" +
+                       "🌐 أو تصفح الموقع مباشرة:\nhttps://khadamawy.eis-dev.com";
+
+            string title = "مشاركة تطبيق خدماوي";
+
+            string? shareImagePath = null;
+            try
+            {
+                var cacheDir = FileSystem.CacheDirectory;
+                var targetPath = Path.Combine(cacheDir, "khadamat_promo.png");
+                
+                if (!File.Exists(targetPath))
+                {
+                    using var stream = await FileSystem.OpenAppPackageFileAsync("welcome_hero.png");
+                    using var fileStream = File.Create(targetPath);
+                    await stream.CopyToAsync(fileStream);
+                }
+                
+                if (File.Exists(targetPath))
+                {
+                    shareImagePath = targetPath;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ANTIGRAVITY_LOG: Could not extract promo image for sharing: {ex.Message}");
+            }
+
+            if (!string.IsNullOrEmpty(shareImagePath) && File.Exists(shareImagePath))
+            {
+                await Share.Default.RequestAsync(new ShareFileRequest
+                {
+                    Title = title,
+                    File = new ShareFile(shareImagePath)
+                });
+            }
+            else
+            {
+                await Share.Default.RequestAsync(new ShareTextRequest
+                {
+                    Text = text,
+                    Title = title,
+                    Uri = "https://khadamawy.eis-dev.com/downloads/Khadamawy.apk"
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ANTIGRAVITY_LOG: ShareApp error: {ex.Message}");
+        }
+    }
+
     private void ApplyThemeResources(string theme)
     {
         // Hex codes from khadamat.css
@@ -327,7 +398,7 @@ public partial class ShellViewModel : ObservableObject
             "ocean" => ("#00c6ff", "#0072ff"),
             "forest" => ("#00f260", "#0575e6"),
             "lavender" => ("#bf5af2", "#5e5ce6"),
-            "royal" => ("#f093fb", "#f5576c"),
+            "royal" => ("#eab308", "#ca8a04"),
             _ => ("#6366f1", "#f43f5e") // Aurora / Default
         };
 
@@ -445,5 +516,106 @@ public partial class ShellViewModel : ObservableObject
         {
             Console.WriteLine($"ANTIGRAVITY_LOG: Error loading settings in ShellViewModel: {ex.Message}");
         }
+    }
+
+    public async Task RefreshUserProfileAsync()
+    {
+        try
+        {
+            string? token = null;
+            try
+            {
+                token = await Microsoft.Maui.Storage.SecureStorage.GetAsync("authToken");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ANTIGRAVITY_LOG: SecureStorage error reading token: {ex.Message}");
+            }
+
+            if (string.IsNullOrEmpty(token))
+            {
+                Console.WriteLine("ANTIGRAVITY_LOG: No valid token found in SecureStorage. Clearing native auth state.");
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    SetAuthenticated(false);
+                });
+                return;
+            }
+
+            var baseUrl = _configuration["ApiSettings:BaseUrl"] ?? 
+                          Microsoft.Maui.Storage.Preferences.Default.Get("ApiBaseUrl", "https://khadamawy.eis-dev.com");
+            baseUrl = baseUrl.TrimEnd('/');
+
+            using var req = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}/v1/auth/profile");
+            req.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var res = await _httpClient.SendAsync(req);
+            if (res.IsSuccessStatusCode)
+            {
+                var content = await res.Content.ReadFromJsonAsync<Khadamat.Application.Common.Models.ApiResponse<Khadamat.Application.DTOs.AuthResponse>>();
+                if (content?.Success == true && content.Data != null)
+                {
+                    var p = content.Data;
+                    var isAdmin = p.Roles.Any(r => r == "SystemAdmin" || r == "SuperAdmin");
+                    var isSuper = p.Roles.Any(r => r == "SuperAdmin");
+                    
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        SetAuthenticated(true, p.UserName, p.ImageUrl, isAdmin, p.IsProvider, isSuper);
+                    });
+                }
+            }
+            else if (res.StatusCode == System.Net.HttpStatusCode.Unauthorized || res.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                Console.WriteLine($"ANTIGRAVITY_LOG: Profile request returned {res.StatusCode}. Logging out native shell.");
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    SetAuthenticated(false);
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ANTIGRAVITY_LOG: Error fetching user profile in ShellViewModel: {ex.Message}");
+        }
+    }
+
+    public static string ResolveFullImageUrl(string? image, string? baseUrl = null)
+    {
+        if (string.IsNullOrWhiteSpace(image))
+            return "app_logo.png";
+
+        var img = image.Trim();
+
+        if (img == "app_logo.png" || img == "profile_icon.png")
+            return img;
+
+        if (img.StartsWith("data:image", StringComparison.OrdinalIgnoreCase))
+            return img;
+
+        if (string.IsNullOrEmpty(baseUrl))
+        {
+            baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("ApiBaseUrl", "https://khadamawy.eis-dev.com");
+        }
+        baseUrl = baseUrl.TrimEnd('/');
+
+        string fullUrl;
+        if (img.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || 
+            img.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            fullUrl = img;
+        }
+        else
+        {
+            img = img.TrimStart('/');
+            if (!img.StartsWith("images/", StringComparison.OrdinalIgnoreCase))
+            {
+                img = $"images/users/{img}";
+            }
+            fullUrl = $"{baseUrl}/{img}";
+        }
+
+        var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        return fullUrl.Contains("?") ? $"{fullUrl}&t={timestamp}" : $"{fullUrl}?t={timestamp}";
     }
 }

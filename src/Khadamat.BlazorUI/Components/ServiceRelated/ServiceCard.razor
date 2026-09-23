@@ -1,12 +1,13 @@
 @using Khadamat.BlazorUI.Services
 @inject ApiClient Api
-<div class="service-card animate-up" @onclick="HandleClick">
+<div class="service-card animate-up card-variant-@(Service.Id % 6)" @onclick="HandleClick">
+    <div class="card-accent-bar"></div>
     <div class="p-3" style="position: relative; z-index: 1;">
         <div class="d-flex gap-3">
             <div class="service-img rounded-4 bg-light overflow-hidden" style="width: 90px; height: 90px; flex-shrink: 0;">
                 <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(Service.Images?.FirstOrDefault(), Service.SubCategoryName, Service.CategoryName, Service.MainCategoryName, Service.SubCategoryImageUrl, Service.CategoryImageUrl, Service.MainCategoryImageUrl))" 
-                     onerror="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImageOnError(Service.SubCategoryName, Service.CategoryName, Service.MainCategoryName, Service.SubCategoryImageUrl, Service.CategoryImageUrl, Service.MainCategoryImageUrl, Api.BaseUrl)"
-                     class="w-100 h-100 object-fit-cover" alt="@Service.Title" />
+                     onerror="this.onerror=null;this.src='/images/services/default_service.png';"
+                     class="w-100 h-100 object-fit-contain p-1" alt="@Service.Title" />
             </div>
             <div class="flex-grow-1 overflow-hidden">
                 <div class="d-flex justify-content-between align-items-start mb-1">
@@ -31,6 +32,7 @@
         </div>
     </div>
 </div>
+
 
 @code {
     [Parameter] public ServiceDto Service { get; set; } = new();

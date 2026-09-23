@@ -20,6 +20,11 @@ public class ServiceRequestDto
     public string? ProviderNotes { get; set; }
     public DateTime RequestedAt { get; set; }
     public DateTime? PreferredDate { get; set; }
+    
+    // Rating Info
+    public bool HasRated { get; set; }
+    public int? RatingStars { get; set; }
+    public string? RatingComment { get; set; }
 }
 
 public class CreateServiceRequestDto

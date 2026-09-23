@@ -4,7 +4,7 @@
 ---
 
 > [!IMPORTANT]
-> التطبيق هو **MAUI Hybrid App** يعمل عبر WebView مُضمَّن يحمل نسخة الـ Blazor WASM من الموقع (`https://jobsek.eis-dev.com`)، مع طبقة Native تتعامل مع الأذونات والإشعارات والكاميرا والموقع الجغرافي.
+> التطبيق هو **MAUI Hybrid App** يعمل عبر WebView مُضمَّن يحمل نسخة الـ Blazor WASM من الموقع (`https://khadamawy.eis-dev.com`)، مع طبقة Native تتعامل مع الأذونات والإشعارات والكاميرا والموقع الجغرافي.
 
 ---
 

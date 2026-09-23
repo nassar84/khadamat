@@ -49,13 +49,15 @@
             {
                 <div class="col-12 col-md-6">
                     <div class="glass-card p-0 overflow-hidden h-100 animate-up">
-                        <div class="position-relative">
+                        <div class="position-relative w-100 overflow-hidden d-flex align-items-center justify-content-center cursor-pointer" style="height: 190px; background: linear-gradient(145deg, #f8fafc, #f1f5f9); border-top-left-radius: inherit; border-top-right-radius: inherit;" @onclick="() => OnServiceSelected(service)">
                             <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(service.Images.FirstOrDefault(), service.SubCategoryName, service.CategoryName, service.MainCategoryName, service.SubCategoryImageUrl, service.CategoryImageUrl, service.MainCategoryImageUrl))" 
-                                 onerror="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImageOnError(service.SubCategoryName, service.CategoryName, service.MainCategoryName, service.SubCategoryImageUrl, service.CategoryImageUrl, service.MainCategoryImageUrl, Api.BaseUrl)"
-                                 class="w-100 object-fit-cover" style="height: 180px;" @onclick="() => OnServiceSelected(service)" />
+                                 class="w-100 h-100" 
+                                 style="object-fit: contain; padding: 10px;" 
+                                 alt="@service.Title" 
+                                 onerror="this.onerror=null;this.src='/images/services/default_service.png';" />
                             
                             <div class="position-absolute top-0 end-0 m-2">
-                                <button class="btn btn-sm btn-light rounded-circle shadow-sm text-danger" @onclick="() => RemoveFavorite(service)">
+                                <button class="btn btn-sm btn-light rounded-circle shadow-sm text-danger" @onclick="() => RemoveFavorite(service)" @onclick:stopPropagation="true">
                                     <i class="fa-solid fa-heart"></i>
                                 </button>
                             </div>
@@ -115,8 +117,9 @@
     {
         if (await JS.InvokeAsync<bool>("confirm", "إزالة من المفضلة؟"))
         {
-            var success = await Api.ToggleFavoriteAsync(service.Id);
-            if (!success) // Toggle returns false when removed
+            var res = await Api.ToggleFavoriteAsync(service.Id);
+            // IsFavorite=false means it was removed
+            if (res.Success && !res.Data!.IsFavorite)
             {
                 favoriteServices?.Remove(service);
             }

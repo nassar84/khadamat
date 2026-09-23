@@ -92,6 +92,7 @@ public class AdminController : ControllerBase
                 CityId = user.CityId,
                 Role = role,
                 IsActive = user.IsActive,
+                IsProvider = user.IsProvider,
                 IsVerified = user.IsVerified,
                 ProfileImageUrl = user.ProfileImageUrl,
                 Gender = user.Gender,
@@ -511,6 +512,36 @@ public class AdminController : ControllerBase
         if (service == null) return NotFound();
 
         service.Approve();
+
+        // Auto-verify provider and user if not already verified
+        var provider = await _context.ProviderProfiles.FindAsync(service.ProviderProfileId);
+        if (provider == null && !string.IsNullOrEmpty(service.UserCreated))
+        {
+            provider = await _context.ProviderProfiles.FirstOrDefaultAsync(p => p.UserId == service.UserCreated);
+        }
+
+        if (provider != null)
+        {
+            provider.Verified = true;
+            var user = await _userManager.FindByIdAsync(provider.UserId);
+            if (user != null)
+            {
+                user.IsProvider = true;
+                user.IsVerified = true;
+                await _userManager.UpdateAsync(user);
+            }
+        }
+        else if (!string.IsNullOrEmpty(service.UserCreated))
+        {
+            var user = await _userManager.FindByIdAsync(service.UserCreated);
+            if (user != null)
+            {
+                user.IsProvider = true;
+                user.IsVerified = true;
+                await _userManager.UpdateAsync(user);
+            }
+        }
+
         await _context.SaveChangesAsync();
         return Ok(ApiResponse<bool>.Succeed(true));
     }

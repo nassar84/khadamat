@@ -80,15 +80,69 @@ public class ReviewsController : ControllerBase
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-        // Basic validation: User shouldn't review own service? (Business rule)
-        // User shouldn't review twice? 
+        if (request.Rating < 1 || request.Rating > 5)
+            return BadRequest(ApiResponse<ReviewResultDto>.Fail("التقييم يجب أن يكون من 1 إلى 5 نجوم"));
 
-        var rating = new Rating(request.ServiceId, userId, request.Rating, request.Comment);
-        
-        _context.Ratings.Add(rating);
+        // Check service exists
+        var service = await _context.Services
+            .Include(s => s.ProviderProfile)
+            .FirstOrDefaultAsync(s => s.Id == request.ServiceId);
+        if (service == null)
+            return NotFound(ApiResponse<ReviewResultDto>.Fail("الخدمة غير موجودة"));
+
+        // Prevent provider from rating their own service
+        if (service.ProviderProfile?.UserId == userId)
+            return BadRequest(ApiResponse<ReviewResultDto>.Fail("لا يمكنك تقييم خدمتك الخاصة"));
+
+        // One rating per user per service - check existing
+        var existingRating = await _context.Ratings
+            .FirstOrDefaultAsync(r => r.ServiceId == request.ServiceId && r.UserId == userId);
+
+        if (existingRating != null)
+        {
+            // Update existing rating
+            existingRating.Stars   = request.Rating;
+            existingRating.Comment = request.Comment ?? string.Empty;
+            existingRating.Date    = DateTime.UtcNow;
+        }
+        else
+        {
+            // Create new rating (ServiceRequestId optional)
+            var newRating = new Rating(
+                request.ServiceId,
+                userId,
+                request.Rating,
+                request.Comment ?? string.Empty,
+                request.ServiceRequestId.HasValue && request.ServiceRequestId.Value > 0 ? request.ServiceRequestId : null
+            );
+            _context.Ratings.Add(newRating);
+        }
+
         await _context.SaveChangesAsync();
 
-        return Ok(ApiResponse<int>.Succeed(rating.Id));
+        // Recalculate service average
+        var allRatings = await _context.Ratings
+            .Where(r => r.ServiceId == request.ServiceId)
+            .ToListAsync();
+
+        double newAvg   = allRatings.Any() ? allRatings.Average(r => r.Stars) : 0;
+        int    newCount = allRatings.Count;
+
+        // Get user display name from AspNetUsers
+        var user = await _context.Users.FindAsync(userId);
+        string userName = !string.IsNullOrWhiteSpace(user?.FullName)
+            ? user.FullName
+            : (user?.UserName ?? "مستخدم");
+
+        var result = new ReviewResultDto
+        {
+            ReviewId    = existingRating?.Id ?? 0,
+            NewAverage  = Math.Round(newAvg, 1),
+            RatersCount = newCount,
+            ReviewerName = userName
+        };
+
+        return Ok(ApiResponse<ReviewResultDto>.Succeed(result));
     }
 
     [HttpDelete("{id}")]
@@ -103,9 +157,7 @@ public class ReviewsController : ControllerBase
 
         // Allow owner or Admin
         if (review.UserId != userId && !User.IsInRole("Admin"))
-        {
             return Forbid();
-        }
 
         _context.Ratings.Remove(review);
         await _context.SaveChangesAsync();
@@ -117,6 +169,7 @@ public class ReviewsController : ControllerBase
 public class CreateReviewRequest
 {
     public int ServiceId { get; set; }
+    public int? ServiceRequestId { get; set; }
     public int Rating { get; set; }
     public string Comment { get; set; } = string.Empty;
 }
@@ -129,4 +182,12 @@ public class MyReviewDto
     public int Rating { get; set; }
     public string Comment { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
+}
+
+public class ReviewResultDto
+{
+    public int ReviewId { get; set; }
+    public double NewAverage { get; set; }
+    public int RatersCount { get; set; }
+    public string ReviewerName { get; set; } = string.Empty;
 }

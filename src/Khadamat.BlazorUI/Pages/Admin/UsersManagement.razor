@@ -16,18 +16,18 @@
 
     <!-- Filters -->
     <div class="glass-card p-3 mb-4">
-        <div class="row g-3 align-items-center">
-            <div class="col-md-4">
+        <div class="row g-2 g-md-3 align-items-center">
+            <div class="col-12 col-md-4">
                 <div class="search-box position-relative">
                     <i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
                     <input type="text" class="form-control rounded-pill ps-5 border-0 bg-light" placeholder="ابحث بالاسم أو البريد..." @bind="SearchTerm" @bind:event="oninput">
                 </div>
             </div>
-            <div class="col-md-2">
+            <div class="col-6 col-md-2">
                 <select class="form-select rounded-pill border-0 bg-light px-3" @bind="SelectedRole">
                     <option value="">جميع الأدوار</option>
                     <option value="User">عملاء</option>
-                    <option value="Provider">مزودي خدمات</option>
+                    <option value="Provider">مقدمي خدمات</option>
                     @if (CurrentUserRole == "SuperAdmin")
                     {
                         <option value="SystemAdmin">مديري نظام</option>
@@ -35,19 +35,19 @@
                     }
                 </select>
             </div>
-            <div class="col-md-2">
+            <div class="col-6 col-md-2">
                 <select class="form-select rounded-pill border-0 bg-light px-3" @bind="SelectedStatus">
                     <option value="">جميع الحالات</option>
                     <option value="active">نشط</option>
                     <option value="inactive">معطل</option>
                 </select>
             </div>
-            <div class="col-md-2">
+            <div class="col-6 col-md-2">
                 <button class="btn btn-primary-premium rounded-pill w-100" @onclick="AddNewUser">
                     <i class="fa-solid fa-user-plus me-1"></i> إضافة
                 </button>
             </div>
-            <div class="col-md-2">
+            <div class="col-6 col-md-2">
                 <button class="btn btn-light rounded-pill px-3 w-100" @onclick="ClearFilters">
                     <i class="fa-solid fa-rotate-left me-1"></i> تصفير
                 </button>
@@ -55,10 +55,10 @@
         </div>
     </div>
 
-    <!-- Users Table -->
-    <div class="glass-card rounded-4 border-0 shadow-sm animate-up p-0 overflow-hidden">
+    <!-- Users Table (Desktop View) -->
+    <div class="glass-card rounded-4 border-0 shadow-sm animate-up p-0 overflow-hidden d-none d-md-block">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" style="min-width: 800px;">
+            <table class="table table-hover align-middle mb-0" style="min-width: 700px;">
                 <thead class="bg-light">
                     <tr>
                         <th class="ps-4">المستخدم</th>
@@ -85,6 +85,10 @@
                             </td>
                             <td>
                                 <span class="badge rounded-pill @GetRoleBadgeClass(user.Role)">@GetRoleName(user.Role)</span>
+                                @if (user.IsProvider)
+                                {
+                                    <span class="badge rounded-pill badge-provider ms-1">مقدم خدمة</span>
+                                }
                             </td>
                             <td>
                                 <div class="form-check form-switch p-0">
@@ -119,6 +123,70 @@
                 </tbody>
             </table>
         </div>
+    </div>
+
+    <!-- Users Cards (Mobile View) -->
+    <div class="d-md-none">
+        @if (!FilteredUsers.Any())
+        {
+            <div class="glass-card p-4 text-center rounded-4 text-muted">
+                <i class="fa-solid fa-user-slash fa-2x mb-2 opacity-50"></i>
+                <div>لا يوجد مستخدمين لعرضهم</div>
+            </div>
+        }
+        else
+        {
+            @foreach (var user in FilteredUsers)
+            {
+                <div class="glass-card p-3 mb-3 border-0 shadow-sm rounded-4 bg-white">
+                    <div class="d-flex align-items-center mb-2">
+                        <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(user.FullName, user.Gender, user.ProfileImageUrl)" 
+                             class="avatar-circle me-3" 
+                             style="width: 44px; height: 44px; border-radius: 12px; object-fit: cover;" 
+                             alt="@user.FullName" />
+                        <div class="flex-grow-1 min-w-0 me-2">
+                            <div class="fw-bold text-dark text-truncate mb-0">@user.FullName</div>
+                            <div class="small text-muted text-truncate" style="font-size: 0.78rem;">@user.Email</div>
+                        </div>
+                        <div class="d-flex flex-column gap-1 align-items-end">
+                            <span class="badge rounded-pill @GetRoleBadgeClass(user.Role) px-2 py-1" style="font-size: 0.7rem;">@GetRoleName(user.Role)</span>
+                            @if (user.IsProvider)
+                            {
+                                <span class="badge rounded-pill badge-provider px-2 py-1" style="font-size: 0.7rem;">مقدم خدمة</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between pt-2 border-top mt-2">
+                        <div class="form-check form-switch p-0 m-0">
+                            <input class="form-check-input ms-0" type="checkbox" checked="@user.IsActive"
+                                   @onchange="() => ToggleUserStatus(user)">
+                            <span class="ms-1 fw-bold @(user.IsActive ? "text-success" : "text-danger")" style="font-size: 0.78rem;">
+                                @(user.IsActive ? "نشط" : "معطل")
+                            </span>
+                        </div>
+
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-sm btn-light-success px-2 py-1 rounded-3 d-flex align-items-center" title="عرض" @onclick="() => OpenViewDetails(user)">
+                                <i class="fa-solid fa-eye me-1"></i><span style="font-size: 0.75rem;">عرض</span>
+                            </button>
+                            <button class="btn btn-sm btn-light-primary px-2 py-1 rounded-3 d-flex align-items-center" title="تعديل" @onclick="() => OpenEditUser(user)">
+                                <i class="fa-solid fa-user-pen me-1"></i><span style="font-size: 0.75rem;">تعديل</span>
+                            </button>
+                            <button class="btn btn-sm btn-light-info px-2 py-1 rounded-3 d-flex align-items-center" title="كلمة المرور" @onclick="() => OpenChangePassword(user)">
+                                <i class="fa-solid fa-key me-1"></i><span style="font-size: 0.75rem;">السر</span>
+                            </button>
+                            @if (CurrentUserRole == "SuperAdmin" || (CurrentUserRole == "SystemAdmin" && (user.Role == "User" || user.Role == "Provider")))
+                            {
+                                <button class="btn btn-sm btn-light-danger px-2 py-1 rounded-3 d-flex align-items-center" title="حذف" @onclick="() => ConfirmDelete(user)">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
     </div>
 </div>
 
@@ -403,19 +471,21 @@
     private IEnumerable<UserDto> FilteredUsers => users
         .Where(u => 
             // Visibility Filter: SystemAdmins only see Users and Providers
-            (CurrentUserRole == "SuperAdmin" || (u.Role == "User" || u.Role == "Provider")) &&
+            (CurrentUserRole == "SuperAdmin" || (u.Role == "User" || u.Role == "Provider" || u.IsProvider)) &&
             (string.IsNullOrEmpty(SearchTerm) || 
             (u.FullName?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) || 
             (u.Email?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
             (u.UserName?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false)) &&
-            (string.IsNullOrEmpty(SelectedRole) || u.Role == SelectedRole) &&
+            (string.IsNullOrEmpty(SelectedRole) || 
+             (SelectedRole == "Provider" && u.IsProvider) || 
+             (SelectedRole == "User" && !u.IsProvider && u.Role == "User") ||
+             (SelectedRole != "Provider" && SelectedRole != "User" && u.Role == SelectedRole)) &&
             (string.IsNullOrEmpty(SelectedStatus) || (SelectedStatus == "active" ? u.IsActive : !u.IsActive)));
 
     private string GetRoleBadgeClass(string role) => role switch
     {
         "SuperAdmin" => "badge-superadmin",
         "SystemAdmin" => "badge-systemadmin",
-        "Provider" => "badge-provider",
         _ => "badge-user"
     };
 
@@ -423,8 +493,7 @@
     {
         "SuperAdmin" => "مدير خارق",
         "SystemAdmin" => "مدير نظام",
-        "Provider" => "مزود خدمة",
-        _ => "مستخدم"
+        _ => "عميل"
     };
 
     private async Task ToggleUserStatus(UserDto user)

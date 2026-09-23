@@ -87,6 +87,25 @@
                         </div>
                     }
 
+                    @if (r.HasRated && r.RatingStars.HasValue)
+                    {
+                        <div class="alert alert-warning bg-warning bg-opacity-10 border-warning border-opacity-25 mb-3 small">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <strong class="text-dark"><i class="fa-solid fa-star text-warning me-1"></i> تقييم العميل لتجربته:</strong>
+                                <div class="text-warning">
+                                    @for (int s = 1; s <= 5; s++)
+                                    {
+                                        <i class="@(s <= r.RatingStars.Value ? "fa-solid" : "fa-regular") fa-star"></i>
+                                    }
+                                </div>
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(r.RatingComment))
+                            {
+                                <p class="mb-0 text-muted fst-italic">"@r.RatingComment"</p>
+                            }
+                        </div>
+                    }
+
                     <div class="d-flex gap-2 flex-wrap">
                         @if (r.Status == RequestStatus.Pending)
                         {

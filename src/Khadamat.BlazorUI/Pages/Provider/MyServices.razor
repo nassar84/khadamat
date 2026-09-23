@@ -12,7 +12,7 @@
             <h3 class="fw-bold mb-0">خدماتي</h3>
             <p class="text-muted small">إدارة جميع الخدمات التي تقدمها عبر المنصة</p>
         </div>
-        <button class="btn btn-primary-premium rounded-pill px-4" @onclick='() => Navigation.NavigateTo("/provider/createservice")'>
+        <button class="btn btn-primary-premium rounded-pill px-4" @onclick='() => Navigation.NavigateTo("/provider/create-service")'>
             <i class="fa-solid fa-plus me-2"></i> إضافة خدمة
         </button>
     </div>
@@ -29,7 +29,7 @@
             <i class="fa-solid fa-folder-open display-1 text-muted opacity-25 mb-3"></i>
             <h5>لم تقم بإضافة أي خدمات بعد</h5>
             <p class="text-muted">ابدأ بإضافة أول خدمة لك لتظهر للعملاء</p>
-            <button class="btn btn-primary rounded-pill px-5 mt-3" @onclick='() => Navigation.NavigateTo("/provider/createservice")'>أضف خدمتك الأولى</button>
+            <button class="btn btn-primary rounded-pill px-5 mt-3" @onclick='() => Navigation.NavigateTo("/provider/create-service")'>أضف خدمتك الأولى</button>
         </div>
     }
     else
@@ -39,16 +39,18 @@
             {
                 <div class="col-12 col-md-6 col-xl-4">
                     <div class="glass-card p-0 overflow-hidden border-0 shadow-sm h-100 animate-up">
-                        <div class="position-relative">
-                            <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(s.Images?.FirstOrDefault(), s.SubCategoryName, s.CategoryName, s.MainCategoryName, s.SubCategoryImageUrl, s.CategoryImageUrl, s.MainCategoryImageUrl))" 
-                                 onerror="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImageOnError(s.SubCategoryName, s.CategoryName, s.MainCategoryName, s.SubCategoryImageUrl, s.CategoryImageUrl, s.MainCategoryImageUrl, Api.BaseUrl)"
-                                 class="w-100 object-fit-cover" style="height: 180px;" alt="@s.Title" />
-                            <div class="position-absolute top-0 end-0 m-2">
-                                <span class="badge @(s.IsApproved ? "bg-success" : "bg-warning text-dark") rounded-pill">
-                                    @(s.IsApproved ? "مقبول" : "تحت المراجعة")
-                                </span>
+                            <div class="position-relative w-100 overflow-hidden d-flex align-items-center justify-content-center" style="height: 190px; background: linear-gradient(145deg, #f8fafc, #f1f5f9); border-top-left-radius: inherit; border-top-right-radius: inherit;">
+                                <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(s.Images?.FirstOrDefault(), s.SubCategoryName, s.CategoryName, s.MainCategoryName, s.SubCategoryImageUrl, s.CategoryImageUrl, s.MainCategoryImageUrl))" 
+                                     class="w-100 h-100" 
+                                     style="object-fit: contain; padding: 10px; transition: transform 0.3s ease;" 
+                                     alt="@s.Title" 
+                                     onerror="this.onerror=null;this.src='/images/services/default_service.png';" />
+                                <div class="position-absolute top-0 end-0 m-2">
+                                    <span class="badge @(s.IsApproved ? "bg-success" : "bg-warning text-dark") rounded-pill shadow-sm">
+                                        @(s.IsApproved ? "مقبول" : "تحت المراجعة")
+                                    </span>
+                                </div>
                             </div>
-                        </div>
                         <div class="p-3">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <h6 class="fw-bold mb-0 text-truncate" style="max-width: 70%;">@s.Title</h6>

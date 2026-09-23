@@ -1,0 +1,140 @@
+@page "/delete-account"
+@using Khadamat.BlazorUI.Services.Auth
+@using Khadamat.BlazorUI.State
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+@inject AppState AppState
+@inject IJSRuntime JS
+
+<PageTitle>حذف الحساب | @AppState.AppName</PageTitle>
+
+<div class="container py-5" style="max-width: 680px;">
+    <div class="mb-4 text-center animate-up">
+        <div class="d-inline-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger rounded-4 mb-3"
+             style="width: 70px; height: 70px; font-size: 1.8rem;">
+            <i class="fa-solid fa-user-xmark"></i>
+        </div>
+        <h2 class="fw-bold mb-2 text-danger">طلب حذف الحساب والبيانات</h2>
+        <p class="text-muted small">يرجى قراءة التفاصيل بعناية قبل المتابعة</p>
+    </div>
+
+    @if (isDeleted)
+    {
+        <div class="glass-card p-5 text-center shadow-sm animate-pop">
+            <div class="text-success mb-3">
+                <i class="fa-solid fa-circle-check fa-4x"></i>
+            </div>
+            <h4 class="fw-bold mb-3">تم حذف حسابك بنجاح</h4>
+            <p class="text-muted mb-4">تم إلغاء تفعيل حسابك وحذف بياناتك الشخصية من المنصة وفقاً لسياسة الخصوصية وقواعد حماية البيانات.</p>
+            <button class="btn btn-primary rounded-pill px-5" @onclick='() => Navigation.NavigateTo("/")'>العودة للرئيسية</button>
+        </div>
+    }
+    else
+    {
+        <div class="glass-card p-4 p-md-5 shadow-sm">
+            <div class="alert alert-warning border-0 rounded-4 mb-4">
+                <div class="d-flex align-items-start gap-3">
+                    <i class="fa-solid fa-triangle-exclamation text-warning fs-4 mt-1"></i>
+                    <div class="small">
+                        <strong>تنبيه هام لا يمكن التراجع عنه:</strong>
+                        <p class="mb-0 mt-1">عند تأكيد حذف الحساب، سيتم إيقاف حسابك نهائياً وحذف بياناتك الشخصية (الاسم، رقم الهاتف، الصور، وأي تفاصيل خاصة بك)، ولن تتمكن من استرجاع هذا الحساب مجدداً.</p>
+                    </div>
+                </div>
+            </div>
+
+            <h5 class="fw-bold mb-3"><i class="fa-solid fa-circle-info text-primary me-2"></i>ماذا يحدث عند حذف حسابك؟</h5>
+            <ul class="list-unstyled mb-4 small text-muted lh-lg">
+                <li class="mb-2"><i class="fa-solid fa-check text-danger me-2"></i>إزالة معلومات الاتصال والملف الشخصي نهائياً.</li>
+                <li class="mb-2"><i class="fa-solid fa-check text-danger me-2"></i>إلغاء تنشيط أي خدمات أو طلبات مرتبطة بحسابك.</li>
+                <li class="mb-2"><i class="fa-solid fa-check text-danger me-2"></i>تسجيل الخروج الفوري من كافة الأجهزة المسجلة.</li>
+            </ul>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger rounded-4 small py-2 mb-3">
+                    <i class="fa-solid fa-circle-exclamation me-2"></i>@errorMessage
+                </div>
+            }
+
+            <AuthorizeView>
+                <Authorized>
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold">كلمة المرور لتأكيد الهوية (اختياري لمستخدمي جوجل)</label>
+                        <input type="password" class="form-control rounded-pill px-4" placeholder="أدخل كلمة المرور إذا كنت قد عينتها" @bind="password" />
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="confirmCheck" @bind="confirmed" />
+                        <label class="form-check-label small" for="confirmCheck">
+                            أقر بأنني على علم تام بأن حذف الحساب نهائي ولا يمكن التراجع عنه.
+                        </label>
+                    </div>
+
+                    <div class="d-flex gap-3">
+                        <button class="btn btn-danger flex-grow-1 rounded-pill py-2 fw-bold" @onclick="HandleDelete" disabled="@(!confirmed || isDeleting)">
+                            @if (isDeleting)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                <span>جاري الحذف...</span>
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-trash me-2"></i>
+                                <span>تأكيد حذف الحساب نهائياً</span>
+                            }
+                        </button>
+                        <button class="btn btn-light rounded-pill px-4" @onclick='() => Navigation.NavigateTo("/profile")' disabled="@isDeleting">
+                            إلغاء
+                        </button>
+                    </div>
+                </Authorized>
+                <NotAuthorized>
+                    <div class="text-center p-4 bg-light rounded-4">
+                        <i class="fa-solid fa-lock fs-1 text-muted opacity-50 mb-3"></i>
+                        <p class="text-muted small mb-3">يجب تسجيل الدخول أولاً لتأكيد رغبتك في حذف الحساب التابع لك.</p>
+                        <button class="btn btn-primary rounded-pill px-4" @onclick='() => Navigation.NavigateTo("/login?returnUrl=/delete-account")'>
+                            تسجيل الدخول للمتابعة
+                        </button>
+                    </div>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+    }
+</div>
+
+@code {
+    private string password = "";
+    private bool confirmed = false;
+    private bool isDeleting = false;
+    private bool isDeleted = false;
+    private string? errorMessage;
+
+    private async Task HandleDelete()
+    {
+        if (!confirmed) return;
+
+        isDeleting = true;
+        errorMessage = null;
+
+        try
+        {
+            var result = await AuthService.DeleteAccount(string.IsNullOrWhiteSpace(password) ? null : password);
+            if (result.Success)
+            {
+                isDeleted = true;
+            }
+            else
+            {
+                errorMessage = result.Message ?? "فشل في معالجة طلب حذف الحساب، يرجى مراجعة كلمة المرور";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"حدث خطأ غير متوقع: {ex.Message}";
+        }
+        finally
+        {
+            isDeleting = false;
+        }
+    }
+}

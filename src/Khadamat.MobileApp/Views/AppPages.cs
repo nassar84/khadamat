@@ -17,4 +17,5 @@ namespace Khadamat.MobileApp.Views
     public class AdminPage : WebContainerPage { public AdminPage() : base("admin") { } }
     public class AdminAdsPage : WebContainerPage { public AdminAdsPage() : base("admin/ads") { } }
     public class SupportPage : WebContainerPage { public SupportPage() : base("contact") { } }
+    public class FeedPage : WebContainerPage { public FeedPage() : base("feed") { } }
 }

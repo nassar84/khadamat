@@ -11,11 +11,11 @@
         <div class="header-brand-section d-flex align-items-center gap-2 pointer" @onclick='() => Navigation.NavigateTo("/")'>
             @if (!string.IsNullOrEmpty(State.AppLogo))
             {
-                <img src="@State.GetAbsoluteUrl(State.AppLogo)" alt="Logo" style="height: 35px; width: auto;" />
+                <img src="@State.GetAbsoluteUrl(State.AppLogo)" alt="Logo" style="height: 38px; width: auto; object-fit: contain;" />
             }
             else
             {
-                <i class="fa-solid fa-bolt-lightning text-primary fs-3"></i>
+                <img src="images/logo.png" alt="Logo" style="height: 38px; width: auto; object-fit: contain;" />
             }
             <span class="fw-bold fs-5 text-dark">@(string.IsNullOrEmpty(State.AppNameAr) ? State.AppName : State.AppNameAr)</span>
         </div>
@@ -55,13 +55,9 @@
         <!-- Desktop Navigation -->
         <nav class="d-none d-lg-flex align-items-center gap-4 me-auto">
             <NavLink href="/" class="nav-link-premium" Match="NavLinkMatch.All">الرئيسية</NavLink>
+            <NavLink href="/services" class="nav-link-premium">الخدمات</NavLink>
+            <NavLink href="/categories" class="nav-link-premium">الأقسام</NavLink>
             <NavLink href="/explore" class="nav-link-premium">استكشف</NavLink>
-            <NavLink href="/feed" class="nav-link-premium">التحديثات</NavLink>
-            <NavLink href="/marketplace" class="nav-link-premium nav-link-marketplace-premium">
-                <span class="store-icon-wrap d-inline-flex me-1">
-                    <i class="fa-solid fa-store store-anim" style="-webkit-text-fill-color:unset;"></i>
-                </span> المتجر
-            </NavLink>
         </nav>
 
         <!-- Actions & Profile Section -->
@@ -88,7 +84,7 @@
                         <button class="vial-btn @(State.CurrentTheme == "lavender" ? "active" : "")" @onclick='() => HandleSetTheme("lavender")' @onclick:stopPropagation="true" title="بنفسجي">
                             <div class="vial-glass"><div class="vial-liquid liquid-lavender"><div class="vial-bubble"></div><div class="vial-bubble b2"></div></div><div class="vial-shimmer"></div></div>
                         </button>
-                        <button class="vial-btn @(State.CurrentTheme == "royal" ? "active" : "")" @onclick='() => HandleSetTheme("royal")' @onclick:stopPropagation="true" title="وردي">
+                        <button class="vial-btn @(State.CurrentTheme == "royal" ? "active" : "")" @onclick='() => HandleSetTheme("royal")' @onclick:stopPropagation="true" title="ملكي">
                             <div class="vial-glass"><div class="vial-liquid liquid-royal"><div class="vial-bubble"></div><div class="vial-bubble b2"></div></div><div class="vial-shimmer"></div></div>
                         </button>
                         <button class="vial-btn @(State.CurrentTheme == "glass" ? "active" : "")" @onclick='() => HandleSetTheme("glass")' @onclick:stopPropagation="true" title="زجاج">
@@ -140,37 +136,37 @@
                 </div>
             </div>
 
-            <!-- Store/Marketplace (Visible on small screens) -->
-            <div class="icon-action-btn marketplace-action-btn position-relative d-lg-none animate-pulse-subtle" @onclick='() => Navigation.NavigateTo("/marketplace")' title="متجر السلع">
-                 <div class="market-badge-premium">
-                    <i class="fa-solid fa-store store-pulse-icon"></i>
-                 </div>
-            </div>
 
-            <div class="vr mx-1 opacity-25 d-none d-md-block"></div>
 
-            <!-- Messages -->
-            <div class="icon-action-btn position-relative" @onclick='() => Navigation.NavigateTo("/user/messages")' title="الرسائل">
-                 <i class="fa-regular fa-envelope text-secondary"></i>
-                 @if (State.HasUnreadMessages)
-                 {
-                     <span class="notification-badge bg-danger"></span>
-                 }
-            </div>
-
-            <!-- Notifications -->
-            <div class="icon-action-btn position-relative" @onclick='() => Navigation.NavigateTo("/user/notifications")' title="الإشعارات">
-                 <i class="fa-regular fa-bell text-secondary"></i>
-                 @if (State.HasUnreadNotifications)
-                 {
-                     <span class="notification-badge bg-primary"></span>
-                 }
-            </div>
-
-            <!-- User Profile (Minimal - Avatar Only in Bar) -->
+            <!-- User Actions & Profile -->
             <AuthorizeView>
                 <Authorized>
-                    <div id="userDropdown" class="user-dropdown-wrapper position-relative ms-2">
+                    <div class="vr mx-1 opacity-25 d-none d-md-block flex-shrink-0"></div>
+
+                    <!-- Messages -->
+                    <div class="icon-action-btn position-relative flex-shrink-0" @onclick='() => Navigation.NavigateTo("/user/messages")' title="الرسائل">
+                         <i class="fa-regular fa-envelope text-secondary"></i>
+                         @if (State.HasUnreadMessages)
+                         {
+                             <span class="notification-badge bg-danger"></span>
+                         }
+                    </div>
+
+                    <!-- Notifications -->
+                    <div class="icon-action-btn position-relative flex-shrink-0" @onclick='() => Navigation.NavigateTo("/user/notifications")' title="الإشعارات">
+                         <i class="fa-regular fa-bell text-secondary"></i>
+                         @if (State.HasUnreadNotifications)
+                         {
+                             <span class="notification-badge bg-primary"></span>
+                         }
+                    </div>
+
+                    <!-- User Profile Dropdown -->
+                    <div id="userDropdown" class="user-dropdown-wrapper position-relative ms-1 flex-shrink-0">
+                        @if (isUserMenuOpen)
+                        {
+                            <div class="menu-backdrop" @onclick="CloseMenus"></div>
+                        }
                         <div class="user-trigger p-1 rounded-circle border border-2 border-white shadow-sm pointer position-relative" @onclick="ToggleUserMenu">
                             <img src="@(string.IsNullOrEmpty(State.UserImageUrl) ? "images/defaults/default-user.png" : State.UserImageUrl)" 
                                  class="rounded-circle object-fit-cover" 
@@ -186,37 +182,43 @@
                                     <div class="fw-bold text-dark text-truncate">@context.User.Identity?.Name</div>
                                     <div class="small text-muted text-truncate">@context.User.FindFirst("email")?.Value</div>
                                     <div class="d-flex align-items-center mt-1">
-                                        <span class="badge bg-light text-dark border border-secondary border-opacity-25 rounded-pill fw-normal px-2 py-0" style="font-size: 0.7rem;">
-                                            @(State.IsProvider ? "مزود خدمة" : "عميل")
-                                        </span>
+                                        @if (State.IsProvider)
+                                        {
+                                            <span class="badge rounded-pill px-2 py-1" style="font-size: 0.7rem; background: #d1fae5; color: #065f46;">
+                                                <i class="fa-solid fa-briefcase me-1" style="font-size: 0.6rem;"></i>مقدم خدمة
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge rounded-pill px-2 py-1" style="font-size: 0.7rem; background: #dbeafe; color: #1e40af;">
+                                                <i class="fa-solid fa-user me-1" style="font-size: 0.6rem;"></i>عميل
+                                            </span>
+                                        }
                                     </div>
                                 </div>
                             </div>
                             <div class="p-2">
-                                <a href="/profile" class="menu-link-item d-flex align-items-center p-2 rounded-2 text-decoration-none text-dark mb-1" @onclick="CloseMenus">
+                                <button type="button" class="menu-link-item w-100 btn btn-link text-decoration-none d-flex align-items-center p-2 rounded-2 text-dark mb-1 pointer text-start" @onclick="GoToProfile" @onclick:stopPropagation="true">
                                     <i class="fa-regular fa-id-card me-3 opacity-50 ms-1 width-20 text-center"></i>
                                     <span class="small fw-bold">الملف الشخصي</span>
-                                </a>
-                                <div class="menu-link-item d-flex align-items-center p-2 rounded-2 text-danger pointer" @onclick="HandleLogout">
+                                </button>
+                                <button type="button" class="menu-link-item w-100 btn btn-link text-decoration-none d-flex align-items-center p-2 rounded-2 text-danger pointer text-start" @onclick="HandleLogout" @onclick:stopPropagation="true">
                                     <i class="fa-solid fa-arrow-right-from-bracket me-3 opacity-50 ms-1 width-20 text-center"></i>
                                     <span class="small fw-bold">تسجيل الخروج</span>
-                                </div>
+                                </button>
                             </div>
                         </div>
                     </div>
                 </Authorized>
                 <NotAuthorized Context="notAuth">
-                     <a href="login" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-sm">دخول</a>
+                     <a href="login" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-sm flex-shrink-0">دخول</a>
                 </NotAuthorized>
             </AuthorizeView>
         </div>
     </div>
 </header>
 
-
-
-
-@if (isUserMenuOpen || isThemeMenuOpen)
+@if (isThemeMenuOpen)
 {
     <div class="menu-backdrop" @onclick="CloseMenus"></div>
 }
@@ -234,7 +236,7 @@
         -webkit-backdrop-filter: blur(16px);
         position: sticky;
         top: 0;
-        z-index: 1000;
+        z-index: 1050;
         transition: all 0.3s ease;
         border-bottom: 1px solid rgba(0,0,0,0.04);
     }
@@ -477,6 +479,10 @@
     .menu-link-item {
         transition: background 0.2s;
         color: #334155;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        font-family: inherit;
     }
     
     .menu-link-item:hover {
@@ -563,7 +569,7 @@
     .liquid-ocean    { background: linear-gradient(180deg, #38bdf8 0%, #0ea5e9 50%, #0284c7 100%); }
     .liquid-forest   { background: linear-gradient(180deg, #34d399 0%, #10b981 50%, #059669 100%); }
     .liquid-lavender { background: linear-gradient(180deg, #a78bfa 0%, #8b5cf6 50%, #7c3aed 100%); }
-    .liquid-royal    { background: linear-gradient(180deg, #fb7185 0%, #e11d48 50%, #be123c 100%); }
+    .liquid-royal    { background: linear-gradient(180deg, #fde047 0%, #eab308 50%, #ca8a04 100%); }
     .liquid-glass    { background: linear-gradient(180deg, rgba(253,210,239,0.9) 0%, rgba(161,196,253,0.85) 100%); backdrop-filter: blur(4px); }
 
     /* Floating bubbles inside liquid */
@@ -820,7 +826,7 @@
         State.IsSidebarOpen = !State.IsSidebarOpen;
         State.TriggerStateChanged();
     }
-    private string DisplayName => State.IsProvider ? "مزود خدمة" : "عميل";
+    private string DisplayName => State.IsProvider ? "مقدم خدمة" : "عميل";
     
     // Search
     private string searchQuery = "";
@@ -909,10 +915,17 @@
         isThemeMenuOpen = false;
     }
 
+    private void GoToProfile()
+    {
+        CloseMenus();
+        Navigation.NavigateTo("/profile");
+    }
+
     private async Task HandleLogout()
     {
+        CloseMenus();
         await AuthService.Logout();
-        Navigation.NavigateTo("/login");
+        Navigation.NavigateTo("/login", forceLoad: true);
     }
 
     private void ToggleProviderMode()

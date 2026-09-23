@@ -1,4 +1,4 @@
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using Blazored.LocalStorage;
 using Khadamat.Application.DTOs;
 using Khadamat.Application.Common.Models;
@@ -73,7 +73,8 @@ public class AuthService : IAuthService
                     var p = profile.Data;
                     var is_admin = p.Roles.Any(r => r == "SystemAdmin" || r == "SuperAdmin").ToString().ToLower();
                     var is_super = p.Roles.Any(r => r == "SuperAdmin").ToString().ToLower();
-                    var nativeData = $"name={p.UserName}&image={p.ImageUrl}&is_admin={is_admin}&is_super_admin={is_super}&is_provider={p.IsProvider.ToString().ToLower()}";
+                    var avatar = DefaultImages.GetUserAvatar(p.UserName, p.Gender, p.ImageUrl);
+                    var nativeData = $"name={Uri.EscapeDataString(p.UserName ?? "")}&image={Uri.EscapeDataString(avatar)}&token={result.Data.Token}&is_admin={is_admin}&is_super_admin={is_super}&is_provider={p.IsProvider.ToString().ToLower()}";
                     await NotifyNativeApp("auth_success", nativeData);
                 }
                 else 
@@ -124,7 +125,8 @@ public class AuthService : IAuthService
                 var roles = string.Join(",", p.Roles);
                 var is_admin = p.Roles.Any(r => r == "SystemAdmin" || r == "SuperAdmin").ToString().ToLower();
                 var is_super = p.Roles.Any(r => r == "SuperAdmin").ToString().ToLower();
-                var nativeData = $"name={p.UserName}&image={p.ImageUrl}&is_admin={is_admin}&is_super_admin={is_super}&is_provider={p.IsProvider.ToString().ToLower()}";
+                var avatar = DefaultImages.GetUserAvatar(p.UserName, p.Gender, p.ImageUrl);
+                var nativeData = $"name={Uri.EscapeDataString(p.UserName ?? "")}&image={Uri.EscapeDataString(avatar)}&token={_appState.UserToken}&is_admin={is_admin}&is_super_admin={is_super}&is_provider={p.IsProvider.ToString().ToLower()}";
                 
                 // We use "auth_sync" to update native UI (name, avatar) WITHOUT triggering a shell navigation to Home
                 _ = NotifyNativeApp("auth_sync", nativeData);
@@ -165,10 +167,22 @@ public class AuthService : IAuthService
         _appState.UserToken = token;
 
         ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsAuthenticated(token);
-        await NotifyNativeApp("auth_success");
         
-        // Fetch full profile immediately
-        await GetProfileAsync();
+        // Fetch full profile immediately before notifying native app
+        var profile = await GetProfileAsync();
+        if (profile?.Success == true && profile.Data != null)
+        {
+            var p = profile.Data;
+            var is_admin = p.Roles.Any(r => r == "SystemAdmin" || r == "SuperAdmin").ToString().ToLower();
+            var is_super = p.Roles.Any(r => r == "SuperAdmin").ToString().ToLower();
+            var avatar = DefaultImages.GetUserAvatar(p.UserName, p.Gender, p.ImageUrl);
+            var nativeData = $"name={Uri.EscapeDataString(p.UserName ?? "")}&image={Uri.EscapeDataString(avatar)}&token={token}&is_admin={is_admin}&is_super_admin={is_super}&is_provider={p.IsProvider.ToString().ToLower()}";
+            await NotifyNativeApp("auth_success", nativeData);
+        }
+        else
+        {
+            await NotifyNativeApp("auth_success");
+        }
 
         return true;
     }
@@ -180,9 +194,9 @@ public class AuthService : IAuthService
         {
             _appState.UserToken = token;
             
-            // المكون الأصلي (GetAuthenticationStateAsync) يتولى بالفعل بناء Auth State في البداية.
-            // لا تقم باستدعاء NotifyAuthenticationStateChanged هنا أبداً!
-            // هذا كان يُطلق Full-App Re-render في نفس لحظة First Render مما يُسبب خطأ:
+            // ط§ظ„ظ…ظƒظˆظ† ط§ظ„ط£طµظ„ظٹ (GetAuthenticationStateAsync) ظٹطھظˆظ„ظ‰ ط¨ط§ظ„ظپط¹ظ„ ط¨ظ†ط§ط، Auth State ظپظٹ ط§ظ„ط¨ط¯ط§ظٹط©.
+            // ظ„ط§ طھظ‚ظ… ط¨ط§ط³طھط¯ط¹ط§ط، NotifyAuthenticationStateChanged ظ‡ظ†ط§ ط£ط¨ط¯ط§ظ‹!
+            // ظ‡ط°ط§ ظƒط§ظ† ظٹظڈط·ظ„ظ‚ Full-App Re-render ظپظٹ ظ†ظپط³ ظ„ط­ط¸ط© First Render ظ…ظ…ط§ ظٹظڈط³ط¨ط¨ ط®ط·ط£:
             // "No element is currently associated with component"
             
             // NotifyNativeApp is no longer needed here as it's triggered during login/registration
@@ -206,5 +220,27 @@ public class AuthService : IAuthService
         var response = await _httpClient.PostAsJsonAsync("v1/auth/reset-password", request);
         var result = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
         return result!;
+    }
+
+    public async Task<ApiResponse<bool>> DeleteAccount(string? password = null)
+    {
+        try
+        {
+            var url = string.IsNullOrEmpty(password) 
+                ? "v1/auth/delete-account" 
+                : $"v1/auth/delete-account?password={Uri.EscapeDataString(password)}";
+                
+            var response = await _httpClient.DeleteAsync(url);
+            var result = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
+            if (result != null && result.Success)
+            {
+                await Logout();
+            }
+            return result ?? ApiResponse<bool>.Fail("ظپط´ظ„ ط­ط°ظپ ط§ظ„ط­ط³ط§ط¨");
+        }
+        catch (Exception ex)
+        {
+            return ApiResponse<bool>.Fail($"ط­ط¯ط« ط®ط·ط£: {ex.Message}");
+        }
     }
 }

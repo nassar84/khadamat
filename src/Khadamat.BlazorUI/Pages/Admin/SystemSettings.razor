@@ -7,14 +7,14 @@
 @inject IJSRuntime JS
 @attribute [Authorize(Roles = "SuperAdmin")]
 
-<div class="px-2 pb-1">
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3 mt-2">
+<div class="px-2 pb-5 settings-page-wrapper">
+    <div class="d-flex justify-content-between align-items-start align-items-md-center mb-4 flex-wrap gap-2 mt-2">
         <div>
-            <h1 class="fw-bold mb-1 text-primary"><i class="fa-solid fa-gears me-2"></i>إعدادات النظام</h1>
+            <h1 class="fw-bold mb-1 text-primary fs-4"><i class="fa-solid fa-gears me-2"></i>إعدادات النظام</h1>
             <p class="text-muted small mb-0">تحكم في هوية الموقع، اللوجو، الألوان، وإعدادات تطبيق الموبايل</p>
         </div>
-        <div class="d-flex gap-2">
-            <button class="btn btn-primary-premium px-4 rounded-pill shadow-sm" @onclick="SaveSettings" disabled="@isSaving">
+        <div class="d-flex gap-2 w-100 w-md-auto">
+            <button class="btn btn-primary-premium px-4 rounded-pill shadow-sm w-100 w-md-auto" @onclick="SaveSettings" disabled="@isSaving">
                 @if (isSaving) { <span class="spinner-border spinner-border-sm me-1"></span> }
                 <i class="fa-solid fa-save me-2"></i>حفظ التغييرات
             </button>
@@ -30,29 +30,27 @@
     }
     else
     {
-        <div class="row">
+        <div class="row g-3">
             <!-- General Settings -->
-            <div class="col-md-6 mb-4">
-                <div class="glass-card p-4 h-100">
-                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-server me-2 text-primary"></i>بيانات النظام</h5>
-                    <div class="row mb-3">
-                        <div class="col-md-6 mb-3 mb-md-0">
-                            <label class="form-label small fw-bold">الاسم بالعربية</label>
-                            <input type="text" @bind="settings.ApplicationNameAr" class="form-control rounded-pill px-4" placeholder="مثال: خدماوي">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">الاسم بالإنجليزية</label>
-                            <input type="text" @bind="settings.ApplicationNameEn" class="form-control rounded-pill px-4" placeholder="Example: Khadamawi">
-                        </div>
+            <div class="col-12 col-md-6 mb-2">
+                <div class="glass-card p-3 h-100">
+                    <h5 class="fw-bold mb-3 fs-6"><i class="fa-solid fa-server me-2 text-primary"></i>بيانات النظام</h5>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">الاسم بالعربية</label>
+                        <input type="text" @bind="settings.ApplicationNameAr" class="form-control rounded-pill px-3" placeholder="مثال: خدماوي">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">الاسم بالإنجليزية</label>
+                        <input type="text" @bind="settings.ApplicationNameEn" class="form-control rounded-pill px-3" placeholder="Example: Khadamawi">
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold">رسالة الترحيب / الوصف</label>
-                        <textarea @bind="settings.WelcomeMessage" class="form-control rounded-3 px-4" rows="3" placeholder="أدخل رسالة ترحيبية تظهر للمستخدمين..."></textarea>
+                        <textarea @bind="settings.WelcomeMessage" class="form-control rounded-3 px-3" rows="3" placeholder="أدخل رسالة ترحيبية تظهر للمستخدمين..."></textarea>
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-0">
                         <label class="form-label small fw-bold">شعار الموقع (Logo)</label>
-                        <div class="d-flex flex-column flex-md-row align-items-center gap-3 p-3 bg-light rounded-4">
-                            <div class="logo-preview-box bg-white p-2 rounded-3 border d-flex align-items-center justify-content-center flex-shrink-0" style="width: 80px; height: 80px;">
+                        <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-4">
+                            <div class="logo-preview-box bg-white p-2 rounded-3 border d-flex align-items-center justify-content-center flex-shrink-0" style="width: 70px; height: 70px;">
                                 @if (!string.IsNullOrEmpty(settings.LogoUrl))
                                 {
                                     <img src="@settings.LogoUrl" style="max-width: 100%; max-height: 100%;" />
@@ -62,13 +60,13 @@
                                     <i class="fa-solid fa-image text-muted fs-3"></i>
                                 }
                             </div>
-                            <div class="flex-grow-1 text-center text-md-start w-100">
-                                <label class="btn btn-outline-primary btn-sm rounded-pill px-4 cursor-pointer">
+                            <div class="flex-grow-1">
+                                <label class="btn btn-outline-primary btn-sm rounded-pill px-3 cursor-pointer w-100 mb-2">
                                     <i class="fa-solid fa-upload me-1"></i> رفع شعار جديد
                                     <InputFile OnChange="HandleLogoUpload" class="d-none" accept=".jpg,.jpeg,.png,.svg" />
                                 </label>
-                                <div class="x-small text-muted mt-2">يفضل استخدام صورة شفافة (PNG) وبأبعاد متناسقة.</div>
-                                <input type="text" @bind="settings.LogoUrl" class="form-control form-control-sm mt-3 rounded-pill opacity-75" placeholder="أو أدخل رابطاً مباشراً...">
+                                <div class="x-small text-muted mb-2">يفضل صورة شفافة (PNG) بأبعاد متناسقة</div>
+                                <input type="text" @bind="settings.LogoUrl" class="form-control form-control-sm rounded-pill opacity-75" placeholder="أو أدخل رابطاً مباشراً...">
                             </div>
                         </div>
                     </div>
@@ -76,152 +74,159 @@
             </div>
 
             <!-- Contact Info -->
-            <div class="col-md-6 mb-4">
-                <div class="glass-card p-4 h-100">
-                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-address-book me-2 text-success"></i>بيانات التواصل</h5>
+            <div class="col-12 col-md-6 mb-2">
+                <div class="glass-card p-3 h-100">
+                    <h5 class="fw-bold mb-3 fs-6"><i class="fa-solid fa-address-book me-2 text-success"></i>بيانات التواصل</h5>
                     <div class="mb-3">
                         <label class="form-label small fw-bold">البريد الإلكتروني للدعم</label>
-                        <input type="email" @bind="settings.ContactEmail" class="form-control rounded-pill px-4" placeholder="support@example.com">
+                        <input type="email" @bind="settings.ContactEmail" class="form-control rounded-pill px-3" placeholder="support@example.com">
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold">رقم الهاتف للدعم</label>
-                        <input type="text" @bind="settings.ContactPhone" class="form-control rounded-pill px-4" placeholder="+20...">
+                        <input type="text" @bind="settings.ContactPhone" class="form-control rounded-pill px-3" placeholder="+20...">
                     </div>
                 </div>
             </div>
 
             <!-- System Features Control -->
-            <div class="col-md-6 mb-4">
-                <div class="glass-card p-4 h-100">
-                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-sliders me-2 text-info"></i>التحكم في الميزات</h5>
+            <div class="col-12 col-md-6 mb-2">
+                <div class="glass-card p-3 h-100">
+                    <h5 class="fw-bold mb-3 fs-6"><i class="fa-solid fa-sliders me-2 text-info"></i>التحكم في الميزات</h5>
                     
-                    <div class="form-check form-switch p-3 bg-light rounded-3 d-flex justify-content-between align-items-center mb-3">
+                    <div class="setting-toggle-row mb-3">
                         <div>
-                            <label class="form-check-label fw-bold mb-0">السماح بالتسجيل</label>
-                            <div class="text-muted small">السماح للمستخدمين الجدد بإنشاء حسابات</div>
+                            <div class="fw-bold small mb-0">السماح بالتسجيل</div>
+                            <div class="text-muted x-small">السماح للمستخدمين الجدد بإنشاء حسابات</div>
                         </div>
-                        <input class="form-check-input fs-4" type="checkbox" @bind="settings.AllowUserRegistration">
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input fs-4" type="checkbox" @bind="settings.AllowUserRegistration">
+                        </div>
                     </div>
 
-                    <div class="form-check form-switch p-3 bg-light rounded-3 d-flex justify-content-between align-items-center mb-3">
+                    <div class="setting-toggle-row mb-3">
                         <div>
-                            <label class="form-check-label fw-bold mb-0">التحقق من البريد الإلكتروني</label>
-                            <div class="text-muted small">طلب تأكيد البريد عند التسجيل</div>
+                            <div class="fw-bold small mb-0">التحقق من البريد الإلكتروني</div>
+                            <div class="text-muted x-small">طلب تأكيد البريد عند التسجيل</div>
                         </div>
-                        <input class="form-check-input fs-4" type="checkbox" @bind="settings.RequireEmailVerification">
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input fs-4" type="checkbox" @bind="settings.RequireEmailVerification">
+                        </div>
                     </div>
 
-                    <div class="form-check form-switch p-3 bg-light rounded-3 d-flex justify-content-between align-items-center mb-3">
+                    <div class="setting-toggle-row mb-3">
                         <div>
-                            <label class="form-check-label fw-bold mb-0">الموافقة التلقائية على التقييمات</label>
-                            <div class="text-muted small">نشر التقييمات مباشرة دون مراجعة</div>
+                            <div class="fw-bold small mb-0">الموافقة التلقائية على التقييمات</div>
+                            <div class="text-muted x-small">نشر التقييمات مباشرة دون مراجعة</div>
                         </div>
-                        <input class="form-check-input fs-4" type="checkbox" @bind="settings.EnableReviewAutoApproval">
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input fs-4" type="checkbox" @bind="settings.EnableReviewAutoApproval">
+                        </div>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="mb-0">
                         <label class="form-label small fw-bold">الحد الأقصى للخدمات لكل مزود</label>
-                        <input type="number" @bind="settings.MaxServicesPerProvider" class="form-control rounded-pill px-4" min="1" max="100">
+                        <input type="number" @bind="settings.MaxServicesPerProvider" class="form-control rounded-pill px-3" min="1" max="100">
                     </div>
                 </div>
             </div>
 
             <!-- System Control & Maintenance -->
-            <div class="col-md-6 mb-4">
-                <div class="glass-card p-4 h-100">
-                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-shield-halved me-2 text-warning"></i>التحكم والأمان</h5>
+            <div class="col-12 col-md-6 mb-2">
+                <div class="glass-card p-3 h-100">
+                    <h5 class="fw-bold mb-3 fs-6"><i class="fa-solid fa-shield-halved me-2 text-warning"></i>التحكم والأمان</h5>
                     
-                    <div class="form-check form-switch p-3 bg-light rounded-3 d-flex justify-content-between align-items-center mb-3">
+                    <div class="setting-toggle-row mb-3">
                         <div>
-                            <label class="form-check-label fw-bold mb-0 text-danger">وضع الصيانة</label>
-                            <div class="text-muted small">عند تفعيله، سيتوقف التطبيق عن العمل للمستخدمين العاديين</div>
+                            <div class="fw-bold small text-danger mb-0">وضع الصيانة</div>
+                            <div class="text-muted x-small">سيتوقف التطبيق عن العمل للمستخدمين العاديين</div>
                         </div>
-                        <input class="form-check-input fs-4" type="checkbox" @bind="settings.IsMaintenanceMode">
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input fs-4" type="checkbox" @bind="settings.IsMaintenanceMode">
+                        </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold">اللون الأساسي (Primary)</label>
-                        <input type="color" @bind="settings.PrimaryColor" class="form-control form-control-color w-100 rounded-pill">
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="color" @bind="settings.PrimaryColor" class="form-control form-control-color rounded-pill flex-shrink-0" style="width: 50px; height: 38px;">
+                            <input type="text" value="@settings.PrimaryColor" @oninput="e => settings.PrimaryColor = e.Value?.ToString()" class="form-control rounded-pill px-3 small" placeholder="#6c5ce7">
+                        </div>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="mb-0">
                         <label class="form-label small fw-bold">اللون الثانوي (Secondary)</label>
-                        <input type="color" @bind="settings.SecondaryColor" class="form-control form-control-color w-100 rounded-pill">
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="color" @bind="settings.SecondaryColor" class="form-control form-control-color rounded-pill flex-shrink-0" style="width: 50px; height: 38px;">
+                            <input type="text" value="@settings.SecondaryColor" @oninput="e => settings.SecondaryColor = e.Value?.ToString()" class="form-control rounded-pill px-3 small" placeholder="#a29bfe">
+                        </div>
                     </div>
-                    
                 </div>
             </div>
 
             <!-- Sound Settings -->
-            <div class="col-md-6 mb-4">
-                <div class="glass-card p-4 h-100">
-                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-volume-high me-2 text-primary"></i>نغمات وأصوات التطبيق</h5>
+            <div class="col-12 col-md-6 mb-2">
+                <div class="glass-card p-3 h-100">
+                    <h5 class="fw-bold mb-3 fs-6"><i class="fa-solid fa-volume-high me-2 text-primary"></i>نغمات وأصوات التطبيق</h5>
                     <p class="text-muted small mb-3">الأصوات المحسنة لتفاعل المستخدم مع الأنشطة المختلفة.</p>
                     
                     <div class="mb-3">
                         <label class="form-label small fw-bold">صوت فتح التطبيق</label>
                         <div class="input-group">
                             <input type="text" @bind="settings.OpenAppSound" class="form-control rounded-start-pill px-3" placeholder="open_app.mp3">
-                            <button class="btn btn-outline-secondary rounded-end-pill px-3" @onclick='() => PlayPreview(settings.OpenAppSound)'><i class="fa-solid fa-play"></i></button>
+                            <button class="btn btn-outline-secondary rounded-end-pill px-3" @onclick='() => PlayPreview(settings.OpenAppSound ?? "")'><i class="fa-solid fa-play"></i></button>
                         </div>
                     </div>
-
                     <div class="mb-3">
                         <label class="form-label small fw-bold">صوت إيجاد خدمة</label>
                         <div class="input-group">
                             <input type="text" @bind="settings.FindServiceSound" class="form-control rounded-start-pill px-3" placeholder="find_service.mp3">
-                            <button class="btn btn-outline-secondary rounded-end-pill px-3" @onclick='() => PlayPreview(settings.FindServiceSound)'><i class="fa-solid fa-play"></i></button>
+                            <button class="btn btn-outline-secondary rounded-end-pill px-3" @onclick='() => PlayPreview(settings.FindServiceSound ?? "")'><i class="fa-solid fa-play"></i></button>
                         </div>
                     </div>
-
                     <div class="mb-3">
                         <label class="form-label small fw-bold">صوت فتح التفاصيل</label>
                         <div class="input-group">
                             <input type="text" @bind="settings.OpenDetailsSound" class="form-control rounded-start-pill px-3" placeholder="open_details.mp3">
-                            <button class="btn btn-outline-secondary rounded-end-pill px-3" @onclick='() => PlayPreview(settings.OpenDetailsSound)'><i class="fa-solid fa-play"></i></button>
+                            <button class="btn btn-outline-secondary rounded-end-pill px-3" @onclick='() => PlayPreview(settings.OpenDetailsSound ?? "")'><i class="fa-solid fa-play"></i></button>
                         </div>
                     </div>
-
                     <div class="mb-3">
                         <label class="form-label small fw-bold">صوت استقبال رسالة</label>
                         <div class="input-group">
                             <input type="text" @bind="settings.MessageReceivedSound" class="form-control rounded-start-pill px-3" placeholder="message.mp3">
-                            <button class="btn btn-outline-secondary rounded-end-pill px-3" @onclick='() => PlayPreview(settings.MessageReceivedSound)'><i class="fa-solid fa-play"></i></button>
+                            <button class="btn btn-outline-secondary rounded-end-pill px-3" @onclick='() => PlayPreview(settings.MessageReceivedSound ?? "")'><i class="fa-solid fa-play"></i></button>
                         </div>
                     </div>
-
                     <div class="mb-3">
                         <label class="form-label small fw-bold">صوت استقبال تنبيه</label>
                         <div class="input-group">
                             <input type="text" @bind="settings.NotificationReceivedSound" class="form-control rounded-start-pill px-3" placeholder="notif.mp3">
-                            <button class="btn btn-outline-secondary rounded-end-pill px-3" @onclick='() => PlayPreview(settings.NotificationReceivedSound)'><i class="fa-solid fa-play"></i></button>
+                            <button class="btn btn-outline-secondary rounded-end-pill px-3" @onclick='() => PlayPreview(settings.NotificationReceivedSound ?? "")'><i class="fa-solid fa-play"></i></button>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Mobile App Builder -->
-            <div class="col-md-6 mb-4">
-                <div class="glass-card p-4 h-100 bg-light border-0 shadow-sm border-top border-primary border-4">
-                    <h5 class="fw-bold mb-3"><i class="fa-brands fa-android me-2 text-success"></i>بناء تطبيق الموبايل للاستضافة</h5>
+            <div class="col-12 col-md-6 mb-2">
+                <div class="glass-card p-3 h-100 bg-light border-0 shadow-sm border-top border-primary border-4">
+                    <h5 class="fw-bold mb-3 fs-6"><i class="fa-brands fa-android me-2 text-success"></i>بناء تطبيق الموبايل</h5>
                     <p class="text-muted small mb-3">
-                        يمكنك تغيير الرابط الذي سيتصل به تطبيق الموبايل وبناء التطبيق (APK) ورفعه تلقائياً ليصبح متاحاً للتحميل من الموقع.
+                        يمكنك تغيير الرابط الذي سيتصل به تطبيق الموبايل وبناء التطبيق (APK) ورفعه تلقائياً.
                     </p>
                     <div class="mb-3">
                         <label class="form-label small fw-bold">رابط الاستضافة (API Base URL)</label>
-                        <input type="url" @bind="mobileAppDomainUrl" class="form-control rounded-pill px-4 bg-white" placeholder="https://api.khadamat.com">
+                        <input type="url" @bind="mobileAppDomainUrl" class="form-control rounded-pill px-3 bg-white" placeholder="https://api.khadamat.com">
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <label class="form-label small fw-bold">اسم ملف الـ APK</label>
-                            <input type="text" @bind="settings.ApkFilename" class="form-control rounded-pill px-3" placeholder="app.apk">
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label small fw-bold">رابط أيقونة الـ APK</label>
-                            <input type="text" @bind="settings.ApkIconUrl" class="form-control rounded-pill px-3" placeholder="رابط الأيقونة...">
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">اسم ملف الـ APK</label>
+                        <input type="text" @bind="settings.ApkFilename" class="form-control rounded-pill px-3" placeholder="app.apk">
                     </div>
-                    <div class="d-grid mt-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">رابط أيقونة الـ APK</label>
+                        <input type="text" @bind="settings.ApkIconUrl" class="form-control rounded-pill px-3" placeholder="رابط الأيقونة...">
+                    </div>
+                    <div class="d-grid mt-3">
                         <button class="btn btn-success rounded-pill fw-bold shadow-sm" @onclick="BuildMobileAppClick" disabled="@isBuildingApk">
                             @if (isBuildingApk)
                             {
@@ -240,7 +245,7 @@
                         <div class="alert alert-info mt-3 mb-0 small text-center p-2 rounded-3">@buildApkMessage</div>
                     }
 
-                    <div class="mt-4 pt-3 border-top">
+                    <div class="mt-3 pt-3 border-top">
                         <h6 class="fw-bold small mb-2"><i class="fa-solid fa-cloud-arrow-up me-2 text-primary"></i>رفع ملف APK مباشر</h6>
                         <p class="x-small text-muted">إذا كنت تمتلك ملف APK جاهزاً وتريد رفعه مباشرة للموقع:</p>
                         <div class="d-flex align-items-center gap-2">
@@ -258,40 +263,55 @@
             </div>
 
             <!-- Social Media Links -->
-            <div class="col-md-6 mb-4">
-                <div class="glass-card p-4 h-100">
-                    <h5 class="fw-bold mb-3"><i class="fa-brands fa-facebook me-2 text-primary"></i>روابط التواصل الاجتماعي</h5>
+            <div class="col-12 col-md-6 mb-2">
+                <div class="glass-card p-3 h-100">
+                    <h5 class="fw-bold mb-3 fs-6"><i class="fa-brands fa-facebook me-2 text-primary"></i>روابط التواصل الاجتماعي</h5>
                     <div class="mb-3">
                         <label class="form-label small fw-bold"><i class="fa-brands fa-facebook me-2"></i>Facebook</label>
-                        <input type="text" @bind="settings.FacebookUrl" class="form-control rounded-pill px-4" placeholder="https://facebook.com/...">
+                        <input type="text" @bind="settings.FacebookUrl" class="form-control rounded-pill px-3" placeholder="https://facebook.com/...">
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold"><i class="fa-brands fa-twitter me-2"></i>Twitter</label>
-                        <input type="text" @bind="settings.TwitterUrl" class="form-control rounded-pill px-4" placeholder="https://twitter.com/...">
+                        <input type="text" @bind="settings.TwitterUrl" class="form-control rounded-pill px-3" placeholder="https://twitter.com/...">
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-0">
                         <label class="form-label small fw-bold"><i class="fa-brands fa-instagram me-2"></i>Instagram</label>
-                        <input type="text" @bind="settings.InstagramUrl" class="form-control rounded-pill px-4" placeholder="https://instagram.com/...">
+                        <input type="text" @bind="settings.InstagramUrl" class="form-control rounded-pill px-3" placeholder="https://instagram.com/...">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Legal Documents -->
+            <div class="col-12 col-md-6 mb-2">
+                <div class="glass-card p-3 h-100">
+                    <h5 class="fw-bold mb-3 fs-6"><i class="fa-solid fa-gavel me-2 text-secondary"></i>المستندات القانونية</h5>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">الشروط والأحكام</label>
+                        <textarea @bind="settings.TermsAndConditions" class="form-control rounded-3 px-3" rows="4" placeholder="أدخل نص الشروط والأحكام..."></textarea>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label small fw-bold">سياسة الخصوصية</label>
+                        <textarea @bind="settings.PrivacyPolicy" class="form-control rounded-3 px-3" rows="4" placeholder="أدخل نص سياسة الخصوصية..."></textarea>
                     </div>
                 </div>
             </div>
 
             <!-- Role Permissions Overview -->
-            <div class="col-md-12 mb-4">
-                <div class="glass-card p-4">
-                    <h5 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-key me-2 text-dark"></i>نظرة عامة على صلاحيات الإدارة</h5>
+            <div class="col-12 mb-2">
+                <div class="glass-card p-3">
+                    <h5 class="fw-bold mb-3 fs-6 text-dark"><i class="fa-solid fa-key me-2 text-dark"></i>نظرة عامة على صلاحيات الإدارة</h5>
                     <div class="table-responsive">
                         <table class="table table-borderless align-middle small mb-0">
                             <thead>
                                 <tr class="border-bottom border-light">
-                                    <th style="width: 250px;">الميزة / العملية</th>
-                                    <th class="text-center"><span class="badge bg-primary text-white rounded-pill px-3">System Admin</span></th>
-                                    <th class="text-center"><span class="badge bg-dark text-white rounded-pill px-3">Super Admin</span></th>
+                                    <th>الميزة / العملية</th>
+                                    <th class="text-center"><span class="badge bg-primary text-white rounded-pill px-2">System Admin</span></th>
+                                    <th class="text-center"><span class="badge bg-dark text-white rounded-pill px-2">Super Admin</span></th>
                                 </tr>
                             </thead>
                             <tbody class="text-muted">
                                 <tr>
-                                    <td>إدارة المستخدمين (عملاء / مزودين)</td>
+                                    <td>إدارة المستخدمين</td>
                                     <td class="text-center text-success"><i class="fa-solid fa-check"></i> كاملة</td>
                                     <td class="text-center text-success"><i class="fa-solid fa-check"></i> كاملة</td>
                                 </tr>
@@ -301,22 +321,22 @@
                                     <td class="text-center text-success"><i class="fa-solid fa-check"></i> كاملة</td>
                                 </tr>
                                 <tr>
-                                    <td>إدارة مديري النظام (SystemAdmin)</td>
+                                    <td>إدارة مديري النظام</td>
                                     <td class="text-center text-danger"><i class="fa-solid fa-xmark"></i> لا توجد</td>
                                     <td class="text-center text-success"><i class="fa-solid fa-check"></i> كاملة</td>
                                 </tr>
                                 <tr>
-                                    <td>تعديل إعدادات النظام (الشعار / الاسم)</td>
+                                    <td>تعديل إعدادات النظام</td>
                                     <td class="text-center text-danger"><i class="fa-solid fa-xmark"></i> لا توجد</td>
                                     <td class="text-center text-success"><i class="fa-solid fa-check"></i> كاملة</td>
                                 </tr>
                                 <tr>
-                                    <td>حذف المستخدمين بشكر نهائي</td>
+                                    <td>حذف المستخدمين نهائياً</td>
                                     <td class="text-center text-danger"><i class="fa-solid fa-xmark"></i> لا توجد</td>
                                     <td class="text-center text-success"><i class="fa-solid fa-check"></i> كاملة</td>
                                 </tr>
                                 <tr>
-                                    <td>مشاهدة سجلات النشاط (Audit Logs)</td>
+                                    <td>مشاهدة سجلات النشاط</td>
                                     <td class="text-center text-danger"><i class="fa-solid fa-xmark"></i> لا توجد</td>
                                     <td class="text-center text-success"><i class="fa-solid fa-check"></i> كاملة</td>
                                 </tr>
@@ -326,25 +346,10 @@
                 </div>
             </div>
 
-            <!-- Legal Documents -->
-            <div class="col-md-6 mb-4">
-                <div class="glass-card p-4 h-100">
-                    <h5 class="fw-bold mb-3"><i class="fa-solid fa-gavel me-2 text-secondary"></i>المستندات القانونية</h5>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">الشروط والأحكام</label>
-                        <textarea @bind="settings.TermsAndConditions" class="form-control rounded-3 px-4" rows="4" placeholder="أدخل نص الشروط والأحكام..."></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">سياسة الخصوصية</label>
-                        <textarea @bind="settings.PrivacyPolicy" class="form-control rounded-3 px-4" rows="4" placeholder="أدخل نص سياسة الخصوصية..."></textarea>
-                    </div>
-                </div>
-            </div>
-
             <!-- Actions -->
             <div class="col-12 text-end mb-5 pb-5">
                 <hr class="my-4 opacity-25" />
-                <button class="btn btn-primary-premium btn-lg px-5 rounded-pill shadow" @onclick="SaveSettings" disabled="@isSaving">
+                <button class="btn btn-primary-premium btn-lg px-5 rounded-pill shadow w-100 w-md-auto" @onclick="SaveSettings" disabled="@isSaving">
                     @if (isSaving) { <span class="spinner-border spinner-border-sm me-2"></span> }
                     <i class="fa-solid fa-save me-2"></i>حفظ جميع التغييرات
                 </button>
@@ -361,28 +366,68 @@
 </div>
 
 <style>
+    .settings-page-wrapper {
+        overflow-x: hidden;
+        max-width: 100%;
+    }
+
+    .setting-toggle-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        background: #f8fafc;
+        border-radius: 12px;
+    }
+
+    .setting-toggle-row > div:first-child {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .form-check.form-switch {
+        padding-left: 0;
+        padding-right: 2.5em;
+    }
+
     @@media (max-width: 767px) {
         .glass-card {
-            padding: 1.25rem 0.75rem !important;
-            margin-bottom: 1rem !important;
+            padding: 1rem 0.75rem !important;
+            margin-bottom: 0.75rem !important;
             border-radius: 12px !important;
         }
+
         .form-control, .btn {
             font-size: 0.85rem !important;
-            padding-top: 0.6rem !important;
-            padding-bottom: 0.6rem !important;
         }
-        .logo-preview-box {
-            width: 70px !important; height: 70px !important;
+
+        h1.fs-4 { font-size: 1.1rem !important; }
+        h5.fs-6 { font-size: 0.95rem !important; }
+
+        .table th, .table td {
+            font-size: 0.75rem !important;
+            padding: 0.4rem 0.5rem !important;
+            white-space: nowrap;
         }
-        h5 { font-size: 1rem !important; margin-bottom: 1rem !important; }
-        label { font-size: 0.75rem !important; margin-bottom: 0.35rem !important; }
-        .row > .col-md-6, .row > .col-md-12 {
-            margin-bottom: 1rem !important;
+
+        .badge {
+            font-size: 0.6rem !important;
+            padding: 2px 5px !important;
         }
-        .px-2 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+
+        .input-group .btn {
+            padding: 0.375rem 0.6rem !important;
+        }
+
+        .w-md-auto { width: 100% !important; }
+    }
+
+    @@media (min-width: 768px) {
+        .w-md-auto { width: auto !important; }
     }
 </style>
+
 
 @code {
     private AppSettingsDto settings = new();

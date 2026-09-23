@@ -65,13 +65,40 @@
     --theme-glow: rgba(191, 90, 242, 0.5);
 }
 
-/* Theme: Royal (Bright Gold/Violet) */
+/* Theme: Royal (Bright Gold / Amber) */
 [data-theme="royal"] {
-    --theme-primary: #f093fb;
-    --theme-secondary: #f5576c;
-    --theme-accent: #fff;
-    --theme-light: rgba(240, 147, 251, 0.15);
-    --theme-glow: rgba(245, 87, 108, 0.5);
+    --theme-primary: #eab308;
+    --theme-secondary: #ca8a04;
+    --theme-accent: #ffffff;
+    --theme-light: rgba(234, 179, 8, 0.15);
+    --theme-glow: rgba(234, 179, 8, 0.5);
+
+    --glass-bg: rgba(255, 255, 255, 0.35);
+    --glass-border: rgba(234, 179, 8, 0.3);
+    --glass-shadow: 0 8px 32px 0 rgba(234, 179, 8, 0.15);
+    --glass-blur: 20px;
+}
+
+/* Royal background */
+body[data-theme="royal"] {
+    background: linear-gradient(135deg, #fffdf0 0%, #fef9c3 35%, #fef08a 70%, #fffbeb 100%) !important;
+    min-height: 100vh;
+}
+
+body[data-theme="royal"]::before {
+    background: radial-gradient(circle, #eab308 0%, transparent 70%) !important;
+    opacity: 0.15 !important;
+}
+
+body[data-theme="royal"]::after {
+    background: radial-gradient(circle, #ca8a04 0%, transparent 70%) !important;
+    opacity: 0.12 !important;
+}
+
+[data-theme="royal"] .glass-card,
+[data-theme="royal"] .service-card {
+    background: rgba(255, 255, 255, 0.65) !important;
+    border-color: rgba(234, 179, 8, 0.25) !important;
 }
 
 /* Theme: Glass (Ultra Clear Frosted Glass over Vibrant Background) */
@@ -1742,3 +1769,67 @@ body[data-theme="glass"]::after {
         height: 36px !important;
     }
 }
+
+/* ===== البند ٨: منع pull-to-refresh داخل النوافذ المنبثقة ===== */
+.modal-overlay,
+.share-modal-overlay,
+.modal {
+    overscroll-behavior: contain !important;
+    overflow-y: auto !important;
+}
+
+.modal-overlay > div,
+.modal-dialog,
+.modal-content,
+.share-modal-overlay > div {
+    max-height: 90vh;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ===== البند ٩: ألوان زجاجية متباينة لكروت الخدمات ===== */
+/* 6 لون glassmorphism دوارة حسب Service.Id % 6 */
+
+.card-variant-0 {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%) !important;
+    border-color: rgba(99, 102, 241, 0.2) !important;
+}
+.card-variant-0 .card-accent-bar { background: linear-gradient(90deg, #6366f1, #a855f7) !important; }
+
+.card-variant-1 {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(6, 182, 212, 0.08) 100%) !important;
+    border-color: rgba(16, 185, 129, 0.2) !important;
+}
+.card-variant-1 .card-accent-bar { background: linear-gradient(90deg, #10b981, #06b6d4) !important; }
+
+.card-variant-2 {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(239, 68, 68, 0.08) 100%) !important;
+    border-color: rgba(245, 158, 11, 0.2) !important;
+}
+.card-variant-2 .card-accent-bar { background: linear-gradient(90deg, #f59e0b, #ef4444) !important; }
+
+.card-variant-3 {
+    background: linear-gradient(135deg, rgba(236, 72, 153, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%) !important;
+    border-color: rgba(236, 72, 153, 0.2) !important;
+}
+.card-variant-3 .card-accent-bar { background: linear-gradient(90deg, #ec4899, #6366f1) !important; }
+
+.card-variant-4 {
+    background: linear-gradient(135deg, rgba(20, 184, 166, 0.08) 0%, rgba(34, 197, 94, 0.08) 100%) !important;
+    border-color: rgba(20, 184, 166, 0.2) !important;
+}
+.card-variant-4 .card-accent-bar { background: linear-gradient(90deg, #14b8a6, #22c55e) !important; }
+
+.card-variant-5 {
+    background: linear-gradient(135deg, rgba(234, 179, 8, 0.08) 0%, rgba(249, 115, 22, 0.08) 100%) !important;
+    border-color: rgba(234, 179, 8, 0.2) !important;
+}
+.card-variant-5 .card-accent-bar { background: linear-gradient(90deg, #eab308, #f97316) !important; }
+
+/* شريط اللون العلوي للكرت */
+.card-accent-bar {
+    height: 3px;
+    border-radius: 8px 8px 0 0;
+    width: 100%;
+}

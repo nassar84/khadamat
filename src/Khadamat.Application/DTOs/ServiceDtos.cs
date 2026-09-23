@@ -38,7 +38,8 @@ public class ServiceDto
     public bool IsActive { get; set; }
     public int ViewsCount { get; set; }
     public string? Notes { get; set; }
-    
+    public bool IsProviderSubscriptionActive { get; set; } = true;
+    public string? ProviderSubscriptionMessage { get; set; }
 
     // Flattened Properties
     public string ProviderName { get; set; } = string.Empty;

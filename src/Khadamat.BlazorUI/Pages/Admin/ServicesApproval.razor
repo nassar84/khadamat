@@ -14,7 +14,7 @@
         <button class="btn btn-outline-primary rounded-pill" @onclick="LoadServices"><i class="fa-solid fa-rotate me-1"></i> تحديث</button>
     </div>
 
-<div class="glass-card table-responsive p-0 overflow-hidden">
+<div class="glass-card table-responsive p-0 overflow-hidden d-none d-md-block">
     <table class="table table-hover align-middle mb-0" style="min-width: 800px;">
         <thead class="bg-light">
             <tr>
@@ -51,7 +51,6 @@
                         <td class="p-3">
                             <div class="d-flex align-items-center gap-3">
                                 <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(service.Images.FirstOrDefault(), service.SubCategoryName, service.CategoryName, service.MainCategoryName, service.SubCategoryImageUrl, service.CategoryImageUrl, service.MainCategoryImageUrl))" 
-                                     onerror="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImageOnError(service.SubCategoryName, service.CategoryName, service.MainCategoryName, service.SubCategoryImageUrl, service.CategoryImageUrl, service.MainCategoryImageUrl, Api.BaseUrl)"
                                      class="rounded-3 object-fit-cover" width="60" height="60" />
                                 <div>
                                     <h6 class="fw-bold mb-1 text-truncate" style="max-width: 250px;">@service.Title</h6>
@@ -100,6 +99,65 @@
             }
         </tbody>
     </table>
+</div>
+
+@* Mobile Cards View *@
+<div class="d-md-none">
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+    }
+    else if (pendingServices == null || !pendingServices.Any())
+    {
+        <div class="glass-card p-4 text-center rounded-4 text-muted">
+            <i class="fa-solid fa-check-double fa-2x mb-2 text-success opacity-50"></i>
+            <div>لا توجد طلبات معلقة حالياً</div>
+        </div>
+    }
+    else
+    {
+        @foreach (var service in pendingServices)
+        {
+            <div class="glass-card p-3 mb-3 border-0 shadow-sm rounded-4">
+                <div class="d-flex align-items-start gap-3 mb-3">
+                    <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(service.Images.FirstOrDefault(), service.SubCategoryName, service.CategoryName, service.MainCategoryName, service.SubCategoryImageUrl, service.CategoryImageUrl, service.MainCategoryImageUrl))"
+                         class="rounded-3 object-fit-cover flex-shrink-0" width="64" height="64" />
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="fw-bold text-dark text-truncate mb-1">@service.Title</div>
+                        <div class="small text-muted text-truncate mb-1">@service.Description</div>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span class="badge bg-light text-dark border" style="font-size:0.7rem;">@service.CategoryName</span>
+                            @if(service.Price.HasValue) {
+                                <span class="badge bg-primary-subtle text-primary" style="font-size:0.7rem;">@service.Price.Value.ToString("N0") ج.م</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                    <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(service.ProviderName, null, service.ProviderPhoto))"
+                         class="rounded-circle flex-shrink-0" width="30" height="30" />
+                    <div class="small">
+                        <span class="fw-bold">@service.ProviderName</span>
+                        @if(!string.IsNullOrEmpty(service.CityName)) { <span class="text-muted"> - @service.CityName</span> }
+                    </div>
+                    <div class="ms-auto x-small text-muted">@service.CreatedAt.ToString("dd/MM")</div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3 flex-grow-1" @onclick="@(() => Navigation.NavigateTo($"/service/{service.Id}"))">
+                        <i class="fa-solid fa-eye me-1"></i> عرض
+                    </button>
+                    <button class="btn btn-sm btn-success rounded-pill px-3 flex-grow-1" @onclick="() => Approve(service)">
+                        <i class="fa-solid fa-check me-1"></i> قبول
+                    </button>
+                    <button class="btn btn-sm btn-danger rounded-pill px-3 flex-grow-1" @onclick="() => Reject(service)">
+                        <i class="fa-solid fa-xmark me-1"></i> رفض
+                    </button>
+                </div>
+            </div>
+        }
+    }
 </div>
 </div>
 

@@ -84,21 +84,70 @@ public class GetServiceHandler : IRequestHandler<Queries.GetServiceQuery, Pagina
             ? await _userService.GetUsersBasicInfoAsync(userIds)
             : new Dictionary<string, (string Name, string Avatar)>();
         
-        // Map City, Governorate, and Provider information for each service
+        // Map City, Governorate, Provider, and Category hierarchy information for each service
         foreach (var dto in dtos)
         {
             var service = pagedItems.FirstOrDefault(s => s.Id == dto.Id);
-            if (service?.City != null)
+            if (service != null)
             {
-                dto.CityName = service.City.City_Name_AR;
-                dto.CityNameEn = service.City.City_Name_EN;
-                dto.GovernorateId = service.City.GovernorateId;
-                
-                if (service.City.Governorate != null)
+                if (service.City != null)
                 {
-                    dto.GovernorateName = service.City.Governorate.Governorate_Name_AR;
-                    dto.GovernorateNameEn = service.City.Governorate.Governorate_Name_EN;
+                    dto.CityName = service.City.City_Name_AR;
+                    dto.CityNameEn = service.City.City_Name_EN;
+                    dto.GovernorateId = service.City.GovernorateId;
+                    
+                    if (service.City.Governorate != null)
+                    {
+                        dto.GovernorateName = service.City.Governorate.Governorate_Name_AR;
+                        dto.GovernorateNameEn = service.City.Governorate.Governorate_Name_EN;
+                    }
                 }
+
+                // Explicitly map Category & SubCategory hierarchy and image URLs
+                if (service.SubCategory != null)
+                {
+                    dto.SubCategoryId = service.SubCategoryId;
+                    dto.SubCategoryName = service.SubCategory.Name;
+                    dto.SubCategoryImageUrl = service.SubCategory.ImageUrl;
+
+                    if (service.SubCategory.Category != null)
+                    {
+                        dto.CategoryId = service.SubCategory.CategoryId;
+                        dto.CategoryName = service.SubCategory.Category.Name;
+                        dto.CategoryImageUrl = service.SubCategory.Category.ImageUrl;
+
+                        if (service.SubCategory.Category.MainCategory != null)
+                        {
+                            dto.MainCategoryId = service.SubCategory.Category.MainCategoryId;
+                            dto.MainCategoryName = service.SubCategory.Category.MainCategory.Name;
+                            dto.MainCategoryImageUrl = service.SubCategory.Category.MainCategory.ImageUrl;
+                        }
+                    }
+                }
+                else if (service.Category != null)
+                {
+                    dto.CategoryId = service.CategoryId;
+                    dto.CategoryName = service.Category.Name;
+                    dto.CategoryImageUrl = service.Category.ImageUrl;
+
+                    if (service.Category.MainCategory != null)
+                    {
+                        dto.MainCategoryId = service.Category.MainCategoryId;
+                        dto.MainCategoryName = service.Category.MainCategory.Name;
+                        dto.MainCategoryImageUrl = service.Category.MainCategory.ImageUrl;
+                    }
+                }
+            }
+
+            if (service != null && providersDict.TryGetValue(service.ProviderProfileId, out var provider))
+            {
+                userDict.TryGetValue(provider.UserId, out var userInfo);
+                string actualUserName = !string.IsNullOrWhiteSpace(userInfo.Name) ? userInfo.Name : "مقدم خدمة";
+                
+                dto.ProviderName = !string.IsNullOrWhiteSpace(provider.BusinessName)
+                    ? provider.BusinessName
+                    : actualUserName;
+                dto.ProviderPhoto = provider.Photo;
             }
 
             if (service != null && providersDict.TryGetValue(service.ProviderProfileId, out var provider))

@@ -35,7 +35,8 @@ namespace Khadamat.MobileApp.Views
         {
             try
             {
-                var apiBaseUrl = _configuration["ApiSettings:BaseUrl"]?.TrimEnd('/');
+                var configuredUrl = _configuration["ApiSettings:BaseUrl"] ?? "https://khadamawy.eis-dev.com";
+                var apiBaseUrl = Preferences.Default.Get("ApiBaseUrl", configuredUrl).TrimEnd('/');
                 if (string.IsNullOrEmpty(apiBaseUrl)) return;
 
                 var callbackUrl = "khadamat://callback";
@@ -43,7 +44,20 @@ namespace Khadamat.MobileApp.Views
 
                 var result = await _externalAuth.AuthenticateAsync(provider, authUrl, "khadamat");
                 
-                if (result != null && !string.IsNullOrEmpty(result.Token))
+                if (result == null)
+                {
+                    // User cancelled
+                    return;
+                }
+
+                if (!string.IsNullOrEmpty(result.Error))
+                {
+                    Console.WriteLine($"ANTIGRAVITY_LOG: Social Login Error from provider: {result.Error}");
+                    await DisplayAlert("خطأ في تسجيل الدخول", $"فشل تسجيل الدخول: {result.Error}", "تم");
+                    return;
+                }
+
+                if (!string.IsNullOrEmpty(result.Token))
                 {
                     // Success! Update Shell and transition
                     if (_shell.BindingContext is ViewModels.ShellViewModel vm)
@@ -55,6 +69,7 @@ namespace Khadamat.MobileApp.Views
 
                         // Trigger state update in UI
                         vm.SetAuthenticated(true);
+                        _ = vm.RefreshUserProfileAsync();
                         
                         if (MauiApp.Current != null)
                         {
@@ -63,11 +78,19 @@ namespace Khadamat.MobileApp.Views
                         }
                     }
                 }
+                else
+                {
+                    await DisplayAlert("خطأ", "لم يتم استلام بيانات تسجيل الدخول. يرجى المحاولة مرة أخرى.", "تم");
+                }
+            }
+            catch (TaskCanceledException)
+            {
+                // User cancelled the browser
             }
             catch (Exception ex)
             {
                  Console.WriteLine($"ANTIGRAVITY_LOG: Social Login Error: {ex.Message}");
-                 await DisplayAlert("خطأ", "فشل تسجيل الدخول الاجتماعي. يرجى المحاولة مرة أخرى.", "تم");
+                 await DisplayAlert("خطأ", $"فشل تسجيل الدخول: {ex.Message}", "تم");
             }
         }
 

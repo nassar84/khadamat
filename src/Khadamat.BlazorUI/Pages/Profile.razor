@@ -30,7 +30,7 @@
                 <div class="hero-cover"></div>
                 <div class="hero-content p-4 d-flex align-items-end">
                     <div class="avatar-large-wrapper">
-                        <img src="@Api.GetAbsoluteUrl(string.IsNullOrEmpty(model.ProfileImageUrl) ? AppState.UserImageUrl : model.ProfileImageUrl)" class="avatar-large" />
+                        <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.ImagePathResolver.User(string.IsNullOrEmpty(model.ProfileImageUrl) ? AppState.UserImageUrl : model.ProfileImageUrl))" class="avatar-large" />
                         <div class="avatar-edit-badge">
                             <InputFile id="profilePicInput" OnChange="HandleFileSelected" style="display:none" accept="image/*" />
                             <label for="profilePicInput" class="cursor-pointer mb-0">
@@ -90,15 +90,81 @@
                              <button class="btn btn-outline-primary rounded-pill btn-sm" @onclick='() => Navigation.NavigateTo("/user/messages")'>
                                 <i class="fa-solid fa-envelope me-2"></i>الرسائل
                             </button>
+                            @if (!profile.IsProvider)
+                            {
+                                <button class="btn btn-primary-premium rounded-pill btn-sm mt-2 fw-bold" @onclick='() => Navigation.NavigateTo("/provider/create-request")'>
+                                    <i class="fa-solid fa-briefcase me-2"></i>اعرض خدماتك (كمقدم خدمة)
+                                </button>
+                            }
+
+                            <hr class="my-2 opacity-25" />
+
+                            <!-- زر تسجيل الخروج -->
+                            <button class="btn btn-outline-danger rounded-pill btn-sm fw-bold" @onclick="HandleLogout">
+                                <i class="fa-solid fa-power-off me-2"></i>تسجيل الخروج
+                            </button>
+
+                             <button class="btn btn-outline-danger rounded-pill btn-sm opacity-75" style="font-size:0.75rem;" @onclick='() => Navigation.NavigateTo("/delete-account")'>
+                                <i class="fa-solid fa-user-xmark me-2"></i>حذف الحساب
+                            </button>
                         </div>
                         
                         @if (profile.IsProvider)
                         {
-                            <div class="mt-4 pt-4 border-top">
+                            <!-- Provider Subscription Card -->
+                            <div class="mt-4 pt-3 border-top">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="fw-bold mb-0">
+                                        <i class="fa-solid fa-crown text-warning me-1"></i> اشتراك مقدم الخدمة
+                                    </h6>
+                                    @if (providerSubscription != null && providerSubscription.IsActive && providerSubscription.DaysRemainingCount > 0)
+                                    {
+                                        <span class="badge bg-success rounded-pill px-2 py-1" style="font-size: 0.7rem;">نشط</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger rounded-pill px-2 py-1" style="font-size: 0.7rem;">منتهي</span>
+                                    }
+                                </div>
+                                <div class="p-3 rounded-4 border" style="background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="small text-muted">الباقة الحالية:</span>
+                                        <span class="fw-bold text-primary">@(providerSubscription?.PlanName ?? "الخطة المجانية")</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2 small text-muted">
+                                        <span>تاريخ البداية:</span>
+                                        <span class="fw-bold text-dark font-monospace">@(providerSubscription?.StartDate.ToString("yyyy/MM/dd") ?? "ساري")</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2 small text-muted">
+                                        <span>تاريخ الانتهاء:</span>
+                                        <span class="fw-bold text-dark font-monospace">@(providerSubscription?.EndDate.ToString("yyyy/MM/dd") ?? "ساري")</span>
+                                    </div>
+                                    @if (providerSubscription != null)
+                                    {
+                                        <div class="mt-2 pt-2 border-top">
+                                            <div class="d-flex justify-content-between small mb-1">
+                                                <span class="text-muted">المتبقي:</span>
+                                                <span class="fw-bold @(providerSubscription.DaysRemainingCount > 7 ? "text-success" : "text-danger")">
+                                                    @(Math.Max(0, providerSubscription.DaysRemainingCount)) يوم
+                                                </span>
+                                            </div>
+                                            <div class="progress" style="height: 6px; border-radius: 4px;">
+                                                <div class="progress-bar @(providerSubscription.DaysRemainingCount > 7 ? "bg-success" : "bg-danger")" 
+                                                     role="progressbar" 
+                                                     style="width: @(Math.Min(100, Math.Max(5, (providerSubscription.DaysRemainingCount * 100) / 90)))%">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-3 border-top">
                                 <h6 class="fw-bold mb-3">إحصائيات العمل</h6>
                                 <div class="row g-2 text-center">
                                     <div class="col-6">
                                         <div class="bg-light p-3 rounded-4">
+                                            <div class="fs-4 fw-bold text-primary">@userServices.Count</div>
                                             <div class="x-small text-muted">خدماتي</div>
                                         </div>
                                     </div>
@@ -116,6 +182,23 @@
 
                 <!-- Main Content (Unified Form) -->
                 <div class="col-lg-8">
+                    @if (!profile.IsProvider)
+                    {
+                        <div class="glass-card p-4 mb-4 rounded-4 shadow-sm border-0 text-white cursor-pointer animate-up"
+                             style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);"
+                             @onclick='() => Navigation.NavigateTo("/provider/create-request")'>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <h5 class="fw-bold mb-1">صنايعي أو مهني؟ اعرض خدماتك الآن</h5>
+                                    <p class="small opacity-90 mb-3">سجل خدماتك أو نشاطك التجاري وابدأ في استقبال طلبات العملاء مجاناً</p>
+                                    <span class="btn btn-sm btn-light text-primary rounded-pill px-4 fw-bold">اعرض خدماتك ←</span>
+                                </div>
+                                <div class="bg-white bg-opacity-20 rounded-circle p-3 d-flex align-items-center justify-content-center flex-shrink-0 ms-3" style="width: 60px; height: 60px;">
+                                    <i class="fa-solid fa-briefcase fs-2 text-white"></i>
+                                </div>
+                            </div>
+                        </div>
+                    }
                     <EditForm Model="@model" OnValidSubmit="HandleProfileSave">
                         <DataAnnotationsValidator />
                         
@@ -225,9 +308,7 @@
                                     <div class="col-md-6">
                                         <div class="service-item-compact p-3 rounded-4 border bg-white cursor-pointer" @onclick='() => Navigation.NavigateTo($"/service/{s.Id}")'>
                                             <div class="d-flex align-items-center">
-                                                <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(s.Images?.FirstOrDefault(), s.SubCategoryName, s.CategoryName, s.MainCategoryName, s.SubCategoryImageUrl, s.CategoryImageUrl, s.MainCategoryImageUrl))" 
-                                                     onerror="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImageOnError(s.SubCategoryName, s.CategoryName, s.MainCategoryName, s.SubCategoryImageUrl, s.CategoryImageUrl, s.MainCategoryImageUrl, Api.BaseUrl)"
-                                                     class="rounded-3 me-3" width="60" height="60" style="object-fit: cover;" />
+                                                <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(s.Images?.FirstOrDefault(), s.SubCategoryName, s.CategoryName, s.MainCategoryName, s.SubCategoryImageUrl, s.CategoryImageUrl, s.MainCategoryImageUrl))" class="rounded-3 me-3" width="60" height="60" style="object-fit: cover;" />
                                                 <div class="flex-grow-1 min-w-0">
                                                     <h6 class="fw-bold mb-1 text-truncate">@s.Title</h6>
                                                     <div class="d-flex justify-content-between align-items-center">
@@ -288,6 +369,21 @@
                                 <p class="small mb-0">لم تقم بعرض أي سلع للبيع بعد</p>
                             </div>
                         }
+                    </div>
+
+                    <!-- Danger Zone / Delete Account (Google Play Requirement) -->
+                    <div class="glass-card p-4 mt-4 border border-danger border-opacity-25 rounded-4 shadow-sm animate-up bg-danger bg-opacity-10">
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                            <div>
+                                <h6 class="fw-bold text-danger mb-1">
+                                    <i class="fa-solid fa-triangle-exclamation me-2"></i>منطقة الخطر: حذف الحساب
+                                </h6>
+                                <p class="text-muted small mb-0">حذف حسابك نهائياً وجميع بياناتك وخدماتك المسجلة على المنصة وفقاً لسياسة الخصوصية.</p>
+                            </div>
+                            <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-4 fw-bold text-nowrap" @onclick='() => Navigation.NavigateTo("/delete-account")'>
+                                <i class="fa-solid fa-user-xmark me-1"></i>حذف الحساب نهائياً
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -407,6 +503,7 @@
     private List<GovernorateDto> governorates = new();
     private List<CityDto> cities = new();
     private int selectedGovernorateId;
+    private ProviderSubscriptionDto? providerSubscription;
     
     private bool isLoading = true;
     private bool isSaving = false;
@@ -439,7 +536,7 @@
                 model.FullName = profile.FullName;
                 model.PhoneNumber = profile.PhoneNumber ?? "";
                 model.CityId = profile.CityId ?? 0;
-                model.ProfileImageUrl = profile.ImageUrl;
+                model.ProfileImageUrl = Khadamat.BlazorUI.Helpers.ImagePathResolver.User(profile.ImageUrl);
                 model.Bio = profile.Bio;
                 model.WebsiteUrl = profile.WebsiteUrl;
                 model.FacebookUrl = profile.FacebookUrl;
@@ -461,6 +558,18 @@
                 if (selectedGovernorateId > 0)
                 {
                     cities = await Api.GetCitiesAsync(selectedGovernorateId);
+                }
+
+                if (profile.IsProvider)
+                {
+                    try
+                    {
+                        providerSubscription = await Api.GetMySubscriptionAsync();
+                    }
+                    catch (Exception subEx)
+                    {
+                        Console.WriteLine($"Error loading subscription: {subEx.Message}");
+                    }
                 }
             }
         }
@@ -494,8 +603,9 @@
             var format = "image/jpeg";
             var resizedImage = await file.RequestImageFileAsync(format, 400, 400);
             var buffer = new byte[resizedImage.Size];
-            await resizedImage.OpenReadStream().ReadAsync(buffer);
+            await resizedImage.OpenReadStream(10 * 1024 * 1024).ReadAsync(buffer);
             model.ProfileImageUrl = $"data:{format};base64,{Convert.ToBase64String(buffer)}";
+            StateHasChanged();
         }
     }
 
@@ -514,10 +624,22 @@
                 // Sync State
                 AppState.UserName = model.FullName;
                 AppState.PhoneNumber = model.PhoneNumber;
-                if (!string.IsNullOrEmpty(model.ProfileImageUrl)) AppState.UserImageUrl = model.ProfileImageUrl;
 
-                // Refresh actual profile data
-                 _ = AuthService.GetProfileAsync();
+                // Refresh profile data and update UI image immediately with cache-busting
+                var updatedProfile = await AuthService.GetProfileAsync();
+                if (updatedProfile?.Success == true && updatedProfile.Data != null)
+                {
+                    profile = updatedProfile.Data;
+                    var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                    var resolved = Khadamat.BlazorUI.Helpers.ImagePathResolver.User(profile.ImageUrl);
+                    var newImg = !string.IsNullOrEmpty(profile.ImageUrl) 
+                        ? (resolved.Contains("?") ? $"{resolved}&t={timestamp}" : $"{resolved}?t={timestamp}")
+                        : model.ProfileImageUrl;
+                        
+                    model.ProfileImageUrl = newImg;
+                    AppState.UserImageUrl = newImg;
+                }
+                StateHasChanged();
             }
             else
             {
@@ -535,5 +657,11 @@
         {
             isSaving = false;
         }
+    }
+
+    private async Task HandleLogout()
+    {
+        await AuthService.Logout();
+        Navigation.NavigateTo("/login", forceLoad: true);
     }
 }

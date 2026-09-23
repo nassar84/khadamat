@@ -48,7 +48,7 @@
         queryDict.TryGetValue("token", out var token);
         queryDict.TryGetValue("refreshToken", out var refreshToken);
 
-        if (!string.IsNullOrEmpty(token) && !string.IsNullOrEmpty(refreshToken))
+        if (!string.IsNullOrEmpty(token))
         {
             try
             {

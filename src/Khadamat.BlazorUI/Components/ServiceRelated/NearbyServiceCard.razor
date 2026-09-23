@@ -5,7 +5,7 @@
 <div class="nearby-card" @onclick="OnClickInternal">
     <div class="nearby-image-wrapper">
         <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(Service.Images?.FirstOrDefault(), Service.SubCategoryName, Service.CategoryName, Service.MainCategoryName, Service.SubCategoryImageUrl, Service.CategoryImageUrl, Service.MainCategoryImageUrl))" 
-             onerror="@Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImageOnError(Service.SubCategoryName, Service.CategoryName, Service.MainCategoryName, Service.SubCategoryImageUrl, Service.CategoryImageUrl, Service.MainCategoryImageUrl, Api.BaseUrl)"
+             onerror="this.onerror=null;this.src='/images/placeholders/default_service.png';"
              alt="@Service.Title" 
              class="nearby-image">
     </div>
@@ -58,7 +58,9 @@
     .nearby-image {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
+        padding: 4px;
+        background: #f8fafc;
     }
 
     .nearby-info {

@@ -18,4 +18,5 @@ public class ServiceRequest : BaseEntity
     // Navigation Properties
     public virtual Service Service { get; set; } = null!;
     public virtual ProviderProfile Provider { get; set; } = null!;
+    public virtual Rating? Rating { get; set; }
 }

@@ -4,69 +4,138 @@
 @using Khadamat.BlazorUI.Components.Ads
 @inject ApiClient Api
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
-<div class="px-3 pt-3">
-    <!-- Header -->
-    <div class="d-flex align-items-center mb-4">
-        <button class="btn btn-icon me-3" @onclick='() => Navigation.NavigateTo("/")'>
-            <i class="fa-solid fa-arrow-right"></i>
-        </button>
-        <h3 class="fw-bold mb-0 gradient-text">البحث</h3>
-    </div>
+<div class="search-page-wrapper">
 
-    <!-- Search Bar -->
-    <div class="mb-4">
-        <SearchBar OnSearch="HandleSearch" />
-    </div>
-
-    @if (string.IsNullOrWhiteSpace(currentQuery))
-    {
-        <div class="recent-searches mb-4 animate-up">
-            <h6 class="fw-bold mb-3">عمليات البحث الأخيرة</h6>
-            <div class="d-flex flex-wrap gap-2">
-                @foreach (var s in recentSearches)
+    <!-- ═══ Sticky Search Header ═══ -->
+    <div class="search-sticky-header">
+        <div class="search-header-inner px-3 py-2">
+            <button class="search-back-btn" @onclick="GoBack">
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+            <div class="search-live-input-wrap @(isSearchFocused ? "focused" : "")">
+                <i class="fa-solid fa-magnifying-glass search-live-icon"></i>
+                <input @ref="searchInputRef"
+                       type="search"
+                       class="search-live-input"
+                       placeholder="ابحث عن خدمة أو مهني..."
+                       @bind="currentQuery"
+                       @bind:event="oninput"
+                       @onkeydown="HandleKeyDown"
+                       @onfocus="OnSearchFocus"
+                       @onblur="OnSearchBlur"
+                       autocomplete="off"
+                       enterkeyhint="search" />
+                @if (!string.IsNullOrWhiteSpace(currentQuery))
                 {
-                    <span class="badge bg-light text-dark rounded-pill p-2 px-3 border-hover" @onclick="() => HandleSearch(s)">
-                        @s
-                    </span>
+                    <button class="search-clear-btn" @onclick="ClearSearch">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
                 }
             </div>
-        </div>
-
-        <div class="search-suggestions animate-up" style="animation-delay: 0.1s;">
-            <h6 class="fw-bold mb-3">مقترحات لك</h6>
-            <div class="glass-container rounded-4 overflow-hidden border">
-                <div class="p-3 border-bottom list-item-hover" @onclick='() => HandleSearch("تمريض منزلي")'>
-                    <div class="d-flex align-items-center">
-                        <i class="fa-solid fa-arrow-trend-up text-primary me-3"></i>
-                        <span>الأكثر بحثاً: تمريض منزلي</span>
-                    </div>
-                </div>
-                <div class="p-3 list-item-hover" @onclick='() => HandleSearch("تنظيف مكيفات")'>
-                    <div class="d-flex align-items-center">
-                        <i class="fa-solid fa-arrow-trend-up text-primary me-3"></i>
-                        <span>الأكثر بحثاً: تنظيف مكيفات</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-    else
-    {
-        <div class="search-results">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="fw-bold mb-0">نتائج البحث عن: <span class="text-primary text-decoration-underline">@currentQuery</span></h6>
-                <button class="btn btn-sm btn-light text-muted" @onclick="ClearSearch">مسح البحث</button>
-            </div>
-
-            @if (results != null)
+            @if (!string.IsNullOrWhiteSpace(currentQuery))
             {
-                @if (!results.Any())
+                <button class="search-do-btn" @onclick="DoSearch">بحث</button>
+            }
+        </div>
+    </div>
+
+    <!-- ═══ Content ═══ -->
+    <div class="search-page-content px-3 pt-2">
+
+        @if (!hasSearched || string.IsNullOrWhiteSpace(currentQuery))
+        {
+            <!-- Quick Suggestions -->
+            @if (recentSearches.Any())
+            {
+                <div class="search-section animate-up mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0 d-flex align-items-center gap-2">
+                            <span class="section-icon"><i class="fa-solid fa-clock-rotate-left"></i></span>
+                            عمليات البحث الأخيرة
+                        </h6>
+                        <button class="btn-clear-all" @onclick="() => recentSearches.Clear()">مسح الكل</button>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var s in recentSearches)
+                        {
+                            <span class="search-chip recent" @onclick="() => RunSearch(s)">
+                                <i class="fa-solid fa-clock-rotate-left chip-icon"></i>
+                                @s
+                            </span>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Trending -->
+            <div class="search-section animate-up mb-4" style="animation-delay: 0.05s;">
+                <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                    <span class="section-icon trending"><i class="fa-solid fa-fire-flame-curved"></i></span>
+                    الأكثر بحثاً الآن
+                </h6>
+                <div class="trending-list">
+                    @foreach (var (term, index) in trendingSearches.Select((t, i) => (t, i + 1)))
+                    {
+                        <div class="trending-item" @onclick="() => RunSearch(term)">
+                            <span class="trending-rank @(index <= 3 ? "top" : "")">@index</span>
+                            <span class="trending-term">@term</span>
+                            <i class="fa-solid fa-arrow-trend-up trending-arrow"></i>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Popular categories quick jump -->
+            <div class="search-section animate-up" style="animation-delay: 0.1s;">
+                <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                    <span class="section-icon"><i class="fa-solid fa-grid-2"></i></span>
+                    تصفح التصنيفات
+                </h6>
+                <div class="quick-cats">
+                    @foreach (var (label, icon, query) in quickCategories)
+                    {
+                        <div class="quick-cat-item" @onclick="() => RunSearch(query)">
+                            <div class="quick-cat-icon">@icon</div>
+                            <span>@label</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- ═══ Results ═══ -->
+            <div class="search-results-section">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h6 class="fw-bold mb-0">نتائج: <span class="text-primary">"@searchedQuery"</span></h6>
+                        @if (results != null)
+                        {
+                            <small class="text-muted">@results.Count نتيجة</small>
+                        }
+                    </div>
+                </div>
+
+                @if (results == null)
                 {
-                    <div class="text-center py-5 opacity-50 bg-light rounded-4">
-                        <i class="fa-solid fa-face-frown fs-1 mb-3"></i>
-                        <p>عذراً، لم نجد نتائج لـ "@currentQuery"</p>
-                        <button class="btn btn-primary rounded-pill mt-2" @onclick="ClearSearch">جرب بحثاً آخر</button>
+                    <div class="row g-3">
+                        <Khadamat.BlazorUI.Shared.SkeletonLoader Type="card" Count="4" />
+                    </div>
+                }
+                else if (!results.Any())
+                {
+                    <div class="no-results-card text-center py-5 animate-up">
+                        <div class="no-results-icon mb-3">🔍</div>
+                        <h5 class="fw-bold">لا توجد نتائج</h5>
+                        <p class="text-muted small mb-4">لم نجد خدمات مطابقة لـ "@searchedQuery"</p>
+                        <div class="d-flex flex-wrap justify-content-center gap-2 mb-3">
+                            @foreach (var s in trendingSearches.Take(3))
+                            {
+                                <span class="search-chip" @onclick="() => RunSearch(s)">@s</span>
+                            }
+                        </div>
                     </div>
                 }
                 else
@@ -90,33 +159,291 @@
                         }
                     </div>
                 }
-            }
-            else
-            {
-                <div class="row g-3">
-                    <Khadamat.BlazorUI.Shared.SkeletonLoader Type="card" Count="4" />
-                </div>
-            }
-        </div>
-    }
+            </div>
+        }
+    </div>
 </div>
 
 <style>
-    .border-hover {
+    .search-page-wrapper {
+        display: flex;
+        flex-direction: column;
+        min-height: 100%;
+        background: linear-gradient(160deg, #f8f7ff 0%, #f0f4ff 100%);
+    }
+
+    /* ── Sticky search header ── */
+    .search-sticky-header {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(248, 247, 255, 0.92);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+        padding-bottom: 2px;
+    }
+
+    .search-header-inner {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        direction: rtl;
+    }
+
+    .search-back-btn {
+        width: 38px;
+        height: 38px;
+        border: none;
+        background: rgba(99, 102, 241, 0.08);
+        border-radius: 12px;
+        color: var(--theme-primary, #6366f1);
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all 0.2s;
     }
-    .border-hover:hover {
-        border-color: var(--primary) !important;
-        color: var(--primary) !important;
-        background: rgba(99, 102, 241, 0.05) !important;
+
+    .search-back-btn:active { transform: scale(0.92); }
+
+    .search-live-input-wrap {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        border: 1.5px solid rgba(99, 102, 241, 0.2);
+        border-radius: 14px;
+        padding: 8px 12px;
+        transition: all 0.25s ease;
+        direction: rtl;
     }
-    .list-item-hover {
+
+    .search-live-input-wrap.focused {
+        border-color: var(--theme-primary, #6366f1);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+    }
+
+    .search-live-icon {
+        color: var(--theme-primary, #6366f1);
+        font-size: 0.95rem;
+        flex-shrink: 0;
+    }
+
+    .search-live-input {
+        border: none;
+        outline: none;
+        background: transparent;
+        flex: 1;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #1e293b;
+        direction: rtl;
+        text-align: right;
+        min-width: 0;
+    }
+
+    .search-live-input::placeholder { color: #94a3b8; }
+    .search-live-input::-webkit-search-cancel-button { display: none; }
+
+    .search-clear-btn {
+        border: none;
+        background: rgba(0,0,0,0.08);
+        color: #64748b;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
         cursor: pointer;
-        transition: background 0.2s;
+        flex-shrink: 0;
+        transition: all 0.2s;
     }
-    .list-item-hover:hover {
-        background: rgba(0,0,0,0.02);
+
+    .search-do-btn {
+        background: linear-gradient(135deg, var(--theme-primary, #6366f1), var(--theme-secondary, #a855f7));
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 9px 16px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: all 0.2s;
+        box-shadow: 0 3px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .search-do-btn:active { transform: scale(0.95); }
+
+    /* ── Sections ── */
+    .search-section { }
+
+    .section-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: rgba(99, 102, 241, 0.1);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        color: var(--theme-primary, #6366f1);
+    }
+
+    .section-icon.trending {
+        background: rgba(251, 113, 33, 0.1);
+        color: #f97316;
+    }
+
+    .btn-clear-all {
+        background: none;
+        border: none;
+        color: #94a3b8;
+        font-size: 0.8rem;
+        cursor: pointer;
+        padding: 0;
+    }
+
+    /* ── Search chips ── */
+    .search-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: white;
+        border: 1px solid rgba(99, 102, 241, 0.15);
+        border-radius: 50px;
+        padding: 7px 14px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #374151;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .search-chip:active, .search-chip:hover {
+        background: var(--theme-primary, #6366f1);
+        color: white;
+        border-color: var(--theme-primary, #6366f1);
+        transform: scale(0.97);
+    }
+
+    .chip-icon { font-size: 0.7rem; opacity: 0.6; }
+
+    /* ── Trending list ── */
+    .trending-list {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+
+    .trending-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 13px 16px;
+        cursor: pointer;
+        transition: background 0.15s;
+        direction: rtl;
+        border-bottom: 1px solid rgba(0,0,0,0.04);
+    }
+
+    .trending-item:last-child { border-bottom: none; }
+    .trending-item:active { background: rgba(99, 102, 241, 0.05); }
+
+    .trending-rank {
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        background: rgba(0,0,0,0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: #64748b;
+        flex-shrink: 0;
+    }
+
+    .trending-rank.top {
+        background: linear-gradient(135deg, #f97316, #ef4444);
+        color: white;
+        box-shadow: 0 2px 8px rgba(249, 115, 22, 0.35);
+    }
+
+    .trending-term {
+        flex: 1;
+        font-size: 0.92rem;
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .trending-arrow {
+        color: #22c55e;
+        font-size: 0.75rem;
+        opacity: 0.7;
+    }
+
+    /* ── Quick categories ── */
+    .quick-cats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+    }
+
+    .quick-cat-item {
+        background: white;
+        border-radius: 14px;
+        padding: 12px 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        transition: all 0.2s;
+        text-align: center;
+    }
+
+    .quick-cat-item:active {
+        transform: scale(0.95);
+        background: rgba(99, 102, 241, 0.05);
+    }
+
+    .quick-cat-icon { font-size: 1.5rem; }
+
+    .quick-cat-item span {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #374151;
+        line-height: 1.2;
+    }
+
+    /* ── No results ── */
+    .no-results-card {
+        background: white;
+        border-radius: 20px;
+        border: 1px solid rgba(0,0,0,0.05);
+        padding: 40px 20px;
+    }
+
+    .no-results-icon { font-size: 3.5rem; }
+
+    /* ── Animations ── */
+    .animate-up { animation: slideUp 0.3s ease-out; }
+    @@keyframes slideUp {
+        from { opacity: 0; transform: translateY(12px); }
+        to   { opacity: 1; transform: translateY(0); }
     }
 </style>
 
@@ -124,43 +451,92 @@
 
 @code {
     private string? currentQuery;
+    private string? searchedQuery;
     private List<ServiceDto>? results;
     private List<EnhancedAdDto>? searchAds;
-    private List<string> recentSearches = new() { "سباكة", "كهربائي الرياض", "تصميم شعار" };
+    private bool hasSearched = false;
+    private bool isSearchFocused = false;
+    private ElementReference searchInputRef;
+
+    private List<string> recentSearches = new() { "سباكة", "كهربائي", "تصميم شعار" };
+
+    private List<string> trendingSearches = new()
+    {
+        "تمريض منزلي", "تنظيف مكيفات", "سباك", "كهربائي",
+        "نجار", "دهانات", "نقل عفش", "شبكات"
+    };
+
+    private List<(string Label, string Icon, string Query)> quickCategories = new()
+    {
+        ("سباكة",      "🔧", "سباك"),
+        ("كهرباء",     "⚡", "كهربائي"),
+        ("تنظيف",      "🧹", "تنظيف"),
+        ("نجارة",      "🪚", "نجار"),
+        ("دهانات",     "🎨", "دهان"),
+        ("تمريض",      "💊", "تمريض"),
+        ("نقل عفش",    "🚚", "نقل عفش"),
+        ("تصميم",      "💻", "تصميم"),
+    };
 
     [Parameter]
     [SupplyParameterFromQuery(Name = "q")]
     public string? QueryFromUrl { get; set; }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try { await searchInputRef.FocusAsync(); } catch { }
+        }
+    }
+
     protected override async Task OnParametersSetAsync()
     {
         if (!string.IsNullOrEmpty(QueryFromUrl))
         {
-            await HandleSearch(QueryFromUrl);
+            currentQuery = QueryFromUrl;
+            await DoSearch();
         }
     }
 
-    private async Task HandleSearch(string term)
+    private void OnSearchFocus() => isSearchFocused = true;
+    private void OnSearchBlur()  => isSearchFocused = false;
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(term)) return;
-        
-        _ = SoundService.PlayFindServiceAsync();
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(currentQuery))
+        {
+            await DoSearch();
+        }
+    }
+
+    private async Task RunSearch(string term)
+    {
         currentQuery = term;
+        await DoSearch();
+    }
+
+    private async Task DoSearch()
+    {
+        if (string.IsNullOrWhiteSpace(currentQuery)) return;
+
+        _ = SoundService.PlayFindServiceAsync();
+
+        searchedQuery = currentQuery;
+        hasSearched = true;
         results = null;
 
-        if (!recentSearches.Contains(term))
+        if (!recentSearches.Contains(currentQuery))
         {
-            recentSearches.Insert(0, term);
+            recentSearches.Insert(0, currentQuery);
             if (recentSearches.Count > 5) recentSearches.RemoveAt(5);
         }
 
         try
         {
-            var searchResultTask = Api.GetServicesAsync(search: term);
+            var searchResultTask = Api.GetServicesAsync(search: currentQuery);
             var searchAdsTask = Api.GetSearchAdsAsync();
-
             await Task.WhenAll(searchResultTask, searchAdsTask);
-
             results = searchResultTask.Result.Items;
             searchAds = searchAdsTask.Result;
         }
@@ -169,17 +545,23 @@
             Console.WriteLine($"Search error: {ex.Message}");
             results = new();
         }
+
+        await InvokeAsync(StateHasChanged);
     }
 
     private void ClearSearch()
     {
         currentQuery = null;
+        searchedQuery = null;
         results = null;
-        Navigation.NavigateTo("/search");
+        hasSearched = false;
     }
+
+    private void GoBack() => Navigation.NavigateTo("/");
 
     private void OnServiceSelected(ServiceDto service)
     {
         Navigation.NavigateTo($"/service/{service.Id}");
     }
 }
+

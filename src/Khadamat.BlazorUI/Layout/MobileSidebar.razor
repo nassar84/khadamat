@@ -24,6 +24,20 @@
                     </div>
                 </div>
 
+                <div class="px-3 pt-3 pb-1">
+                    <div class="p-3 rounded-4 shadow-sm text-white d-flex align-items-center justify-content-between cursor-pointer"
+                         style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);"
+                         @onclick='() => NavigateTo("/provider/create-request")'>
+                        <div>
+                            <div class="fw-bold mb-1" style="font-size: 0.95rem;">صنايعي أو صاحب مهنة؟</div>
+                            <div class="opacity-90 mb-2" style="font-size: 0.75rem;">اعرض خدماتك الآن وزود دخلك معانا</div>
+                            <span class="badge bg-white text-primary rounded-pill px-3 py-1 fw-bold">اعرض خدماتك ←</span>
+                        </div>
+                        <div class="bg-white bg-opacity-20 rounded-circle p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
+                            <i class="fa-solid fa-briefcase fs-5 text-white"></i>
+                        </div>
+                    </div>
+                </div>
                 <div class="menu-sections-wrapper">
                     <div class="menu-section">
                         <h6 class="section-title">القائمة الرئيسية</h6>
@@ -31,15 +45,13 @@
                                 <i class="fa-solid fa-house"></i>
                                 <span>الرئيسية</span>
                             </div>
-                            <div class="menu-item @GetActiveClass("feed")" @onclick='() => NavigateTo("/feed")'>
-                                <i class="fa-regular fa-newspaper text-info"></i>
-                                <span>آخر التحديثات</span>
+                            <div class="menu-item @GetActiveClass("services")" @onclick='() => NavigateTo("/services")'>
+                                <i class="fa-solid fa-briefcase text-primary"></i>
+                                <span>استكشاف الخدمات</span>
                             </div>
-                            <h6 class="section-title">التصنيفات</h6>
-                            <div class="menu-item @GetActiveClass("marketplace")" @onclick='() => NavigateTo("/marketplace")'>
-                                <i class="fa-solid fa-store text-primary"></i>
-                                <span>المتجر</span>
-                                <span class="premium-badge-mini">مميز</span>
+                            <div class="menu-item @GetActiveClass("categories")" @onclick='() => NavigateTo("/categories")'>
+                                <i class="fa-solid fa-th-large text-info"></i>
+                                <span>الأقسام والتصنيفات</span>
                             </div>
                             <div class="menu-item" @onclick="RefreshApp">
                                 <i class="fa-solid fa-rotate"></i>
@@ -50,6 +62,10 @@
                     <div class="menu-section">
                         <h6 class="section-title">نشاطي</h6>
                         <div class="menu-items">
+                            <div class="menu-item @GetActiveClass("provider/create-request")" style="background: rgba(99, 102, 241, 0.08); color: #4f46e5;" @onclick='() => NavigateTo("/provider/create-request")'>
+                                <i class="fa-solid fa-circle-plus text-primary"></i>
+                                <span>اعرض خدماتك (مقدم خدمة)</span>
+                            </div>
                             <div class="menu-item @GetActiveClass("user/my-services")" @onclick='() => NavigateTo("/user/my-services")'>
                                 <i class="fa-solid fa-briefcase text-secondary"></i>
                                 <span>خدماتي</span>
@@ -69,14 +85,6 @@
                             <div class="menu-item @GetActiveClass("client/favorites")" @onclick='() => NavigateTo("/client/favorites")'>
                                 <i class="fa-solid fa-heart text-danger"></i>
                                 <span>المفضلة</span>
-                            </div>
-                            <div class="menu-item @GetActiveClass("profile/my-ads")" @onclick='() => NavigateTo("/profile/my-ads")'>
-                                <i class="fa-solid fa-rectangle-ad" style="color: #f59e0b;"></i>
-                                <span class="fw-bold" style="color: #92400e;">إحصائيات إعلاناتي</span>
-                            </div>
-                            <div class="menu-item @GetActiveClass("marketplace/my-listings")" @onclick='() => NavigateTo("/marketplace/my-listings")'>
-                                <i class="fa-solid fa-box-open" style="color: #8b5cf6;"></i>
-                                <span>إعلاناتي</span>
                             </div>
                         </div>
                     </div>
@@ -108,7 +116,7 @@
                                 </div>
                                 <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.05);" @onclick='() => NavigateTo("/admin/approvals/providers")'>
                                     <i class="fa-solid fa-user-check text-primary"></i>
-                                    <span>اعتماد المزودين</span>
+                                    <span>اعتماد مقدمي الخدمات</span>
                                 </div>
                                 <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.05);" @onclick='() => NavigateTo("/admin/services")'>
                                     <i class="fa-solid fa-briefcase text-primary"></i>
@@ -271,9 +279,11 @@
                 <i class="fa-solid fa-share-nodes me-2"></i> شارك التطبيق
              </button>
         </div>
-        <div class="sidebar-links mb-2 px-3 d-flex justify-content-center gap-3">
+        <div class="sidebar-links mb-2 px-3 d-flex flex-wrap justify-content-center gap-3">
+            <a href="/about" class="text-muted text-decoration-none smaller" @onclick="CloseSidebar">من نحن</a>
             <a href="/terms" class="text-muted text-decoration-none smaller" @onclick="CloseSidebar">الشروط والأحكام</a>
             <a href="/privacy" class="text-muted text-decoration-none smaller" @onclick="CloseSidebar">الخصوصية</a>
+            <a href="/delete-account" class="text-muted text-decoration-none smaller" @onclick="CloseSidebar">حذف الحساب</a>
         </div>
         <div class="app-version">إصدار 1.0.0</div>
     </div>
@@ -589,7 +599,11 @@
 
     private async Task ShareApp()
     {
-        await ShareService.ShareTextAsync($"حمل تطبيق {State.AppName} الرائع الآن! منصتك المثالية لكل ما تحتاجه.", $"مشاركة تطبيق {State.AppName}");
+        var text = $"📲 منصة {State.AppName} — خدماتك في مكان واحد.. لكل المصريين!\n" +
+                   "تواصل مباشرة مع أفضل الحرفيين والمهنيين ومقدمي الخدمات بكل سهولة وأمان.\n\n" +
+                   "🔗 رابط تحميل التطبيق للأندرويد (APK):\nhttps://khadamawy.eis-dev.com/downloads/Khadamawy.apk\n\n" +
+                   "🌐 أو تصفح الموقع مباشرة:\nhttps://khadamawy.eis-dev.com";
+        await ShareService.ShareTextAsync(text, $"مشاركة تطبيق {State.AppName}");
     }
 
     private void ToggleProviderMode()

@@ -16,26 +16,26 @@
     <!-- Ads Slider (Dynamic System) -->
     <Khadamat.BlazorUI.Components.Ads.AdsSlider />
 
-    <!-- Sell on Marketplace Promo Banner -->
-    <div class="sell-promo-banner mb-4" @onclick='() => Navigation.NavigateTo("/marketplace/create")'>
-        <div class="sell-promo-bg">
-            <div class="sell-promo-glow"></div>
-            <div class="sell-promo-content">
-                <div class="sell-promo-left">
-                    <span class="sell-badge">🛍️ جديد</span>
-                    <h4 class="sell-title">بيع سلعك على المتجر</h4>
-                    <p class="sell-sub">أضف منتجك الآن وصل لآلاف المشترين</p>
-                    <span class="sell-cta-btn">ابدأ البيع <i class="fa-solid fa-arrow-left ms-1"></i></span>
-                </div>
-                <div class="sell-promo-right">
-                    <div class="sell-icon-ring">
-                        <i class="fa-solid fa-store"></i>
-                    </div>
-                    <div class="sell-floating-tag"><i class="fa-solid fa-tag"></i> عرض مميز</div>
-                </div>
+    <!-- Join as Provider / Offer Services Card (Shown only inside Mobile App) -->
+    @if (AppState.IsMobileApp)
+    {
+    <div class="card glass-card p-3 mb-4 rounded-4 shadow-sm border-0 position-relative overflow-hidden cursor-pointer"
+         style="background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(243,244,246,0.98)); border: 1px solid rgba(99,102,241,0.2) !important; box-shadow: 0 4px 20px rgba(99,102,241,0.08);"
+         @onclick="GoToRegisterProvider">
+        <div class="d-flex align-items-center justify-content-between z-2 position-relative">
+            <div>
+                <h5 class="fw-bold text-primary mb-1">صنايعي أو مهني؟</h5>
+                <p class="text-muted small mb-2">سجل خدماتك وزود دخلك معانا</p>
+                <span class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">
+                    اعرض خدماتك <i class="fa-solid fa-arrow-left me-1"></i>
+                </span>
+            </div>
+            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 55px; height: 55px;">
+                <i class="fa-solid fa-briefcase fs-3"></i>
             </div>
         </div>
     </div>
+    }
 
     <!-- Featured Services (Horizontal Scroll) -->
     <div class="mb-5">
@@ -75,65 +75,6 @@
         </div>
     </div>
 
-    <!-- Marketplace Announcement (Premium Ad Style) -->
-    <div class="mb-5">
-        <div class="marketplace-announcement-banner p-4 rounded-5 position-relative overflow-hidden mb-4 shadow-lg" @onclick='() => Navigation.NavigateTo("/marketplace")'>
-            <div class="announcement-glass-overlay"></div>
-            <div class="row align-items-center position-relative z-1">
-                <div class="col-8">
-                    <span class="badge bg-danger rounded-pill mb-2 px-3 animate-pulse">جديد 🔥</span>
-                    <h3 class="fw-bold text-white mb-1">متجر @AppState.AppName (Marketplace)</h3>
-                    <p class="text-white-50 mb-3">بيع، اشترِ، وتصفح أفضل العروض في منطقتك بكل سهولة وأمان.</p>
-                    <button class="btn btn-outline-light rounded-pill px-4 fw-bold" @onclick='() => Navigation.NavigateTo("/marketplace")'>تصفح المتجر الآن <i class="fa-solid fa-arrow-left ms-2"></i></button>
-                </div>
-                <div class="col-4 text-center">
-                    <div class="announcement-icon-wrapper">
-                        <span class="store-icon-wrap">
-                            <i class="fa-solid fa-store fa-5x text-white opacity-50 store-anim"></i>
-                        </span>
-                        <div class="floating-price-tag">
-                            <i class="fa-solid fa-tag"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        @if (latestMarketItems != null && latestMarketItems.Any())
-        {
-            <div class="d-flex gap-3 overflow-auto pb-2 scroll-hide">
-                @foreach (var item in latestMarketItems)
-                {
-                    <div class="market-item-mini" @onclick='() => Navigation.NavigateTo($"/marketplace/item/{item.Id}")'>
-                        <div class="mini-img-wrapper">
-                            <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.ImagePathResolver.MarketplaceItem(item.Images.FirstOrDefault()?.ImageUrl))" />
-                            <span class="mini-price">@item.Price.ToString("N0") ج.م</span>
-                        </div>
-                        <div class="p-2">
-                             <div class="text-truncate small fw-bold">@item.Title</div>
-                             <div class="text-muted extra-small"><i class="fa-solid fa-location-dot me-1"></i> @item.CityName</div>
-                        </div>
-                    </div>
-                }
-            </div>
-        }
-        else if (latestMarketItems == null)
-        {
-            <div class="d-flex gap-3 overflow-hidden">
-                @for(int i=0; i<4; i++)
-                {
-                    <div class="market-item-mini opacity-50">
-                        <div class="mini-img-wrapper skeleton"></div>
-                        <div class="p-2">
-                             <div class="skeleton mb-1" style="height:12px; width:80%;"></div>
-                             <div class="skeleton" style="height:10px; width:50%;"></div>
-                        </div>
-                    </div>
-                }
-            </div>
-        }
-    </div>
-
     <!-- Nearby Services Section -->
     <div class="mb-5">
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -167,8 +108,8 @@
         <div class="row align-items-center position-relative z-1 p-4 p-md-5">
             <div class="col-lg-7 mb-4 mb-lg-0 text-center text-lg-start">
                 <div class="d-flex flex-column flex-lg-row align-items-center gap-3 mb-4">
-                    <div class="logo-orb shadow-lg" style="overflow: hidden; padding: 6px; background: white;">
-                        <img src="/logo.png" alt="خدماوي" style="width: 100%; height: 100%; object-fit: contain; border-radius: 10px; display: block;" />
+                    <div class="logo-orb shadow-lg d-flex align-items-center justify-content-center p-1 bg-white rounded-circle">
+                        <img src="images/logo.png" alt="Logo" style="height: 35px; width: auto; object-fit: contain;" />
                     </div>
                     <div>
                         <h2 class="fw-bold premium-text-glow mb-1 text-white">تطبيق @AppState.AppName</h2>
@@ -179,7 +120,7 @@
                 <div class="row g-3">
                     <!-- 1. Direct Download -->
                     <div class="col-sm-6">
-                        <a href="/downloads/khadamat.apk" download="@($"{AppState.AppName.ToLower()}.apk")" class="store-link-card play-store-glow d-flex align-items-center p-3 rounded-4 text-decoration-none h-100 w-100">
+                        <a href="/downloads/Khadamawy.apk" download="Khadamawy.apk" class="store-link-card play-store-glow d-flex align-items-center p-3 rounded-4 text-decoration-none h-100 w-100">
                             <div class="store-icon bg-white text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;min-width:45px;">
                                 <i class="fa-brands fa-android fs-4 text-success"></i>
                             </div>
@@ -237,18 +178,21 @@
     </div>
     }
 
-    <!-- Join as Provider Banner -->
+    <!-- Join as Provider Banner (Shown only on Website) -->
+    @if (!AppState.IsMobileApp)
+    {
     <div class="provider-banner-card mb-5" @onclick="GoToRegisterProvider">
         <div class="banner-content">
             <div class="status-badge">فرصة عمل</div>
             <h3>كن مقدم خدمة</h3>
             <p>سجل مهاراتك ووصّل خدماتك لآلاف العملاء في منطقتك</p>
-            <button class="btn-banner">سجل الآن مجاناً <i class="fa-solid fa-arrow-left ms-2"></i></button>
+            <button class="btn-banner">اعرض خدماتك <i class="fa-solid fa-arrow-left ms-2"></i></button>
         </div>
         <div class="banner-icon">
             <i class="fa-solid fa-briefcase"></i>
         </div>
     </div>
+    }
 
     <!-- Bottom Page Ads -->
     <Khadamat.BlazorUI.Components.Ads.AdLocation Placement="Bottom" />
@@ -259,131 +203,7 @@
         display: none;
     }
 
-    /* === Sell Promo Banner === */
-    .sell-promo-banner {
-        border-radius: 20px;
-        overflow: hidden;
-        cursor: pointer;
-        box-shadow: 0 8px 30px rgba(99, 60, 209, 0.2);
-        transition: transform 0.4s ease, box-shadow 0.4s ease;
-        position: relative;
-    }
 
-    .sell-promo-banner:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 16px 40px rgba(99, 60, 209, 0.4);
-    }
-
-    .sell-promo-bg {
-        background: linear-gradient(135deg, #4f46e5 0%, #ec4899 100%);
-        padding: 30px;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .sell-promo-glow {
-        position: absolute;
-        top: -50px;
-        right: -30px;
-        width: 150px;
-        height: 150px;
-        background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 60%);
-        animation: pulse-glow 4s infinite alternate;
-    }
-
-    .sell-promo-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        position: relative;
-        z-index: 2;
-    }
-
-    .sell-promo-left {
-        color: white;
-    }
-
-    .sell-badge {
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(5px);
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: bold;
-        display: inline-block;
-        margin-bottom: 10px;
-        animation: float 3s infinite ease-in-out;
-    }
-
-    .sell-title {
-        font-weight: 800;
-        font-size: 1.6rem;
-        margin-bottom: 5px;
-    }
-
-    .sell-sub {
-        opacity: 0.9;
-        font-size: 0.9rem;
-        margin-bottom: 15px;
-    }
-
-    .sell-cta-btn {
-        background: white;
-        color: #ec4899;
-        font-weight: bold;
-        padding: 8px 20px;
-        border-radius: 30px;
-        display: inline-block;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        transition: background 0.3s;
-    }
-
-    .sell-promo-banner:hover .sell-cta-btn {
-        background: #f8fafc;
-    }
-
-    .sell-promo-right {
-        position: relative;
-    }
-
-    .sell-icon-ring {
-        width: 80px;
-        height: 80px;
-        background: rgba(255,255,255,0.15);
-        border: 2px solid rgba(255,255,255,0.3);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2.2rem;
-        color: white;
-        box-shadow: 0 0 20px rgba(255,255,255,0.2);
-        transform: rotate(-10deg);
-        transition: transform 0.5s ease;
-    }
-
-    .sell-promo-banner:hover .sell-icon-ring {
-        transform: rotate(10deg) scale(1.1);
-    }
-
-    .sell-floating-tag {
-        position: absolute;
-        bottom: -10px;
-        right: -15px;
-        background: #f59e0b;
-        color: white;
-        font-size: 0.7rem;
-        font-weight: bold;
-        padding: 3px 8px;
-        border-radius: 12px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        animation: float 3s ease-in-out infinite;
-    }
-
-    @@keyframes pulse-glow {
-        0% { transform: scale(1); opacity: 0.8; }
-        100% { transform: scale(1.3); opacity: 0.4; }
-    }
 
     .provider-banner-card {
         background: linear-gradient(135deg, var(--theme-primary, #0f172a) 0%, var(--theme-secondary, #334155) 100%);
@@ -632,66 +452,8 @@
         0%, 100% { top: 5%; }
         50% { top: 92%; }
     }
-    .marketplace-announcement-banner {
-        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-        cursor: pointer;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        min-height: 200px;
-    }
 
-    .marketplace-announcement-banner:hover {
-        transform: translateY(-8px) scale(1.02);
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
-    }
 
-    .announcement-glass-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.3), transparent 70%);
-        z-index: 0;
-    }
-
-    .announcement-icon-wrapper {
-        position: relative;
-        display: inline-block;
-    }
-
-    .floating-price-tag {
-        position: absolute;
-        top: -10px;
-        right: -10px;
-        background: var(--theme-primary);
-        color: white;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-        box-shadow: 0 4px 15px var(--theme-glow);
-        animation: float 3s ease-in-out infinite;
-    }
-
-    .animate-pulse {
-        animation: pulse 2s infinite;
-    }
-
-    @@keyframes pulse {
-        0% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.1); opacity: 0.8; }
-        100% { transform: scale(1); opacity: 1; }
-    }
-
-    @@keyframes float {
-        0% { transform: translateY(0); }
-        50% { transform: translateY(-10px); }
-        100% { transform: translateY(0); }
-    }
 </style>
 
 @code {
@@ -699,7 +461,7 @@
     private List<ServiceDto>? nearbyServices;
     private List<MainCategoryDto>? mainCategories;
     private List<MarketplaceItemDto>? latestMarketItems;
-    private bool isMauiApp = false;
+    private bool isMauiApp => AppState.IsMobileApp || AppState.IsNativeApp;
     private CancellationTokenSource _cts = new();
     private bool _disposed = false;
 
@@ -707,9 +469,15 @@
     {
         AppState.OnChange += OnAppStateChange;
 
-        isMauiApp = AppState.IsMobileApp;
-        
-        Console.WriteLine($"ANTIGRAVITY_LOG: Home Page Initialized. IsMobileApp={isMauiApp}");
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        if (query.ContainsKey("nativeapp") || query.ContainsKey("mobileapp"))
+        {
+            AppState.IsMobileApp = true;
+            if (query.ContainsKey("nativeapp")) AppState.IsNativeApp = true;
+        }
+
+        Console.WriteLine($"ANTIGRAVITY_LOG: Home Page Initialized. IsMauiApp={isMauiApp}");
         if (mainCategories == null) Console.WriteLine("ANTIGRAVITY_LOG: mainCategories is null on init");
         _ = LoadDataAsync(_cts.Token);
     }
@@ -822,9 +590,9 @@
 
     private void GoToRegisterProvider()
     {
-        if (AppState.IsAuthenticated)
+            Navigation.NavigateTo("/provider/create-request");
             Navigation.NavigateTo("/provider/apply");
-        else
+            Navigation.NavigateTo("/register?Type=Provider");
             Navigation.NavigateTo("/register");
     }
 

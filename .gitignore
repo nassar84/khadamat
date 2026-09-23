@@ -29,9 +29,15 @@ my_build_log.txt
 build_error_output.txt
 mobile_build_error.txt
 build_mobile_fix_attempt.txt
+*.log
+*.binlog
+build_*.txt
+crash_*.txt
+index_diff*.txt
 
 # Temp files
 temp_publish/
+publish/
 .gemini/
 
 # Large files - too big for GitHub (100MB limit)
@@ -40,6 +46,10 @@ temp_publish/
 *.7z
 khadamat_mobile_screen*.png
 khadamat_mobile_screen*.jpg
+emulator_*.png
+test_*.png
+test_screenshot/
+test_share_page.png
 crash_full_2.txt
 crash_log.txt
 

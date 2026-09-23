@@ -1,0 +1,72 @@
+@page "/about"
+@inject Khadamat.BlazorUI.State.AppState AppState
+@inject NavigationManager Navigation
+
+<PageTitle>من نحن | @AppState.AppName</PageTitle>
+
+<div class="container py-5" style="max-width: 800px;">
+    <!-- Hero Banner -->
+    <div class="text-center mb-5 animate-up">
+        <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-4 mb-3"
+             style="width: 76px; height: 76px; font-size: 2rem;">
+            <i class="fa-solid fa-handshake-angle"></i>
+        </div>
+        <h1 class="fw-bold mb-2">من نحن</h1>
+        <p class="text-muted fs-5">منصة وتطبيق <strong>@AppState.AppName</strong> — سوق الخدمات والأعمال الرائد</p>
+    </div>
+
+    <!-- About Content -->
+    <div class="glass-card p-4 p-md-5 shadow-sm mb-4 animate-up" style="animation-delay: 0.1s;">
+        <h4 class="fw-bold text-primary mb-3">
+            <i class="fa-solid fa-bullseye me-2"></i>رؤيتنا
+        </h4>
+        <p class="text-muted lh-lg mb-4">
+            نسعى في <strong>@AppState.AppName</strong> إلى تسهيل الوصول إلى أفضل المهنيين وأصحاب الحرف ومزودي الخدمات في مصر. نهدف إلى سد الفجوة بين العميل الذي يبحث عن الجودة والاحترافية، وبين الحرفي أو المهني الشغوف بعمله، لتقديم تجربة حجز وطلب خدمات سلسة وموثوقة.
+        </p>
+
+        <h4 class="fw-bold text-primary mb-3">
+            <i class="fa-solid fa-star me-2"></i>لماذا تختار @AppState.AppName؟
+        </h4>
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="p-3 bg-light rounded-4 h-100">
+                    <div class="fw-bold text-dark mb-1"><i class="fa-solid fa-shield-check text-success me-2"></i>مزودو خدمات موثوقون</div>
+                    <p class="small text-muted mb-0">نقوم بمراجعة واعتماد طلبات الانضمام لضمان جدية واحترافية المهنيين في كافة التخصصات.</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="p-3 bg-light rounded-4 h-100">
+                    <div class="fw-bold text-dark mb-1"><i class="fa-solid fa-map-location-dot text-primary me-2"></i>خدمات قريبة منك</div>
+                    <p class="small text-muted mb-0">ابحث عن الخدمات في محافظتك ومدينتك لتوفير الوقت والجهد والتواصل المباشر.</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="p-3 bg-light rounded-4 h-100">
+                    <div class="fw-bold text-dark mb-1"><i class="fa-solid fa-comments text-info me-2"></i>تواصل مباشر وشفاف</div>
+                    <p class="small text-muted mb-0">تواصل هاتفياً أو عبر واتساب أو أرسل طلب خدمة مباشر للمهني وتابع حالة طلبك.</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="p-3 bg-light rounded-4 h-100">
+                    <div class="fw-bold text-dark mb-1"><i class="fa-solid fa-star-half-stroke text-warning me-2"></i>تقييمات حقيقية</div>
+                    <p class="small text-muted mb-0">تجارب المستخدمين وتقييماتهم تمنحك الثقة والوضوح قبل اختيار مقدم الخدمة.</p>
+                </div>
+            </div>
+        </div>
+
+        <h4 class="fw-bold text-primary mb-3">
+            <i class="fa-solid fa-phone-volume me-2"></i>تواصل معنا
+        </h4>
+        <p class="text-muted lh-lg mb-4">
+            فريقنا دائماً في خدمتكم للإجابة على استفساراتكم وتلقي مقترحاتكم لتقديم تجربة تليق بكم دائماً.
+        </p>
+        <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-primary rounded-pill px-4" @onclick='() => Navigation.NavigateTo("/contact")'>
+                <i class="fa-solid fa-envelope me-2"></i> صفحة التواصل
+            </button>
+            <button class="btn btn-outline-secondary rounded-pill px-4" @onclick='() => Navigation.NavigateTo("/services")'>
+                <i class="fa-solid fa-magnifying-glass me-2"></i> استكشاف الخدمات
+            </button>
+        </div>
+    </div>
+</div>

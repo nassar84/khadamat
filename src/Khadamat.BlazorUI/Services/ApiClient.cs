@@ -54,6 +54,38 @@ public class ApiClient
         return default;
     }
 
+    public async Task<T?> GetAsync<T>(string url)
+    {
+        try
+        {
+            var response = await _http.GetAsync(url);
+            if (response.IsSuccessStatusCode)
+                return await response.Content.ReadFromJsonAsync<T>();
+            return default;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ApiClient.GetAsync] {url} — {ex.Message}");
+            return default;
+        }
+    }
+
+    public async Task<T?> PutAsync<T>(string url, object data)
+    {
+        try
+        {
+            var response = await _http.PutAsJsonAsync(url, data);
+            if (response.IsSuccessStatusCode)
+                return await response.Content.ReadFromJsonAsync<T>();
+            return default;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ApiClient.PutAsync] {url} — {ex.Message}");
+            return default;
+        }
+    }
+
     /// <summary>
     /// رفع صورة إلى الخادم وإعادة نتيجة الرفع.
     ///
@@ -795,15 +827,32 @@ public class ApiClient
         return response?.Data ?? new List<MyReviewDto>();
     }
 
-    public async Task<bool> CreateReviewAsync(CreateReviewRequest request)
+    public async Task<ApiResponse<ReviewResultDto>> CreateReviewAsync(CreateReviewRequest request)
     {
-        var response = await _http.PostAsJsonAsync("v1/reviews", request);
-        return response.IsSuccessStatusCode;
+        try
+        {
+            var response = await _http.PostAsJsonAsync("v1/reviews", request);
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<ApiResponse<ReviewResultDto>>();
+                return result ?? ApiResponse<ReviewResultDto>.Succeed(new ReviewResultDto());
+            }
+            else
+            {
+                var errorResult = await response.Content.ReadFromJsonAsync<ApiResponse<ReviewResultDto>>();
+                return errorResult ?? ApiResponse<ReviewResultDto>.Fail("فشل إرسال التقييم");
+            }
+        }
+        catch (Exception ex)
+        {
+            return ApiResponse<ReviewResultDto>.Fail(ex.Message);
+        }
     }
 
-    public async Task<bool> AddReviewAsync(int serviceId, int rating, string comment)
+    public async Task<bool> AddReviewAsync(int serviceId, int rating, string comment, int? serviceRequestId = null)
     {
-        return await CreateReviewAsync(new CreateReviewRequest { ServiceId = serviceId, Rating = rating, Comment = comment });
+        var res = await CreateReviewAsync(new CreateReviewRequest { ServiceId = serviceId, Rating = rating, Comment = comment, ServiceRequestId = serviceRequestId });
+        return res.Success;
     }
 
     public async Task<bool> DeleteReviewAsync(int id)
@@ -819,10 +868,22 @@ public class ApiClient
         return response?.Data ?? new List<ServiceDto>();
     }
 
-    public async Task<bool> ToggleFavoriteAsync(int serviceId)
+    public async Task<ApiResponse<FavoriteResultDto>> ToggleFavoriteAsync(int serviceId)
     {
-        var response = await _http.PostAsync($"v1/favorites/toggle/{serviceId}", null);
-        return response.IsSuccessStatusCode;
+        try
+        {
+            var response = await _http.PostAsync($"v1/favorites/toggle/{serviceId}", null);
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<ApiResponse<FavoriteResultDto>>();
+                return result ?? ApiResponse<FavoriteResultDto>.Succeed(new FavoriteResultDto { IsFavorite = true });
+            }
+            return ApiResponse<FavoriteResultDto>.Fail("فشل تحديث المفضلة");
+        }
+        catch (Exception ex)
+        {
+            return ApiResponse<FavoriteResultDto>.Fail(ex.Message);
+        }
     }
 
     // Comments
@@ -978,6 +1039,66 @@ public class ApiClient
                ?? ApiResponse<bool>.Fail("فشل الاشتراك في الباقة");
     }
 
+    public async Task<List<AdminProviderSubscriptionDto>> GetAdminProviderSubscriptionsAsync(string? search = null, string? status = null)
+    {
+        try
+        {
+            var url = "v1/subscriptions/admin/providers?";
+            if (!string.IsNullOrEmpty(search)) url += $"search={Uri.EscapeDataString(search)}&";
+            if (!string.IsNullOrEmpty(status)) url += $"status={Uri.EscapeDataString(status)}&";
+
+            var response = await _http.GetFromJsonAsync<List<AdminProviderSubscriptionDto>>(url);
+            return response ?? new List<AdminProviderSubscriptionDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"GetAdminProviderSubscriptions error: {ex.Message}");
+            return new List<AdminProviderSubscriptionDto>();
+        }
+    }
+
+    public async Task<ApiResponse<int>> ExtendSubscriptionsAsync(ExtendSubscriptionsRequest request)
+    {
+        try
+        {
+            var response = await _http.PostAsJsonAsync("v1/subscriptions/admin/extend", request);
+            return await response.Content.ReadFromJsonAsync<ApiResponse<int>>() 
+                   ?? ApiResponse<int>.Fail("فشل تمديد الاشتراك");
+        }
+        catch (Exception ex)
+        {
+            return ApiResponse<int>.Fail(ex.Message);
+        }
+    }
+
+    public async Task<ApiResponse<int>> ToggleSubscriptionsStatusAsync(ToggleSubscriptionsStatusRequest request)
+    {
+        try
+        {
+            var response = await _http.PostAsJsonAsync("v1/subscriptions/admin/toggle-status", request);
+            return await response.Content.ReadFromJsonAsync<ApiResponse<int>>() 
+                   ?? ApiResponse<int>.Fail("فشل تغيير حالة الاشتراك");
+        }
+        catch (Exception ex)
+        {
+            return ApiResponse<int>.Fail(ex.Message);
+        }
+    }
+
+    public async Task<ApiResponse<bool>> AssignPlanAsync(AssignPlanRequest request)
+    {
+        try
+        {
+            var response = await _http.PostAsJsonAsync("v1/subscriptions/admin/assign-plan", request);
+            return await response.Content.ReadFromJsonAsync<ApiResponse<bool>>() 
+                   ?? ApiResponse<bool>.Fail("فشل تعيين الخطة");
+        }
+        catch (Exception ex)
+        {
+            return ApiResponse<bool>.Fail(ex.Message);
+        }
+    }
+
     // Service Requests
     public async Task<List<ServiceRequestDto>> GetMyRequestsAsync()
     {
@@ -1003,7 +1124,23 @@ public class ApiClient
                 return await response.Content.ReadFromJsonAsync<ApiResponse<int>>() 
                        ?? ApiResponse<int>.Fail("فشل في إنشاء الطلب");
             }
-            return ApiResponse<int>.Fail("فشل في إنشاء الطلب");
+
+            try
+            {
+                var errorResult = await response.Content.ReadFromJsonAsync<ApiResponse<int>>();
+                if (errorResult != null && !string.IsNullOrEmpty(errorResult.Message))
+                {
+                    return errorResult;
+                }
+            }
+            catch { }
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                return ApiResponse<int>.Fail("يجب تسجيل الدخول أولاً لإرسال طلب الخدمة");
+            }
+
+            return ApiResponse<int>.Fail($"فشل في إنشاء الطلب (رمز الخطأ: {(int)response.StatusCode})");
         }
         catch (Exception ex)
         {
@@ -1330,6 +1467,7 @@ public class CreatePostRequest
 public class CreateReviewRequest
 {
     public int ServiceId { get; set; }
+    public int? ServiceRequestId { get; set; }
     public int Rating { get; set; }
     public string Comment { get; set; } = string.Empty;
 }
@@ -1342,6 +1480,14 @@ public class MyReviewDto
     public int Rating { get; set; }
     public string Comment { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
+}
+
+public class ReviewResultDto
+{
+    public int ReviewId { get; set; }
+    public double NewAverage { get; set; }
+    public int RatersCount { get; set; }
+    public string ReviewerName { get; set; } = string.Empty;
 }
 
 public class CreateCommentRequest
@@ -1395,4 +1541,10 @@ public class PublicPostDto
     public string ProviderName { get; set; } = string.Empty;
     public string? ProviderPhoto { get; set; }
     public int? ServiceId { get; set; }
+}
+
+public class FavoriteResultDto
+{
+    public bool IsFavorite { get; set; }
+    public int FavoritesCount { get; set; }
 }

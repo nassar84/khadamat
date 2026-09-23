@@ -24,6 +24,7 @@ public class GetUserRequestsHandler : IRequestHandler<GetUserRequestsQuery, List
         var requests = await _context.ServiceRequests
             .Include(r => r.Service)
             .Include(r => r.Provider)
+            .Include(r => r.Rating)
             .Where(r => r.UserId == request.UserId)
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync(cancellationToken);
@@ -42,7 +43,10 @@ public class GetUserRequestsHandler : IRequestHandler<GetUserRequestsQuery, List
             Notes = r.Notes,
             ProviderNotes = r.ProviderNotes,
             RequestedAt = r.CreatedAt,
-            PreferredDate = r.PreferredDate
+            PreferredDate = r.PreferredDate,
+            HasRated = r.Rating != null,
+            RatingStars = r.Rating?.Stars,
+            RatingComment = r.Rating?.Comment
         }).ToList();
     }
 

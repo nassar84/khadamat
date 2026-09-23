@@ -93,11 +93,25 @@ public class GetServiceByIdHandler : IRequestHandler<GetServiceByIdQuery, Servic
             }
         }
 
-        // Fetch Provider Name & Photo
-        var provider = await _providerRepo.GetByIdAsync(service.ProviderProfileId);
+        // Fetch Provider Name & Photo & Subscription
+        var providers = await _providerRepo.GetPagedAsync(1, 1, 
+            filter: p => p.Id == service.ProviderProfileId, 
+            includeProperties: "Subscription");
+        var provider = providers.FirstOrDefault();
 
         if (provider != null)
         {
+            // Check Subscription Active State
+            bool isSubActive = provider.Subscription != null 
+                && provider.Subscription.IsActive 
+                && provider.Subscription.EndDate >= DateTime.UtcNow;
+
+            dto.IsProviderSubscriptionActive = isSubActive;
+            if (!isSubActive)
+            {
+                dto.ProviderSubscriptionMessage = "هذه الخدمة غير متاحة حالياً لانتهاء فترة اشتراك مقدم الخدمة.";
+            }
+
             var pUserDict = await _userService.GetUsersBasicInfoAsync(new List<string> { provider.UserId });
             string actualUserName = pUserDict.TryGetValue(provider.UserId, out var pUserInfo) && !string.IsNullOrWhiteSpace(pUserInfo.Name)
                 ? pUserInfo.Name

@@ -9,7 +9,7 @@ public class AppSettings : BaseEntity
     public string LogoUrl { get; set; } = "";
     
     // APK Settings
-    public string ApkFilename { get; set; } = "khadamat.apk";
+    public string ApkFilename { get; set; } = "Khadamawy.apk";
     public string ApkIconUrl { get; set; } = "";
 
     public string PrimaryColor { get; set; } = "#6366f1";

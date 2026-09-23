@@ -47,11 +47,11 @@ public static class DeepLinkBridge
             return path.StartsWith("//") ? path[1..] : path;
         }
 
-        if (uri.StartsWith("https://khadamat.com"))
+        if (Uri.TryCreate(uri, UriKind.Absolute, out var parsedUri))
         {
-            return new Uri(uri).AbsolutePath;
+            return parsedUri.PathAndQuery;
         }
 
-        return "/";
+        return uri.StartsWith("/") ? uri : "/" + uri;
     }
 }

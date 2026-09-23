@@ -67,42 +67,6 @@ public class WebShareService : IShareService
         // No-op for web fallback
     }
 
-    public async Task ShareImageWithTextAsync(string imageUrl, string text, string title = "مشاركة خدمة")
-    {
-        try
-        {
-            var isNative = await _js.InvokeAsync<string>("sessionStorage.getItem", "nativeapp");
-            if (isNative == "1")
-            {
-                var shareUrl = $"khadamat://share?image={Uri.EscapeDataString(imageUrl)}&text={Uri.EscapeDataString(text)}&title={Uri.EscapeDataString(title)}";
-                await _js.InvokeVoidAsync("eval", $@"
-                    (function() {{
-                        const iframe = document.createElement('iframe');
-                        iframe.style.display = 'none';
-                        iframe.src = '{shareUrl}';
-                        document.body.appendChild(iframe);
-                        setTimeout(() => iframe.remove(), 200);
-                    }})()
-                ");
-                return;
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"WebShareService check nativeapp error: {ex.Message}");
-        }
-
-        // On web: fallback to native share with text + url
-        try
-        {
-            await _js.InvokeVoidAsync("navigator.share", new { title, text, url = imageUrl });
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"WebShareService.ShareImageWithTextAsync fallback error: {ex.Message}");
-        }
-    }
-
     private class ShareResult
     {
         public bool Success { get; set; }

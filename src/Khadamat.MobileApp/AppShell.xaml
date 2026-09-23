@@ -92,7 +92,7 @@
             
             <ImageButton Grid.Column="4" Source="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F50D;', Color=White}"
                          HeightRequest="30" WidthRequest="30" Margin="5,0"
-                         Command="{Binding NavigateCommand}" CommandParameter="explore" />
+                         Command="{Binding NavigateCommand}" CommandParameter="search" />
         </Grid>
     </Shell.TitleView>
 
@@ -111,7 +111,7 @@
                             <HorizontalStackLayout.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="home" />
                             </HorizontalStackLayout.GestureRecognizers>
-                            <Label Text="⚡" FontSize="26" TextColor="{DynamicResource Primary}" VerticalOptions="Center" />
+                            <Image Source="{Binding AppLogo}" HeightRequest="32" WidthRequest="32" Aspect="AspectFit" VerticalOptions="Center" />
                             <Label Text="{Binding AppName}" FontSize="24" FontAttributes="Bold"
                                    TextColor="{DynamicResource Primary}" VerticalOptions="Center" />
                         </HorizontalStackLayout>
@@ -232,21 +232,22 @@
                             </Grid>
                         </Border>
 
-                        <!-- Sub-label: التصنيفات -->
-                        <Label Text="التصنيفات" FontSize="12" TextColor="#94a3b8" FontAttributes="Bold" Margin="8,8,8,6" />
-
-                        <!-- المتجر + مميز -->
-                        <Grid Padding="12,13" ColumnDefinitions="*,Auto,Auto" BackgroundColor="#fafbff" Margin="0,0,0,2">
+                        <!-- Explore Services -->
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto" BackgroundColor="#fafbff" Margin="0,0,0,2">
                             <Grid.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="marketplace" />
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="services" />
                             </Grid.GestureRecognizers>
-                            <Label Text="المتجر" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
-                            <!-- مميز Badge -->
-                            <Border Grid.Column="1" BackgroundColor="#f59e0b" StrokeThickness="0" Margin="0,0,8,0">
-                                <Border.StrokeShape><RoundRectangle CornerRadius="8" /></Border.StrokeShape>
-                                <Label Text="مميز" TextColor="White" FontSize="10" FontAttributes="Bold" Padding="8,3" />
-                            </Border>
-                            <Label Grid.Column="2" Text="🛍️" FontSize="18" VerticalOptions="Center" />
+                            <Label Text="الخدمات" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="🔧" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+
+                        <!-- Public Feed (آخر التحديثات) -->
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto" BackgroundColor="#fafbff" Margin="0,0,0,2">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="feed" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="آخر التحديثات" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="📢" FontSize="18" VerticalOptions="Center" />
                         </Grid>
 
                         <BoxView HeightRequest="1" Color="#f1f5f9" Margin="0,4,0,4" />
@@ -315,30 +316,6 @@
                         </Grid>
                         <BoxView HeightRequest="1" Color="#f1f5f9" />
 
-                        <!-- إحصائيات إعلاناتي -->
-                        <Grid Padding="12,13" ColumnDefinitions="*,Auto,Auto">
-                            <Grid.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="my-services" />
-                            </Grid.GestureRecognizers>
-                            <Label Text="إحصائيات إعلاناتي" TextColor="#92400e" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
-                            <Border Grid.Column="1" BackgroundColor="#f59e0b" StrokeThickness="0" Margin="0,0,8,0">
-                                <Border.StrokeShape><RoundRectangle CornerRadius="6" /></Border.StrokeShape>
-                                <Label Text="Ad" TextColor="White" FontSize="9" FontAttributes="Bold" Padding="5,2" />
-                            </Border>
-                            <Label Grid.Column="2" Text="📊" FontSize="18" VerticalOptions="Center" />
-                        </Grid>
-                        <BoxView HeightRequest="1" Color="#f1f5f9" />
-
-                        <!-- إعلاناتي -->
-                        <Grid Padding="12,13" ColumnDefinitions="*,Auto">
-                            <Grid.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="my-services" />
-                            </Grid.GestureRecognizers>
-                            <Label Text="إعلاناتي" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
-                            <Label Grid.Column="1" Text="📦" FontSize="18" VerticalOptions="Center" TextColor="#8b5cf6" />
-                        </Grid>
-                        <BoxView HeightRequest="1" Color="#f1f5f9" />
-
                         <!-- Admin Section -->
                         <VerticalStackLayout IsVisible="{Binding IsAdmin}" Spacing="0">
                             <Label Text="الإدارة" FontSize="12" TextColor="#94a3b8" FontAttributes="Bold" Margin="8,10,8,8" />
@@ -383,26 +360,6 @@
                             </Grid>
                             <BoxView HeightRequest="1" Color="#f1f5f9" />
 
-                            <!-- إدارة الإعلانات -->
-                            <Grid Padding="12,13" ColumnDefinitions="*,Auto">
-                                <Grid.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="admin/ads" />
-                                </Grid.GestureRecognizers>
-                                <Label Text="إدارة الإعلانات" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
-                                <Label Grid.Column="1" Text="📜" FontSize="18" VerticalOptions="Center" />
-                            </Grid>
-                            <BoxView HeightRequest="1" Color="#f1f5f9" />
-
-                            <!-- الأخبار والصفحات -->
-                            <Grid Padding="12,13" ColumnDefinitions="*,Auto">
-                                <Grid.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="admin/news" />
-                                </Grid.GestureRecognizers>
-                                <Label Text="الأخبار والصفحات" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
-                                <Label Grid.Column="1" Text="📰" FontSize="18" VerticalOptions="Center" />
-                            </Grid>
-                            <BoxView HeightRequest="1" Color="#f1f5f9" />
-
                             <!-- الأماكن والمدن -->
                             <Grid Padding="12,13" ColumnDefinitions="*,Auto">
                                 <Grid.GestureRecognizers>
@@ -410,6 +367,16 @@
                                 </Grid.GestureRecognizers>
                                 <Label Text="المحافظات والمدن" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
                                 <Label Grid.Column="1" Text="📍" FontSize="18" VerticalOptions="Center" />
+                            </Grid>
+                            <BoxView HeightRequest="1" Color="#f1f5f9" />
+
+                            <!-- الشكاوى -->
+                            <Grid Padding="12,13" ColumnDefinitions="*,Auto">
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="admin/complaints" />
+                                </Grid.GestureRecognizers>
+                                <Label Text="الشكاوى" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                                <Label Grid.Column="1" Text="📞" FontSize="18" VerticalOptions="Center" />
                             </Grid>
                             <BoxView HeightRequest="1" Color="#f1f5f9" />
                         </VerticalStackLayout>
@@ -442,6 +409,9 @@
                     <BoxView HeightRequest="1" Color="#f1f5f9" />
                     <!-- Share App -->
                     <Grid ColumnDefinitions="*,Auto" Padding="4,8">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ShareAppCommand}" />
+                        </Grid.GestureRecognizers>
                         <Label Text="شارك التطبيق" TextColor="{DynamicResource Primary}" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
                         <Label Grid.Column="1" Text="🔗" FontSize="16" VerticalOptions="Center" />
                     </Grid>
@@ -475,7 +445,7 @@
 
 
     <TabBar x:Name="MainTabBar">
-        <!-- 1. Home (house) - \uf015 (Prominent style in MAUI via contrast) -->
+        <!-- 1. Home (house) - \uf015 -->
         <Tab Title="الرئيسية" Route="HomePage">
             <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F3E0;" Color="#6366f1" /></Tab.Icon>
             <ShellContent ContentTemplate="{DataTemplate views:HomePage}" />
@@ -487,10 +457,10 @@
             <ShellContent ContentTemplate="{DataTemplate views:CategoriesPage}" />
         </Tab>
 
-        <!-- 3. Marketplace (store) - \uf54e -->
-        <Tab Title="المتجر" Route="MarketplacePage" IsVisible="{Binding IsClientMode}">
-            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F6CD;" Color="#f59e0b" /></Tab.Icon>
-            <ShellContent ContentTemplate="{DataTemplate views:MarketplacePage}" />
+        <!-- 3. Services - \uf0b1 -->
+        <Tab Title="الخدمات" Route="ServicesPage" IsVisible="{Binding IsClientMode}">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4BC;" Color="#6366f1" /></Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:ServicesPage}" />
         </Tab>
 
         <!-- 4. Client: Favorites (heart) - \uf004 | Provider: My Services (briefcase) - \uf0b1 -->
@@ -527,9 +497,14 @@
         <ShellContent ContentTemplate="{DataTemplate views:CategoriesPage}" />
     </FlyoutItem>
 
-    <FlyoutItem Title="المتجر" Route="flyout_marketplace" FlyoutDisplayOptions="AsSingleItem">
-        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F6CD;" Color="#0f172a" /></FlyoutItem.Icon>
-        <ShellContent ContentTemplate="{DataTemplate views:MarketplacePage}" />
+    <FlyoutItem Title="الخدمات" Route="flyout_services_explore" FlyoutDisplayOptions="AsSingleItem">
+        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4BC;" Color="#0f172a" /></FlyoutItem.Icon>
+        <ShellContent ContentTemplate="{DataTemplate views:ServicesPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="آخر التحديثات" Route="flyout_feed" FlyoutDisplayOptions="AsSingleItem">
+        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4E2;" Color="#0f172a" /></FlyoutItem.Icon>
+        <ShellContent ContentTemplate="{DataTemplate views:FeedPage}" />
     </FlyoutItem>
 
     <FlyoutItem Title="أضف إعلان" Route="flyout_provider/apply" FlyoutDisplayOptions="AsSingleItem">

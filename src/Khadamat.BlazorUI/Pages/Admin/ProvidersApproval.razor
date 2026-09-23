@@ -149,7 +149,7 @@
 
     private async Task ApproveProvider(PendingProviderDto provider)
     {
-        if (await JS.InvokeAsync<bool>("confirm", $"تأكيد اعتماد {provider.Name} كمزود خدمة؟"))
+        if (await JS.InvokeAsync<bool>("confirm", $"تأكيد اعتماد {provider.Name} كمقدم خدمة؟"))
         {
             await AdminService.ApproveProvider(provider.Id);
             pendingProviders.Remove(provider);

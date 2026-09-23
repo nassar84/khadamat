@@ -13,11 +13,16 @@ public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
     private readonly Microsoft.AspNetCore.Identity.SignInManager<Khadamat.Infrastructure.Identity.ApplicationUser> _signInManager;
+    private readonly IConfiguration _configuration;
 
-    public AuthController(IAuthService authService, Microsoft.AspNetCore.Identity.SignInManager<Khadamat.Infrastructure.Identity.ApplicationUser> signInManager)
+    public AuthController(
+        IAuthService authService, 
+        Microsoft.AspNetCore.Identity.SignInManager<Khadamat.Infrastructure.Identity.ApplicationUser> signInManager,
+        IConfiguration configuration)
     {
         _authService = authService;
         _signInManager = signInManager;
+        _configuration = configuration;
     }
 
     [HttpGet("external-login")]
@@ -39,40 +44,67 @@ public class AuthController : ControllerBase
     [HttpGet("external-login-callback")]
     public async Task<IActionResult> ExternalLoginCallback(string redirectUrl, string? remoteError = null)
     {
-        if (remoteError != null)
+        try
         {
-            return Redirect($"{redirectUrl}?error={remoteError}");
-        }
+            if (remoteError != null)
+            {
+                return Redirect($"{redirectUrl}?error={Uri.EscapeDataString(remoteError)}");
+            }
 
-        var info = await _signInManager.GetExternalLoginInfoAsync();
-        if (info == null)
+            var info = await _signInManager.GetExternalLoginInfoAsync();
+            if (info == null)
+            {
+                return Redirect($"{redirectUrl}?error=failed_to_get_external_login_info");
+            }
+
+            var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+            var name = info.Principal.FindFirstValue(ClaimTypes.Name);
+            var provider = info.LoginProvider;
+            var providerUserId = info.ProviderKey;
+
+            // Extract Profile Image from mapped claims (both Google & Facebook map to "picture", Google also maps to "urn:google:image")
+            var imageUrl = info.Principal.FindFirstValue("picture") 
+                           ?? info.Principal.FindFirstValue("urn:google:image")
+                           ?? info.Principal.FindFirstValue("urn:google:picture")
+                           ?? info.Principal.FindFirstValue(ClaimTypes.Uri);
+
+            // If picture wasn't in claims and provider is Facebook, construct authenticated Graph API picture URL with App Token
+            if (string.IsNullOrEmpty(imageUrl) && provider == "Facebook")
+            {
+                var appId = _configuration["Authentication:Facebook:AppId"];
+                var appSecret = _configuration["Authentication:Facebook:AppSecret"];
+                if (!string.IsNullOrEmpty(appId) && !string.IsNullOrEmpty(appSecret))
+                {
+                    imageUrl = $"https://graph.facebook.com/v19.0/{providerUserId}/picture?type=large&access_token={appId}|{appSecret}";
+                }
+            }
+
+            // Facebook may not return email if user's privacy settings restrict it.
+            // Generate a fallback unique email using the provider user ID.
+            if (string.IsNullOrEmpty(email))
+            {
+                email = $"{provider.ToLower()}_{providerUserId}@khadamat.app";
+            }
+
+            // Fallback for display name
+            if (string.IsNullOrEmpty(name))
+            {
+                name = email.Split('@')[0];
+            }
+
+            var result = await _authService.ExternalLoginCallbackAsync(email, name, provider, providerUserId, imageUrl);
+
+            if (result.Success && result.Data != null)
+            {
+                return Redirect($"{redirectUrl}?token={result.Data.Token}&refreshToken={result.Data.RefreshToken}");
+            }
+
+            return Redirect($"{redirectUrl}?error={Uri.EscapeDataString(result.Message ?? "login_failed")}");
+        }
+        catch (System.Exception ex)
         {
-            return Redirect($"{redirectUrl}?error=failed_to_get_external_login_info");
+            return Redirect($"{redirectUrl}?error={Uri.EscapeDataString(ex.Message)}");
         }
-
-        var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-        var name = info.Principal.FindFirstValue(ClaimTypes.Name);
-        var provider = info.LoginProvider;
-        var providerUserId = info.ProviderKey;
-
-        // Extract Profile Image
-        var imageUrl = info.Principal.FindFirstValue("picture") 
-                       ?? info.Principal.FindFirstValue("urn:google:picture")
-                       ?? info.Principal.FindFirstValue(ClaimTypes.Uri); // Sometimes mapped here
-
-        if (string.IsNullOrEmpty(imageUrl) && provider == "Facebook")
-        {
-             imageUrl = $"https://graph.facebook.com/{providerUserId}/picture?type=large";
-        }
-
-        var result = await _authService.ExternalLoginCallbackAsync(email!, name!, provider, providerUserId, imageUrl);
-
-        if (result.Success)
-        {
-            return Redirect($"{redirectUrl}?token={result.Data.Token}&refreshToken={result.Data.RefreshToken}");
-        }
-
-        return Redirect($"{redirectUrl}?error={result.Message}");
     }
 
     [HttpPost("register")]
@@ -138,6 +170,15 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
     {
         var result = await _authService.ResetPasswordAsync(request);
+        if (!result.Success) return BadRequest(result);
+        return Ok(result);
+    }
+
+    [Authorize]
+    [HttpDelete("delete-account")]
+    public async Task<IActionResult> DeleteAccount([FromQuery] string? password = null)
+    {
+        var result = await _authService.DeleteAccountAsync(password);
         if (!result.Success) return BadRequest(result);
         return Ok(result);
     }

@@ -129,13 +129,7 @@ public static class ImagePathResolver
     }
 
     /// <summary>صور الفئات الفرعية → images/subcategories/{name}</summary>
-    public static string SubCategory(string? name)
-    {
-        // Seed images were converted from JPG to PNG (160x120)
-        if (!string.IsNullOrEmpty(name) && name.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase))
-            name = System.IO.Path.ChangeExtension(name, ".png");
-        return Resolve(name, SubCategories, DefaultImage);
-    }
+    public static string SubCategory(string? name) => Resolve(name, SubCategories, DefaultImage);
 
     /// <summary>صور الخدمات → images/services/{name}</summary>
     public static string Service(string? name) => Resolve(name, Services, DefaultService);

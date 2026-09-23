@@ -18,8 +18,8 @@
         <ApplicationId>com.nassar84.khadamat</ApplicationId>
 
         <!-- Versions -->
-        <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-        <ApplicationVersion>1</ApplicationVersion>
+        <ApplicationDisplayVersion>2.0</ApplicationDisplayVersion>
+        <ApplicationVersion>11</ApplicationVersion>
 
         <!-- Required for C# Hot Reload -->
         <UseInterpreter Condition="'$(Configuration)' == 'Debug'">True</UseInterpreter>
@@ -70,7 +70,7 @@
 
     <ItemGroup>
         <!-- App Icon -->
-        <MauiIcon Include="Resources\AppIcon\khadamat_icon.png" Color="#FFFFFF" />
+        <MauiIcon Include="Resources\AppIcon\khadamat_icon.png" Color="#FFFFFF" ForegroundScale="0.65" />
 
         <!-- Splash Screen -->
         <MauiSplashScreen Include="Resources\Splash\khadamat_splash.png" Color="#0f172a" />
@@ -120,5 +120,22 @@
         <ProjectReference Include="..\Khadamat.Application\Khadamat.Application.csproj" />
         <ProjectReference Include="..\Khadamat.Shared\Khadamat.Shared.csproj" />
     </ItemGroup>
+
+    <Target Name="RenameAndCopyApk" AfterTargets="SignAndroidPackage;Publish" Condition="$(TargetFramework.Contains('-android'))">
+        <PropertyGroup>
+            <_SourceSignedApk>$(OutputPath)publish\com.nassar84.khadamat-Signed.apk</_SourceSignedApk>
+            <_SourceSignedApk Condition="!Exists('$(_SourceSignedApk)')">$(OutputPath)com.nassar84.khadamat-Signed.apk</_SourceSignedApk>
+        </PropertyGroup>
+        <Copy SourceFiles="$(_SourceSignedApk)" DestinationFiles="$(OutputPath)publish\Khadamawy.apk" Condition="Exists('$(_SourceSignedApk)')" ContinueOnError="true" />
+        <Copy SourceFiles="$(_SourceSignedApk)" DestinationFiles="$(OutputPath)publish\Khadamawy-Signed.apk" Condition="Exists('$(_SourceSignedApk)')" ContinueOnError="true" />
+        <Copy SourceFiles="$(_SourceSignedApk)" DestinationFiles="$(MSBuildProjectDirectory)\..\..\Khadamawy.apk" Condition="Exists('$(_SourceSignedApk)')" ContinueOnError="true" />
+        <Copy SourceFiles="$(_SourceSignedApk)" DestinationFiles="$(MSBuildProjectDirectory)\..\..\Khadamawy-Signed.apk" Condition="Exists('$(_SourceSignedApk)')" ContinueOnError="true" />
+        <Copy SourceFiles="$(_SourceSignedApk)" DestinationFiles="$(MSBuildProjectDirectory)\..\..\Khadamat.apk" Condition="Exists('$(_SourceSignedApk)')" ContinueOnError="true" />
+        <Copy SourceFiles="$(_SourceSignedApk)" DestinationFiles="$(MSBuildProjectDirectory)\..\..\Khadamat-Signed.apk" Condition="Exists('$(_SourceSignedApk)')" ContinueOnError="true" />
+        <Copy SourceFiles="$(_SourceSignedApk)" DestinationFiles="$(MSBuildProjectDirectory)\..\..\com.nassar84.khadamat-Signed.apk" Condition="Exists('$(_SourceSignedApk)')" ContinueOnError="true" />
+        <Copy SourceFiles="$(_SourceSignedApk)" DestinationFiles="$(MSBuildProjectDirectory)\..\Khadamat.WebAPI\wwwroot\downloads\Khadamawy.apk" Condition="Exists('$(_SourceSignedApk)')" ContinueOnError="true" />
+        <Copy SourceFiles="$(_SourceSignedApk)" DestinationFiles="$(MSBuildProjectDirectory)\..\Khadamat.WebAPI\wwwroot\downloads\Khadamat.apk" Condition="Exists('$(_SourceSignedApk)')" ContinueOnError="true" />
+        <Copy SourceFiles="$(_SourceSignedApk)" DestinationFiles="$(MSBuildProjectDirectory)\..\Khadamat.WebAPI\wwwroot\downloads\khadamat.apk" Condition="Exists('$(_SourceSignedApk)')" ContinueOnError="true" />
+    </Target>
 
 </Project>

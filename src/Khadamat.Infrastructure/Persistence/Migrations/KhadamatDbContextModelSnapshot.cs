@@ -1042,6 +1042,75 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.ToTable("Comments");
                 });
 
+            modelBuilder.Entity("Khadamat.Domain.Entities.ContactMessage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AdminNotes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsResolved")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ResolvedByUserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SubjectType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ContactMessages");
+                });
+
             modelBuilder.Entity("Khadamat.Domain.Entities.Favorite", b =>
                 {
                     b.Property<int>("Id")
@@ -2090,6 +2159,9 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.Property<int>("ServiceId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("ServiceRequestId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Stars")
                         .HasColumnType("int");
 
@@ -2106,6 +2178,10 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ServiceId");
+
+                    b.HasIndex("ServiceRequestId")
+                        .IsUnique()
+                        .HasFilter("[ServiceRequestId] IS NOT NULL");
 
                     b.ToTable("Ratings", (string)null);
                 });
@@ -3280,7 +3356,14 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Khadamat.Domain.Entities.ServiceRequest", "ServiceRequest")
+                        .WithOne("Rating")
+                        .HasForeignKey("Khadamat.Domain.Entities.Rating", "ServiceRequestId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Service");
+
+                    b.Navigation("ServiceRequest");
                 });
 
             modelBuilder.Entity("Khadamat.Domain.Entities.Referral", b =>
@@ -3503,6 +3586,11 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.Navigation("Likes");
 
                     b.Navigation("Ratings");
+                });
+
+            modelBuilder.Entity("Khadamat.Domain.Entities.ServiceRequest", b =>
+                {
+                    b.Navigation("Rating");
                 });
 
             modelBuilder.Entity("Khadamat.Domain.Entities.SubCategory", b =>

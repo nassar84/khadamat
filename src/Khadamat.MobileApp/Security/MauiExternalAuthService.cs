@@ -20,7 +20,8 @@ public class MauiExternalAuthService : IExternalAuthService
             return new ExternalAuthResult
             {
                 Token = authResult.Properties.ContainsKey("token") ? authResult.Properties["token"] : null,
-                RefreshToken = authResult.Properties.ContainsKey("refreshToken") ? authResult.Properties["refreshToken"] : null
+                RefreshToken = authResult.Properties.ContainsKey("refreshToken") ? authResult.Properties["refreshToken"] : null,
+                Error = authResult.Properties.ContainsKey("error") ? authResult.Properties["error"] : null
             };
         }
         catch (OperationCanceledException)

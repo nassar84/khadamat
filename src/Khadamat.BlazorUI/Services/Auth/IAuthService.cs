@@ -15,4 +15,5 @@ public interface IAuthService
     Task InitializeAsync();
     Task<ApiResponse<bool>> ForgotPassword(ForgotPasswordRequest request);
     Task<ApiResponse<bool>> ResetPassword(ResetPasswordRequest request);
+    Task<ApiResponse<bool>> DeleteAccount(string? password = null);
 }

@@ -49,7 +49,7 @@
             <nav class="sidebar-nav">
                 <NavLink class="nav-link" href="/provider/dashboard" Match="NavLinkMatch.All" @onclick="CloseSidebar">
                     <i class="fas fa-chart-line"></i> 
-                    <span class="nav-text">لوحة المزود</span>
+                    <span class="nav-text">لوحة مقدم الخدمة</span>
                 </NavLink>
 
                 <!-- My Work Group -->
@@ -75,34 +75,18 @@
                     <i class="fas fa-envelope"></i> 
                     <span class="nav-text">الرسائل</span>
                 </NavLink>
-                 <NavLink class="nav-link" href="/provider/my-posts" @onclick="CloseSidebar">
-                    <i class="fas fa-pen-nib"></i> 
-                    <span class="nav-text">منشوراتي</span>
-                </NavLink>
 
-                <!-- Analytics & Growth -->
+                <!-- Analytics Group -->
                 <div class="nav-group-label text-muted x-small fw-bold mt-3 mb-2 px-3">النمو والإحصائيات</div>
                 
                 <NavLink class="nav-link" href="/provider/statistics" @onclick="CloseSidebar">
                     <i class="fas fa-chart-bar"></i> 
                     <span class="nav-text">الإحصائيات</span>
                 </NavLink>
-                <NavLink class="nav-link" href="/provider/ad-analytics" @onclick="CloseSidebar">
-                    <i class="fas fa-rectangle-ad"></i> 
-                    <span class="nav-text">إعلاناتي</span>
-                </NavLink>
-                <NavLink class="nav-link" href="/provider/referrals" @onclick="CloseSidebar">
-                    <i class="fas fa-users-viewfinder"></i> 
-                    <span class="nav-text">نظام الإحالة</span>
-                </NavLink>
 
                 <!-- Account Group -->
                 <div class="nav-group-label text-muted x-small fw-bold mt-3 mb-2 px-3">الحساب</div>
                 
-                 <NavLink class="nav-link" href="/provider/subscription" @onclick="CloseSidebar">
-                    <i class="fas fa-gem"></i> 
-                    <span class="nav-text">الاشتراك</span>
-                </NavLink>
                  <NavLink class="nav-link" href="/provider/settings" @onclick="CloseSidebar">
                     <i class="fas fa-user-gear"></i> 
                     <span class="nav-text">إعدادات الحساب</span>
@@ -127,7 +111,7 @@
                     <button class="btn btn-link text-dark p-0 d-lg-none" @onclick="ToggleSidebar">
                         <i class="fas fa-bars fs-4"></i>
                     </button>
-                    <h4 class="mb-0">لوحة المزود</h4>
+                    <h4 class="mb-0">لوحة مقدم الخدمة</h4>
                 </div>
 
                 <div class="admin-user-info">

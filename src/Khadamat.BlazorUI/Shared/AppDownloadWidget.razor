@@ -36,11 +36,11 @@
                     <div class="logo-orb">
                         @if (!string.IsNullOrEmpty(State.AppLogo))
                         {
-                            <img src="@State.AppLogo" style="height: 35px; width: auto;" />
+                            <img src="@State.AppLogo" style="height: 35px; width: auto; object-fit: contain;" />
                         }
                         else
                         {
-                            <i class="fa-solid fa-bolt-lightning text-white fs-4"></i>
+                            <img src="images/logo.png" style="height: 35px; width: auto; object-fit: contain;" />
                         }
                     </div>
                 </div>
@@ -49,7 +49,7 @@
             </div>
 
             <div class="portal-actions d-grid gap-2">
-                <a href="/downloads/khadamat.apk" download="@($"{(State.AppName ?? "khadamat").ToLower()}.apk")" class="store-link play-store-glow d-flex align-items-center p-2 rounded-4 text-decoration-none">
+                <a href="/downloads/Khadamawy.apk" download="Khadamawy.apk" class="store-link play-store-glow d-flex align-items-center p-2 rounded-4 text-decoration-none">
                     <div class="store-icon bg-white text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width:32px;height:32px;min-width:32px;">
                         <i class="fa-brands fa-android fs-6"></i>
                     </div>
@@ -84,15 +84,15 @@
             <div class="share-options mt-4">
                 <p class="text-white opacity-75 small mb-3">شارك التطبيق مع أصدقائك:</p>
                 <div class="d-flex justify-content-center gap-3">
-                    <button class="share-btn whatsapp" @onclick='() => ShareTo("whatsapp")' title="واتساب">
+                    <a class="share-btn whatsapp" href="@WhatsAppShareUrl" target="_blank" rel="noopener noreferrer" title="واتساب">
                         <i class="fa-brands fa-whatsapp"></i>
-                    </button>
-                    <button class="share-btn facebook" @onclick='() => ShareTo("facebook")' title="فيسبوك">
+                    </a>
+                    <a class="share-btn facebook" href="@FacebookShareUrl" target="_blank" rel="noopener noreferrer" title="فيسبوك">
                         <i class="fa-brands fa-facebook-f"></i>
-                    </button>
-                    <button class="share-btn twitter" @onclick='() => ShareTo("twitter")' title="تويتر">
+                    </a>
+                    <a class="share-btn twitter" href="@TwitterShareUrl" target="_blank" rel="noopener noreferrer" title="تويتر">
                         <i class="fa-brands fa-x-twitter"></i>
-                    </button>
+                    </a>
                     <button class="share-btn generic" @onclick="ShareAppInvitation" title="المزيد">
                         <i class="fa-solid fa-share-nodes"></i>
                     </button>
@@ -405,6 +405,8 @@
         justify-content: center;
         font-size: 1.2rem;
         color: white;
+        text-decoration: none;
+        cursor: pointer;
         transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         background: rgba(255, 255, 255, 0.1);
         backdrop-filter: blur(5px);
@@ -454,7 +456,7 @@
             if (isExpanded)
             {
                 await Task.Delay(200); // Increased delay
-                var downloadUrl = Navigation.BaseUri.TrimEnd('/') + "/downloads/khadamat.apk";
+                var downloadUrl = Navigation.BaseUri.TrimEnd('/') + "/downloads/Khadamawy.apk";
                 
                 if (JS != null)
                 {
@@ -495,32 +497,52 @@
         }
     }
 
+    private string WhatsAppShareUrl
+    {
+        get
+        {
+            var shareText = $"اكتشف تطبيق {State.AppName ?? "خدماتو"} المتكامل لكل الخدمات!\n" +
+                            "تمريض، تعليم، حرف، توصيل.. كل شيء في مكان واحد.\n" +
+                            "جربه الآن: " + Navigation.BaseUri;
+            return $"https://wa.me/?text={Uri.EscapeDataString(shareText)}";
+        }
+    }
+
+    private string FacebookShareUrl =>
+        $"https://www.facebook.com/sharer/sharer.php?u={Uri.EscapeDataString(Navigation.BaseUri)}";
+
+    private string TwitterShareUrl
+    {
+        get
+        {
+            var shareText = $"اكتشف تطبيق {State.AppName ?? "خدماتو"} المتكامل لكل الخدمات!\n" +
+                            "تمريض، تعليم، حرف، توصيل.. كل شيء في مكان واحد.\n" +
+                            "جربه الآن: " + Navigation.BaseUri;
+            return $"https://twitter.com/intent/tweet?text={Uri.EscapeDataString(shareText)}";
+        }
+    }
+
     private async Task ShareTo(string platform)
     {
+        // Kept for backward compatibility but now unused for main buttons
         try
         {
             var shareUrl = Navigation.BaseUri;
             var shareText = $"اكتشف تطبيق {State.AppName ?? "خدماوى"} المتكامل لكل الخدمات!\n" +
                             "تمريض، تعليم، حرف، توصيل.. كل شيء في مكان واحد.\n" +
                             "جربه الآن: " + shareUrl;
-            
-            string url = "";
-            switch (platform)
+
+            string url = platform switch
             {
-                case "whatsapp":
-                    url = $"https://wa.me/?text={Uri.EscapeDataString(shareText)}";
-                    break;
-                case "facebook":
-                    url = $"https://www.facebook.com/sharer/sharer.php?u={Uri.EscapeDataString(shareUrl)}";
-                    break;
-                case "twitter":
-                    url = $"https://twitter.com/intent/tweet?text={Uri.EscapeDataString(shareText)}";
-                    break;
-            }
+                "whatsapp" => $"https://wa.me/?text={Uri.EscapeDataString(shareText)}",
+                "facebook" => $"https://www.facebook.com/sharer/sharer.php?u={Uri.EscapeDataString(shareUrl)}",
+                "twitter"  => $"https://twitter.com/intent/tweet?text={Uri.EscapeDataString(shareText)}",
+                _ => ""
+            };
 
             if (!string.IsNullOrEmpty(url) && JS != null)
             {
-                await JS.InvokeVoidAsync("open", url, "_blank");
+                await JS.InvokeVoidAsync("openExternalUrl", url);
             }
         }
         catch (Exception ex)

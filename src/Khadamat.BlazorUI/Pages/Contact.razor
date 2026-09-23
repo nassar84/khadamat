@@ -225,6 +225,8 @@
     private bool submitted = false;
     private string? errorMsg;
 
+    [Inject] private Khadamat.BlazorUI.Services.ApiClient Api { get; set; } = default!;
+
     private async Task HandleSubmit()
     {
         if (string.IsNullOrWhiteSpace(form.Name) ||
@@ -238,12 +240,36 @@
         isSending = true;
         errorMsg = null;
 
-        // Simulate network delay
-        await Task.Delay(1200);
+        try
+        {
+            var payload = new
+            {
+                Name        = form.Name,
+                Email       = form.Email,
+                Subject     = form.Subject,
+                SubjectType = form.Subject,
+                Message     = form.Message
+            };
 
-        submitted = true;
-        isSending = false;
-        form = new();
+            var result = await Api.PostAsync<ContactResult>("v1/contact", payload);
+            if (result?.Success == true)
+            {
+                submitted = true;
+                form = new();
+            }
+            else
+            {
+                errorMsg = result?.Message ?? "حدث خطأ أثناء الإرسال، يرجى المحاولة مرة أخرى";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMsg = "حدث خطأ غير متوقع: " + ex.Message;
+        }
+        finally
+        {
+            isSending = false;
+        }
     }
 
     private class ContactForm
@@ -252,5 +278,11 @@
         public string Email { get; set; } = "";
         public string Subject { get; set; } = "";
         public string Message { get; set; } = "";
+    }
+
+    private class ContactResult
+    {
+        public bool Success { get; set; }
+        public string? Message { get; set; }
     }
 }

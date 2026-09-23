@@ -1,16 +1,162 @@
 @page "/admin/complaints"
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+@inject IJSRuntime JS
 
 <div class="px-3 pt-3 pb-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h3 class="fw-bold mb-0">الدعم الفني والشكاوى</h3>
-            <p class="text-muted small">إدارة التذاكر والشكاوى المقدمة من المستخدمين</p>
+            <p class="text-muted small">رسائل التواصل والشكاوى المقدمة من المستخدمين</p>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+            <select class="form-select form-select-sm rounded-pill" style="width:auto;" @bind="filterResolved" @bind:after="LoadMessages">
+                <option value="">الكل</option>
+                <option value="false">مفتوحة</option>
+                <option value="true">محلولة</option>
+            </select>
+            <button class="btn btn-sm btn-outline-primary rounded-pill" @onclick="LoadMessages">
+                <i class="fa-solid fa-arrows-rotate"></i>
+            </button>
         </div>
     </div>
-    
-    <div class="glass-card p-5 text-center mt-4">
-        <i class="fa-solid fa-headset fa-3x text-primary opacity-25 mb-3"></i>
-        <h4 class="fw-bold">لا توجد شكاوى أو تذاكر دعم مفتوحة</h4>
-        <p class="text-muted">جميع الطلبات تم حلها بنجاح.</p>
-    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary"></div>
+            <p class="text-muted mt-3 small">جاري تحميل الرسائل...</p>
+        </div>
+    }
+    else if (messages.Count == 0)
+    {
+        <div class="glass-card p-5 text-center mt-4">
+            <i class="fa-solid fa-headset fa-3x text-primary opacity-25 mb-3"></i>
+            <h4 class="fw-bold">لا توجد رسائل</h4>
+            <p class="text-muted">لا توجد شكاوى أو رسائل دعم وفق الفلتر الحالي.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var msg in messages)
+            {
+                <div class="col-12">
+                    <div class="glass-card p-4 shadow-sm @(msg.IsResolved ? "opacity-75" : "")">
+                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                            <div>
+                                <span class="fw-bold">@msg.Name</span>
+                                <span class="text-muted small ms-2">@msg.Email</span>
+                                <span class="badge rounded-pill ms-2 @SubjectBadge(msg.SubjectType)">@SubjectLabel(msg.SubjectType)</span>
+                                @if (msg.IsResolved)
+                                {
+                                    <span class="badge bg-success rounded-pill ms-1">تم الحل</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark rounded-pill ms-1">مفتوح</span>
+                                }
+                            </div>
+                            <span class="text-muted small">@msg.CreatedAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</span>
+                        </div>
+                        @if (!string.IsNullOrEmpty(msg.Subject))
+                        {
+                            <div class="fw-bold small text-primary mb-1">@msg.Subject</div>
+                        }
+                        <p class="text-muted small mb-3" style="white-space:pre-wrap;">@msg.Message</p>
+                        @if (!msg.IsResolved)
+                        {
+                            <button class="btn btn-sm btn-outline-success rounded-pill px-3"
+                                    @onclick="() => ResolveMessage(msg.Id)">
+                                <i class="fa-solid fa-check me-1"></i>تحديد كـ محلول
+                            </button>
+                        }
+                        else if (!string.IsNullOrEmpty(msg.AdminNotes))
+                        {
+                            <div class="small text-muted fst-italic">ملاحظة: @msg.AdminNotes</div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
 </div>
+
+@code {
+    private List<ContactMessageItem> messages = new();
+    private bool isLoading = true;
+    private string filterResolved = "";
+
+    protected override async Task OnInitializedAsync() => await LoadMessages();
+
+    private async Task LoadMessages()
+    {
+        isLoading = true;
+        try
+        {
+            var url = "v1/contact";
+            if (!string.IsNullOrEmpty(filterResolved))
+                url += $"?resolved={filterResolved}";
+
+            var result = await Api.GetAsync<List<ContactMessageItem>>(url);
+            messages = result ?? new();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Complaints] Error: {ex.Message}");
+            messages = new();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task ResolveMessage(int id)
+    {
+        try
+        {
+            var response = await Api.PutAsync<object>($"v1/contact/{id}/resolve", new { Notes = "" });
+            await LoadMessages();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Complaints] Resolve error: {ex.Message}");
+        }
+    }
+
+    private string SubjectLabel(string? type) => type switch
+    {
+        "technical"  => "مشكلة تقنية",
+        "account"    => "مشكلة حساب",
+        "provider"   => "طلب انضمام",
+        "complaint"  => "شكوى",
+        "suggestion" => "اقتراح",
+        _            => "أخرى"
+    };
+
+    private string SubjectBadge(string? type) => type switch
+    {
+        "complaint"  => "bg-danger",
+        "technical"  => "bg-warning text-dark",
+        "account"    => "bg-info text-dark",
+        "provider"   => "bg-primary",
+        "suggestion" => "bg-success",
+        _            => "bg-secondary"
+    };
+
+    public class ContactMessageItem
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string? Subject { get; set; }
+        public string? SubjectType { get; set; }
+        public string Message { get; set; } = "";
+        public bool IsResolved { get; set; }
+        public DateTime? ResolvedAt { get; set; }
+        public string? AdminNotes { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public string? UserId { get; set; }
+    }
+}

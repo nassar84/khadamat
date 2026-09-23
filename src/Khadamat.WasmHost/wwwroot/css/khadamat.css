@@ -65,13 +65,13 @@
     --theme-glow: rgba(191, 90, 242, 0.5);
 }
 
-/* Theme: Royal (Bright Gold/Violet) */
+/* Theme: Royal (Bright Gold / Amber) */
 [data-theme="royal"] {
-    --theme-primary: #f093fb;
-    --theme-secondary: #f5576c;
-    --theme-accent: #fff;
-    --theme-light: rgba(240, 147, 251, 0.15);
-    --theme-glow: rgba(245, 87, 108, 0.5);
+    --theme-primary: #eab308;
+    --theme-secondary: #ca8a04;
+    --theme-accent: #ffffff;
+    --theme-light: rgba(234, 179, 8, 0.15);
+    --theme-glow: rgba(234, 179, 8, 0.5);
 }
 
 /* ===== GLOBAL & LAYOUT ===== */

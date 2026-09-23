@@ -18,6 +18,7 @@ public class UserDto
     public int? CityId { get; set; }
     public string Role { get; set; } = string.Empty;
     public bool IsActive { get; set; }
+    public bool IsProvider { get; set; }
     public bool IsVerified { get; set; }
     public string? ProfileImageUrl { get; set; }
     public string? Gender { get; set; } // "Male", "Female", or null

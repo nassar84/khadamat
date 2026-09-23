@@ -49,6 +49,10 @@
         </div>
 
         <div class="auth-actions">
+            <label class="remember-me" for="rememberMe">
+                <InputCheckbox @bind-Value="loginRequest.RememberMe" id="rememberMe" class="form-check-input" />
+                <span class="form-check-label">تذكرني</span>
+            </label>
             <a href="/forgot-password" class="forgot-link">نسيت كلمة المرور؟</a>
         </div>
 
@@ -104,46 +108,58 @@
 
 <style>
     .auth-card {
-        padding: 40px;
+        padding: 30px 24px;
         backdrop-filter: blur(20px);
+        max-height: 90vh;
+        overflow-y: auto;
     }
     
+    @@media (max-width: 576px) {
+        .auth-card {
+            padding: 20px 16px;
+            border-radius: 16px;
+        }
+    }
+
     .auth-header {
         text-align: center;
-        margin-bottom: 30px;
+        margin-bottom: 20px;
     }
 
     .auth-header h3 {
         color: var(--theme-primary);
-        margin: 10px 0;
+        margin: 5px 0;
         font-weight: 700;
+        font-size: 1.4rem;
     }
 
     .auth-logo {
-        max-height: 80px;
+        max-height: 60px;
         width: auto;
         object-fit: contain;
     }
 
     .auth-header p {
         color: #64748b;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
+        margin-bottom: 0;
     }
 
     .form-group {
-        margin-bottom: 20px;
+        margin-bottom: 14px;
     }
 
     .form-group label {
         display: block;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
         color: #475569;
         font-weight: 600;
+        font-size: 0.9rem;
     }
 
     .glass-input {
         width: 100%;
-        padding: 12px 15px;
+        padding: 10px 14px;
         border-radius: 12px;
         border: 1px solid rgba(255, 255, 255, 0.4);
         background: rgba(255, 255, 255, 0.5);
@@ -163,19 +179,65 @@
 
     .auth-actions {
         display: flex;
-        justify-content: flex-end;
-        margin-bottom: 20px;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+        width: 100%;
+    }
+
+    .remember-me {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        padding: 4px 2px;
+        border-radius: 6px;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+        margin-bottom: 0;
+    }
+
+    .remember-me .form-check-input {
+        cursor: pointer;
+        width: 20px;
+        height: 20px;
+        min-width: 20px;
+        border-radius: 4px;
+        border: 2px solid #94a3b8;
+        background-color: #ffffff;
+        margin: 0;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+        accent-color: var(--theme-primary);
+    }
+
+    .remember-me .form-check-input:checked {
+        background-color: var(--theme-primary);
+        border-color: var(--theme-primary);
+    }
+
+    .remember-me .form-check-label {
+        font-size: 0.95rem;
+        color: #1e293b;
+        cursor: pointer;
+        user-select: none;
+        margin: 0;
+        font-weight: 600;
+        line-height: 1;
     }
 
     .forgot-link {
-        color: var(--theme-secondary);
+        color: var(--theme-primary);
         text-decoration: none;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
+        font-weight: 600;
     }
 
     .glass-btn-primary {
         width: 100%;
-        padding: 14px;
+        padding: 12px;
         border-radius: 12px;
         background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));
         border: none;
@@ -197,9 +259,9 @@
     }
 
     .auth-footer {
-        margin-top: 30px;
+        margin-top: 18px;
         text-align: center;
-        font-size: 0.95rem;
+        font-size: 0.9rem;
     }
 
     .auth-footer a {
@@ -300,6 +362,17 @@
 
         try
         {
+            var rememberedUser = await SecureStorage.GetAsync("remembered_username");
+            if (!string.IsNullOrEmpty(rememberedUser))
+            {
+                loginRequest.UserName = rememberedUser;
+                loginRequest.RememberMe = true;
+            }
+        }
+        catch { }
+
+        try
+        {
             isBiometricAvailable = await BiometricService.IsAvailableAsync();
             var savedUser = await SecureStorage.GetAsync("bio_username");
             hasBiometricSaved = !string.IsNullOrEmpty(savedUser);
@@ -359,12 +432,13 @@
     private async Task ExternalLogin(string provider)
     {
         errorMessage = "";
+        isLoading = true;
+        StateHasChanged();
         try {
             var apiBaseUrl = Http.BaseAddress?.ToString().TrimEnd('/');
             
-            // For Mobile (MAUI), we use a custom scheme
-            // For Web, we redirect back to the app page
-            var isWeb = (await ExternalAuthService.AuthenticateAsync("test", "test", "test"))?.Error == "REDIRECT_REQUIRED";
+            // Directly check service type instead of probe call (faster, no delay)
+            var isWeb = ExternalAuthService is Khadamat.BlazorUI.Services.WebExternalAuthService;
             
             var callbackUrl = isWeb 
                 ? Navigation.ToAbsoluteUri("/login-callback").ToString() 
@@ -374,7 +448,9 @@
 
             if (isWeb)
             {
+                // Redirect browser to Google/Facebook OAuth
                 Navigation.NavigateTo(authUrl, forceLoad: true);
+                return;
             }
             else
             {
@@ -385,18 +461,25 @@
                     {
                         var success = await AuthService.LoginWithToken(result.Token, result.RefreshToken ?? "");
                         if (success) Navigation.NavigateTo("/");
+                        else errorMessage = "فشل التحقق من البيانات";
                     }
-                    else if (!string.IsNullOrEmpty(result.Error))
+                    else if (!string.IsNullOrEmpty(result.Error) && result.Error != "user_cancelled")
                     {
-                        errorMessage = "فشل تسجيل الدخول الاجتماعي";
+                        errorMessage = $"فشل تسجيل الدخول: {result.Error}";
                     }
                 }
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
-            errorMessage = "حدث خطأ أثناء محاولة تسجيل الدخول الاجتماعي";
+            Console.WriteLine($"[ExternalLogin] Error: {ex.Message}");
+            if (!ex.Message.Contains("cancel", StringComparison.OrdinalIgnoreCase))
+                errorMessage = "حدث خطأ أثناء محاولة تسجيل الدخول الاجتماعي";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
         }
     }
 
@@ -418,8 +501,19 @@
                 {
                     "SuperAdmin" => "مدير خارق",
                     "SystemAdmin" => "مدير نظام",
-                    _ => "مستخدم"
+                    _ => result.IsProvider ? "مقدم خدمة" : "عميل"
                 };
+                AppState.IsProvider = result.IsProvider;
+
+                // Save or clear remembered username
+                if (loginRequest.RememberMe)
+                {
+                    await SecureStorage.SaveAsync("remembered_username", loginRequest.UserName);
+                }
+                else
+                {
+                    SecureStorage.Remove("remembered_username");
+                }
 
                 // After successful manual login, if biometric is available but not saved, save it
                 if (isBiometricAvailable && !hasBiometricSaved)

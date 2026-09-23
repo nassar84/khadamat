@@ -163,8 +163,10 @@
             </div>
             
             <div class="mb-3 form-check">
-                <input type="checkbox" class="form-check-input" id="termsCheck" required>
-                <label class="form-check-label" for="termsCheck">أوافق على الشروط والأحكام</label>
+                <input type="checkbox" class="form-check-input" id="termsCheck" @bind="agreeToTerms" required 
+                       oninvalid="this.setCustomValidity('يرجى الموافقة على الشروط والأحكام للمتابعة')" 
+                       oninput="this.setCustomValidity('')">
+                <label class="form-check-label ms-2" for="termsCheck">أوافق على الشروط والأحكام</label>
             </div>
 
             @if (!string.IsNullOrEmpty(errorMessage) || (apiErrors != null && apiErrors.Any()))
@@ -319,6 +321,7 @@
     private bool isBusy = false;
     private string errorMessage = "";
     private List<string> apiErrors = new();
+    private bool agreeToTerms = false;
     private bool passwordsMatch => string.IsNullOrEmpty(registerModel.Password) || registerModel.Password == confirmPassword;
     private string? previewImage;
     private bool isLoadingCities = false;
@@ -420,6 +423,12 @@
     private async Task HandleRegister()
     {
         errorMessage = "";
+
+        if (!agreeToTerms)
+        {
+            errorMessage = "يرجى الموافقة على الشروط والأحكام للمتابعة";
+            return;
+        }
         
         if (registerModel.Password != confirmPassword)
         {

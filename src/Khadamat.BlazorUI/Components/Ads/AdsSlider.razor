@@ -1,5 +1,6 @@
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
+@using Khadamat.BlazorUI.Helpers
 @inject ApiClient Api
 @inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
@@ -11,8 +12,12 @@
     }
     else if (!ads.Any())
     {
-        <div class="no-ads-placeholder rounded-4 d-flex align-items-center justify-content-center text-muted">
-             <i class="fa-solid fa-rectangle-ad me-2"></i> لا توجد إعلانات نشطة
+        <div class="no-ads-placeholder rounded-4 d-flex flex-column align-items-center justify-content-center p-4 text-center cursor-pointer shadow-sm" @onclick='() => Navigation.NavigateTo("/services")'>
+            <div class="d-flex align-items-center gap-2 mb-1 text-primary fw-bold fs-5">
+                <i class="fa-solid fa-rectangle-ad"></i>
+                <span>إعلانات وخدمات مميزة في خدماوي</span>
+            </div>
+            <p class="text-muted small mb-0">انقر هنا لاستكشاف أحدث الخدمات والمنتجات المتاحة</p>
         </div>
     }
     else
@@ -21,39 +26,51 @@
             @for (int i = 0; i < ads.Count; i++)
             {
                 var ad = ads[i];
-                <div class="ad-slide @(i == currentIndex ? "active" : "")" @onclick="() => OnAdClick(ad)">
-                    @{
-                        var hasGradient = !string.IsNullOrEmpty(ad.ImageUrl) && ad.ImageUrl.StartsWith("hero-gradient");
-                        var hasRealImage = !string.IsNullOrEmpty(ad.ImageUrl) && !ad.ImageUrl.StartsWith("hero-gradient");
-                        var imageUrl = hasRealImage ? Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.ImagePathResolver.Ad(ad.ImageUrl)) : null;
-                        var bgStyle = hasRealImage ? $"background-image: url({imageUrl}); background-size: cover; background-position: center;" : "";
-                        var cardClass = hasGradient ? ad.ImageUrl : (string.IsNullOrEmpty(ad.ImageUrl) ? "hero-gradient-1" : "");
-                    }
-                    <div class="ad-content-card @cardClass" style="@bgStyle">
+                var targetUrl = GetAdTargetUrl(ad);
+                var hasGradient = !string.IsNullOrEmpty(ad.ImageUrl) && ad.ImageUrl.StartsWith("hero-gradient");
+                var hasRealImage = !string.IsNullOrEmpty(ad.ImageUrl) && !hasGradient;
+                var imageUrl = hasRealImage ? Api.GetAbsoluteUrl(ImagePathResolver.Ad(ad.ImageUrl)) : null;
+                var cardClass = hasGradient ? ad.ImageUrl : "hero-gradient-1";
+
+                <div class="ad-slide @(i == currentIndex ? "active" : "")" @onclick="() => OnAdClick(ad)" title="اضغط للانتقال للإعلان">
+                    <div class="ad-content-card @cardClass">
+                        @if (!string.IsNullOrEmpty(imageUrl))
+                        {
+                            <img src="@imageUrl" 
+                                 alt="@(!string.IsNullOrEmpty(ad.Title) ? ad.Title : "إعلان مميز")" 
+                                 class="ad-background-image" 
+                                 onerror="this.style.display='none';" />
+                        }
+                        
                         <div class="glass-overlay"></div>
+
+                        <!-- Ad Text & Call To Action -->
                         <div class="ad-text-content">
                             @if (!string.IsNullOrEmpty(ad.Title))
                             {
                                 <h2 class="ad-title animate-pop">@ad.Title</h2>
                             }
+                            else
+                            {
+                                <h2 class="ad-title animate-pop">إعلان مميز</h2>
+                            }
+
                             @if (!string.IsNullOrEmpty(ad.Description))
                             {
                                 <p class="ad-desc animate-fade-in shadow-text">@ad.Description</p>
                             }
-                            <button class="btn btn-light rounded-pill px-4 btn-sm fw-bold mt-2">
-                                @if (ad.ServiceId.HasValue)
-                                {
-                                    <i class="fa-solid fa-arrow-left me-1"></i>@("عرض الخدمة")
-                                }
-                                else
-                                {
-                                    <span>عرض التفاصيل</span>
-                                }
-                            </button>
+                            else if (!string.IsNullOrEmpty(ad.TextContent))
+                            {
+                                <p class="ad-desc animate-fade-in shadow-text">@ad.TextContent</p>
+                            }
+
+                            <div class="d-inline-flex align-items-center gap-2 btn btn-light rounded-pill px-4 btn-sm fw-bold mt-2 shadow-sm ad-cta-btn">
+                                <span>@(ad.ServiceId.HasValue ? "عرض الخدمة" : "عرض التفاصيل")</span>
+                                <i class="fa-solid fa-arrow-left"></i>
+                            </div>
                         </div>
-                        <div class="ad-decoration">
-                            <i class="fa-solid fa-star-of-life floating"></i>
-                        </div>
+
+                        <div class="ad-badge-label">إعلان</div>
                     </div>
                 </div>
             }
@@ -65,7 +82,7 @@
                 @for (int i = 0; i < ads.Count; i++)
                 {
                     var index = i;
-                    <span class="dot @(i == currentIndex ? "active" : "")" @onclick="() => GoToSlide(index)"></span>
+                    <span class="dot @(i == currentIndex ? "active" : "")" @onclick:stopPropagation="true" @onclick="() => GoToSlide(index)"></span>
                 }
             </div>
         }
@@ -76,8 +93,9 @@
     .ads-slider-wrapper {
         position: relative;
         width: 100%;
-        height: 180px;
+        height: 200px;
         overflow: hidden;
+        border-radius: 24px;
     }
     
     .ads-carousel {
@@ -93,7 +111,7 @@
         width: 100%;
         height: 100%;
         opacity: 0;
-        transition: opacity 1s ease-in-out, transform 0.5s ease;
+        transition: opacity 0.8s ease-in-out, transform 0.5s ease;
         pointer-events: none;
         cursor: pointer;
     }
@@ -106,7 +124,7 @@
     .ad-content-card {
         width: 100%;
         height: 100%;
-        background-color: #7c3aed;
+        background-color: #1e293b;
         border-radius: 24px;
         position: relative;
         overflow: hidden;
@@ -114,58 +132,90 @@
         align-items: center;
         padding: 0 40px;
         color: white;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+    }
+
+    .ad-background-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 0;
+        transition: transform 0.6s ease;
+    }
+
+    .ad-content-card:hover .ad-background-image {
+        transform: scale(1.04);
     }
     
     .glass-overlay {
         position: absolute;
         inset: 0;
-        background: linear-gradient(90deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 60%);
+        background: linear-gradient(90deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.1) 100%);
         z-index: 1;
     }
     
     .ad-text-content {
         position: relative;
         z-index: 2;
-        max-width: 60%;
+        max-width: 70%;
     }
     
     .ad-title {
         font-weight: 800;
-        font-size: 1.5rem;
-        margin-bottom: 8px;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        font-size: 1.6rem;
+        margin-bottom: 6px;
+        text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+        color: #ffffff;
     }
     
     .ad-desc {
-        font-size: 0.9rem;
-        opacity: 0.9;
-        margin-bottom: 12px;
+        font-size: 0.95rem;
+        opacity: 0.95;
+        margin-bottom: 10px;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
+        text-shadow: 0 1px 4px rgba(0,0,0,0.5);
     }
-    
-    .ad-decoration {
+
+    .ad-badge-label {
         position: absolute;
-        right: 40px;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 4rem;
-        opacity: 0.2;
-        z-index: 1;
+        top: 15px;
+        left: 20px;
+        background: rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(8px);
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 20px;
+        z-index: 3;
+        border: 1px solid rgba(255, 255, 255, 0.3);
     }
     
-    /* Predefined Gradients matching the options in management */
-    .hero-gradient-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .ad-cta-btn {
+        transition: all 0.3s ease;
+    }
+
+    .ad-content-card:hover .ad-cta-btn {
+        transform: translateX(-5px);
+        background: #ffffff !important;
+        color: #0f172a !important;
+    }
+    
+    /* Predefined Gradients */
+    .hero-gradient-1 { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); }
     .hero-gradient-2 { background: linear-gradient(135deg, #0abde3 0%, #00d2d3 100%); }
     .hero-gradient-3 { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); }
     .hero-gradient-4 { background: linear-gradient(135deg, #10ac84 0%, #01a3a4 100%); }
     
     .ads-indicators {
         position: absolute;
-        bottom: 15px;
+        bottom: 12px;
         left: 50%;
         transform: translateX(-50%);
         display: flex;
@@ -174,8 +224,8 @@
     }
     
     .dot {
-        width: 8px;
-        height: 8px;
+        width: 10px;
+        height: 10px;
         border-radius: 50%;
         background: rgba(255,255,255,0.4);
         cursor: pointer;
@@ -183,30 +233,27 @@
     }
     
     .dot.active {
-        width: 24px;
-        border-radius: 4px;
+        width: 28px;
+        border-radius: 6px;
         background: white;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }
     
     .no-ads-placeholder {
         height: 100%;
-        background: #f1f5f9;
-        border: 2px dashed #e2e8f0;
+        background: #f8fafc;
+        border: 2px dashed #cbd5e1;
     }
     
     .ads-skeleton {
         height: 100%;
-        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
         background-size: 200% 100%;
         animation: skeleton-loading 1.5s infinite;
     }
     
     .animate-pop {
         animation: pop-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .floating {
-        animation: float 3s ease-in-out infinite;
     }
 </style>
 
@@ -217,7 +264,6 @@
 
     protected override void OnInitialized()
     {
-        Console.WriteLine("ANTIGRAVITY_LOG: AdsSlider Initialized. Starting load...");
         _ = LoadAdsAsync();
     }
 
@@ -249,27 +295,51 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"ANTIGRAVITY_LOG: Error loading ads: {ex.Message}");
+            Console.WriteLine($"Error loading ads slider: {ex.Message}");
         }
+    }
+
+    private string GetAdTargetUrl(EnhancedAdDto ad)
+    {
+        if (ad.ServiceId.HasValue && ad.ServiceId.Value > 0)
+        {
+            return $"/service/{ad.ServiceId.Value}";
+        }
+        if (!string.IsNullOrWhiteSpace(ad.TargetUrl))
+        {
+            return ad.TargetUrl;
+        }
+        if (!string.IsNullOrWhiteSpace(ad.TargetCategories))
+        {
+            var firstCat = ad.TargetCategories.Split(',')[0].Trim();
+            if (!string.IsNullOrEmpty(firstCat))
+            {
+                return $"/services?categoryId={firstCat}";
+            }
+        }
+        return "/services";
     }
 
     private void GoToSlide(int index)
     {
         currentIndex = index;
         timer?.Stop();
-        timer?.Start(); // Reset timer
+        timer?.Start();
     }
 
     private void OnAdClick(EnhancedAdDto ad)
     {
         _ = Api.TrackAdClickAsync(ad.Id);
-        if (ad.ServiceId.HasValue && ad.ServiceId.Value > 0)
+        var target = GetAdTargetUrl(ad);
+
+        if (target.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || 
+            target.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
         {
-            Navigation.NavigateTo($"/service/{ad.ServiceId.Value}");
+            _ = JSRuntime.InvokeVoidAsync("open", target, "_blank");
         }
-        else if (!string.IsNullOrEmpty(ad.TargetUrl))
+        else
         {
-            Navigation.NavigateTo(ad.TargetUrl);
+            Navigation.NavigateTo(target);
         }
     }
 

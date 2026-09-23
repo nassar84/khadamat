@@ -45,7 +45,7 @@
     else
     {
         <!-- Active Subscription Card -->
-        <div class="sub-hero glass-card p-5 mb-4 position-relative overflow-hidden animate-up">
+        <div class="sub-hero p-5 mb-4 position-relative overflow-hidden animate-up shadow-lg">
             <div class="sub-bg-glow"></div>
             <div class="row align-items-center">
                 <div class="col-md-8 z-1">
@@ -172,8 +172,11 @@
 
 <style>
     .sub-hero {
-        background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));
+        background: linear-gradient(135deg, var(--theme-primary, #4f46e5) 0%, var(--theme-secondary, #0ea5e9) 100%) !important;
         border-radius: 24px;
+        color: #ffffff !important;
+        box-shadow: 0 12px 30px rgba(79, 70, 229, 0.25) !important;
+        border: none !important;
     }
 
     .sub-bg-glow {

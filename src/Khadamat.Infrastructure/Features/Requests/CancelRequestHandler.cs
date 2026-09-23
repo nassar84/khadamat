@@ -34,6 +34,28 @@ public class CancelRequestHandler : IRequestHandler<CancelRequestCommand, ApiRes
 
         await _context.SaveChangesAsync(cancellationToken);
 
+        // Notify provider that customer cancelled
+        try
+        {
+            var providerProfile = await _context.ProviderProfiles.FindAsync(new object[] { serviceRequest.ProviderId }, cancellationToken);
+            if (providerProfile != null && !string.IsNullOrEmpty(providerProfile.UserId))
+            {
+                var notif = new Domain.Entities.Notification(
+                    providerProfile.UserId,
+                    "تم إلغاء الطلب",
+                    "قام العميل بإلغاء طلب الخدمة المعلق.",
+                    "Order",
+                    "/provider/incoming-requests"
+                );
+                _context.Notifications.Add(notif);
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+        }
+        catch (System.Exception ex)
+        {
+            System.Console.WriteLine($"Failed to notify provider of cancellation: {ex.Message}");
+        }
+
         return ApiResponse<bool>.Succeed(true);
     }
 }

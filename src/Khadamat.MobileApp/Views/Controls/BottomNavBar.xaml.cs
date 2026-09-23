@@ -8,12 +8,44 @@ public partial class BottomNavBar : ContentView
     {
         InitializeComponent();
         
+        Loaded += (s, e) =>
+        {
+            EnsureViewModel();
+            RefreshAuthState();
+        };
+
         // Subscribe to global auth changes to keep UI in sync
         ViewModels.ShellViewModel.AuthChanged += OnAuthChanged;
 
         Unloaded += (s, e) => {
             ViewModels.ShellViewModel.AuthChanged -= OnAuthChanged;
         };
+    }
+
+    private ViewModels.ShellViewModel? EnsureViewModel()
+    {
+        if (BindingContext is ViewModels.ShellViewModel vm)
+            return vm;
+
+        if (Shell.Current?.BindingContext is ViewModels.ShellViewModel shellVm)
+        {
+            BindingContext = shellVm;
+            return shellVm;
+        }
+
+        try
+        {
+            var sp = Microsoft.Maui.Controls.Application.Current?.Handler?.MauiContext?.Services;
+            var resolvedVm = sp?.GetService<ViewModels.ShellViewModel>();
+            if (resolvedVm != null)
+            {
+                BindingContext = resolvedVm;
+                return resolvedVm;
+            }
+        }
+        catch { }
+
+        return null;
     }
 
     private void OnAuthChanged(object? sender, EventArgs e)
@@ -24,16 +56,15 @@ public partial class BottomNavBar : ContentView
     // ─── Auth State ─────────────────────────────────────────────────────────
     public void RefreshAuthState()
     {
-        // Now partially handled by bindings in XAML (ProfileLabel)
-        // Manual sync for legacy ProfileImage logic
         MainThread.BeginInvokeOnMainThread(() =>
         {
             try
             {
-                var vm = BindingContext as ViewModels.ShellViewModel;
+                var vm = EnsureViewModel();
                 if (vm == null) return;
 
-                bool hasImage = !string.IsNullOrEmpty(vm.UserImage) && 
+                bool hasImage = vm.IsAuthenticated &&
+                                !string.IsNullOrEmpty(vm.UserImage) && 
                                 vm.UserImage != "profile_icon.png" && 
                                 vm.UserImage != "app_logo.png" &&
                                 !vm.UserImage.ToLower().Contains("default");
@@ -43,15 +74,32 @@ public partial class BottomNavBar : ContentView
 
                 if (hasImage)
                 {
-                    if (vm.UserImage.StartsWith("http") || vm.UserImage.StartsWith("https") || vm.UserImage.StartsWith("data:image"))
+                    if (vm.UserImage.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || 
+                        vm.UserImage.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+                    {
+                        ProfileImage.Source = new UriImageSource
+                        {
+                            Uri = new Uri(vm.UserImage),
+                            CachingEnabled = false
+                        };
+                    }
+                    else if (vm.UserImage.StartsWith("data:image", StringComparison.OrdinalIgnoreCase))
                     {
                         ProfileImage.Source = vm.UserImage;
                     }
                     else
                     {
-                        string baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "https://khadamat.com");
-                        ProfileImage.Source = $"{baseUrl.TrimEnd('/')}/{vm.UserImage.TrimStart('/')}";
+                        var fullUrl = ViewModels.ShellViewModel.ResolveFullImageUrl(vm.UserImage);
+                        ProfileImage.Source = new UriImageSource
+                        {
+                            Uri = new Uri(fullUrl),
+                            CachingEnabled = false
+                        };
                     }
+                }
+                else
+                {
+                    ProfileImage.Source = null;
                 }
             }
             catch (Exception ex)

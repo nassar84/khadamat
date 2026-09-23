@@ -43,6 +43,8 @@ public class LoginRequest
 
     [Required(ErrorMessage = "كلمة المرور مطلوبة")]
     public string Password { get; set; } = string.Empty;
+
+    public bool RememberMe { get; set; } = true;
 }
 
 public class ChangeMyPasswordRequest

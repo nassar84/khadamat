@@ -37,18 +37,18 @@
                 <div class="mb-4">
                     <i class="fa-solid fa-briefcase text-primary display-4"></i>
                 </div>
-                <h4 class="fw-bold mb-3">انضم إلينا كمزود خدمة</h4>
+                <h4 class="fw-bold mb-3">انضم إلينا كمقدم خدمة</h4>
                 <p class="text-muted mb-4 mx-auto" style="max-width: 500px;">
-                    لقد أكملت بياناتك الشخصية بنجاح! الآن يمكنك البدء في تقديم خدماتك والظهور لآلاف العملاء من خلال الانضمام كـ مزود خدمة.
+                    لقد أكملت بياناتك الشخصية بنجاح! الآن يمكنك البدء في تقديم خدماتك والظهور لآلاف العملاء من خلال الانضمام كـ مقدم خدمة.
                 </p>
                 <div class="d-flex justify-content-center gap-2">
                     <button class="btn btn-primary-premium rounded-pill px-5 shadow" @onclick='() => Navigation.NavigateTo("/provider/apply")'>
-                        <i class="fa-solid fa-id-card me-2"></i> التقديم كمزود خدمة
+                        <i class="fa-solid fa-id-card me-2"></i> التقديم كمقدم خدمة
                     </button>
                 </div>
             </div>
         }
-        else if (!profile.IsVerified)
+        else if (!profile.IsVerified && (services == null || !services.Any()))
         {
             <div class="glass-card p-5 text-center rounded-4 shadow-sm border-info-subtle animate-up">
                 <div class="mb-4">
@@ -67,8 +67,18 @@
         }
     }
     
-    @if (profile != null && profile.IsProvider && profile.IsVerified)
+    @if (profile != null && profile.IsProvider && (profile.IsVerified || (services != null && services.Any())))
     {
+        @if (!profile.IsVerified)
+        {
+            <div class="alert alert-info rounded-4 mb-4 d-flex align-items-center" role="alert">
+                <i class="fa-solid fa-circle-info fs-4 me-3"></i>
+                <div>
+                    <strong>حسابك قيد المراجعة:</strong> يقوم فريق الإدارة بمراجعة بيانات حسابك، ولكن يمكنك رؤية خدماتك ومتابعة حالتها هنا.
+                </div>
+            </div>
+        }
+
         @if (isLoadingServices)
         {
             <div class="text-center py-5">
@@ -155,10 +165,14 @@
                 {
                     <div class="col-12 col-md-6 col-xl-4">
                         <div class="glass-card p-0 overflow-hidden border-0 shadow-sm h-100 animate-up">
-                            <div class="position-relative">
-                                <img src="@(s.Images != null && s.Images.Any() ? s.Images.First() : "/images/services/default_service.png")" class="w-100 object-fit-cover" style="height: 180px;" onerror="this.src='/images/services/default_service.png'" />
+                            <div class="position-relative w-100 overflow-hidden d-flex align-items-center justify-content-center" style="height: 190px; background: linear-gradient(145deg, #f8fafc, #f1f5f9); border-top-left-radius: inherit; border-top-right-radius: inherit;">
+                                <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(s.Images?.FirstOrDefault(), s.SubCategoryName, s.CategoryName, s.MainCategoryName, s.SubCategoryImageUrl, s.CategoryImageUrl, s.MainCategoryImageUrl))" 
+                                     class="w-100 h-100" 
+                                     style="object-fit: contain; padding: 10px; transition: transform 0.3s ease;" 
+                                     alt="@s.Title" 
+                                     onerror="this.onerror=null;this.src='/images/services/default_service.png';" />
                                 <div class="position-absolute top-0 end-0 m-2">
-                                    <span class="badge @(s.IsApproved ? "bg-success" : "bg-warning text-dark") rounded-pill">
+                                    <span class="badge @(s.IsApproved ? "bg-success" : "bg-warning text-dark") rounded-pill shadow-sm">
                                         @(s.IsApproved ? "مقبول" : "قيد المراجعة")
                                     </span>
                                 </div>
@@ -217,8 +231,8 @@
                 profile = profileResult.Data;
                 currentSubscription = await Api.GetMySubscriptionAsync();
 
-                // 2. Only try to load services if verified provider
-                if (profile.IsProvider && profile.IsVerified)
+                // 2. Load services if provider
+                if (profile.IsProvider)
                 {
                     try 
                     {

@@ -8,11 +8,8 @@ namespace Khadamat.MobileApp;
 
 [Register("com.nassar84.khadamat.DeepLinkActivity")]
 [Activity(NoHistory = true, LaunchMode = global::Android.Content.PM.LaunchMode.SingleTask, Exported = true)]
-[IntentFilter(new[] { Intent.ActionView }, 
-    Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable }, 
-    DataScheme = "khadamat", 
-    DataHost = "*", 
-    AutoVerify = true)]
+// NOTE: We intentionally do NOT handle khadamat://callback here.
+// That is exclusively handled by WebAuthenticatorActivity for OAuth flows.
 [IntentFilter(new[] { Intent.ActionView }, 
     Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable }, 
     DataScheme = "https", 

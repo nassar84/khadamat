@@ -37,12 +37,12 @@ public class GetProviderServicesHandler : IRequestHandler<Queries.GetProviderSer
         string includes = "Category,Category.MainCategory,SubCategory,SubCategory.Category,SubCategory.Category.MainCategory,City,City.Governorate,Ratings,Likes";
 
         var pagedItems = await _repository.GetPagedAsync(request.Page, request.PageSize, 
-            filter: s => s.ProviderProfileId == providerId, 
+            filter: s => s.ProviderProfileId == providerId || (!string.IsNullOrEmpty(request.UserId) && s.UserCreated == request.UserId), 
             orderBy: q => q.OrderByDescending(s => s.Ratings.Any() ? s.Ratings.Average(r => (double?)r.Stars) : 0)
                            .ThenByDescending(s => s.CreatedAt),
             includeProperties: includes);
             
-        var totalCount = await _repository.CountAsync(s => s.ProviderProfileId == providerId);
+        var totalCount = await _repository.CountAsync(s => s.ProviderProfileId == providerId || (!string.IsNullOrEmpty(request.UserId) && s.UserCreated == request.UserId));
         
         var dtos = _mapper.Map<List<ServiceDto>>(pagedItems);
         
@@ -62,20 +62,58 @@ public class GetProviderServicesHandler : IRequestHandler<Queries.GetProviderSer
             : actualUserName;
         string providerPhoto = provider?.Photo ?? string.Empty;
         
-        // Map City, Governorate, and Provider information for each service
+        // Map City, Governorate, Provider, and Category hierarchy information for each service
         foreach (var dto in dtos)
         {
             var service = pagedItems.FirstOrDefault(s => s.Id == dto.Id);
-            if (service?.City != null)
+            if (service != null)
             {
-                dto.CityName = service.City.City_Name_AR;
-                dto.CityNameEn = service.City.City_Name_EN;
-                dto.GovernorateId = service.City.GovernorateId;
-                
-                if (service.City.Governorate != null)
+                if (service.City != null)
                 {
-                    dto.GovernorateName = service.City.Governorate.Governorate_Name_AR;
-                    dto.GovernorateNameEn = service.City.Governorate.Governorate_Name_EN;
+                    dto.CityName = service.City.City_Name_AR;
+                    dto.CityNameEn = service.City.City_Name_EN;
+                    dto.GovernorateId = service.City.GovernorateId;
+                    
+                    if (service.City.Governorate != null)
+                    {
+                        dto.GovernorateName = service.City.Governorate.Governorate_Name_AR;
+                        dto.GovernorateNameEn = service.City.Governorate.Governorate_Name_EN;
+                    }
+                }
+
+                // Explicitly map Category & SubCategory hierarchy and image URLs
+                if (service.SubCategory != null)
+                {
+                    dto.SubCategoryId = service.SubCategoryId;
+                    dto.SubCategoryName = service.SubCategory.Name;
+                    dto.SubCategoryImageUrl = service.SubCategory.ImageUrl;
+
+                    if (service.SubCategory.Category != null)
+                    {
+                        dto.CategoryId = service.SubCategory.CategoryId;
+                        dto.CategoryName = service.SubCategory.Category.Name;
+                        dto.CategoryImageUrl = service.SubCategory.Category.ImageUrl;
+
+                        if (service.SubCategory.Category.MainCategory != null)
+                        {
+                            dto.MainCategoryId = service.SubCategory.Category.MainCategoryId;
+                            dto.MainCategoryName = service.SubCategory.Category.MainCategory.Name;
+                            dto.MainCategoryImageUrl = service.SubCategory.Category.MainCategory.ImageUrl;
+                        }
+                    }
+                }
+                else if (service.Category != null)
+                {
+                    dto.CategoryId = service.CategoryId;
+                    dto.CategoryName = service.Category.Name;
+                    dto.CategoryImageUrl = service.Category.ImageUrl;
+
+                    if (service.Category.MainCategory != null)
+                    {
+                        dto.MainCategoryId = service.Category.MainCategoryId;
+                        dto.MainCategoryName = service.Category.MainCategory.Name;
+                        dto.MainCategoryImageUrl = service.Category.MainCategory.ImageUrl;
+                    }
                 }
             }
 

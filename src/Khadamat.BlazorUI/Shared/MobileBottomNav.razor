@@ -6,9 +6,9 @@
 <nav class="bottom-nav">
 @if (State.IsProviderMode)
 {
-    <button class="nav-item @GetActiveClass("/")" @onclick='() => Navigate("/")'>
-        <i class="fa-solid fa-house"></i>
-        <span>الرئيسية</span>
+    <button class="nav-item @GetActiveClass("/provider/dashboard")" @onclick='() => Navigate("/provider/dashboard")'>
+        <i class="fa-solid fa-gauge-high"></i>
+        <span>اللوحة</span>
     </button>
     
     <button class="nav-item @GetActiveClass("/provider/my-services")" @onclick='() => Navigate("/provider/my-services")'>
@@ -16,30 +16,33 @@
         <span>خدماتي</span>
     </button>
 
-    <button class="nav-item" @onclick="ToggleMode">
-        <i class="fa-solid fa-repeat"></i>
-        <span>تبديل</span>
+    <button class="nav-item home-nav-btn @GetActiveClass("/")" @onclick='() => Navigate("/")'>
+        <div class="home-icon-container">
+            <i class="fa-solid fa-house"></i>
+        </div>
+        <span>الرئيسية</span>
     </button>
 
+    <button class="nav-item @GetActiveClass("/provider/incoming-requests")" @onclick='() => Navigate("/provider/incoming-requests")'>
+        <i class="fa-solid fa-clipboard-check"></i>
+        <span>الطلبات</span>
+    </button>
     
-    <button class="nav-item @GetActiveClass("/profile")" @onclick='() => Navigate("/profile")'>
-        <i class="fa-solid fa-user-gear"></i>
-        <span>الإعدادات</span>
+    <button class="nav-item @GetActiveClass("/user/messages")" @onclick='() => Navigate("/user/messages")'>
+        <i class="fa-solid fa-comments"></i>
+        <span>رسائلي</span>
     </button>
 }
 else
 {
-    <button class="nav-item @GetActiveClass("/categories")" @onclick='() => Navigate("/categories")'>
-        <i class="fa-solid fa-th-large"></i>
-        <span>الأقسام</span>
+    <button class="nav-item @GetActiveClass("/services")" @onclick='() => Navigate("/services")'>
+        <i class="fa-solid fa-compass"></i>
+        <span>استكشاف</span>
     </button>
-    
-    <button class="nav-item marketplace-nav-btn @GetActiveClass("/marketplace")" @onclick='() => Navigate("/marketplace")'>
-        <span class="store-icon-wrap">
-            <i class="fa-solid fa-store store-anim"></i>
-            <span class="store-pulse-ring"></span>
-        </span>
-        <span>المتجر</span>
+
+    <button class="nav-item @GetActiveClass("/user/my-requests")" @onclick='() => NavigateToAuthOr("/user/my-requests")'>
+        <i class="fa-solid fa-list-check"></i>
+        <span>طلباتي</span>
     </button>
 
     <button class="nav-item home-nav-btn @GetActiveClass("/")" @onclick='() => Navigate("/")'>
@@ -49,20 +52,10 @@ else
         <span>الرئيسية</span>
     </button>
     
-    @if (State.IsProvider)
-    {
-        <button class="nav-item" @onclick="ToggleMode">
-            <i class="fa-solid fa-repeat"></i>
-            <span>مزود</span>
-        </button>
-    }
-    else
-    {
-        <button class="nav-item @GetActiveClass("/client/favorites")" @onclick='() => Navigate("/client/favorites")'>
-            <i class="fa-solid fa-heart"></i>
-            <span>المفضلة</span>
-        </button>
-    }
+    <button class="nav-item @GetActiveClass("/user/messages")" @onclick='() => NavigateToAuthOr("/user/messages")'>
+        <i class="fa-solid fa-comments"></i>
+        <span>رسائلي</span>
+    </button>
     
     <AuthorizeView>
         <Authorized>
@@ -71,7 +64,7 @@ else
                     <img src="@State.UserImageUrl" class="nav-user-avatar" alt="User" />
                     <div class="online-dot-mini"></div>
                 </div>
-                <span>@GetFirstName(State.UserName)</span>
+                <span>حسابي</span>
             </button>
         </Authorized>
         <NotAuthorized>
@@ -328,6 +321,18 @@ else
         else
         {
             Navigation.NavigateTo(path, forceLoad: false);
+        }
+    }
+
+    private void NavigateToAuthOr(string path)
+    {
+        if (State.IsAuthenticated)
+        {
+            Navigate(path);
+        }
+        else
+        {
+            Navigate($"/login?returnUrl={Uri.EscapeDataString(path)}");
         }
     }
 

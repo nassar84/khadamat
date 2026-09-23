@@ -8,116 +8,575 @@
 
 <div class="px-2 pb-5">
 
-    <!-- Page Header -->
-    <div class="d-flex align-items-center justify-content-between mb-4">
+    <!-- Page Header & Tab Selector -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
         <div>
-            <h3 class="fw-bold mb-0">إدارة خطط الاشتراك</h3>
-            <p class="text-muted small mb-0">إضافة وتعديل باقات الاشتراك للمزودين</p>
+            <h3 class="fw-bold mb-1">
+                <i class="fa-solid fa-crown text-warning me-2"></i>إدارة الاشتراكات والباقات
+            </h3>
+            <p class="text-muted small mb-0">متابعة وإدارة اشتراكات مقدمي الخدمات والباقات المتاحة على المنصة</p>
         </div>
-        <button class="btn btn-primary-premium rounded-pill px-4" @onclick="() => OpenModal(null)">
-            <i class="fa-solid fa-plus me-2"></i> خطة جديدة
-        </button>
+
+        <div class="d-flex align-items-center gap-2">
+            <div class="btn-group bg-light p-1 rounded-pill border">
+                <button class="btn btn-sm rounded-pill px-3 @(activeTab == "providers" ? "btn-primary shadow-sm" : "btn-light text-muted")"
+                        @onclick='() => SetTab("providers")'>
+                    <i class="fa-solid fa-users me-1"></i> اشتراكات المزودين
+                    @if (providers.Any())
+                    {
+                        <span class="badge bg-white text-dark ms-1 rounded-pill">@providers.Count</span>
+                    }
+                </button>
+                <button class="btn btn-sm rounded-pill px-3 @(activeTab == "plans" ? "btn-primary shadow-sm" : "btn-light text-muted")"
+                        @onclick='() => SetTab("plans")'>
+                    <i class="fa-solid fa-layer-group me-1"></i> باقات الاشتراك
+                </button>
+            </div>
+
+            @if (activeTab == "plans")
+            {
+                <button class="btn btn-primary-premium rounded-pill px-3 btn-sm" @onclick="() => OpenPlanModal(null)">
+                    <i class="fa-solid fa-plus me-1"></i> باقة جديدة
+                </button>
+            }
+        </div>
     </div>
 
     @if (!string.IsNullOrEmpty(feedback))
     {
-        <div class="alert @(feedbackSuccess ? "alert-success" : "alert-danger") rounded-4 mb-4 animate-pop">
-            <i class="fa-solid @(feedbackSuccess ? "fa-circle-check" : "fa-circle-exclamation") me-2"></i>
-            @feedback
+        <div class="alert @(feedbackSuccess ? "alert-success" : "alert-danger") rounded-4 mb-4 animate-pop shadow-sm d-flex align-items-center justify-content-between">
+            <div>
+                <i class="fa-solid @(feedbackSuccess ? "fa-circle-check" : "fa-circle-exclamation") me-2"></i>
+                @feedback
+            </div>
+            <button class="btn-close" @onclick='() => feedback = null'></button>
         </div>
     }
 
-    <!-- Plans Grid -->
-    @if (isLoading)
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 1: PROVIDER SUBSCRIPTIONS                                      -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    @if (activeTab == "providers")
     {
-        <div class="text-center py-5">
-            <div class="spinner-border text-primary"></div>
+        <!-- Stats Summary -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="glass-card p-3 rounded-4 border-0 shadow-sm text-center">
+                    <div class="text-muted x-small mb-1">إجمالي المزودين</div>
+                    <div class="fs-4 fw-bold text-dark">@providers.Count</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="glass-card p-3 rounded-4 border-0 shadow-sm text-center">
+                    <div class="text-muted x-small mb-1">اشتراكات نشطة</div>
+                    <div class="fs-4 fw-bold text-success">@providers.Count(p => p.IsActive && !p.IsExpired)</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="glass-card p-3 rounded-4 border-0 shadow-sm text-center">
+                    <div class="text-muted x-small mb-1">تنتهي قريباً (7 أيام)</div>
+                    <div class="fs-4 fw-bold text-warning">@providers.Count(p => p.IsActive && !p.IsExpired && p.DaysRemainingCount <= 7)</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="glass-card p-3 rounded-4 border-0 shadow-sm text-center">
+                    <div class="text-muted x-small mb-1">منتهية / متوقفة</div>
+                    <div class="fs-4 fw-bold text-danger">@providers.Count(p => !p.IsActive || p.IsExpired)</div>
+                </div>
+            </div>
         </div>
-    }
-    else if (!plans.Any())
-    {
-        <div class="glass-card p-5 text-center">
-            <i class="fa-solid fa-crown display-1 text-muted opacity-25 mb-3 d-block"></i>
-            <h5>لا توجد خطط اشتراك بعد</h5>
-            <p class="text-muted small">أضف خطتك الأولى لتتمكن المزودون من الاشتراك</p>
-            <button class="btn btn-primary-premium rounded-pill px-5 mt-2" @onclick="() => OpenModal(null)">
-                إضافة خطة
-            </button>
+
+        <!-- Toolbar & Bulk Actions -->
+        <div class="glass-card p-3 mb-4 rounded-4 border-0 shadow-sm">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                
+                <!-- Search & Filters -->
+                <div class="d-flex flex-wrap align-items-center gap-2 flex-grow-1">
+                    <div class="position-relative" style="min-width: 220px; max-width: 320px;">
+                        <i class="fa-solid fa-magnifying-glass position-absolute text-muted" style="right: 14px; top: 12px;"></i>
+                        <input type="text" class="form-control rounded-pill pe-5 py-2 small"
+                               placeholder="بحث باسم المزود، المتجر، الهاتف..."
+                               @bind="searchTerm" @bind:event="oninput" @bind:after="FilterProviders" />
+                    </div>
+
+                    <div class="btn-group rounded-pill border bg-light p-1">
+                        <button class="btn btn-sm rounded-pill px-3 @(statusFilter == "" ? "btn-dark" : "btn-light text-muted")"
+                                @onclick='() => ApplyFilter("")'>الكل</button>
+                        <button class="btn btn-sm rounded-pill px-3 @(statusFilter == "active" ? "btn-success" : "btn-light text-muted")"
+                                @onclick='() => ApplyFilter("active")'>النشطة</button>
+                        <button class="btn btn-sm rounded-pill px-3 @(statusFilter == "expiring" ? "btn-warning text-dark" : "btn-light text-muted")"
+                                @onclick='() => ApplyFilter("expiring")'>تنتهي قريباً</button>
+                        <button class="btn btn-sm rounded-pill px-3 @(statusFilter == "expired" ? "btn-danger" : "btn-light text-muted")"
+                                @onclick='() => ApplyFilter("expired")'>المنتهية</button>
+                    </div>
+                </div>
+
+                <!-- Global & Bulk Control Actions -->
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <button class="btn btn-outline-primary rounded-pill btn-sm px-3"
+                            @onclick='() => OpenExtendModal(isAll: true)'>
+                        <i class="fa-solid fa-clock-rotate-left me-1"></i> تمديد للجميع (+90 يوم)
+                    </button>
+
+                    @if (selectedProviderIds.Any())
+                    {
+                        <div class="vr mx-1 d-none d-md-block"></div>
+                        <span class="badge bg-primary rounded-pill px-3 py-2 small">محدد: @selectedProviderIds.Count</span>
+
+                        <button class="btn btn-primary rounded-pill btn-sm px-3"
+                                @onclick='() => OpenExtendModal(isAll: false)'>
+                            <i class="fa-solid fa-calendar-plus me-1"></i> تمديد للمحددين
+                        </button>
+
+                        <button class="btn btn-outline-danger rounded-pill btn-sm px-3"
+                                @onclick="() => ToggleSelectedStatus(false)">
+                            <i class="fa-solid fa-ban me-1"></i> إيقاف المحددين
+                        </button>
+
+                        <button class="btn btn-outline-success rounded-pill btn-sm px-3"
+                                @onclick="() => ToggleSelectedStatus(true)">
+                            <i class="fa-solid fa-check me-1"></i> تفعيل المحددين
+                        </button>
+                    }
+                </div>
+            </div>
         </div>
-    }
-    else
-    {
-        <div class="row g-4">
-            @foreach (var plan in plans)
-            {
-                <div class="col-md-6 col-lg-4">
-                    <div class="plan-card glass-card p-4 position-relative @(plan.IsFeatured ? "featured-plan" : "")">
-                        @if (plan.IsFeatured)
-                        {
-                            <div class="featured-ribbon">
-                                <i class="fa-solid fa-star me-1"></i> الأكثر شيوعاً
-                            </div>
-                        }
 
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div>
-                                <h5 class="fw-bold mb-1">@plan.Name</h5>
-                                <span class="badge bg-light text-muted rounded-pill">@GetDurationText(plan.DurationInDays)</span>
-                            </div>
-                            <div class="plan-icon-circle @(plan.IsFeatured ? "bg-primary text-white" : "bg-light text-primary")">
-                                <i class="@GetPlanIcon(plan.Name)"></i>
-                            </div>
-                        </div>
+        @if (isLoadingProviders)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary"></div>
+                <div class="text-muted mt-2 small">جاري تحميل بيانات المزودين والاشتراكات...</div>
+            </div>
+        }
+        else if (!filteredProviders.Any())
+        {
+            <div class="glass-card p-5 text-center rounded-4 border-0 shadow-sm">
+                <i class="fa-solid fa-user-slash display-4 text-muted opacity-25 mb-3 d-block"></i>
+                <h5>لا يوجد مقدمو خدمات مطابقون للبحث أو الفلتر</h5>
+                <p class="text-muted small mb-0">جرّب تغيير عبارة البحث أو اختيار تبويب "الكل"</p>
+            </div>
+        }
+        else
+        {
+            <!-- DESKTOP TABLE (Hidden on mobile) -->
+            <div class="glass-card rounded-4 border-0 shadow-sm overflow-hidden mb-4 d-none d-md-block">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th style="width: 40px;" class="text-center">
+                                    <input type="checkbox" class="form-check-input"
+                                           checked="@IsAllSelected"
+                                           @onchange="ToggleSelectAll" />
+                                </th>
+                                <th>مقدم الخدمة</th>
+                                <th>المدينة / الاتصال</th>
+                                <th>الباقة</th>
+                                <th>الفترة (من - إلى)</th>
+                                <th>المدة المتبقية</th>
+                                <th>الحالة</th>
+                                <th class="text-center">إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in filteredProviders)
+                            {
+                                bool isSelected = selectedProviderIds.Contains(p.ProviderId);
+                                <tr class="@(isSelected ? "table-primary bg-opacity-25" : "")">
+                                    <td class="text-center">
+                                        <input type="checkbox" class="form-check-input"
+                                               checked="@isSelected"
+                                               @onchange="() => ToggleSelectProvider(p.ProviderId)" />
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="avatar-circle rounded-circle bg-light border flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                                                @if (!string.IsNullOrEmpty(p.Photo))
+                                                {
+                                                    <img src="@Api.GetAbsoluteUrl(p.Photo)" class="rounded-circle w-100 h-100 object-fit-cover" />
+                                                }
+                                                else
+                                                {
+                                                    <i class="fa-solid fa-user text-muted"></i>
+                                                }
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark">@p.BusinessName</div>
+                                                <div class="x-small text-muted">@p.OwnerName</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="small fw-semibold">@(p.CityName ?? "غير محدد")</div>
+                                        <div class="x-small text-muted font-monospace">@p.PhoneNumber</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3">
+                                            <i class="fa-solid fa-crown text-warning me-1"></i> @p.PlanName
+                                        </span>
+                                        <div class="x-small text-muted mt-1">@p.ServicesCount خدمة</div>
+                                    </td>
+                                    <td>
+                                        @if (p.StartDate.HasValue && p.EndDate.HasValue)
+                                        {
+                                            <div class="x-small font-monospace text-dark">@p.StartDate.Value.ToString("yyyy/MM/dd")</div>
+                                            <div class="x-small font-monospace text-muted">إلى @p.EndDate.Value.ToString("yyyy/MM/dd")</div>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted x-small">غير مسجل</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (p.EndDate.HasValue)
+                                        {
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="fw-bold small @(p.DaysRemainingCount > 7 ? "text-success" : (p.DaysRemainingCount > 0 ? "text-warning" : "text-danger"))">
+                                                    @(p.DaysRemainingCount > 0 ? $"{p.DaysRemainingCount} يوم" : "منتهي")
+                                                </span>
+                                            </div>
+                                            <div class="progress mt-1" style="height: 5px; width: 90px;">
+                                                <div class="progress-bar @(p.DaysRemainingCount > 7 ? "bg-success" : (p.DaysRemainingCount > 0 ? "bg-warning" : "bg-danger"))"
+                                                     style="width: @(Math.Min(100, Math.Max(5, (p.DaysRemainingCount * 100) / 90)))%"></div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted x-small">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (p.IsActive && !p.IsExpired)
+                                        {
+                                            <span class="badge bg-success rounded-pill px-2 py-1">نشط</span>
+                                        }
+                                        else if (p.IsExpired)
+                                        {
+                                            <span class="badge bg-danger rounded-pill px-2 py-1">منتهي</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary rounded-pill px-2 py-1">متوقف</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group">
+                                            <button class="btn btn-light btn-sm rounded-pill px-2"
+                                                    title="تمديد 3 أشهر سريعة"
+                                                    @onclick="() => QuickExtendProvider(p.ProviderId, 90)">
+                                                <i class="fa-solid fa-plus text-primary"></i> 90يوم
+                                            </button>
+                                            <button class="btn btn-light btn-sm rounded-circle ms-1"
+                                                    title="@(p.IsActive ? "إيقاف الاشتراك" : "تفعيل الاشتراك")"
+                                                    @onclick="() => ToggleSingleProviderStatus(p.ProviderId, !p.IsActive)">
+                                                <i class="fa-solid @(p.IsActive ? "fa-toggle-on text-success" : "fa-toggle-off text-muted") fs-5"></i>
+                                            </button>
+                                            <button class="btn btn-light btn-sm rounded-circle ms-1"
+                                                    title="تعيين خطة أخرى"
+                                                    @onclick="() => OpenAssignPlanModal(p)">
+                                                <i class="fa-solid fa-sliders text-secondary"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-                        <div class="plan-price mb-3">
-                            <span class="fw-black fs-2 text-primary">@plan.Price.ToString("N0")</span>
-                            <span class="text-muted small"> ج.م</span>
-                        </div>
-
-                        <div class="mb-4">
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <i class="fa-solid fa-briefcase text-success small"></i>
-                                <span class="small">حتى <strong>@plan.MaxServices</strong> خدمة</span>
-                            </div>
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <i class="fa-solid fa-calendar text-info small"></i>
-                                <span class="small">مدة @plan.DurationInDays يوم</span>
-                            </div>
+            <!-- MOBILE CARDS VIEW (Visible on mobile only) -->
+            <div class="d-md-none mb-4">
+                @foreach (var p in filteredProviders)
+                {
+                    bool isSelected = selectedProviderIds.Contains(p.ProviderId);
+                    <div class="glass-card p-3 mb-3 rounded-4 border-0 shadow-sm @(isSelected ? "border-primary border border-2" : "")">
+                        <div class="d-flex align-items-start justify-content-between mb-3">
                             <div class="d-flex align-items-center gap-2">
-                                <i class="fa-solid fa-star @(plan.IsFeatured ? "text-warning" : "text-muted opacity-50") small"></i>
-                                <span class="small @(plan.IsFeatured ? "" : "text-muted")">
-                                    @(plan.IsFeatured ? "تمييز في الصفحة الرئيسية" : "بدون تمييز")
+                                <input type="checkbox" class="form-check-input mt-0 me-1"
+                                       checked="@isSelected"
+                                       @onchange="() => ToggleSelectProvider(p.ProviderId)" />
+                                
+                                <div class="avatar-circle rounded-circle bg-light border flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                                    @if (!string.IsNullOrEmpty(p.Photo))
+                                    {
+                                        <img src="@Api.GetAbsoluteUrl(p.Photo)" class="rounded-circle w-100 h-100 object-fit-cover" />
+                                    }
+                                    else
+                                    {
+                                        <i class="fa-solid fa-user text-muted"></i>
+                                    }
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark text-truncate" style="max-width: 170px;">@p.BusinessName</div>
+                                    <div class="x-small text-muted">@p.OwnerName • @(p.CityName ?? "المدينة غير محددة")</div>
+                                </div>
+                            </div>
+
+                            @if (p.IsActive && !p.IsExpired)
+                            {
+                                <span class="badge bg-success rounded-pill px-2 py-1">نشط</span>
+                            }
+                            else if (p.IsExpired)
+                            {
+                                <span class="badge bg-danger rounded-pill px-2 py-1">منتهي</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary rounded-pill px-2 py-1">متوقف</span>
+                            }
+                        </div>
+
+                        <!-- Subscription info box -->
+                        <div class="bg-light p-2 rounded-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="badge bg-primary-subtle text-primary rounded-pill">
+                                    <i class="fa-solid fa-crown text-warning me-1"></i> @p.PlanName
+                                </span>
+                                <span class="x-small fw-bold @(p.DaysRemainingCount > 7 ? "text-success" : (p.DaysRemainingCount > 0 ? "text-warning" : "text-danger"))">
+                                    @(p.DaysRemainingCount > 0 ? $"متبقي {p.DaysRemainingCount} يوم" : "اشتراك منتهي")
                                 </span>
                             </div>
+                            <div class="d-flex justify-content-between x-small text-muted mt-2">
+                                <span>البداية: @(p.StartDate?.ToString("yyyy/MM/dd") ?? "-")</span>
+                                <span>النهاية: @(p.EndDate?.ToString("yyyy/MM/dd") ?? "-")</span>
+                            </div>
                         </div>
 
+                        <!-- Mobile Action Buttons -->
                         <div class="d-flex gap-2">
-                            <button class="btn btn-outline-primary rounded-pill flex-grow-1 btn-sm"
-                                    @onclick="() => OpenModal(plan)">
-                                <i class="fa-solid fa-pen me-1"></i> تعديل
+                            <button class="btn btn-outline-primary btn-sm rounded-pill flex-grow-1"
+                                    @onclick="() => QuickExtendProvider(p.ProviderId, 90)">
+                                <i class="fa-solid fa-plus me-1"></i> تمديد 90 يوم
                             </button>
-                            <button class="btn btn-outline-danger rounded-pill btn-sm"
-                                    @onclick="() => DeletePlan(plan)">
-                                <i class="fa-solid fa-trash"></i>
+                            <button class="btn btn-light btn-sm rounded-pill flex-grow-1"
+                                    @onclick="() => ToggleSingleProviderStatus(p.ProviderId, !p.IsActive)">
+                                <i class="fa-solid @(p.IsActive ? "fa-ban text-danger" : "fa-check text-success") me-1"></i>
+                                @(p.IsActive ? "إيقاف" : "تفعيل")
+                            </button>
+                            <button class="btn btn-light btn-sm rounded-circle px-2"
+                                    @onclick="() => OpenAssignPlanModal(p)">
+                                <i class="fa-solid fa-sliders text-muted"></i>
                             </button>
                         </div>
                     </div>
-                </div>
-            }
-        </div>
+                }
+            </div>
+        }
+    }
+
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 2: SUBSCRIPTION PLANS                                          -->
+    <!-- ══════════════════════════════════════════════════════════════════ -->
+    @if (activeTab == "plans")
+    {
+        @if (isLoadingPlans)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary"></div>
+            </div>
+        }
+        else if (!plans.Any())
+        {
+            <div class="glass-card p-5 text-center rounded-4 border-0 shadow-sm">
+                <i class="fa-solid fa-crown display-1 text-muted opacity-25 mb-3 d-block"></i>
+                <h5>لا توجد خطط اشتراك بعد</h5>
+                <p class="text-muted small">أضف خطتك الأولى لتتمكن المزودون من الاشتراك</p>
+                <button class="btn btn-primary-premium rounded-pill px-5 mt-2" @onclick="() => OpenPlanModal(null)">
+                    إضافة خطة
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="row g-4">
+                @foreach (var plan in plans)
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <div class="plan-card glass-card p-4 position-relative rounded-4 border-0 shadow-sm @(plan.IsFeatured ? "featured-plan" : "")">
+                            @if (plan.IsFeatured)
+                            {
+                                <div class="featured-ribbon">
+                                    <i class="fa-solid fa-star me-1"></i> الأكثر شيوعاً
+                                </div>
+                            }
+
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h5 class="fw-bold mb-1">@plan.Name</h5>
+                                    <span class="badge bg-light text-muted rounded-pill">@GetDurationText(plan.DurationInDays)</span>
+                                </div>
+                                <div class="plan-icon-circle @(plan.IsFeatured ? "bg-primary text-white" : "bg-light text-primary")">
+                                    <i class="@GetPlanIcon(plan.Name)"></i>
+                                </div>
+                            </div>
+
+                            <div class="plan-price mb-3">
+                                <span class="fw-black fs-2 text-primary">@plan.Price.ToString("N0")</span>
+                                <span class="text-muted small"> ج.م</span>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="fa-solid fa-briefcase text-success small"></i>
+                                    <span class="small">حتى <strong>@plan.MaxServices</strong> خدمات</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="fa-solid fa-calendar text-info small"></i>
+                                    <span class="small">مدة @plan.DurationInDays يوم</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa-solid fa-star @(plan.IsFeatured ? "text-warning" : "text-muted opacity-50") small"></i>
+                                    <span class="small @(plan.IsFeatured ? "" : "text-muted")">
+                                        @(plan.IsFeatured ? "تمييز في الصفحة الرئيسية" : "بدون تمييز")
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-primary rounded-pill flex-grow-1 btn-sm"
+                                        @onclick="() => OpenPlanModal(plan)">
+                                    <i class="fa-solid fa-pen me-1"></i> تعديل
+                                </button>
+                                <button class="btn btn-outline-danger rounded-pill btn-sm"
+                                        @onclick="() => DeletePlan(plan)">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
     }
 </div>
 
-<!-- Modal -->
-@if (showModal)
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- MODAL: EXTEND SUBSCRIPTION (All / Selected / Single)                  -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+@if (showExtendModal)
 {
-    <div class="modal-overlay" @onclick="CloseModal">
+    <div class="modal-overlay" @onclick="() => showExtendModal = false">
+        <div class="modal-card glass-card p-4 rounded-4 animate-pop" @onclick:stopPropagation>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0">
+                    <i class="fa-solid fa-calendar-plus text-primary me-2"></i>
+                    @(extendIsAll ? "تمديد لجميع مقدمي الخدمات" : $"تمديد لـ ({selectedProviderIds.Count}) مقدم خدمة محدد")
+                </h5>
+                <button class="btn-close" @onclick="() => showExtendModal = false"></button>
+            </div>
+
+            <p class="text-muted small mb-3">
+                @(extendIsAll 
+                    ? "سيتم إضافة المدة المختارة لتاريخ نهاية الاشتراك الحالي لكافة مقدمي الخدمات المسجلين على المنصة." 
+                    : "سيتم تمديد اشتراك الحسابات المحددة بالمدة التالية.")
+            </p>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold">اختر مدة التمديد:</label>
+                <div class="row g-2">
+                    <div class="col-4">
+                        <button class="btn w-100 rounded-4 py-2 @(extendDays == 30 ? "btn-primary" : "btn-light border")"
+                                @onclick="() => extendDays = 30">
+                            30 يوم (شهر)
+                        </button>
+                    </div>
+                    <div class="col-4">
+                        <button class="btn w-100 rounded-4 py-2 @(extendDays == 90 ? "btn-primary" : "btn-light border")"
+                                @onclick="() => extendDays = 90">
+                            90 يوم (3 أشهر)
+                        </button>
+                    </div>
+                    <div class="col-4">
+                        <button class="btn w-100 rounded-4 py-2 @(extendDays == 180 ? "btn-primary" : "btn-light border")"
+                                @onclick="() => extendDays = 180">
+                            180 يوم (6 أشهر)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label small fw-bold">أو أدخل عدد الأيام يدوياً:</label>
+                <input type="number" class="form-control premium-input" min="1" max="3650" @bind="extendDays" />
+            </div>
+
+            <div class="d-flex gap-2 justify-content-end">
+                <button class="btn btn-light rounded-pill px-4" @onclick="() => showExtendModal = false">إلغاء</button>
+                <button class="btn btn-primary-premium rounded-pill px-4" @onclick="ExecuteExtend" disabled="@isExecutingAction">
+                    @if (isExecutingAction)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                    }
+                    <span>تأكيد التمديد</span>
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- MODAL: ASSIGN PLAN TO SINGLE PROVIDER                                 -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+@if (showAssignModal && selectedProviderForPlan != null)
+{
+    <div class="modal-overlay" @onclick="() => showAssignModal = false">
+        <div class="modal-card glass-card p-4 rounded-4 animate-pop" @onclick:stopPropagation>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="fa-solid fa-sliders text-primary me-2"></i> تعيين خطة للمزود
+                </h5>
+                <button class="btn-close" @onclick="() => showAssignModal = false"></button>
+            </div>
+
+            <div class="bg-light p-3 rounded-3 mb-3">
+                <div class="fw-bold text-dark">@selectedProviderForPlan.BusinessName</div>
+                <div class="small text-muted">@selectedProviderForPlan.OwnerName • @selectedProviderForPlan.PhoneNumber</div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold">اختر الباقة الجديدة:</label>
+                <select class="form-select premium-input" @bind="targetPlanId">
+                    @foreach (var pl in plans)
+                    {
+                        <option value="@pl.Id">@pl.Name - @pl.Price.ToString("N0") ج.م (@pl.DurationInDays يوم)</option>
+                    }
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label small fw-bold">مدة الاشتراك (يوم):</label>
+                <input type="number" class="form-control premium-input" min="1" max="3650" @bind="targetCustomDays" />
+                <small class="text-muted">اتركها مطابقة لأيام الخطة أو خصصها كما تشاء</small>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-end">
+                <button class="btn btn-light rounded-pill px-4" @onclick="() => showAssignModal = false">إلغاء</button>
+                <button class="btn btn-primary-premium rounded-pill px-4" @onclick="ExecuteAssignPlan" disabled="@isExecutingAction">
+                    @if (isExecutingAction)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                    }
+                    <span>حفظ وتطبيق الخطة</span>
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- MODAL: ADD / EDIT PLAN                                                -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+@if (showPlanModal)
+{
+    <div class="modal-overlay" @onclick="ClosePlanModal">
         <div class="modal-card glass-card p-4 rounded-4 animate-pop" @onclick:stopPropagation>
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h5 class="fw-bold mb-0">
                     @(editingPlan?.Id > 0 ? "تعديل الخطة" : "إضافة خطة جديدة")
                 </h5>
-                <button class="btn-close" @onclick="CloseModal"></button>
+                <button class="btn-close" @onclick="ClosePlanModal"></button>
             </div>
 
             <div class="mb-3">
@@ -135,7 +594,7 @@
                 <div class="col-6">
                     <label class="form-label small fw-bold">مدة الاشتراك (يوم)</label>
                     <input type="number" class="form-control premium-input" @bind="editingPlan.DurationInDays"
-                           min="1" placeholder="30" />
+                           min="1" placeholder="90" />
                 </div>
             </div>
 
@@ -154,10 +613,10 @@
             </div>
 
             <div class="d-flex gap-2 justify-content-end">
-                <button class="btn btn-light rounded-pill px-4" @onclick="CloseModal">إلغاء</button>
+                <button class="btn btn-light rounded-pill px-4" @onclick="ClosePlanModal">إلغاء</button>
                 <button class="btn btn-primary-premium rounded-pill px-4" @onclick="SavePlan"
-                        disabled="@isSaving">
-                    @if (isSaving)
+                        disabled="@isExecutingAction">
+                    @if (isExecutingAction)
                     {
                         <span class="spinner-border spinner-border-sm me-2"></span>
                     }
@@ -236,7 +695,7 @@
 
     .modal-card {
         width: 100%;
-        max-width: 480px;
+        max-width: 500px;
         max-height: 90vh;
         overflow-y: auto;
         background: white;
@@ -250,22 +709,71 @@
 </style>
 
 @code {
+    private string activeTab = "providers"; // "providers" or "plans"
+    
+    // Providers Data
+    private List<AdminProviderSubscriptionDto> providers = new();
+    private List<AdminProviderSubscriptionDto> filteredProviders = new();
+    private HashSet<int> selectedProviderIds = new();
+    private bool isLoadingProviders = true;
+    private string searchTerm = "";
+    private string statusFilter = "";
+
+    // Plans Data
     private List<SubscriptionPlanDto> plans = new();
-    private bool isLoading = true;
-    private bool showModal = false;
+    private bool isLoadingPlans = true;
+
+    // Modals & Actions
+    private bool showExtendModal = false;
+    private bool extendIsAll = false;
+    private int extendDays = 90;
+
+    private bool showAssignModal = false;
+    private AdminProviderSubscriptionDto? selectedProviderForPlan;
+    private int targetPlanId;
+    private int targetCustomDays = 90;
+
+    private bool showPlanModal = false;
     private SubscriptionPlanDto? editingPlan;
-    private bool isSaving = false;
+
+    private bool isExecutingAction = false;
     private string? feedback;
     private bool feedbackSuccess;
 
+    private bool IsAllSelected => filteredProviders.Any() && filteredProviders.All(p => selectedProviderIds.Contains(p.ProviderId));
+
     protected override async Task OnInitializedAsync()
     {
-        await LoadPlans();
+        await Task.WhenAll(LoadProviders(), LoadPlans());
+    }
+
+    private void SetTab(string tab)
+    {
+        activeTab = tab;
+        feedback = null;
+    }
+
+    private async Task LoadProviders()
+    {
+        isLoadingProviders = true;
+        try
+        {
+            providers = await Api.GetAdminProviderSubscriptionsAsync();
+            FilterProviders();
+        }
+        catch (Exception ex)
+        {
+            ShowFeedback("فشل تحميل اشتراكات المزودين: " + ex.Message, false);
+        }
+        finally
+        {
+            isLoadingProviders = false;
+        }
     }
 
     private async Task LoadPlans()
     {
-        isLoading = true;
+        isLoadingPlans = true;
         try
         {
             plans = await Api.GetSubscriptionPlansAsync();
@@ -276,11 +784,276 @@
         }
         finally
         {
-            isLoading = false;
+            isLoadingPlans = false;
         }
     }
 
-    private void OpenModal(SubscriptionPlanDto? plan)
+    private void FilterProviders()
+    {
+        var list = providers.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            string s = searchTerm.Trim().ToLower();
+            list = list.Where(x =>
+                (x.BusinessName?.ToLower().Contains(s) ?? false) ||
+                (x.OwnerName?.ToLower().Contains(s) ?? false) ||
+                (x.Email?.ToLower().Contains(s) ?? false) ||
+                (x.PhoneNumber?.Contains(s) ?? false) ||
+                (x.CityName?.ToLower().Contains(s) ?? false)
+            );
+        }
+
+        if (!string.IsNullOrWhiteSpace(statusFilter))
+        {
+            if (statusFilter == "active")
+                list = list.Where(x => x.IsActive && !x.IsExpired);
+            else if (statusFilter == "expired")
+                list = list.Where(x => !x.IsActive || x.IsExpired);
+            else if (statusFilter == "expiring")
+                list = list.Where(x => x.IsActive && !x.IsExpired && x.DaysRemainingCount <= 7);
+        }
+
+        filteredProviders = list.ToList();
+    }
+
+    private void ApplyFilter(string status)
+    {
+        statusFilter = status;
+        FilterProviders();
+    }
+
+    // ── Selection Methods ───────────────────────────────────────────────
+
+    private void ToggleSelectAll(ChangeEventArgs e)
+    {
+        bool isChecked = (bool)(e.Value ?? false);
+        if (isChecked)
+        {
+            foreach (var p in filteredProviders)
+            {
+                selectedProviderIds.Add(p.ProviderId);
+            }
+        }
+        else
+        {
+            foreach (var p in filteredProviders)
+            {
+                selectedProviderIds.Remove(p.ProviderId);
+            }
+        }
+    }
+
+    private void ToggleSelectProvider(int providerId)
+    {
+        if (selectedProviderIds.Contains(providerId))
+            selectedProviderIds.Remove(providerId);
+        else
+            selectedProviderIds.Add(providerId);
+    }
+
+    // ── Extend Actions (All / Selected / Single) ────────────────────────
+
+    private void OpenExtendModal(bool isAll)
+    {
+        extendIsAll = isAll;
+        extendDays = 90;
+        showExtendModal = true;
+    }
+
+    private async Task ExecuteExtend()
+    {
+        isExecutingAction = true;
+        try
+        {
+            var req = new ExtendSubscriptionsRequest
+            {
+                All = extendIsAll,
+                ProviderIds = extendIsAll ? new List<int>() : selectedProviderIds.ToList(),
+                DaysToAdd = extendDays
+            };
+
+            var res = await Api.ExtendSubscriptionsAsync(req);
+            if (res.Success)
+            {
+                showExtendModal = false;
+                selectedProviderIds.Clear();
+                await LoadProviders();
+                ShowFeedback(res.Message ?? "تم تمديد الاشتراكات بنجاح", true);
+            }
+            else
+            {
+                ShowFeedback(res.Message ?? "فشل تمديد الاشتراكات", false);
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowFeedback("خطأ: " + ex.Message, false);
+        }
+        finally
+        {
+            isExecutingAction = false;
+        }
+    }
+
+    private async Task QuickExtendProvider(int providerId, int days)
+    {
+        isExecutingAction = true;
+        try
+        {
+            var req = new ExtendSubscriptionsRequest
+            {
+                All = false,
+                ProviderIds = new List<int> { providerId },
+                DaysToAdd = days
+            };
+
+            var res = await Api.ExtendSubscriptionsAsync(req);
+            if (res.Success)
+            {
+                await LoadProviders();
+                ShowFeedback($"تم تمديد الاشتراك بمقدار {days} يوماً بنجاح", true);
+            }
+            else
+            {
+                ShowFeedback(res.Message ?? "فشل تمديد الاشتراك", false);
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowFeedback("خطأ: " + ex.Message, false);
+        }
+        finally
+        {
+            isExecutingAction = false;
+        }
+    }
+
+    // ── Toggle Status Actions ───────────────────────────────────────────
+
+    private async Task ToggleSingleProviderStatus(int providerId, bool isActive)
+    {
+        isExecutingAction = true;
+        try
+        {
+            var req = new ToggleSubscriptionsStatusRequest
+            {
+                All = false,
+                ProviderIds = new List<int> { providerId },
+                IsActive = isActive
+            };
+
+            var res = await Api.ToggleSubscriptionsStatusAsync(req);
+            if (res.Success)
+            {
+                await LoadProviders();
+                ShowFeedback(res.Message ?? "تم تغيير حالة الاشتراك بنجاح", true);
+            }
+            else
+            {
+                ShowFeedback(res.Message ?? "فشل تغيير حالة الاشتراك", false);
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowFeedback("خطأ: " + ex.Message, false);
+        }
+        finally
+        {
+            isExecutingAction = false;
+        }
+    }
+
+    private async Task ToggleSelectedStatus(bool isActive)
+    {
+        if (!selectedProviderIds.Any()) return;
+
+        string actionText = isActive ? "تفعيل" : "إيقاف";
+        if (!await JS.InvokeAsync<bool>("confirm", $"هل أنت متأكد من {actionText} اشتراك ({selectedProviderIds.Count}) مقدم خدمة محدد؟"))
+            return;
+
+        isExecutingAction = true;
+        try
+        {
+            var req = new ToggleSubscriptionsStatusRequest
+            {
+                All = false,
+                ProviderIds = selectedProviderIds.ToList(),
+                IsActive = isActive
+            };
+
+            var res = await Api.ToggleSubscriptionsStatusAsync(req);
+            if (res.Success)
+            {
+                selectedProviderIds.Clear();
+                await LoadProviders();
+                ShowFeedback(res.Message ?? $"تم {actionText} الاشتراكات المحددة بنجاح", true);
+            }
+            else
+            {
+                ShowFeedback(res.Message ?? "فشل تنفيذ العملية", false);
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowFeedback("خطأ: " + ex.Message, false);
+        }
+        finally
+        {
+            isExecutingAction = false;
+        }
+    }
+
+    // ── Assign Plan Actions ─────────────────────────────────────────────
+
+    private void OpenAssignPlanModal(AdminProviderSubscriptionDto p)
+    {
+        selectedProviderForPlan = p;
+        targetPlanId = p.PlanId ?? plans.FirstOrDefault()?.Id ?? 0;
+        var plan = plans.FirstOrDefault(x => x.Id == targetPlanId);
+        targetCustomDays = plan?.DurationInDays ?? 90;
+        showAssignModal = true;
+    }
+
+    private async Task ExecuteAssignPlan()
+    {
+        if (selectedProviderForPlan == null || targetPlanId <= 0) return;
+
+        isExecutingAction = true;
+        try
+        {
+            var req = new AssignPlanRequest
+            {
+                ProviderId = selectedProviderForPlan.ProviderId,
+                PlanId = targetPlanId,
+                CustomDays = targetCustomDays
+            };
+
+            var res = await Api.AssignPlanAsync(req);
+            if (res.Success)
+            {
+                showAssignModal = false;
+                await LoadProviders();
+                ShowFeedback(res.Message ?? "تم تعيين الخطة بنجاح", true);
+            }
+            else
+            {
+                ShowFeedback(res.Message ?? "فشل تعيين الخطة", false);
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowFeedback("خطأ: " + ex.Message, false);
+        }
+        finally
+        {
+            isExecutingAction = false;
+        }
+    }
+
+    // ── Plans CRUD Actions ──────────────────────────────────────────────
+
+    private void OpenPlanModal(SubscriptionPlanDto? plan)
     {
         editingPlan = plan != null
             ? new SubscriptionPlanDto
@@ -292,14 +1065,14 @@
                   MaxServices = plan.MaxServices,
                   IsFeatured = plan.IsFeatured
               }
-            : new SubscriptionPlanDto { DurationInDays = 30, MaxServices = 5 };
-        showModal = true;
+            : new SubscriptionPlanDto { DurationInDays = 90, MaxServices = 5 };
+        showPlanModal = true;
         feedback = null;
     }
 
-    private void CloseModal()
+    private void ClosePlanModal()
     {
-        showModal = false;
+        showPlanModal = false;
         editingPlan = null;
     }
 
@@ -312,65 +1085,61 @@
             return;
         }
 
-        isSaving = true;
+        isExecutingAction = true;
         try
         {
             bool success;
             if (editingPlan.Id > 0)
             {
-                // Update - use a PUT endpoint
-                var response = await Api.PostAsync<bool>($"v1/subscriptions/plans/{editingPlan.Id}", editingPlan);
-                success = response;
+                success = await Api.PostAsync<bool>($"v1/subscriptions/plans/{editingPlan.Id}", editingPlan);
             }
             else
             {
-                // Create
-                var response = await Api.PostAsync<bool>("v1/subscriptions/plans", editingPlan);
-                success = response;
+                success = await Api.PostAsync<bool>("v1/subscriptions/plans", editingPlan);
             }
 
             if (success)
             {
-                CloseModal();
+                ClosePlanModal();
                 await LoadPlans();
                 ShowFeedback(editingPlan.Id > 0 ? "تم تحديث الخطة بنجاح" : "تم إضافة الخطة بنجاح", true);
             }
             else
             {
-                ShowFeedback("حدث خطأ أثناء الحفظ، يرجى المحاولة مرة أخرى", false);
+                ShowFeedback("حدث خطأ أثناء حفظ الخطة", false);
             }
         }
         catch (Exception ex)
         {
-            ShowFeedback("خطأ تقني: " + ex.Message, false);
+            ShowFeedback("خطأ: " + ex.Message, false);
         }
         finally
         {
-            isSaving = false;
+            isExecutingAction = false;
         }
     }
 
     private async Task DeletePlan(SubscriptionPlanDto plan)
     {
-        if (!await JS.InvokeAsync<bool>("confirm", $"هل أنت متأكد من حذف خطة \"{plan.Name}\"؟"))
+        if (!await JS.InvokeAsync<bool>("confirm", $"هل أنت متأكد من حذف باقة \"{plan.Name}\"؟"))
             return;
 
         try
         {
-            var response = await Api.PostAsync<bool>($"v1/subscriptions/plans/{plan.Id}/delete", new { });
-            if (response)
+            var success = await Api.PostAsync<bool>($"v1/subscriptions/plans/{plan.Id}/delete", new { });
+            if (success)
             {
                 plans.Remove(plan);
-                ShowFeedback("تم حذف الخطة بنجاح", true);
+                ShowFeedback("تم حذف الباقة بنجاح", true);
             }
             else
             {
-                ShowFeedback("فشل حذف الخطة، يرجى المحاولة مرة أخرى", false);
+                ShowFeedback("لا يمكن حذف الباقة، قد تكون مستخدمة في اشتراكات نشطة", false);
             }
         }
         catch (Exception ex)
         {
-            ShowFeedback("خطأ تقني: " + ex.Message, false);
+            ShowFeedback("خطأ: " + ex.Message, false);
         }
     }
 
@@ -395,8 +1164,8 @@
         7 => "أسبوعية",
         14 => "نصف شهرية",
         30 => "شهرية",
-        90 => "ربع سنوية",
-        180 => "نصف سنوية",
+        90 => "ربع سنوية (3 أشهر)",
+        180 => "نصف سنوية (6 أشهر)",
         365 => "سنوية",
         _ => $"{days} يوم"
     };

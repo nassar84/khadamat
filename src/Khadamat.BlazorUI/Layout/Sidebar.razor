@@ -14,7 +14,7 @@
             }
             else
             {
-                <i class="fa-solid fa-bolt-lightning logo-icon"></i>
+                <img src="images/logo.png" class="logo-img" alt="Logo" style="height: 35px; width: auto; object-fit: contain;" />
             }
             <span class="logo-text">@(string.IsNullOrEmpty(State.AppNameAr) ? State.AppName : State.AppNameAr)</span>
         </div>
@@ -33,15 +33,13 @@
                 <i class="fa-solid fa-briefcase"></i>
                 <span class="item-label">استكشاف الخدمات</span>
             </NavLink>
-            <NavLink class="menu-item" href="/marketplace">
-                <span class="store-icon-wrap">
-                    <i class="fa-solid fa-store store-anim"></i>
-                </span>
-                <span class="item-label">المتجر (Marketplace)</span>
+            <NavLink class="menu-item" href="/about">
+                <i class="fa-solid fa-circle-info"></i>
+                <span class="item-label">من نحن</span>
             </NavLink>
-            <NavLink class="menu-item" href="/feed">
-                <i class="fa-regular fa-newspaper"></i>
-                <span class="item-label">آخر التحديثات</span>
+            <NavLink class="menu-item" href="/contact">
+                <i class="fa-solid fa-headset"></i>
+                <span class="item-label">تواصل معنا والشكاوى</span>
             </NavLink>
         </div>
 
@@ -105,6 +103,14 @@
                     <NavLink class="menu-item" href="/admin">
                         <i class="fa-solid fa-gauge-high"></i>
                         <span class="item-label">لوحة المدير</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/admin/approvals/providers">
+                        <i class="fa-solid fa-user-check"></i>
+                        <span class="item-label">اعتماد المزودين</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/admin/approvals/services">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                        <span class="item-label">طلبات الخدمات</span>
                     </NavLink>
                     <AuthorizeView Roles="SuperAdmin" Context="superAdminContext">
                         <NavLink class="menu-item" href="/admin/systemsettings">

@@ -33,6 +33,7 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<City> Cities { get; set; }
     public DbSet<AppSettings> AppSettings { get; set; }
     public DbSet<ServiceRequest> ServiceRequests { get; set; }
+    public DbSet<ContactMessage> ContactMessages { get; set; }
     public DbSet<MarketplaceItem> MarketplaceItems { get; set; }
     public DbSet<MarketplaceImage> MarketplaceImages { get; set; }
     public DbSet<MarketplaceItemView> MarketplaceItemViews { get; set; }
@@ -138,6 +139,11 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
             .Property(sp => sp.Price)
             .HasPrecision(18, 2);
         builder.Entity<Rating>().ToTable("Ratings");
+        builder.Entity<Rating>()
+            .HasOne(r => r.ServiceRequest)
+            .WithOne(sr => sr.Rating)
+            .HasForeignKey<Rating>(r => r.ServiceRequestId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         // ServiceRequest Relationships
         builder.Entity<ServiceRequest>()

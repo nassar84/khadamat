@@ -1,29 +1,29 @@
 <div class="bottom-nav">
-    <NavLink class="nav-item" href="marketplace">
-        <span class="store-icon-wrap"><i class="fa-solid fa-shop store-anim"></i></span>
-        <span>المتجر</span>
+    <NavLink class="nav-item" href="/services">
+        <i class="fa-solid fa-compass"></i>
+        <span>استكشاف</span>
     </NavLink>
 
-    <NavLink class="nav-item" href="feed">
-        <i class="fa-regular fa-newspaper"></i>
-        <span>التحديثات</span>
-    </NavLink>
+    <button class="nav-item @(GetActiveNavClass("/user/my-requests"))" @onclick='() => NavigateToAuthOr("/user/my-requests")'>
+        <i class="fa-solid fa-list-check"></i>
+        <span>طلباتي</span>
+    </button>
 
-    <NavLink class="nav-item home-item" href="" Match="NavLinkMatch.All">
+    <NavLink class="nav-item home-item" href="/" Match="NavLinkMatch.All">
         <div class="home-circle">
             <i class="fa-solid fa-house"></i>
         </div>
         <span>الرئيسية</span>
     </NavLink>
     
-    <NavLink class="@($"nav-item {(!AppState.IsAuthenticated ? "auth-gate" : "")}")" href="/user/messages">
-        <i class="fa-solid fa-envelope"></i>
-        <span>الرسائل</span>
-    </NavLink>
+    <button class="nav-item @(GetActiveNavClass("/user/messages"))" @onclick='() => NavigateToAuthOr("/user/messages")'>
+        <i class="fa-solid fa-comments"></i>
+        <span>رسائلي</span>
+    </button>
     
     @if (AppState.IsAuthenticated)
     {
-        <button class="nav-item" @onclick='() => Navigate("/profile")'>
+        <button class="nav-item @(GetActiveNavClass("/profile"))" @onclick='() => Navigate("/profile")'>
             <div class="nav-avatar-wrapper">
                 <img src="@AppState.UserImageUrl" class="nav-user-avatar" alt="User" />
             </div>
@@ -32,7 +32,7 @@
     }
     else
     {
-        <NavLink class="nav-item" href="login">
+        <NavLink class="nav-item" href="/login">
             <i class="fa-solid fa-user"></i>
             <span>دخول</span>
         </NavLink>
@@ -47,6 +47,24 @@
     private void Navigate(string path)
     {
         Navigation.NavigateTo(path);
+    }
+
+    private void NavigateToAuthOr(string path)
+    {
+        if (AppState.IsAuthenticated)
+        {
+            Navigation.NavigateTo(path);
+        }
+        else
+        {
+            Navigation.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(path)}");
+        }
+    }
+
+    private string GetActiveNavClass(string path)
+    {
+        var current = new Uri(Navigation.Uri).AbsolutePath;
+        return current.Equals(path, StringComparison.OrdinalIgnoreCase) ? "active" : "";
     }
 
     private string GetFirstName(string fullName)

@@ -64,17 +64,34 @@ public class FavoritesController : ControllerBase
         var existing = await _context.Favorites
             .FirstOrDefaultAsync(f => f.UserId == userId && f.ServiceId == serviceId);
 
+        bool isFavorite;
         if (existing != null)
         {
             _context.Favorites.Remove(existing);
-            await _context.SaveChangesAsync();
-            return Ok(ApiResponse<bool>.Succeed(false)); // Removed
+            isFavorite = false;
         }
         else
         {
             _context.Favorites.Add(new Favorite(userId, serviceId: serviceId));
-            await _context.SaveChangesAsync();
-            return Ok(ApiResponse<bool>.Succeed(true)); // Added
+            isFavorite = true;
         }
+
+        await _context.SaveChangesAsync();
+
+        // Count total favorites for this service
+        int newCount = await _context.Favorites.CountAsync(f => f.ServiceId == serviceId);
+
+        return Ok(ApiResponse<FavoriteResultDto>.Succeed(new FavoriteResultDto
+        {
+            IsFavorite = isFavorite,
+            FavoritesCount = newCount
+        }));
     }
 }
+
+public class FavoriteResultDto
+{
+    public bool IsFavorite { get; set; }
+    public int FavoritesCount { get; set; }
+}
+

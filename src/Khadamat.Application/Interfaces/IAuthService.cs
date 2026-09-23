@@ -17,4 +17,5 @@ public interface IAuthService
     Task<ApiResponse<AuthResponse>> ExternalTokenLoginAsync(string provider, string token);
     Task<ApiResponse<bool>> ForgotPasswordAsync(ForgotPasswordRequest request);
     Task<ApiResponse<bool>> ResetPasswordAsync(ResetPasswordRequest request);
+    Task<ApiResponse<bool>> DeleteAccountAsync(string? password = null);
 }

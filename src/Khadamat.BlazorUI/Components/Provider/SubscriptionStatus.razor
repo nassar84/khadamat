@@ -1,25 +1,34 @@
-<div class="subscription-banner p-3 rounded-4 mb-4 d-flex align-items-center justify-content-between" 
-     style="background: linear-gradient(135deg, var(--primary), #4f46e5); color: white;">
+<div class="subscription-banner p-3 rounded-4 mb-4 d-flex align-items-center justify-content-between shadow-sm">
     <div class="d-flex align-items-center gap-3">
-        <div class="plan-icon bg-white bg-opacity-20 rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
-            <i class="fa-solid fa-crown fs-5"></i>
+        <div class="plan-icon rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: rgba(255, 255, 255, 0.22);">
+            <i class="fa-solid fa-crown fs-5 text-white"></i>
         </div>
         <div>
-            <div class="text-white-50 x-small fw-bold">اشتراكك الحالي</div>
-            <div class="fw-bold fs-5">@PlanName</div>
+            <div class="x-small fw-bold" style="color: rgba(255, 255, 255, 0.9);">اشتراكك الحالي</div>
+            <div class="fw-bold fs-5 text-white">@PlanName</div>
         </div>
     </div>
     <div class="text-end">
-        <div class="badge rounded-pill bg-white text-primary mb-1">
+        <div class="badge rounded-pill mb-1 px-3 py-2 fw-bold" style="background: #ffffff; color: var(--theme-primary, #4f46e5); font-size: 0.8rem;">
             @(IsActive ? "نشط" : "منتهي")
         </div>
-        <div class="x-small text-white-50">باقي @DaysRemaining أيام</div>
+        <div class="x-small fw-medium" style="color: rgba(255, 255, 255, 0.9);">باقي @DaysRemaining أيام</div>
     </div>
 </div>
+
+<style>
+    .subscription-banner {
+        background: linear-gradient(135deg, var(--theme-primary, #6366f1) 0%, var(--theme-secondary, #4f46e5) 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        box-shadow: 0 8px 24px rgba(79, 70, 229, 0.28) !important;
+    }
+</style>
 
 @code {
     [Parameter] public string PlanName { get; set; } = "الخطة المجانية";
     [Parameter] public int DaysRemaining { get; set; } = 0;
     [Parameter] public bool IsActive { get; set; } = true;
 }
+
 

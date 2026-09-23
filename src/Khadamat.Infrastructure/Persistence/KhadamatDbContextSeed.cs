@@ -69,6 +69,8 @@ public static class KhadamatDbContextSeed
                 await SeedSubscriptionPlansAsync(context);
             }
 
+            await EnsureProviderSubscriptionsAsync(context);
+
             if (!await context.MarketplaceItems.AnyAsync())
             {
                 await SeedMarketplaceItemsAsync(context);
@@ -127,14 +129,59 @@ public static class KhadamatDbContextSeed
     {
         var plans = new List<SubscriptionPlan>
         {
-            new SubscriptionPlan("الباقة التجريبية (مجانية)", 0, 30, 2, false),
+            new SubscriptionPlan("الخطة المجانية", 0, 90, 5, false),
             new SubscriptionPlan("الباقة الأساسية", 150, 30, 10, false),
-            new SubscriptionPlan("الباقة المميزة (Premium)", 400, 30, 50, true),
+            new SubscriptionPlan("الباقة المميزة (Premium)", 400, 90, 50, true),
             new SubscriptionPlan("الباقة السنوية للمحترفين", 1500, 365, 100, true)
         };
         await context.SubscriptionPlans.AddRangeAsync(plans);
         await context.SaveChangesAsync();
     }
+
+    public static async Task EnsureProviderSubscriptionsAsync(KhadamatDbContext context)
+    {
+        try
+        {
+            // Ensure Free Plan exists (90 days)
+            var freePlan = await context.SubscriptionPlans.FirstOrDefaultAsync(p => p.Price == 0);
+            if (freePlan == null)
+            {
+                freePlan = new SubscriptionPlan("الخطة المجانية", 0, 90, 5, false);
+                context.SubscriptionPlans.Add(freePlan);
+                await context.SaveChangesAsync();
+            }
+
+            // Get all providers
+            var providers = await context.ProviderProfiles
+                .Include(p => p.Subscription)
+                .ToListAsync();
+
+            bool changed = false;
+            foreach (var provider in providers)
+            {
+                // If provider has no subscription or no active subscription
+                if (provider.SubscriptionId == null || provider.Subscription == null || !provider.Subscription.IsActive)
+                {
+                    var newSub = new ProviderSubscription(provider.Id, freePlan.Id, freePlan.DurationInDays > 0 ? freePlan.DurationInDays : 90);
+                    context.ProviderSubscriptions.Add(newSub);
+                    await context.SaveChangesAsync();
+
+                    provider.SubscriptionId = newSub.Id;
+                    changed = true;
+                }
+            }
+
+            if (changed)
+            {
+                await context.SaveChangesAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[EnsureProviderSubscriptionsAsync] Error: {ex.Message}");
+        }
+    }
+
 
     private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
     {

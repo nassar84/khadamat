@@ -27,8 +27,8 @@
         <input type="text" class="form-control rounded-pill border-0 bg-light px-4 w-auto" placeholder="بحث في السجلات...">
     </div>
 
-    <!-- Logs Table -->
-    <div class="glass-card overflow-hidden rounded-4 border-0 shadow-sm animate-up">
+    <!-- Logs Table (Desktop) -->
+    <div class="glass-card overflow-hidden rounded-4 border-0 shadow-sm animate-up d-none d-md-block">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light">
@@ -61,6 +61,27 @@
             </table>
         </div>
         <div class="p-3 bg-light text-center">
+            <button class="btn btn-link text-decoration-none small fw-bold">تحميل المزيد من السجلات</button>
+        </div>
+    </div>
+
+    <!-- Logs Cards (Mobile) -->
+    <div class="d-md-none">
+        @foreach (var log in logs)
+        {
+            <div class="glass-card p-3 mb-3 border-0 shadow-sm rounded-4">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="fw-bold small text-dark text-truncate me-2">@log.User</div>
+                    <span class="badge rounded-pill @GetActionBadge(log.Action) flex-shrink-0" style="font-size:0.7rem;">@log.Action</span>
+                </div>
+                <div class="small text-muted mb-2" style="font-size:0.78rem;">@log.Details</div>
+                <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                    <div class="x-small text-muted">@log.Timestamp.ToString("dd/MM HH:mm")</div>
+                    <div class="x-small font-monospace text-muted">@log.IpAddress</div>
+                </div>
+            </div>
+        }
+        <div class="text-center mt-2">
             <button class="btn btn-link text-decoration-none small fw-bold">تحميل المزيد من السجلات</button>
         </div>
     </div>

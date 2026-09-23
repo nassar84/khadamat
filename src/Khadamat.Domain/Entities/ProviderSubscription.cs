@@ -29,4 +29,31 @@ public class ProviderSubscription : BaseEntity
     {
         IsActive = false;
     }
+
+    public void Extend(int days)
+    {
+        if (EndDate < DateTime.UtcNow)
+        {
+            StartDate = DateTime.UtcNow;
+            EndDate = DateTime.UtcNow.AddDays(days);
+        }
+        else
+        {
+            EndDate = EndDate.AddDays(days);
+        }
+        IsActive = true;
+    }
+
+    public void SetStatus(bool isActive)
+    {
+        IsActive = isActive;
+    }
+
+    public void ChangePlan(int planId, int durationInDays)
+    {
+        PlanId = planId;
+        StartDate = DateTime.UtcNow;
+        EndDate = DateTime.UtcNow.AddDays(durationInDays);
+        IsActive = true;
+    }
 }

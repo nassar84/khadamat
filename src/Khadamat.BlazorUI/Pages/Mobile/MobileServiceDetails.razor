@@ -16,6 +16,21 @@
             </div>
         </div>
     }
+    else if (!service.IsProviderSubscriptionActive)
+    {
+        <div class="p-4 text-center mt-5">
+            <div class="glass-card p-4 rounded-4 shadow-sm animate-pop">
+                <i class="fa-solid fa-triangle-exclamation fa-3x text-warning mb-3"></i>
+                <h4 class="fw-bold mb-2">الخدمة غير متاحة حالياً</h4>
+                <p class="text-muted small mb-4">
+                    عذراً، لا يمكن استعراض تفاصيل هذه الخدمة أو التواصل مع مقدمها نظراً لانتهاء فترة اشتراكه على المنصة.
+                </p>
+                <button class="btn btn-primary-premium rounded-pill px-4" @onclick='() => Navigation.NavigateTo("/services")'>
+                    <i class="fa-solid fa-arrow-right me-2"></i> العودة للخدمات
+                </button>
+            </div>
+        </div>
+    }
     else
     {
         <!-- Image Gallery -->
@@ -230,8 +245,13 @@
     {
         if (service != null)
         {
-            var shareText = $"شاهد هذه الخدمة الرائعة: {service.Title}\n{Navigation.Uri}";
-            await Share.ShareTextAsync(shareText, "مشاركة خدمة");
+            var serviceUrl = Navigation.Uri;
+            var desc = service.Description ?? "";
+            if (desc.Length > 80) desc = desc.Substring(0, 77) + "...";
+            var shareText = $"🌟 {service.Title}\n{desc}\n\n📲 منصة خدماوي - سوق الخدمات الأول\n{serviceUrl}";
+            
+            // Use ShareLinkAsync to ensure the URL is passed correctly and previews appear in apps
+            await Share.ShareLinkAsync(serviceUrl, $"🌟 {service.Title}");
         }
     }
 

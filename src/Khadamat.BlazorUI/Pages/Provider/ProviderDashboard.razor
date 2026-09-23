@@ -9,6 +9,7 @@
 @inject ApiClient Api
 @inject AppState AppState
 @inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JS
 
 <div class="px-3 pt-3 pb-5">
     @if (isError)
@@ -16,7 +17,7 @@
         <div class="text-center py-5">
             <i class="fa-solid fa-lock text-warning fs-1 mb-3"></i>
             <h4 class="fw-bold">يجب عليك تسجيل الدخول أولاً</h4>
-            <p class="text-muted">هذه الصفحة مخصصة لمزودي الخدمات. يرجى تسجيل الدخول للوصول إلى لوحة التحكم.</p>
+            <p class="text-muted">هذه الصفحة مخصصة لمقدمي الخدمات. يرجى تسجيل الدخول للوصول إلى لوحة التحكم.</p>
             <button class="btn btn-primary rounded-pill px-4 mt-3" @onclick='() => Navigation.NavigateTo("/login")'>تسجيل الدخول</button>
         </div>
     }
@@ -24,7 +25,7 @@
     {
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h3 class="fw-bold mb-0 gradient-text">لوحة المزود</h3>
+                <h3 class="fw-bold mb-0 gradient-text">لوحة مقدم الخدمة</h3>
                 <p class="text-muted x-small mb-0">مرحباً @AppState.UserName</p>
             </div>
             <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2">
@@ -41,10 +42,10 @@
                 <StatsWidget Icon="fa-solid fa-star" Label="التقييم" Value="@avgRating" Color="warning" />
             </div>
             <div class="col-6">
-                <StatsWidget Icon="fa-solid fa-clipboard-check" Label="الطلبات" Value="@totalRequests" Color="success" />
+                <StatsWidget Icon="fa-solid fa-clipboard-check" Label="الطلبات" Value="@totalRequests" Color="success" Href="/provider/incoming-requests" />
             </div>
             <div class="col-6">
-                <StatsWidget Icon="fa-solid fa-briefcase" Label="الخدمات" Value="@totalServices" Color="info" />
+                <StatsWidget Icon="fa-solid fa-briefcase" Label="الخدمات" Value="@totalServices" Color="info" Href="/provider/my-services" />
             </div>
         </div>
 
@@ -110,27 +111,152 @@
             </div>
         </div>
 
-        <!-- Recent Messages -->
+        <!-- My Services Section -->
+        <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
+            <div>
+                <h5 class="fw-bold mb-0 d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-briefcase text-primary"></i>
+                    <span>خدماتي</span>
+                    @if (servicesList != null)
+                    {
+                        <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2 py-1" style="font-size: 0.75rem;">@servicesList.Count</span>
+                    }
+                </h5>
+                <p class="text-muted x-small mb-0">الخدمات التي قمت بنشرها على المنصة</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-primary rounded-pill px-3" @onclick='() => Navigation.NavigateTo("/provider/my-services")'>
+                    <i class="fa-solid fa-list-check me-1"></i> إدارة الكل
+                </button>
+                <button class="btn btn-sm btn-primary-premium rounded-pill px-3" @onclick='() => Navigation.NavigateTo("/provider/create-service")'>
+                    <i class="fa-solid fa-plus me-1"></i> إضافة خدمة
+                </button>
+            </div>
+        </div>
+
+        @if (isLoading)
+        {
+            <div class="row g-3 mb-4">
+                <Khadamat.BlazorUI.Shared.SkeletonLoader Type="card" Count="3" />
+            </div>
+        }
+        else if (servicesList == null || !servicesList.Any())
+        {
+            <div class="glass-card p-4 text-center rounded-4 mb-4 border border-dashed">
+                <div class="mb-3">
+                    <i class="fa-solid fa-folder-open display-4 text-muted opacity-25"></i>
+                </div>
+                <h6 class="fw-bold mb-1">لم تقم بإضافة أي خدمات بعد</h6>
+                <p class="text-muted small mb-3">ابدأ بنشر خدمتك الأولى لتصل إلى عملائك وتزيد من فرص طلباتك.</p>
+                <button class="btn btn-primary-premium btn-sm rounded-pill px-4 py-2" @onclick='() => Navigation.NavigateTo("/provider/create-service")'>
+                    <i class="fa-solid fa-plus me-1"></i> أضف خدمتك الأولى
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="row g-3 mb-4">
+                @foreach (var s in servicesList)
+                {
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="glass-card p-0 overflow-hidden border-0 shadow-sm h-100 animate-up">
+                            <div class="position-relative w-100 overflow-hidden d-flex align-items-center justify-content-center" style="height: 170px; background: linear-gradient(145deg, #f8fafc, #f1f5f9); border-top-left-radius: inherit; border-top-right-radius: inherit;">
+                                <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(s.Images?.FirstOrDefault(), s.SubCategoryName, s.CategoryName, s.MainCategoryName, s.SubCategoryImageUrl, s.CategoryImageUrl, s.MainCategoryImageUrl))" 
+                                     class="w-100 h-100" 
+                                     style="object-fit: contain; padding: 10px; transition: transform 0.3s ease;" 
+                                     alt="@s.Title" 
+                                     onerror="this.onerror=null;this.src='/images/services/default_service.png';" />
+                                <div class="position-absolute top-0 end-0 m-2">
+                                    <span class="badge @(s.IsApproved ? "bg-success" : "bg-warning text-dark") rounded-pill shadow-sm">
+                                        @(s.IsApproved ? "مقبول" : "تحت المراجعة")
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="p-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="fw-bold mb-0 text-truncate" style="max-width: 70%;" title="@s.Title">@s.Title</h6>
+                                    <div class="text-primary fw-bold">@s.Price?.ToString("N0") <small class="x-small">ج.م</small></div>
+                                </div>
+                                <div class="x-small text-muted mb-3">
+                                    <i class="fa-solid fa-layer-group me-1"></i> @s.SubCategoryName
+                                    <span class="mx-2">|</span>
+                                    <i class="fa-solid fa-location-dot me-1"></i> @(s.CityName ?? s.Location ?? "غير محدد")
+                                </div>
+                                
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-outline-primary btn-sm flex-grow-1 rounded-pill" @onclick='() => Navigation.NavigateTo($"/provider/edit-service/{s.Id}")'>
+                                        <i class="fa-solid fa-pen-to-square me-1"></i> تعديل
+                                    </button>
+                                    <button class="btn btn-light btn-sm rounded-circle" @onclick='() => Navigation.NavigateTo($"/service/{s.Id}")' title="عرض">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-light btn-sm rounded-circle text-danger" @onclick="() => ConfirmDelete(s)" title="حذف">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Recent Messages - Real Data -->
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="fw-bold mb-0">رسائل حديثة</h6>
+            <h6 class="fw-bold mb-0">
+                رسائل حديثة
+                @if (recentConversations.Any(c => c.UnreadCount > 0))
+                {
+                    <span class="badge bg-danger rounded-pill ms-2 x-small">
+                        @recentConversations.Sum(c => c.UnreadCount) جديد
+                    </span>
+                }
+            </h6>
             <button class="btn btn-link text-primary p-0 small text-decoration-none" @onclick='() => Navigation.NavigateTo("/user/messages")'>عرض الكل</button>
         </div>
         
         <div class="glass-container rounded-4 overflow-hidden border">
-            @for (int i = 0; i < 3; i++)
+            @if (isLoadingMessages)
             {
-                var idx = i;
-                <div class="p-3 border-bottom d-flex gap-3 align-items-center list-item-hover"
-                     @onclick='() => Navigation.NavigateTo("/user/messages")'>
-                    <img src="https://i.pravatar.cc/150?u=@idx" class="rounded-circle" width="45" height="45" />
-                    <div class="flex-grow1">
-                        <div class="d-flex justify-content-between">
-                            <h6 class="fw-bold mb-0 small">عميل @(idx+1)</h6>
-                            <span class="text-muted x-small">10:30 ص</span>
-                        </div>
-                        <p class="text-muted mb-0 small text-truncate" style="max-width: 200px;">أريد الاستفسار عن تفاصيل الخدمة...</p>
-                    </div>
+                <div class="p-3 text-center text-muted small">
+                    <div class="spinner-border spinner-border-sm me-2"></div>جاري التحميل...
                 </div>
+            }
+            else if (!recentConversations.Any())
+            {
+                <div class="p-4 text-center text-muted small">
+                    <i class="fa-regular fa-comment-dots fs-3 d-block mb-2 opacity-50"></i>
+                    لا توجد رسائل حتى الآن
+                </div>
+            }
+            else
+            {
+                @foreach (var conv in recentConversations.Take(3))
+                {
+                    var otherId = conv.OtherPartyId;
+                    <div class="p-3 border-bottom d-flex gap-3 align-items-center list-item-hover position-relative"
+                         @onclick='() => Navigation.NavigateTo($"/user/messages?userId={otherId}")'>
+                        <div class="position-relative">
+                            <img src="@(string.IsNullOrEmpty(conv.OtherPartyPhoto) ? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(conv.OtherPartyName)}&background=6366f1&color=fff&size=45" : conv.OtherPartyPhoto)"
+                                 class="rounded-circle" width="45" height="45" style="object-fit:cover;" />
+                            @if (conv.UnreadCount > 0)
+                            {
+                                <span class="position-absolute top-0 end-0 badge bg-danger rounded-pill" style="font-size:9px; min-width:16px; padding:2px 4px;">@conv.UnreadCount</span>
+                            }
+                        </div>
+                        <div class="flex-grow-1 overflow-hidden">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="fw-bold mb-0 small @(conv.UnreadCount > 0 ? "text-dark" : "")">@conv.OtherPartyName</h6>
+                                <span class="text-muted x-small">@FormatTime(conv.LastMessageTime)</span>
+                            </div>
+                            <p class="text-muted mb-0 small text-truncate @(conv.UnreadCount > 0 ? "fw-semibold text-dark" : "")" style="max-width: 200px;">@conv.LastMessage</p>
+                        </div>
+                        @if (conv.UnreadCount > 0)
+                        {
+                            <i class="fa-solid fa-circle text-primary" style="font-size: 8px;"></i>
+                        }
+                    </div>
+                }
             }
         </div>
     }
@@ -155,11 +281,15 @@
 
 @code {
     private ProviderSubscriptionDto? subscription;
+    private List<ServiceDto>? servicesList;
+    private bool isLoading = true;
     private bool isError = false;
     private string totalViews    = "0";
     private string avgRating     = "0.0";
     private string totalRequests = "0";
     private string totalServices = "0";
+    private List<ConversationDto> recentConversations = new();
+    private bool isLoadingMessages = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -167,21 +297,25 @@
         if (authState?.User?.Identity?.IsAuthenticated != true)
         {
             isError = true;
+            isLoading = false;
             return;
         }
 
         try
         {
-            var servicesTask     = Api.GetMyServicesAsync();
-            var subscriptionTask = Api.GetMySubscriptionAsync();
-            var requestsTask     = Api.GetProviderRequestsAsync();
+            var servicesTask      = Api.GetMyServicesAsync();
+            var subscriptionTask  = Api.GetMySubscriptionAsync();
+            var requestsTask      = Api.GetProviderRequestsAsync();
+            var conversationsTask = Api.GetConversationsAsync();
 
-            await Task.WhenAll(servicesTask, subscriptionTask, requestsTask);
+            await Task.WhenAll(servicesTask, subscriptionTask, requestsTask, conversationsTask);
 
             var services = servicesTask.Result?.Items ?? new();
             subscription = subscriptionTask.Result;
             var requests = requestsTask.Result ?? new();
+            recentConversations = conversationsTask.Result ?? new();
 
+            servicesList = services;
             totalServices = services.Count.ToString();
             totalRequests = requests.Count.ToString();
             totalViews    = services.Sum(s => s.ViewsCount).ToString("N0");
@@ -192,6 +326,46 @@
         catch (Exception ex)
         {
             Console.WriteLine("Dashboard load error: " + ex.Message);
+        }
+        finally
+        {
+            isLoading = false;
+            isLoadingMessages = false;
+        }
+    }
+
+    private string FormatTime(DateTime time)
+    {
+        var diff = DateTime.Now - time;
+        if (diff.TotalMinutes < 1) return "الآن";
+        if (diff.TotalHours < 1) return $"منذ {(int)diff.TotalMinutes} د";
+        if (diff.TotalDays < 1) return $"منذ {(int)diff.TotalHours} س";
+        if (diff.TotalDays < 7) return $"منذ {(int)diff.TotalDays} ي";
+        return time.ToString("dd/MM");
+    }
+
+    private async Task ConfirmDelete(ServiceDto s)
+    {
+        if (!await JS.InvokeAsync<bool>("confirm", $"هل أنت متأكد من حذف خدمة \"{s.Title}\"؟\nلا يمكن التراجع عن هذا الإجراء."))
+            return;
+
+        try
+        {
+            var success = await Api.DeleteServiceAsync(s.Id);
+            if (success)
+            {
+                servicesList?.Remove(s);
+                totalServices = (servicesList?.Count ?? 0).ToString();
+                StateHasChanged();
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", "فشل حذف الخدمة، يرجى المحاولة مرة أخرى.");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"خطأ: {ex.Message}");
         }
     }
 }

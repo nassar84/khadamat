@@ -38,7 +38,7 @@ public class SettingsController : ControllerBase
         try
         {
             var settings = await _settingsService.GetSettingsAsync();
-            var apkFilename = settings.Data?.ApkFilename ?? "khadamat.apk";
+            var apkFilename = settings.Data?.ApkFilename ?? "Khadamawy.apk";
 
             var basePath = System.IO.Directory.GetCurrentDirectory();
             // Up to the src folder
@@ -124,7 +124,7 @@ public class SettingsController : ControllerBase
         try
         {
             var settings = await _settingsService.GetSettingsAsync();
-            var apkFilename = settings.Data?.ApkFilename ?? "khadamat.apk";
+            var apkFilename = settings.Data?.ApkFilename ?? "Khadamawy.apk";
 
             var basePath = System.IO.Directory.GetCurrentDirectory();
             var webApiWwwroot = System.IO.Path.Combine(basePath, "wwwroot");

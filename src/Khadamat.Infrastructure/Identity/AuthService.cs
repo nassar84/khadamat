@@ -25,19 +25,22 @@ public class AuthService : IAuthService
     private readonly IConfiguration _configuration;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IEmailService _emailService;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         IConfiguration configuration,
         IHttpContextAccessor httpContextAccessor,
-        IHttpClientFactory httpClientFactory)
+        IHttpClientFactory httpClientFactory,
+        IEmailService emailService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _configuration = configuration;
         _httpContextAccessor = httpContextAccessor;
         _httpClientFactory = httpClientFactory;
+        _emailService = emailService;
     }
 
     public async Task<ApiResponse<AuthResponse>> ExternalTokenLoginAsync(string provider, string token)
@@ -60,7 +63,7 @@ public class AuthService : IAuthService
             }
             catch (Exception ex)
             {
-                return ApiResponse<AuthResponse>.Fail("ÙØ´Ù„ Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† ØªÙˆÙƒÙ† Ø¬ÙˆØ¬Ù„: " + ex.Message);
+                return ApiResponse<AuthResponse>.Fail("İÔá ÇáÊÍŞŞ ãä Êæßä ÌæÌá: " + ex.Message);
             }
         }
         else if (provider.Equals("Facebook", StringComparison.OrdinalIgnoreCase))
@@ -71,7 +74,7 @@ public class AuthService : IAuthService
                 var fbResponse = await client.GetFromJsonAsync<FacebookUserData>($"https://graph.facebook.com/me?fields=id,name,email,picture&access_token={token}");
                 
                 if (fbResponse == null || string.IsNullOrEmpty(fbResponse.id))
-                    return ApiResponse<AuthResponse>.Fail("ÙØ´Ù„ Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† ØªÙˆÙƒÙ† ÙÙŠØ³Ø¨ÙˆÙƒ");
+                    return ApiResponse<AuthResponse>.Fail("İÔá ÇáÊÍŞŞ ãä Êæßä İíÓÈæß");
 
                 email = fbResponse.email ?? $"{fbResponse.id}@facebook.com"; // Fallback if email not shared
                 name = fbResponse.name;
@@ -80,12 +83,12 @@ public class AuthService : IAuthService
             }
             catch (Exception ex)
             {
-                return ApiResponse<AuthResponse>.Fail("ÙØ´Ù„ Ø§Ù„Ø§ØªØµØ§Ù„ Ø¨ÙÙŠØ³Ø¨ÙˆÙƒ: " + ex.Message);
+                return ApiResponse<AuthResponse>.Fail("İÔá ÇáÇÊÕÇá ÈİíÓÈæß: " + ex.Message);
             }
         }
         else
         {
-            return ApiResponse<AuthResponse>.Fail("Ù…Ø²ÙˆØ¯ Ø®Ø¯Ù…Ø© ØºÙŠØ± Ù…Ø¯Ø¹ÙˆÙ…");
+            return ApiResponse<AuthResponse>.Fail("ãŞÏã ÎÏãÉ ÛíÑ ãÏÚæã");
         }
 
         return await ExternalLoginCallbackAsync(email, name, provider, providerUserId, imageUrl);
@@ -114,18 +117,18 @@ public class AuthService : IAuthService
         var existingUserByEmail = await _userManager.Users.AnyAsync(u => u.Email.ToLower() == request.Email.ToLower());
         if (existingUserByEmail)
         {
-            return ApiResponse<AuthResponse>.Fail("Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ Ù…Ø³Ø¬Ù„ Ù…Ø³Ø¨Ù‚Ø§Ù‹.");
+            return ApiResponse<AuthResponse>.Fail("ÇáÈÑíÏ ÇáÅáßÊÑæäí ãÓÌá ãÓÈŞÇğ.");
         }
 
         var existingUserByName = await _userManager.Users.AnyAsync(u => u.UserName.ToLower() == request.UserName.ToLower());
         if (existingUserByName)
         {
-            return ApiResponse<AuthResponse>.Fail("Ø§Ø³Ù… Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… Ù…Ø³Ø¬Ù„ Ù…Ø³Ø¨Ù‚Ø§Ù‹.");
+            return ApiResponse<AuthResponse>.Fail("ÇÓã ÇáãÓÊÎÏã ãÓÌá ãÓÈŞÇğ.");
         }
 
         if (!Enum.TryParse<UserRole>(request.UserType, true, out var role))
         {
-            return ApiResponse<AuthResponse>.Fail("Ù†ÙˆØ¹ Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… ØºÙŠØ± ØµØ§Ù„Ø­.");
+            return ApiResponse<AuthResponse>.Fail("äæÚ ÇáãÓÊÎÏã ÛíÑ ÕÇáÍ.");
         }
 
         var user = new ApplicationUser
@@ -156,7 +159,14 @@ public class AuthService : IAuthService
         if (!result.Succeeded)
         {
             var errors = result.Errors.Select(e => e.Description).ToList();
-            return ApiResponse<AuthResponse>.Fail("ÙØ´Ù„ Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ø­Ø³Ø§Ø¨", errors);
+            return ApiResponse<AuthResponse>.Fail("İÔá ÅäÔÇÁ ÇáÍÓÇÈ", errors);
+        }
+
+        // Save profile image as u_{userid}.jpg after successful user creation
+        if (!string.IsNullOrEmpty(request.ProfileImageBase64))
+        {
+            user.ProfileImageUrl = await SaveUserProfileImageAsync(request.ProfileImageBase64, user.Id);
+            await _userManager.UpdateAsync(user);
         }
 
         // Save profile image as u_{userid}.jpg after successful user creation
@@ -168,7 +178,7 @@ public class AuthService : IAuthService
 
         await _userManager.AddToRoleAsync(user, role.ToString());
 
-        return await GenerateAuthResponse(user, "ØªÙ… Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ø­Ø³Ø§Ø¨ Ø¨Ù†Ø¬Ø§Ø­");
+        return await GenerateAuthResponse(user, "Êã ÅäÔÇÁ ÇáÍÓÇÈ ÈäÌÇÍ");
     }
 
     public async Task<ApiResponse<AuthResponse>> LoginAsync(LoginRequest request)
@@ -179,47 +189,104 @@ public class AuthService : IAuthService
             u.Email.ToLower() == request.UserName.ToLower());
 
         if (user == null)
-            return ApiResponse<AuthResponse>.Fail("Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø§Ø¹ØªÙ…Ø§Ø¯ ØºÙŠØ± ØµØ§Ù„Ø­Ø©.");
+            return ApiResponse<AuthResponse>.Fail("ÈíÇäÇÊ ÇáÇÚÊãÇÏ ÛíÑ ÕÇáÍÉ.");
 
         var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
         if (!result.Succeeded)
-            return ApiResponse<AuthResponse>.Fail("Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø§Ø¹ØªÙ…Ø§Ø¯ ØºÙŠØ± ØµØ§Ù„Ø­Ø©.");
+            return ApiResponse<AuthResponse>.Fail("ÈíÇäÇÊ ÇáÇÚÊãÇÏ ÛíÑ ÕÇáÍÉ.");
 
         if (!user.IsActive)
-            return ApiResponse<AuthResponse>.Fail("Ø§Ù„Ø­Ø³Ø§Ø¨ Ù…Ø¹Ø·Ù„ Ø­Ø§Ù„ÙŠØ§Ù‹.");
+            return ApiResponse<AuthResponse>.Fail("ÇáÍÓÇÈ ãÚØá ÍÇáíÇğ.");
 
-        return await GenerateAuthResponse(user, "ØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¨Ù†Ø¬Ø§Ø­");
+        return await GenerateAuthResponse(user, "Êã ÊÓÌíá ÇáÏÎæá ÈäÌÇÍ");
     }
 
     public async Task<ApiResponse<AuthResponse>> RefreshTokenAsync(RefreshTokenRequest request)
     {
         var principal = GetPrincipalFromExpiredToken(request.Token);
-        if (principal == null) return ApiResponse<AuthResponse>.Fail("ØªÙˆÙƒÙ† ØºÙŠØ± ØµØ§Ù„Ø­.");
+        if (principal == null) return ApiResponse<AuthResponse>.Fail("Êæßä ÛíÑ ÕÇáÍ.");
 
         var email = principal.FindFirstValue(ClaimTypes.Email);
         var user = await _userManager.FindByEmailAsync(email!);
 
         if (user == null || user.RefreshToken != request.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
         {
-            return ApiResponse<AuthResponse>.Fail("Ø±ÙŠÙØ±ÙŠØ´ ØªÙˆÙƒÙ† ØºÙŠØ± ØµØ§Ù„Ø­ Ø£Ùˆ Ù…Ù†ØªÙ‡ÙŠ Ø§Ù„ØµÙ„Ø§Ø­ÙŠØ©.");
+            return ApiResponse<AuthResponse>.Fail("ÑíİÑíÔ Êæßä ÛíÑ ÕÇáÍ Ãæ ãäÊåí ÇáÕáÇÍíÉ.");
         }
 
-        return await GenerateAuthResponse(user, "ØªÙ… ØªØ¬Ø¯ÙŠØ¯ Ø§Ù„ØªÙˆÙƒÙ† Ø¨Ù†Ø¬Ø§Ø­");
+        return await GenerateAuthResponse(user, "Êã ÊÌÏíÏ ÇáÊæßä ÈäÌÇÍ");
     }
 
     public async Task<ApiResponse<AuthResponse>> GetProfileAsync()
     {
         var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId)) return ApiResponse<AuthResponse>.Fail("ØºÙŠØ± Ù…ØµØ±Ø­");
+        if (string.IsNullOrEmpty(userId)) return ApiResponse<AuthResponse>.Fail("ÛíÑ ãÕÑÍ");
 
         var user = await _userManager.Users
             .Include(u => u.City)
             .ThenInclude(c => c.Governorate)
             .FirstOrDefaultAsync(u => u.Id == userId);
 
-        if (user == null) return ApiResponse<AuthResponse>.Fail("Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯");
+        if (user == null) return ApiResponse<AuthResponse>.Fail("ÇáãÓÊÎÏã ÛíÑ ãæÌæÏ");
 
-        return await GenerateAuthResponse(user, "ØªÙ… Ø§Ø³ØªØ±Ø¯Ø§Ø¯ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª Ø¨Ù†Ø¬Ø§Ø­");
+        return await GenerateAuthResponse(user, "Êã ÇÓÊÑÏÇÏ ÇáÈíÇäÇÊ ÈäÌÇÍ");
+    }
+
+    private void DeleteOldProfileImage(string? currentImageName)
+    {
+        if (string.IsNullOrEmpty(currentImageName) || currentImageName.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        try
+        {
+            var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "users", currentImageName);
+            if (File.Exists(oldPath))
+            {
+                File.Delete(oldPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting old profile image: {ex.Message}");
+        }
+    }
+
+    private async Task<string?> SaveUserProfileImageAsync(string? base64OrUrlOrFilename, string userId)
+    {
+        if (string.IsNullOrEmpty(base64OrUrlOrFilename)) return null;
+
+        // If it's a social external URL, keep it
+        if (base64OrUrlOrFilename.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+        {
+            return base64OrUrlOrFilename;
+        }
+
+        var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "users");
+        if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
+
+        var targetFileName = $"u_{userId}.jpg";
+        var filePath = Path.Combine(folderPath, targetFileName);
+
+        if (base64OrUrlOrFilename.StartsWith("data:", StringComparison.OrdinalIgnoreCase) || base64OrUrlOrFilename.Contains(","))
+        {
+            try
+            {
+                var data = base64OrUrlOrFilename.Contains(",") ? base64OrUrlOrFilename.Split(',')[1] : base64OrUrlOrFilename;
+                var bytes = Convert.FromBase64String(data);
+                await File.WriteAllBytesAsync(filePath, bytes);
+                return targetFileName;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving base64 profile image: {ex.Message}");
+                return null;
+            }
+        }
+
+        var cleanFilename = ImageNamingHelper.ExtractFileName(base64OrUrlOrFilename);
+        if (string.IsNullOrEmpty(cleanFilename)) return null;
+
+        return ImageNamingHelper.RenameImage(cleanFilename, "users", $"u_{userId}");
     }
 
     private void DeleteOldProfileImage(string? currentImageName)
@@ -282,10 +349,10 @@ public class AuthService : IAuthService
     public async Task<ApiResponse<bool>> UpdateProfileAsync(UpdateProfileRequest request)
     {
         var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId)) return ApiResponse<bool>.Fail("ØºÙŠØ± Ù…ØµØ±Ø­");
+        if (string.IsNullOrEmpty(userId)) return ApiResponse<bool>.Fail("ÛíÑ ãÕÑÍ");
 
         var user = await _userManager.FindByIdAsync(userId);
-        if (user == null) return ApiResponse<bool>.Fail("Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯");
+        if (user == null) return ApiResponse<bool>.Fail("ÇáãÓÊÎÏã ÛíÑ ãæÌæÏ");
 
         user.FullName = request.FullName;
         user.PhoneNumber = request.PhoneNumber;
@@ -314,10 +381,10 @@ public class AuthService : IAuthService
         var result = await _userManager.UpdateAsync(user);
         if (!result.Succeeded)
         {
-            return ApiResponse<bool>.Fail("ÙØ´Ù„ ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª", result.Errors.Select(e => e.Description).ToList());
+            return ApiResponse<bool>.Fail("İÔá ÊÍÏíË ÇáÈíÇäÇÊ", result.Errors.Select(e => e.Description).ToList());
         }
 
-        return ApiResponse<bool>.Succeed(true, "ØªÙ… ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª Ø¨Ù†Ø¬Ø§Ø­");
+        return ApiResponse<bool>.Succeed(true, "Êã ÊÍÏíË ÇáÈíÇäÇÊ ÈäÌÇÍ");
     }
 
     private async Task<ApiResponse<AuthResponse>> GenerateAuthResponse(ApplicationUser user, string message)
@@ -353,7 +420,9 @@ public class AuthService : IAuthService
             PhoneNumberConfirmed = user.PhoneNumberConfirmed,
             CreatedAt = user.CreatedAt,
             IsActive = user.IsActive,
-            ImageUrl = user.ProfileImageUrl,
+            ImageUrl = !string.IsNullOrEmpty(user.ProfileImageUrl) && !user.ProfileImageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) && !user.ProfileImageUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase) && !user.ProfileImageUrl.StartsWith("images/", StringComparison.OrdinalIgnoreCase) 
+                ? $"images/users/{user.ProfileImageUrl}" 
+                : user.ProfileImageUrl,
             Bio = user.Bio,
             WebsiteUrl = user.WebsiteUrl,
             InstagramUrl = user.InstagramUrl,
@@ -441,19 +510,19 @@ public class AuthService : IAuthService
     public async Task<ApiResponse<bool>> ChangePasswordAsync(ChangeMyPasswordRequest request)
     {
         var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId)) return ApiResponse<bool>.Fail("ØºÙŠØ± Ù…ØµØ±Ø­");
+        if (string.IsNullOrEmpty(userId)) return ApiResponse<bool>.Fail("ÛíÑ ãÕÑÍ");
 
         var user = await _userManager.FindByIdAsync(userId);
-        if (user == null) return ApiResponse<bool>.Fail("Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯");
+        if (user == null) return ApiResponse<bool>.Fail("ÇáãÓÊÎÏã ÛíÑ ãæÌæÏ");
 
         var result = await _userManager.ChangePasswordAsync(user, request.OldPassword, request.NewPassword);
         
         if (!result.Succeeded)
         {
-            return ApiResponse<bool>.Fail("ÙØ´Ù„ ØªØºÙŠÙŠØ± ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±", result.Errors.Select(e => e.Description).ToList());
+            return ApiResponse<bool>.Fail("İÔá ÊÛííÑ ßáãÉ ÇáãÑæÑ", result.Errors.Select(e => e.Description).ToList());
         }
 
-        return ApiResponse<bool>.Succeed(true, "ØªÙ… ØªØºÙŠÙŠØ± ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ø¨Ù†Ø¬Ø§Ø­");
+        return ApiResponse<bool>.Succeed(true, "Êã ÊÛííÑ ßáãÉ ÇáãÑæÑ ÈäÌÇÍ");
     }
 
     public async Task<ApiResponse<AuthResponse>> ExternalLoginCallbackAsync(string email, string name, string provider, string providerUserId, string? imageUrl = null)
@@ -467,7 +536,13 @@ public class AuthService : IAuthService
 
             if (user == null)
             {
-                var baseUsername = email.Split('@')[0].Replace(".", "_");
+                // Use FullName as base for UserName (remove spaces & special chars for Identity compliance)
+                var rawBase = !string.IsNullOrWhiteSpace(name)
+                    ? name.Trim()
+                    : email.Split('@')[0];
+                var baseUsername = System.Text.RegularExpressions.Regex.Replace(rawBase, @"[^a-zA-Z0-9\u0600-\u06FF_]", "_").Trim('_');
+                if (string.IsNullOrEmpty(baseUsername))
+                    baseUsername = email.Split('@')[0].Replace(".", "_");
                 var username = baseUsername;
                 var counter = 1;
                 while (await _userManager.FindByNameAsync(username) != null)
@@ -491,7 +566,7 @@ public class AuthService : IAuthService
                 var createResult = await _userManager.CreateAsync(user);
                 if (!createResult.Succeeded)
                 {
-                    return ApiResponse<AuthResponse>.Fail("ÙØ´Ù„ Ø¥Ù†Ø´Ø§Ø¡ Ù…Ø³ØªØ®Ø¯Ù… Ù…Ù† Ø®Ù„Ø§Ù„ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø§Ù„Ø§Ø¬ØªÙ…Ø§Ø¹ÙŠ", createResult.Errors.Select(e => e.Description).ToList());
+                    return ApiResponse<AuthResponse>.Fail("İÔá ÅäÔÇÁ ãÓÊÎÏã ãä ÎáÇá ÊÓÌíá ÇáÏÎæá ÇáÇÌÊãÇÚí", createResult.Errors.Select(e => e.Description).ToList());
                 }
                 
                 await _userManager.AddToRoleAsync(user, UserRole.Client.ToString());
@@ -509,14 +584,38 @@ public class AuthService : IAuthService
             var addLoginResult = await _userManager.AddLoginAsync(user, info);
             if (!addLoginResult.Succeeded)
             {
-                return ApiResponse<AuthResponse>.Fail("ÙØ´Ù„ Ø±Ø¨Ø· Ø§Ù„Ø­Ø³Ø§Ø¨ Ø§Ù„Ø§Ø¬ØªÙ…Ø§Ø¹ÙŠ");
+                return ApiResponse<AuthResponse>.Fail("İÔá ÑÈØ ÇáÍÓÇÈ ÇáÇÌÊãÇÚí");
+            }
+        }
+        else
+        {
+            // Existing user logged in again
+            bool updated = false;
+            if (!string.IsNullOrEmpty(imageUrl) && 
+                (string.IsNullOrEmpty(user.ProfileImageUrl) || 
+                 (!user.ProfileImageUrl.Contains("access_token") && user.ProfileImageUrl.Contains("graph.facebook.com")) ||
+                 user.ProfileImageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)))
+            {
+                user.ProfileImageUrl = imageUrl;
+                updated = true;
+            }
+
+            if (string.IsNullOrEmpty(user.FullName) && !string.IsNullOrEmpty(name))
+            {
+                user.FullName = name;
+                updated = true;
+            }
+
+            if (updated)
+            {
+                await _userManager.UpdateAsync(user);
             }
         }
 
         if (!user.IsActive)
-            return ApiResponse<AuthResponse>.Fail("Ø§Ù„Ø­Ø³Ø§Ø¨ Ù…Ø¹Ø·Ù„ Ø­Ø§Ù„ÙŠØ§Ù‹.");
+            return ApiResponse<AuthResponse>.Fail("ÇáÍÓÇÈ ãÚØá ÍÇáíÇğ.");
 
-        return await GenerateAuthResponse(user, "ØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¨Ù†Ø¬Ø§Ø­");
+        return await GenerateAuthResponse(user, "Êã ÊÓÌíá ÇáÏÎæá ÈäÌÇÍ");
     }
 
     public async Task<ApiResponse<bool>> ForgotPasswordAsync(ForgotPasswordRequest request)
@@ -525,19 +624,42 @@ public class AuthService : IAuthService
         if (user == null)
         {
             // Security: Don't reveal that the user doesn't exist
-            return ApiResponse<bool>.Succeed(true, "Ø¥Ø°Ø§ ÙƒØ§Ù† Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ Ù…Ø³Ø¬Ù„Ø§Ù‹ØŒ ÙÙ‚Ø¯ ØªÙ… Ø¥Ø±Ø³Ø§Ù„ Ø±Ø§Ø¨Ø· Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹ÙŠÙŠÙ† ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±.");
+            return ApiResponse<bool>.Succeed(true, "ÅĞÇ ßÇä ÇáÈÑíÏ ÇáÅáßÊÑæäí ãÓÌáÇğ áÏíäÇ¡ İÓÊÊáŞì ÑÇÈØÇğ áÅÚÇÏÉ ÊÚííä ßáãÉ ÇáãÑæÑ ÚÈÑ ÈÑíÏß ÇáÅáßÊÑæäí.");
         }
 
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
         
-        // Generate reset link
-        var webAppBaseUrl = _configuration["ApiSettings:WebAppBaseUrl"] ?? "http://localhost:5028/";
+        // Generate reset link using configured WebAppBaseUrl, current host, or production URL
+        var webAppBaseUrl = _configuration["ApiSettings:WebAppBaseUrl"];
+        if (string.IsNullOrWhiteSpace(webAppBaseUrl))
+        {
+            var req = _httpContextAccessor.HttpContext?.Request;
+            if (req != null && !string.IsNullOrEmpty(req.Host.Value))
+            {
+                webAppBaseUrl = $"{req.Scheme}://{req.Host.Value}/";
+            }
+            else
+            {
+                webAppBaseUrl = "https://khadamawy.eis-dev.com/";
+            }
+        }
+        if (!webAppBaseUrl.EndsWith("/")) webAppBaseUrl += "/";
+
         var resetLink = $"{webAppBaseUrl}reset-password?email={Uri.EscapeDataString(user.Email!)}&token={Uri.EscapeDataString(token)}";
 
-        // TODO: Send Email. For now, we will log it and return it in the response for development/testing
-        Console.WriteLine($"Reset Password Link for {user.Email}: {resetLink}");
+        Console.WriteLine($"[PasswordReset] Generated link for {user.Email}: {resetLink}");
 
-        return ApiResponse<bool>.Succeed(true, $"ØªÙ… Ø¥Ø±Ø³Ø§Ù„ Ø±Ø§Ø¨Ø· Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„ØªØ¹ÙŠÙŠÙ† Ø¨Ù†Ø¬Ø§Ø­. (Ù„Ù„ØªØ·ÙˆÙŠØ±: {resetLink})");
+        // Send Email to user
+        try
+        {
+            await _emailService.SendPasswordResetEmailAsync(user.Email!, user.FullName ?? user.UserName ?? "ÚÒíÒäÇ ÇáÚãíá", resetLink);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[PasswordReset] Failed to send email to {user.Email}: {ex.Message}");
+        }
+
+        return ApiResponse<bool>.Succeed(true, "Êã ÅÑÓÇá ÑÇÈØ ÅÚÇÏÉ ÊÚííä ßáãÉ ÇáãÑæÑ Åáì ÈÑíÏß ÇáÅáßÊÑæäí ÈäÌÇÍ. íÑÌì ãÑÇÌÚÉ ÕäÏæŞ ÇáæÇÑÏ ÇáÎÇÕ Èß.");
     }
 
     public async Task<ApiResponse<bool>> ResetPasswordAsync(ResetPasswordRequest request)
@@ -545,16 +667,61 @@ public class AuthService : IAuthService
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null)
         {
-            return ApiResponse<bool>.Fail("Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯.");
+            return ApiResponse<bool>.Fail("ÇáãÓÊÎÏã ÛíÑ ãæÌæÏ.");
         }
 
         var result = await _userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
         if (result.Succeeded)
         {
-            return ApiResponse<bool>.Succeed(true, "ØªÙ… Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹ÙŠÙŠÙ† ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ø¨Ù†Ø¬Ø§Ø­.");
+            return ApiResponse<bool>.Succeed(true, "Êã ÅÚÇÏÉ ÊÚííä ßáãÉ ÇáãÑæÑ ÈäÌÇÍ.");
         }
 
         var errors = result.Errors.Select(e => e.Description).ToList();
-        return ApiResponse<bool>.Fail("ÙØ´Ù„ Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹ÙŠÙŠÙ† ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±.", errors);
+        return ApiResponse<bool>.Fail("İÔá ÅÚÇÏÉ ÊÚííä ßáãÉ ÇáãÑæÑ.", errors);
+    }
+
+    public async Task<ApiResponse<bool>> DeleteAccountAsync(string? password = null)
+    {
+        var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return ApiResponse<bool>.Fail("ÛíÑ ãÕÑÍ");
+
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null) return ApiResponse<bool>.Fail("ÇáãÓÊÎÏã ÛíÑ ãæÌæÏ");
+
+        // If user has a password and password was provided, verify it
+        if (!string.IsNullOrEmpty(user.PasswordHash) && !string.IsNullOrEmpty(password))
+        {
+            var validPassword = await _userManager.CheckPasswordAsync(user, password);
+            if (!validPassword)
+            {
+                return ApiResponse<bool>.Fail("ßáãÉ ÇáãÑæÑ ÛíÑ ÕÍíÍÉ");
+            }
+        }
+
+        // Anonymize & Deactivate user (Google Play account deletion compliance)
+        user.IsActive = false;
+        user.Email = $"deleted_{user.Id}@khadamawy.deleted";
+        user.NormalizedEmail = user.Email.ToUpperInvariant();
+        user.UserName = $"deleted_{user.Id}";
+        user.NormalizedUserName = user.UserName.ToUpperInvariant();
+        user.FullName = "ÍÓÇÈ ãÍĞæİ";
+        user.PhoneNumber = null;
+        user.ProfileImageUrl = null;
+        user.Bio = null;
+        user.WebsiteUrl = null;
+        user.InstagramUrl = null;
+        user.TwitterUrl = null;
+        user.FacebookUrl = null;
+        user.LinkedInUrl = null;
+        user.TikTokUrl = null;
+
+        var updateResult = await _userManager.UpdateAsync(user);
+        if (!updateResult.Succeeded)
+        {
+            return ApiResponse<bool>.Fail("İÔá İí ãÚÇáÌÉ ÍĞİ ÇáÍÓÇÈ");
+        }
+
+        await _signInManager.SignOutAsync();
+        return ApiResponse<bool>.Succeed(true, "Êã ÍĞİ æÊÚØíá ÇáÍÓÇÈ ÈäÌÇÍ");
     }
 }

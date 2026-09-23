@@ -54,43 +54,43 @@
               ColumnDefinitions="*,*,64,*,*"
               HorizontalOptions="Fill" VerticalOptions="Fill">
 
-            <!-- Col 0 (RTL right) ═ المتجر -->
+            <!-- Col 0 (RTL right) ═ الأقسام -->
             <VerticalStackLayout Grid.Column="0" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
                 <VerticalStackLayout.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="marketplace" />
+                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="categories" />
                 </VerticalStackLayout.GestureRecognizers>
-                <Label x:Name="MarketplaceRightIcon" Text="&#xF54F;" FontFamily="FA6Solid" FontSize="20" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
+                <Label x:Name="CategoriesRightIcon" Text="&#xF009;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
                     <Label.Triggers>
-                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="marketplace">
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="categories">
                             <Setter Property="TextColor" Value="{DynamicResource Primary}" />
                         </DataTrigger>
                     </Label.Triggers>
                 </Label>
-                <Label x:Name="MarketplaceRightLabel" Text="المتجر" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
+                <Label x:Name="CategoriesRightLabel" Text="الأقسام" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
                     <Label.Triggers>
-                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="marketplace">
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="categories">
                             <Setter Property="TextColor" Value="{DynamicResource Primary}" />
                         </DataTrigger>
                     </Label.Triggers>
                 </Label>
             </VerticalStackLayout>
             
-            <!-- Col 1 ═ المفضلة -->
+            <!-- Col 1 ═ الخدمات -->
             <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
                 <VerticalStackLayout.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="favorites" />
+                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="services" />
                 </VerticalStackLayout.GestureRecognizers>
-                <Label x:Name="FavoritesRightIcon" Text="&#xF004;" FontFamily="FA6Solid" FontSize="20" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
+                <Label x:Name="ServicesRightIcon" Text="&#xF0B1;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
                     <Label.Triggers>
-                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="favorites">
-                            <Setter Property="TextColor" Value="#ef4444" />
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="services">
+                            <Setter Property="TextColor" Value="{DynamicResource Primary}" />
                         </DataTrigger>
                     </Label.Triggers>
                 </Label>
-                <Label x:Name="FavoritesRightLabel" Text="المفضلة" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
+                <Label x:Name="ServicesRightLabel" Text="الخدمات" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
                     <Label.Triggers>
-                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="favorites">
-                            <Setter Property="TextColor" Value="#ef4444" />
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="services">
+                            <Setter Property="TextColor" Value="{DynamicResource Primary}" />
                         </DataTrigger>
                     </Label.Triggers>
                 </Label>
@@ -98,21 +98,21 @@
 
             <ContentView Grid.Column="2" />
 
-            <!-- Col 3 ═ الرسائل -->
+            <!-- Col 3 ═ المفضلة -->
             <VerticalStackLayout Grid.Column="3" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
                 <VerticalStackLayout.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="messages" />
+                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="favorites" />
                 </VerticalStackLayout.GestureRecognizers>
-                <Label x:Name="MessagesIcon" Text="&#xF0E0;" FontFamily="FA6Solid" FontSize="20" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
+                <Label x:Name="FavoritesIcon" Text="&#xF004;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
                     <Label.Triggers>
-                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="messages">
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="favorites">
                             <Setter Property="TextColor" Value="{DynamicResource Primary}" />
                         </DataTrigger>
                     </Label.Triggers>
                 </Label>
-                <Label x:Name="MessagesLabel" Text="الرسائل" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
+                <Label x:Name="FavoritesLabel" Text="المفضلة" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
                     <Label.Triggers>
-                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="messages">
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="favorites">
                             <Setter Property="TextColor" Value="{DynamicResource Primary}" />
                         </DataTrigger>
                     </Label.Triggers>
@@ -125,7 +125,7 @@
                     <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="profile" />
                 </VerticalStackLayout.GestureRecognizers>
                 <Grid WidthRequest="24" HeightRequest="24" HorizontalOptions="Center">
-                    <Label x:Name="ProfileIcon" Text="&#xF007;" FontFamily="FA6Solid" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" TextColor="{StaticResource InactiveColor}">
+                    <Label x:Name="ProfileIcon" Text="&#xF007;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" VerticalOptions="Center" TextColor="{StaticResource InactiveColor}">
                         <Label.Triggers>
                             <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="profile">
                                 <Setter Property="TextColor" Value="{DynamicResource Primary}" />

@@ -88,32 +88,14 @@
                     <span class="nav-text">المناطق</span>
                 </NavLink>
 
-                <!-- Advertising & Economy Group -->
-                <AuthorizeView Roles="SystemAdmin,SuperAdmin">
-                    <div class="nav-group-label text-muted x-small fw-bold mt-3 mb-2 px-3">الإعلانات والاقتصاد</div>
-                    
-                    <NavLink class="nav-link" href="/admin/ad-analytics" @onclick="CloseSidebar">
-                        <i class="fas fa-chart-pie"></i> 
-                        <span class="nav-text">إحصائيات الإعلانات</span>
-                    </NavLink>
-                    <NavLink class="nav-link" href="/admin/marketplace" @onclick="CloseSidebar">
-                        <i class="fas fa-store"></i> 
-                        <span class="nav-text">إدارة المتجر</span>
-                    </NavLink>
-                    <NavLink class="nav-link" href="/admin/adsmanagement" @onclick="CloseSidebar">
-                        <i class="fas fa-rectangle-ad"></i> 
-                        <span class="nav-text">إدارة الإعلانات</span>
-                    </NavLink>
-                    <NavLink class="nav-link" href="/admin/ad-packages" @onclick="CloseSidebar">
-                        <i class="fas fa-gem"></i> 
-                        <span class="nav-text">باقات الإعلانات</span>
-                    </NavLink>
-                </AuthorizeView>
-
                 <!-- System Group (SuperAdmin Only) -->
                 <AuthorizeView Roles="SuperAdmin">
                     <div class="nav-group-label text-muted x-small fw-bold mt-3 mb-2 px-3">النظام</div>
                     
+                     <NavLink class="nav-link" href="/admin/complaints" @onclick="CloseSidebar">
+                        <i class="fas fa-headset"></i> 
+                        <span class="nav-text">الشكاوى</span>
+                    </NavLink>
                      <NavLink class="nav-link" href="/admin/reports" @onclick="CloseSidebar">
                         <i class="fas fa-file-alt"></i> 
                         <span class="nav-text">التقارير</span>
@@ -121,14 +103,6 @@
                      <NavLink class="nav-link" href="/admin/logs" @onclick="CloseSidebar">
                         <i class="fas fa-history"></i> 
                         <span class="nav-text">سجل النشاط</span>
-                    </NavLink>
-                     <NavLink class="nav-link" href="/admin/complaints" @onclick="CloseSidebar">
-                        <i class="fas fa-headset"></i> 
-                        <span class="nav-text">الشكاوى</span>
-                    </NavLink>
-                     <NavLink class="nav-link" href="/admin/subscriptions" @onclick="CloseSidebar">
-                        <i class="fas fa-credit-card"></i> 
-                        <span class="nav-text">الاشتراكات</span>
                     </NavLink>
                      <NavLink class="nav-link" href="/admin/settings" @onclick="CloseSidebar">
                         <i class="fas fa-cogs"></i> 

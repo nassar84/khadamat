@@ -29,6 +29,11 @@ public partial class WebContainerPage : ContentPage
     public WebContainerPage()
     {
         InitializeComponent();
+        try
+        {
+            MainWebView.UserAgent = (MainWebView.UserAgent ?? "") + " KhadamatNativeApp/1.2";
+        }
+        catch { }
     }
 
     private string? _currentUrl;
@@ -245,15 +250,31 @@ public partial class WebContainerPage : ContentPage
         var url = e.Url;
 
         // Catch native share requests
-        if (url.StartsWith("khadamat://share"))
+        if (url.StartsWith("khadamat://share", StringComparison.OrdinalIgnoreCase))
         {
             e.Cancel = true;
             try
             {
-                var uri = new Uri(url);
-                var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
-                var title = query["title"] ?? "مشاركة";
-                var text = query["text"] ?? "";
+                string title = "مشاركة";
+                string text = "";
+
+                int qIdx = url.IndexOf('?');
+                if (qIdx != -1)
+                {
+                    var queryString = url.Substring(qIdx + 1);
+                    var pairs = queryString.Split('&');
+                    foreach (var pair in pairs)
+                    {
+                        var kv = pair.Split(new[] { '=' }, 2);
+                        if (kv.Length >= 2)
+                        {
+                            var key = Uri.UnescapeDataString(kv[0]);
+                            var val = Uri.UnescapeDataString(kv[1]);
+                            if (key.Equals("title", StringComparison.OrdinalIgnoreCase)) title = val;
+                            else if (key.Equals("text", StringComparison.OrdinalIgnoreCase)) text = val;
+                        }
+                    }
+                }
 
                 MainThread.BeginInvokeOnMainThread(async () =>
                 {
@@ -263,6 +284,7 @@ public partial class WebContainerPage : ContentPage
                             new Microsoft.Maui.ApplicationModel.DataTransfer.ShareTextRequest
                             {
                                 Title = title,
+                                Subject = title,
                                 Text = text
                             });
                     }
@@ -279,16 +301,90 @@ public partial class WebContainerPage : ContentPage
             return;
         }
 
+        // Catch native openurl requests for external applications
+        if (url.StartsWith("khadamat://openurl", StringComparison.OrdinalIgnoreCase))
+        {
+            e.Cancel = true;
+            try
+            {
+                string target = "";
+                int idx = url.IndexOf("url=", StringComparison.OrdinalIgnoreCase);
+                if (idx != -1)
+                {
+                    target = Uri.UnescapeDataString(url.Substring(idx + 4));
+                }
+
+                if (!string.IsNullOrEmpty(target))
+                {
+                    MainThread.BeginInvokeOnMainThread(async () =>
+                    {
+                        try
+                        {
+                            // If target is web URL, try Browser.OpenAsync first for clean out-of-app browsing
+                            if (target.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || 
+                                target.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+                            {
+                                await Microsoft.Maui.ApplicationModel.Browser.Default.OpenAsync(
+                                    new Uri(target), 
+                                    Microsoft.Maui.ApplicationModel.BrowserLaunchMode.External);
+                            }
+                            else
+                            {
+                                await Microsoft.Maui.ApplicationModel.Launcher.Default.OpenAsync(new Uri(target));
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"ANTIGRAVITY_LOG: OpenURL Error: {ex.Message}");
+                            // Fallback if specific app scheme fails
+                            try
+                            {
+                                if (target.StartsWith("whatsapp://send?text=", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    var textPart = target.Substring("whatsapp://send?text=".Length);
+                                    await Microsoft.Maui.ApplicationModel.Browser.Default.OpenAsync(
+                                        new Uri($"https://api.whatsapp.com/send?text={textPart}"), 
+                                        Microsoft.Maui.ApplicationModel.BrowserLaunchMode.External);
+                                }
+                                else if (target.StartsWith("tg://msg_url?", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    var queryPart = target.Substring("tg://msg_url?".Length);
+                                    await Microsoft.Maui.ApplicationModel.Browser.Default.OpenAsync(
+                                        new Uri($"https://t.me/share/url?{queryPart}"), 
+                                        Microsoft.Maui.ApplicationModel.BrowserLaunchMode.External);
+                                }
+                                else
+                                {
+                                    await Microsoft.Maui.ApplicationModel.Launcher.Default.OpenAsync(new Uri(target));
+                                }
+                            }
+                            catch (Exception fbEx)
+                            {
+                                Console.WriteLine($"ANTIGRAVITY_LOG: OpenURL Fallback Error: {fbEx.Message}");
+                            }
+                        }
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ANTIGRAVITY_LOG: Error parsing openurl: {ex.Message}");
+            }
+            return;
+        }
+
         // Catch social login / external login requests to trigger native WebAuthenticator
         if (url.Contains("/v1/auth/external-login"))
         {
             e.Cancel = true;
             string provider = "Google";
+            string currentBase = "";
             try
             {
                 var uri = new Uri(url);
                 var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
                 provider = query["provider"] ?? "Google";
+                currentBase = uri.GetLeftPart(UriPartial.Authority);
             }
             catch (Exception ex)
             {
@@ -297,7 +393,7 @@ public partial class WebContainerPage : ContentPage
 
             MainThread.BeginInvokeOnMainThread(async () =>
             {
-                await HandleNativeExternalLogin(provider);
+                await HandleNativeExternalLogin(provider, currentBase);
             });
             return;
         }
@@ -315,6 +411,7 @@ public partial class WebContainerPage : ContentPage
                 {
                     MainThread.BeginInvokeOnMainThread(() => {
                         if (path.Contains("marketplace")) vm.CurrentTab = "marketplace";
+                        else if (path.Contains("feed")) vm.CurrentTab = "feed";
                         else if (path.Contains("favorites") || path.Contains("my-services") || path.Contains("provider/services")) vm.CurrentTab = "favorites";
                         else if (path.Contains("messages")) vm.CurrentTab = "messages";
                         else if (path.Contains("profile") || path.Contains("login") || path.Contains("register")) vm.CurrentTab = "profile";
@@ -365,6 +462,7 @@ public partial class WebContainerPage : ContentPage
                 {
                     string name = "مستخدم";
                     string image = "profile_icon.png";
+                    string? token = null;
                     bool isAdmin = false;
                     bool isSuperAdmin = false;
                     bool isProvider = false;
@@ -385,13 +483,14 @@ public partial class WebContainerPage : ContentPage
                                 if (firstEqual > 0)
                                 {
                                     var key = part.Substring(0, firstEqual).ToLower();
-                                    var val = part.Substring(firstEqual + 1).ToLower();
+                                    var val = part.Substring(firstEqual + 1);
 
                                     if (key == "name") name = Uri.UnescapeDataString(val);
                                     else if (key == "image") image = Uri.UnescapeDataString(val);
-                                    else if (key == "is_admin") isAdmin = val == "true";
-                                    else if (key == "is_super_admin") isSuperAdmin = val == "true";
-                                    else if (key == "is_provider") isProvider = val == "true";
+                                    else if (key == "token") token = Uri.UnescapeDataString(val);
+                                    else if (key == "is_admin") isAdmin = val.Equals("true", StringComparison.OrdinalIgnoreCase);
+                                    else if (key == "is_super_admin") isSuperAdmin = val.Equals("true", StringComparison.OrdinalIgnoreCase);
+                                    else if (key == "is_provider") isProvider = val.Equals("true", StringComparison.OrdinalIgnoreCase);
                                 }
                             }
                         }
@@ -399,6 +498,13 @@ public partial class WebContainerPage : ContentPage
                     catch (Exception ex)
                     {
                         Console.WriteLine($"ANTIGRAVITY_LOG: Error parsing auth data: {ex.Message}");
+                    }
+
+                    if (!string.IsNullOrEmpty(token))
+                    {
+                        _ = Task.Run(async () => {
+                            try { await Microsoft.Maui.Storage.SecureStorage.SetAsync("authToken", token); } catch { }
+                        });
                     }
 
                     vm.SetAuthenticated(true, name, image, isAdmin, isProvider, isSuperAdmin);
@@ -417,6 +523,10 @@ public partial class WebContainerPage : ContentPage
             }
             else if (url.Contains("auth_logout"))
             {
+                _ = Task.Run(() => {
+                    try { Microsoft.Maui.Storage.SecureStorage.Remove("authToken"); } catch { }
+                });
+
                 if (Shell.Current.BindingContext is ViewModels.ShellViewModel vm)
                 {
                     vm.SetAuthenticated(false);
@@ -449,25 +559,44 @@ public partial class WebContainerPage : ContentPage
             return;
         }
 
-        // Intercept external social and sharing URLs to open them in native apps or external browser
-        if (url.StartsWith("whatsapp:", StringComparison.OrdinalIgnoreCase) || 
-            url.StartsWith("tg:", StringComparison.OrdinalIgnoreCase) || 
-            url.StartsWith("fb:", StringComparison.OrdinalIgnoreCase) || 
-            url.Contains("wa.me") || 
-            url.Contains("t.me") || 
-            url.Contains("facebook.com") || 
-            url.Contains("youtube.com") || 
-            url.Contains("youtu.be"))
+        // Intercept external social sharing and application links
+        if (url.StartsWith("whatsapp:", StringComparison.OrdinalIgnoreCase) ||
+            url.StartsWith("tg:", StringComparison.OrdinalIgnoreCase) ||
+            url.StartsWith("fb:", StringComparison.OrdinalIgnoreCase) ||
+            url.StartsWith("market:", StringComparison.OrdinalIgnoreCase) ||
+            url.Contains("wa.me") ||
+            url.Contains("api.whatsapp.com") ||
+            url.Contains("facebook.com/sharer") ||
+            url.Contains("t.me/share") ||
+            url.Contains("play.google.com/store"))
         {
             e.Cancel = true;
-            try
+            MainThread.BeginInvokeOnMainThread(async () =>
             {
-                await Microsoft.Maui.ApplicationModel.Launcher.Default.OpenAsync(new Uri(url));
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"ANTIGRAVITY_LOG: External launch error for {url}: {ex.Message}");
-            }
+                try
+                {
+                    string target = url;
+                    if (target.StartsWith("https://wa.me/?text=", StringComparison.OrdinalIgnoreCase) || target.StartsWith("http://wa.me/?text=", StringComparison.OrdinalIgnoreCase))
+                    {
+                        target = "whatsapp://send?text=" + target.Substring(target.IndexOf("?text=") + 6);
+                    }
+                    else if (target.Contains("t.me/share/url?"))
+                    {
+                        target = "tg://msg_url?" + target.Substring(target.IndexOf("t.me/share/url?") + 14);
+                    }
+
+                    await Microsoft.Maui.ApplicationModel.Launcher.Default.OpenAsync(new Uri(target));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"ANTIGRAVITY_LOG: External link open error: {ex.Message}");
+                    try
+                    {
+                        await Microsoft.Maui.ApplicationModel.Launcher.Default.OpenAsync(new Uri(url));
+                    }
+                    catch { }
+                }
+            });
             return;
         }
 
@@ -635,12 +764,13 @@ public partial class WebContainerPage : ContentPage
         return false;
     }
 
-    private async Task HandleNativeExternalLogin(string provider)
+    private async Task HandleNativeExternalLogin(string provider, string fallbackBaseUrl = "")
     {
         try
         {
-            string apiBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("ApiBaseUrl", "https://khadamawy.eis-dev.com");
-            string webAppBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "https://khadamawy.eis-dev.com");
+            string defaultBase = !string.IsNullOrEmpty(fallbackBaseUrl) ? fallbackBaseUrl : "https://khadamawy.eis-dev.com";
+            string apiBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("ApiBaseUrl", defaultBase);
+            string webAppBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", defaultBase);
             
             var callbackUrl = "khadamat://callback";
             var authUrl = $"{apiBaseUrl.TrimEnd('/')}/v1/auth/external-login?provider={provider}&redirectUrl={Uri.EscapeDataString(callbackUrl)}";
@@ -679,7 +809,8 @@ public partial class WebContainerPage : ContentPage
         {
             Console.WriteLine($"ANTIGRAVITY_LOG: Exception in HandleNativeExternalLogin: {ex.Message}");
             
-            string webAppBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "https://khadamawy.eis-dev.com");
+            string defaultBase = !string.IsNullOrEmpty(fallbackBaseUrl) ? fallbackBaseUrl : "https://khadamawy.eis-dev.com";
+            string webAppBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", defaultBase);
             var targetUrl = $"{webAppBaseUrl.TrimEnd('/')}/login?error={Uri.EscapeDataString(ex.Message)}&nativeapp=1";
             LoadUrl(targetUrl, true);
         }

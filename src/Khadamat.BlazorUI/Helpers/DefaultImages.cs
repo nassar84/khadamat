@@ -14,99 +14,6 @@ public static class DefaultImages
     // Default service fallback (from ImagePathResolver)
     public static string DefaultService => ImagePathResolver.Service(null);
 
-    /// <summary>
-    /// Generates a javascript onerror handler call string that tries to fall back to:
-    /// 1. Subcategory image
-    /// 2. Category image
-    /// 3. Maincategory image
-    /// 4. Subcategory icon
-    /// 5. Category icon
-    /// 6. Maincategory icon
-    /// 7. Default service placeholder
-    /// </summary>
-    public static string GetServiceImageOnError(
-        string? subCategoryName = null,
-        string? categoryName = null,
-        string? mainCategoryName = null,
-        string? subCategoryImageUrl = null,
-        string? categoryImageUrl = null,
-        string? mainCategoryImageUrl = null,
-        string? baseUrl = null)
-    {
-        var fallbacks = new List<string>();
-
-        // Priority 2: SubCategory database-stored image
-        if (!string.IsNullOrEmpty(subCategoryImageUrl))
-        {
-            fallbacks.Add("/" + ImagePathResolver.SubCategory(subCategoryImageUrl).TrimStart('/'));
-        }
-
-        // Priority 3: Category database-stored image
-        if (!string.IsNullOrEmpty(categoryImageUrl))
-        {
-            fallbacks.Add("/" + ImagePathResolver.Category(categoryImageUrl).TrimStart('/'));
-        }
-
-        // Priority 4: MainCategory database-stored image
-        if (!string.IsNullOrEmpty(mainCategoryImageUrl))
-        {
-            fallbacks.Add("/" + ImagePathResolver.MainCategory(mainCategoryImageUrl).TrimStart('/'));
-        }
-
-        // Priority 5: SubCategory icon
-        if (!string.IsNullOrEmpty(subCategoryName))
-        {
-            var subIcon = CategoryIconResolver.GetIconUrl(subCategoryName, null, null, categoryName);
-            if (!string.IsNullOrEmpty(subIcon) && !subIcon.EndsWith("other_services.png"))
-                fallbacks.Add(subIcon);
-        }
-
-        // Priority 6: Category icon
-        if (!string.IsNullOrEmpty(categoryName))
-        {
-            var catIcon = CategoryIconResolver.GetIconUrl(categoryName, null, null, mainCategoryName);
-            if (!string.IsNullOrEmpty(catIcon))
-                fallbacks.Add(catIcon);
-        }
-
-        // Priority 7: MainCategory icon
-        if (!string.IsNullOrEmpty(mainCategoryName))
-        {
-            var mainIcon = CategoryIconResolver.GetIconUrl(mainCategoryName);
-            if (!string.IsNullOrEmpty(mainIcon))
-                fallbacks.Add(mainIcon);
-        }
-
-        // Ultimate fallback
-        fallbacks.Add("/images/placeholders/default_service.png");
-
-        // Format each fallback as an absolute url or relative path. 
-        // If baseUrl is provided, we can prepend it to relative paths.
-        var formatted = new List<string>();
-        foreach (var fb in fallbacks)
-        {
-            if (fb.StartsWith("http", StringComparison.OrdinalIgnoreCase) || fb.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
-            {
-                formatted.Add(fb);
-            }
-            else
-            {
-                var relative = "/" + fb.TrimStart('/');
-                if (!string.IsNullOrEmpty(baseUrl))
-                {
-                    formatted.Add($"{baseUrl.TrimEnd('/')}{relative}");
-                }
-                else
-                {
-                    formatted.Add(relative);
-                }
-            }
-        }
-
-        var jsonList = string.Join(",", formatted.Select(f => $"'{f.Replace("'", "\\'")}'"));
-        return $"window.handleServiceImageError(this, [{jsonList}]);";
-    }
-
     // Services - keyword-matched photographic fallbacks (keep as Unsplash)
     public const string PlumbingService = "https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=800&h=600&fit=crop&q=80";
     public const string ElectricianService = "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=800&h=600&fit=crop&q=80";
@@ -126,7 +33,23 @@ public static class DefaultImages
     public static string GetUserAvatar(string? name = null, string? gender = null, string? existingUrl = null)
     {
         if (!string.IsNullOrEmpty(existingUrl))
-            return existingUrl;
+        {
+            // Ignore broken unauthenticated facebook graph url
+            if (existingUrl.Contains("graph.facebook.com") && !existingUrl.Contains("access_token"))
+            {
+                // Fall through to generate initials avatar
+            }
+            else if (!existingUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) && 
+                     !existingUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase) &&
+                     !existingUrl.StartsWith("/"))
+            {
+                return ImagePathResolver.User(existingUrl);
+            }
+            else
+            {
+                return existingUrl;
+            }
+        }
 
         var displayName = string.IsNullOrEmpty(name) ? "User" : name;
         var initials = GetInitials(displayName);
@@ -182,11 +105,6 @@ public static class DefaultImages
             filename.StartsWith("defult", StringComparison.OrdinalIgnoreCase) ||
             filename.StartsWith("no-image", StringComparison.OrdinalIgnoreCase))
         {
-            // If it starts with subc_ but has a second underscore (e.g. subc_12_34.jpg), it's a renamed service image!
-            if (filename.StartsWith("subc_", StringComparison.OrdinalIgnoreCase) && filename.IndexOf('_', 5) > -1)
-            {
-                return true;
-            }
             return false;
         }
 
@@ -229,6 +147,16 @@ public static class DefaultImages
             return "/" + url.TrimStart('/');
         }
 
+        // If existingUrl happens to point to a subcategory or category image filename, route it accordingly
+        if (string.IsNullOrEmpty(subCategoryImageUrl) && !string.IsNullOrEmpty(existingUrl) && existingUrl.Contains("subc_"))
+        {
+            subCategoryImageUrl = existingUrl;
+        }
+        if (string.IsNullOrEmpty(categoryImageUrl) && !string.IsNullOrEmpty(existingUrl) && (existingUrl.Contains("c_") || existingUrl.Contains("cat_")))
+        {
+            categoryImageUrl = existingUrl;
+        }
+
         // Priority 2: SubCategory database-stored image
         if (!string.IsNullOrEmpty(subCategoryImageUrl))
         {
@@ -259,7 +187,7 @@ public static class DefaultImages
         if (!string.IsNullOrEmpty(categoryName))
         {
             var catIcon = CategoryIconResolver.GetIconUrl(categoryName, null, null, mainCategoryName);
-            if (!string.IsNullOrEmpty(catIcon))
+            if (!string.IsNullOrEmpty(catIcon) && !catIcon.EndsWith("other_services.png"))
                 return catIcon;
         }
 
@@ -267,11 +195,11 @@ public static class DefaultImages
         if (!string.IsNullOrEmpty(mainCategoryName))
         {
             var mainIcon = CategoryIconResolver.GetIconUrl(mainCategoryName);
-            if (!string.IsNullOrEmpty(mainIcon))
+            if (!string.IsNullOrEmpty(mainIcon) && !mainIcon.EndsWith("other_services.png"))
                 return mainIcon;
         }
 
-        // Priority 5: Legacy keyword-based matching
+        // Priority 8: Legacy keyword-based matching
         var matchName = mainCategoryName ?? categoryName ?? subCategoryName;
         if (string.IsNullOrEmpty(matchName))
             return DefaultService;
