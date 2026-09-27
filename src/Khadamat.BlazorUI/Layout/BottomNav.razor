@@ -8,6 +8,14 @@
             <span>خدماتي</span>
         </button>
     }
+    else if (AppState.IsAuthenticated)
+    {
+        <button class="nav-item @(GetActiveNavClass("/user/my-services"))"
+                @onclick='() => Navigation.NavigateTo("/user/my-services")'>
+            <i class="fa-solid fa-briefcase"></i>
+            <span>خدماتي</span>
+        </button>
+    }
     else
     {
         <NavLink class="nav-item" href="/services">

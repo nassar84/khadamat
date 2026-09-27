@@ -35,10 +35,20 @@
 }
 else
 {
-    <button class="nav-item @GetActiveClass("/services")" @onclick='() => Navigate("/services")'>
-        <i class="fa-solid fa-compass"></i>
-        <span>استكشاف</span>
-    </button>
+    @if (State.IsAuthenticated)
+    {
+        <button class="nav-item @GetActiveClass("/user/my-services")" @onclick='() => Navigate("/user/my-services")'>
+            <i class="fa-solid fa-briefcase"></i>
+            <span>خدماتي</span>
+        </button>
+    }
+    else
+    {
+        <button class="nav-item @GetActiveClass("/services")" @onclick='() => Navigate("/services")'>
+            <i class="fa-solid fa-compass"></i>
+            <span>استكشاف</span>
+        </button>
+    }
 
     <button class="nav-item @GetActiveClass("/user/my-requests")" @onclick='() => NavigateToAuthOr("/user/my-requests")'>
         <i class="fa-solid fa-list-check"></i>
