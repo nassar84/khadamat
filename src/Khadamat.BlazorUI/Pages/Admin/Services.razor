@@ -1,9 +1,11 @@
 @page "/admin/services"
 @using Khadamat.Application.DTOs
+@using Khadamat.Application.Common.Models
 @using Khadamat.BlazorUI.Services
 @using Khadamat.BlazorUI.Services.Admin
 @using Khadamat.BlazorUI.Components.Common
 @using Khadamat.BlazorUI.Shared.Components
+@using Khadamat.BlazorUI.Helpers
 @using Khadamat.Application.Features.Services.Commands
 @inject ApiClient Api
 @inject IAdminService AdminService
@@ -168,7 +170,7 @@
                                                                                 <button class="btn btn-sm btn-light border text-secondary" title="ربط بمستخدم"
                                                                                         @onclick:stopPropagation="true"
                                                                                         @onclick="() => OpenChangeOwner(svc)">
-                                                                                    <i class="fa-solid fa-user-link x-small"></i>
+                                                                                    <i class="fa-solid fa-user-gear x-small"></i>
                                                                                 </button>
                                                                                 @if (!svc.IsApproved)
                                                                                 {
@@ -235,32 +237,196 @@
 @if (showChangeOwnerModal)
 {
     <div class="modal-overlay" @onclick="() => showChangeOwnerModal = false">
-        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop"
-             style="max-width:500px;"
+        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop d-flex flex-column"
+             style="max-width:680px; max-height:90vh;"
              @onclick:stopPropagation="true">
-            <h5 class="fw-bold mb-4">ربط الخدمة بمستخدم موجود</h5>
-            <div class="mb-3">
-                <label class="form-label small fw-bold">اختر المستخدم</label>
-                <select @bind="selectedUserIdForOwner" class="form-select">
-                    <option value="">-- اختر مستخدم --</option>
-                    @foreach (var user in allUsers)
-                    {
-                        <option value="@user.Id">@user.FullName (@user.Email)</option>
-                    }
-                </select>
+            
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                <div>
+                    <h5 class="fw-bold mb-1 d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-user-gear text-primary"></i>
+                        <span>ربط الخدمة بمستخدم موجود</span>
+                    </h5>
+                    <div class="text-muted small">
+                        الخدمة المستهدفة: <span class="fw-bold text-dark">@serviceToChangeOwner?.Name</span>
+                    </div>
+                </div>
+                <button class="btn-close" @onclick="() => showChangeOwnerModal = false"></button>
             </div>
-            <div class="d-flex gap-2">
+
+            <!-- شروط مزود الخدمة التوضيحية -->
+            <div class="alert alert-info py-2 px-3 small border-0 rounded-3 mb-3 d-flex align-items-center justify-content-between">
+                <div>
+                    <i class="fa-solid fa-circle-info me-1"></i>
+                    <strong>شروط الربط:</strong> يجب أن يتوفر للمستخدم رقم هاتف للتواصل وموقع (محافظة ومدينة) مسجل.
+                </div>
+            </div>
+
+            <!-- حقل البحث والفلترة -->
+            <div class="row g-2 mb-3">
+                <div class="col-12 col-md-7">
+                    <div class="position-relative">
+                        <i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                        <input type="text" class="form-control rounded-pill ps-5 bg-light border-0" 
+                               placeholder="ابحث بالاسم أو البريد أو الهاتف..." 
+                               @bind="userSearchTerm" @bind:event="oninput" />
+                    </div>
+                </div>
+                <div class="col-12 col-md-5">
+                    <select class="form-select rounded-pill bg-light border-0 px-3" @bind="userFilterEligibility">
+                        <option value="all">جميع المستخدمين (@allUsers.Count)</option>
+                        <option value="eligible">مستوفون للشروط فقط ✅</option>
+                        <option value="ineligible">غير مستوفين للشروط ⚠️</option>
+                        <option value="provider">مقدمو خدمات حاليون 💼</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- قائمة المستخدمين القابلة للتمرير -->
+            <div class="users-assign-list flex-grow-1 overflow-auto border rounded-4 p-2 mb-3 bg-light-subtle" style="min-height: 200px; max-height: 280px;">
+                @if (isLoadingUsers)
+                {
+                    <div class="text-center p-4">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                        <div class="small text-muted mt-2">جاري تحميل المستخدمين...</div>
+                    </div>
+                }
+                else if (!FilteredUsersForAssign.Any())
+                {
+                    <div class="text-center p-4 text-muted small">
+                        <i class="fa-solid fa-user-slash fs-2 mb-2 opacity-50"></i>
+                        <div>لا يوجد مستخدمون يطابقون معايير البحث</div>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var user in FilteredUsersForAssign)
+                    {
+                        var isSelected = selectedUserIdForOwner == user.Id;
+                        var isEligible = IsUserEligibleForProvider(user);
+                        
+                        <div class="user-select-card p-2 px-3 mb-2 rounded-3 border d-flex align-items-center justify-content-between cursor-pointer transition-all @(isSelected ? "border-primary bg-primary-subtle shadow-sm" : "bg-white")"
+                             @onclick="() => SelectUserForOwner(user.Id)">
+                            <div class="d-flex align-items-center gap-3 flex-grow-1 overflow-hidden">
+                                <img src="@DefaultImages.GetUserAvatar(user.FullName, user.Gender, user.ProfileImageUrl)"
+                                     class="rounded-circle border"
+                                     style="width: 42px; height: 42px; object-fit: cover; flex-shrink: 0;" />
+                                <div class="overflow-hidden">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="fw-bold text-truncate small">@user.FullName</div>
+                                        @if (isEligible)
+                                        {
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill x-small">
+                                                مستوفٍ <i class="fa-solid fa-check"></i>
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill x-small">
+                                                غير مكتمل ⚠️
+                                            </span>
+                                        }
+                                    </div>
+                                    <div class="d-flex flex-wrap gap-2 text-muted x-small mt-1">
+                                        <span><i class="fa-regular fa-envelope me-1"></i>@user.Email</span>
+                                        @if (!string.IsNullOrWhiteSpace(user.PhoneNumber))
+                                        {
+                                            <span><i class="fa-solid fa-phone me-1"></i>@user.PhoneNumber</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-danger"><i class="fa-solid fa-phone-slash me-1"></i>بدون هاتف</span>
+                                        }
+                                        <span><i class="fa-solid fa-location-dot me-1"></i>@GetUserCityName(user.CityId)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex align-items-center gap-2 flex-shrink-0 ms-2">
+                                <button class="btn btn-sm btn-light border rounded-pill px-2 py-1"
+                                        title="تعديل بيانات المستخدم"
+                                        @onclick:stopPropagation="true"
+                                        @onclick="() => OpenEditUser(user)">
+                                    <i class="fa-solid fa-pen-to-square text-primary x-small"></i>
+                                    <span class="x-small ms-1 d-none d-sm-inline">تعديل</span>
+                                </button>
+                                <div class="form-check m-0">
+                                    <input class="form-check-input" type="radio" name="selectedOwnerRadio" 
+                                           checked="@isSelected"
+                                           @onchange="() => SelectUserForOwner(user.Id)" />
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+
+            <!-- بطاقة التحقق من المستخدم المختار -->
+            @if (SelectedOwnerUser != null)
+            {
+                var isSelectedEligible = IsUserEligibleForProvider(SelectedOwnerUser);
+                if (isSelectedEligible)
+                {
+                    <div class="alert alert-success py-2 px-3 small rounded-3 mb-3 border-0 d-flex align-items-center justify-content-between">
+                        <div>
+                            <i class="fa-solid fa-circle-check text-success me-1"></i>
+                            المستخدم <strong>@SelectedOwnerUser.FullName</strong> مستوفٍ للشروط. سيتم ربط الخدمة وإرسال إشعار فوري وتنبيه للمستخدم عند التأكيد.
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning py-2 px-3 small rounded-3 mb-3 border-0">
+                        <div class="fw-bold mb-1 text-danger d-flex align-items-center gap-1">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>المستخدم <strong>@SelectedOwnerUser.FullName</strong> غير مستوفٍ لشروط مزود الخدمة:</span>
+                        </div>
+                        <ul class="mb-2 ps-3 x-small text-dark">
+                            @if (string.IsNullOrWhiteSpace(SelectedOwnerUser.PhoneNumber))
+                            {
+                                <li>لا يوجد رقم هاتف مسجل للتواصل.</li>
+                            }
+                            @if (!SelectedOwnerUser.CityId.HasValue || SelectedOwnerUser.CityId.Value <= 0)
+                            {
+                                <li>المحافظة والمدينة غير مسجلة.</li>
+                            }
+                        </ul>
+                        <button class="btn btn-sm btn-warning rounded-pill w-100" @onclick="() => OpenEditUser(SelectedOwnerUser)">
+                            <i class="fa-solid fa-pen-to-square me-1"></i>
+                            تعديل واستكمال بيانات المستخدم الآن
+                        </button>
+                    </div>
+                }
+            }
+
+            <!-- أزرار الإجراءات -->
+            <div class="d-flex gap-2 pt-2 border-top">
                 <button class="btn btn-primary-premium flex-grow-1 rounded-pill"
-                        disabled="@(string.IsNullOrEmpty(selectedUserIdForOwner) || isSavingOwner)"
+                        disabled="@(!CanSaveSelectedOwner || isSavingOwner)"
                         @onclick="SaveChangeOwner">
                     @if (isSavingOwner) { <span class="spinner-border spinner-border-sm me-2"></span> }
-                    حفظ التغيير
+                    <i class="fa-solid fa-link me-1"></i> حفظ وتأكيد الربط
                 </button>
                 <button class="btn btn-light flex-grow-1 rounded-pill"
                         @onclick="() => showChangeOwnerModal = false">إلغاء</button>
             </div>
         </div>
     </div>
+}
+
+<!-- ── مودال تعديل بيانات المستخدم ── -->
+@if (showUserEditModal && userToEdit != null)
+{
+    <UserForm Show="showUserEditModal"
+              Mode="Edit"
+              User="userToEdit"
+              Governorates="governorates"
+              Cities="cities"
+              IsSaving="isSavingUserEdit"
+              ErrorMessage="@userEditErrorMessage"
+              OnSave="HandleSaveUserEdit"
+              OnCancel="() => showUserEditModal = false" />
 }
 
 <style>
@@ -295,7 +461,7 @@
     }
 
     /* أزرار الخدمة */
-    .svc-actions { opacity: 0; transition: opacity .2s; }
+    .svc-actions { opacity: 0.7; transition: opacity .2s; flex-shrink: 0; display: flex; gap: 4px; }
     .tree-row:hover .svc-actions { opacity: 1; }
 
     /* x-small */
@@ -312,6 +478,45 @@
     @@keyframes pop {
         from { transform: scale(.85); opacity: 0; }
         to   { transform: scale(1);   opacity: 1; }
+    }
+
+    .cursor-pointer { cursor: pointer; }
+    .user-select-card:hover { border-color: rgba(var(--theme-primary-rgb,42,127,143),.5) !important; }
+
+    /* ── التوافق مع الوضع الرأسي وشاشات الموبايل ── */
+    @@media (max-width: 768px) {
+        .lazy-tree .level-1, 
+        .lazy-tree .level-2, 
+        .lazy-tree .level-3 {
+            margin-right: 6px !important;
+            padding-right: 4px !important;
+        }
+        .tree-row.service-row {
+            flex-wrap: wrap !important;
+            padding: 8px 10px !important;
+            gap: 4px 6px !important;
+        }
+        .tree-row.service-row .tree-label {
+            flex: 1 1 55% !important;
+            font-weight: 600;
+        }
+        .tree-row.service-row .svc-actions {
+            opacity: 1 !important;
+            width: 100% !important;
+            display: flex !important;
+            justify-content: flex-end !important;
+            gap: 6px !important;
+            margin-top: 4px !important;
+            padding-top: 4px !important;
+            border-top: 1px dashed rgba(0,0,0,0.08) !important;
+        }
+        .tree-row.service-row .svc-actions .btn {
+            padding: 4px 10px !important;
+            font-size: 0.8rem !important;
+            border-radius: 8px !important;
+            background: #ffffff !important;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04) !important;
+        }
     }
 </style>
 
@@ -342,17 +547,28 @@
     // ── بيانات النماذج ──
     private List<MainCategoryDto> mainCatsForForm = new();
     private List<GovernorateDto>  governorates    = new();
+    private List<CityDto>         cities          = new();
     private ServiceForm.ServiceFormModel? serviceFormModel;
     private int  editServiceId;
     private bool showEditModal = false;
     private bool isSaving      = false;
 
     // ── تغيير المالك ──
-    private bool   showChangeOwnerModal     = false;
-    private int    serviceIdToChangeOwner;
-    private string selectedUserIdForOwner   = "";
-    private bool   isSavingOwner            = false;
-    private List<UserDto> allUsers          = new();
+    private bool          showChangeOwnerModal   = false;
+    private ServiceNode?  serviceToChangeOwner;
+    private int           serviceIdToChangeOwner;
+    private string        selectedUserIdForOwner = "";
+    private bool          isSavingOwner          = false;
+    private bool          isLoadingUsers         = false;
+    private List<UserDto> allUsers               = new();
+    private string        userSearchTerm         = "";
+    private string        userFilterEligibility  = "all"; // all, eligible, ineligible, provider
+
+    // ── تعديل بيانات المستخدم ──
+    private bool        showUserEditModal        = false;
+    private UserDto?    userToEdit;
+    private bool        isSavingUserEdit         = false;
+    private string      userEditErrorMessage     = "";
 
     // ──────────────────────────────────────────
     protected override async Task OnInitializedAsync()
@@ -360,13 +576,15 @@
         try
         {
             // تحميل متوازٍ: الفئات الرئيسية + البيانات المساعدة للنماذج
-            var mainTask  = Api.GetMainCategoriesAsync();
-            var govTask   = Api.GetGovernoratesAsync();
-            await Task.WhenAll(mainTask, govTask);
+            var mainTask = Api.GetMainCategoriesAsync();
+            var govTask  = Api.GetGovernoratesAsync();
+            var cityTask = Api.GetCitiesAsync();
+            await Task.WhenAll(mainTask, govTask, cityTask);
 
             mainCategories  = mainTask.Result;
             mainCatsForForm = mainCategories;
             governorates    = govTask.Result;
+            cities          = cityTask.Result;
         }
         catch (Exception ex)
         {
@@ -613,28 +831,201 @@
         finally { isSaving = false; }
     }
 
+    private UserDto? SelectedOwnerUser => allUsers.FirstOrDefault(u => u.Id == selectedUserIdForOwner);
+
+    private bool CanSaveSelectedOwner =>
+        !string.IsNullOrEmpty(selectedUserIdForOwner) &&
+        IsUserEligibleForProvider(SelectedOwnerUser);
+
+    private IEnumerable<UserDto> FilteredUsersForAssign
+    {
+        get
+        {
+            var result = allUsers.AsEnumerable();
+            if (!string.IsNullOrWhiteSpace(userSearchTerm))
+            {
+                var term = userSearchTerm.Trim().ToLower();
+                result = result.Where(u =>
+                    (u.FullName?.ToLower().Contains(term) ?? false) ||
+                    (u.Email?.ToLower().Contains(term) ?? false) ||
+                    (u.PhoneNumber?.ToLower().Contains(term) ?? false));
+            }
+
+            if (userFilterEligibility == "eligible")
+            {
+                result = result.Where(IsUserEligibleForProvider);
+            }
+            else if (userFilterEligibility == "ineligible")
+            {
+                result = result.Where(u => !IsUserEligibleForProvider(u));
+            }
+            else if (userFilterEligibility == "provider")
+            {
+                result = result.Where(u => u.IsProvider || u.Role == "Provider");
+            }
+
+            return result;
+        }
+    }
+
+    private bool IsUserEligibleForProvider(UserDto? user)
+    {
+        if (user == null) return false;
+        var hasPhone = !string.IsNullOrWhiteSpace(user.PhoneNumber);
+        var hasLocation = user.CityId.HasValue && user.CityId.Value > 0;
+        return hasPhone && hasLocation;
+    }
+
+    private string GetUserCityName(int? cityId)
+    {
+        if (!cityId.HasValue) return "بدون موقع";
+        var city = cities.FirstOrDefault(c => c.Id == cityId.Value);
+        if (city == null) return "بدون موقع";
+        var govName = !string.IsNullOrEmpty(city.GovernorateName) ? city.GovernorateName :
+                      governorates.FirstOrDefault(g => g.Id == city.GovernorateId)?.NameAr;
+        return !string.IsNullOrEmpty(govName) ? $"{city.NameAr}، {govName}" : city.NameAr;
+    }
+
+    private void SelectUserForOwner(string userId)
+    {
+        selectedUserIdForOwner = userId;
+    }
+
     private async Task OpenChangeOwner(ServiceNode node)
     {
+        serviceToChangeOwner   = node;
         serviceIdToChangeOwner = node.Id;
         showChangeOwnerModal   = true;
         selectedUserIdForOwner = "";
+        userSearchTerm         = "";
+        userFilterEligibility  = "all";
 
         if (!allUsers.Any())
         {
+            isLoadingUsers = true;
+            StateHasChanged();
             try { allUsers = await AdminService.GetAllUsers(); }
             catch (Exception ex) { Console.WriteLine("Users load error: " + ex.Message); }
+            finally { isLoadingUsers = false; StateHasChanged(); }
+        }
+
+        if (!cities.Any())
+        {
+            try { cities = await Api.GetCitiesAsync(); }
+            catch { }
+        }
+    }
+
+    private void OpenEditUser(UserDto user)
+    {
+        userToEdit = new UserDto
+        {
+            Id = user.Id,
+            FullName = user.FullName,
+            UserName = user.UserName,
+            Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
+            CityId = user.CityId,
+            Role = user.Role,
+            IsActive = user.IsActive,
+            IsProvider = user.IsProvider,
+            IsVerified = user.IsVerified,
+            ProfileImageUrl = user.ProfileImageUrl,
+            Bio = user.Bio,
+            Gender = user.Gender,
+            WebsiteUrl = user.WebsiteUrl,
+            InstagramUrl = user.InstagramUrl,
+            TwitterUrl = user.TwitterUrl,
+            FacebookUrl = user.FacebookUrl,
+            LinkedInUrl = user.LinkedInUrl,
+            TikTokUrl = user.TikTokUrl,
+            CreatedAt = user.CreatedAt
+        };
+        userEditErrorMessage = "";
+        showUserEditModal = true;
+    }
+
+    private async Task HandleSaveUserEdit(UserForm.UserFormModel model)
+    {
+        if (userToEdit == null) return;
+        isSavingUserEdit = true;
+        userEditErrorMessage = "";
+        try
+        {
+            var updateDto = new UserDto
+            {
+                Id = model.Id,
+                FullName = model.FullName,
+                UserName = model.UserName,
+                Email = model.Email,
+                PhoneNumber = model.PhoneNumber,
+                Role = model.Role,
+                IsActive = model.IsActive,
+                CityId = model.CityId,
+                Gender = model.Gender,
+                ProfileImageUrl = model.ProfileImageUrl,
+                Bio = model.Bio,
+                WebsiteUrl = model.WebsiteUrl,
+                InstagramUrl = model.InstagramUrl,
+                TwitterUrl = model.TwitterUrl,
+                FacebookUrl = model.FacebookUrl,
+                LinkedInUrl = model.LinkedInUrl,
+                TikTokUrl = model.TikTokUrl
+            };
+
+            await AdminService.UpdateUser(userToEdit.Id, updateDto);
+
+            // Update user in local allUsers list
+            var idx = allUsers.FindIndex(u => u.Id == userToEdit.Id);
+            if (idx != -1)
+            {
+                allUsers[idx] = updateDto;
+            }
+
+            // If this was the selected user, keep it selected and updated
+            if (selectedUserIdForOwner == userToEdit.Id)
+            {
+                selectedUserIdForOwner = userToEdit.Id;
+            }
+
+            showUserEditModal = false;
+            await JS.InvokeVoidAsync("alert", "تم تحديث بيانات المستخدم بنجاح.");
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            userEditErrorMessage = "خطأ في حفظ البيانات: " + ex.Message;
+        }
+        finally
+        {
+            isSavingUserEdit = false;
         }
     }
 
     private async Task SaveChangeOwner()
     {
         if (string.IsNullOrEmpty(selectedUserIdForOwner)) return;
+
+        var selectedUser = SelectedOwnerUser;
+        if (selectedUser == null || !IsUserEligibleForProvider(selectedUser))
+        {
+            await JS.InvokeVoidAsync("alert", "المستخدم غير مستوفٍ لشروط مزود الخدمة. يرجى استكمال بيانات الهاتف والموقع أولاً.");
+            return;
+        }
+
         isSavingOwner = true;
         try
         {
-            await Api.PostAsync<dynamic>($"v1/admin/services/{serviceIdToChangeOwner}/change-owner", selectedUserIdForOwner);
-            await JS.InvokeVoidAsync("alert", "تم ربط الخدمة بالمستخدم بنجاح.");
-            showChangeOwnerModal = false;
+            var res = await Api.PostAsync<ApiResponse<bool>>($"v1/admin/services/{serviceIdToChangeOwner}/change-owner", selectedUserIdForOwner);
+            if (res != null && res.Success)
+            {
+                await JS.InvokeVoidAsync("alert", $"تم ربط الخدمة بالمستخدم '{selectedUser.FullName}' بنجاح وإرسال إشعار فوري وتنبيه له.");
+                showChangeOwnerModal = false;
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", res?.Message ?? "خطأ في ربط المستخدم");
+            }
         }
         catch (Exception ex)
         {

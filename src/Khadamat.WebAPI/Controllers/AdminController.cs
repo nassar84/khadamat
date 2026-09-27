@@ -13,6 +13,8 @@ using Khadamat.Application.Features.Services.Queries;
 using Khadamat.Infrastructure.Services;
 using System.IO;
 
+using Khadamat.Application.Interfaces;
+
 namespace Khadamat.WebAPI.Controllers;
 
 [ApiController]
@@ -23,12 +25,18 @@ public class AdminController : ControllerBase
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly KhadamatDbContext _context;
     private readonly MediatR.IMediator _mediator;
+    private readonly INotificationService _notificationService;
 
-    public AdminController(UserManager<ApplicationUser> userManager, KhadamatDbContext context, MediatR.IMediator mediator)
+    public AdminController(
+        UserManager<ApplicationUser> userManager, 
+        KhadamatDbContext context, 
+        MediatR.IMediator mediator,
+        INotificationService notificationService)
     {
         _userManager = userManager;
         _context = context;
         _mediator = mediator;
+        _notificationService = notificationService;
     }
 
     [HttpGet("users")]
@@ -646,6 +654,17 @@ public class AdminController : ControllerBase
         var user = await _userManager.FindByIdAsync(newUserId);
         if (user == null) return NotFound(ApiResponse<bool>.Fail("المستخدم غير موجود"));
 
+        // التحقق من استيفاء شروط مزود الخدمة (أرقام تواصل وموقع مسجل)
+        if (string.IsNullOrWhiteSpace(user.PhoneNumber))
+        {
+            return BadRequest(ApiResponse<bool>.Fail("المستخدم لا يملك رقم هاتف مسجل. يرجى استكمال بيانات التواصل أولاً."));
+        }
+
+        if (!user.CityId.HasValue || user.CityId.Value <= 0)
+        {
+            return BadRequest(ApiResponse<bool>.Fail("المستخدم ليس لديه محافظة أو مدينة مسجلة. يرجى استكمال بيانات الموقع أولاً."));
+        }
+
         // Find or create provider profile for the new user
         var providerProfile = await _context.ProviderProfiles.FirstOrDefaultAsync(p => p.UserId == newUserId);
         if (providerProfile == null)
@@ -653,21 +672,59 @@ public class AdminController : ControllerBase
             providerProfile = new ProviderProfile
             {
                 UserId = newUserId,
-                BusinessName = user.FullName ?? "بدون اسم",
+                BusinessName = !string.IsNullOrWhiteSpace(user.FullName) ? user.FullName : "بدون اسم",
                 ContactNumber = user.PhoneNumber ?? "",
+                CityId = user.CityId,
                 Verified = true
             };
             providerProfile.CreatedAt = DateTime.UtcNow;
             _context.ProviderProfiles.Add(providerProfile);
             await _context.SaveChangesAsync(); // save to get ID
-            
+        }
+        else
+        {
+            if (string.IsNullOrWhiteSpace(providerProfile.ContactNumber))
+            {
+                providerProfile.ContactNumber = user.PhoneNumber ?? "";
+            }
+            if (!providerProfile.CityId.HasValue && user.CityId.HasValue)
+            {
+                providerProfile.CityId = user.CityId;
+            }
+        }
+
+        if (!user.IsProvider)
+        {
             user.IsProvider = true;
             await _userManager.UpdateAsync(user);
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+        if (!roles.Contains("Provider"))
+        {
+            await _userManager.AddToRoleAsync(user, "Provider");
         }
 
         service.ReassignOwner(providerProfile.Id, newUserId);
 
         await _context.SaveChangesAsync();
+
+        // إرسال تنبيه وإشعار داخلي للمستخدم
+        try
+        {
+            await _notificationService.SendNotificationAsync(
+                newUserId,
+                "تم ربط خدمة جديدة بحسابك 🌟",
+                $"تم تعيينك كمزود مسؤول عن خدمة: \"{service.Name}\". يمكنك الآن إدارة الخدمة واستقبال طلبات العملاء من لوحة التحكم.",
+                "ServiceAssigned",
+                $"/services/{service.Id}"
+            );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AdminController] Error sending service assignment notification: {ex.Message}");
+        }
+
         return Ok(ApiResponse<bool>.Succeed(true));
     }
 
