@@ -4,16 +4,19 @@ using Khadamat.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Khadamat.Infrastructure.Persistence.Migrations
+namespace Khadamat.Infrastructure.Migrations
 {
     [DbContext(typeof(KhadamatDbContext))]
-    partial class KhadamatDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260924175006_AddContentReports")]
+    partial class AddContentReports
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

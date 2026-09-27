@@ -4,8 +4,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <!-- NU1903: AutoMapper 13.0.1 vulnerability. v15+ requires paid license. Risk is low. -->
-    <NoWarn>$(NoWarn);NU1903</NoWarn>
+    <!-- NU1903: AutoMapper 13.0.1 vulnerability. NU1902: ImageSharp 2.1.9 (free Apache license) -->
+    <NoWarn>$(NoWarn);NU1903;NU1902</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,6 +17,7 @@
     <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.9" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
@@ -27,6 +28,11 @@
     <ProjectReference Include="..\Khadamat.WasmHost\Khadamat.WasmHost.csproj" />
   </ItemGroup>
 
-  <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
+  <Target Name="CopyDownloadsToPublish" AfterTargets="Publish">
+    <ItemGroup>
+      <DownloadFiles Include="$(MSBuildProjectDirectory)\wwwroot\downloads\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(DownloadFiles)" DestinationFolder="$(PublishDir)wwwroot\downloads\%(RecursiveDir)" SkipUnchangedFiles="true" />
+  </Target>
 
 </Project>

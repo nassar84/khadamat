@@ -255,8 +255,10 @@ public partial class WebContainerPage : ContentPage
             e.Cancel = true;
             try
             {
-                string title = "مشاركة";
+                string title = "مشاركة خدمة";
                 string text = "";
+                string imageUrl = "";
+                string shareUrl = "";
 
                 int qIdx = url.IndexOf('?');
                 if (qIdx != -1)
@@ -272,21 +274,38 @@ public partial class WebContainerPage : ContentPage
                             var val = Uri.UnescapeDataString(kv[1]);
                             if (key.Equals("title", StringComparison.OrdinalIgnoreCase)) title = val;
                             else if (key.Equals("text", StringComparison.OrdinalIgnoreCase)) text = val;
+                            else if (key.Equals("image", StringComparison.OrdinalIgnoreCase) || key.Equals("imageUrl", StringComparison.OrdinalIgnoreCase)) imageUrl = val;
+                            else if (key.Equals("url", StringComparison.OrdinalIgnoreCase) || key.Equals("shareUrl", StringComparison.OrdinalIgnoreCase)) shareUrl = val;
                         }
                     }
+                }
+
+                // If shareUrl is present and text doesn't contain it, append it
+                if (!string.IsNullOrEmpty(shareUrl) && !text.Contains(shareUrl))
+                {
+                    text = string.IsNullOrEmpty(text) ? shareUrl : $"{text}\n\n{shareUrl}";
                 }
 
                 MainThread.BeginInvokeOnMainThread(async () =>
                 {
                     try
                     {
-                        await Microsoft.Maui.ApplicationModel.DataTransfer.Share.Default.RequestAsync(
-                            new Microsoft.Maui.ApplicationModel.DataTransfer.ShareTextRequest
-                            {
-                                Title = title,
-                                Subject = title,
-                                Text = text
-                            });
+                        if (!string.IsNullOrEmpty(imageUrl))
+                        {
+                            var shareService = new Khadamat.MobileApp.Services.ShareService();
+                            await shareService.ShareImageWithTextAsync(imageUrl, text, title);
+                        }
+                        else
+                        {
+                            await Microsoft.Maui.ApplicationModel.DataTransfer.Share.Default.RequestAsync(
+                                new Microsoft.Maui.ApplicationModel.DataTransfer.ShareTextRequest
+                                {
+                                    Title = title,
+                                    Subject = title,
+                                    Text = text,
+                                    Uri = !string.IsNullOrEmpty(shareUrl) ? shareUrl : null
+                                });
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -320,9 +339,17 @@ public partial class WebContainerPage : ContentPage
                     {
                         try
                         {
-                            // If target is web URL, try Browser.OpenAsync first for clean out-of-app browsing
-                            if (target.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || 
-                                target.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+                            // If target is Facebook sharer or social sharer, open in SystemPreferred (Custom Tabs)
+                            // so Android does not route to native Facebook app which fails to parse sharer.php!
+                            if (target.Contains("facebook.com/sharer") || 
+                                target.Contains("twitter.com/intent"))
+                            {
+                                await Microsoft.Maui.ApplicationModel.Browser.Default.OpenAsync(
+                                    new Uri(target), 
+                                    Microsoft.Maui.ApplicationModel.BrowserLaunchMode.SystemPreferred);
+                            }
+                            else if (target.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || 
+                                     target.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
                             {
                                 await Microsoft.Maui.ApplicationModel.Browser.Default.OpenAsync(
                                     new Uri(target), 
@@ -423,30 +450,7 @@ public partial class WebContainerPage : ContentPage
             return;
         }
 
-        // Catch native sharing from Blazor UI inside WebView
-        if (url.StartsWith("khadamat://share"))
-        {
-            e.Cancel = true;
-            try
-            {
-                var uri = new Uri(url);
-                var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
-                var imageUrl = query["image"] ?? "";
-                var text = query["text"] ?? "";
-                var title = query["title"] ?? "مشاركة خدمة";
 
-                var shareService = new Khadamat.MobileApp.Services.ShareService();
-                MainThread.BeginInvokeOnMainThread(async () =>
-                {
-                    await shareService.ShareImageWithTextAsync(imageUrl, text, title);
-                });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"ANTIGRAVITY_LOG: Error handling native share: {ex.Message}");
-            }
-            return;
-        }
 
         // (The show loading moved down to after the interception checks)
 
@@ -575,10 +579,34 @@ public partial class WebContainerPage : ContentPage
             {
                 try
                 {
-                    string target = url;
-                    if (target.StartsWith("https://wa.me/?text=", StringComparison.OrdinalIgnoreCase) || target.StartsWith("http://wa.me/?text=", StringComparison.OrdinalIgnoreCase))
+                    if (url.Contains("facebook.com/sharer"))
                     {
-                        target = "whatsapp://send?text=" + target.Substring(target.IndexOf("?text=") + 6);
+                        await Microsoft.Maui.ApplicationModel.Browser.Default.OpenAsync(
+                            new Uri(url), 
+                            Microsoft.Maui.ApplicationModel.BrowserLaunchMode.SystemPreferred);
+                        return;
+                    }
+
+                    string target = url;
+                    if (target.Contains("wa.me/"))
+                    {
+                        var afterDomain = target.Substring(target.IndexOf("wa.me/") + 6).TrimStart('/');
+                        if (afterDomain.StartsWith("?text="))
+                        {
+                            target = "whatsapp://send?text=" + afterDomain.Substring(6);
+                        }
+                        else
+                        {
+                            var parts = afterDomain.Split(new[] { "?text=" }, 2, StringSplitOptions.None);
+                            var phone = parts[0].Trim();
+                            var text = parts.Length > 1 ? parts[1] : string.Empty;
+                            if (!string.IsNullOrEmpty(phone))
+                            {
+                                target = string.IsNullOrEmpty(text)
+                                    ? $"whatsapp://send?phone={phone}"
+                                    : $"whatsapp://send?phone={phone}&text={text}";
+                            }
+                        }
                     }
                     else if (target.Contains("t.me/share/url?"))
                     {
@@ -592,7 +620,9 @@ public partial class WebContainerPage : ContentPage
                     Console.WriteLine($"ANTIGRAVITY_LOG: External link open error: {ex.Message}");
                     try
                     {
-                        await Microsoft.Maui.ApplicationModel.Launcher.Default.OpenAsync(new Uri(url));
+                        await Microsoft.Maui.ApplicationModel.Browser.Default.OpenAsync(
+                            new Uri(url),
+                            Microsoft.Maui.ApplicationModel.BrowserLaunchMode.SystemPreferred);
                     }
                     catch { }
                 }

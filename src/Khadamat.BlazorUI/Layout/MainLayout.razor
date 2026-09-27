@@ -339,6 +339,12 @@
             if (AppState.IsAuthenticated)
             {
                  await SignalRService.StartAsync();
+                 try
+                 {
+                     var unreadCount = await Api.GetUnreadNotificationsCountAsync();
+                     AppState.NotificationCount = unreadCount;
+                 }
+                 catch { }
             }
 
             if (AppState.IsAuthenticated && !AppState.IsProfileComplete)

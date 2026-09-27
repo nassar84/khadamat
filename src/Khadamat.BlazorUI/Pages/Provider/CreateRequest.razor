@@ -275,9 +275,20 @@
 
         <div class="text-center mt-4 mb-5 pb-5">
             <h6 class="text-muted">هل تواجه مشكلة في ملء النموذج؟</h6>
-            <a href="https://wa.me/201234567890" class="btn btn-outline-success rounded-pill px-5 py-3 mt-2 shadow-premium scale-hover transition-all">
-                <i class="fab fa-whatsapp me-2 fs-5"></i> تواصل معنا مباشرة عبر واتساب
-            </a>
+            @if (!string.IsNullOrEmpty(adminWhatsApp))
+            {
+                <a href="https://wa.me/@adminWhatsApp" target="_blank" rel="noopener noreferrer" 
+                   class="btn btn-outline-success rounded-pill px-5 py-3 mt-2 shadow-premium scale-hover transition-all">
+                    <i class="fab fa-whatsapp me-2 fs-5"></i> تواصل معنا مباشرة عبر واتساب
+                </a>
+            }
+            else
+            {
+                <a href="https://wa.me/201234567890" target="_blank" rel="noopener noreferrer"
+                   class="btn btn-outline-success rounded-pill px-5 py-3 mt-2 shadow-premium scale-hover transition-all">
+                    <i class="fab fa-whatsapp me-2 fs-5"></i> تواصل معنا مباشرة عبر واتساب
+                </a>
+            }
         </div>
     </div>
 </div>
@@ -423,6 +434,7 @@
     private bool showSuccess = false;
     private string? errorMessage;
     private bool isLoadingCities = false;
+    private string? adminWhatsApp;
 
     private List<MainCategoryDto> mainCategories = new();
     private List<CategoryDto> categories = new();
@@ -449,6 +461,14 @@
             // Load initial lookup data
             mainCategories = await Api.GetMainCategoriesAsync();
             governorates = await Api.GetGovernoratesAsync();
+            
+            // Load admin contact for WhatsApp link
+            try
+            {
+                var settingsResult = await Api.GetSettingsAsync();
+                adminWhatsApp = settingsResult?.Data?.ContactWhatsApp;
+            }
+            catch { }
             
             // Set current user data by default
             var profileResult = await AuthService.GetProfileAsync();

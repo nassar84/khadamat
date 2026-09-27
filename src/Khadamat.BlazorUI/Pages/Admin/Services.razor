@@ -10,116 +10,234 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 
-<PageTitle>استكشاف الخدمات شجرياً</PageTitle>
+<PageTitle>إدارة الخدمات</PageTitle>
 
 <div class="px-2 pb-5">
-    <div class="d-flex justify-content-end mb-4 gap-2">
-        <div class="d-flex gap-2">
-            <button class="btn btn-outline-primary rounded-pill px-4" @onclick="() => isExpandedAll = !isExpandedAll">
-                <i class="fa-solid @(isExpandedAll ? "fa-compress" : "fa-expand") me-2"></i> @(isExpandedAll ? "طي الكل" : "توسيع الكل")
-            </button>
-            <button class="btn btn-primary-premium rounded-pill px-4" @onclick="NavigateToCreateService">
-                <i class="fa-solid fa-plus me-2"></i> إضافة خدمة
-            </button>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-0">إدارة الخدمات</h4>
+            <p class="text-muted small mb-0">تصفح الخدمات حسب الفئات — التحميل عند الحاجة</p>
         </div>
+        <button class="btn btn-primary-premium rounded-pill px-4" @onclick="NavigateToCreateService">
+            <i class="fa-solid fa-plus me-2"></i>إضافة خدمة
+        </button>
     </div>
 
-    <div class="glass-card p-4">
-        @if (isLoading)
+    <div class="glass-card p-3">
+        @if (isLoadingMain)
         {
             <div class="text-center p-5">
                 <div class="spinner-border text-primary" role="status"></div>
-                <p class="mt-2 text-muted">جاري بناء هيكل الخدمات...</p>
+                <p class="mt-2 text-muted small">جاري تحميل الفئات الرئيسية...</p>
             </div>
         }
-        else if (!treeNodes.Any())
+        else if (!mainCategories.Any())
         {
             <div class="text-center p-5 text-muted">
-                <i class="fa-solid fa-server fs-1 mb-3 opacity-25"></i>
-                <p>لا توجد بيانات متاحة</p>
+                <i class="fa-solid fa-folder-open fs-1 mb-3 opacity-25"></i>
+                <p>لا توجد فئات رئيسية</p>
             </div>
         }
         else
         {
-            <div class="tree-container">
-                @foreach (var node in treeNodes)
+            <div class="lazy-tree">
+                @foreach (var mc in mainCategories)
                 {
-                    <TreeViewItem TItem="ServiceTreeNode" 
-                                 Item="node" 
-                                 TextSelector="@(n => n.Name)"
-                                 ChildrenSelector="@(n => n.Children)"
-                                 IsInitiallyExpanded="isExpandedAll">
-                        <IconTemplate Context="n">
-                            @if (n.Level == 0) { <i class="fa-solid fa-layer-group text-primary"></i> }
-                            else if (n.Level == 1) { <i class="fa-solid fa-folder text-warning"></i> }
-                            else if (n.Level == 2) { <i class="fa-solid fa-tag text-info"></i> }
-                            else { <i class="fa-solid fa-briefcase text-success"></i> }
-                        </IconTemplate>
-                        <BadgeTemplate Context="n">
-                            @if (n.Level < 3 && n.ChildrenCount > 0)
+                    <!-- ── مستوى 0: الفئة الرئيسية ── -->
+                    <div class="tree-node level-0">
+                        <div class="tree-row @(expandedMain == mc.Id ? "active-row" : "")"
+                             @onclick="() => ToggleMain(mc.Id)">
+                            <span class="toggle-icon">
+                                @if (loadingNodeId == $"m{mc.Id}")
+                                {
+                                    <span class="spinner-border spinner-border-sm text-primary" style="width:14px;height:14px;"></span>
+                                }
+                                else
+                                {
+                                    <i class="fa-solid @(expandedMain == mc.Id ? "fa-chevron-down" : "fa-chevron-left") text-muted x-small"></i>
+                                }
+                            </span>
+                            <i class="fa-solid fa-layer-group text-primary ms-1"></i>
+                            <span class="tree-label fw-bold">@mc.Name</span>
+                            @if (categoriesOf.ContainsKey(mc.Id))
                             {
-                                <span class="badge rounded-pill bg-light text-dark border ms-2 x-small">@n.ChildrenCount</span>
+                                <span class="badge bg-light text-dark border rounded-pill ms-2 x-small">
+                                    @categoriesOf[mc.Id].Count
+                                </span>
                             }
-                            @if (n.Level == 3 && !n.IsApproved)
+                        </div>
+
+                        <!-- ── مستوى 1: الفئات (Categories) ── -->
+                        @if (expandedMain == mc.Id && categoriesOf.TryGetValue(mc.Id, out var cats))
+                        {
+                            @if (!cats.Any())
                             {
-                                <span class="badge rounded-pill bg-warning text-dark border ms-2 x-small">قيد الانتظار</span>
+                                <div class="tree-empty ms-4">لا توجد فئات</div>
                             }
-                        </BadgeTemplate>
-                        <ActionsTemplate Context="n">
-                            @if (n.Level == 3)
+                            else
                             {
-                                <div class="d-flex gap-1">
-                                    <button class="btn btn-sm btn-light border text-primary" title="تعديل" @onclick:stopPropagation="true" @onclick="() => OpenEditService(n)">
-                                        <i class="fa-solid fa-pen x-small"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-light border text-secondary" title="ربط بمستخدم" @onclick:stopPropagation="true" @onclick="() => OpenChangeOwner(n)">
-                                        <i class="fa-solid fa-user-link x-small"></i>
-                                    </button>
-                                    @if (!n.IsApproved)
-                                    {
-                                        <button class="btn btn-sm btn-light border text-success" title="اعتماد" @onclick:stopPropagation="true" @onclick="() => Approve(n)">
-                                            <i class="fa-solid fa-check x-small"></i>
-                                        </button>
-                                    }
-                                    @if (n.IsApproved)
-                                    {
-                                        <button class="btn btn-sm btn-light border text-warning" title="إلغاء اعتماد" @onclick:stopPropagation="true" @onclick="() => Reject(n)">
-                                            <i class="fa-solid fa-xmark x-small"></i>
-                                        </button>
-                                    }
-                                    <button class="btn btn-sm btn-light border text-danger" title="حذف" @onclick:stopPropagation="true" @onclick="() => DeleteService(n)">
-                                        <i class="fa-solid fa-trash x-small"></i>
-                                    </button>
-                                </div>
+                                @foreach (var cat in cats)
+                                {
+                                    <div class="tree-node level-1 ms-3">
+                                        <div class="tree-row @(expandedCat == cat.Id ? "active-row" : "")"
+                                             @onclick="() => ToggleCat(mc.Id, cat.Id)">
+                                            <span class="toggle-icon">
+                                                @if (loadingNodeId == $"c{cat.Id}")
+                                                {
+                                                    <span class="spinner-border spinner-border-sm text-warning" style="width:12px;height:12px;"></span>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fa-solid @(expandedCat == cat.Id ? "fa-chevron-down" : "fa-chevron-left") text-muted x-small"></i>
+                                                }
+                                            </span>
+                                            <i class="fa-solid fa-folder text-warning ms-1"></i>
+                                            <span class="tree-label">@cat.Name</span>
+                                            @if (subsOf.ContainsKey(cat.Id))
+                                            {
+                                                <span class="badge bg-light text-dark border rounded-pill ms-2 x-small">
+                                                    @subsOf[cat.Id].Count
+                                                </span>
+                                            }
+                                        </div>
+
+                                        <!-- ── مستوى 2: الفئات الفرعية (SubCategories) ── -->
+                                        @if (expandedCat == cat.Id && subsOf.TryGetValue(cat.Id, out var subs))
+                                        {
+                                            @if (!subs.Any())
+                                            {
+                                                <div class="tree-empty ms-4">لا توجد فئات فرعية</div>
+                                            }
+                                            else
+                                            {
+                                                @foreach (var sub in subs)
+                                                {
+                                                    <div class="tree-node level-2 ms-3">
+                                                        <div class="tree-row @(expandedSub == sub.Id ? "active-row" : "")"
+                                                             @onclick="() => ToggleSub(sub.Id)">
+                                                            <span class="toggle-icon">
+                                                                @if (loadingNodeId == $"s{sub.Id}")
+                                                                {
+                                                                    <span class="spinner-border spinner-border-sm text-info" style="width:12px;height:12px;"></span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <i class="fa-solid @(expandedSub == sub.Id ? "fa-chevron-down" : "fa-chevron-left") text-muted x-small"></i>
+                                                                }
+                                                            </span>
+                                                            <i class="fa-solid fa-tag text-info ms-1"></i>
+                                                            <span class="tree-label">@sub.Name</span>
+                                                            @if (servicesOf.ContainsKey(sub.Id))
+                                                            {
+                                                                <span class="badge bg-light text-dark border rounded-pill ms-2 x-small">
+                                                                    @servicesOf[sub.Id].Count خدمة
+                                                                </span>
+                                                            }
+                                                        </div>
+
+                                                        <!-- ── مستوى 3: الخدمات ── -->
+                                                        @if (expandedSub == sub.Id && servicesOf.TryGetValue(sub.Id, out var svcs))
+                                                        {
+                                                            @if (!svcs.Any())
+                                                            {
+                                                                <div class="tree-empty ms-4">لا توجد خدمات في هذه الفئة</div>
+                                                            }
+                                                            else
+                                                            {
+                                                                @foreach (var svc in svcs)
+                                                                {
+                                                                    <div class="tree-node level-3 ms-3">
+                                                                        <div class="tree-row service-row">
+                                                                            <span class="toggle-icon invisible"><i class="fa-solid fa-chevron-left x-small"></i></span>
+                                                                            <i class="fa-solid fa-briefcase text-success ms-1"></i>
+                                                                            <span class="tree-label flex-grow-1">@svc.Name</span>
+
+                                                                            @if (!svc.IsApproved)
+                                                                            {
+                                                                                <span class="badge bg-warning text-dark rounded-pill x-small me-2">قيد الانتظار</span>
+                                                                            }
+
+                                                                            <!-- أزرار الخدمة -->
+                                                                            <div class="svc-actions d-flex gap-1">
+                                                                                <button class="btn btn-sm btn-light border text-primary" title="تعديل"
+                                                                                        @onclick:stopPropagation="true"
+                                                                                        @onclick="() => OpenEditService(svc)">
+                                                                                    <i class="fa-solid fa-pen x-small"></i>
+                                                                                </button>
+                                                                                <button class="btn btn-sm btn-light border text-secondary" title="ربط بمستخدم"
+                                                                                        @onclick:stopPropagation="true"
+                                                                                        @onclick="() => OpenChangeOwner(svc)">
+                                                                                    <i class="fa-solid fa-user-link x-small"></i>
+                                                                                </button>
+                                                                                @if (!svc.IsApproved)
+                                                                                {
+                                                                                    <button class="btn btn-sm btn-light border text-success" title="اعتماد"
+                                                                                            @onclick:stopPropagation="true"
+                                                                                            @onclick="() => Approve(svc, sub.Id)">
+                                                                                        <i class="fa-solid fa-check x-small"></i>
+                                                                                    </button>
+                                                                                }
+                                                                                @if (svc.IsApproved)
+                                                                                {
+                                                                                    <button class="btn btn-sm btn-light border text-warning" title="إلغاء اعتماد"
+                                                                                            @onclick:stopPropagation="true"
+                                                                                            @onclick="() => Reject(svc, sub.Id)">
+                                                                                        <i class="fa-solid fa-xmark x-small"></i>
+                                                                                    </button>
+                                                                                }
+                                                                                <button class="btn btn-sm btn-light border text-danger" title="حذف"
+                                                                                        @onclick:stopPropagation="true"
+                                                                                        @onclick="() => DeleteService(svc, sub.Id)">
+                                                                                    <i class="fa-solid fa-trash x-small"></i>
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                }
+                                                            }
+                                                        }
+                                                    </div>
+                                                }
+                                            }
+                                        }
+                                    </div>
+                                }
                             }
-                        </ActionsTemplate>
-                    </TreeViewItem>
+                        }
+                    </div>
                 }
             </div>
         }
     </div>
 </div>
 
+<!-- ── مودال تعديل الخدمة ── -->
 @if (showEditModal && serviceFormModel != null)
 {
     <div class="modal-overlay" @onclick="() => showEditModal = false">
-        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop" style="max-width: 800px; max-height: 90vh; overflow-y: auto;" @onclick:stopPropagation="true">
-            <ServiceForm Model="@serviceFormModel" 
-                        MainCategories="@mainCategories"
-                        Governorates="@governorates"
-                        IsSaving="@isSaving"
-                        ShowTitle="true"
-                        Id="@(editServiceId)"
-                        OnSave="SaveChanges"
-                        OnCancel="() => showEditModal = false" />
+        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop"
+             style="max-width:800px;max-height:90vh;overflow-y:auto;"
+             @onclick:stopPropagation="true">
+            <ServiceForm Model="@serviceFormModel"
+                         MainCategories="@mainCategories"
+                         Governorates="@governorates"
+                         IsSaving="@isSaving"
+                         ShowTitle="true"
+                         Id="@editServiceId"
+                         OnSave="SaveChanges"
+                         OnCancel="() => showEditModal = false" />
         </div>
     </div>
 }
 
+<!-- ── مودال ربط المستخدم ── -->
 @if (showChangeOwnerModal)
 {
     <div class="modal-overlay" @onclick="() => showChangeOwnerModal = false">
-        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop" style="max-width: 500px;" @onclick:stopPropagation="true">
+        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop"
+             style="max-width:500px;"
+             @onclick:stopPropagation="true">
             <h5 class="fw-bold mb-4">ربط الخدمة بمستخدم موجود</h5>
             <div class="mb-3">
                 <label class="form-label small fw-bold">اختر المستخدم</label>
@@ -132,195 +250,248 @@
                 </select>
             </div>
             <div class="d-flex gap-2">
-                <button class="btn btn-primary-premium flex-grow-1 rounded-pill" disabled="@(string.IsNullOrEmpty(selectedUserIdForOwner) || isSavingOwner)" @onclick="SaveChangeOwner">
+                <button class="btn btn-primary-premium flex-grow-1 rounded-pill"
+                        disabled="@(string.IsNullOrEmpty(selectedUserIdForOwner) || isSavingOwner)"
+                        @onclick="SaveChangeOwner">
                     @if (isSavingOwner) { <span class="spinner-border spinner-border-sm me-2"></span> }
                     حفظ التغيير
                 </button>
-                <button class="btn btn-light flex-grow-1 rounded-pill" @onclick="() => showChangeOwnerModal = false">إلغاء</button>
+                <button class="btn btn-light flex-grow-1 rounded-pill"
+                        @onclick="() => showChangeOwnerModal = false">إلغاء</button>
             </div>
         </div>
     </div>
 }
 
 <style>
-    .tree-container {
-        max-width: 900px;
+    /* ── شجرة Lazy ── */
+    .lazy-tree { max-width: 900px; }
+    .tree-node { border-radius: 8px; margin-bottom: 2px; }
+
+    .tree-row {
+        display: flex; align-items: center; gap: 6px;
+        padding: 8px 10px; border-radius: 10px;
+        cursor: pointer; transition: background .15s;
+        position: relative;
     }
+    .tree-row:hover { background: rgba(0,0,0,.04); }
+    .tree-row.active-row { background: rgba(var(--theme-primary-rgb,42,127,143),.08); }
+    .tree-row.service-row { cursor: default; }
+    .tree-row.service-row:hover { background: rgba(0,0,0,.03); }
+
+    .toggle-icon { width: 16px; display: inline-flex; justify-content: center; flex-shrink: 0; }
+    .tree-label { font-size: .88rem; }
+    .level-0 > .tree-row { font-weight: 700; font-size: .9rem; }
+    .level-1 > .tree-row { font-size: .87rem; }
+    .level-2 > .tree-row { font-size: .85rem; }
+    .level-3 > .tree-row { font-size: .83rem; }
+
+    .tree-empty { font-size: .8rem; color: #94a3b8; padding: 6px 12px; }
+
+    /* حد جانبي للأطفال */
+    .level-1, .level-2, .level-3 {
+        border-right: 2px solid rgba(0,0,0,.07);
+        padding-right: 4px;
+    }
+
+    /* أزرار الخدمة */
+    .svc-actions { opacity: 0; transition: opacity .2s; }
+    .tree-row:hover .svc-actions { opacity: 1; }
+
+    /* x-small */
+    .x-small { font-size: .72rem; }
+
+    /* مودال */
     .modal-overlay {
         position: fixed; inset: 0; z-index: 2000;
-        background: rgba(0,0,0,0.4);
+        background: rgba(0,0,0,.4);
         backdrop-filter: blur(5px);
         display: flex; align-items: center; justify-content: center;
     }
-    .animate-pop {
-        animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
+    .animate-pop { animation: pop .3s cubic-bezier(.175,.885,.32,1.275); }
     @@keyframes pop {
-        from { transform: scale(0.8); opacity: 0; }
-        to { transform: scale(1); opacity: 1; }
-    }
-    @@media (max-width: 767px) {
-        .glass-card {
-            padding: 1rem !important;
-        }
-        .btn {
-            padding-left: 12px !important;
-            padding-right: 12px !important;
-            font-size: 0.8rem !important;
-        }
-        .tree-container {
-            font-size: 0.85rem !important;
-            overflow-x: auto;
-        }
-        .px-2 { padding-left: 8px !important; padding-right: 8px !important; }
+        from { transform: scale(.85); opacity: 0; }
+        to   { transform: scale(1);   opacity: 1; }
     }
 </style>
 
 @code {
-    private List<ServiceTreeNode> treeNodes = new();
-    private bool isLoading = true;
-    private bool isExpandedAll = false;
-    
-    // For ServiceForm
+    // ── بيانات الشجرة ──
     private List<MainCategoryDto> mainCategories = new();
-    private List<GovernorateDto> governorates = new();
-    private ServiceForm.ServiceFormModel? serviceFormModel;
-    private int editServiceId;
-    private bool showEditModal = false;
-    private bool isSaving = false;
+    private bool isLoadingMain = true;
+    private string? loadingNodeId;   // تتبع العقدة التي يتم تحميلها
 
-    public class ServiceTreeNode
+    // ── حالة التمديد (فتح عقدة واحدة فقط في كل مستوى) ──
+    private int? expandedMain;
+    private int? expandedCat;
+    private int? expandedSub;
+
+    // ── بيانات محمّلة حسب الحاجة ──
+    private readonly Dictionary<int, List<CategoryDto>>    categoriesOf = new();
+    private readonly Dictionary<int, List<SubCategoryDto>> subsOf       = new();
+    private readonly Dictionary<int, List<ServiceNode>>    servicesOf   = new();
+
+    // ── نموذج الخدمة مبسّط للعرض في الشجرة ──
+    public class ServiceNode
     {
-        public int Id { get; set; }
-        public string Name { get; set; } = "";
-        public int Level { get; set; } // 0: Main, 1: Category, 2: SubCategory, 3: Service
-        public bool IsApproved { get; set; }
-        public int ChildrenCount => Children.Count;
-        public List<ServiceTreeNode> Children { get; set; } = new();
+        public int    Id         { get; set; }
+        public string Name       { get; set; } = "";
+        public bool   IsApproved { get; set; }
     }
 
+    // ── بيانات النماذج ──
+    private List<MainCategoryDto> mainCatsForForm = new();
+    private List<GovernorateDto>  governorates    = new();
+    private ServiceForm.ServiceFormModel? serviceFormModel;
+    private int  editServiceId;
+    private bool showEditModal = false;
+    private bool isSaving      = false;
+
+    // ── تغيير المالك ──
+    private bool   showChangeOwnerModal     = false;
+    private int    serviceIdToChangeOwner;
+    private string selectedUserIdForOwner   = "";
+    private bool   isSavingOwner            = false;
+    private List<UserDto> allUsers          = new();
+
+    // ──────────────────────────────────────────
     protected override async Task OnInitializedAsync()
     {
-        // Load initial data for form
-        try 
+        try
         {
-            mainCategories = await Api.GetMainCategoriesAsync();
-            governorates = await Api.GetGovernoratesAsync();
+            // تحميل متوازٍ: الفئات الرئيسية + البيانات المساعدة للنماذج
+            var mainTask  = Api.GetMainCategoriesAsync();
+            var govTask   = Api.GetGovernoratesAsync();
+            await Task.WhenAll(mainTask, govTask);
+
+            mainCategories  = mainTask.Result;
+            mainCatsForForm = mainCategories;
+            governorates    = govTask.Result;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading lookups: {ex.Message}");
+            Console.WriteLine($"[AdminServices] Init error: {ex.Message}");
         }
-
-        await LoadTree();
+        finally
+        {
+            isLoadingMain = false;
+        }
     }
 
-    private async Task LoadTree()
+    // ── التبديل في مستوى الفئة الرئيسية ──
+    private async Task ToggleMain(int mainId)
     {
-        isLoading = true;
-        treeNodes.Clear();
-        
-        try 
+        if (expandedMain == mainId)
         {
-            var mainCats = await Api.GetMainCategoriesAsync(); // Refresh in case changed
-            var allServicesResult = await Api.GetServicesAsync(pageSize: 1000, isApproved: null); // 1000 is optimization cap
-            var allServices = allServicesResult.Items;
-            
-            // Track which services were placed in the tree
-            var placedServiceIds = new HashSet<int>();
+            expandedMain = null;
+            return;
+        }
 
-            foreach (var mc in mainCats)
+        expandedMain = mainId;
+        expandedCat  = null;
+        expandedSub  = null;
+
+        if (!categoriesOf.ContainsKey(mainId))
+        {
+            loadingNodeId = $"m{mainId}";
+            StateHasChanged();
+            try
             {
-                var mcNode = new ServiceTreeNode { Id = mc.Id, Name = mc.Name, Level = 0 };
-                
-                var cats = await Api.GetCategoriesByMainIdAsync(mc.Id);
-                foreach (var cat in cats)
-                {
-                    var catNode = new ServiceTreeNode { Id = cat.Id, Name = cat.Name, Level = 1 };
-                    
-                    var subs = await Api.GetSubCategoriesByCategoryIdAsync(cat.Id);
-                    foreach (var sub in subs)
-                    {
-                        var subNode = new ServiceTreeNode { Id = sub.Id, Name = sub.Name, Level = 2 };
-                        
-                        // Add services linked to this sub-category
-                        var subServices = allServices.Where(s => s.SubCategoryId == sub.Id);
-                        foreach (var s in subServices)
-                        {
-                            subNode.Children.Add(new ServiceTreeNode 
-                            { 
-                                Id = s.Id, 
-                                Name = s.Title, 
-                                Level = 3, 
-                                IsApproved = s.IsApproved 
-                            });
-                            placedServiceIds.Add(s.Id);
-                        }
-
-                        if (subNode.ChildrenCount > 0)
-                            catNode.Children.Add(subNode);
-                    }
-                    
-                    // Add services linked directly to this category (no SubCategoryId)
-                    var catDirectServices = allServices.Where(s => 
-                        !s.SubCategoryId.HasValue && s.CategoryId == cat.Id && !placedServiceIds.Contains(s.Id));
-                    foreach (var s in catDirectServices)
-                    {
-                        catNode.Children.Add(new ServiceTreeNode 
-                        { 
-                            Id = s.Id, 
-                            Name = s.Title, 
-                            Level = 3, 
-                            IsApproved = s.IsApproved 
-                        });
-                        placedServiceIds.Add(s.Id);
-                    }
-                    
-                    if (catNode.ChildrenCount > 0)
-                        mcNode.Children.Add(catNode);
-                }
-                
-                if (mcNode.ChildrenCount > 0)
-                    treeNodes.Add(mcNode);
+                var cats = await Api.GetCategoriesByMainIdAsync(mainId);
+                categoriesOf[mainId] = cats;
             }
-            
-            // Add orphan services (no SubCategoryId and no matching CategoryId in tree)
-            var orphanServices = allServices.Where(s => !placedServiceIds.Contains(s.Id)).ToList();
-            if (orphanServices.Any())
+            catch (Exception ex)
             {
-                var orphanNode = new ServiceTreeNode { Id = -1, Name = "غير مصنفة", Level = 0 };
-                foreach (var s in orphanServices)
-                {
-                    orphanNode.Children.Add(new ServiceTreeNode 
-                    { 
-                        Id = s.Id, 
-                        Name = s.Title, 
-                        Level = 3, 
-                        IsApproved = s.IsApproved 
-                    });
-                }
-                treeNodes.Add(orphanNode);
+                Console.WriteLine($"[AdminServices] Load cats error: {ex.Message}");
+                categoriesOf[mainId] = new();
+            }
+            finally
+            {
+                loadingNodeId = null;
             }
         }
-        catch (Exception ex)
+    }
+
+    // ── التبديل في مستوى الفئة ──
+    private async Task ToggleCat(int mainId, int catId)
+    {
+        if (expandedCat == catId)
         {
-            Console.WriteLine($"Error loading service tree: {ex.Message}");
+            expandedCat = null;
+            expandedSub = null;
+            return;
         }
-        
-        isLoading = false;
+
+        expandedCat = catId;
+        expandedSub = null;
+
+        if (!subsOf.ContainsKey(catId))
+        {
+            loadingNodeId = $"c{catId}";
+            StateHasChanged();
+            try
+            {
+                var subs = await Api.GetSubCategoriesByCategoryIdAsync(catId);
+                subsOf[catId] = subs;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[AdminServices] Load subs error: {ex.Message}");
+                subsOf[catId] = new();
+            }
+            finally
+            {
+                loadingNodeId = null;
+            }
+        }
     }
 
-    private void NavigateToCreateService()
+    // ── التبديل في مستوى الفئة الفرعية ──
+    private async Task ToggleSub(int subId)
     {
-        Navigation.NavigateTo("/provider/create-service");
+        if (expandedSub == subId)
+        {
+            expandedSub = null;
+            return;
+        }
+
+        expandedSub = subId;
+
+        if (!servicesOf.ContainsKey(subId))
+        {
+            loadingNodeId = $"s{subId}";
+            StateHasChanged();
+            try
+            {
+                var result = await Api.GetServicesAsync(subCategoryId: subId, isApproved: null, pageSize: 200);
+                servicesOf[subId] = result.Items.Select(s => new ServiceNode
+                {
+                    Id         = s.Id,
+                    Name       = s.Title,
+                    IsApproved = s.IsApproved
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[AdminServices] Load services error: {ex.Message}");
+                servicesOf[subId] = new();
+            }
+            finally
+            {
+                loadingNodeId = null;
+            }
+        }
     }
 
-    private void ViewService(int id)
+    // ── إعادة تحميل خدمات الفئة الفرعية ──
+    private async Task ReloadSubServices(int subId)
     {
-        Navigation.NavigateTo($"/service/{id}");
+        servicesOf.Remove(subId);
+        await ToggleSub(subId);
     }
 
-    private async Task Approve(ServiceTreeNode node)
+    // ── إجراءات الخدمة ──
+    private async Task Approve(ServiceNode node, int subId)
     {
         try
         {
@@ -328,13 +499,10 @@
             node.IsApproved = true;
             StateHasChanged();
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error approving service: {ex.Message}");
-        }
+        catch (Exception ex) { Console.WriteLine($"Approve error: {ex.Message}"); }
     }
 
-    private async Task Reject(ServiceTreeNode node)
+    private async Task Reject(ServiceNode node, int subId)
     {
         try
         {
@@ -342,53 +510,55 @@
             node.IsApproved = false;
             StateHasChanged();
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error rejecting service: {ex.Message}");
-        }
+        catch (Exception ex) { Console.WriteLine($"Reject error: {ex.Message}"); }
     }
 
-    private async Task DeleteService(ServiceTreeNode node)
+    private async Task DeleteService(ServiceNode node, int subId)
     {
         if (!await JS.InvokeAsync<bool>("confirm", $"هل أنت متأكد من حذف الخدمة: {node.Name}؟")) return;
-        
         try
         {
-            await AdminService.RejectService(node.Id); // Or Delete endpoint if exists
-            await LoadTree();
+            await Api.DeleteServiceAsync(node.Id);
+            if (servicesOf.TryGetValue(subId, out var list))
+            {
+                list.RemoveAll(s => s.Id == node.Id);
+                StateHasChanged();
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error deleting service: {ex.Message}");
+            await JS.InvokeVoidAsync("alert", "خطأ في الحذف: " + ex.Message);
         }
     }
 
-    private async Task OpenEditService(ServiceTreeNode node)
+    private void NavigateToCreateService() => Navigation.NavigateTo("/provider/create-service");
+
+    private async Task OpenEditService(ServiceNode node)
     {
-        try 
+        try
         {
             var service = await Api.GetServiceByIdAsync(node.Id);
             if (service != null)
             {
-                editServiceId = service.Id;
+                editServiceId    = service.Id;
                 serviceFormModel = new ServiceForm.ServiceFormModel
                 {
-                    Title = service.Title,
-                    Description = service.Description,
-                    Price = service.Price,
-                    Address = service.Address,
-                    CityId = service.CityId,
-                    Location = service.Location,
-                    CategoryId = service.CategoryId,
-                    SubCategoryId = service.SubCategoryId,
-                    Phone1 = service.Phone1,
-                    WhatsApp = service.WhatsApp,
-                    Facebook = service.Facebook,
-                    Telegram = service.Telegram,
-                    WorkDays = service.WorkDays,
-                    WorkHours = service.WorkHours,
-                    YouTubeUrl = service.YouTubeUrl,
-                    Images = service.Images ?? new List<string>()
+                    Title          = service.Title,
+                    Description    = service.Description,
+                    Price          = service.Price,
+                    Address        = service.Address,
+                    CityId         = service.CityId,
+                    Location       = service.Location,
+                    CategoryId     = service.CategoryId,
+                    SubCategoryId  = service.SubCategoryId,
+                    Phone1         = service.Phone1,
+                    WhatsApp       = service.WhatsApp,
+                    Facebook       = service.Facebook,
+                    Telegram       = service.Telegram,
+                    WorkDays       = service.WorkDays,
+                    WorkHours      = service.WorkHours,
+                    YouTubeUrl     = service.YouTubeUrl,
+                    Images         = service.Images ?? new()
                 };
                 showEditModal = true;
             }
@@ -404,107 +574,72 @@
         isSaving = true;
         try
         {
-            var updateDto = new UpdateServiceCommand
+            await AdminService.UpdateService(editServiceId, new ServiceDto
             {
-                Title = model.Title,
-                Description = model.Description,
-                Price = model.Price,
-                Address = model.Address,
-                CityId = model.CityId,
-                Location = model.Location,
-                CategoryId = model.CategoryId,
+                Id            = editServiceId,
+                Title         = model.Title,
+                Description   = model.Description,
+                Price         = model.Price,
+                Address       = model.Address,
+                CityId        = model.CityId,
+                Location      = model.Location,
+                CategoryId    = model.CategoryId,
                 SubCategoryId = model.SubCategoryId,
-                Phone1 = model.Phone1,
-                WhatsApp = model.WhatsApp,
-                Facebook = model.Facebook,
-                Telegram = model.Telegram,
-                WorkDays = model.WorkDays,
-                WorkHours = model.WorkHours,
-                YouTubeUrl = model.YouTubeUrl,
-                Images = model.Images
-            };
-
-            await AdminService.UpdateService(editServiceId, new ServiceDto 
-            {
-                // Mapping back to ServiceDto because AdminService.UpdateService takes Interface DTO usually or Command?
-                // Checking previous code: AdminService.UpdateService(id, ServiceDto)
-                Id = editServiceId,
-                Title = model.Title,
-                Description = model.Description,
-                Price = model.Price,
-                Address = model.Address,
-                CityId = model.CityId,
-                Location = model.Location,
-                CategoryId = model.CategoryId,
-                SubCategoryId = model.SubCategoryId,
-                Phone1 = model.Phone1,
-                WhatsApp = model.WhatsApp,
-                Facebook = model.Facebook,
-                Telegram = model.Telegram,
-                WorkDays = model.WorkDays,
-                WorkHours = model.WorkHours,
-                YouTubeUrl = model.YouTubeUrl,
-                Images = model.Images
+                Phone1        = model.Phone1,
+                WhatsApp      = model.WhatsApp,
+                Facebook      = model.Facebook,
+                Telegram      = model.Telegram,
+                WorkDays      = model.WorkDays,
+                WorkHours     = model.WorkHours,
+                YouTubeUrl    = model.YouTubeUrl,
+                Images        = model.Images
             });
-            
+
             await JS.InvokeVoidAsync("alert", "تم حفظ التغييرات بنجاح");
             showEditModal = false;
-            await LoadTree();
+
+            // تحديث اسم الخدمة في الشجرة مباشرة بدون إعادة تحميل كاملة
+            foreach (var kvp in servicesOf)
+            {
+                var svc = kvp.Value.FirstOrDefault(s => s.Id == editServiceId);
+                if (svc != null) { svc.Name = model.Title; break; }
+            }
+            StateHasChanged();
         }
         catch (Exception ex)
         {
             await JS.InvokeVoidAsync("alert", "خطأ في حفظ البيانات: " + ex.Message);
         }
-        finally
-        {
-            isSaving = false;
-        }
+        finally { isSaving = false; }
     }
 
-    // --- Change Owner Logic ---
-    private bool showChangeOwnerModal = false;
-    private int serviceIdToChangeOwner;
-    private string selectedUserIdForOwner = "";
-    private bool isSavingOwner = false;
-    private List<UserDto> allUsers = new();
-
-    private async Task OpenChangeOwner(ServiceTreeNode node)
+    private async Task OpenChangeOwner(ServiceNode node)
     {
         serviceIdToChangeOwner = node.Id;
-        showChangeOwnerModal = true;
+        showChangeOwnerModal   = true;
         selectedUserIdForOwner = "";
-        
+
         if (!allUsers.Any())
         {
-            try
-            {
-                allUsers = await AdminService.GetAllUsers();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Could not load users: " + ex.Message);
-            }
+            try { allUsers = await AdminService.GetAllUsers(); }
+            catch (Exception ex) { Console.WriteLine("Users load error: " + ex.Message); }
         }
     }
 
     private async Task SaveChangeOwner()
     {
         if (string.IsNullOrEmpty(selectedUserIdForOwner)) return;
-        
         isSavingOwner = true;
         try
         {
-            var success = await Api.PostAsync<dynamic>($"v1/admin/services/{serviceIdToChangeOwner}/change-owner", selectedUserIdForOwner);
-            await JS.InvokeVoidAsync("alert", "تم ربط الخدمة بالمستخدم بنجاح كمالك لها.");
+            await Api.PostAsync<dynamic>($"v1/admin/services/{serviceIdToChangeOwner}/change-owner", selectedUserIdForOwner);
+            await JS.InvokeVoidAsync("alert", "تم ربط الخدمة بالمستخدم بنجاح.");
             showChangeOwnerModal = false;
         }
         catch (Exception ex)
         {
             await JS.InvokeVoidAsync("alert", "خطأ في ربط المستخدم: " + ex.Message);
         }
-        finally
-        {
-            isSavingOwner = false;
-        }
+        finally { isSavingOwner = false; }
     }
 }

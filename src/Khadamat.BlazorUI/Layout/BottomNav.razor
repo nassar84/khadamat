@@ -1,8 +1,20 @@
 <div class="bottom-nav">
-    <NavLink class="nav-item" href="/services">
-        <i class="fa-solid fa-compass"></i>
-        <span>استكشاف</span>
-    </NavLink>
+    @* زر الخدمات: "خدماتي" لمزودي الخدمة / "استكشاف" للمستخدمين العاديين *@
+    @if (AppState.IsAuthenticated && AppState.IsProvider)
+    {
+        <button class="nav-item @(GetActiveNavClass("/provider/my-services"))"
+                @onclick='() => Navigation.NavigateTo("/provider/my-services")'>
+            <i class="fa-solid fa-briefcase"></i>
+            <span>خدماتي</span>
+        </button>
+    }
+    else
+    {
+        <NavLink class="nav-item" href="/services">
+            <i class="fa-solid fa-compass"></i>
+            <span>استكشاف</span>
+        </NavLink>
+    }
 
     <button class="nav-item @(GetActiveNavClass("/user/my-requests"))" @onclick='() => NavigateToAuthOr("/user/my-requests")'>
         <i class="fa-solid fa-list-check"></i>

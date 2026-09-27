@@ -101,35 +101,81 @@ public class ShareService : IShareService
         string? tempFile = null;
         try
         {
-            // Download the card image to a temp file
-            using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
-            var imageBytes = await httpClient.GetByteArrayAsync(imageUrl);
+            byte[] imageBytes;
 
-            tempFile = Path.Combine(FileSystem.CacheDirectory, $"khadamat_share_{Guid.NewGuid():N}.jpg");
+            // Handle base64 data URLs
+            if (imageUrl.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase))
+            {
+                var base64Data = imageUrl.Substring(imageUrl.IndexOf(',') + 1);
+                imageBytes = Convert.FromBase64String(base64Data);
+            }
+            else
+            {
+                // Download the card image to a temp file
+                using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(20) };
+                imageBytes = await httpClient.GetByteArrayAsync(imageUrl);
+            }
+
+            var extension = imageUrl.Contains(".png", StringComparison.OrdinalIgnoreCase) ? "png" : "jpg";
+            var mimeType = extension == "png" ? "image/png" : "image/jpeg";
+
+            tempFile = Path.Combine(FileSystem.CacheDirectory, $"khadamat_share_{Guid.NewGuid():N}.{extension}");
             await File.WriteAllBytesAsync(tempFile, imageBytes);
+
+            // Also copy text to clipboard as safety net for apps like Facebook that strip EXTRA_TEXT
+            try
+            {
+                if (!string.IsNullOrEmpty(text))
+                {
+                    await Microsoft.Maui.ApplicationModel.DataTransfer.Clipboard.Default.SetTextAsync(text);
+                }
+            }
+            catch { }
 
             // Share via native Android share sheet (image + text)
 #if ANDROID
             var context = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity ?? Android.App.Application.Context;
             var file = new Java.IO.File(tempFile);
-            var fileUri = AndroidX.Core.Content.FileProvider.GetUriForFile(context, $"{context.PackageName}.fileprovider", file);
             
-            var intent = new Android.Content.Intent(Android.Content.Intent.ActionSend);
-            intent.SetType("image/jpeg");
-            intent.PutExtra(Android.Content.Intent.ExtraStream, fileUri);
-            intent.PutExtra(Android.Content.Intent.ExtraText, text);
-            intent.PutExtra(Android.Content.Intent.ExtraSubject, title);
-            intent.AddFlags(Android.Content.ActivityFlags.GrantReadUriPermission);
+            Android.Net.Uri? fileUri = null;
+            try
+            {
+                // MAUI Essentials FileProvider authority uses capital P: .fileProvider
+                fileUri = AndroidX.Core.Content.FileProvider.GetUriForFile(context, $"{context.PackageName}.fileProvider", file);
+            }
+            catch
+            {
+                try
+                {
+                    fileUri = AndroidX.Core.Content.FileProvider.GetUriForFile(context, $"{context.PackageName}.fileprovider", file);
+                }
+                catch (Exception fpEx)
+                {
+                    Console.WriteLine($"FileProvider error: {fpEx.Message}");
+                }
+            }
 
-            var chooser = Android.Content.Intent.CreateChooser(intent, title);
-            chooser.AddFlags(Android.Content.ActivityFlags.NewTask);
-            context.StartActivity(chooser);
+            if (fileUri != null)
+            {
+                var intent = new Android.Content.Intent(Android.Content.Intent.ActionSend);
+                intent.SetType(mimeType);
+                intent.PutExtra(Android.Content.Intent.ExtraStream, fileUri);
+                intent.PutExtra(Android.Content.Intent.ExtraText, text);
+                intent.PutExtra(Android.Content.Intent.ExtraSubject, title);
+                intent.AddFlags(Android.Content.ActivityFlags.GrantReadUriPermission);
+
+                var chooser = Android.Content.Intent.CreateChooser(intent, title);
+                chooser.AddFlags(Android.Content.ActivityFlags.NewTask);
+                context.StartActivity(chooser);
+                return;
+            }
 #else
             await Share.Default.RequestAsync(new ShareMultipleFilesRequest
             {
                 Title = title,
-                Files = new List<ShareFile> { new ShareFile(tempFile, "image/jpeg") }
+                Files = new List<ShareFile> { new ShareFile(tempFile, mimeType) }
             });
+            return;
 #endif
         }
         catch (Exception ex)
@@ -152,7 +198,7 @@ public class ShareService : IShareService
             {
                 _ = Task.Run(async () =>
                 {
-                    await Task.Delay(30_000);
+                    await Task.Delay(45_000);
                     try { File.Delete(tempFile); } catch { }
                 });
             }

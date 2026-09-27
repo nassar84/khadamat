@@ -144,29 +144,33 @@
                         }
                     </div>
                     
-                    <!-- Star Rating Display -->
+                    <!-- Star Rating Display (clickable) -->
                     <div class="rating-display-v3 mb-3 text-center py-2 bg-light bg-opacity-50 rounded-4">
-                        <div class="stars-v3 text-warning">
+                        <div class="stars-v3 text-warning d-flex justify-content-center gap-1">
                             @for (int i = 1; i <= 5; i++)
                             {
+                                int starVal = i;
                                 @if (i <= Math.Floor(service.Rating))
                                 {
-                                    <i class="fa-solid fa-star fs-3"></i>
+                                    <i class="fa-solid fa-star fs-3 rating-star-clickable" title="قيّم بـ @starVal نجوم" @onclick="() => StartRating(starVal)"></i>
                                 }
                                 else if (i == Math.Ceiling(service.Rating) && service.Rating % 1 >= 0.3)
                                 {
-                                    <i class="fa-solid fa-star-half-stroke fs-3"></i>
+                                    <i class="fa-solid fa-star-half-stroke fs-3 rating-star-clickable" title="قيّم بـ @starVal نجوم" @onclick="() => StartRating(starVal)"></i>
                                 }
                                 else
                                 {
-                                    <i class="fa-regular fa-star fs-3"></i>
+                                    <i class="fa-regular fa-star fs-3 rating-star-clickable" title="قيّم بـ @starVal نجوم" @onclick="() => StartRating(starVal)"></i>
                                 }
                             }
                         </div>
                         <div class="fw-bold mt-1" style="color: #444;">
                             @service.Rating.ToString("0.1")
-                            <span class="text-muted small fw-normal ms-1">(@service.RatersCount تقييم)</span>
+                            <span class="text-muted small fw-normal ms-1">(إجمالي @service.RatersCount تقييم)</span>
                         </div>
+                        <button class="btn btn-sm btn-warning rounded-pill px-3 mt-2 fw-bold" style="font-size:0.78rem;" @onclick="() => StartRating(0)">
+                            <i class="fa-solid fa-star me-1"></i> قيّم واكتب رأيك
+                        </button>
                     </div>
 
                     <!-- Stats Box (Below Image) -->
@@ -300,10 +304,10 @@
                             </button>
                         </div>
 
-                        <!-- Direct Share Buttons (V1 - No Modal) -->
+                        <!-- Share Button (Opens Share Modal) -->
                         <div class="d-flex gap-2 mb-4">
-                            <button class="btn btn-share-premium flex-grow-1 py-3 shadow" @onclick="ShareViaDeviceDirect">
-                                <i class="fa-solid fa-share-nodes me-2"></i> شارك الخدمة
+                            <button class="btn btn-share-premium flex-grow-1 py-3 shadow" @onclick="OpenShareModal">
+                                <i class="fa-solid fa-share-nodes me-2"></i> شارك الخدمة كبطاقة أو رابط
                             </button>
                             <button class="btn btn-outline-secondary py-3 px-3 shadow-sm rounded-4" @onclick="CopyShareLink" title="نسخ الرابط">
                                 <i class="fa-solid @(shareCopyStatus != null ? "fa-check text-success" : "fa-link")"></i>
@@ -432,6 +436,65 @@
                 }
             </div>
 
+            <!-- Reviews List -->
+            <div class="mb-5 pt-4 border-top">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h4 class="fw-900 mb-0 border-right-styled pe-3">تقييمات العملاء</h4>
+                    <button class="btn btn-warning rounded-pill px-3 fw-bold" style="font-size:0.82rem;" @onclick="() => StartRating(0)">
+                        <i class="fa-solid fa-star me-1"></i> أضف تقييمك
+                    </button>
+                </div>
+
+                @if (service.Reviews == null || !service.Reviews.Any())
+                {
+                    <div class="text-center py-5">
+                        <i class="fa-regular fa-star fs-1 text-warning opacity-50 mb-3 d-block"></i>
+                        <p class="text-muted fw-semibold mb-1">لا توجد تقييمات أو تعليقات حتى الآن.</p>
+                        <p class="text-muted small mb-3">كن أول من يقيّم هذه الخدمة ويشارك تجربته!</p>
+                        <button class="btn btn-warning rounded-pill px-4 fw-bold" @onclick="() => StartRating(5)">
+                            <i class="fa-solid fa-star me-1"></i> أضف تقييمك الآن
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <div class="row g-3">
+                        @foreach (var review in service.Reviews)
+                        {
+                            <div class="col-12 col-md-6">
+                                <div class="glass-card-v3 p-4 h-100" style="border-radius:16px;">
+                                    <div class="d-flex align-items-center gap-3 mb-3">
+                                        <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(review.UserName, null, review.UserAvatar)"
+                                             class="rounded-circle border shadow-sm" width="44" height="44" style="object-fit:cover;" />
+                                        <div class="flex-grow-1">
+                                            <div class="fw-bold" style="color:#1e293b;font-size:0.95rem;">@review.UserName</div>
+                                            <div class="x-small text-muted">
+                                                <i class="fa-regular fa-calendar me-1"></i>
+                                                @review.CreatedAt.ToString("yyyy/MM/dd")
+                                            </div>
+                                        </div>
+                                        <div class="text-warning d-flex gap-1">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <i class="@(i <= review.Rating ? "fa-solid" : "fa-regular") fa-star small"></i>
+                                            }
+                                        </div>
+                                    </div>
+                                    @if (!string.IsNullOrWhiteSpace(review.Comment))
+                                    {
+                                        <p class="text-muted mb-0" style="font-size:0.88rem;line-height:1.6;">@review.Comment</p>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted mb-0 fst-italic" style="font-size:0.82rem;">لم يترك تعليقاً</p>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
             <!-- Similar Services -->
             <div class="mb-5 pt-4 border-top">
                 <h4 class="fw-900 mb-4 border-right-styled pe-3">@similarServicesLabel</h4>
@@ -462,41 +525,6 @@
                         }
                     </div>
                 }
-            </div>
-
-            <!-- Reviews List -->
-            <div class="mb-5">
-                <h4 class="fw-900 mb-4 border-right-styled pe-3">تقييمات العملاء</h4>
-                <div class="row g-4">
-                    @foreach (var review in service.Reviews)
-                    {
-                        <div class="col-12 col-md-6">
-                            <div class="glass-card-v3 p-4">
-                                <div class="d-flex justify-content-between mb-3">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(review.UserName, null, review.UserAvatar)" class="rounded-circle" width="35" />
-                                        <div class="fw-bold small">@review.UserName</div>
-                                    </div>
-                                    <div class="text-warning x-small">
-                                        @for(int i=1; i<=5; i++) {
-                                            <i class="@(i <= review.Rating ? "fa-solid" : "fa-regular") fa-star"></i>
-                                        }
-                                    </div>
-                                </div>
-                                <p class="text-muted small mb-0">@review.Comment</p>
-                            </div>
-                        </div>
-                    }
-                </div>
-                <div class="text-center mt-4">
-                    <p class="text-muted small mb-2">
-                        <i class="fa-solid fa-shield-check text-success me-1"></i>
-                        التقييمات مقتصرة على العملاء الذين خاضوا تجربة حقيقية وأكملوا طلباً لهذه الخدمة لضمان المصداقية.
-                    </p>
-                    <a href="/user/my-requests" class="btn btn-outline-primary rounded-pill px-4 btn-sm">
-                        <i class="fa-solid fa-star text-warning me-1"></i> تقييم من خلال طلباتي المكتملة
-                    </a>
-                </div>
             </div>
         </div>
     }
@@ -630,7 +658,7 @@
                                 <div style="display: flex; align-items: center; gap: 6px;">
                                     <span style="font-size: 0.58rem; opacity: 0.95;">سوق الخدمات والأعمال الأول في مصر</span>
                                     <div style="background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.45); border-radius: 12px; padding: 1px 6px; font-size: 0.55rem; font-weight: 800; display: inline-flex; align-items: center; gap: 3px;">
-                                        <span>حمّل التطبيق: Google Play</span>
+                                        <span>حمّل التطبيق: تنزيل مباشر (APK)</span>
                                     </div>
                                 </div>
                             </div>
@@ -691,12 +719,12 @@
                     <div class="flex-grow-1">
                         <div class="fw-800 mb-1" style="font-size: 0.95rem;">📲 تطبيق ومنصة خدماوي</div>
                         <div class="mb-2" style="font-size: 0.8rem; opacity: 0.92; line-height: 1.5;">سوق الخدمات والأعمال الأول في مصر — تصفح آلاف الخدمات القريبة منك وتواصل مباشرة مع مقدميها مجاناً!</div>
-                        <a href="https://play.google.com/store/apps/details?id=com.nassar84.khadamat"
-                           target="_blank"
+                        <a href="/downloads/خدماوى.apk"
+                           download="خدماوى.apk"
                            class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill fw-bold"
                            style="background: white; color: #1d6070; font-size: 0.78rem; text-decoration: none; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
-                            <i class="fa-brands fa-google-play" style="font-size: 1rem;"></i>
-                            <span>حمل التطبيق مجاناً</span>
+                            <i class="fa-brands fa-android text-success" style="font-size: 1rem;"></i>
+                            <span>حمل التطبيق مجاناً (APK)</span>
                         </a>
                     </div>
                 </div>
@@ -733,93 +761,79 @@
                     <div class="text-success text-center x-small animate-fade-in fw-bold">@shareCopyStatus</div>
                 }
             </div>
-
-            </div><!-- /service-share-wrapper -->
-
-            <!-- Social Share Buttons / Loading Indicator -->
-            <div class="mt-3">
-                @if (isGeneratingCard)
-                {
-                    <div class="d-flex flex-column align-items-center justify-content-center py-4 gap-2">
-                        <div class="spinner-border text-primary" role="status" style="width: 2rem; height: 2rem;">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <span class="text-muted fw-bold small">جاري تجهيز بطاقة المشاركة ورفعها للسيرفر...</span>
-                    </div>
-                }
-                else
-                {
-                    <div class="d-flex justify-content-center gap-3 my-2">
-                        @if (State.IsNativeApp)
-                        {
-                            <!-- On mobile app, we show the direct share buttons calling native share with image -->
-                            <button type="button" class="share-social-btn share-whatsapp" @onclick='() => ShareNatively("whatsapp")'>
-                                <i class="fa-brands fa-whatsapp"></i>
-                                <span>واتساب</span>
-                            </button>
-                            <button type="button" class="share-social-btn share-telegram" @onclick='() => ShareNatively("telegram")'>
-                                <i class="fa-brands fa-telegram"></i>
-                                <span>تليجرام</span>
-                            </button>
-                            <button type="button" class="share-social-btn share-facebook" @onclick='() => ShareNatively("facebook")'>
-                                <i class="fa-brands fa-facebook"></i>
-                                <span>فيسبوك</span>
-                            </button>
-                        }
-                        else
-                        {
-                            <!-- WhatsApp -->
-                            <a href="https://wa.me/?text=@(Uri.EscapeDataString(GetWhatsAppShareText()))" target="_blank" class="share-social-btn share-whatsapp" @onclick="RecordShare">
-                                <i class="fa-brands fa-whatsapp"></i>
-                                <span>واتساب</span>
-                            </a>
-                            <!-- Telegram -->
-                            <a href="https://t.me/share/url?url=@(Uri.EscapeDataString(ServicePageUrl))&text=@(Uri.EscapeDataString(GetTelegramShareText()))" target="_blank" class="share-social-btn share-telegram" @onclick="RecordShare">
-                                <i class="fa-brands fa-telegram"></i>
-                                <span>تليجرام</span>
-                            </a>
-                            <!-- Facebook -->
-                            <a href="https://www.facebook.com/sharer/sharer.php?u=@(Uri.EscapeDataString(ServicePageUrl))" target="_blank" class="share-social-btn share-facebook" @onclick="RecordShare">
-                                <i class="fa-brands fa-facebook"></i>
-                                <span>فيسبوك</span>
-                            </a>
-                        }
-                        <!-- Copy Link -->
-                        <button type="button" class="share-social-btn share-copy" @onclick="CopyShareLink">
-                            <i class="fa-solid fa-copy"></i>
-                            <span>نسخ الرابط</span>
-                        </button>
-                    </div>
-                }
-
-                @if (!string.IsNullOrEmpty(shareCopyStatus))
-                {
-                    <div class="text-success text-center x-small animate-fade-in fw-bold mt-2">@shareCopyStatus</div>
-                }
-            </div>
         </div>
     }
 </div>
 
-<!-- Simple Modals (rendered as overlays for now) -->
+<!-- Rating Modal -->
 @if (showRateModal)
 {
-    <div class="modal-overlay">
-        <div class="glass-card p-4 rounded-4 w-75 animate-pop">
-            <h5 class="fw-bold text-center mb-3">قيم تجربتك</h5>
-            <div class="d-flex justify-content-center gap-2 mb-3">
-                @for (int i = 1; i <= 5; i++)
+    <div class="modal-overlay" @onclick="() => showRateModal = false">
+        <div class="glass-card p-0 rounded-4 animate-pop" style="max-width:480px;width:95%;overflow:hidden;" @onclick:stopPropagation="true">
+            <!-- Header -->
+            <div class="d-flex align-items-center justify-content-between px-4 pt-4 pb-2">
+                <h5 class="fw-bold mb-0" style="color:#1e293b;">
+                    <i class="fa-solid fa-star text-warning me-2"></i>قيّم هذه الخدمة
+                </h5>
+                <button class="btn-close shadow-none border-0 bg-transparent text-muted" @onclick="() => showRateModal = false">
+                    <i class="fa-solid fa-xmark fs-5"></i>
+                </button>
+            </div>
+            <hr class="my-0 opacity-10" />
+            <div class="px-4 py-3">
+                <!-- Star Selector -->
+                <div class="text-center mb-1">
+                    <div class="d-flex justify-content-center gap-2 mb-1">
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            int rv = i;
+                            <i class="@(userRating >= rv ? "fa-solid text-warning" : "fa-regular text-secondary") fa-star modal-rating-star"
+                               @onclick="() => userRating = rv"
+                               @onmouseover="() => hoverRating = rv"
+                               @onmouseout="() => hoverRating = 0"></i>
+                        }
+                    </div>
+                    <div class="small fw-semibold text-muted" style="min-height:1.4em;">
+                        @(userRating == 1 ? "سيء جداً 😞" :
+                          userRating == 2 ? "مقبول 😐" :
+                          userRating == 3 ? "جيد 🙂" :
+                          userRating == 4 ? "جيد جداً 😊" :
+                          userRating == 5 ? "ممتاز! 🌟" : "انقر على النجوم للتقييم")
+                    </div>
+                </div>
+                @if (ratingValidationMsg != null)
                 {
-                    int rating = i;
-                    <i class="@(userRating >= rating ? "fa-solid text-warning" : "fa-regular text-muted") fa-star fs-2 cursor-pointer" 
-                       @onclick="() => userRating = rating"></i>
+                    <div class="alert alert-danger py-2 small rounded-3 mb-2 mt-1">@ratingValidationMsg</div>
                 }
+                <!-- Comment -->
+                <div class="mb-3 mt-3">
+                    <label class="form-label fw-bold small mb-1" style="color:#374151;">
+                        <i class="fa-solid fa-comment-dots me-1 text-primary"></i>تعليقك ورأيك
+                    </label>
+                    <textarea @bind="userComment" class="form-control rounded-3" rows="3"
+                              placeholder="اكتب تعليقك ورأيك حول هذه الخدمة بالتفصيل..."></textarea>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-warning flex-grow-1 rounded-pill fw-bold" @onclick="SubmitRating" disabled="@isSubmittingRating">
+                        @if (isSubmittingRating)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                        }
+                        <i class="fa-solid fa-paper-plane me-1"></i>إرسال التقييم
+                    </button>
+                    <button class="btn btn-light rounded-pill px-4" @onclick="() => showRateModal = false">إلغاء</button>
+                </div>
             </div>
-            <textarea @bind="userComment" class="form-control mb-3" rows="3" placeholder="اكتب تعليقك هنا..."></textarea>
-            <div class="d-flex gap-2">
-                <button class="btn btn-primary flex-grow-1 rounded-pill" @onclick="SubmitRating">إرسال</button>
-                <button class="btn btn-light flex-grow-1 rounded-pill" @onclick="() => showRateModal = false">إلغاء</button>
-            </div>
+        </div>
+    </div>
+}
+
+@if (showRatingSuccess)
+{
+    <div class="position-fixed bottom-0 start-0 p-3" style="z-index:99999;">
+        <div class="alert alert-success rounded-4 shadow-lg d-flex align-items-center gap-3 px-4 py-3 animate-pop" style="min-width:260px;">
+            <i class="fa-solid fa-circle-check fs-4"></i>
+            <span class="fw-bold small">تم إرسال تقييمك بنجاح! شكراً لمشاركتك.</span>
         </div>
     </div>
 }
@@ -1245,11 +1259,15 @@
         align-items: center;
         overflow: hidden;
         position: relative;
+        border-radius: 12px;
+        clip-path: inset(0 round 12px); /* hard clip — nothing escapes the preview box */
     }
     .share-preview-scaler .share-capture-card {
         transform: scale(0.58);
         transform-origin: center;
         flex-shrink: 0;
+        border-radius: 0;
+        max-width: none !important; /* override any inherited constraint */
     }
     @@media (min-width: 480px) {
         .share-preview-scaler {
@@ -1402,6 +1420,27 @@
     .share-facebook  { background: #1877f2; }
     .share-twitter   { background: #0f1419; }
     .share-telegram  { background: #0088cc; }
+
+    /* Clickable Stars */
+    .rating-star-clickable {
+        cursor: pointer;
+        transition: transform 0.15s ease, color 0.15s ease;
+    }
+    .rating-star-clickable:hover {
+        transform: scale(1.25);
+        color: #f59e0b !important;
+    }
+
+    /* Modal rating stars */
+    .modal-rating-star {
+        font-size: 2.4rem;
+        cursor: pointer;
+        transition: transform 0.15s ease, color 0.15s ease;
+    }
+    .modal-rating-star:hover {
+        transform: scale(1.3);
+        color: #f59e0b !important;
+    }
 </style>
 
 @code {
@@ -1417,6 +1456,10 @@
     private bool isCapturingCard = false;
     private string? shareCopyStatus;
     private int userRating = 0;
+    private int hoverRating = 0;
+    private bool isSubmittingRating = false;
+    private bool showRatingSuccess = false;
+    private string? ratingValidationMsg;
     private bool isLoaded = false;
     private bool hasError = false;
 
@@ -1430,6 +1473,11 @@
         get
         {
             var uri = new Uri(Navigation.Uri);
+            var host = uri.Host.ToLowerInvariant();
+            if (host == "localhost" || host == "127.0.0.1" || host == "0.0.0.0" || State.IsNativeApp)
+            {
+                return $"https://khadamawy.eis-dev.com/share/service/{Id}";
+            }
             return $"{uri.Scheme}://{uri.Authority}/share/service/{Id}";
         }
     }
@@ -1439,6 +1487,11 @@
         get
         {
             var uri = new Uri(Navigation.Uri);
+            var host = uri.Host.ToLowerInvariant();
+            if (host == "localhost" || host == "127.0.0.1" || host == "0.0.0.0" || State.IsNativeApp)
+            {
+                return $"https://khadamawy.eis-dev.com/service/{Id}";
+            }
             return $"{uri.Scheme}://{uri.Authority}/service/{Id}";
         }
     }
@@ -1534,6 +1587,21 @@
                     CanEdit = user.IsInRole("Admin") ||
                               user.IsInRole("SystemAdmin") ||
                               (service?.UserId != null && service.UserId == myUserId);
+                }
+
+                // Sync favorite status
+                if (State.FavoriteServiceIds.Any())
+                {
+                    service.IsFavorite = State.IsServiceFavorite(service.Id);
+                }
+                else
+                {
+                    var favIds = await Api.GetMyFavoriteIdsAsync();
+                    if (favIds.Any())
+                    {
+                        State.FavoriteServiceIds = new HashSet<int>(favIds);
+                        service.IsFavorite = State.IsServiceFavorite(service.Id);
+                    }
                 }
             }
         }
@@ -1683,11 +1751,19 @@
     {
         if (service == null) return;
 
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated != true)
+        {
+            Navigation.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(Navigation.Uri)}");
+            return;
+        }
+
         // Optimistic update
         bool wasAlreadyFavorite = service.IsFavorite;
         service.IsFavorite = !wasAlreadyFavorite;
         if (wasAlreadyFavorite && service.LikesCount > 0) service.LikesCount--;
-        else service.LikesCount++;
+        else if (!wasAlreadyFavorite) service.LikesCount++;
+        State.SetServiceFavorite(service.Id, service.IsFavorite);
         StateHasChanged();
 
         try
@@ -1697,13 +1773,15 @@
             {
                 service.IsFavorite  = res.Data.IsFavorite;
                 service.LikesCount  = res.Data.FavoritesCount;
+                State.SetServiceFavorite(service.Id, res.Data.IsFavorite);
                 StateHasChanged();
             }
-            else if (!res.Success)
+            else
             {
                 // Revert on failure
                 service.IsFavorite = wasAlreadyFavorite;
-                service.LikesCount = wasAlreadyFavorite ? service.LikesCount + 1 : service.LikesCount - 1;
+                service.LikesCount = wasAlreadyFavorite ? service.LikesCount + 1 : Math.Max(0, service.LikesCount - 1);
+                State.SetServiceFavorite(service.Id, wasAlreadyFavorite);
                 StateHasChanged();
             }
         }
@@ -1711,6 +1789,7 @@
         {
             // Revert on exception
             service.IsFavorite = wasAlreadyFavorite;
+            State.SetServiceFavorite(service.Id, wasAlreadyFavorite);
             StateHasChanged();
         }
     }
@@ -1757,36 +1836,39 @@
     {
         var title = service?.Title ?? "";
         var desc = service?.Description ?? "";
-        if (desc.Length > 120) desc = desc.Substring(0, 117) + "...";
+        if (desc.Length > 150) desc = desc.Substring(0, 147) + "...";
+        var priceText = service?.Price.HasValue == true ? $"{service.Price:N0} ج.م" : "مجاناً / بالتواصل";
         var addressDetail = GetCardDetailedAddress();
-        var addressLine = !string.IsNullOrEmpty(addressDetail) ? $"\n📍 *العنوان بالتفصيل:* {addressDetail}" : "";
-        var fbLine = !string.IsNullOrWhiteSpace(service?.Facebook) ? $"\n🌐 *صفحة فيسبوك:* {GetFacebookUrl(service.Facebook)}" : "";
+        var addressLine = !string.IsNullOrEmpty(addressDetail) ? $"\n📍 *العنوان:* {addressDetail}" : "";
+        var phoneLine = !string.IsNullOrEmpty(service?.Phone1) ? $"\n📞 *الهاتف:* {service.Phone1}" : "";
+        var fbLine = !string.IsNullOrWhiteSpace(service?.Facebook) ? $"\n🌐 *فيسبوك:* {GetFacebookUrl(service.Facebook)}" : "";
 
-        return $"{SharePageUrl}\n\n🌟 *{title}*\n📝 {desc}{addressLine}{fbLine}\n\n📲 *حمّل تطبيق خدماوي مجاناً:*\nhttps://play.google.com/store/apps/details?id=com.nassar84.khadamat\n\nمنصة خدماوي هي سوق الخدمات والأعمال الأول في مصر - تصفح آلاف الخدمات والوظائف وتواصل مباشرة مجاناً!";
+        return $"🌟 *{title}*\n💰 *السعر:* {priceText}\n📝 {desc}{addressLine}{phoneLine}{fbLine}\n\n🔗 *رابط تفاصيل الخدمة:* \n{SharePageUrl}\n\n📲 *حمّل تطبيق خدماوي مجاناً الآن واستمتع بآلاف الخدمات والوظائف القريبة منك (APK):*\nhttps://khadamawy.eis-dev.com/downloads/خدماوى.apk\n\nخدماوي - سوق الخدمات والأعمال الأول في مصر 🇪🇬";
     }
 
     private string GetTelegramShareText()
     {
         var title = service?.Title ?? "";
         var desc = service?.Description ?? "";
-        if (desc.Length > 120) desc = desc.Substring(0, 117) + "...";
+        if (desc.Length > 150) desc = desc.Substring(0, 147) + "...";
         var addressDetail = GetCardDetailedAddress();
         var addressLine = !string.IsNullOrEmpty(addressDetail) ? $"\n📍 العنوان: {addressDetail}" : "";
         var fbLine = !string.IsNullOrWhiteSpace(service?.Facebook) ? $"\n🌐 فيسبوك: {GetFacebookUrl(service.Facebook)}" : "";
 
-        return $"🌟 *{title}*\n📝 {desc}{addressLine}{fbLine}\n\n📲 حمل تطبيق خدماوي: https://play.google.com/store/apps/details?id=com.nassar84.khadamat\n🔗 رابط الخدمة: {SharePageUrl}";
+        return $"🌟 *{title}*\n📝 {desc}{addressLine}{fbLine}\n\n🔗 رابط الخدمة والتفاصيل:\n{SharePageUrl}\n\n📲 حمّل تطبيق خدماوي (APK):\nhttps://khadamawy.eis-dev.com/downloads/خدماوى.apk";
     }
 
     private string GetShareText()
     {
         var title = service?.Title ?? "";
         var desc = service?.Description ?? "";
-        if (desc.Length > 120) desc = desc.Substring(0, 117) + "...";
+        if (desc.Length > 150) desc = desc.Substring(0, 147) + "...";
+        var priceText = service?.Price.HasValue == true ? $"{service.Price:N0} ج.م" : "مجاناً / بالتواصل";
         var addressDetail = GetCardDetailedAddress();
-        var addressLine = !string.IsNullOrEmpty(addressDetail) ? $"\n📍 العنوان بالتفصيل: {addressDetail}" : "";
-        var fbLine = !string.IsNullOrWhiteSpace(service?.Facebook) ? $"\n🌐 صفحة فيسبوك: {GetFacebookUrl(service.Facebook)}" : "";
+        var addressLine = !string.IsNullOrEmpty(addressDetail) ? $"\n📍 العنوان: {addressDetail}" : "";
+        var phoneLine = !string.IsNullOrEmpty(service?.Phone1) ? $"\n📞 الهاتف: {service.Phone1}" : "";
 
-        return $"🌟 شاهد هذه الخدمة المميزة على منصة خدماوي: *{title}*\n📝 {desc}{addressLine}{fbLine}\n\n📲 حمل تطبيق خدماوي مجاناً:\nhttps://play.google.com/store/apps/details?id=com.nassar84.khadamat\n\n🔗 رابط الخدمة بالموقع:\n{SharePageUrl}";
+        return $"🌟 شاهد هذه الخدمة المميزة على منصة خدماوي:\n*{title}*\n🔗 رابط الخدمة والتفاصيل:\n{SharePageUrl}\n\n💰 السعر: {priceText}\n📝 {desc}{addressLine}{phoneLine}\n\n📲 حمّل تطبيق خدماوي مجاناً للأندرويد (APK):\nhttps://khadamawy.eis-dev.com/downloads/خدماوى.apk";
     }
 
     private void RecordShare()
@@ -1805,6 +1887,13 @@
                 break;
             case "facebook":
                 url = FacebookShareUrl;
+                try
+                {
+                    await JS.InvokeVoidAsync("navigator.clipboard.writeText", GetWhatsAppShareText());
+                    shareCopyStatus = "تم نسخ تفاصيل الخدمة ورابط تحميل التطبيق تلقائياً! يمكنك لصقها (Paste) في منشورك على فيسبوك.";
+                    StateHasChanged();
+                }
+                catch { }
                 break;
             case "twitter":
             case "x":
@@ -1827,13 +1916,26 @@
         }
     }
 
+    private string GetBestServiceImageUrl()
+    {
+        if (!string.IsNullOrEmpty(shareCardImageUrl)) return shareCardImageUrl;
+
+        var firstImg = service?.Images?.FirstOrDefault();
+        if (!string.IsNullOrEmpty(firstImg) && !firstImg.Contains("/placeholders/"))
+        {
+            return Api.GetAbsoluteUrl(firstImg);
+        }
+        return $"https://khadamawy.eis-dev.com/images/share_cards/card_{Id}.png";
+    }
+
     private async Task ShareViaDeviceDirect()
     {
         RecordShare();
         var shareText = GetShareText();
+        var imageUrl = GetBestServiceImageUrl();
         try
         {
-            await JS.InvokeVoidAsync("nativeShare", service?.Title ?? "مشاركة خدمة", shareText, SharePageUrl);
+            await JS.InvokeVoidAsync("nativeShare", service?.Title ?? "مشاركة خدمة", shareText, SharePageUrl, imageUrl);
         }
         catch (Exception ex)
         {
@@ -1928,17 +2030,33 @@
             var addressDetail = GetCardDetailedAddress();
             var addressLine = !string.IsNullOrEmpty(addressDetail) ? $"\n📍 العنوان بالتفصيل: {addressDetail}" : "";
             var fbLine = !string.IsNullOrWhiteSpace(service?.Facebook) ? $"\n🌐 صفحة فيسبوك: {GetFacebookUrl(service.Facebook)}" : "";
-            var shareText = $"شاهد هذه الخدمة المميزة على تطبيق وموقع خدماوي! 🌟\n\n*{service?.Title}*\n{service?.Description}{addressLine}{fbLine}\n\nمنصة خدماوي هي سوق الخدمات والأعمال الأول في مصر. تصفح آلاف الخدمات والوظائف المتنوعة القريبة منك، وتواصل مباشرة مع مقدميها بكل سهولة وأمان مجاناً وبدون أي عمولات!\n\n📲 حمل التطبيق الآن واستفد من خدماتنا المتنوعة:\n🔗 رابط تحميل التطبيق: https://play.google.com/store/apps/details?id=com.nassar84.khadamat\n\n🔗 رابط الخدمة: {SharePageUrl}";
+            var shareText = $"🌟 شاهد هذه الخدمة المميزة على منصة خدماوي:\n*{service?.Title}*\n🔗 رابط الخدمة والتفاصيل:\n{SharePageUrl}\n\n📝 {service?.Description}{addressLine}{fbLine}\n\n📲 حمّل تطبيق خدماوي مجاناً للأندرويد (APK):\nhttps://khadamawy.eis-dev.com/downloads/خدماوى.apk";
             
+            // Ensure card image is ready
+            var imageUrl = shareCardImageUrl;
+            if (string.IsNullOrEmpty(imageUrl))
+            {
+                var (success, imgUrl) = await Api.GenerateShareCardAsync(service?.Id ?? Id);
+                if (success && !string.IsNullOrEmpty(imgUrl))
+                {
+                    imageUrl = Api.GetAbsoluteUrl(imgUrl);
+                    shareCardImageUrl = imageUrl;
+                }
+            }
+            if (string.IsNullOrEmpty(imageUrl))
+            {
+                imageUrl = GetBestServiceImageUrl();
+            }
+
             try
             {
-                await JS.InvokeVoidAsync("shareCardWithPlatform", "service-share-card", SharePageUrl, fileName, shareText);
+                await JS.InvokeVoidAsync("shareCardWithPlatform", "service-share-card", SharePageUrl, fileName, shareText, imageUrl);
             }
             catch
             {
                 try
                 {
-                    await JS.InvokeVoidAsync("window._showShareOptions", shareCardImageUrl, SharePageUrl, shareText, fileName);
+                    await JS.InvokeVoidAsync("window._showShareOptions", imageUrl, SharePageUrl, shareText, fileName);
                 }
                 catch (Exception jsEx)
                 {
@@ -2123,35 +2241,101 @@
     
     // Rating Logic
     private void OpenRateModal() => showRateModal = true;
+
+    private async Task StartRating(int initialRating)
+    {
+        if (service == null) return;
+
+        // Auth check
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated != true)
+        {
+            Navigation.NavigateTo($"/login?returnUrl=/service/{Id}");
+            return;
+        }
+
+        // Self-rating guard — compare UserId from profile
+        var profile = await AuthService.GetProfileAsync();
+        if (profile?.Success == true)
+        {
+            var myId = profile.Data?.Id;
+            if (service.UserId == myId)
+            {
+                await JS.InvokeVoidAsync("alert", "لا يمكنك تقييم خدمتك الخاصة.");
+                return;
+            }
+
+            // Pre-fill if user already rated this service
+            var existingReview = service.Reviews?.FirstOrDefault(r => r.UserId == myId);
+            if (existingReview != null)
+            {
+                userRating  = existingReview.Rating;
+                userComment = existingReview.Comment ?? "";
+            }
+            else
+            {
+                userRating  = initialRating > 0 ? initialRating : 0;
+                userComment = "";
+            }
+        }
+        else
+        {
+            userRating  = initialRating > 0 ? initialRating : 0;
+            userComment = "";
+        }
+
+        ratingValidationMsg = null;
+        showRateModal = true;
+    }
+
     private async Task SubmitRating()
     {
         if (service == null) return;
-        
-        try 
+
+        if (userRating < 1)
         {
-            var res = await Api.CreateReviewAsync(new CreateReviewRequest 
-            { 
-                ServiceId = service.Id, 
-                Rating = userRating, 
-                Comment = userComment 
+            ratingValidationMsg = "يرجى اختيار تقييم بالنجوم (1 على الأقل)";
+            return;
+        }
+
+        ratingValidationMsg  = null;
+        isSubmittingRating   = true;
+
+        try
+        {
+            var res = await Api.CreateReviewAsync(new CreateReviewRequest
+            {
+                ServiceId = service.Id,
+                Rating    = userRating,
+                Comment   = userComment
             });
 
             if (res.Success && res.Data != null)
             {
                 var result = res.Data;
 
-                // Remove old review by this user if exists (update scenario)
-                var existingIdx = service.Reviews.FindIndex(r => r.UserName == result.ReviewerName);
-                if (existingIdx >= 0)
-                    service.Reviews.RemoveAt(existingIdx);
+                // Get current user's id to identify existing review
+                var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+                var profile   = await AuthService.GetProfileAsync();
+                var myId      = profile?.Data?.Id;
+
+                // Remove old review by this user (update scenario)
+                if (!string.IsNullOrEmpty(myId))
+                {
+                    var existingIdx = service.Reviews.FindIndex(r => r.UserId == myId || r.UserName == result.ReviewerName);
+                    if (existingIdx >= 0)
+                        service.Reviews.RemoveAt(existingIdx);
+                }
 
                 // Insert updated/new review at top
-                service.Reviews.Insert(0, new ReviewDto 
-                { 
+                service.Reviews.Insert(0, new ReviewDto
+                {
+                    UserId    = myId,
                     UserName  = result.ReviewerName,
-                    Rating    = userRating, 
-                    Comment   = userComment, 
-                    CreatedAt = DateTime.Now 
+                    UserAvatar = result.ReviewerAvatar,
+                    Rating    = userRating,
+                    Comment   = userComment,
+                    CreatedAt = DateTime.Now
                 });
 
                 // Update service aggregate rating
@@ -2159,17 +2343,28 @@
                 service.RatersCount = result.RatersCount;
 
                 showRateModal = false;
-                userComment = "";
-                userRating  = 0;
+                userComment   = "";
+                userRating    = 0;
+
+                // Show success toast
+                showRatingSuccess = true;
+                StateHasChanged();
+                await Task.Delay(3000);
+                showRatingSuccess = false;
             }
             else
             {
-                await JS.InvokeVoidAsync("alert", res.Message ?? "حدث خطأ أثناء إرسال التقييم");
+                ratingValidationMsg = res.Message ?? "حدث خطأ أثناء إرسال التقييم";
             }
         }
         catch (Exception ex)
         {
+            ratingValidationMsg = "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.";
             Console.WriteLine($"Error submitting rating: {ex.Message}");
+        }
+        finally
+        {
+            isSubmittingRating = false;
         }
     }
 

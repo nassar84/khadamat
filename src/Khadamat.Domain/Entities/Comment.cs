@@ -21,4 +21,11 @@ public class Comment : BaseEntity
         UserId = userId;
         Text = text;
     }
+
+    public void UpdateText(string newText)
+    {
+        if (string.IsNullOrWhiteSpace(newText))
+            throw new ArgumentException("Comment text cannot be empty.");
+        Text = newText;
+    }
 }

@@ -22,12 +22,15 @@ public class UserService : IUserService
         var distinctIds = userIds.Distinct().ToList();
         var users = await _userManager.Users
             .Where(u => distinctIds.Contains(u.Id))
-            .Select(u => new { u.Id, u.FullName, u.ProfileImageUrl })
+            .Select(u => new { u.Id, u.FullName, u.UserName, u.ProfileImageUrl })
             .ToListAsync();
 
         return users.ToDictionary(
             u => u.Id, 
-            u => (Name: u.FullName ?? "مستخدم", Avatar: u.ProfileImageUrl ?? "")
+            u => (
+                Name: !string.IsNullOrWhiteSpace(u.FullName) ? u.FullName : (!string.IsNullOrWhiteSpace(u.UserName) ? u.UserName : "مستخدم"), 
+                Avatar: u.ProfileImageUrl ?? ""
+            )
         );
     }
 }

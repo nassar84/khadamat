@@ -235,16 +235,19 @@
         };
 
         // 5. Native share on mobile or custom share dialog on desktop
-        window.shareCardWithPlatform = async (elementId, shareUrl, fileName, shareText) => {
+        window.shareCardWithPlatform = async (elementId, shareUrl, fileName, shareText, imageUrl) => {
             const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
             const isNative = (navigator.userAgent && navigator.userAgent.indexOf('KhadamatNativeApp') !== -1) ||
                              window.location.search.indexOf('nativeapp=1') !== -1 || 
                              sessionStorage.getItem('nativeapp') === '1';
 
-            // In native mobile app: immediately trigger native system share dialog
+            // In native mobile app: immediately trigger native system share dialog with image
             if (isNative) {
                 const fullText = (shareText ? shareText + '\n\n' : '') + (shareUrl || '');
-                window.location.href = 'khadamat://share?title=' + encodeURIComponent('منصة خدماوي') + '&text=' + encodeURIComponent(fullText);
+                let shareUri = 'khadamat://share?title=' + encodeURIComponent('منصة خدماوي') + '&text=' + encodeURIComponent(fullText);
+                if (shareUrl) shareUri += '&url=' + encodeURIComponent(shareUrl);
+                if (imageUrl) shareUri += '&image=' + encodeURIComponent(imageUrl);
+                window.location.href = shareUri;
                 return 'shared';
             }
 
@@ -401,13 +404,16 @@
         };
     </script>
     <script>
-        window.shareApp = async (title, text, url) => {
+        window.shareApp = async (title, text, url, imageUrl) => {
             const isNative = (navigator.userAgent && navigator.userAgent.indexOf('KhadamatNativeApp') !== -1) ||
                              window.location.search.indexOf('nativeapp=1') !== -1 || 
                              sessionStorage.getItem('nativeapp') === '1';
             const fullText = (text ? text : '') + (url ? (text ? '\n\n' : '') + url : '');
             if (isNative) {
-                window.location.href = 'khadamat://share?title=' + encodeURIComponent(title || 'مشاركة') + '&text=' + encodeURIComponent(fullText);
+                let shareUri = 'khadamat://share?title=' + encodeURIComponent(title || 'مشاركة') + '&text=' + encodeURIComponent(fullText);
+                if (url) shareUri += '&url=' + encodeURIComponent(url);
+                if (imageUrl) shareUri += '&image=' + encodeURIComponent(imageUrl);
+                window.location.href = shareUri;
                 return true;
             }
             if (navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
@@ -419,12 +425,12 @@
                 }
             }
             // Fallback: open share dialog
-            window._showShareOptions(null, url || '', text || '', null);
+            window._showShareOptions(imageUrl || null, url || '', text || '', null);
         };
     </script>
     <script>
         // Native share bridge — used by WebShareService (IShareService) via IJSRuntime
-        window.nativeShare = async (title, text, url) => {
+        window.nativeShare = async (title, text, url, imageUrl) => {
             const isNative = (navigator.userAgent && navigator.userAgent.indexOf('KhadamatNativeApp') !== -1) ||
                              window.location.search.indexOf('nativeapp=1') !== -1 || 
                              sessionStorage.getItem('nativeapp') === '1';
@@ -433,7 +439,10 @@
 
             // In native mobile app: immediately trigger MAUI native system share sheet
             if (isNative) {
-                window.location.href = 'khadamat://share?title=' + encodeURIComponent(title || 'مشاركة') + '&text=' + encodeURIComponent(fullText);
+                let shareUri = 'khadamat://share?title=' + encodeURIComponent(title || 'مشاركة') + '&text=' + encodeURIComponent(fullText);
+                if (url) shareUri += '&url=' + encodeURIComponent(url);
+                if (imageUrl) shareUri += '&image=' + encodeURIComponent(imageUrl);
+                window.location.href = shareUri;
                 return { success: true };
             }
 
@@ -455,7 +464,7 @@
 
             // Fallback: open custom bottom-sheet dialog
             const displayUrl = url || '';
-            window._showShareOptions(null, displayUrl, fullText, null);
+            window._showShareOptions(imageUrl || null, displayUrl, fullText, null);
             return { success: true };
         };
 
@@ -521,30 +530,6 @@
         };
     </script>
     <script>
-        // Native share bridge — used by WebShareService (IShareService) via IJSRuntime
-        window.nativeShare = async (title, text, url) => {
-            const shareData = {};
-            if (title) shareData.title = title;
-            if (text)  shareData.text  = text;
-            if (url)   shareData.url   = url;
-
-            // Try Web Share API (requires user gesture — works on mobile browsers)
-            if (navigator.share) {
-                try {
-                    await navigator.share(shareData);
-                    return { success: true };
-                } catch (e) {
-                    if (e.name === 'AbortError') return { success: true }; // user cancelled — not an error
-                    console.warn('[nativeShare] navigator.share failed:', e.message);
-                }
-            }
-
-            // Fallback: open custom bottom-sheet dialog
-            const displayUrl = url || '';
-            const displayText = text ? (url ? text + '\n' + url : text) : url;
-            window._showShareOptions(null, displayUrl, displayText, null);
-            return { success: true };
-        };
 
         // Helper for share link clicks: handle native app vs browser
         window._shareClick = function(event, url) {

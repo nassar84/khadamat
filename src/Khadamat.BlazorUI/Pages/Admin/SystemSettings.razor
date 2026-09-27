@@ -85,6 +85,46 @@
                         <label class="form-label small fw-bold">رقم الهاتف للدعم</label>
                         <input type="text" @bind="settings.ContactPhone" class="form-control rounded-pill px-3" placeholder="+20...">
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold"><i class="fa-brands fa-whatsapp text-success me-1"></i>رقم واتساب الإدارة</label>
+                        <input type="text" @bind="settings.ContactWhatsApp" class="form-control rounded-pill px-3" placeholder="201XXXXXXXXX (بدون +)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Channels -->
+            <div class="col-12 mb-2">
+                <div class="glass-card p-3">
+                    <h5 class="fw-bold mb-3 fs-6"><i class="fa-solid fa-money-bill-wave me-2 text-warning"></i>أرقام الدفع والمحافظ الإلكترونية</h5>
+                    <p class="text-muted small mb-3">هذه الأرقام تظهر للمستخدمين عند الاشتراك في الباقات المدفوعة</p>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small fw-bold"><i class="fa-solid fa-mobile-screen text-primary me-1"></i>رقم انستا باي</label>
+                            <div class="input-group">
+                                <span class="input-group-text border-0 bg-light"><i class="fa-solid fa-credit-card text-primary"></i></span>
+                                <input type="text" @bind="settings.InstaPayNumber" class="form-control border-0 bg-light" placeholder="010XXXXXXXX">
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small fw-bold"><i class="fa-solid fa-sim-card text-danger me-1"></i>رقم فودافون كاش</label>
+                            <div class="input-group">
+                                <span class="input-group-text border-0 bg-light"><i class="fa-solid fa-phone text-danger"></i></span>
+                                <input type="text" @bind="settings.VodafoneCashNumber" class="form-control border-0 bg-light" placeholder="010XXXXXXXX">
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small fw-bold"><i class="fa-solid fa-wallet text-info me-1"></i>رقم محفظة أخرى</label>
+                            <div class="input-group">
+                                <span class="input-group-text border-0 bg-light"><i class="fa-solid fa-wallet text-info"></i></span>
+                                <input type="text" @bind="settings.OtherWalletNumber" class="form-control border-0 bg-light" placeholder="010XXXXXXXX">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">تعليمات الدفع (تظهر للمستخدم)</label>
+                            <textarea @bind="settings.PaymentInstructions" class="form-control border-0 bg-light rounded-3" rows="3" 
+                                      placeholder="مثال: قم بتحويل قيمة الاشتراك على أحد الأرقام أعلاه ثم أرسل إيصال الدفع على واتساب الإدارة..."></textarea>
+                        </div>
+                    </div>
                 </div>
             </div>
 

@@ -245,13 +245,15 @@
     {
         if (service != null)
         {
-            var serviceUrl = Navigation.Uri;
+            var serviceUrl = $"https://khadamawy.eis-dev.com/share/service/{service.Id}";
             var desc = service.Description ?? "";
-            if (desc.Length > 80) desc = desc.Substring(0, 77) + "...";
-            var shareText = $"🌟 {service.Title}\n{desc}\n\n📲 منصة خدماوي - سوق الخدمات الأول\n{serviceUrl}";
+            if (desc.Length > 120) desc = desc.Substring(0, 117) + "...";
+            var shareText = $"🌟 {service.Title}\n{desc}\n\n🔗 رابط الخدمة:\n{serviceUrl}\n\n📲 منصة وتطبيق خدماوي - سوق الخدمات والأعمال الأول في مصر";
             
-            // Use ShareLinkAsync to ensure the URL is passed correctly and previews appear in apps
-            await Share.ShareLinkAsync(serviceUrl, $"🌟 {service.Title}");
+            var firstImg = service.Images?.FirstOrDefault();
+            var imageUrl = !string.IsNullOrEmpty(firstImg) ? Api.GetAbsoluteUrl(firstImg) : $"https://khadamawy.eis-dev.com/images/share_cards/card_{service.Id}.png";
+
+            await Share.ShareImageWithTextAsync(imageUrl, shareText, $"🌟 {service.Title}");
         }
     }
 

@@ -1,4 +1,4 @@
-﻿@inject IJSRuntime JS
+@inject IJSRuntime JS
 @inject NavigationManager Navigation
 @inject Khadamat.BlazorUI.State.AppState State
 @implements IDisposable
@@ -16,7 +16,10 @@
                 <i class="fa-solid fa-mobile-screen-button fab-icon-main"></i>
                 <div class="status-dot-pulse"></div>
             </div>
-            <span class="fab-text d-none d-md-block">حمّل التطبيق</span>
+            <span class="fab-text">
+                <span class="fab-text-label">حمّل التطبيق</span>
+                <i class="fa-solid fa-arrow-down-long fab-text-arrow"></i>
+            </span>
         </div>
         
         <!-- Ripple Effect Elements -->
@@ -49,7 +52,7 @@
             </div>
 
             <div class="portal-actions d-grid gap-2">
-                <a href="/downloads/Khadamawy.apk" download="Khadamawy.apk" class="store-link play-store-glow d-flex align-items-center p-2 rounded-4 text-decoration-none">
+                <a href="/downloads/Khadamawy.apk" download="خدماوى.apk" class="store-link play-store-glow d-flex align-items-center p-2 rounded-4 text-decoration-none">
                     <div class="store-icon bg-white text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width:32px;height:32px;min-width:32px;">
                         <i class="fa-brands fa-android fs-6"></i>
                     </div>
@@ -195,6 +198,20 @@
     .fab-text {
         font-weight: 700;
         font-size: 0.95rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+    }
+
+    .fab-text-label {
+        letter-spacing: 0.2px;
+    }
+
+    .fab-text-arrow {
+        font-size: 0.82rem;
+        color: #fef08a;
+        animation: arrowBounce 1.5s ease-in-out infinite;
     }
 
     /* Ripple Rings */
@@ -386,14 +403,49 @@
 
     @@media (max-width: 768px) {
         .app-download-widget-v2 {
-            bottom: 85px; /* Above BottomNav */
-            right: 20px;
+            bottom: 78px; /* Above BottomNav */
+            right: 14px;
+        }
+        .widget-fab {
+            padding: 8px 14px;
+            border-radius: 50px;
+            gap: 8px;
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+        }
+        .icon-stack {
+            width: 24px;
+            height: 24px;
+        }
+        .fab-icon-main {
+            font-size: 1.15rem;
+        }
+        .fab-text {
+            font-size: 0.8rem;
+            font-weight: 800;
+            gap: 5px;
+        }
+        .fab-text-label {
+            background: linear-gradient(90deg, #ffffff 0%, #fef08a 50%, #ffffff 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: textShimmer 3s ease-in-out infinite;
         }
         .app-portal-card {
-            width: 280px;
-            bottom: 70px;
-            padding: 20px;
+            width: 290px;
+            bottom: 60px;
+            padding: 18px;
         }
+    }
+
+    @@keyframes textShimmer {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+
+    @@keyframes arrowBounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(3px); }
     }
     .share-options .share-btn {
         width: 42px;

@@ -90,6 +90,13 @@ public class GetServiceHandler : IRequestHandler<Queries.GetServiceQuery, Pagina
             var service = pagedItems.FirstOrDefault(s => s.Id == dto.Id);
             if (service != null)
             {
+                dto.LikesCount = service.Likes?.Count ?? 0;
+                if (service.Ratings != null && service.Ratings.Any())
+                {
+                    dto.Rating = Math.Round(service.Ratings.Average(r => r.Stars), 1);
+                    dto.RatersCount = service.Ratings.Count;
+                }
+
                 if (service.City != null)
                 {
                     dto.CityName = service.City.City_Name_AR;
@@ -137,17 +144,6 @@ public class GetServiceHandler : IRequestHandler<Queries.GetServiceQuery, Pagina
                         dto.MainCategoryImageUrl = service.Category.MainCategory.ImageUrl;
                     }
                 }
-            }
-
-            if (service != null && providersDict.TryGetValue(service.ProviderProfileId, out var provider))
-            {
-                userDict.TryGetValue(provider.UserId, out var userInfo);
-                string actualUserName = !string.IsNullOrWhiteSpace(userInfo.Name) ? userInfo.Name : "مقدم خدمة";
-                
-                dto.ProviderName = !string.IsNullOrWhiteSpace(provider.BusinessName)
-                    ? provider.BusinessName
-                    : actualUserName;
-                dto.ProviderPhoto = provider.Photo;
             }
 
             if (service != null && providersDict.TryGetValue(service.ProviderProfileId, out var provider))

@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# Allow all major search engine bots
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Yahoo! Slurp
+Allow: /
+
+# Sitemap location
+Sitemap: https://khadamat.vercel.app/sitemap.xml

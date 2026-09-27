@@ -177,15 +177,16 @@ public class GetServiceByIdHandler : IRequestHandler<GetServiceByIdQuery, Servic
                 return new ReviewDto
                 {
                     Id = r.Id,
+                    UserId = r.UserId,
                     Rating = r.Stars,
                     Comment = r.Comment,
                     CreatedAt = r.Date,
-                    UserName = !string.IsNullOrEmpty(userInfo.Name) ? userInfo.Name : "مستخدم بدون اسم",
-                    UserAvatar = userInfo.Avatar
+                    UserName = !string.IsNullOrWhiteSpace(userInfo.Name) ? userInfo.Name : "مستخدم",
+                    UserAvatar = !string.IsNullOrWhiteSpace(userInfo.Avatar) ? userInfo.Avatar : null
                 };
             }).OrderByDescending(r => r.CreatedAt).ToList();
             
-            dto.Rating = service.Ratings.Average(r => r.Stars);
+            dto.Rating = Math.Round(service.Ratings.Average(r => r.Stars), 1);
             dto.RatersCount = service.Ratings.Count;
         }
 

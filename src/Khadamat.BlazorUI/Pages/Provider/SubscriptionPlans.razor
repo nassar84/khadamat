@@ -6,6 +6,7 @@
 @inject ApiClient Api
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
+@inject Khadamat.BlazorUI.State.AppState AppState
 
 <div class="plans-page pb-5">
     <div class="header-banner text-white py-5 text-center mb-5" style="background: linear-gradient(135deg, #4f46e5, #0ea5e9);">
@@ -114,6 +115,82 @@
     </div>
 </div>
 
+<!-- Payment Info Modal (shown after subscribing to paid plan) -->
+@if (showPaymentInfo && paymentSettings != null)
+{
+    <div class="modal-backdrop-custom" @onclick="() => showPaymentInfo = false"></div>
+    <div class="payment-modal glass-card shadow-2xl animate-up" dir="rtl">
+        <div class="p-4">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+                <div>
+                    <h4 class="fw-bold mb-1"><i class="fa-solid fa-money-bill-wave text-warning me-2"></i>إتمام الاشتراك</h4>
+                    <p class="text-muted small mb-0">الرجاء سداد قيمة الاشتراك عبر إحدى الطرق التالية</p>
+                </div>
+                <button class="btn btn-light rounded-circle" style="width:36px;height:36px;" @onclick="() => showPaymentInfo = false">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(paymentSettings.PaymentInstructions))
+            {
+                <div class="alert alert-info rounded-3 border-0 mb-3">
+                    <i class="fa-solid fa-circle-info me-2"></i>@paymentSettings.PaymentInstructions
+                </div>
+            }
+
+            <div class="row g-3 mb-4">
+                @if (!string.IsNullOrEmpty(paymentSettings.InstaPayNumber))
+                {
+                    <div class="col-12 col-md-4">
+                        <div class="payment-method-card text-center p-3 rounded-3 bg-light">
+                            <i class="fa-solid fa-credit-card fs-2 text-primary mb-2 d-block"></i>
+                            <div class="fw-bold small mb-1">انستا باي</div>
+                            <div class="fw-bold text-primary fs-5 dir-ltr">@paymentSettings.InstaPayNumber</div>
+                        </div>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(paymentSettings.VodafoneCashNumber))
+                {
+                    <div class="col-12 col-md-4">
+                        <div class="payment-method-card text-center p-3 rounded-3 bg-light">
+                            <i class="fa-solid fa-phone fs-2 text-danger mb-2 d-block"></i>
+                            <div class="fw-bold small mb-1">فودافون كاش</div>
+                            <div class="fw-bold text-danger fs-5 dir-ltr">@paymentSettings.VodafoneCashNumber</div>
+                        </div>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(paymentSettings.OtherWalletNumber))
+                {
+                    <div class="col-12 col-md-4">
+                        <div class="payment-method-card text-center p-3 rounded-3 bg-light">
+                            <i class="fa-solid fa-wallet fs-2 text-info mb-2 d-block"></i>
+                            <div class="fw-bold small mb-1">محفظة أخرى</div>
+                            <div class="fw-bold text-info fs-5 dir-ltr">@paymentSettings.OtherWalletNumber</div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @if (!string.IsNullOrEmpty(paymentSettings.ContactWhatsApp))
+            {
+                <a href="https://wa.me/@(paymentSettings.ContactWhatsApp)" target="_blank" rel="noopener"
+                   class="btn btn-success w-100 rounded-pill py-3 fw-bold shadow-sm">
+                    <i class="fa-brands fa-whatsapp me-2 fs-5"></i>
+                    تواصل مع الإدارة على واتساب
+                </a>
+            }
+            else if (!string.IsNullOrEmpty(paymentSettings.ContactPhone))
+            {
+                <a href="tel:@paymentSettings.ContactPhone"
+                   class="btn btn-outline-primary w-100 rounded-pill py-3 fw-bold">
+                    <i class="fa-solid fa-phone me-2"></i>
+                    اتصل بالإدارة: @paymentSettings.ContactPhone
+                </a>
+            }
+        </div>
+    </div>
+}
+
 <style>
     .plans-page { background-color: #f8fafc; min-height: 100vh; }
     .plan-card {
@@ -160,6 +237,36 @@
         0%, 100% { transform: translateY(0); }
         50% { transform: translateY(-10px); }
     }
+
+    /* Payment Modal */
+    .modal-backdrop-custom {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.55);
+        backdrop-filter: blur(4px);
+        z-index: 1050;
+    }
+    .payment-modal {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1055;
+        width: 90%;
+        max-width: 580px;
+        max-height: 90vh;
+        overflow-y: auto;
+        border-radius: 24px;
+    }
+    .payment-method-card {
+        border: 2px solid rgba(0,0,0,0.06);
+        transition: all 0.2s;
+    }
+    .payment-method-card:hover {
+        border-color: rgba(99,102,241,0.3);
+        box-shadow: 0 4px 15px rgba(99,102,241,0.1);
+    }
+    .dir-ltr { direction: ltr; font-family: monospace; letter-spacing: 1px; }
 </style>
 
 @code {
@@ -168,10 +275,23 @@
     private bool isLoading = true;
     private bool isSubscribing = false;
     private int selectedPlanId = 0;
+    private bool showPaymentInfo = false;
+    private AppSettingsDto? paymentSettings;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadData();
+        await LoadPaymentSettings();
+    }
+
+    private async Task LoadPaymentSettings()
+    {
+        try
+        {
+            var result = await Api.GetSettingsAsync();
+            if (result?.Success == true) paymentSettings = result.Data;
+        }
+        catch { }
     }
 
     private async Task LoadData()
@@ -205,7 +325,15 @@
             if (result.Success)
             {
                 await LoadData();
-                await JS.InvokeVoidAsync("alert", "تم الاشتراك بنجاح! شكراً لثقتك.");
+                // Show payment info for paid plans (price > 0)
+                if (plan.Price > 0)
+                {
+                    showPaymentInfo = true;
+                }
+                else
+                {
+                    await JS.InvokeVoidAsync("alert", "تم الاشتراك في الباقة المجانية بنجاح!");
+                }
             }
             else
             {

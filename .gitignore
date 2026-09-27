@@ -57,6 +57,7 @@ crash_log.txt
 src/Khadamat.WasmHost/wwwroot/app.apk
 
 *.apk
+*.aab
 
 # Additional exclusions
 logs/

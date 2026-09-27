@@ -16,6 +16,14 @@ public class AppSettings : BaseEntity
     public string SecondaryColor { get; set; } = "#a855f7";
     public string ContactEmail { get; set; } = "";
     public string ContactPhone { get; set; } = "";
+    
+    // Contact & Payments (InstaPay, Vodafone Cash, Wallets)
+    public string ContactWhatsApp { get; set; } = "";
+    public string InstaPayNumber { get; set; } = "";
+    public string VodafoneCashNumber { get; set; } = "";
+    public string OtherWalletNumber { get; set; } = "";
+    public string PaymentInstructions { get; set; } = "";
+
     public bool IsMaintenanceMode { get; set; } = false;
     public string WelcomeMessage { get; set; } = "مرحباً بكم في منصة خدماوي";
     

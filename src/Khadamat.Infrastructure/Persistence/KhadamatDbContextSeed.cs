@@ -16,6 +16,24 @@ public static class KhadamatDbContextSeed
     {
         try 
         {
+            // Ensure AppSettings payment and contact columns exist in database
+            try
+            {
+                await context.Database.ExecuteSqlRawAsync(@"
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('AppSettings') AND name = 'ContactWhatsApp')
+                        ALTER TABLE AppSettings ADD ContactWhatsApp nvarchar(max) NULL;
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('AppSettings') AND name = 'InstaPayNumber')
+                        ALTER TABLE AppSettings ADD InstaPayNumber nvarchar(max) NULL;
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('AppSettings') AND name = 'VodafoneCashNumber')
+                        ALTER TABLE AppSettings ADD VodafoneCashNumber nvarchar(max) NULL;
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('AppSettings') AND name = 'OtherWalletNumber')
+                        ALTER TABLE AppSettings ADD OtherWalletNumber nvarchar(max) NULL;
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('AppSettings') AND name = 'PaymentInstructions')
+                        ALTER TABLE AppSettings ADD PaymentInstructions nvarchar(max) NULL;
+                ");
+            }
+            catch { }
+
             await SeedRolesAsync(roleManager);
             await SeedUsersAsync(userManager);
 

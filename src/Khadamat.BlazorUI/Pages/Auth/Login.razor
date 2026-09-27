@@ -40,7 +40,7 @@
         <div class="form-group position-relative">
             <label>كلمة المرور</label>
             <div class="input-group">
-                <InputText @bind-Value="loginRequest.Password" type="@(showPassword ? "text" : "password")" class="form-control glass-input password-input" placeholder="••••••••" autocomplete="new-password" />
+                <InputText @bind-Value="loginRequest.Password" type="@(showPassword ? "text" : "password")" class="form-control glass-input password-input" placeholder="••••••••" autocomplete="current-password" />
                 <button type="button" class="btn position-absolute end-0 top-50 translate-middle-y border-0 ps-3" @onclick="TogglePasswordVisibility" style="z-index: 10;">
                     <i class="fa-solid @(showPassword ? "fa-eye-slash" : "fa-eye") text-muted"></i>
                 </button>
@@ -363,10 +363,15 @@
         try
         {
             var rememberedUser = await SecureStorage.GetAsync("remembered_username");
+            var rememberedPass = await SecureStorage.GetAsync("remembered_password");
             if (!string.IsNullOrEmpty(rememberedUser))
             {
                 loginRequest.UserName = rememberedUser;
                 loginRequest.RememberMe = true;
+            }
+            if (!string.IsNullOrEmpty(rememberedPass))
+            {
+                loginRequest.Password = rememberedPass;
             }
         }
         catch { }
@@ -505,14 +510,16 @@
                 };
                 AppState.IsProvider = result.IsProvider;
 
-                // Save or clear remembered username
+                // Save or clear remembered credentials
                 if (loginRequest.RememberMe)
                 {
                     await SecureStorage.SaveAsync("remembered_username", loginRequest.UserName);
+                    await SecureStorage.SaveAsync("remembered_password", loginRequest.Password);
                 }
                 else
                 {
                     SecureStorage.Remove("remembered_username");
+                    SecureStorage.Remove("remembered_password");
                 }
 
                 // After successful manual login, if biometric is available but not saved, save it

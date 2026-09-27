@@ -7,6 +7,9 @@ using System.Web;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using System.IO;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 namespace Khadamat.WebAPI.Controllers;
 
@@ -55,11 +58,12 @@ public class ShareController : ControllerBase
             {
                 var allowedOrigins = _configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
                 var publicOrigin = allowedOrigins?.FirstOrDefault(o => o.StartsWith("https://") && !o.Contains("localhost"));
-                if (!string.IsNullOrEmpty(publicOrigin))
-                {
-                    baseUrl = publicOrigin.TrimEnd('/');
-                }
+                baseUrl = !string.IsNullOrEmpty(publicOrigin) ? publicOrigin.TrimEnd('/') : "https://khadamawy.eis-dev.com";
             }
+        }
+        else if (baseUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+        {
+            baseUrl = "https://" + baseUrl.Substring(7);
         }
 
         // Build the canonical SPA URL that users land on after clicking the shared link
@@ -151,6 +155,11 @@ public class ShareController : ControllerBase
             }
         }
 
+        if (imageUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+        {
+            imageUrl = "https://" + imageUrl.Substring(7);
+        }
+
         var safeTitle = HttpUtility.HtmlEncode(service.Title);
         var fullCategoryPath = !string.IsNullOrEmpty(service.SubCategoryName)
             ? $"{service.MainCategoryName} > {service.CategoryName} > {service.SubCategoryName}"
@@ -231,30 +240,32 @@ public class ShareController : ControllerBase
         html.AppendLine("  <meta name=\"build-version\" content=\"v2.0.0-fix-20260824\" />");
         html.AppendLine($"  <title>{pageTitle}</title>");
 
+        var ogImageUrl = $"{baseUrl}/share/service/{id}/og-image";
+
         // === Standard Open Graph tags (Facebook, LinkedIn, Discord, WhatsApp, Telegram) ===
         html.AppendLine("  <meta property=\"og:type\"        content=\"website\" />");
         html.AppendLine($"  <meta property=\"og:url\"         content=\"{shareUrl}\" />");
         html.AppendLine($"  <meta property=\"og:title\"       content=\"{pageTitle}\" />");
         html.AppendLine($"  <meta property=\"og:description\" content=\"{safeOgDesc}\" />");
-        html.AppendLine($"  <meta property=\"og:image\"       content=\"{imageUrl}\" />");
-        html.AppendLine($"  <meta property=\"og:image:secure_url\" content=\"{imageUrl}\" />");
-        html.AppendLine("  <meta property=\"og:image:type\"   content=\"image/png\" />");
-        html.AppendLine("  <meta property=\"og:image:width\"  content=\"600\" />");
-        html.AppendLine("  <meta property=\"og:image:height\" content=\"315\" />");
+        html.AppendLine($"  <meta property=\"og:image\"       content=\"{ogImageUrl}\" />");
+        html.AppendLine($"  <meta property=\"og:image:secure_url\" content=\"{ogImageUrl}\" />");
+        html.AppendLine("  <meta property=\"og:image:type\"   content=\"image/jpeg\" />");
+        html.AppendLine("  <meta property=\"og:image:width\"  content=\"1200\" />");
+        html.AppendLine("  <meta property=\"og:image:height\" content=\"630\" />");
         html.AppendLine($"  <meta property=\"og:image:alt\"    content=\"{pageTitle}\" />");
-        html.AppendLine("  <meta property=\"og:locale\"      content=\"ar_EG\" />");
+        html.AppendLine("  <meta property=\"og:locale\"      content=\"ar_AR\" />");
         html.AppendLine("  <meta property=\"og:site_name\"   content=\"خدماوي\" />");
-        html.AppendLine($"  <link rel=\"image_src\"           href=\"{imageUrl}\" />");
-        html.AppendLine($"  <meta itemprop=\"image\"          content=\"{imageUrl}\" />");
+        html.AppendLine($"  <link rel=\"image_src\"           href=\"{ogImageUrl}\" />");
+        html.AppendLine($"  <meta itemprop=\"image\"          content=\"{ogImageUrl}\" />");
 
         // === Facebook specific ===
-        html.AppendLine("  <meta property=\"fb:app_id\"      content=\"\" />");
+        html.AppendLine("  <meta property=\"fb:app_id\"      content=\"1546767603438579\" />");
 
         // === Twitter Card tags ===
         html.AppendLine("  <meta name=\"twitter:card\"        content=\"summary_large_image\" />");
         html.AppendLine($"  <meta name=\"twitter:title\"       content=\"{pageTitle}\" />");
         html.AppendLine($"  <meta name=\"twitter:description\" content=\"{safeOgDesc}\" />");
-        html.AppendLine($"  <meta name=\"twitter:image\"       content=\"{imageUrl}\" />");
+        html.AppendLine($"  <meta name=\"twitter:image\"       content=\"{ogImageUrl}\" />");
 
         // === SEO ===
         html.AppendLine($"  <meta name=\"description\" content=\"{safeOgDesc}\" />");
@@ -667,9 +678,7 @@ public class ShareController : ControllerBase
         html.AppendLine("    <div class=\"promo-box\">");
         html.AppendLine("      <p class=\"promo-title\">📲 حمل تطبيق خدماوي مجاناً</p>");
         html.AppendLine("      <p class=\"promo-text\">منصة خدماوي هي سوق الخدمات والأعمال الأول في مصر. تصفح آلاف الخدمات والمنتجات القريبة منك، وتواصل مباشرة مع الحرفيين ومقدمي الخدمات بكل سهولة وأمان!</p>");
-        html.AppendLine("      <div class=\"promo-actions\">");
-        html.AppendLine($"        <a href=\"{serviceUrl}\" class=\"btn-promo btn-promo-web\">🔗 عرض في الموقع</a>");
-        html.AppendLine("        <a href=\"https://play.google.com/store/apps/details?id=com.nassar84.khadamat\" target=\"_blank\" class=\"btn-promo btn-promo-app\">📲 تحميل تطبيق خدماوي</a>");
+        html.AppendLine($"        <a href=\"{appStoreUrl}\" class=\"btn-promo btn-promo-app\">📲 تحميل تطبيق خدماوي (APK)</a>");
         html.AppendLine("      </div>");
         html.AppendLine("    </div>");
 
@@ -737,6 +746,189 @@ public class ShareController : ControllerBase
         {
             Console.WriteLine($"[ShareController] Error saving card image: {ex.Message}");
             return StatusCode(500, new { success = false, message = "Error saving card image" });
+        }
+    }
+
+    /// <summary>
+    /// Returns the best available share image URL for a service.
+    /// Called by GenerateShareCardAsync in Blazor UI and mobile app.
+    /// POST /share/service/{id}/generate-card
+    /// </summary>
+    [HttpPost("service/{id:int}/generate-card")]
+    public async Task<IActionResult> GenerateCard(int id)
+    {
+        var service = await _mediator.Send(new GetServiceByIdQuery(id));
+        if (service == null)
+            return NotFound(new { success = false });
+
+        var scheme  = Request.Headers["X-Forwarded-Proto"].FirstOrDefault() ?? Request.Scheme;
+        var host    = Request.Headers["X-Forwarded-Host"].FirstOrDefault()  ?? Request.Host.ToString();
+        string baseUrl = $"{scheme}://{host}".TrimEnd('/');
+        if (baseUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+            baseUrl = "https://" + baseUrl[7..];
+        if (baseUrl.Contains("localhost") || baseUrl.Contains("127.0.0.1"))
+            baseUrl = _configuration["ApiSettings:WebAppBaseUrl"]?.TrimEnd('/') ?? "https://khadamawy.eis-dev.com";
+
+        var basePath     = Directory.GetCurrentDirectory();
+        var cardRelPath  = $"images/share_cards/card_{id}.png";
+        var cardFullPath = Path.Combine(basePath, "wwwroot", cardRelPath);
+
+        // 1. Pre-generated card exists → return it
+        if (System.IO.File.Exists(cardFullPath))
+        {
+            var ts = System.IO.File.GetLastWriteTimeUtc(cardFullPath).Ticks;
+            return Ok(new { success = true, imageUrl = $"{baseUrl}/{cardRelPath}?v={ts}" });
+        }
+
+        // 2. Pick the best fallback image
+        string imageUrl = $"{baseUrl}/images/logo.png";
+        var firstImg = service.Images?.FirstOrDefault();
+        bool isRealImage = !string.IsNullOrEmpty(firstImg) &&
+                           !firstImg.Contains("/gen/") &&
+                           !firstImg.Contains("/placeholders/") &&
+                           !firstImg.Contains("picsum");
+
+        if (isRealImage)
+        {
+            imageUrl = firstImg!.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+                ? firstImg
+                : $"{baseUrl}/images/services/{firstImg.TrimStart('/')}";
+        }
+        else if (!string.IsNullOrEmpty(service.SubCategoryImageUrl))
+        {
+            imageUrl = service.SubCategoryImageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+                ? service.SubCategoryImageUrl
+                : $"{baseUrl}/images/subcategories/{service.SubCategoryImageUrl.TrimStart('/')}";
+        }
+        else if (!string.IsNullOrEmpty(service.CategoryImageUrl))
+        {
+            imageUrl = service.CategoryImageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+                ? service.CategoryImageUrl
+                : $"{baseUrl}/images/categories/{service.CategoryImageUrl.TrimStart('/')}";
+        }
+
+        if (imageUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+            imageUrl = "https://" + imageUrl[7..];
+
+        return Ok(new { success = true, imageUrl });
+    }
+
+    /// <summary>
+    /// Returns an optimized 1200x630 Open Graph image for social media crawlers (Facebook, WhatsApp, Twitter).
+    /// The service image is 100% contained within the frame with a blurred background, preventing any edge cropping.
+    /// </summary>
+    [HttpGet("service/{id:int}/og-image")]
+    public async Task<IActionResult> GetOgImage(int id)
+    {
+        var basePath = Directory.GetCurrentDirectory();
+
+        // 1. If an HTML-rendered high-res card exists, serve it
+        var cardPath = Path.Combine(basePath, "wwwroot", "images", "share_cards", $"card_{id}.png");
+        if (System.IO.File.Exists(cardPath))
+        {
+            return PhysicalFile(cardPath, "image/png");
+        }
+
+        // 2. If a cached contained OG image exists, serve it
+        var shareCardsDir = Path.Combine(basePath, "wwwroot", "images", "share_cards");
+        if (!Directory.Exists(shareCardsDir)) Directory.CreateDirectory(shareCardsDir);
+
+        var cachedOgPath = Path.Combine(shareCardsDir, $"og_contained_{id}.jpg");
+        if (System.IO.File.Exists(cachedOgPath))
+        {
+            return PhysicalFile(cachedOgPath, "image/jpeg");
+        }
+
+        // 3. Find the service image on disk
+        var service = await _mediator.Send(new GetServiceByIdQuery(id));
+        if (service == null)
+        {
+            var logoPath = Path.Combine(basePath, "wwwroot", "images", "logo.png");
+            if (System.IO.File.Exists(logoPath)) return PhysicalFile(logoPath, "image/png");
+            return NotFound();
+        }
+
+        string? sourceFile = null;
+        var firstImg = service.Images?.FirstOrDefault();
+        if (!string.IsNullOrEmpty(firstImg) && !firstImg.Contains("/gen/") && !firstImg.Contains("/placeholders/"))
+        {
+            var cleanName = firstImg.TrimStart('/').Replace("images/services/", "").Replace("images/", "");
+            var testPath = Path.Combine(basePath, "wwwroot", "images", "services", cleanName);
+            if (System.IO.File.Exists(testPath)) sourceFile = testPath;
+        }
+
+        if (sourceFile == null && !string.IsNullOrEmpty(service.SubCategoryImageUrl))
+        {
+            var cleanName = service.SubCategoryImageUrl.TrimStart('/').Replace("images/subcategories/", "");
+            var testPath = Path.Combine(basePath, "wwwroot", "images", "subcategories", cleanName);
+            if (System.IO.File.Exists(testPath)) sourceFile = testPath;
+        }
+
+        if (sourceFile == null && !string.IsNullOrEmpty(service.CategoryImageUrl))
+        {
+            var cleanName = service.CategoryImageUrl.TrimStart('/').Replace("images/categories/", "");
+            var testPath = Path.Combine(basePath, "wwwroot", "images", "categories", cleanName);
+            if (System.IO.File.Exists(testPath)) sourceFile = testPath;
+        }
+
+        if (sourceFile == null)
+        {
+            var logoCandidate = Path.Combine(basePath, "wwwroot", "images", "logo.png");
+            if (System.IO.File.Exists(logoCandidate)) sourceFile = logoCandidate;
+        }
+
+        if (sourceFile == null || !System.IO.File.Exists(sourceFile))
+        {
+            return NotFound();
+        }
+
+        // 4. Generate contained 1200x630 image with ImageSharp
+        try
+        {
+            using var srcImg = await SixLabors.ImageSharp.Image.LoadAsync(sourceFile);
+
+            const int targetW = 1200;
+            const int targetH = 630;
+
+            using var canvas = new SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgba32>(targetW, targetH, new SixLabors.ImageSharp.PixelFormats.Rgba32(15, 23, 42, 255));
+
+            // Background layer: blurred & dimmed version of the source image
+            using (var bgImg = srcImg.Clone(ctx =>
+            {
+                ctx.Resize(new ResizeOptions
+                {
+                    Size = new SixLabors.ImageSharp.Size(targetW, targetH),
+                    Mode = ResizeMode.Crop
+                });
+                ctx.GaussianBlur(25f);
+                ctx.Brightness(0.45f);
+            }))
+            {
+                canvas.Mutate(ctx => ctx.DrawImage(bgImg, new SixLabors.ImageSharp.Point(0, 0), 0.7f));
+            }
+
+            // Foreground layer: Service image scaled with ResizeMode.Max so 100% is visible
+            using (var fgImg = srcImg.Clone(ctx =>
+            {
+                ctx.Resize(new ResizeOptions
+                {
+                    Size = new SixLabors.ImageSharp.Size(targetW - 60, targetH - 60),
+                    Mode = ResizeMode.Max
+                });
+            }))
+            {
+                int posX = (targetW - fgImg.Width) / 2;
+                int posY = (targetH - fgImg.Height) / 2;
+                canvas.Mutate(ctx => ctx.DrawImage(fgImg, new SixLabors.ImageSharp.Point(posX, posY), 1f));
+            }
+
+            await canvas.SaveAsJpegAsync(cachedOgPath);
+            return PhysicalFile(cachedOgPath, "image/jpeg");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ShareController] Error generating contained OG image: {ex.Message}");
+            return PhysicalFile(sourceFile, "image/jpeg");
         }
     }
 }

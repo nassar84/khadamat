@@ -19,6 +19,8 @@ public class AppState
         set { _userToken = value; NotifyStateChanged(); } 
     }
 
+    public bool IsLoggedIn => !string.IsNullOrEmpty(_userToken) || !string.IsNullOrEmpty(_userId);
+
     private string _userName = string.Empty;
     public string UserName 
     { 
@@ -61,8 +63,17 @@ public class AppState
         set { if (_isProviderMode != value) { _isProviderMode = value; NotifyStateChanged(); } } 
     }
     
-    public int NotificationCount { get; set; } = 3;
-    public bool HasUnreadNotifications { get; set; }
+    private int _notificationCount = 0;
+    public int NotificationCount 
+    { 
+        get => _notificationCount; 
+        set { _notificationCount = value; NotifyStateChanged(); } 
+    }
+    public bool HasUnreadNotifications 
+    { 
+        get => _notificationCount > 0; 
+        set { if (!value) _notificationCount = 0; NotifyStateChanged(); } 
+    }
     public bool HasUnreadMessages { get; set; }
 
     // Global Settings
@@ -139,6 +150,16 @@ public class AppState
     }
 
     public bool IsAuthenticated => !string.IsNullOrEmpty(_userToken);
+
+    // Favorites State
+    public HashSet<int> FavoriteServiceIds { get; set; } = new();
+    public bool IsServiceFavorite(int serviceId) => FavoriteServiceIds.Contains(serviceId);
+    public void SetServiceFavorite(int serviceId, bool isFavorite)
+    {
+        if (isFavorite) FavoriteServiceIds.Add(serviceId);
+        else FavoriteServiceIds.Remove(serviceId);
+        NotifyStateChanged();
+    }
 
     public string GetAbsoluteUrl(string? path)
     {

@@ -15,6 +15,14 @@ public class AppSettingsDto
     public string SecondaryColor { get; set; } = string.Empty;
     public string ContactEmail { get; set; } = string.Empty;
     public string ContactPhone { get; set; } = string.Empty;
+    
+    // Contact & Payments (InstaPay, Vodafone Cash, Wallets)
+    public string ContactWhatsApp { get; set; } = string.Empty;
+    public string InstaPayNumber { get; set; } = string.Empty;
+    public string VodafoneCashNumber { get; set; } = string.Empty;
+    public string OtherWalletNumber { get; set; } = string.Empty;
+    public string PaymentInstructions { get; set; } = string.Empty;
+
     public bool IsMaintenanceMode { get; set; }
     public string WelcomeMessage { get; set; } = string.Empty;
 

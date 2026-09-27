@@ -22,11 +22,25 @@ public class NotificationsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<ApiResponse<List<NotificationDto>>>> GetMyNotifications()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) 
+                     ?? User.FindFirst("sub")?.Value 
+                     ?? User.FindFirst("nameid")?.Value;
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
         var notifications = await _notificationService.GetUserNotificationsAsync(userId);
         return Ok(ApiResponse<List<NotificationDto>>.Succeed(notifications));
+    }
+
+    [HttpGet("unread-count")]
+    public async Task<ActionResult<ApiResponse<int>>> GetUnreadCount()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) 
+                     ?? User.FindFirst("sub")?.Value 
+                     ?? User.FindFirst("nameid")?.Value;
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        var count = await _notificationService.GetUnreadCountAsync(userId);
+        return Ok(ApiResponse<int>.Succeed(count));
     }
 
     [HttpPost("{id}/read")]
@@ -39,7 +53,9 @@ public class NotificationsController : ControllerBase
     [HttpPost("read-all")]
     public async Task<ActionResult<ApiResponse<bool>>> MarkAllAsRead()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) 
+                     ?? User.FindFirst("sub")?.Value 
+                     ?? User.FindFirst("nameid")?.Value;
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
         await _notificationService.MarkAllAsReadAsync(userId);

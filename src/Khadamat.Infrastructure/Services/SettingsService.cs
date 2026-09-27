@@ -40,6 +40,11 @@ public class SettingsService : ISettingsService
             SecondaryColor = settings.SecondaryColor,
             ContactEmail = settings.ContactEmail,
             ContactPhone = settings.ContactPhone,
+            ContactWhatsApp = settings.ContactWhatsApp,
+            InstaPayNumber = settings.InstaPayNumber,
+            VodafoneCashNumber = settings.VodafoneCashNumber,
+            OtherWalletNumber = settings.OtherWalletNumber,
+            PaymentInstructions = settings.PaymentInstructions,
             IsMaintenanceMode = settings.IsMaintenanceMode,
             WelcomeMessage = settings.WelcomeMessage,
             OpenAppSound = settings.OpenAppSound,
@@ -83,6 +88,11 @@ public class SettingsService : ISettingsService
         settings.SecondaryColor = request.SecondaryColor;
         settings.ContactEmail = request.ContactEmail;
         settings.ContactPhone = request.ContactPhone;
+        settings.ContactWhatsApp = request.ContactWhatsApp;
+        settings.InstaPayNumber = request.InstaPayNumber;
+        settings.VodafoneCashNumber = request.VodafoneCashNumber;
+        settings.OtherWalletNumber = request.OtherWalletNumber;
+        settings.PaymentInstructions = request.PaymentInstructions;
         settings.IsMaintenanceMode = request.IsMaintenanceMode;
         settings.WelcomeMessage = request.WelcomeMessage;
         settings.OpenAppSound = request.OpenAppSound;

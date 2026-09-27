@@ -1,0 +1,509 @@
+@page "/admin/moderation"
+@using Khadamat.BlazorUI.Services
+@using Khadamat.Application.DTOs
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "SystemAdmin,SuperAdmin,Admin")]
+@inject ApiClient Api
+@inject IJSRuntime JS
+
+<div class="px-3 pt-3 pb-5" dir="rtl">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-0 gradient-text">
+                <i class="fa-solid fa-shield-halved me-2"></i>إدارة التعليقات والتقييمات
+            </h3>
+            <p class="text-muted small">مراجعة البلاغات وإدارة المحتوى مباشرةً</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-sm @(activeTab == "reports" ? "btn-primary" : "btn-outline-primary") rounded-pill px-3"
+                    @onclick='() => SwitchTab("reports")'>
+                <i class="fa-solid fa-flag me-1"></i>البلاغات
+                @if (pendingCount > 0)
+                {
+                    <span class="badge bg-danger ms-1">@pendingCount</span>
+                }
+            </button>
+            <button class="btn btn-sm @(activeTab == "reviews" ? "btn-primary" : "btn-outline-primary") rounded-pill px-3"
+                    @onclick='() => SwitchTab("reviews")'>
+                <i class="fa-solid fa-star me-1"></i>التقييمات
+            </button>
+            <button class="btn btn-sm @(activeTab == "comments" ? "btn-primary" : "btn-outline-primary") rounded-pill px-3"
+                    @onclick='() => SwitchTab("comments")'>
+                <i class="fa-solid fa-comments me-1"></i>التعليقات
+            </button>
+        </div>
+    </div>
+
+    @if (loading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="text-muted mt-2 small">جارٍ التحميل...</p>
+        </div>
+    }
+    else
+    {
+        <!-- ═══════════════ REPORTS TAB ═══════════════ -->
+        @if (activeTab == "reports")
+        {
+            <!-- Filter Bar -->
+            <div class="glass-card p-3 mb-4 d-flex gap-3 align-items-center flex-wrap">
+                <label class="small fw-bold">الحالة:</label>
+                <select class="form-select form-select-sm w-auto rounded-pill" @bind="reportStatusFilter" @bind:after="LoadReports">
+                    <option value="">الكل</option>
+                    <option value="0">قيد المراجعة</option>
+                    <option value="1">تم الحل</option>
+                    <option value="2">تم الرفض</option>
+                </select>
+                <label class="small fw-bold">النوع:</label>
+                <select class="form-select form-select-sm w-auto rounded-pill" @bind="reportTypeFilter" @bind:after="LoadReports">
+                    <option value="">الكل</option>
+                    <option value="1">تقييمات</option>
+                    <option value="2">تعليقات</option>
+                </select>
+                <span class="ms-auto text-muted small">@reports.Count بلاغ</span>
+            </div>
+
+            @if (!reports.Any())
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="fa-solid fa-check-circle fa-3x text-success mb-3"></i>
+                    <p>لا توجد بلاغات في هذه الفئة</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>النوع</th>
+                                <th>المحتوى</th>
+                                <th>سبب البلاغ</th>
+                                <th>المُبلِّغ</th>
+                                <th>الحالة</th>
+                                <th>التاريخ</th>
+                                <th class="text-center">إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var r in reports)
+                            {
+                                <tr>
+                                    <td>
+                                        @if (r.TargetType == 1)
+                                        {
+                                            <span class="badge bg-warning text-dark"><i class="fa-solid fa-star me-1"></i>تقييم</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-info text-dark"><i class="fa-solid fa-comment me-1"></i>تعليق</span>
+                                        }
+                                    </td>
+                                    <td class="text-truncate" style="max-width:200px" title="@r.TargetPreview">@r.TargetPreview</td>
+                                    <td class="text-truncate" style="max-width:150px" title="@r.Reason">@r.Reason</td>
+                                    <td class="small">@r.ReporterName</td>
+                                    <td>
+                                        @if (r.Status == 0)
+                                        {
+                                            <span class="badge bg-danger">قيد المراجعة</span>
+                                        }
+                                        else if (r.Status == 1)
+                                        {
+                                            <span class="badge bg-success">تم الحل</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">مرفوض</span>
+                                        }
+                                    </td>
+                                    <td class="small text-muted">@r.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                    <td class="text-center">
+                                        @if (r.Status == 0)
+                                        {
+                                            <button class="btn btn-sm btn-outline-danger me-1"
+                                                    title="حذف المحتوى وإغلاق البلاغ"
+                                                    @onclick="() => ResolveReport(r.Id, r.TargetType, r.TargetId)">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success me-1"
+                                                    title="رفض البلاغ (إبقاء المحتوى)"
+                                                    @onclick="() => DismissReport(r.Id)">
+                                                <i class="fa-solid fa-xmark"></i>
+                                            </button>
+                                        }
+                                        <button class="btn btn-sm btn-outline-primary"
+                                                title="تعديل المحتوى"
+                                                @onclick="() => OpenEditFromReport(r)">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        }
+
+        <!-- ═══════════════ REVIEWS TAB ═══════════════ -->
+        @if (activeTab == "reviews")
+        {
+            <div class="glass-card p-3 mb-4 d-flex gap-3 align-items-center flex-wrap">
+                <label class="small fw-bold">النجوم:</label>
+                <select class="form-select form-select-sm w-auto rounded-pill" @bind="starsFilter" @bind:after="LoadReviews">
+                    <option value="">الكل</option>
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        var s = i;
+                        <option value="@s">@s نجوم</option>
+                    }
+                </select>
+                <span class="ms-auto text-muted small">@adminReviews.Count تقييم</span>
+            </div>
+
+            @if (!adminReviews.Any())
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="fa-solid fa-star fa-3x text-warning mb-3"></i>
+                    <p>لا توجد تقييمات</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>الخدمة</th>
+                                <th>المستخدم</th>
+                                <th>التقييم</th>
+                                <th>التعليق</th>
+                                <th>التاريخ</th>
+                                <th class="text-center">إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var rev in adminReviews)
+                            {
+                                <tr>
+                                    <td class="text-muted small">@rev.Id</td>
+                                    <td class="small">@rev.ServiceName</td>
+                                    <td class="small">@rev.UserName</td>
+                                    <td>
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            <i class="fa-solid fa-star @(i <= rev.Stars ? "text-warning" : "text-muted")" style="font-size:.7rem"></i>
+                                        }
+                                    </td>
+                                    <td class="text-truncate" style="max-width:200px" title="@rev.Comment">@rev.Comment</td>
+                                    <td class="small text-muted">@rev.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-outline-primary me-1"
+                                                @onclick="() => StartEditReview(rev)">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger"
+                                                @onclick="() => DeleteReview(rev.Id)">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        }
+
+        <!-- ═══════════════ COMMENTS TAB ═══════════════ -->
+        @if (activeTab == "comments")
+        {
+            <div class="glass-card p-3 mb-4 d-flex gap-3 align-items-center flex-wrap">
+                <span class="text-muted small">@adminComments.Count تعليق</span>
+                <button class="btn btn-sm btn-outline-secondary rounded-pill ms-auto" @onclick="LoadComments">
+                    <i class="fa-solid fa-rotate-right me-1"></i>تحديث
+                </button>
+            </div>
+
+            @if (!adminComments.Any())
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="fa-solid fa-comments fa-3x text-info mb-3"></i>
+                    <p>لا توجد تعليقات</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>المستخدم</th>
+                                <th>نص التعليق</th>
+                                <th>المنشور</th>
+                                <th>التاريخ</th>
+                                <th class="text-center">إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in adminComments)
+                            {
+                                <tr>
+                                    <td class="text-muted small">@c.Id</td>
+                                    <td class="small">@c.UserName</td>
+                                    <td class="text-truncate" style="max-width:250px" title="@c.Text">@c.Text</td>
+                                    <td class="small text-muted">#@c.PostId</td>
+                                    <td class="small text-muted">@c.CreatedAt.ToString("dd/MM/yyyy")</td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-outline-primary me-1"
+                                                @onclick="() => StartEditComment(c)">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger"
+                                                @onclick="() => DeleteComment(c.Id)">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        }
+    }
+</div>
+
+<!-- ═══════════════ EDIT MODAL ═══════════════ -->
+@if (showEditModal)
+{
+    <div class="modal-backdrop fade show"></div>
+    <div class="modal d-block" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered" dir="rtl">
+            <div class="modal-content rounded-4 border-0 shadow-lg">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">
+                        <i class="fa-solid fa-pen me-2 text-primary"></i>
+                        @(editMode == "review" ? "تعديل التقييم" : "تعديل التعليق")
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                </div>
+                <div class="modal-body pt-3">
+                    @if (editMode == "review")
+                    {
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">التقييم (نجوم)</label>
+                            <div class="d-flex gap-2">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    var star = i;
+                                    <button type="button"
+                                            class="btn btn-sm @(editStars >= star ? "btn-warning" : "btn-outline-warning")"
+                                            @onclick="() => editStars = star">
+                                        <i class="fa-solid fa-star"></i> @star
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">
+                            @(editMode == "review" ? "التعليق على التقييم" : "نص التعليق")
+                        </label>
+                        <textarea class="form-control rounded-3" rows="4"
+                                  @bind="editText" placeholder="اكتب هنا..."></textarea>
+                    </div>
+                    @if (!string.IsNullOrEmpty(editError))
+                    {
+                        <div class="alert alert-danger small py-2">@editError</div>
+                    }
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button class="btn btn-outline-secondary rounded-pill px-4" @onclick="CloseModal">إلغاء</button>
+                    <button class="btn btn-primary rounded-pill px-4" @onclick="SaveEdit" disabled="@saving">
+                        @if (saving)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                        }
+                        حفظ التعديلات
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private string activeTab = "reports";
+    private bool loading = true;
+    private bool saving = false;
+    private string editError = string.Empty;
+
+    // Reports
+    private List<ContentReportDto> reports = new();
+    private int pendingCount = 0;
+    private string reportStatusFilter = "0";
+    private string reportTypeFilter = "";
+
+    // Reviews
+    private List<AdminReviewDto> adminReviews = new();
+    private string starsFilter = "";
+
+    // Comments
+    private List<AdminCommentDto> adminComments = new();
+
+    // Edit modal
+    private bool showEditModal = false;
+    private string editMode = "review"; // "review" | "comment"
+    private int editTargetId = 0;
+    private string editText = string.Empty;
+    private int editStars = 5;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadReports();
+        loading = false;
+    }
+
+    private async Task SwitchTab(string tab)
+    {
+        activeTab = tab;
+        loading = true;
+        StateHasChanged();
+        if (tab == "reports")  await LoadReports();
+        if (tab == "reviews")  await LoadReviews();
+        if (tab == "comments") await LoadComments();
+        loading = false;
+    }
+
+    private async Task LoadReports()
+    {
+        loading = true;
+        try
+        {
+            var statusParam = string.IsNullOrEmpty(reportStatusFilter) ? "" : $"&status={reportStatusFilter}";
+            var typeParam   = string.IsNullOrEmpty(reportTypeFilter)   ? "" : $"&targetType={reportTypeFilter}";
+            reports = await Api.GetAdminReportsAsync($"v1/reports?pageSize=100{statusParam}{typeParam}");
+            pendingCount = reports.Count(r => r.Status == 0);
+        }
+        finally { loading = false; }
+    }
+
+    private async Task LoadReviews()
+    {
+        loading = true;
+        try
+        {
+            var starsParam = string.IsNullOrEmpty(starsFilter) ? "" : $"&stars={starsFilter}";
+            adminReviews = await Api.GetAdminReviewsAsync($"v1/reviews/admin/all?pageSize=100{starsParam}");
+        }
+        finally { loading = false; }
+    }
+
+    private async Task LoadComments()
+    {
+        loading = true;
+        try
+        {
+            adminComments = await Api.GetAdminCommentsAsync("v1/comments/admin/all?pageSize=100");
+        }
+        finally { loading = false; }
+    }
+
+    // ── Report Actions ──────────────────────────────────────────────────
+    private async Task ResolveReport(int reportId, int targetType, int targetId)
+    {
+        var typeName = targetType == 1 ? "التقييم" : "التعليق";
+        if (!await JS.InvokeAsync<bool>("confirm", $"هل تريد حذف {typeName} وإغلاق البلاغ؟"))
+            return;
+        await Api.ResolveReportAsync(reportId);
+        await LoadReports();
+    }
+
+    private async Task DismissReport(int reportId)
+    {
+        if (!await JS.InvokeAsync<bool>("confirm", "رفض البلاغ وإبقاء المحتوى؟"))
+            return;
+        await Api.DismissReportAsync(reportId);
+        await LoadReports();
+    }
+
+    private void OpenEditFromReport(ContentReportDto r)
+    {
+        editMode     = r.TargetType == 1 ? "review" : "comment";
+        editTargetId = r.TargetId;
+        editText     = r.TargetPreview;
+        editStars    = 5;
+        editError    = string.Empty;
+        showEditModal = true;
+    }
+
+    // ── Review Actions ──────────────────────────────────────────────────
+    private void StartEditReview(AdminReviewDto rev)
+    {
+        editMode     = "review";
+        editTargetId = rev.Id;
+        editText     = rev.Comment;
+        editStars    = rev.Stars;
+        editError    = string.Empty;
+        showEditModal = true;
+    }
+
+    private async Task DeleteReview(int id)
+    {
+        if (!await JS.InvokeAsync<bool>("confirm", "حذف هذا التقييم نهائياً؟")) return;
+        await Api.AdminDeleteReviewAsync(id);
+        await LoadReviews();
+    }
+
+    // ── Comment Actions ─────────────────────────────────────────────────
+    private void StartEditComment(AdminCommentDto c)
+    {
+        editMode     = "comment";
+        editTargetId = c.Id;
+        editText     = c.Text;
+        editError    = string.Empty;
+        showEditModal = true;
+    }
+
+    private async Task DeleteComment(int id)
+    {
+        if (!await JS.InvokeAsync<bool>("confirm", "حذف هذا التعليق نهائياً؟")) return;
+        await Api.AdminDeleteCommentAsync(id);
+        await LoadComments();
+    }
+
+    // ── Modal ───────────────────────────────────────────────────────────
+    private void CloseModal() { showEditModal = false; editError = string.Empty; }
+
+    private async Task SaveEdit()
+    {
+        saving = true;
+        editError = string.Empty;
+        try
+        {
+            bool ok;
+            if (editMode == "review")
+                ok = await Api.AdminEditReviewAsync(editTargetId, editStars, editText);
+            else
+                ok = await Api.AdminEditCommentAsync(editTargetId, editText);
+
+            if (ok)
+            {
+                CloseModal();
+                if (activeTab == "reports")  await LoadReports();
+                if (activeTab == "reviews")  await LoadReviews();
+                if (activeTab == "comments") await LoadComments();
+            }
+            else
+            {
+                editError = "فشل حفظ التعديلات. حاول مرة أخرى.";
+            }
+        }
+        finally { saving = false; }
+    }
+}

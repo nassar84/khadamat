@@ -67,6 +67,28 @@ public class WebShareService : IShareService
         // No-op for web fallback
     }
 
+    public async Task ShareImageWithTextAsync(string imageUrl, string text, string title = "مشاركة خدمة")
+    {
+        try
+        {
+            var result = await _js.InvokeAsync<ShareResult>("nativeShare", title, text, null, imageUrl);
+            if (result is { Success: true }) return;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ShareImageWithText error: {ex.Message}");
+        }
+
+        try
+        {
+            await _js.InvokeVoidAsync("navigator.share", new { title = title, text = text, url = imageUrl });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ShareImageWithText fallback error: {ex.Message}");
+        }
+    }
+
     private class ShareResult
     {
         public bool Success { get; set; }

@@ -206,6 +206,36 @@ try
     // Version check endpoint
     app.MapGet("/version", () => Results.Ok(new { version = "v2.0.0-fix", date = "2026-06-26", note = "لو شايف ده يبقى التعديلات وصلت" }));
 
+    // Dedicated APK & Downloads handler to support Arabic filename (خدماوى.apk) and all variants
+    app.MapGet("/downloads/{*fileName}", (string fileName, IWebHostEnvironment env) =>
+    {
+        var decoded = System.Net.WebUtility.UrlDecode(fileName ?? "");
+        var webRoot = env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+        var downloadsDir = Path.Combine(webRoot, "downloads");
+        
+        var filePath = Path.Combine(downloadsDir, decoded);
+        if (decoded.EndsWith(".apk", StringComparison.OrdinalIgnoreCase))
+        {
+            // Always map any .apk download request to the single Khadamawy.apk file
+            var singleApk = Path.Combine(downloadsDir, "Khadamawy.apk");
+            if (File.Exists(singleApk))
+            {
+                filePath = singleApk;
+            }
+        }
+
+        if (File.Exists(filePath))
+        {
+            var isApk = filePath.EndsWith(".apk", StringComparison.OrdinalIgnoreCase);
+            var contentType = isApk ? "application/vnd.android.package-archive" : "application/octet-stream";
+            // The file always downloads to the user's mobile/device named "خدماوى.apk"
+            var downloadName = isApk ? "خدماوى.apk" : Path.GetFileName(filePath);
+            return Results.File(filePath, contentType, downloadName, enableRangeProcessing: true);
+        }
+
+        return Results.NotFound();
+    });
+
     // SPA Fallback
     app.MapFallbackToFile("index.html");
 

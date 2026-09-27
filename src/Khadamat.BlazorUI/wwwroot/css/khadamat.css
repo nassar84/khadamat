@@ -101,6 +101,94 @@ body[data-theme="royal"]::after {
     border-color: rgba(234, 179, 8, 0.25) !important;
 }
 
+/* Theme: Sunset (Red-Gold Warm Gradient) */
+body[data-theme="sunset"] {
+    background: linear-gradient(135deg, #fff5f0 0%, #ffe8d6 35%, #ffd0b5 70%, #fff8f5 100%) !important;
+    min-height: 100vh;
+}
+
+body[data-theme="sunset"]::before {
+    background: radial-gradient(circle, #ff4e50 0%, transparent 70%) !important;
+    opacity: 0.15 !important;
+}
+
+body[data-theme="sunset"]::after {
+    background: radial-gradient(circle, #f9d423 0%, transparent 70%) !important;
+    opacity: 0.12 !important;
+}
+
+[data-theme="sunset"] .glass-card,
+[data-theme="sunset"] .service-card {
+    background: rgba(255, 255, 255, 0.65) !important;
+    border-color: rgba(255, 78, 80, 0.2) !important;
+}
+
+/* Theme: Ocean (Electric Blue Deep Gradient) */
+body[data-theme="ocean"] {
+    background: linear-gradient(135deg, #f0faff 0%, #d0eeff 35%, #a8d8ff 70%, #eaf6ff 100%) !important;
+    min-height: 100vh;
+}
+
+body[data-theme="ocean"]::before {
+    background: radial-gradient(circle, #00c6ff 0%, transparent 70%) !important;
+    opacity: 0.15 !important;
+}
+
+body[data-theme="ocean"]::after {
+    background: radial-gradient(circle, #0072ff 0%, transparent 70%) !important;
+    opacity: 0.12 !important;
+}
+
+[data-theme="ocean"] .glass-card,
+[data-theme="ocean"] .service-card {
+    background: rgba(255, 255, 255, 0.65) !important;
+    border-color: rgba(0, 198, 255, 0.2) !important;
+}
+
+/* Theme: Forest (Neon Mint-Green Gradient) */
+body[data-theme="forest"] {
+    background: linear-gradient(135deg, #f0fff6 0%, #d0ffe8 35%, #a8ffce 70%, #eafff4 100%) !important;
+    min-height: 100vh;
+}
+
+body[data-theme="forest"]::before {
+    background: radial-gradient(circle, #00f260 0%, transparent 70%) !important;
+    opacity: 0.15 !important;
+}
+
+body[data-theme="forest"]::after {
+    background: radial-gradient(circle, #0575e6 0%, transparent 70%) !important;
+    opacity: 0.12 !important;
+}
+
+[data-theme="forest"] .glass-card,
+[data-theme="forest"] .service-card {
+    background: rgba(255, 255, 255, 0.65) !important;
+    border-color: rgba(0, 242, 96, 0.2) !important;
+}
+
+/* Theme: Lavender (Cyber Purple Gradient) */
+body[data-theme="lavender"] {
+    background: linear-gradient(135deg, #faf5ff 0%, #ede0ff 35%, #dcc6ff 70%, #f5eeff 100%) !important;
+    min-height: 100vh;
+}
+
+body[data-theme="lavender"]::before {
+    background: radial-gradient(circle, #bf5af2 0%, transparent 70%) !important;
+    opacity: 0.15 !important;
+}
+
+body[data-theme="lavender"]::after {
+    background: radial-gradient(circle, #5e5ce6 0%, transparent 70%) !important;
+    opacity: 0.12 !important;
+}
+
+[data-theme="lavender"] .glass-card,
+[data-theme="lavender"] .service-card {
+    background: rgba(255, 255, 255, 0.65) !important;
+    border-color: rgba(191, 90, 242, 0.2) !important;
+}
+
 /* Theme: Glass (Ultra Clear Frosted Glass over Vibrant Background) */
 [data-theme="glass"] {
     --theme-primary: #ffb6c1;

@@ -886,6 +886,19 @@ public class ApiClient
         }
     }
 
+    public async Task<List<int>> GetMyFavoriteIdsAsync()
+    {
+        try
+        {
+            var response = await _http.GetFromJsonAsync<ApiResponse<List<int>>>("v1/favorites/ids");
+            return response?.Data ?? new List<int>();
+        }
+        catch
+        {
+            return new List<int>();
+        }
+    }
+
     // Comments
     public async Task<List<MyCommentDto>> GetMyCommentsAsync()
     {
@@ -904,17 +917,119 @@ public class ApiClient
         var response = await _http.DeleteAsync($"v1/comments/{id}");
         return response.IsSuccessStatusCode;
     }
+
+    public async Task<bool> EditCommentAsync(int id, string text)
+    {
+        var response = await _http.PutAsJsonAsync($"v1/comments/{id}", new { Text = text });
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> EditReviewAsync(int id, int? stars, string? comment)
+    {
+        var response = await _http.PutAsJsonAsync($"v1/reviews/{id}", new { Rating = stars, Comment = comment });
+        return response.IsSuccessStatusCode;
+    }
+
+    // ── Admin Moderation ───────────────────────────────────────────────────
+    public async Task<bool> SubmitReportAsync(int targetType, int targetId, string reason)
+    {
+        var response = await _http.PostAsJsonAsync("v1/reports", new { TargetType = targetType, TargetId = targetId, Reason = reason });
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<List<ContentReportDto>> GetAdminReportsAsync(string url)
+    {
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<ContentReportDto>>>(url);
+        return response?.Data ?? new();
+    }
+
+    public async Task<List<AdminReviewDto>> GetAdminReviewsAsync(string url)
+    {
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<AdminReviewDto>>>(url);
+        return response?.Data ?? new();
+    }
+
+    public async Task<List<AdminCommentDto>> GetAdminCommentsAsync(string url)
+    {
+        var response = await _http.GetFromJsonAsync<ApiResponse<List<AdminCommentDto>>>(url);
+        return response?.Data ?? new();
+    }
+
+    public async Task<bool> ResolveReportAsync(int reportId, string? note = null)
+    {
+        var response = await _http.PostAsJsonAsync($"v1/reports/{reportId}/resolve", new { Note = note });
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DismissReportAsync(int reportId, string? note = null)
+    {
+        var response = await _http.PostAsJsonAsync($"v1/reports/{reportId}/dismiss", new { Note = note });
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> AdminEditReviewAsync(int id, int stars, string comment)
+    {
+        var response = await _http.PutAsJsonAsync($"v1/reports/review/{id}", new { Text = comment, Stars = stars });
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> AdminEditCommentAsync(int id, string text)
+    {
+        var response = await _http.PutAsJsonAsync($"v1/reports/comment/{id}", new { Text = text });
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> AdminDeleteReviewAsync(int id)
+    {
+        var response = await _http.DeleteAsync($"v1/reports/review/{id}");
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> AdminDeleteCommentAsync(int id)
+    {
+        var response = await _http.DeleteAsync($"v1/reports/comment/{id}");
+        return response.IsSuccessStatusCode;
+    }
+
     // Notifications
     public async Task<List<NotificationDto>> GetMyNotificationsAsync()
     {
-        var response = await _http.GetFromJsonAsync<ApiResponse<List<NotificationDto>>>("v1/notifications");
-        return response?.Data ?? new List<NotificationDto>();
+        try
+        {
+            var response = await _http.GetFromJsonAsync<ApiResponse<List<NotificationDto>>>("v1/notifications");
+            return response?.Data ?? new List<NotificationDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ANTIGRAVITY_LOG: GetMyNotificationsAsync failed: {ex.Message}");
+            return new List<NotificationDto>();
+        }
+    }
+
+    public async Task<int> GetUnreadNotificationsCountAsync()
+    {
+        try
+        {
+            var response = await _http.GetFromJsonAsync<ApiResponse<int>>("v1/notifications/unread-count");
+            return response?.Data ?? 0;
+        }
+        catch
+        {
+            return 0;
+        }
     }
 
     public async Task<bool> MarkNotificationAsReadAsync(int id)
     {
-        var response = await _http.PostAsync($"v1/notifications/{id}/read", null);
-        return response.IsSuccessStatusCode;
+        try
+        {
+            var response = await _http.PostAsync($"v1/notifications/{id}/read", null);
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public async Task<bool> RecordShareAsync(string itemType, int itemId)
@@ -1488,6 +1603,7 @@ public class ReviewResultDto
     public double NewAverage { get; set; }
     public int RatersCount { get; set; }
     public string ReviewerName { get; set; } = string.Empty;
+    public string? ReviewerAvatar { get; set; }
 }
 
 public class CreateCommentRequest
@@ -1547,4 +1663,42 @@ public class FavoriteResultDto
 {
     public bool IsFavorite { get; set; }
     public int FavoritesCount { get; set; }
+}
+
+// ── Moderation DTOs ───────────────────────────────────────────────────────────
+public class ContentReportDto
+{
+    public int    Id            { get; set; }
+    public int    TargetType    { get; set; }  // 1=Review, 2=Comment
+    public int    TargetId      { get; set; }
+    public string TargetPreview { get; set; } = string.Empty;
+    public string ReporterId    { get; set; } = string.Empty;
+    public string ReporterName  { get; set; } = string.Empty;
+    public string Reason        { get; set; } = string.Empty;
+    public int    Status        { get; set; }  // 0=Pending, 1=Resolved, 2=Dismissed
+    public string? AdminNote    { get; set; }
+    public DateTime  CreatedAt  { get; set; }
+    public DateTime? ResolvedAt { get; set; }
+}
+
+public class AdminReviewDto
+{
+    public int      Id          { get; set; }
+    public int      ServiceId   { get; set; }
+    public string   ServiceName { get; set; } = string.Empty;
+    public string   UserId      { get; set; } = string.Empty;
+    public string   UserName    { get; set; } = string.Empty;
+    public int      Stars       { get; set; }
+    public string   Comment     { get; set; } = string.Empty;
+    public DateTime CreatedAt   { get; set; }
+}
+
+public class AdminCommentDto
+{
+    public int      Id        { get; set; }
+    public int      PostId    { get; set; }
+    public string   UserId    { get; set; } = string.Empty;
+    public string   UserName  { get; set; } = string.Empty;
+    public string   Text      { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
 }

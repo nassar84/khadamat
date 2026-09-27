@@ -429,8 +429,21 @@ public class AdminController : ControllerBase
             user.IsProvider = true;
             user.IsVerified = true;
             await _userManager.UpdateAsync(user);
-
         }
+
+        // Notify Provider
+        try
+        {
+            var notif = new Domain.Entities.Notification(
+                provider.UserId,
+                "تم قبول حسابك كمقدم خدمة 🎉",
+                "تهانينا! تمت مراجعة حسابك وتفعيله بنجاح، يمكنك الآن إدارة خدماتك واستقبال الطلبات.",
+                "Admin",
+                "/provider/dashboard"
+            );
+            _context.Notifications.Add(notif);
+        }
+        catch { }
 
         await _context.SaveChangesAsync();
         return Ok(ApiResponse<bool>.Succeed(true));
@@ -441,6 +454,22 @@ public class AdminController : ControllerBase
     {
         var provider = await _context.ProviderProfiles.FindAsync(id);
         if (provider == null) return NotFound();
+
+        var userId = provider.UserId;
+
+        // Notify Provider
+        try
+        {
+            var notif = new Domain.Entities.Notification(
+                userId,
+                "تحديث بشأن طلب الانضمام كمقدم خدمة",
+                "نأسف لإبلاغك بأنه لم يتم قبول طلب الانضمام في الوقت الحالي، يمكنك مراجعة بياناتك والتواصل مع الإدارة.",
+                "Admin",
+                "/profile"
+            );
+            _context.Notifications.Add(notif);
+        }
+        catch { }
 
         _context.ProviderProfiles.Remove(provider);
         await _context.SaveChangesAsync();
@@ -542,6 +571,24 @@ public class AdminController : ControllerBase
             }
         }
 
+        // Notify Service Owner
+        try
+        {
+            var ownerUserId = service.UserCreated ?? provider?.UserId;
+            if (!string.IsNullOrEmpty(ownerUserId))
+            {
+                var notif = new Domain.Entities.Notification(
+                    ownerUserId,
+                    "تمت الموافقة على خدمتك 🎉",
+                    $"تمت مراجعة خدمتك \"{service.Name}\" والموافقة على نشرها، وهي متاحة الآن للعملاء على المنصة.",
+                    "Admin",
+                    $"/service/{service.Id}"
+                );
+                _context.Notifications.Add(notif);
+            }
+        }
+        catch { }
+
         await _context.SaveChangesAsync();
         return Ok(ApiResponse<bool>.Succeed(true));
     }
@@ -551,6 +598,29 @@ public class AdminController : ControllerBase
     {
         var service = await _context.Services.FindAsync(id);
         if (service == null) return NotFound();
+
+        // Notify Service Owner before soft delete
+        try
+        {
+            var ownerUserId = service.UserCreated;
+            if (string.IsNullOrEmpty(ownerUserId))
+            {
+                var p = await _context.ProviderProfiles.FindAsync(service.ProviderProfileId);
+                ownerUserId = p?.UserId;
+            }
+            if (!string.IsNullOrEmpty(ownerUserId))
+            {
+                var notif = new Domain.Entities.Notification(
+                    ownerUserId,
+                    "تحديث بشأن خدمتك",
+                    $"تم رفض نشر خدمتك \"{service.Name}\" من قبل الإدارة.",
+                    "Admin",
+                    "/provider/my-services"
+                );
+                _context.Notifications.Add(notif);
+            }
+        }
+        catch { }
 
         // Soft Delete
         service.Reject("تم الرفض أو الحذف بواسطة المدير");

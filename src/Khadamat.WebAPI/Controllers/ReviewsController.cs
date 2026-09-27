@@ -23,23 +23,25 @@ public class ReviewsController : ControllerBase
     [HttpGet("service/{serviceId}")]
     public async Task<ActionResult<ApiResponse<List<ReviewDto>>>> GetServiceReviews(int serviceId)
     {
-        // Join with Users to get reviewer name/avatar
-        // Note: Cross-context join (Identity + App) might be tricky if not in same DB context. 
-        // Assuming Identity is same DB or we fetch separately. 
-        // For simplicity here, Assuming monolithic context or ignore user details fetch optimization.
-        
         var ratings = await _context.Ratings
             .Where(r => r.ServiceId == serviceId)
             .OrderByDescending(r => r.Date)
             .ToListAsync();
 
-        // In a real app we'd fetch user details here. For now returning IDs or placeholders is acceptable if tight on time.
-        // Or we can assume we only need the review content.
-        
+        var userIds = ratings.Select(r => r.UserId).Distinct().ToList();
+        var users = await _context.Users
+            .Where(u => userIds.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id, u => new {
+                Name = !string.IsNullOrWhiteSpace(u.FullName) ? u.FullName : (!string.IsNullOrWhiteSpace(u.UserName) ? u.UserName : "مستخدم"),
+                Avatar = u.ProfileImageUrl
+            });
+
         var reviews = ratings.Select(r => new ReviewDto
         {
             Id = r.Id,
-            UserName = "User", // Placeholder, requires Identity fetch
+            UserId = r.UserId,
+            UserName = users.TryGetValue(r.UserId, out var u) ? u.Name : "مستخدم",
+            UserAvatar = users.TryGetValue(r.UserId, out var u2) ? u2.Avatar : null,
             Rating = r.Stars,
             Comment = r.Comment,
             CreatedAt = r.Date
@@ -98,12 +100,15 @@ public class ReviewsController : ControllerBase
         var existingRating = await _context.Ratings
             .FirstOrDefaultAsync(r => r.ServiceId == request.ServiceId && r.UserId == userId);
 
+        int reviewId = 0;
         if (existingRating != null)
         {
             // Update existing rating
             existingRating.Stars   = request.Rating;
             existingRating.Comment = request.Comment ?? string.Empty;
             existingRating.Date    = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            reviewId = existingRating.Id;
         }
         else
         {
@@ -116,9 +121,9 @@ public class ReviewsController : ControllerBase
                 request.ServiceRequestId.HasValue && request.ServiceRequestId.Value > 0 ? request.ServiceRequestId : null
             );
             _context.Ratings.Add(newRating);
+            await _context.SaveChangesAsync();
+            reviewId = newRating.Id;
         }
-
-        await _context.SaveChangesAsync();
 
         // Recalculate service average
         var allRatings = await _context.Ratings
@@ -132,17 +137,48 @@ public class ReviewsController : ControllerBase
         var user = await _context.Users.FindAsync(userId);
         string userName = !string.IsNullOrWhiteSpace(user?.FullName)
             ? user.FullName
-            : (user?.UserName ?? "مستخدم");
+            : (!string.IsNullOrWhiteSpace(user?.UserName) ? user.UserName : "مستخدم");
 
         var result = new ReviewResultDto
         {
-            ReviewId    = existingRating?.Id ?? 0,
-            NewAverage  = Math.Round(newAvg, 1),
-            RatersCount = newCount,
-            ReviewerName = userName
+            ReviewId     = reviewId,
+            NewAverage   = Math.Round(newAvg, 1),
+            RatersCount  = newCount,
+            ReviewerName = userName,
+            ReviewerAvatar = user?.ProfileImageUrl
         };
 
         return Ok(ApiResponse<ReviewResultDto>.Succeed(result));
+    }
+
+    [HttpPut("{id}")]
+    [Authorize]
+    public async Task<IActionResult> EditReview(int id, [FromBody] EditReviewRequest request)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        var review = await _context.Ratings.FindAsync(id);
+        if (review == null) return NotFound();
+
+        // Owner can edit their own; Admin can edit any
+        if (review.UserId != userId && !User.IsInRole("Admin"))
+            return Forbid();
+
+        if (request.Rating.HasValue)
+        {
+            if (request.Rating < 1 || request.Rating > 5)
+                return BadRequest(ApiResponse<bool>.Fail("التقييم يجب أن يكون من 1 إلى 5"));
+            review.Stars = request.Rating.Value;
+        }
+
+        if (request.Comment != null)
+            review.Comment = request.Comment;
+
+        review.Date = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        return Ok(ApiResponse<bool>.Succeed(true));
     }
 
     [HttpDelete("{id}")]
@@ -164,6 +200,63 @@ public class ReviewsController : ControllerBase
 
         return Ok(ApiResponse<bool>.Succeed(true));
     }
+
+    // ── Admin: list all reviews with filters ──────────────────────────────
+    [HttpGet("admin/all")]
+    [Authorize(Roles = "Admin,SystemAdmin,SuperAdmin")]
+    public async Task<ActionResult<ApiResponse<List<AdminReviewDto>>>> AdminGetAllReviews(
+        [FromQuery] int? serviceId, [FromQuery] int? stars, [FromQuery] int page = 1, [FromQuery] int pageSize = 30)
+    {
+        var query = _context.Ratings.AsQueryable();
+        if (serviceId.HasValue) query = query.Where(r => r.ServiceId == serviceId.Value);
+        if (stars.HasValue)     query = query.Where(r => r.Stars == stars.Value);
+
+        var total = await query.CountAsync();
+        var items = await query
+            .OrderByDescending(r => r.Date)
+            .Skip((page - 1) * pageSize).Take(pageSize)
+            .Select(r => new AdminReviewDto
+            {
+                Id         = r.Id,
+                ServiceId  = r.ServiceId,
+                UserId     = r.UserId,
+                Stars      = r.Stars,
+                Comment    = r.Comment,
+                CreatedAt  = r.Date
+            }).ToListAsync();
+
+        // Enrich with names
+        var uids = items.Select(i => i.UserId).Distinct().ToList();
+        var sids = items.Select(i => i.ServiceId).Distinct().ToList();
+        var users    = await _context.Users.Where(u => uids.Contains(u.Id)).ToDictionaryAsync(u => u.Id, u => u.FullName ?? u.UserName ?? "مستخدم");
+        var services = await _context.Services.Where(s => sids.Contains(s.Id)).ToDictionaryAsync(s => s.Id, s => s.Name);
+
+        foreach (var item in items)
+        {
+            item.UserName    = users.TryGetValue(item.UserId, out var un) ? un : "مستخدم";
+            item.ServiceName = services.TryGetValue(item.ServiceId, out var sn) ? sn : "خدمة";
+        }
+
+        return Ok(ApiResponse<List<AdminReviewDto>>.Succeed(items));
+    }
+}
+
+public class EditReviewRequest
+{
+    public int?    Rating  { get; set; }
+    public string? Comment { get; set; }
+}
+
+public class AdminReviewDto
+{
+    public int      Id          { get; set; }
+    public int      ServiceId   { get; set; }
+    public string   ServiceName { get; set; } = string.Empty;
+    public string   UserId      { get; set; } = string.Empty;
+    public string   UserName    { get; set; } = string.Empty;
+    public int      Stars       { get; set; }
+    public string   Comment     { get; set; } = string.Empty;
+    public DateTime CreatedAt   { get; set; }
 }
 
 public class CreateReviewRequest
@@ -190,4 +283,5 @@ public class ReviewResultDto
     public double NewAverage { get; set; }
     public int RatersCount { get; set; }
     public string ReviewerName { get; set; } = string.Empty;
+    public string? ReviewerAvatar { get; set; }
 }

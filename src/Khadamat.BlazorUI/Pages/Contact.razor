@@ -2,77 +2,120 @@
 @inject Khadamat.BlazorUI.State.AppState State
 @inject IJSRuntime JS
 
-<div class="container py-5" style="max-width:840px;">
-    <div class="mb-5 text-center animate-up">
-        <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success rounded-4 mb-3"
-             style="width:70px;height:70px;font-size:1.8rem;">
+@* ──── ثوابت التواصل ──── *@
+@{
+    const string WhatsAppNumber = "201065016032";
+    const string WhatsAppUrl    = "https://wa.me/" + WhatsAppNumber;
+    const string SupportEmail   = "support@khadamat.app";
+    const string SupportHours   = "السبت – الخميس: 9ص – 9م";
+}
+
+<div class="contact-page container py-4" style="max-width:860px;">
+
+    <!-- ── رأس الصفحة ── -->
+    <div class="mb-4 text-center animate-up">
+        <div class="page-icon-wrap mx-auto mb-3">
             <i class="fa-solid fa-headset"></i>
         </div>
-        <h1 class="fw-bold mb-2">تواصل معنا</h1>
-        <p class="text-muted">نحن هنا لمساعدتك. أرسل لنا رسالتك وسنرد عليك في أقرب وقت.</p>
+        <h1 class="fw-bold mb-1">تواصل معنا</h1>
+        <p class="text-muted">نحن هنا لمساعدتك على مدار الساعة.</p>
     </div>
 
-    <div class="row g-4">
-        <!-- Contact Info -->
+    <!-- ── زر واتساب البارز ── -->
+    <a href="@WhatsAppUrl?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D8%8C%20%D8%A3%D8%AD%D8%AA%D8%A7%D8%AC%20%D9%85%D8%B3%D8%A7%D8%B9%D8%AF%D8%A9"
+       target="_blank"
+       class="whatsapp-hero d-flex align-items-center justify-content-between animate-up"
+       style="--delay:0.05s">
+        <div class="d-flex align-items-center gap-3">
+            <div class="wa-icon-wrap">
+                <i class="fa-brands fa-whatsapp"></i>
+            </div>
+            <div class="text-start">
+                <div class="fw-bold fs-5">تواصل عبر واتساب</div>
+                <div class="wa-sub">اضغط هنا للتحدث مع فريق الدعم مباشرةً</div>
+                <div class="wa-number">+@WhatsAppNumber</div>
+            </div>
+        </div>
+        <div class="wa-arrow">
+            <i class="fa-solid fa-arrow-left fs-4"></i>
+        </div>
+    </a>
+
+    <!-- ── معلومات + النموذج ── -->
+    <div class="row g-4 mt-1">
+
+        <!-- معلومات التواصل -->
         <div class="col-md-5">
-            <div class="glass-card p-4 h-100 animate-up" style="--delay:0.05s">
-                <h5 class="fw-bold mb-4">معلومات التواصل</h5>
+            <div class="glass-card p-4 h-100 animate-up" style="--delay:0.1s">
+                <h5 class="fw-bold mb-4">طرق التواصل</h5>
 
-                <div class="contact-info-item mb-4">
-                    <div class="contact-icon bg-primary-soft text-primary">
-                        <i class="fa-solid fa-envelope"></i>
+                <!-- واتساب -->
+                <a href="@WhatsAppUrl" target="_blank" class="contact-method-link mb-3">
+                    <div class="contact-method wa-method">
+                        <div class="cm-icon">
+                            <i class="fa-brands fa-whatsapp"></i>
+                        </div>
+                        <div class="cm-body">
+                            <div class="cm-label">واتساب</div>
+                            <div class="cm-value">@("+20 106 5016032")</div>
+                        </div>
+                        <i class="fa-solid fa-arrow-up-right-from-square cm-ext text-success"></i>
                     </div>
-                    <div>
-                        <div class="fw-bold small mb-1">البريد الإلكتروني</div>
-                        <a href="mailto:support@khadamat.app" class="text-muted small text-decoration-none">
-                            support@khadamat.app
-                        </a>
-                    </div>
-                </div>
+                </a>
 
-                <div class="contact-info-item mb-4">
-                    <div class="contact-icon bg-success-soft text-success">
-                        <i class="fa-brands fa-whatsapp"></i>
+                <!-- البريد الإلكتروني -->
+                <a href="mailto:@SupportEmail" class="contact-method-link mb-3">
+                    <div class="contact-method email-method">
+                        <div class="cm-icon">
+                            <i class="fa-solid fa-envelope"></i>
+                        </div>
+                        <div class="cm-body">
+                            <div class="cm-label">البريد الإلكتروني</div>
+                            <div class="cm-value">@SupportEmail</div>
+                        </div>
+                        <i class="fa-solid fa-arrow-up-right-from-square cm-ext"></i>
                     </div>
-                    <div>
-                        <div class="fw-bold small mb-1">واتساب</div>
-                        <a href="https://wa.me/20100000000" target="_blank" class="text-muted small text-decoration-none">
-                            20100000000+
-                        </a>
-                    </div>
-                </div>
+                </a>
 
-                <div class="contact-info-item mb-4">
-                    <div class="contact-icon bg-warning-soft text-warning">
+                <!-- ساعات الدعم -->
+                <div class="contact-method clock-method mb-3">
+                    <div class="cm-icon">
                         <i class="fa-solid fa-clock"></i>
                     </div>
-                    <div>
-                        <div class="fw-bold small mb-1">ساعات الدعم</div>
-                        <span class="text-muted small">السبت – الخميس: 9ص – 9م</span>
+                    <div class="cm-body">
+                        <div class="cm-label">ساعات الدعم</div>
+                        <div class="cm-value">@SupportHours</div>
                     </div>
                 </div>
 
                 <hr class="my-4" />
 
                 <h6 class="fw-bold mb-3">تابعنا على</h6>
-                <div class="d-flex gap-3">
-                    <a href="#" class="social-circle bg-primary-soft text-primary">
-                        <i class="fa-brands fa-facebook-f"></i>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="#" class="social-pill facebook">
+                        <i class="fa-brands fa-facebook-f me-1"></i> فيسبوك
                     </a>
-                    <a href="#" class="social-circle bg-danger-soft text-danger">
-                        <i class="fa-brands fa-instagram"></i>
+                    <a href="#" class="social-pill instagram">
+                        <i class="fa-brands fa-instagram me-1"></i> إنستجرام
                     </a>
-                    <a href="#" class="social-circle" style="background:rgba(29,161,242,0.1);color:#1da1f2;">
-                        <i class="fa-brands fa-x-twitter"></i>
+                    <a href="@WhatsAppUrl" target="_blank" class="social-pill whatsapp">
+                        <i class="fa-brands fa-whatsapp me-1"></i> واتساب
                     </a>
                 </div>
             </div>
         </div>
 
-        <!-- Contact Form -->
+        <!-- نموذج التواصل -->
         <div class="col-md-7">
-            <div class="glass-card p-4 animate-up" style="--delay:0.1s">
-                <h5 class="fw-bold mb-4">أرسل رسالتك</h5>
+            <div class="glass-card p-4 animate-up" style="--delay:0.15s">
+                <h5 class="fw-bold mb-1">أرسل رسالتك</h5>
+                <p class="text-muted small mb-4">
+                    أو راسلنا مباشرة عبر
+                    <a href="@WhatsAppUrl" target="_blank" class="text-success fw-bold text-decoration-none">
+                        <i class="fa-brands fa-whatsapp me-1"></i>واتساب
+                    </a>
+                    للرد الفوري.
+                </p>
 
                 @if (submitted)
                 {
@@ -81,40 +124,46 @@
                             <i class="fa-solid fa-check fs-2 text-white"></i>
                         </div>
                         <h5 class="fw-bold">تم الإرسال بنجاح!</h5>
-                        <p class="text-muted">شكراً لتواصلك معنا، سنرد عليك في غضون 24 ساعة.</p>
-                        <button class="btn btn-outline-primary rounded-pill mt-2"
-                                @onclick="() => submitted = false">
-                            إرسال رسالة أخرى
-                        </button>
+                        <p class="text-muted">شكراً لتواصلك معنا، سنرد عليك في أقرب وقت.</p>
+                        <div class="d-flex gap-2 justify-content-center flex-wrap mt-3">
+                            <button class="btn btn-outline-primary rounded-pill px-4"
+                                    @onclick="() => submitted = false">
+                                إرسال رسالة أخرى
+                            </button>
+                            <a href="@WhatsAppUrl" target="_blank"
+                               class="btn btn-success rounded-pill px-4">
+                                <i class="fa-brands fa-whatsapp me-2"></i>واتساب مباشر
+                            </a>
+                        </div>
                     </div>
                 }
                 else
                 {
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">الاسم الكامل</label>
-                        <input type="text" class="form-control premium-input" @bind="form.Name"
+                        <label class="form-label small fw-bold">الاسم الكامل <span class="text-danger">*</span></label>
+                        <input id="contact-name" type="text" class="form-control premium-input" @bind="form.Name"
                                placeholder="أدخل اسمك بالكامل" />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">البريد الإلكتروني</label>
-                        <input type="email" class="form-control premium-input" @bind="form.Email"
-                               placeholder="example@email.com" />
+                        <label class="form-label small fw-bold">رقم الواتساب أو البريد الإلكتروني <span class="text-danger">*</span></label>
+                        <input id="contact-email" type="text" class="form-control premium-input" @bind="form.Email"
+                               placeholder="01xxxxxxxxx أو example@email.com" />
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold">الموضوع</label>
-                        <select class="form-select premium-input" @bind="form.Subject">
+                        <select id="contact-subject" class="form-select premium-input" @bind="form.Subject">
                             <option value="">-- اختر موضوع الرسالة --</option>
                             <option value="technical">مشكلة تقنية</option>
                             <option value="account">مشكلة في الحساب</option>
-                            <option value="provider">الانضمام كمزود</option>
+                            <option value="provider">الانضمام كمزود خدمة</option>
                             <option value="complaint">شكوى</option>
                             <option value="suggestion">اقتراح</option>
                             <option value="other">أخرى</option>
                         </select>
                     </div>
                     <div class="mb-4">
-                        <label class="form-label small fw-bold">الرسالة</label>
-                        <textarea class="form-control premium-input" @bind="form.Message" rows="4"
+                        <label class="form-label small fw-bold">الرسالة <span class="text-danger">*</span></label>
+                        <textarea id="contact-message" class="form-control premium-input" @bind="form.Message" rows="4"
                                   placeholder="اكتب تفاصيل رسالتك هنا..."></textarea>
                     </div>
 
@@ -125,19 +174,34 @@
                         </div>
                     }
 
-                    <button class="btn btn-primary-premium w-100 py-3 rounded-pill fw-bold shadow-sm"
-                            @onclick="HandleSubmit" disabled="@isSending">
-                        @if (isSending)
-                        {
-                            <span class="spinner-border spinner-border-sm me-2"></span>
-                            <span>جاري الإرسال...</span>
-                        }
-                        else
-                        {
-                            <i class="fa-solid fa-paper-plane me-2"></i>
-                            <span>إرسال الرسالة</span>
-                        }
-                    </button>
+                    <!-- أزرار الإرسال -->
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button id="contact-submit-btn"
+                                class="btn btn-primary-premium flex-fill py-3 rounded-pill fw-bold"
+                                @onclick="HandleSubmit" disabled="@isSending">
+                            @if (isSending)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                <span>جاري الإرسال...</span>
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-paper-plane me-2"></i>
+                                <span>إرسال الرسالة</span>
+                            }
+                        </button>
+
+                        <a href="@BuildWhatsAppUrl()" target="_blank"
+                           class="btn btn-whatsapp-send flex-fill py-3 rounded-pill fw-bold">
+                            <i class="fa-brands fa-whatsapp me-2 fs-5"></i>
+                            واتساب مباشر
+                        </a>
+                    </div>
+
+                    <p class="text-muted small text-center mt-3 mb-0">
+                        <i class="fa-solid fa-bolt text-warning me-1"></i>
+                        للرد الأسرع، تواصل معنا مباشرة عبر واتساب
+                    </p>
                 }
             </div>
         </div>
@@ -145,87 +209,179 @@
 </div>
 
 <style>
-    .contact-info-item {
-        display: flex;
-        align-items: flex-start;
-        gap: 1rem;
+    /* ── صفحة التواصل ── */
+    .contact-page { padding-bottom: 80px; }
+
+    /* أيقونة العنوان */
+    .page-icon-wrap {
+        width: 72px; height: 72px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.8rem; color: white;
+        box-shadow: 0 8px 24px rgba(16,185,129,.3);
     }
 
-    .contact-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 14px;
+    /* ── زر واتساب البارز ── */
+    .whatsapp-hero {
         display: flex;
-        align-items: center;
-        justify-content: center;
+        background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+        border-radius: 20px;
+        padding: 20px 24px;
+        color: white !important;
+        text-decoration: none !important;
+        box-shadow: 0 8px 32px rgba(37,211,102,.35);
+        transition: transform .25s, box-shadow .25s;
+        margin-bottom: 8px;
+    }
+    .whatsapp-hero:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 14px 40px rgba(37,211,102,.45);
+    }
+    .wa-icon-wrap {
+        width: 60px; height: 60px;
+        background: rgba(255,255,255,.2);
+        border-radius: 18px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 2rem;
+        flex-shrink: 0;
+    }
+    .wa-sub  { font-size: .85rem; opacity: .85; margin-top: 2px; }
+    .wa-number {
+        font-size: .9rem; font-weight: 700;
+        letter-spacing: 1px;
+        margin-top: 4px;
+        opacity: .95;
+    }
+    .wa-arrow {
+        background: rgba(255,255,255,.15);
+        width: 44px; height: 44px;
+        border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        transform: rotate(180deg);
+    }
+
+    /* ── بطاقة طريقة التواصل ── */
+    .contact-method-link { text-decoration: none !important; display: block; }
+    .contact-method {
+        display: flex; align-items: center; gap: 12px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        border: 2px solid #f1f5f9;
+        background: #f8fafc;
+        transition: all .2s;
+        cursor: pointer;
+    }
+    .contact-method-link:hover .contact-method {
+        border-color: currentColor;
+        transform: translateX(-4px);
+    }
+    .wa-method    { border-color: rgba(37,211,102,.25); color: #25d366; }
+    .wa-method:hover { background: rgba(37,211,102,.06); }
+    .email-method { color: var(--theme-primary); }
+    .clock-method { color: #f59e0b; cursor: default; }
+    .cm-icon {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        background: currentColor;
+        background: rgba(var(--cm-rgb,99,102,241),.12);
+        display: flex; align-items: center; justify-content: center;
         font-size: 1.1rem;
         flex-shrink: 0;
     }
+    .wa-method    .cm-icon { background: rgba(37,211,102,.15); color: #25d366; }
+    .email-method .cm-icon { background: rgba(99,102,241,.12); color: var(--theme-primary); }
+    .clock-method .cm-icon { background: rgba(245,158,11,.12); color: #f59e0b; }
+    .cm-body   { flex: 1; }
+    .cm-label  { font-size: .75rem; color: #94a3b8; font-weight: 600; }
+    .cm-value  { font-size: .88rem; font-weight: 700; color: #1e293b; }
+    .cm-ext    { font-size: .75rem; opacity: .5; }
 
-    .social-circle {
-        width: 40px;
-        height: 40px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-decoration: none;
-        transition: transform 0.2s;
+    /* ── أزرار السوشيال ── */
+    .social-pill {
+        display: inline-flex; align-items: center;
+        padding: 6px 14px;
+        border-radius: 50px;
+        font-size: .82rem;
+        font-weight: 700;
+        text-decoration: none !important;
+        transition: transform .2s, box-shadow .2s;
     }
+    .social-pill:hover { transform: translateY(-2px); }
+    .social-pill.facebook  { background: rgba(59,89,152,.1); color: #3b5998; }
+    .social-pill.instagram { background: rgba(228,64,95,.1);  color: #e4405f; }
+    .social-pill.whatsapp  { background: rgba(37,211,102,.12); color: #25d366; }
 
-    .social-circle:hover { transform: translateY(-3px) scale(1.1); }
-
+    /* ── حقول النموذج ── */
     .premium-input {
         border: 2px solid #f1f5f9;
         background: #f8fafc;
         border-radius: 12px;
         padding: 10px 14px;
-        transition: all 0.2s;
+        transition: all .2s;
     }
-
     .premium-input:focus {
         background: white;
         border-color: var(--theme-primary);
-        box-shadow: 0 0 0 4px rgba(var(--theme-primary-rgb), 0.1);
+        box-shadow: 0 0 0 4px rgba(var(--theme-primary-rgb,42,127,143),.1);
         outline: none;
     }
 
+    /* ── زر واتساب إرسال ── */
+    .btn-whatsapp-send {
+        background: linear-gradient(135deg, #25d366, #128c7e);
+        color: white !important;
+        border: none;
+        box-shadow: 0 4px 16px rgba(37,211,102,.3);
+        transition: all .25s;
+    }
+    .btn-whatsapp-send:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(37,211,102,.4);
+        color: white !important;
+    }
+
+    /* ── دائرة النجاح ── */
     .success-circle {
-        width: 80px;
-        height: 80px;
+        width: 80px; height: 80px;
         background: linear-gradient(135deg, #10b981, #059669);
         border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 10px 30px rgba(16,185,129,.3);
     }
 
-    .bg-primary-soft { background: rgba(99, 102, 241, 0.1); }
-    .bg-success-soft { background: rgba(16, 185, 129, 0.1); }
-    .bg-warning-soft { background: rgba(245, 158, 11, 0.1); }
-    .bg-danger-soft  { background: rgba(239, 68, 68, 0.1); }
-
-    .animate-up { animation: fadeInUp 0.5s var(--delay, 0s) both; }
+    /* ── انيميشن ── */
+    .animate-up { animation: fadeInUp .45s var(--delay, 0s) both; }
     @@keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(20px); }
+        from { opacity: 0; transform: translateY(18px); }
         to   { opacity: 1; transform: translateY(0); }
     }
-
-    .animate-pop { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .animate-pop { animation: popIn .4s cubic-bezier(.175,.885,.32,1.275); }
     @@keyframes popIn {
-        from { transform: scale(0.8); opacity: 0; }
-        to   { transform: scale(1); opacity: 1; }
+        from { transform: scale(.8); opacity: 0; }
+        to   { transform: scale(1);  opacity: 1; }
     }
 </style>
 
 @code {
-    private ContactForm form = new();
-    private bool isSending = false;
-    private bool submitted = false;
-    private string? errorMsg;
+    private const string WaNumber = "201065016032";
+
+    private ContactForm form    = new();
+    private bool        isSending = false;
+    private bool        submitted = false;
+    private string?     errorMsg;
 
     [Inject] private Khadamat.BlazorUI.Services.ApiClient Api { get; set; } = default!;
+
+    /// بناء رابط واتساب يحتوي على بيانات النموذج مسبقاً
+    private string BuildWhatsAppUrl()
+    {
+        var msg = $"مرحباً، أنا {form.Name}.\n" +
+                  (!string.IsNullOrWhiteSpace(form.Subject) ? $"الموضوع: {SubjectLabel(form.Subject)}\n" : "") +
+                  (!string.IsNullOrWhiteSpace(form.Message)  ? $"\n{form.Message}" : "\nأحتاج مساعدة.");
+        return $"https://wa.me/{WaNumber}?text={Uri.EscapeDataString(msg)}";
+    }
 
     private async Task HandleSubmit()
     {
@@ -238,7 +394,7 @@
         }
 
         isSending = true;
-        errorMsg = null;
+        errorMsg  = null;
 
         try
         {
@@ -255,7 +411,7 @@
             if (result?.Success == true)
             {
                 submitted = true;
-                form = new();
+                form      = new();
             }
             else
             {
@@ -272,17 +428,27 @@
         }
     }
 
+    private static string SubjectLabel(string? type) => type switch
+    {
+        "technical"  => "مشكلة تقنية",
+        "account"    => "مشكلة في الحساب",
+        "provider"   => "الانضمام كمزود خدمة",
+        "complaint"  => "شكوى",
+        "suggestion" => "اقتراح",
+        _            => "استفسار عام"
+    };
+
     private class ContactForm
     {
-        public string Name { get; set; } = "";
-        public string Email { get; set; } = "";
+        public string Name    { get; set; } = "";
+        public string Email   { get; set; } = "";
         public string Subject { get; set; } = "";
         public string Message { get; set; } = "";
     }
 
     private class ContactResult
     {
-        public bool Success { get; set; }
+        public bool    Success { get; set; }
         public string? Message { get; set; }
     }
 }

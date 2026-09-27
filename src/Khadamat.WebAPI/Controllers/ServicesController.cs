@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Khadamat.Application.Features.Services.Queries;
 using Khadamat.Application.Features.Services.Commands;
 using Microsoft.AspNetCore.Authorization;
@@ -36,6 +37,18 @@ public class ServicesController : ControllerBase
     {
         var result = await _mediator.Send(new GetServiceByIdQuery(id));
         if (result == null) return NotFound();
+
+        // Check if current user favorited this service
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!string.IsNullOrEmpty(userId))
+        {
+            result.IsFavorite = await _context.Favorites.AnyAsync(f => f.UserId == userId && f.ServiceId == id);
+        }
+
+        // Ensure LikesCount reflects the actual count of favorites / likes
+        int favCount = await _context.Favorites.CountAsync(f => f.ServiceId == id);
+        result.LikesCount = Math.Max(result.LikesCount, favCount);
+
         return Ok(result);
     }
 

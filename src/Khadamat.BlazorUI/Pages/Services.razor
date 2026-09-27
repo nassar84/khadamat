@@ -1,8 +1,11 @@
 @page "/services"
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
+@using Khadamat.BlazorUI.State
 @inject ApiClient Api
+@inject AppState State
 @inject NavigationManager Navigation
+@inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider AuthStateProvider
 @implements IDisposable
 
 <div class="px-3 pt-3 pb-5">
@@ -51,6 +54,22 @@
             <button class="btn btn-link btn-sm text-muted p-0 ms-auto" @onclick="ClearAllFilters">مسح الكل</button>
         </div>
     }
+
+    <!-- بانر الفلترة التلقائية بالموقع -->
+    @if (_autoFilteredByLocation && !string.IsNullOrEmpty(_autoFilterLabel))
+    {
+        <div class="location-banner mb-3 d-flex align-items-center justify-content-between gap-2 animate-fade-in">
+            <div class="d-flex align-items-center gap-2">
+                <i class="fa-solid fa-location-dot text-primary"></i>
+                <span class="small fw-bold">يتم عرض الخدمات في: <strong>@_autoFilterLabel</strong></span>
+            </div>
+            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3"
+                    @onclick="ShowAllServices">
+                <i class="fa-solid fa-globe me-1"></i>عرض الكل
+            </button>
+        </div>
+    }
+
 
     <!-- Services List with Virtualize for performance -->
     <div class="row g-3">
@@ -227,6 +246,14 @@
     @@keyframes slideInLeft { from { transform: translateX(-100%); } to { transform: translateX(0); } }
     @@keyframes slideOutLeft { from { transform: translateX(0); } to { transform: translateX(-100%); } }
     .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+
+    /* بانر الفلترة بالموقع */
+    .location-banner {
+        background: linear-gradient(135deg, rgba(var(--theme-primary-rgb,42,127,143),.08), rgba(var(--theme-primary-rgb,42,127,143),.04));
+        border: 1px solid rgba(var(--theme-primary-rgb,42,127,143),.2);
+        border-radius: 12px;
+        padding: 10px 14px;
+    }
     
     /* Skeleton Loading System */
     .skeleton-box {
@@ -285,6 +312,10 @@
     private int? selectedCityId;
     private string? selectedCityName;
 
+    // فلترة تلقائية بالموقع
+    private bool   _autoFilteredByLocation = false;
+    private string? _autoFilterLabel;
+
     protected override void OnInitialized()
     {
         // Subscribe to LocationChanged to close filters on navigate
@@ -295,10 +326,37 @@
 
     private async Task LoadAllDataAsync()
     {
-        var initTask = LoadInitialData();
+        // ضبط فلتر الموقع مسبقاً من بيانات المستخدم
+        if (State.IsLoggedIn && State.CityId.HasValue)
+        {
+            selectedCityId   = State.CityId;
+            selectedGovId    = State.GovernorateId;
+            _autoFilteredByLocation = true;
+        }
+
+        var initTask     = LoadInitialData();
         var servicesTask = LoadServices();
-        
-        await Task.WhenAll(initTask, servicesTask);
+        var favsTask     = LoadFavoritesAsync();
+
+        await Task.WhenAll(initTask, servicesTask, favsTask);
+    }
+
+    private async Task LoadFavoritesAsync()
+    {
+        try
+        {
+            var auth = await AuthStateProvider.GetAuthenticationStateAsync();
+            if (auth.User.Identity?.IsAuthenticated == true && !State.FavoriteServiceIds.Any())
+            {
+                var favIds = await Api.GetMyFavoriteIdsAsync();
+                if (favIds.Any())
+                {
+                    State.FavoriteServiceIds = new HashSet<int>(favIds);
+                    StateHasChanged();
+                }
+            }
+        }
+        catch { }
     }
 
     // ✅ FIX: Memory Leak — unsubscribe from LocationChanged event
@@ -364,21 +422,69 @@
         try
         {
             services = null;
-            var result = await Api.GetServicesAsync(
-                search: currentSearch, 
-                categoryId: selectedCategoryId,
-                governorateId: selectedGovId,
-                cityId: selectedCityId,
-                sortBy: currentFilter == "" ? "latest" : currentFilter
-            );
-            
-            if (result?.Items != null)
+            _autoFilterLabel = null;
+
+            // ── المستخدم مسجل: فلترة تلقائية بالمدينة ثم المحافظة
+            if (_autoFilteredByLocation && State.IsLoggedIn)
             {
-                services = result.Items;
+                // أولاً: تجربة بالمدينة
+                if (selectedCityId.HasValue)
+                {
+                    var cityResult = await Api.GetServicesAsync(
+                        search: currentSearch,
+                        categoryId: selectedCategoryId,
+                        cityId: selectedCityId,
+                        sortBy: currentFilter == "" ? "latest" : currentFilter
+                    );
+
+                    if (cityResult?.Items != null && cityResult.Items.Any())
+                    {
+                        services = cityResult.Items;
+                        _autoFilterLabel = cityResult.Items.FirstOrDefault()?.CityName ?? selectedCityName;
+                        StateHasChanged();
+                        return;
+                    }
+                }
+
+                // ثانياً: لا نتائج في المدينة → جرب المحافظة
+                if (selectedGovId.HasValue)
+                {
+                    var govResult = await Api.GetServicesAsync(
+                        search: currentSearch,
+                        categoryId: selectedCategoryId,
+                        governorateId: selectedGovId,
+                        sortBy: currentFilter == "" ? "latest" : currentFilter
+                    );
+
+                    if (govResult?.Items != null && govResult.Items.Any())
+                    {
+                        services = govResult.Items;
+                        _autoFilterLabel = govResult.Items.FirstOrDefault()?.GovernorateName ?? selectedGovName;
+                        StateHasChanged();
+                        return;
+                    }
+                }
+
+                // ثالثاً: لا نتائج في المدينة ولا المحافظة → أظهر كل الخدمات
+                var allResult = await Api.GetServicesAsync(
+                    search: currentSearch,
+                    categoryId: selectedCategoryId,
+                    sortBy: currentFilter == "" ? "latest" : currentFilter
+                );
+                services = allResult?.Items ?? new List<ServiceDto>();
+                _autoFilterLabel = null;
             }
             else
             {
-                services = new List<ServiceDto>();
+                // الفلترة اليدوية العادية
+                var result = await Api.GetServicesAsync(
+                    search: currentSearch,
+                    categoryId: selectedCategoryId,
+                    governorateId: selectedGovId,
+                    cityId: selectedCityId,
+                    sortBy: currentFilter == "" ? "latest" : currentFilter
+                );
+                services = result?.Items ?? new List<ServiceDto>();
             }
         }
         catch (Exception ex)
@@ -486,16 +592,30 @@
 
     private async Task ClearAllFilters()
     {
-        selectedCategoryId = null;
-        selectedCategoryName = null;
-        selectedGovId = null;
-        selectedGovName = null;
-        selectedCityId = null;
-        selectedCityName = null;
-        currentSearch = null;
-        currentFilter = "";
-        cities = null;
+        selectedCategoryId      = null;
+        selectedCategoryName    = null;
+        selectedGovId           = null;
+        selectedGovName         = null;
+        selectedCityId          = null;
+        selectedCityName        = null;
+        currentSearch           = null;
+        currentFilter           = "";
+        cities                  = null;
+        _autoFilteredByLocation = false;
+        _autoFilterLabel        = null;
         await LoadServices();
         if (showFilters) await ToggleFilters();
+    }
+
+    // عرض جميع الخدمات بإلغاء الفلترة التلقائية بالموقع
+    private async Task ShowAllServices()
+    {
+        _autoFilteredByLocation = false;
+        _autoFilterLabel        = null;
+        selectedCityId          = null;
+        selectedCityName        = null;
+        selectedGovId           = null;
+        selectedGovName         = null;
+        await LoadServices();
     }
 }

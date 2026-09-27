@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Google Play requirement: Min SDK 24 (Android 7.0), Target SDK 34 (Android 14) -->
+    <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="34" />
+
     <application 
         android:name="com.nassar84.khadamat.MainApplication"
         android:allowBackup="false" 
@@ -102,9 +105,6 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-feature android:name="android.hardware.location" android:required="false" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
-    
-    <!-- Phone -->
-    <uses-permission android:name="android.permission.CALL_PHONE" />
     
     <!-- Notifications (Android 13+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />

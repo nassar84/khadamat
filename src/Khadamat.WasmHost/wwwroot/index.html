@@ -7,23 +7,84 @@
     <title>خدماوي | Khadamawy</title>
     <base href="/" />
 
+    <!-- SEO: Primary Meta Tags -->
+    <meta name="title" content="خدماوي - Khadamawy | منصة الخدمات المتكاملة" />
+    <meta name="description" content="اكتشف وطلب أفضل الخدمات في مكان واحد. خدماوي يوفر لك فنيين محترفين، سباكة، كهرباء، نجارة، دهانات، وخدمات منزلية متنوعة بسهولة وأمان في مصر." />
+    <meta name="keywords" content="خدماوي, خدمات منزلية, فنيين, سباكة, كهرباء, نجارة, دهانات, تكييف, صيانة, مصر, Khadamawy, home services, technicians, Egypt" />
+    <meta name="author" content="Khadamawy Team" />
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="Arabic" />
+    <meta name="revisit-after" content="7 days" />
+    <meta name="rating" content="general" />
+    <link rel="canonical" href="https://khadamat.vercel.app" />
+
     <!-- Social Media Meta Tags (Open Graph) -->
     <meta property="og:title" content="خدماوي - Khadamawy | منصة الخدمات المتكاملة" />
     <meta property="og:description" content="اكتشف وطلب أفضل الخدمات في مكان واحد. خدماوي يوفر لك فنيين محترفين وخدمات متنوعة بسهولة وأمان." />
-    <meta property="og:image" content="/logo.png" />
+    <meta property="og:image" content="https://khadamat.vercel.app/logo.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:image:alt" content="شعار خدماوي - منصة الخدمات المتكاملة" />
     <meta property="og:url" content="https://khadamat.vercel.app" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="خدماوي - Khadamawy" />
+    <meta property="og:locale" content="ar_EG" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="خدماوي - Khadamawy | منصة الخدمات المتكاملة" />
-    <meta name="twitter:description" content="اكتشف وطلب أفضل الخدمات في مكان واحد." />
-    <meta name="twitter:image" content="/logo.png" />
+    <meta name="twitter:description" content="اكتشف وطلب أفضل الخدمات في مكان واحد. فنيين محترفين في مصر." />
+    <meta name="twitter:image" content="https://khadamat.vercel.app/logo.png" />
+    <meta name="twitter:image:alt" content="خدماوي - Khadamawy" />
     <meta name="theme-color" content="#2a7f8f" />
     <meta name="apple-mobile-web-app-title" content="خدماوي" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
-    <!-- Fonts -->
+    <!-- Structured Data (JSON-LD) for Search Engines -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "خدماوي - Khadamawy",
+      "alternateName": "Khadamawy",
+      "url": "https://khadamat.vercel.app",
+      "description": "منصة الخدمات المتكاملة في مصر - فنيين محترفين لجميع الخدمات المنزلية",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://khadamat.vercel.app/search?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Khadamawy",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://khadamat.vercel.app/logo.png"
+        }
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "خدماوي - Khadamawy",
+      "url": "https://khadamat.vercel.app",
+      "logo": "https://khadamat.vercel.app/logo.png",
+      "description": "منصة الخدمات المنزلية المتكاملة في مصر",
+      "areaServed": {
+        "@type": "Country",
+        "name": "Egypt"
+      },
+      "serviceType": ["Home Services", "Technical Services", "Plumbing", "Electrical", "Carpentry", "Painting", "Air Conditioning"]
+    }
+    </script>
+
+    <!-- Antigravity Update: 2026-09-27 (SEO Enhancement) -->
+    <meta name="version" content="1.2.1-20260927" />
+    <link href="Khadamat.WasmHost.styles.css" rel="stylesheet" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -439,16 +500,19 @@
         };
 
         // 5. Native share on mobile or custom share dialog on desktop
-        window.shareCardWithPlatform = async (elementId, shareUrl, fileName, shareText) => {
+        window.shareCardWithPlatform = async (elementId, shareUrl, fileName, shareText, imageUrl) => {
             const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
             const isNative = (navigator.userAgent && navigator.userAgent.indexOf('KhadamatNativeApp') !== -1) ||
                              window.location.search.indexOf('nativeapp=1') !== -1 || 
                              sessionStorage.getItem('nativeapp') === '1';
 
-            // In native mobile app: immediately trigger native system share dialog
+            // In native mobile app: immediately trigger native system share dialog with image
             if (isNative) {
                 const fullText = (shareText ? shareText + '\n\n' : '') + (shareUrl || '');
-                window.location.href = 'khadamat://share?title=' + encodeURIComponent('منصة خدماوي') + '&text=' + encodeURIComponent(fullText);
+                let shareUri = 'khadamat://share?title=' + encodeURIComponent('منصة خدماوي') + '&text=' + encodeURIComponent(fullText);
+                if (shareUrl) shareUri += '&url=' + encodeURIComponent(shareUrl);
+                if (imageUrl) shareUri += '&image=' + encodeURIComponent(imageUrl);
+                window.location.href = shareUri;
                 return 'shared';
             }
 
@@ -937,7 +1001,7 @@
     </script>
     <script>
         // Native share bridge for Blazor WebView / MAUI Hybrid
-        window.nativeShare = async (title, text, url) => {
+        window.nativeShare = async (title, text, url, imageUrl) => {
             const isNative = (navigator.userAgent && navigator.userAgent.indexOf('KhadamatNativeApp') !== -1) ||
                              window.location.search.indexOf('nativeapp=1') !== -1 || 
                              sessionStorage.getItem('nativeapp') === '1';
@@ -946,7 +1010,10 @@
 
             // In native mobile app: immediately trigger MAUI native system share sheet
             if (isNative) {
-                window.location.href = 'khadamat://share?title=' + encodeURIComponent(title || 'مشاركة') + '&text=' + encodeURIComponent(fullText);
+                let shareUri = 'khadamat://share?title=' + encodeURIComponent(title || 'مشاركة') + '&text=' + encodeURIComponent(fullText);
+                if (url) shareUri += '&url=' + encodeURIComponent(url);
+                if (imageUrl) shareUri += '&image=' + encodeURIComponent(imageUrl);
+                window.location.href = shareUri;
                 return { success: true };
             }
 
@@ -964,7 +1031,7 @@
             // Fallback: if _showShareOptions exists, show custom modal
             const displayUrl = url || '';
             if (typeof window._showShareOptions === 'function') {
-                window._showShareOptions(null, displayUrl, fullText, null);
+                window._showShareOptions(imageUrl || null, displayUrl, fullText, null);
             }
             return { success: true };
         };
@@ -1061,14 +1128,17 @@
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('service-worker.js');
         }
-        window.shareApp = async (title, text, url) => {
+        window.shareApp = async (title, text, url, imageUrl) => {
             try {
                 const isNative = (navigator.userAgent && navigator.userAgent.indexOf('KhadamatNativeApp') !== -1) ||
                                  window.location.search.indexOf('nativeapp=1') !== -1 || 
                                  sessionStorage.getItem('nativeapp') === '1';
-                const fullText = ${text}\n;
+                const fullText = (text ? text : '') + (url ? (text ? '\n\n' : '') + url : '');
                 if (isNative) {
-                    window.location.href = 'khadamat://share?title=' + encodeURIComponent(title || 'دعوة لتطبيق خدماوي') + '&text=' + encodeURIComponent(fullText);
+                    let shareUri = 'khadamat://share?title=' + encodeURIComponent(title || 'دعوة لتطبيق خدماوي') + '&text=' + encodeURIComponent(fullText);
+                    if (url) shareUri += '&url=' + encodeURIComponent(url);
+                    if (imageUrl) shareUri += '&image=' + encodeURIComponent(imageUrl);
+                    window.location.href = shareUri;
                     return true;
                 }
                 // Check if it's a mobile device and navigator.share is available

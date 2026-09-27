@@ -76,6 +76,18 @@ public class FavoritesController : ControllerBase
             isFavorite = true;
         }
 
+        // Also keep Likes table in sync so likes counter and favorites counter are identical
+        var existingLike = await _context.Likes
+            .FirstOrDefaultAsync(l => l.UserId == userId && l.ServiceId == serviceId);
+        if (isFavorite && existingLike == null)
+        {
+            _context.Likes.Add(new Like(userId, serviceId: serviceId));
+        }
+        else if (!isFavorite && existingLike != null)
+        {
+            _context.Likes.Remove(existingLike);
+        }
+
         await _context.SaveChangesAsync();
 
         // Count total favorites for this service
@@ -86,6 +98,21 @@ public class FavoritesController : ControllerBase
             IsFavorite = isFavorite,
             FavoritesCount = newCount
         }));
+    }
+
+    [HttpGet("ids")]
+    [Authorize]
+    public async Task<ActionResult<ApiResponse<List<int>>>> GetMyFavoriteIds()
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId)) return Ok(ApiResponse<List<int>>.Succeed(new List<int>()));
+
+        var ids = await _context.Favorites
+            .Where(f => f.UserId == userId && f.ServiceId != null)
+            .Select(f => f.ServiceId!.Value)
+            .ToListAsync();
+
+        return Ok(ApiResponse<List<int>>.Succeed(ids));
     }
 }
 

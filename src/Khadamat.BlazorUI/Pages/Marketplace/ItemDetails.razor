@@ -731,7 +731,17 @@
     {
         if (AppState.IsNativeApp)
         {
-            await DeviceShareService.ShareLinkAsync(SharePageUrl, item?.Title ?? "إعلان");
+            var firstImg = item?.Images?.FirstOrDefault()?.ImageUrl;
+            var imgUrl = !string.IsNullOrEmpty(firstImg) ? Api.GetAbsoluteUrl(firstImg) : "";
+            var shareText = $"🌟 {item?.Title}\n💰 {item?.Price:N0} {item?.Currency}\n\n🔗 رابط الإعلان:\n{SharePageUrl}\n\n📲 منصة وتطبيق خدماوي";
+            if (!string.IsNullOrEmpty(imgUrl))
+            {
+                await DeviceShareService.ShareImageWithTextAsync(imgUrl, shareText, item?.Title ?? "إعلان");
+            }
+            else
+            {
+                await DeviceShareService.ShareLinkAsync(SharePageUrl, item?.Title ?? "إعلان");
+            }
             return;
         }
 

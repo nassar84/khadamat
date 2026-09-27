@@ -78,16 +78,37 @@
     <!-- Nearby Services Section -->
     <div class="mb-5">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold mb-0">📍 قريبة منك</h5>
+            <h5 class="fw-bold mb-0">
+                📍
+                @if (AppState.IsLoggedIn && !string.IsNullOrEmpty(nearbyLocationName))
+                {
+                    <span>خدمات في @nearbyLocationName</span>
+                }
+                else
+                {
+                    <span>قريبة منك</span>
+                }
+            </h5>
             <a href="services" class="text-primary text-decoration-none fw-bold small">عرض الكل</a>
         </div>
 
         <div class="nearby-list">
             @if (nearbyServices != null)
             {
-                @foreach (var service in nearbyServices)
+                @if (nearbyServices.Any())
                 {
-                    <NearbyServiceCard Service="service" OnClick="OnServiceSelected" />
+                    @foreach (var service in nearbyServices)
+                    {
+                        <NearbyServiceCard Service="service" OnClick="OnServiceSelected" />
+                    }
+                }
+                else if (AppState.IsLoggedIn)
+                {
+                    <div class="text-center p-4 opacity-50 bg-light rounded-4 w-100">
+                        <i class="fa-solid fa-map-location-dot fs-1 mb-2"></i>
+                        <p class="mb-2">لا توجد خدمات في منطقتك حالياً</p>
+                        <a href="/services" class="btn btn-sm btn-outline-primary rounded-pill">عرض جميع الخدمات</a>
+                    </div>
                 }
             }
             else
@@ -120,7 +141,7 @@
                 <div class="row g-3">
                     <!-- 1. Direct Download -->
                     <div class="col-sm-6">
-                        <a href="/downloads/Khadamawy.apk" download="Khadamawy.apk" class="store-link-card play-store-glow d-flex align-items-center p-3 rounded-4 text-decoration-none h-100 w-100">
+                        <a href="/downloads/خدماوى.apk" download="خدماوى.apk" class="store-link-card play-store-glow d-flex align-items-center p-3 rounded-4 text-decoration-none h-100 w-100">
                             <div class="store-icon bg-white text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;min-width:45px;">
                                 <i class="fa-brands fa-android fs-4 text-success"></i>
                             </div>
@@ -464,6 +485,7 @@
     private bool isMauiApp => AppState.IsMobileApp || AppState.IsNativeApp;
     private CancellationTokenSource _cts = new();
     private bool _disposed = false;
+    private string? nearbyLocationName;
 
     protected override void OnInitialized()
     {
@@ -530,36 +552,63 @@
             if (ct.IsCancellationRequested) return;
 
             // 2. Parallel loading of fresh data from API
-            var servicesTask = Api.GetServicesAsync();
-            var categoriesTask = Api.GetMainCategoriesAsync();
-            var marketTask = Api.GetLatestMarketplaceItemsAsync(6);
+            // ── خدمات مميزة: بدون فلتر مدينة دائماً
+            var servicesTask    = Api.GetServicesAsync(pageSize: 10);
+            var categoriesTask  = Api.GetMainCategoriesAsync();
+            var marketTask      = Api.GetLatestMarketplaceItemsAsync(6);
 
             await Task.WhenAll(servicesTask, categoriesTask, marketTask);
 
             if (ct.IsCancellationRequested) return;
 
             var servicesResult = servicesTask.Result;
-            latestMarketItems = marketTask.Result;
-            mainCategories = categoriesTask.Result ?? mainCategories;
-            
+            latestMarketItems  = marketTask.Result;
+            mainCategories     = categoriesTask.Result ?? mainCategories;
+
             if (servicesResult?.Items != null && servicesResult.Items.Any())
             {
                 featuredServices = servicesResult.Items.Take(6).ToList();
-                nearbyServices = servicesResult.Items.Skip(1).Take(4).ToList();
-                
-                // Update Cache for next launch (Offline-First)
                 await OfflineData.SaveServicesAsync(servicesResult.Items);
             }
-            
-            if (mainCategories != null)
+
+            // ── الخدمات القريبة: مفلترة بمدينة/محافظة المستخدم إذا كان مسجلاً
+            if (AppState.IsLoggedIn && AppState.CityId.HasValue)
             {
-                await OfflineData.SaveMainCategoriesAsync(mainCategories);
+                // أولاً: حاول بالمدينة
+                var byCityResult = await Api.GetServicesAsync(cityId: AppState.CityId, pageSize: 5);
+                if (byCityResult?.Items != null && byCityResult.Items.Any())
+                {
+                    nearbyServices = byCityResult.Items;
+                    // اسم المدينة من أول خدمة
+                    nearbyLocationName = byCityResult.Items.FirstOrDefault()?.CityName;
+                }
+                else if (AppState.GovernorateId.HasValue)
+                {
+                    // ثانياً: إذا لا توجد نتائج في المدينة، جرب المحافظة
+                    var byGovResult = await Api.GetServicesAsync(governorateId: AppState.GovernorateId, pageSize: 5);
+                    nearbyServices = byGovResult?.Items ?? new List<ServiceDto>();
+                    nearbyLocationName = byGovResult?.Items?.FirstOrDefault()?.GovernorateName;
+                }
+                else
+                {
+                    nearbyServices = new List<ServiceDto>();
+                    nearbyLocationName = null;
+                }
             }
+            else
+            {
+                // غير مسجل: أظهر خدمات عامة
+                nearbyServices     = servicesResult?.Items?.Skip(1).Take(4).ToList() ?? new List<ServiceDto>();
+                nearbyLocationName = null;
+            }
+
+            if (mainCategories != null)
+                await OfflineData.SaveMainCategoriesAsync(mainCategories);
 
             if (featuredServices == null)
             {
                 featuredServices = new List<ServiceDto>();
-                nearbyServices = new List<ServiceDto>();
+                nearbyServices ??= new List<ServiceDto>();
             }
         }
         catch (OperationCanceledException)
@@ -590,10 +639,14 @@
 
     private void GoToRegisterProvider()
     {
+        if (AppState.IsLoggedIn)
+        {
             Navigation.NavigateTo("/provider/create-request");
-            Navigation.NavigateTo("/provider/apply");
-            Navigation.NavigateTo("/register?Type=Provider");
-            Navigation.NavigateTo("/register");
+        }
+        else
+        {
+            Navigation.NavigateTo("/login?returnUrl=/provider/create-request");
+        }
     }
 
     private async Task ShareApp()

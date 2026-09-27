@@ -1,92 +1,462 @@
 @page "/provider/my-services"
 @using Khadamat.Application.DTOs
 @using Khadamat.Application.Common.Models
+@using Khadamat.Domain.Enums
 @using Khadamat.BlazorUI.Services
 @inject ApiClient Api
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 
 <div class="px-3 pt-3 pb-5">
+
+    <!-- ── رأس الصفحة ── -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h3 class="fw-bold mb-0">خدماتي</h3>
-            <p class="text-muted small">إدارة جميع الخدمات التي تقدمها عبر المنصة</p>
+            <p class="text-muted small">إدارة خدماتك ومتابعة طلبات العملاء</p>
         </div>
-        <button class="btn btn-primary-premium rounded-pill px-4" @onclick='() => Navigation.NavigateTo("/provider/create-service")'>
-            <i class="fa-solid fa-plus me-2"></i> إضافة خدمة
+        <button class="btn btn-primary-premium rounded-pill px-4"
+                @onclick='() => Navigation.NavigateTo("/provider/create-service")'>
+            <i class="fa-solid fa-plus me-2"></i>خدمة جديدة
         </button>
     </div>
 
-    @if (services == null)
-    {
-        <div class="row g-4">
-            <Khadamat.BlazorUI.Shared.SkeletonLoader Type="card" Count="3" />
-        </div>
-    }
-    else if (!services.Any())
-    {
-        <div class="glass-card p-5 text-center">
-            <i class="fa-solid fa-folder-open display-1 text-muted opacity-25 mb-3"></i>
-            <h5>لم تقم بإضافة أي خدمات بعد</h5>
-            <p class="text-muted">ابدأ بإضافة أول خدمة لك لتظهر للعملاء</p>
-            <button class="btn btn-primary rounded-pill px-5 mt-3" @onclick='() => Navigation.NavigateTo("/provider/create-service")'>أضف خدمتك الأولى</button>
-        </div>
-    }
-    else
-    {
-        <div class="row g-4">
-            @foreach (var s in services)
+    <!-- ── تبويبات السريعة ── -->
+    <div class="d-flex gap-2 mb-4 overflow-auto no-scrollbar">
+        <button class="tab-pill @(activeTab == "services" ? "active" : "")"
+                @onclick='() => activeTab = "services"'>
+            <i class="fa-solid fa-briefcase me-1"></i>الخدمات
+            @if (services != null)
             {
-                <div class="col-12 col-md-6 col-xl-4">
-                    <div class="glass-card p-0 overflow-hidden border-0 shadow-sm h-100 animate-up">
-                            <div class="position-relative w-100 overflow-hidden d-flex align-items-center justify-content-center" style="height: 190px; background: linear-gradient(145deg, #f8fafc, #f1f5f9); border-top-left-radius: inherit; border-top-right-radius: inherit;">
-                                <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(s.Images?.FirstOrDefault(), s.SubCategoryName, s.CategoryName, s.MainCategoryName, s.SubCategoryImageUrl, s.CategoryImageUrl, s.MainCategoryImageUrl))" 
-                                     class="w-100 h-100" 
-                                     style="object-fit: contain; padding: 10px; transition: transform 0.3s ease;" 
-                                     alt="@s.Title" 
+                <span class="tab-count">@services.Count</span>
+            }
+        </button>
+        <button class="tab-pill @(activeTab == "requests" ? "active" : "")"
+                @onclick='() => activeTab = "requests"'>
+            <i class="fa-solid fa-inbox me-1"></i>الطلبات الواردة
+            @if (pendingCount > 0)
+            {
+                <span class="tab-badge">@pendingCount</span>
+            }
+        </button>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         تبويب: الخدمات
+    ══════════════════════════════════════════ -->
+    @if (activeTab == "services")
+    {
+        @if (services == null)
+        {
+            <div class="row g-3">
+                <Khadamat.BlazorUI.Shared.SkeletonLoader Type="card" Count="3" />
+            </div>
+        }
+        else if (!services.Any())
+        {
+            <div class="glass-card p-5 text-center">
+                <i class="fa-solid fa-folder-open display-1 text-muted opacity-25 mb-3"></i>
+                <h5>لم تقم بإضافة أي خدمات بعد</h5>
+                <p class="text-muted">ابدأ بإضافة أول خدمة لك لتظهر للعملاء</p>
+                <button class="btn btn-primary rounded-pill px-5 mt-3"
+                        @onclick='() => Navigation.NavigateTo("/provider/create-service")'>
+                    أضف خدمتك الأولى
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="d-flex flex-column gap-3">
+                @foreach (var s in services)
+                {
+                    var sRequests = GetServiceRequests(s.Id);
+                    var pendingReqs = sRequests.Count(r => r.Status == RequestStatus.Pending);
+
+                    <div class="service-item glass-card overflow-hidden">
+                        <!-- معلومات الخدمة -->
+                        <div class="d-flex gap-3 p-3">
+                            <!-- صورة الخدمة -->
+                            <div class="service-thumb flex-shrink-0">
+                                <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(
+                                         s.Images?.FirstOrDefault(), s.SubCategoryName, s.CategoryName,
+                                         s.MainCategoryName, s.SubCategoryImageUrl, s.CategoryImageUrl, s.MainCategoryImageUrl))"
+                                     alt="@s.Title"
                                      onerror="this.onerror=null;this.src='/images/services/default_service.png';" />
-                                <div class="position-absolute top-0 end-0 m-2">
-                                    <span class="badge @(s.IsApproved ? "bg-success" : "bg-warning text-dark") rounded-pill shadow-sm">
-                                        @(s.IsApproved ? "مقبول" : "تحت المراجعة")
+                            </div>
+
+                            <!-- تفاصيل الخدمة -->
+                            <div class="flex-grow-1 min-w-0">
+                                <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
+                                    <h6 class="fw-bold mb-0 text-truncate">@s.Title</h6>
+                                    <span class="badge @(s.IsApproved ? "bg-success" : "bg-warning text-dark") rounded-pill flex-shrink-0">
+                                        @(s.IsApproved ? "مقبول" : "مراجعة")
+                                    </span>
+                                </div>
+                                <div class="x-small text-muted mb-2">
+                                    <i class="fa-solid fa-layer-group me-1"></i>@s.SubCategoryName
+                                    <span class="mx-1">•</span>
+                                    <i class="fa-solid fa-location-dot me-1"></i>@(s.CityName ?? s.Location ?? "غير محدد")
+                                </div>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <span class="fw-bold text-primary">
+                                        @s.Price?.ToString("N0") <small class="x-small">ج.م</small>
+                                    </span>
+                                    <!-- عداد الطلبات -->
+                                    @if (sRequests.Count > 0)
+                                    {
+                                        <button class="btn-requests-count @(pendingReqs > 0 ? "has-pending" : "")"
+                                                @onclick="() => ToggleServiceRequests(s.Id)">
+                                            <i class="fa-solid fa-inbox me-1"></i>
+                                            @sRequests.Count طلب
+                                            @if (pendingReqs > 0)
+                                            {
+                                                <span class="pending-dot">@pendingReqs</span>
+                                            }
+                                            <i class="fa-solid fa-chevron-@(expandedServiceId == s.Id ? "up" : "down") ms-1 small"></i>
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- أزرار الإجراءات -->
+                        <div class="d-flex gap-2 px-3 pb-3">
+                            <button class="btn btn-outline-primary btn-sm flex-grow-1 rounded-pill"
+                                    @onclick='() => Navigation.NavigateTo($"/provider/edit-service/{s.Id}")'>
+                                <i class="fa-solid fa-pen-to-square me-1"></i>تعديل
+                            </button>
+                            <button class="btn btn-light btn-sm rounded-circle"
+                                    @onclick='() => Navigation.NavigateTo($"/service/{s.Id}")'
+                                    title="عرض">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                            <button class="btn btn-light btn-sm rounded-circle text-danger"
+                                    @onclick="() => ConfirmDelete(s)"
+                                    title="حذف">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+
+                        <!-- ── طلبات هذه الخدمة (قابلة للطي) ── -->
+                        @if (expandedServiceId == s.Id && sRequests.Count > 0)
+                        {
+                            <div class="service-requests-panel">
+                                <div class="requests-header">
+                                    <i class="fa-solid fa-inbox me-2"></i>
+                                    طلبات خدمة "@s.Title"
+                                    <span class="ms-auto badge bg-primary rounded-pill">@sRequests.Count</span>
+                                </div>
+
+                                <div class="d-flex flex-column gap-2 p-3">
+                                    @foreach (var r in sRequests.OrderByDescending(r => r.Status == RequestStatus.Pending)
+                                                                 .ThenByDescending(r => r.RequestedAt))
+                                    {
+                                        <div class="request-card">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <div>
+                                                    <span class="badge @GetStatusBadge(r.Status) rounded-pill mb-1">
+                                                        @GetStatusLabel(r.Status)
+                                                    </span>
+                                                    <div class="x-small text-muted">
+                                                        <i class="fa-solid fa-calendar me-1"></i>
+                                                        @r.RequestedAt.ToString("dd/MM/yyyy • hh:mm tt")
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            @if (!string.IsNullOrEmpty(r.Notes))
+                                            {
+                                                <div class="request-notes mb-2">
+                                                    <i class="fa-solid fa-comment-dots me-1 text-muted"></i>
+                                                    <span class="small">@r.Notes</span>
+                                                </div>
+                                            }
+
+                                            @if (r.PreferredDate.HasValue)
+                                            {
+                                                <div class="x-small text-muted mb-2">
+                                                    <i class="fa-solid fa-calendar-check me-1 text-success"></i>
+                                                    التاريخ المفضل: @r.PreferredDate.Value.ToString("dd/MM/yyyy")
+                                                </div>
+                                            }
+
+                                            <!-- أزرار التحكم بالطلب -->
+                                            <div class="d-flex gap-2 flex-wrap mt-2">
+                                                @if (r.Status == RequestStatus.Pending)
+                                                {
+                                                    <button class="btn btn-success btn-sm rounded-pill px-3"
+                                                            @onclick="() => UpdateStatus(r.Id, RequestStatus.Accepted)">
+                                                        <i class="fa-solid fa-check me-1"></i>قبول
+                                                    </button>
+                                                    <button class="btn btn-danger btn-sm rounded-pill px-3"
+                                                            @onclick="() => UpdateStatus(r.Id, RequestStatus.Rejected)">
+                                                        <i class="fa-solid fa-times me-1"></i>رفض
+                                                    </button>
+                                                }
+                                                else if (r.Status == RequestStatus.Accepted)
+                                                {
+                                                    <button class="btn btn-primary btn-sm rounded-pill px-3"
+                                                            @onclick="() => UpdateStatus(r.Id, RequestStatus.InProgress)">
+                                                        <i class="fa-solid fa-play me-1"></i>بدء التنفيذ
+                                                    </button>
+                                                }
+                                                else if (r.Status == RequestStatus.InProgress)
+                                                {
+                                                    <button class="btn btn-success btn-sm rounded-pill px-3"
+                                                            @onclick="() => UpdateStatus(r.Id, RequestStatus.Completed)">
+                                                        <i class="fa-solid fa-check-double me-1"></i>إكمال
+                                                    </button>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    }
+
+    <!-- ══════════════════════════════════════════
+         تبويب: جميع الطلبات الواردة
+    ══════════════════════════════════════════ -->
+    @if (activeTab == "requests")
+    {
+        @if (isLoadingRequests)
+        {
+            <div class="px-2">
+                <Khadamat.BlazorUI.Shared.SkeletonLoader Type="list" Count="5" />
+            </div>
+        }
+        else if (!allRequests.Any())
+        {
+            <div class="glass-card p-5 text-center">
+                <i class="fa-solid fa-inbox display-1 text-muted opacity-25 mb-3"></i>
+                <h5>لا توجد طلبات واردة</h5>
+                <p class="text-muted">لم يتم تقديم أي طلبات لخدماتك حتى الآن.</p>
+            </div>
+        }
+        else
+        {
+            <!-- فلاتر الحالة -->
+            <div class="glass-card p-2 mb-3 d-flex gap-2 overflow-auto no-scrollbar">
+                <button class="btn btn-sm @(filterStatus == null ? "btn-primary" : "btn-light") rounded-pill"
+                        @onclick="() => filterStatus = null">
+                    الكل (@allRequests.Count)
+                </button>
+                <button class="btn btn-sm @(filterStatus == RequestStatus.Pending ? "btn-warning text-dark" : "btn-light") rounded-pill"
+                        @onclick="() => filterStatus = RequestStatus.Pending">
+                    انتظار (@allRequests.Count(r => r.Status == RequestStatus.Pending))
+                </button>
+                <button class="btn btn-sm @(filterStatus == RequestStatus.Accepted ? "btn-info text-dark" : "btn-light") rounded-pill"
+                        @onclick="() => filterStatus = RequestStatus.Accepted">
+                    مقبولة (@allRequests.Count(r => r.Status == RequestStatus.Accepted))
+                </button>
+                <button class="btn btn-sm @(filterStatus == RequestStatus.InProgress ? "btn-primary" : "btn-light") rounded-pill"
+                        @onclick="() => filterStatus = RequestStatus.InProgress">
+                    جارية (@allRequests.Count(r => r.Status == RequestStatus.InProgress))
+                </button>
+                <button class="btn btn-sm @(filterStatus == RequestStatus.Completed ? "btn-success" : "btn-light") rounded-pill"
+                        @onclick="() => filterStatus = RequestStatus.Completed">
+                    مكتملة (@allRequests.Count(r => r.Status == RequestStatus.Completed))
+                </button>
+            </div>
+
+            <div class="d-flex flex-column gap-3">
+                @foreach (var r in FilteredRequests)
+                {
+                    <div class="glass-card p-3 animate-up">
+                        <div class="d-flex gap-3 mb-3">
+                            <div class="req-service-icon">
+                                <i class="fa-solid @r.ServiceIcon"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="fw-bold mb-1">@r.ServiceTitle</h6>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <span class="badge @GetStatusBadge(r.Status) rounded-pill">
+                                        @GetStatusLabel(r.Status)
+                                    </span>
+                                    <span class="x-small text-muted">
+                                        <i class="fa-solid fa-calendar me-1"></i>
+                                        @r.RequestedAt.ToString("dd/MM/yyyy")
                                     </span>
                                 </div>
                             </div>
-                        <div class="p-3">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h6 class="fw-bold mb-0 text-truncate" style="max-width: 70%;">@s.Title</h6>
-                                <div class="text-primary fw-bold">@s.Price?.ToString("N0") <small class="x-small">ج.م</small></div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(r.Notes))
+                        {
+                            <div class="alert alert-info py-2 small mb-3">
+                                <i class="fa-solid fa-note-sticky me-1"></i>@r.Notes
                             </div>
-                            <div class="x-small text-muted mb-3">
-                                <i class="fa-solid fa-layer-group me-1"></i> @s.SubCategoryName
-                                <span class="mx-2">|</span>
-                                <i class="fa-solid fa-location-dot me-1"></i> @(s.CityName ?? s.Location ?? "غير محدد")
-                            </div>
-                            
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-outline-primary btn-sm flex-grow-1 rounded-pill" @onclick='() => Navigation.NavigateTo($"/provider/edit-service/{s.Id}")'>
-                                    <i class="fa-solid fa-pen-to-square me-1"></i> تعديل
+                        }
+
+                        <div class="d-flex gap-2 flex-wrap">
+                            @if (r.Status == RequestStatus.Pending)
+                            {
+                                <button class="btn btn-success btn-sm rounded-pill"
+                                        @onclick="() => UpdateStatus(r.Id, RequestStatus.Accepted)">
+                                    <i class="fa-solid fa-check me-1"></i>قبول
                                 </button>
-                                <button class="btn btn-light btn-sm rounded-circle" @onclick='() => Navigation.NavigateTo($"/service/{s.Id}")' title="عرض">
-                                    <i class="fa-solid fa-eye"></i>
+                                <button class="btn btn-danger btn-sm rounded-pill"
+                                        @onclick="() => UpdateStatus(r.Id, RequestStatus.Rejected)">
+                                    <i class="fa-solid fa-times me-1"></i>رفض
                                 </button>
-                                <button class="btn btn-light btn-sm rounded-circle text-danger" @onclick="() => ConfirmDelete(s)" title="حذف">
-                                    <i class="fa-solid fa-trash"></i>
+                            }
+                            else if (r.Status == RequestStatus.Accepted)
+                            {
+                                <button class="btn btn-primary btn-sm rounded-pill"
+                                        @onclick="() => UpdateStatus(r.Id, RequestStatus.InProgress)">
+                                    <i class="fa-solid fa-play me-1"></i>بدء التنفيذ
                                 </button>
-                            </div>
+                            }
+                            else if (r.Status == RequestStatus.InProgress)
+                            {
+                                <button class="btn btn-success btn-sm rounded-pill"
+                                        @onclick="() => UpdateStatus(r.Id, RequestStatus.Completed)">
+                                    <i class="fa-solid fa-check-double me-1"></i>إكمال
+                                </button>
+                            }
+                            <button class="btn btn-outline-secondary btn-sm rounded-pill"
+                                    @onclick='() => Navigation.NavigateTo($"/service/{r.ServiceId}")'>
+                                <i class="fa-solid fa-eye me-1"></i>عرض الخدمة
+                            </button>
                         </div>
                     </div>
-                </div>
-            }
-        </div>
+                }
+            </div>
+        }
     }
 </div>
 
+<style>
+    /* ── تبويبات ── */
+    .tab-pill {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 8px 16px;
+        border-radius: 50px;
+        border: 2px solid #e2e8f0;
+        background: white;
+        font-size: .82rem; font-weight: 700;
+        cursor: pointer; white-space: nowrap;
+        transition: all .2s;
+        position: relative;
+    }
+    .tab-pill.active {
+        background: var(--theme-primary, #2a7f8f);
+        color: white;
+        border-color: var(--theme-primary, #2a7f8f);
+        box-shadow: 0 4px 12px rgba(42,127,143,.3);
+    }
+    .tab-count {
+        background: rgba(0,0,0,.1); border-radius: 50px;
+        padding: 1px 7px; font-size: .75rem;
+    }
+    .tab-pill.active .tab-count { background: rgba(255,255,255,.25); }
+    .tab-badge {
+        background: #ef4444; color: white;
+        border-radius: 50%; width: 18px; height: 18px;
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: .65rem; font-weight: 800;
+    }
+
+    /* ── بطاقة الخدمة ── */
+    .service-item { border-radius: 16px; overflow: hidden; }
+    .service-thumb {
+        width: 72px; height: 72px; border-radius: 12px;
+        overflow: hidden; background: #f1f5f9; flex-shrink: 0;
+    }
+    .service-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* ── زر عدد الطلبات ── */
+    .btn-requests-count {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 4px 12px; border-radius: 50px; border: none;
+        background: #f1f5f9; color: #64748b;
+        font-size: .78rem; font-weight: 700; cursor: pointer;
+        transition: all .2s; white-space: nowrap;
+    }
+    .btn-requests-count.has-pending {
+        background: rgba(239,68,68,.1); color: #ef4444;
+    }
+    .pending-dot {
+        background: #ef4444; color: white; border-radius: 50%;
+        width: 18px; height: 18px; display: inline-flex;
+        align-items: center; justify-content: center;
+        font-size: .65rem; font-weight: 800;
+    }
+
+    /* ── لوحة طلبات الخدمة ── */
+    .service-requests-panel {
+        border-top: 2px solid #f1f5f9;
+        animation: slideDown .3s ease;
+    }
+    @@keyframes slideDown {
+        from { opacity: 0; transform: translateY(-8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .requests-header {
+        display: flex; align-items: center;
+        padding: 10px 16px;
+        background: #f8fafc;
+        font-size: .82rem; font-weight: 700; color: #475569;
+    }
+
+    /* ── بطاقة الطلب ── */
+    .request-card {
+        background: white; border-radius: 12px;
+        border: 1.5px solid #f1f5f9;
+        padding: 12px 14px;
+        transition: border-color .2s;
+    }
+    .request-card:hover { border-color: var(--theme-primary, #2a7f8f); }
+    .request-notes {
+        background: #f8fafc; border-radius: 8px;
+        padding: 8px 10px; color: #475569;
+        font-size: .83rem;
+    }
+
+    /* ── أيقونة الطلب في تبويب الكل ── */
+    .req-service-icon {
+        width: 44px; height: 44px; border-radius: 12px;
+        background: rgba(var(--theme-primary-rgb,42,127,143),.1);
+        display: flex; align-items: center; justify-content: center;
+        color: var(--theme-primary,#2a7f8f); font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+    .no-scrollbar { scrollbar-width: none; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .animate-up { animation: fadeInUp .4s ease both; }
+    @@keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(14px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .x-small { font-size: .75rem; }
+</style>
+
 @code {
     private List<ServiceDto>? services;
+    private List<ServiceRequestDto> allRequests = new();
+    private bool isLoadingRequests = true;
+    private string activeTab = "services";
+    private int? expandedServiceId;
+    private RequestStatus? filterStatus;
+
+    private int pendingCount => allRequests.Count(r => r.Status == RequestStatus.Pending);
+
+    private IEnumerable<ServiceRequestDto> FilteredRequests =>
+        filterStatus.HasValue
+            ? allRequests.Where(r => r.Status == filterStatus.Value)
+            : allRequests;
+
+    private List<ServiceRequestDto> GetServiceRequests(int serviceId) =>
+        allRequests.Where(r => r.ServiceId == serviceId).ToList();
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadServices();
+        await Task.WhenAll(LoadServices(), LoadRequests());
     }
 
     private async Task LoadServices()
@@ -95,11 +465,44 @@
         services = result.Items;
     }
 
+    private async Task LoadRequests()
+    {
+        isLoadingRequests = true;
+        try
+        {
+            allRequests = await Api.GetProviderRequestsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading requests: {ex.Message}");
+            allRequests = new();
+        }
+        finally
+        {
+            isLoadingRequests = false;
+        }
+    }
+
+    private void ToggleServiceRequests(int serviceId)
+    {
+        expandedServiceId = expandedServiceId == serviceId ? null : serviceId;
+    }
+
+    private async Task UpdateStatus(int requestId, RequestStatus newStatus)
+    {
+        var result = await Api.UpdateRequestStatusAsync(requestId, newStatus);
+        if (result.Success)
+        {
+            await LoadRequests();
+            StateHasChanged();
+        }
+    }
+
     private async Task ConfirmDelete(ServiceDto s)
     {
-        if (!await JS.InvokeAsync<bool>("confirm", $"هل أنت متأكد من حذف خدمة \"{s.Title}\"؟\nلا يمكن التراجع عن هذا الإجراء."))
+        if (!await JS.InvokeAsync<bool>("confirm",
+            $"هل أنت متأكد من حذف خدمة \"{s.Title}\"؟\nلا يمكن التراجع عن هذا الإجراء."))
             return;
-
         try
         {
             var success = await Api.DeleteServiceAsync(s.Id);
@@ -118,4 +521,26 @@
             await JS.InvokeVoidAsync("alert", $"خطأ: {ex.Message}");
         }
     }
+
+    private static string GetStatusBadge(RequestStatus status) => status switch
+    {
+        RequestStatus.Pending    => "bg-warning text-dark",
+        RequestStatus.Accepted   => "bg-info text-dark",
+        RequestStatus.InProgress => "bg-primary",
+        RequestStatus.Completed  => "bg-success",
+        RequestStatus.Rejected   => "bg-danger",
+        RequestStatus.Cancelled  => "bg-secondary",
+        _                        => "bg-secondary"
+    };
+
+    private static string GetStatusLabel(RequestStatus status) => status switch
+    {
+        RequestStatus.Pending    => "قيد الانتظار",
+        RequestStatus.Accepted   => "مقبول",
+        RequestStatus.InProgress => "جاري التنفيذ",
+        RequestStatus.Completed  => "مكتمل",
+        RequestStatus.Rejected   => "مرفوض",
+        RequestStatus.Cancelled  => "ملغي",
+        _                        => "غير معروف"
+    };
 }
