@@ -175,17 +175,17 @@
                     @if (State.IsProvider)
                     {
                         <div class="menu-section">
-                            <h6 class="section-title">إعدادات المزود</h6>
+                            <h6 class="section-title">إعدادات صاحب الخدمة</h6>
                             <div class="menu-items">
                                  <div class="menu-item provider-switch-item" @onclick="ToggleProviderMode">
                                     <i class="fa-solid fa-shuffle"></i>
-                                    <span>@(State.IsProviderMode ? "التبديل للمستخدم العادي" : "التبديل للمهني/المزود")</span>
+                                    <span>@(State.IsProviderMode ? "التبديل للمستخدم العادي" : "التبديل لصاحب الخدمة")</span>
                                  </div>
                                 @if (State.IsProviderMode)
                                 {
                                     <div class="menu-item @GetActiveClass("provider/dashboard")" @onclick='() => NavigateTo("/provider/dashboard")'>
                                         <i class="fa-solid fa-gauge-high"></i>
-                                        <span>لوحة المزود</span>
+                                        <span>لوحة صاحب الخدمة</span>
                                     </div>
                                     <div class="menu-item @GetActiveClass("provider/incoming-requests")" @onclick='() => NavigateTo("/provider/incoming-requests")'>
                                         <i class="fa-solid fa-inbox text-primary"></i>
@@ -194,6 +194,10 @@
                                     <div class="menu-item @GetActiveClass("provider/my-services")" @onclick='() => NavigateTo("/provider/my-services")'>
                                         <i class="fa-solid fa-briefcase"></i>
                                         <span>خدماتي</span>
+                                    </div>
+                                    <div class="menu-item @GetActiveClass("provider/create-service")" @onclick='() => NavigateTo("/provider/create-service")'>
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                        <span>منشور جديد</span>
                                     </div>
                                     <div class="menu-item @GetActiveClass("provider/statistics")" @onclick='() => NavigateTo("/provider/statistics")'>
                                         <i class="fa-solid fa-chart-line"></i>
@@ -207,17 +211,34 @@
                                         <i class="fa-solid fa-chart-pie text-success"></i>
                                         <span class="text-success fw-bold">إحصائيات الإعلانات</span>
                                     </div>
-                                    <div class="menu-item @GetActiveClass("provider/create-service")" @onclick='() => NavigateTo("/provider/create-service")'>
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                        <span>منشور جديد</span>
-                                    </div>
                                     <div class="menu-item @GetActiveClass("provider/subscription")" @onclick='() => NavigateTo("/provider/subscription")'>
                                         <i class="fa-solid fa-gem"></i>
                                         <span>اشتراكي</span>
                                     </div>
                                     <div class="menu-item @GetActiveClass("provider/settings")" @onclick='() => NavigateTo("/provider/settings")'>
                                         <i class="fa-solid fa-sliders"></i>
-                                        <span>إعدادات المزود</span>
+                                        <span>إعدادات صاحب الخدمة</span>
+                                    </div>
+
+                                    <!-- روابط العميل لصاحب الخدمة -->
+                                    <div class="border-top my-2 pt-2">
+                                        <div class="text-muted x-small px-3 mb-2 fw-bold">نشاطي كعميل</div>
+                                        <div class="menu-item @GetActiveClass("user/my-requests")" @onclick='() => NavigateTo("/user/my-requests")'>
+                                            <i class="fa-solid fa-list-check text-info"></i>
+                                            <span>طلباتي المرسلة (كمستخدم)</span>
+                                        </div>
+                                        <div class="menu-item @GetActiveClass("client/favorites")" @onclick='() => NavigateTo("/client/favorites")'>
+                                            <i class="fa-solid fa-heart text-danger"></i>
+                                            <span>المفضلة</span>
+                                        </div>
+                                        <div class="menu-item @GetActiveClass("client/my-comments")" @onclick='() => NavigateTo("/client/my-comments")'>
+                                            <i class="fa-solid fa-comments text-warning"></i>
+                                            <span>تعليقاتي على الخدمات</span>
+                                        </div>
+                                        <div class="menu-item @GetActiveClass("services")" @onclick='() => NavigateTo("/services")'>
+                                            <i class="fa-solid fa-compass text-primary"></i>
+                                            <span>تصفح واستكشاف الخدمات</span>
+                                        </div>
                                     </div>
                                 }
                             </div>

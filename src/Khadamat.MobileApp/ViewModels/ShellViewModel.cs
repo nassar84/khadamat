@@ -90,7 +90,11 @@ public partial class ShellViewModel : ObservableObject
     {
         if (!IsProvider) return;
         IsProviderMode = !IsProviderMode;
+        Preferences.Default.Set("IsProviderMode", IsProviderMode);
         Shell.Current.FlyoutIsPresented = false;
+
+        // Refresh bottom nav bar and listeners
+        AuthChanged?.Invoke(this, EventArgs.Empty);
 
         // Navigate inside WebView (JS injection) to avoid reloading entire WebView
         string targetRoute = IsProviderMode ? "provider/dashboard" : "";
@@ -121,13 +125,27 @@ public partial class ShellViewModel : ObservableObject
 
     public void SetAuthenticated(bool value, string? name = null, string? image = null, bool admin = false, bool provider = false, bool superAdmin = false)
     {
+        bool wasAuthenticated = IsAuthenticated;
+        bool wasProvider = IsProvider;
+
         IsAuthenticated = value;
         IsAdmin = admin;
         IsSuperAdmin = superAdmin;
         IsProvider = provider;
         
-        // Providers start in provider mode by default if not admin
-        IsProviderMode = provider && !admin;
+        // Providers start in provider mode by default on first login/role change, respecting saved user preference
+        if (value && provider && !admin)
+        {
+            if (!wasAuthenticated || !wasProvider)
+            {
+                IsProviderMode = Preferences.Default.Get("IsProviderMode", true);
+            }
+            // If already authenticated and already provider, keep current user-chosen IsProviderMode!
+        }
+        else
+        {
+            IsProviderMode = false;
+        }
         
         if (value)
         {

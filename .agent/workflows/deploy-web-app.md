@@ -4,11 +4,22 @@ description: كيفية عمل Publish ورفع الموقع (WebAPI + Blazor WA
 
 هذا الدليل يوضح الخطوات اللازمة لإنتاج نسخة نهائية من المشروع (API وواجهة المستخدم) ورفعها على سيرفر الاستضافة.
 
-### **1. الخطوة الأولى: عمل الـ Publish محلياً**
-يجب استخدام مشروع الـ **WebAPI** كنقطة انطلاق للـ Publish، لأنه الآن مهيأ للعمل كـ (Hosted Model) يحتوي على الـ API والـ Blazor معاً.
+### **1. الخطوة الأولى: بناء تطبيق الموبايل (Android APK) وتحديثه**
+دائماً وقبل نشر الموقع، يجب بناء أحدث ملف APK حتى يكون متوفراً للتحميل الفوري من الموقع:
+```powershell
+dotnet publish src/Khadamat.MobileApp/Khadamat.MobileApp.csproj -f net8.0-android -c Release
+```
+* ملف الـ APK الموقع (Signed) الجديد ينتج في المجلد التالي:
+  `src/Khadamat.MobileApp/bin/Release/net8.0-android/android-arm64/publish/com.nassar84.khadamat-Signed.apk`
+* يتم نسخ هذا الملف فوراً إلى:
+  `D:\maged\Khadamat\wwwroot\downloads\khadamat.apk`
+  وإلى:
+  `src/Khadamat.WebAPI/wwwroot/downloads\khadamat.apk`
 
-**الأمر المستخدم:**
-افتح التيرمينال في المجلد الرئيسي للمشروع وشغل الأمر التالي:
+---
+
+### **2. الخطوة الثانية: عمل الـ Publish للموقع كاملاً (WebAPI + Blazor WASM)**
+يجب استخدام مشروع الـ **WebAPI** كنقطة انطلاق للـ Publish، لأنه مهيأ للعمل كـ (Hosted Model) يحتوي على الـ API والـ Blazor معاً:
 ```powershell
 dotnet publish src/Khadamat.WebAPI/Khadamat.WebAPI.csproj -c Release -o D:\maged\Khadamat
 ```
@@ -17,15 +28,11 @@ dotnet publish src/Khadamat.WebAPI/Khadamat.WebAPI.csproj -c Release -o D:\maged
 
 ---
 
-### **2. الخطوة الثانية: بناء تطبيق الموبايل (Android APK)**
-لإنتاج نسخة APK قابلة للتحميل من الموقع:
+### **3. الخطوة الثالثة: التأكد من وجود ملف الـ APK وتاريخه**
+بعد انتهاء نشر الموقع، تأكد من وجود ملف الـ APK وفحص تاريخه ووقته عبر:
 ```powershell
-dotnet publish src/Khadamat.MobileApp/Khadamat.MobileApp.csproj -f net8.0-android -c Release
+Get-Item D:\maged\Khadamat\wwwroot\downloads\khadamat.apk | Select-Object Name, Length, LastWriteTime, CreationTime
 ```
-*   بعد انتهاء البناء، ستجد ملف الـ APK (المنتهي بـ `-Signed.apk`) في:
-    `src/Khadamat.MobileApp/bin/Release/net8.0-android/`
-*   **هام جداً**: انسخ هذا الملف إلى المجلد التالي قبل الرفع للسيرفر:
-    `D:\maged\Khadamat\wwwroot\downloads\khadamat.apk`
 
 ---
 

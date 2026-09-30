@@ -242,21 +242,29 @@
                 <Label Text="الطلبات" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}" />
             </VerticalStackLayout>
 
-            <!-- Messages -->
+            <!-- Profile with Avatar -->
             <VerticalStackLayout Grid.Column="4" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
                 <VerticalStackLayout.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="messages" />
+                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="profile" />
                 </VerticalStackLayout.GestureRecognizers>
-                <Label Text="&#xF086;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
+                <Grid WidthRequest="26" HeightRequest="26" HorizontalOptions="Center">
+                    <Border StrokeShape="RoundRectangle 13"
+                            Stroke="{StaticResource InactiveColor}"
+                            StrokeThickness="1.5"
+                            Padding="0"
+                            WidthRequest="26"
+                            HeightRequest="26">
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding CurrentTab}" Value="profile">
+                                <Setter Property="Stroke" Value="{DynamicResource Primary}" />
+                            </DataTrigger>
+                        </Border.Triggers>
+                        <Image Source="{Binding UserImage}" Aspect="AspectFill" WidthRequest="24" HeightRequest="24" />
+                    </Border>
+                </Grid>
+                <Label Text="{Binding UserTitle}" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
                     <Label.Triggers>
-                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="messages">
-                            <Setter Property="TextColor" Value="{DynamicResource Primary}" />
-                        </DataTrigger>
-                    </Label.Triggers>
-                </Label>
-                <Label Text="رسائلي" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
-                    <Label.Triggers>
-                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="messages">
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="profile">
                             <Setter Property="TextColor" Value="{DynamicResource Primary}" />
                         </DataTrigger>
                     </Label.Triggers>

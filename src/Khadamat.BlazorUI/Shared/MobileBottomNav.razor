@@ -28,9 +28,16 @@
         <span>الطلبات</span>
     </button>
     
-    <button class="nav-item @GetActiveClass("/user/messages")" @onclick='() => Navigate("/user/messages")'>
-        <i class="fa-solid fa-comments"></i>
-        <span>رسائلي</span>
+    <button class="nav-item @GetActiveClass("/profile")" @onclick='() => Navigate("/profile")'>
+        @if (!string.IsNullOrEmpty(State.UserImageUrl))
+        {
+            <img src="@State.GetAbsoluteUrl(State.UserImageUrl)" class="rounded-circle" style="width: 22px; height: 22px; object-fit: cover; border: 1.5px solid var(--primary-color, #6366f1);" />
+        }
+        else
+        {
+            <i class="fa-solid fa-user"></i>
+        }
+        <span>حسابي</span>
     </button>
 }
 else

@@ -256,18 +256,25 @@ namespace Khadamat.MobileApp.Views
             // Navigate to terms page but we must ensure we are in the Shell first
             if (MauiApp.Current != null)
             {
-                // Play a small animation before switching
-                if (sender is VisualElement visual)
+                try
                 {
-                    await visual.ScaleTo(0.9, 100);
-                    await visual.ScaleTo(1.0, 100);
+                    // Play a small animation before switching
+                    if (sender is VisualElement visual)
+                    {
+                        await visual.ScaleTo(0.9, 100);
+                        await visual.ScaleTo(1.0, 100);
+                    }
+                    
+                    // Set the main page to the shell
+                    MauiApp.Current.MainPage = _shell;
+                    
+                    // Then navigate to the correct terms route
+                    await Shell.Current.GoToAsync("//Guest_Home?route=terms");
                 }
-                
-                // Set the main page to the shell
-                MauiApp.Current.MainPage = _shell;
-                
-                // Then navigate to the correct terms route (/terms in Blazor)
-                await Shell.Current.GoToAsync("//HomePage?route=terms");
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"ANTIGRAVITY_LOG: OnTermsClicked navigation error: {ex.Message}");
+                }
             }
         }
 
@@ -276,15 +283,22 @@ namespace Khadamat.MobileApp.Views
             // Transition to the main app shell
             if (MauiApp.Current != null)
             {
-                // Play a small animation before switching
-                await ((VisualElement)sender).ScaleTo(0.9, 100);
-                await ((VisualElement)sender).ScaleTo(1.0, 100);
-                
-                Preferences.Default.Set("HasCompletedOnboarding", true);
-                MauiApp.Current.MainPage = _shell;
-                
-                // Explicitly navigate to Home page so it always opens first
-                await Shell.Current.GoToAsync("//HomePage");
+                try
+                {
+                    // Play a small animation before switching
+                    await ((VisualElement)sender).ScaleTo(0.9, 100);
+                    await ((VisualElement)sender).ScaleTo(1.0, 100);
+                    
+                    Preferences.Default.Set("HasCompletedOnboarding", true);
+                    MauiApp.Current.MainPage = _shell;
+                    
+                    // Explicitly navigate to Guest Home tab
+                    await Shell.Current.GoToAsync("//Guest_Home");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"ANTIGRAVITY_LOG: OnStartClicked navigation error: {ex.Message}");
+                }
             }
         }
 
@@ -292,14 +306,21 @@ namespace Khadamat.MobileApp.Views
         {
             if (MauiApp.Current != null)
             {
-                await ((VisualElement)sender).ScaleTo(0.9, 100);
-                await ((VisualElement)sender).ScaleTo(1.0, 100);
-                
-                Preferences.Default.Set("HasCompletedOnboarding", true);
-                MauiApp.Current.MainPage = _shell;
-                
-                // Navigate to login page
-                await Shell.Current.GoToAsync("//HomePage?route=login");
+                try
+                {
+                    await ((VisualElement)sender).ScaleTo(0.9, 100);
+                    await ((VisualElement)sender).ScaleTo(1.0, 100);
+                    
+                    Preferences.Default.Set("HasCompletedOnboarding", true);
+                    MauiApp.Current.MainPage = _shell;
+                    
+                    // Navigate to login page
+                    await Shell.Current.GoToAsync("//Guest_Login");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"ANTIGRAVITY_LOG: OnStandardLoginClicked error: {ex.Message}");
+                }
             }
         }
     }

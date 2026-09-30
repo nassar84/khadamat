@@ -407,28 +407,6 @@
                 console.log('[ShareCard] All images converted to data URLs');
             }
 
-            // Convert all images to data URLs (bypasses CORS issues with html2canvas)
-            const FALLBACK_GRAY = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
-            const imgs = Array.from(clone.querySelectorAll('img'));
-            if (imgs.length > 0) {
-                console.log('[ShareCard] Converting', imgs.length, 'image(s) to data URLs...');
-                const seen = {};
-                await Promise.allSettled(imgs.map(async (img) => {
-                    const src = img.getAttribute('src');
-                    if (!src || src.startsWith('data:')) return;
-
-                    let dataUrl = seen[src];
-                    if (!dataUrl) {
-                        dataUrl = await window._fetchImageAsDataUrl(src);
-                        if (!dataUrl) dataUrl = FALLBACK_GRAY;
-                        seen[src] = dataUrl;
-                    }
-                    img.src = dataUrl;
-                    img.removeAttribute('crossorigin');
-                    img.removeAttribute('onerror');
-                }));
-                console.log('[ShareCard] All images converted to data URLs');
-            }
 
             // Extra wait after image conversion for layout repaint
             await new Promise(resolve => setTimeout(resolve, 200));
