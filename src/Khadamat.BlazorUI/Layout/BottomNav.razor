@@ -1,48 +1,93 @@
+@implements IDisposable
+
 <div class="bottom-nav">
-    @* زر الخدمات: "خدماتي" لمزودي الخدمة / "استكشاف" للمستخدمين العاديين *@
-    @if (AppState.IsAuthenticated && AppState.IsProvider)
+    @if (!AppState.IsAuthenticated)
     {
-        <button class="nav-item @(GetActiveNavClass("/provider/my-services"))"
-                @onclick='() => Navigation.NavigateTo("/provider/my-services")'>
-            <i class="fa-solid fa-briefcase"></i>
-            <span>خدماتي</span>
-        </button>
-    }
-    else if (AppState.IsAuthenticated)
-    {
-        <button class="nav-item @(GetActiveNavClass("/user/my-services"))"
-                @onclick='() => Navigation.NavigateTo("/user/my-services")'>
-            <i class="fa-solid fa-briefcase"></i>
-            <span>خدماتي</span>
-        </button>
-    }
-    else
-    {
+        <!-- 1. GUEST -->
+        <NavLink class="nav-item" href="/" Match="NavLinkMatch.All">
+            <i class="fa-solid fa-house"></i>
+            <span>الرئيسية</span>
+        </NavLink>
+
         <NavLink class="nav-item" href="/services">
             <i class="fa-solid fa-compass"></i>
-            <span>استكشاف</span>
+            <span>الخدمات</span>
+        </NavLink>
+
+        <NavLink class="nav-item home-item" href="/provider/apply">
+            <div class="home-circle">
+                <i class="fa-solid fa-briefcase"></i>
+            </div>
+            <span>اعرض خدماتك</span>
+        </NavLink>
+
+        <NavLink class="nav-item" href="/contact">
+            <i class="fa-solid fa-headset"></i>
+            <span>تواصل معنا</span>
+        </NavLink>
+
+        <NavLink class="nav-item" href="/login">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i>
+            <span>دخول</span>
         </NavLink>
     }
-
-    <button class="nav-item @(GetActiveNavClass("/user/my-requests"))" @onclick='() => NavigateToAuthOr("/user/my-requests")'>
-        <i class="fa-solid fa-list-check"></i>
-        <span>طلباتي</span>
-    </button>
-
-    <NavLink class="nav-item home-item" href="/" Match="NavLinkMatch.All">
-        <div class="home-circle">
-            <i class="fa-solid fa-house"></i>
-        </div>
-        <span>الرئيسية</span>
-    </NavLink>
-    
-    <button class="nav-item @(GetActiveNavClass("/user/messages"))" @onclick='() => NavigateToAuthOr("/user/messages")'>
-        <i class="fa-solid fa-comments"></i>
-        <span>رسائلي</span>
-    </button>
-    
-    @if (AppState.IsAuthenticated)
+    else if (AppState.IsAdmin)
     {
+        <!-- 4. ADMIN -->
+        <NavLink class="nav-item" href="/" Match="NavLinkMatch.All">
+            <i class="fa-solid fa-house"></i>
+            <span>التطبيق</span>
+        </NavLink>
+
+        <button class="nav-item @(GetActiveNavClass("/admin"))" @onclick='() => Navigate("/admin")'>
+            <i class="fa-solid fa-chart-pie"></i>
+            <span>لوحة المدير</span>
+        </button>
+
+        <button class="nav-item home-item @(GetActiveNavClass("/admin/approvals"))" @onclick='() => Navigate("/admin/approvals")'>
+            <div class="home-circle">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <span>الموافقات</span>
+        </button>
+
+        <button class="nav-item @(GetActiveNavClass("/admin/complaints"))" @onclick='() => Navigate("/admin/complaints")'>
+            <i class="fa-solid fa-headset"></i>
+            <span>الشكاوى</span>
+        </button>
+
+        <button class="nav-item @(GetActiveNavClass("/profile"))" @onclick='() => Navigate("/profile")'>
+            <div class="nav-avatar-wrapper">
+                <img src="@AppState.UserImageUrl" class="nav-user-avatar" alt="User" />
+            </div>
+            <span>الإدارة</span>
+        </button>
+    }
+    else if (AppState.IsProviderMode)
+    {
+        <!-- 3. SERVICE PROVIDER (Provider Mode active) -->
+        <button class="nav-item @(GetActiveNavClass("/provider/dashboard"))" @onclick='() => Navigate("/provider/dashboard")'>
+            <i class="fa-solid fa-chart-line"></i>
+            <span>لوحة التحكم</span>
+        </button>
+
+        <button class="nav-item @(GetActiveNavClass("/provider/my-services"))" @onclick='() => Navigate("/provider/my-services")'>
+            <i class="fa-solid fa-briefcase"></i>
+            <span>خدماتي</span>
+        </button>
+
+        <button class="nav-item home-item @(GetActiveNavClass("/provider/create-request"))" @onclick='() => Navigate("/provider/create-request")'>
+            <div class="home-circle">
+                <i class="fa-solid fa-plus"></i>
+            </div>
+            <span>أضف خدمة</span>
+        </button>
+
+        <button class="nav-item @(GetActiveNavClass("/user/messages"))" @onclick='() => Navigate("/user/messages")'>
+            <i class="fa-solid fa-comments"></i>
+            <span>المحادثات</span>
+        </button>
+
         <button class="nav-item @(GetActiveNavClass("/profile"))" @onclick='() => Navigate("/profile")'>
             <div class="nav-avatar-wrapper">
                 <img src="@AppState.UserImageUrl" class="nav-user-avatar" alt="User" />
@@ -52,18 +97,75 @@
     }
     else
     {
-        <NavLink class="nav-item" href="/login">
-            <i class="fa-solid fa-user"></i>
-            <span>دخول</span>
+        <!-- 2. CLIENT -->
+        <NavLink class="nav-item" href="/" Match="NavLinkMatch.All">
+            <i class="fa-solid fa-house"></i>
+            <span>الرئيسية</span>
         </NavLink>
+
+        <NavLink class="nav-item" href="/services">
+            <i class="fa-solid fa-compass"></i>
+            <span>الخدمات</span>
+        </NavLink>
+
+        <button class="nav-item home-item @(GetActiveNavClass("/user/my-requests"))" @onclick='() => Navigate("/user/my-requests")'>
+            <div class="home-circle">
+                <i class="fa-solid fa-list-check"></i>
+            </div>
+            <span>طلباتي</span>
+        </button>
+
+        <button class="nav-item @(GetActiveNavClass("/user/messages"))" @onclick='() => Navigate("/user/messages")'>
+            <i class="fa-solid fa-comments"></i>
+            <span>رسائلي</span>
+        </button>
+
+        <button class="nav-item @(GetActiveNavClass("/profile"))" @onclick='() => Navigate("/profile")'>
+            <div class="nav-avatar-wrapper">
+                <img src="@AppState.UserImageUrl" class="nav-user-avatar" alt="User" />
+            </div>
+            <span>حسابي</span>
+        </button>
     }
 </div>
 
 @inject NavigationManager Navigation
 @inject Khadamat.BlazorUI.State.AppState AppState
 @inject Khadamat.BlazorUI.Services.Auth.IAuthService AuthService
+@inject Microsoft.JSInterop.IJSRuntime JS
 
 @code {
+    private bool _disposed = false;
+
+    protected override void OnInitialized()
+    {
+        AppState.OnChange += OnStateChange;
+        Navigation.LocationChanged += HandleLocationChanged;
+    }
+
+    private async void OnStateChange()
+    {
+        if (_disposed) return;
+        try { await InvokeAsync(StateHasChanged); }
+        catch (ObjectDisposedException) { }
+        catch (InvalidOperationException) { }
+    }
+
+    private async void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        if (_disposed) return;
+        try { await InvokeAsync(StateHasChanged); }
+        catch (ObjectDisposedException) { }
+        catch (InvalidOperationException) { }
+    }
+
+    public void Dispose()
+    {
+        _disposed = true;
+        AppState.OnChange -= OnStateChange;
+        Navigation.LocationChanged -= HandleLocationChanged;
+    }
+
     private void Navigate(string path)
     {
         Navigation.NavigateTo(path);

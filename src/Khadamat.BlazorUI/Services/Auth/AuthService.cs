@@ -1,4 +1,4 @@
-﻿using System.Net.Http.Json;
+using System.Net.Http.Json;
 using Blazored.LocalStorage;
 using Khadamat.Application.DTOs;
 using Khadamat.Application.Common.Models;
@@ -44,7 +44,19 @@ public class AuthService : IAuthService
             {
                 url += $"?data={Uri.EscapeDataString(data)}";
             }
-            await _js.InvokeVoidAsync("eval", $"window.location.href = '{url}'");
+            var jsCode = $@"
+                (function() {{
+                    try {{
+                        const iframe = document.createElement('iframe');
+                        iframe.style.display = 'none';
+                        iframe.src = '{url}';
+                        document.body.appendChild(iframe);
+                        setTimeout(() => {{ try {{ iframe.remove(); }} catch(e){{}} }}, 600);
+                    }} catch(e) {{
+                        console.error('NotifyNativeApp error:', e);
+                    }}
+                }})();";
+            await _js.InvokeVoidAsync("eval", jsCode);
         }
         catch { /* Fallback or ignore if not in native webview */ }
     }
@@ -95,17 +107,21 @@ public class AuthService : IAuthService
         return result!;
     }
 
-    public Task Logout()
+    public async Task Logout()
     {
-        _secureStorage.Remove("authToken");
-        _secureStorage.Remove("refreshToken");
-        
-        _appState.UserToken = null;
+        try
+        {
+            await _secureStorage.RemoveAsync("authToken");
+            await _secureStorage.RemoveAsync("refreshToken");
+            await _secureStorage.RemoveAsync("is_authenticated");
+        }
+        catch { }
+
+        _appState.ClearUserState();
 
         ((CustomAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsLoggedOut();
         _httpClient.DefaultRequestHeaders.Authorization = null;
-        _ = NotifyNativeApp("auth_logout");
-        return Task.CompletedTask;
+        await NotifyNativeApp("auth_logout");
     }
 
     public async Task<ApiResponse<AuthResponse>> GetProfileAsync()
@@ -116,7 +132,14 @@ public class AuthService : IAuthService
             if (response?.Success == true && response.Data != null)
             {
                 var p = response.Data;
-                _appState.UpdateUserStatus(p.FullName ?? p.UserName, p.Roles.FirstOrDefault() ?? "User", p.IsProvider, DefaultImages.GetUserAvatar(p.UserName, p.Gender, p.ImageUrl), p.Id);
+                var avatarUrl = DefaultImages.GetUserAvatar(p.UserName, p.Gender, p.ImageUrl);
+                // Add cache-busting for local images so updated photos are shown immediately
+                if (!string.IsNullOrEmpty(avatarUrl) && !avatarUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) && !avatarUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+                {
+                    var ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                    avatarUrl = avatarUrl.Contains("?") ? $"{avatarUrl}&v={ts}" : $"{avatarUrl}?v={ts}";
+                }
+                _appState.UpdateUserStatus(p.FullName ?? p.UserName, p.Roles.FirstOrDefault() ?? "User", p.IsProvider, avatarUrl, p.Id);
                 _appState.CityId = p.CityId;
                 _appState.GovernorateId = p.GovernorateId;
                 _appState.PhoneNumber = p.PhoneNumber;
@@ -125,7 +148,7 @@ public class AuthService : IAuthService
                 var roles = string.Join(",", p.Roles);
                 var is_admin = p.Roles.Any(r => r == "SystemAdmin" || r == "SuperAdmin").ToString().ToLower();
                 var is_super = p.Roles.Any(r => r == "SuperAdmin").ToString().ToLower();
-                var avatar = DefaultImages.GetUserAvatar(p.UserName, p.Gender, p.ImageUrl);
+                var avatar = avatarUrl;
                 var nativeData = $"name={Uri.EscapeDataString(p.UserName ?? "")}&image={Uri.EscapeDataString(avatar)}&token={_appState.UserToken}&is_admin={is_admin}&is_super_admin={is_super}&is_provider={p.IsProvider.ToString().ToLower()}";
                 
                 // We use "auth_sync" to update native UI (name, avatar) WITHOUT triggering a shell navigation to Home

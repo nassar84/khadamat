@@ -63,8 +63,8 @@
                     }
                     else if (IsAuthenticated)
                     {
-                        <button class="btn btn-glass-dark text-info" title="اطلب تعديل بيانات" @onclick="OpenRequestEditModal">
-                            <i class="fa-solid fa-code-pull-request"></i>
+                        <button class="btn btn-glass-dark text-info" title="اقتراح تعديل بيانات الخدمة" @onclick="OpenRequestEditModal">
+                            <i class="fa-solid fa-pen-to-square"></i>
                         </button>
                     }
                     <button class="btn btn-glass-dark @(service.IsFavorite ? "text-danger" : "")" @onclick="ToggleFavorite">
@@ -200,11 +200,13 @@
                     </div>
 
                     <div class="contact-actions-v3 d-flex flex-column gap-2 mt-auto">
-                        @* زر طلب الخدمة — مخفي مؤقتاً بناءً على طلب الإدارة
-                        <button class="btn btn-request-main w-100 py-3 shadow-lg" @onclick="OpenRequestModal">
-                            <i class="fa-solid fa-calendar-check fs-4"></i> طلب الخدمة الآن
-                        </button>
-                        *@
+                        @if (!CanEdit)
+                        {
+                            <button class="btn btn-request-main w-100 py-3 shadow-lg d-flex align-items-center justify-content-center gap-2" @onclick="OpenRequestModal">
+                                <i class="fa-solid fa-calendar-check fs-4"></i>
+                                <span class="fs-6 fw-bold">طلب الخدمة الآن</span>
+                            </button>
+                        }
                         
                         @if (!string.IsNullOrEmpty(service.YouTubeUrl))
                         {
@@ -250,10 +252,10 @@
                                 <i class="fa-solid fa-phone text-success"></i>
                                 <div>
                                     <div class="fw-bold">أرقام التواصل</div>
-                                    <div class="small">@service.Phone1</div>
+                                    <div class="small" dir="ltr" style="unicode-bidi: isolate; text-align: right;">@service.Phone1</div>
                                     @if (!string.IsNullOrEmpty(service.Phone2))
                                     {
-                                        <div class="small">@service.Phone2</div>
+                                        <div class="small" dir="ltr" style="unicode-bidi: isolate; text-align: right;">@service.Phone2</div>
                                     }
                                 </div>
                             </div>
@@ -296,6 +298,29 @@
                             }
                         </div>
 
+                        <!-- Disclaimer Alert -->
+                        <div class="disclaimer-alert p-3 rounded-4 mb-3 border bg-warning bg-opacity-10 border-warning border-opacity-25 d-flex align-items-start gap-3">
+                            <i class="fa-solid fa-shield-halved text-warning fs-4 flex-shrink-0 mt-1"></i>
+                            <div class="small">
+                                <strong class="text-dark d-block mb-1">إخلاء مسؤولية وتأكيد الطلب:</strong>
+                                <span class="text-muted leading-relaxed">
+                                    التطبيق غير مسؤول عن الطلبات والتعاملات المالية أو الاتفاقات المبرمة بين العملاء ومقدمي الخدمات.
+                                    يُرجى تأكيد طلبك دائماً بالاتصال المباشر مع مقدم الخدمة عبر طرق التواصل المتاحة في بيانات الخدمة (الاتصال الهاتفي أو عبر واتساب).
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons: Request Service -->
+                        @if (!CanEdit)
+                        {
+                            <div class="action-buttons-v3 mb-2">
+                                <button class="btn btn-request-main w-100 py-3 shadow-md d-flex align-items-center justify-content-center gap-2" @onclick="OpenRequestModal">
+                                    <i class="fa-solid fa-calendar-check fs-5"></i>
+                                    <span class="fs-6 fw-bold">طلب الخدمة الآن</span>
+                                </button>
+                            </div>
+                        }
+
                         <!-- Action Buttons: Direct Phone Call -->
                         <div class="action-buttons-v3 mb-2">
                             <button class="btn btn-call w-100 py-3 shadow-sm d-flex align-items-center justify-content-center gap-2" @onclick="CallProvider" disabled="@(string.IsNullOrEmpty(service.Phone1) && string.IsNullOrEmpty(service.Phone2))">
@@ -303,6 +328,29 @@
                                 <span class="fs-6 fw-bold">اتصال هاتفياً</span>
                             </button>
                         </div>
+
+                        <!-- Action Buttons: Message Provider -->
+                        @if (!string.IsNullOrEmpty(service.UserId) && !CanEdit)
+                        {
+                            <div class="action-buttons-v3 mb-2">
+                                <AuthorizeView>
+                                    <Authorized>
+                                        <button class="btn btn-message w-100 py-3 shadow-sm d-flex align-items-center justify-content-center gap-2"
+                                                @onclick="StartChat">
+                                            <i class="fa-solid fa-comment-dots fs-5"></i>
+                                            <span class="fs-6 fw-bold">راسل المزود</span>
+                                        </button>
+                                    </Authorized>
+                                    <NotAuthorized>
+                                        <button class="btn btn-message w-100 py-3 shadow-sm d-flex align-items-center justify-content-center gap-2"
+                                                @onclick='() => Navigation.NavigateTo("/login")'>
+                                            <i class="fa-solid fa-comment-dots fs-5"></i>
+                                            <span class="fs-6 fw-bold">راسل المزود</span>
+                                        </button>
+                                    </NotAuthorized>
+                                </AuthorizeView>
+                            </div>
+                        }
 
                         <!-- Share Button (Opens Share Modal) -->
                         <div class="d-flex gap-2 mb-4">
@@ -619,7 +667,7 @@
                                     {
                                         <span style="font-size: 0.72rem; font-weight: 800; color: #991b1b; display: inline-flex; align-items: center; gap: 3px;">
                                             <span style="font-size: 0.75rem;">📞</span>
-                                            <span>@service.Phone1</span>
+                                            <span dir="ltr" style="unicode-bidi: isolate;">@service.Phone1</span>
                                         </span>
                                     }
                                     @if (!string.IsNullOrEmpty(service?.WhatsApp))
@@ -628,7 +676,7 @@
                                             <svg width="13" height="13" viewBox="0 0 448 512" fill="#25D366" style="display:inline-block; vertical-align:-1px; flex-shrink:0;">
                                                 <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/>
                                             </svg>
-                                            <span>@service.WhatsApp</span>
+                                            <span dir="ltr" style="unicode-bidi: isolate;">@service.WhatsApp</span>
                                         </span>
                                     }
                                     @if (!string.IsNullOrWhiteSpace(service?.Facebook))
@@ -719,7 +767,7 @@
                     <div class="flex-grow-1">
                         <div class="fw-800 mb-1" style="font-size: 0.95rem;">📲 تطبيق ومنصة خدماوي</div>
                         <div class="mb-2" style="font-size: 0.8rem; opacity: 0.92; line-height: 1.5;">سوق الخدمات والأعمال الأول في مصر — تصفح آلاف الخدمات القريبة منك وتواصل مباشرة مع مقدميها مجاناً!</div>
-                        <a href="/downloads/خدماوى.apk"
+                        <a href="/downloads/khadamat.apk"
                            download="خدماوى.apk"
                            class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill fw-bold"
                            style="background: white; color: #1d6070; font-size: 0.78rem; text-decoration: none; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
@@ -843,28 +891,39 @@
 {
     <div class="modal-overlay">
         <div class="glass-card p-4 rounded-4 animate-pop" style="max-width: 500px; width: 90%;">
-            <h5 class="fw-bold text-center mb-3">طلب الخدمة</h5>
-            <p class="text-muted small text-center mb-4">@service?.Title</p>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="fw-bold mb-0">طلب الخدمة</h5>
+                <button type="button" class="btn-close" @onclick="() => showRequestModal = false"></button>
+            </div>
+            <p class="text-muted small mb-3">@service?.Title</p>
+
+            <div class="alert alert-warning border-0 rounded-4 p-3 small mb-3 d-flex align-items-start gap-2" style="background-color: #fef3c7; color: #92400e;">
+                <i class="fa-solid fa-triangle-exclamation fs-5 flex-shrink-0 mt-1" style="color: #d97706;"></i>
+                <div class="leading-relaxed">
+                    <strong class="d-block mb-1">تنبيه هام وإخلاء مسؤولية:</strong>
+                    التطبيق منصة وصل فقط وغير مسؤول عن الطلبات أو الاتفاقات والتعاملات المالية بين الطرفين. يجب عليك تأكيد طلبك بالاتصال المباشر مع مقدم الخدمة عبر وسائل الاتصال المتاحة (الهاتف أو واتساب).
+                </div>
+            </div>
             
             <div class="mb-3">
                 <label class="form-label fw-bold small">التاريخ المفضل (اختياري)</label>
-                <input type="date" @bind="requestPreferredDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                <input type="date" @bind="requestPreferredDate" class="form-control rounded-3" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
             </div>
             
             <div class="mb-3">
                 <label class="form-label fw-bold small">ملاحظات إضافية (اختياري)</label>
-                <textarea @bind="requestNotes" class="form-control" rows="3" placeholder="أي تفاصيل إضافية تود إخبار مقدم الخدمة بها..."></textarea>
+                <textarea @bind="requestNotes" class="form-control rounded-3" rows="3" placeholder="أي تفاصيل إضافية تود إخبار مقدم الخدمة بها..."></textarea>
             </div>
             
             <div class="d-flex gap-2">
-                <button class="btn btn-success flex-grow-1 rounded-pill" @onclick="SubmitRequest" disabled="@isSubmittingRequest">
+                <button class="btn btn-success flex-grow-1 rounded-pill py-2 fw-bold" @onclick="SubmitRequest" disabled="@isSubmittingRequest">
                     @if (isSubmittingRequest)
                     {
                         <span class="spinner-border spinner-border-sm me-2"></span>
                     }
                     إرسال الطلب
                 </button>
-                <button class="btn btn-light flex-grow-1 rounded-pill" @onclick="() => showRequestModal = false" disabled="@isSubmittingRequest">إلغاء</button>
+                <button class="btn btn-light flex-grow-1 rounded-pill py-2" @onclick="() => showRequestModal = false" disabled="@isSubmittingRequest">إلغاء</button>
             </div>
             
             @if (!string.IsNullOrEmpty(requestError))
@@ -1067,6 +1126,20 @@
     /* Actions */
     .btn-whatsapp { background: #25d366; color: white; border-radius: 15px; padding: 12px; font-weight: 700; border: none; }
     .btn-call { background: #3b82f6; color: white; border-radius: 15px; padding: 12px; font-weight: 700; border: none; }
+    .btn-message { 
+        background: linear-gradient(135deg, #10b981, #059669); 
+        color: white; 
+        border-radius: 15px; 
+        padding: 12px; 
+        font-weight: 700; 
+        border: none; 
+        transition: all 0.3s ease;
+    }
+    .btn-message:hover { 
+        transform: translateY(-2px); 
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4); 
+        color: white; 
+    }
     .btn-request-main {
         background: linear-gradient(135deg, #1d6070, #2a7f8f 60%, #f47c30);
         color: white;
@@ -1528,6 +1601,38 @@
         await LoadServiceDataAsync();
     }
 
+    private int? lastCardPreparedServiceId;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (service != null && lastCardPreparedServiceId != service.Id)
+        {
+            lastCardPreparedServiceId = service.Id;
+            var currentServiceId = service.Id;
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await Task.Delay(1500);
+                    if (service?.Id != currentServiceId) return;
+
+                    var (success, _) = await Api.GenerateShareCardAsync(currentServiceId);
+                    if (!success)
+                    {
+                        await InvokeAsync(async () =>
+                        {
+                            try
+                            {
+                                await JS.InvokeVoidAsync("uploadShareCardImage", "service-share-card", SharePageUrl, currentServiceId, Api.BaseUrl);
+                            }
+                            catch { }
+                        });
+                    }
+                }
+                catch { }
+            });
+        }
+    }
+
     private async Task LoadServiceDataAsync()
     {
         service = null;
@@ -1843,7 +1948,7 @@
         var phoneLine = !string.IsNullOrEmpty(service?.Phone1) ? $"\n📞 *الهاتف:* {service.Phone1}" : "";
         var fbLine = !string.IsNullOrWhiteSpace(service?.Facebook) ? $"\n🌐 *فيسبوك:* {GetFacebookUrl(service.Facebook)}" : "";
 
-        return $"🌟 *{title}*\n💰 *السعر:* {priceText}\n📝 {desc}{addressLine}{phoneLine}{fbLine}\n\n🔗 *رابط تفاصيل الخدمة:* \n{SharePageUrl}\n\n📲 *حمّل تطبيق خدماوي مجاناً الآن واستمتع بآلاف الخدمات والوظائف القريبة منك (APK):*\nhttps://khadamawy.eis-dev.com/downloads/خدماوى.apk\n\nخدماوي - سوق الخدمات والأعمال الأول في مصر 🇪🇬";
+        return $"🌟 *{title}*\n💰 *السعر:* {priceText}\n📝 {desc}{addressLine}{phoneLine}{fbLine}\n\n🔗 *رابط تفاصيل الخدمة:* \n{SharePageUrl}\n\n📲 *حمّل تطبيق خدماوي مجاناً الآن واستمتع بآلاف الخدمات والوظائف القريبة منك (APK):*\nhttps://khadamawy.eis-dev.com/downloads/khadamat.apk\n\nخدماوي - سوق الخدمات والأعمال الأول في مصر 🇪🇬";
     }
 
     private string GetTelegramShareText()
@@ -1855,7 +1960,7 @@
         var addressLine = !string.IsNullOrEmpty(addressDetail) ? $"\n📍 العنوان: {addressDetail}" : "";
         var fbLine = !string.IsNullOrWhiteSpace(service?.Facebook) ? $"\n🌐 فيسبوك: {GetFacebookUrl(service.Facebook)}" : "";
 
-        return $"🌟 *{title}*\n📝 {desc}{addressLine}{fbLine}\n\n🔗 رابط الخدمة والتفاصيل:\n{SharePageUrl}\n\n📲 حمّل تطبيق خدماوي (APK):\nhttps://khadamawy.eis-dev.com/downloads/خدماوى.apk";
+        return $"🌟 *{title}*\n📝 {desc}{addressLine}{fbLine}\n\n🔗 رابط الخدمة والتفاصيل:\n{SharePageUrl}\n\n📲 حمّل تطبيق خدماوي (APK):\nhttps://khadamawy.eis-dev.com/downloads/khadamat.apk";
     }
 
     private string GetShareText()
@@ -1868,7 +1973,7 @@
         var addressLine = !string.IsNullOrEmpty(addressDetail) ? $"\n📍 العنوان: {addressDetail}" : "";
         var phoneLine = !string.IsNullOrEmpty(service?.Phone1) ? $"\n📞 الهاتف: {service.Phone1}" : "";
 
-        return $"🌟 شاهد هذه الخدمة المميزة على منصة خدماوي:\n*{title}*\n🔗 رابط الخدمة والتفاصيل:\n{SharePageUrl}\n\n💰 السعر: {priceText}\n📝 {desc}{addressLine}{phoneLine}\n\n📲 حمّل تطبيق خدماوي مجاناً للأندرويد (APK):\nhttps://khadamawy.eis-dev.com/downloads/خدماوى.apk";
+        return $"🌟 شاهد هذه الخدمة المميزة على منصة خدماوي:\n*{title}*\n🔗 رابط الخدمة والتفاصيل:\n{SharePageUrl}\n\n💰 السعر: {priceText}\n📝 {desc}{addressLine}{phoneLine}\n\n📲 حمّل تطبيق خدماوي مجاناً للأندرويد (APK):\nhttps://khadamawy.eis-dev.com/downloads/khadamat.apk";
     }
 
     private void RecordShare()
@@ -1889,6 +1994,20 @@
                 url = FacebookShareUrl;
                 try
                 {
+                    // Ensure the full card image is generated and uploaded before opening Facebook
+                    if (string.IsNullOrEmpty(shareCardImageUrl))
+                    {
+                        var (cardReady, imgUrl) = await Api.GenerateShareCardAsync(service?.Id ?? Id);
+                        if (cardReady && !string.IsNullOrEmpty(imgUrl))
+                        {
+                            shareCardImageUrl = Api.GetAbsoluteUrl(imgUrl);
+                        }
+                        else
+                        {
+                            await JS.InvokeVoidAsync("uploadShareCardImage", "service-share-card", SharePageUrl, service?.Id ?? Id, Api.BaseUrl);
+                            shareCardImageUrl = $"{Api.BaseUrl.TrimEnd('/')}/images/share_cards/card_{service?.Id ?? Id}.png?v={DateTime.UtcNow.Ticks}";
+                        }
+                    }
                     await JS.InvokeVoidAsync("navigator.clipboard.writeText", GetWhatsAppShareText());
                     shareCopyStatus = "تم نسخ تفاصيل الخدمة ورابط تحميل التطبيق تلقائياً! يمكنك لصقها (Paste) في منشورك على فيسبوك.";
                     StateHasChanged();
@@ -1973,8 +2092,22 @@
             }
             else
             {
-                // 2) Fallback: client-side canvas capture
-                await JS.InvokeVoidAsync("uploadShareCardImage", "service-share-card", SharePageUrl, service?.Id ?? Id);
+                // 2) Fallback: client-side canvas capture and upload
+                var uploaded = await JS.InvokeAsync<bool>("uploadShareCardImage", "service-share-card", SharePageUrl, service?.Id ?? Id, Api.BaseUrl);
+                if (uploaded)
+                {
+                    shareCardImageUrl = $"{Api.BaseUrl.TrimEnd('/')}/images/share_cards/card_{service?.Id ?? Id}.png?v={DateTime.UtcNow.Ticks}";
+                    StateHasChanged();
+                }
+                else
+                {
+                    var previewUrl = await JS.InvokeAsync<string?>("captureServiceCardAsImage", "service-share-card", SharePageUrl);
+                    if (!string.IsNullOrEmpty(previewUrl))
+                    {
+                        shareCardImageUrl = previewUrl;
+                        StateHasChanged();
+                    }
+                }
             }
         }
         catch (Exception ex)
@@ -2030,7 +2163,7 @@
             var addressDetail = GetCardDetailedAddress();
             var addressLine = !string.IsNullOrEmpty(addressDetail) ? $"\n📍 العنوان بالتفصيل: {addressDetail}" : "";
             var fbLine = !string.IsNullOrWhiteSpace(service?.Facebook) ? $"\n🌐 صفحة فيسبوك: {GetFacebookUrl(service.Facebook)}" : "";
-            var shareText = $"🌟 شاهد هذه الخدمة المميزة على منصة خدماوي:\n*{service?.Title}*\n🔗 رابط الخدمة والتفاصيل:\n{SharePageUrl}\n\n📝 {service?.Description}{addressLine}{fbLine}\n\n📲 حمّل تطبيق خدماوي مجاناً للأندرويد (APK):\nhttps://khadamawy.eis-dev.com/downloads/خدماوى.apk";
+            var shareText = $"🌟 شاهد هذه الخدمة المميزة على منصة خدماوي:\n*{service?.Title}*\n🔗 رابط الخدمة والتفاصيل:\n{SharePageUrl}\n\n📝 {service?.Description}{addressLine}{fbLine}\n\n📲 حمّل تطبيق خدماوي مجاناً للأندرويد (APK):\nhttps://khadamawy.eis-dev.com/downloads/khadamat.apk";
             
             // Ensure card image is ready
             var imageUrl = shareCardImageUrl;
@@ -2394,7 +2527,9 @@
     {
         if (service?.UserId != null)
         {
-            Navigation.NavigateTo($"/user/messages/{service.UserId}");
+            var name = Uri.EscapeDataString(service.ProviderName ?? "");
+            var photo = Uri.EscapeDataString(service.ProviderPhoto ?? "");
+            Navigation.NavigateTo($"/user/messages/{service.UserId}?name={name}&photo={photo}");
         }
     }
 

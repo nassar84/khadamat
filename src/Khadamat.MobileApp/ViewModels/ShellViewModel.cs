@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Khadamat.Application.DTOs;
 using System.Net.Http.Json;
@@ -50,36 +50,71 @@ public partial class ShellViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotAuthenticated))]
+    [NotifyPropertyChangedFor(nameof(IsGuest))]
+    [NotifyPropertyChangedFor(nameof(IsClient))]
+    [NotifyPropertyChangedFor(nameof(IsProviderActive))]
+    [NotifyPropertyChangedFor(nameof(IsAdminActive))]
     private bool isAuthenticated = false;
 
     public bool IsNotAuthenticated => !IsAuthenticated;
+    public bool IsGuest => !IsAuthenticated;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsClient))]
+    [NotifyPropertyChangedFor(nameof(IsProviderActive))]
+    [NotifyPropertyChangedFor(nameof(IsAdminActive))]
     private bool isAdmin = false;
 
     [ObservableProperty]
     private bool isSuperAdmin = false;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsClient))]
+    [NotifyPropertyChangedFor(nameof(IsProviderActive))]
     private bool isProvider = false;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsClientMode))]
+    [NotifyPropertyChangedFor(nameof(IsClient))]
+    [NotifyPropertyChangedFor(nameof(IsProviderActive))]
     private bool isProviderMode = false;
 
     public bool IsClientMode => !IsProviderMode;
 
+    public bool IsClient => IsAuthenticated && !IsAdmin && (!IsProvider || !IsProviderMode);
+    public bool IsProviderActive => IsAuthenticated && !IsAdmin && IsProvider && IsProviderMode;
+    public bool IsAdminActive => IsAuthenticated && IsAdmin;
+
     [RelayCommand]
-    private void ToggleMode()
+    private async Task ToggleMode()
     {
         if (!IsProvider) return;
         IsProviderMode = !IsProviderMode;
-        
-        // Navigate based on mode
-        if (IsProviderMode)
-            _ = Shell.Current.GoToAsync("//HomePage?route=provider/dashboard");
-        else
-            _ = Shell.Current.GoToAsync("//HomePage");
+        Shell.Current.FlyoutIsPresented = false;
+
+        // Navigate inside WebView (JS injection) to avoid reloading entire WebView
+        string targetRoute = IsProviderMode ? "provider/dashboard" : "";
+        try
+        {
+            var currentPage = Shell.Current.CurrentPage;
+            if (currentPage is NavigationPage navPage) currentPage = navPage.CurrentPage;
+
+            if (currentPage is Views.WebContainerPage webPage)
+            {
+                Console.WriteLine($"ANTIGRAVITY_LOG: ToggleMode - navigating inside WebView to: /{targetRoute}");
+                await webPage.NavigateToInternalRoute(targetRoute);
+            }
+            else
+            {
+                // Fallback: switch Shell tab (will reload WebView)
+                string targetTab = IsProviderMode ? "//Provider_Dashboard" : "//Client_Home";
+                await Shell.Current.GoToAsync(targetTab);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ANTIGRAVITY_LOG: Error switching mode: {ex.Message}");
+        }
     }
 
     public static event EventHandler? AuthChanged;
@@ -91,9 +126,8 @@ public partial class ShellViewModel : ObservableObject
         IsSuperAdmin = superAdmin;
         IsProvider = provider;
         
-        // Default to client mode on login unless they are only a provider? 
-        // We'll keep current mode or reset to Client for safety.
-        IsProviderMode = false; 
+        // Providers start in provider mode by default if not admin
+        IsProviderMode = provider && !admin;
         
         if (value)
         {
@@ -197,6 +231,13 @@ public partial class ShellViewModel : ObservableObject
                 
                 try
                 {
+                    Microsoft.Maui.Storage.SecureStorage.Remove("authToken");
+                    Microsoft.Maui.Storage.SecureStorage.Remove("refreshToken");
+                }
+                catch { }
+
+                try
+                {
                     var cPage = Shell.Current.CurrentPage;
                     if (cPage is NavigationPage nPage) cPage = nPage.CurrentPage;
                     
@@ -211,7 +252,17 @@ public partial class ShellViewModel : ObservableObject
                 }
 
                 SetAuthenticated(false);
-                await Shell.Current.GoToAsync("//HomePage");
+                try
+                {
+                    await Shell.Current.GoToAsync("//Guest_Home");
+                }
+                catch
+                {
+                    // Fallback to reload if needed
+                    var cPage = Shell.Current.CurrentPage;
+                    if (cPage is NavigationPage nPage) cPage = nPage.CurrentPage;
+                    if (cPage is Views.WebContainerPage wPage) wPage.ReturnToRoot();
+                }
                 return;
             }
             
@@ -227,34 +278,58 @@ public partial class ShellViewModel : ObservableObject
             else if (route == "register")
                 blazorRoute = "register";
             else if (route == "favorites")
-                blazorRoute = IsClientMode ? "client/favorites" : "provider/dashboard";
+                blazorRoute = "client/favorites";
             else if (route == "messages")
                 blazorRoute = "messages";
-            else if (route == "provider/dashboard" || route == "my-services")
-                blazorRoute = IsProviderMode ? "provider/services" : "provider/dashboard";
+            else if (route == "my-requests" || route == "user/my-requests")
+                blazorRoute = "user/my-requests";
+            else if (route == "provider/incoming-requests" || route == "incoming-requests")
+                blazorRoute = "provider/incoming-requests";
+            else if (route == "provider/dashboard")
+                blazorRoute = "provider/dashboard";
+            else if (route == "my-services" || route == "provider/my-services" || route == "provider/services")
+                blazorRoute = "provider/my-services";
+            else if (route == "provider/create-request" || route == "add-service" || route == "provider/apply")
+                blazorRoute = "provider/create-request";
+            else if (route == "provider/subscription")
+                blazorRoute = "provider/subscription";
             else if (route == "services")
                 blazorRoute = "services";
             else if (route == "settings")
                 blazorRoute = "settings";
-            else if (route == "admin")
+            else if (route == "admin" || route == "admin/dashboard")
                 blazorRoute = "admin";
+            else if (route == "admin/approvals" || route == "approvals")
+                blazorRoute = "admin/approvals";
+            else if (route == "admin/complaints" || route == "complaints")
+                blazorRoute = "admin/complaints";
             else if (route == "admin/ads")
                 blazorRoute = "admin/ads";
+            else if (route == "admin/users")
+                blazorRoute = "admin/users";
+            else if (route == "admin/categories")
+                blazorRoute = "admin/categories";
+            else if (route == "admin/services")
+                blazorRoute = "admin/services";
+            else if (route == "admin/governorates" || route == "admin/locations")
+                blazorRoute = "admin/locations";
+            else if (route == "admin/settings" || route == "admin/systemsettings")
+                blazorRoute = "admin/settings";
             else if (route == "feed")
                 blazorRoute = "feed";
             else if (route == "terms")
                 blazorRoute = "terms";
+            else if (route == "privacy")
+                blazorRoute = "privacy";
             else if (route == "home" || route == "//HomePage")
                 blazorRoute = "";
-            else if (route == "provider/apply")
-                blazorRoute = "provider/apply";
             else if (route == "categories")
                 blazorRoute = "categories";
             else if (route == "explore")
                 blazorRoute = "explore";
             else if (route == "search")
                 blazorRoute = "search";
-            else if (route == "support")
+            else if (route == "support" || route == "contact")
                 blazorRoute = "contact";
             else if (route == "notifications")
                 blazorRoute = "notifications";
@@ -335,12 +410,19 @@ public partial class ShellViewModel : ObservableObject
     {
         try
         {
-            var text = "📲 منصة خدماوي — خدماتك في مكان واحد.. لكل المصريين!\n\n" +
-                       "تواصل مباشرة مع أفضل الحرفيين والمهنيين ومقدمي الخدمات بكل سهولة وأمان.\n\n" +
-                       "🔗 رابط تحميل التطبيق للأندرويد (APK):\nhttps://khadamawy.eis-dev.com/downloads/Khadamawy.apk\n\n" +
-                       "🌐 أو تصفح الموقع مباشرة:\nhttps://khadamawy.eis-dev.com";
+            var prefs = Microsoft.Maui.Storage.Preferences.Default;
+            var shareUrl = prefs.Get("AppShareUrl", "https://khadamawy.eis-dev.com/downloads/Khadamawy.apk");
+            var customShareText = prefs.Get("AppShareText", "");
 
-            string title = "مشاركة تطبيق خدماوي";
+            var appDisplayName = string.IsNullOrEmpty(AppNameAr) ? AppName : AppNameAr;
+            var text = !string.IsNullOrWhiteSpace(customShareText)
+                ? $"{customShareText}\n\n🔗 {shareUrl}"
+                : $"📲 تطبيق {appDisplayName} — خدماتك في مكان واحد.. لكل المصريين!\n\n" +
+                  "تواصل مباشرة مع أفضل الحرفيين والمهنيين ومقدمي الخدمات بكل سهولة وأمان.\n\n" +
+                  $"🔗 رابط تحميل التطبيق:\n{shareUrl}\n\n" +
+                  "🌐 أو تصفح الموقع مباشرة:\nhttps://khadamawy.eis-dev.com";
+
+            string title = $"مشاركة تطبيق {appDisplayName}";
 
             string? shareImagePath = null;
             try
@@ -365,23 +447,13 @@ public partial class ShellViewModel : ObservableObject
                 Console.WriteLine($"ANTIGRAVITY_LOG: Could not extract promo image for sharing: {ex.Message}");
             }
 
-            if (!string.IsNullOrEmpty(shareImagePath) && File.Exists(shareImagePath))
+            // Always share text + link (image is extra context only, not a replacement)
+            await Share.Default.RequestAsync(new ShareTextRequest
             {
-                await Share.Default.RequestAsync(new ShareFileRequest
-                {
-                    Title = title,
-                    File = new ShareFile(shareImagePath)
-                });
-            }
-            else
-            {
-                await Share.Default.RequestAsync(new ShareTextRequest
-                {
-                    Text = text,
-                    Title = title,
-                    Uri = "https://khadamawy.eis-dev.com/downloads/Khadamawy.apk"
-                });
-            }
+                Text = text,
+                Title = title,
+                Uri = shareUrl
+            });
         }
         catch (Exception ex)
         {
@@ -509,6 +581,17 @@ public partial class ShellViewModel : ObservableObject
                     {
                         AppLogo = $"{baseUrl.TrimEnd('/')}/{response.Data.LogoUrl.TrimStart('/')}";
                     }
+                }
+
+                // Cache share settings for native share
+                var prefStorage = Microsoft.Maui.Storage.Preferences.Default;
+                if (!string.IsNullOrEmpty(response.Data.AppShareUrl))
+                {
+                    prefStorage.Set("AppShareUrl", response.Data.AppShareUrl);
+                }
+                if (!string.IsNullOrEmpty(response.Data.AppShareText))
+                {
+                    prefStorage.Set("AppShareText", response.Data.AppShareText);
                 }
             }
         }

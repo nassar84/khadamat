@@ -6,58 +6,191 @@
 @inject ApiClient Api
 @inject IJSRuntime JS
 
+<PageTitle>إدارة التصنيفات</PageTitle>
+
 <div class="px-2 pb-5">
-    <div class="d-flex justify-content-end mb-4">
-        <button class="btn btn-primary-premium rounded-pill px-4" @onclick="() => AddItem(null)">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h4 class="fw-bold mb-1">إدارة التصنيفات</h4>
+            <p class="text-muted small mb-0">تصفح الفئات الرئيسية والفرعية — التحميل عند الطلب مع استجابة كاملة للموبايل</p>
+        </div>
+        <button class="btn btn-primary-premium rounded-pill px-4" @onclick="() => AddItem(0, null)">
             <i class="fa-solid fa-plus me-2"></i> إضافة تصنيف رئيسي
         </button>
     </div>
 
-    <div class="glass-card p-4">
-        @if (isLoading)
+    <div class="glass-card p-3 p-md-4">
+        @if (isLoadingMain)
         {
             <div class="text-center p-5">
                 <div class="spinner-border text-primary" role="status"></div>
-                <p class="mt-2 text-muted">جاري تحميل الهيكل الشجري...</p>
+                <p class="mt-2 text-muted small">جاري تحميل الفئات الرئيسية...</p>
             </div>
         }
-        else if (!treeNodes.Any())
+        else if (!mainCategories.Any())
         {
             <div class="text-center p-5 text-muted">
                 <i class="fa-solid fa-folder-open fs-1 mb-3 opacity-25"></i>
-                <p>لا توجد تصنيفات حالياً</p>
+                <p>لا توجد فئات رئيسية حالياً</p>
             </div>
         }
         else
         {
-            <div class="tree-container">
-                @foreach (var node in treeNodes)
+            <div class="lazy-tree">
+                @foreach (var mc in mainCategories)
                 {
-                    <TreeViewItem TItem="CategoryNode" 
-                                 Item="node" 
-                                 TextSelector="@(n => n.Name)"
-                                 ChildrenSelector="@(n => n.Children)"
-                                 IsInitiallyExpanded="false">
-                        <IconTemplate Context="n">
-                            @if (n.Level == 0) { <i class="fa-solid fa-layer-group text-primary"></i> }
-                            else if (n.Level == 1) { <i class="fa-solid fa-folder text-warning"></i> }
-                            else { <i class="fa-solid fa-tag text-info"></i> }
-                        </IconTemplate>
-                        <ActionsTemplate Context="n">
-                            @if (n.Level < 2)
-                            {
-                                <button class="btn btn-sm btn-light border text-success" title="إضافة" @onclick:stopPropagation="true" @onclick="() => AddItem(n)">
-                                    <i class="fa-solid fa-plus x-small"></i>
+                    <!-- ── مستوى 0: الفئة الرئيسية ── -->
+                    <div class="tree-node level-0">
+                        <div class="tree-row @(expandedMain == mc.Id ? "active-row" : "")">
+                            <div class="tree-main-clickable" @onclick="() => ToggleMain(mc.Id)">
+                                <span class="toggle-icon">
+                                    @if (loadingNodeId == $"m{mc.Id}")
+                                    {
+                                        <span class="spinner-border spinner-border-sm text-primary" style="width:14px;height:14px;"></span>
+                                    }
+                                    else
+                                    {
+                                        <i class="fa-solid @(expandedMain == mc.Id ? "fa-chevron-down" : "fa-chevron-left") text-muted x-small"></i>
+                                    }
+                                </span>
+
+                                @if (!string.IsNullOrEmpty(mc.ImageUrl))
+                                {
+                                    <img src="@mc.ImageUrl" class="cat-thumb me-1" alt="@mc.Name" />
+                                }
+                                else if (!string.IsNullOrEmpty(mc.Icon))
+                                {
+                                    <i class="@mc.Icon ms-1" style="color: @(string.IsNullOrEmpty(mc.Color) ? "var(--theme-primary)" : mc.Color);"></i>
+                                }
+                                else
+                                {
+                                    <i class="fa-solid fa-layer-group text-primary ms-1"></i>
+                                }
+
+                                <span class="tree-label fw-bold">@mc.Name</span>
+
+                                @if (categoriesOf.ContainsKey(mc.Id))
+                                {
+                                    <span class="badge bg-light text-dark border rounded-pill ms-2 x-small">
+                                        @categoriesOf[mc.Id].Count فئات
+                                    </span>
+                                }
+                            </div>
+
+                            <div class="cat-actions" @onclick:stopPropagation="true">
+                                <button class="btn btn-sm btn-action-pill text-success" title="إضافة فئة فرعية" @onclick="() => AddItem(1, mc.Id)">
+                                    <i class="fa-solid fa-plus me-1"></i><span class="d-none d-sm-inline">فئة فرعية</span>
                                 </button>
+                                <button class="btn btn-sm btn-action-pill text-primary" title="تعديل" @onclick="() => EditMain(mc)">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                                <button class="btn btn-sm btn-action-pill text-danger" title="حذف" @onclick="() => ConfirmDelete(0, mc.Id, mc.Name, null)">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- ── مستوى 1: الفئات الفرعية (Categories) ── -->
+                        @if (expandedMain == mc.Id && categoriesOf.TryGetValue(mc.Id, out var cats))
+                        {
+                            @if (!cats.Any())
+                            {
+                                <div class="tree-empty ms-4">لا توجد فئات تابعة</div>
                             }
-                            <button class="btn btn-sm btn-light border" title="تعديل" @onclick:stopPropagation="true" @onclick="() => EditItem(n)">
-                                <i class="fa-solid fa-pen x-small"></i>
-                            </button>
-                            <button class="btn btn-sm btn-light border text-danger" title="حذف" @onclick:stopPropagation="true" @onclick="() => DeleteItem(n)">
-                                <i class="fa-solid fa-trash x-small"></i>
-                            </button>
-                        </ActionsTemplate>
-                    </TreeViewItem>
+                            else
+                            {
+                                @foreach (var cat in cats)
+                                {
+                                    <div class="tree-node level-1 ms-3">
+                                        <div class="tree-row @(expandedCat == cat.Id ? "active-row" : "")">
+                                            <div class="tree-main-clickable" @onclick="() => ToggleCat(mc.Id, cat.Id)">
+                                                <span class="toggle-icon">
+                                                    @if (loadingNodeId == $"c{cat.Id}")
+                                                    {
+                                                        <span class="spinner-border spinner-border-sm text-warning" style="width:12px;height:12px;"></span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="fa-solid @(expandedCat == cat.Id ? "fa-chevron-down" : "fa-chevron-left") text-muted x-small"></i>
+                                                    }
+                                                </span>
+
+                                                @if (!string.IsNullOrEmpty(cat.ImageUrl))
+                                                {
+                                                    <img src="@cat.ImageUrl" class="cat-thumb me-1" alt="@cat.Name" />
+                                                }
+                                                else
+                                                {
+                                                    <i class="fa-solid fa-folder text-warning ms-1"></i>
+                                                }
+
+                                                <span class="tree-label">@cat.Name</span>
+
+                                                @if (subsOf.ContainsKey(cat.Id))
+                                                {
+                                                    <span class="badge bg-light text-dark border rounded-pill ms-2 x-small">
+                                                        @subsOf[cat.Id].Count تخصصات
+                                                    </span>
+                                                }
+                                            </div>
+
+                                            <div class="cat-actions" @onclick:stopPropagation="true">
+                                                <button class="btn btn-sm btn-action-pill text-success" title="إضافة تخصص" @onclick="() => AddItem(2, cat.Id)">
+                                                    <i class="fa-solid fa-plus me-1"></i><span class="d-none d-sm-inline">تخصص</span>
+                                                </button>
+                                                <button class="btn btn-sm btn-action-pill text-primary" title="تعديل" @onclick="() => EditCat(cat, mc.Id)">
+                                                    <i class="fa-solid fa-pen"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-action-pill text-danger" title="حذف" @onclick="() => ConfirmDelete(1, cat.Id, cat.Name, mc.Id)">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- ── مستوى 2: التخصصات / الفئات التحت فرعية (SubCategories) ── -->
+                                        @if (expandedCat == cat.Id && subsOf.TryGetValue(cat.Id, out var subs))
+                                        {
+                                            @if (!subs.Any())
+                                            {
+                                                <div class="tree-empty ms-4">لا توجد تخصصات تابعة</div>
+                                            }
+                                            else
+                                            {
+                                                @foreach (var sub in subs)
+                                                {
+                                                    <div class="tree-node level-2 ms-3">
+                                                        <div class="tree-row sub-row">
+                                                            <div class="tree-main-clickable">
+                                                                <span class="bullet-dot ms-2"></span>
+                                                                @if (!string.IsNullOrEmpty(sub.ImageUrl))
+                                                                {
+                                                                    <img src="@sub.ImageUrl" class="cat-thumb me-1" alt="@sub.Name" />
+                                                                }
+                                                                else
+                                                                {
+                                                                    <i class="fa-solid fa-tag text-info ms-1"></i>
+                                                                }
+                                                                <span class="tree-label text-dark">@sub.Name</span>
+                                                            </div>
+
+                                                            <div class="cat-actions" @onclick:stopPropagation="true">
+                                                                <button class="btn btn-sm btn-action-pill text-primary" title="تعديل" @onclick="() => EditSub(sub, cat.Id)">
+                                                                    <i class="fa-solid fa-pen"></i>
+                                                                </button>
+                                                                <button class="btn btn-sm btn-action-pill text-danger" title="حذف" @onclick="() => ConfirmDelete(2, sub.Id, sub.Name, cat.Id)">
+                                                                    <i class="fa-solid fa-trash"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            }
+                                        }
+                                    </div>
+                                }
+                            }
+                        }
+                    </div>
                 }
             </div>
         }
@@ -72,163 +205,470 @@
               OnCancel="() => showModal = false" />
 
 <!-- Shared Confirm Dialog -->
-@if (showDeleteConfirm && nodeToDelete != null)
+@if (showDeleteConfirm)
 {
     <ConfirmDialog Show="true" 
                    Title="حذف التصنيف" 
-                   Message="@($"هل أنت متأكد من حذف {nodeToDelete.Name}؟ سيتم حذف جميع التصنيفات التابعة له أيضاً.")"
+                   Message="@($"هل أنت متأكد من حذف {itemNameToDelete}؟ سيتم حذف جميع التصنيفات التابعة له أيضاً.")"
                    OnConfirm="HandleDeleteConfirm"
-                   OnCancel="() => { showDeleteConfirm = false; nodeToDelete = null; }" />
+                   OnCancel="() => { showDeleteConfirm = false; }" />
 }
 
-@code {
-    private List<CategoryNode> treeNodes = new();
-    private bool isLoading = true;
+<style>
+    /* ── نمط الشجرة الكسولة ── */
+    .lazy-tree { display: flex; flex-direction: column; gap: 4px; }
+    .tree-node { display: flex; flex-direction: column; }
 
-    // Modal State
+    .tree-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 9px 14px;
+        border-radius: 10px;
+        cursor: pointer;
+        user-select: none;
+        transition: background .15s ease, border-color .15s ease;
+        border: 1px solid transparent;
+        background: #ffffff;
+        margin-bottom: 2px;
+    }
+    .tree-row:hover {
+        background: #f8fafc;
+        border-color: rgba(0,0,0,0.06);
+    }
+    .tree-row.active-row {
+        background: rgba(var(--theme-primary-rgb, 99, 102, 241), 0.05);
+        border-color: rgba(var(--theme-primary-rgb, 99, 102, 241), 0.2);
+    }
+
+    .tree-main-clickable {
+        display: flex;
+        align-items: center;
+        flex: 1 1 auto;
+        min-width: 0;
+        cursor: pointer;
+    }
+
+    .toggle-icon {
+        width: 22px;
+        height: 22px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-inline-end: 6px;
+    }
+    .bullet-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: #cbd5e1;
+        display: inline-block;
+        flex-shrink: 0;
+    }
+    .cat-thumb {
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .tree-label {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 0.95rem;
+    }
+
+    .level-0 > .tree-row { font-weight: 700; font-size: 0.95rem; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+    .level-1 > .tree-row { font-size: 0.9rem; background: #fdfdfd; }
+    .level-2 > .tree-row { font-size: 0.88rem; background: #fafafa; }
+
+    .level-1, .level-2 {
+        border-right: 2px solid rgba(0,0,0,.06);
+        padding-right: 8px;
+    }
+
+    .tree-empty { font-size: 0.82rem; color: #94a3b8; padding: 6px 14px; }
+    .x-small { font-size: 0.75rem; }
+
+    /* ── أزرار التحكم في الفئات واستجابة الموبايل ── */
+    .cat-actions {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    .btn-action-pill {
+        border: 1px solid rgba(0,0,0,0.08);
+        background: #ffffff;
+        border-radius: 8px;
+        padding: 4px 10px;
+        font-size: 0.82rem;
+        transition: all 0.2s;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+    .btn-action-pill:hover {
+        background: #f1f5f9;
+        transform: translateY(-1px);
+    }
+
+    /* شاشات الهواتف والموبايل */
+    @@media (max-width: 768px) {
+        .lazy-tree .level-1, 
+        .lazy-tree .level-2 {
+            margin-right: 6px !important;
+            padding-right: 6px !important;
+        }
+        .tree-row {
+            flex-wrap: wrap !important;
+            padding: 10px 12px !important;
+            gap: 6px !important;
+        }
+        .tree-main-clickable {
+            flex: 1 1 100% !important;
+        }
+        .cat-actions {
+            width: 100% !important;
+            justify-content: flex-end !important;
+            gap: 6px !important;
+            margin-top: 4px !important;
+            padding-top: 6px !important;
+            border-top: 1px dashed rgba(0,0,0,0.08) !important;
+        }
+        .btn-action-pill {
+            padding: 4px 12px !important;
+            font-size: 0.82rem !important;
+        }
+    }
+</style>
+
+@code {
+    // ── بيانات الشجرة الكسولة ──
+    private List<MainCategoryDto> mainCategories = new();
+    private bool isLoadingMain = true;
+    private string? loadingNodeId;
+
+    // ── حالة الفتح والتمديد ──
+    private int? expandedMain;
+    private int? expandedCat;
+
+    // ── البيانات المحملة بالطلب (Caching on-demand) ──
+    private readonly Dictionary<int, List<CategoryDto>> categoriesOf = new();
+    private readonly Dictionary<int, List<SubCategoryDto>> subsOf = new();
+
+    // ── المودال وإدارة النماذج ──
     private bool showModal = false;
     private bool isEditing = false;
-    private CategoryNode? modalNode;
+    private int currentTargetLevel = 0; // 0: Main, 1: Category, 2: SubCategory
+    private int? currentParentId;
     private CategoryForm.CategoryFormModel categoryModel = new();
 
-    // Delete State
+    // ── الحذف ──
     private bool showDeleteConfirm = false;
-    private CategoryNode? nodeToDelete;
+    private int itemLevelToDelete;
+    private int itemIdToDelete;
+    private string itemNameToDelete = "";
+    private int? parentIdToDelete;
 
-    public class CategoryNode
+    protected override async Task OnInitializedAsync()
     {
-        public int Id { get; set; }
-        public string Name { get; set; } = "";
-        public int Level { get; set; } // 0: Main, 1: Category, 2: SubCategory
-        public int? ParentId { get; set; }
-        public List<CategoryNode> Children { get; set; } = new();
+        await LoadMainCategories();
     }
 
-    protected override async Task OnInitializedAsync() => await LoadTree();
-
-    private async Task LoadTree()
+    private async Task LoadMainCategories()
     {
-        isLoading = true;
-        treeNodes.Clear();
-        try 
+        isLoadingMain = true;
+        try
         {
-            var mainCats = await Api.GetMainCategoriesAsync();
-            foreach (var mc in mainCats)
+            mainCategories = await Api.GetMainCategoriesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[CategoriesManagement] Error loading main: {ex.Message}");
+        }
+        finally
+        {
+            isLoadingMain = false;
+        }
+    }
+
+    private async Task ToggleMain(int mcId)
+    {
+        if (expandedMain == mcId)
+        {
+            expandedMain = null;
+            return;
+        }
+
+        expandedMain = mcId;
+        expandedCat = null;
+
+        if (!categoriesOf.ContainsKey(mcId))
+        {
+            loadingNodeId = $"m{mcId}";
+            StateHasChanged();
+            try
             {
-                var mcNode = new CategoryNode { Id = mc.Id, Name = mc.Name, Level = 0 };
-                var cats = await Api.GetCategoriesByMainIdAsync(mc.Id);
-                foreach (var cat in cats)
-                {
-                    var catNode = new CategoryNode { Id = cat.Id, Name = cat.Name, Level = 1, ParentId = mc.Id };
-                    var subs = await Api.GetSubCategoriesByCategoryIdAsync(cat.Id);
-                    foreach (var sub in subs)
-                    {
-                        catNode.Children.Add(new CategoryNode { Id = sub.Id, Name = sub.Name, Level = 2, ParentId = cat.Id });
-                    }
-                    mcNode.Children.Add(catNode);
-                }
-                treeNodes.Add(mcNode);
+                var cats = await Api.GetCategoriesByMainIdAsync(mcId);
+                categoriesOf[mcId] = cats;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[CategoriesManagement] Error loading categories for {mcId}: {ex.Message}");
+                categoriesOf[mcId] = new();
+            }
+            finally
+            {
+                loadingNodeId = null;
             }
         }
-        finally { isLoading = false; }
     }
 
-    private void AddItem(CategoryNode? parent)
+    private async Task ToggleCat(int mcId, int catId)
     {
-        modalNode = parent == null ? new CategoryNode { Level = 0 } : new CategoryNode { Level = parent.Level + 1, ParentId = parent.Id };
+        if (expandedCat == catId)
+        {
+            expandedCat = null;
+            return;
+        }
+
+        expandedCat = catId;
+
+        if (!subsOf.ContainsKey(catId))
+        {
+            loadingNodeId = $"c{catId}";
+            StateHasChanged();
+            try
+            {
+                var subs = await Api.GetSubCategoriesByCategoryIdAsync(catId);
+                subsOf[catId] = subs;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[CategoriesManagement] Error loading subcategories for {catId}: {ex.Message}");
+                subsOf[catId] = new();
+            }
+            finally
+            {
+                loadingNodeId = null;
+            }
+        }
+    }
+
+    // ── إضافة عناصر ──
+    private void AddItem(int level, int? parentId)
+    {
+        currentTargetLevel = level;
+        currentParentId = parentId;
         isEditing = false;
-        categoryModel = new CategoryForm.CategoryFormModel 
-        { 
-            Level = modalNode.Level, 
-            ParentId = modalNode.ParentId 
+        categoryModel = new CategoryForm.CategoryFormModel
+        {
+            Level = level,
+            ParentId = parentId,
+            Icon = "fa-solid fa-layer-group",
+            Color = "#6366f1"
         };
         showModal = true;
     }
 
-    private async Task EditItem(CategoryNode node)
+    // ── تعديل عناصر ──
+    private void EditMain(MainCategoryDto mc)
     {
-        modalNode = node;
+        currentTargetLevel = 0;
+        currentParentId = null;
         isEditing = true;
         categoryModel = new CategoryForm.CategoryFormModel
         {
-            Id = node.Id,
-            Name = node.Name,
-            ParentId = node.ParentId
+            Id = mc.Id,
+            Name = mc.Name,
+            Level = 0,
+            Icon = mc.Icon ?? "fa-solid fa-layer-group",
+            Color = mc.Color ?? "#6366f1",
+            ImageUrl = mc.ImageUrl,
+            DisplayOrder = mc.DisplayOrder
         };
-
-        if (node.Level == 0)
-        {
-            var detailed = (await Api.GetMainCategoriesAsync()).FirstOrDefault(m => m.Id == node.Id);
-            if (detailed != null)
-            {
-                categoryModel.Icon = detailed.Icon;
-                categoryModel.Color = detailed.Color;
-                categoryModel.ImageUrl = detailed.ImageUrl;
-                categoryModel.DisplayOrder = detailed.DisplayOrder;
-            }
-        }
-        else if (node.Level == 1)
-        {
-            var detailed = await Api.GetCategoryByIdAsync(node.Id);
-            if (detailed != null)
-            {
-                categoryModel.ImageUrl = detailed.ImageUrl;
-            }
-        }
-        else if (node.Level == 2)
-        {
-            var detailed = await Api.GetSubCategoryByIdAsync(node.Id);
-            if (detailed != null)
-            {
-                categoryModel.ImageUrl = detailed.ImageUrl;
-            }
-        }
         showModal = true;
     }
 
-    private async Task HandleSave(CategoryForm.CategoryFormModel model)
+    private void EditCat(CategoryDto cat, int mcId)
     {
-        if (isEditing)
+        currentTargetLevel = 1;
+        currentParentId = mcId;
+        isEditing = true;
+        categoryModel = new CategoryForm.CategoryFormModel
         {
-            if (modalNode!.Level == 0)
-                await Api.UpdateMainCategoryAsync(model.Id, new MainCategoryDto { Id = model.Id, Name = model.Name, Icon = model.Icon, Color = model.Color, DisplayOrder = model.DisplayOrder, ImageUrl = model.ImageUrl });
-            else if (modalNode.Level == 1)
-                await Api.UpdateCategoryAsync(model.Id, new CategoryDto { Id = model.Id, Name = model.Name, MainCategoryId = model.ParentId ?? 0, ImageUrl = model.ImageUrl });
-            else
-                await Api.UpdateSubCategoryAsync(model.Id, new SubCategoryDto { Id = model.Id, Name = model.Name, CategoryId = model.ParentId ?? 0, ImageUrl = model.ImageUrl });
-        }
-        else
-        {
-            if (modalNode!.Level == 0)
-                await Api.CreateMainCategoryAsync(new MainCategoryDto { Name = model.Name, Icon = model.Icon, Color = model.Color, DisplayOrder = model.DisplayOrder, ImageUrl = model.ImageUrl });
-            else if (modalNode.Level == 1)
-                await Api.CreateCategoryAsync(new CategoryDto { Name = model.Name, MainCategoryId = modalNode.ParentId ?? 0, ImageUrl = model.ImageUrl });
-            else
-                await Api.CreateSubCategoryAsync(new SubCategoryDto { Name = model.Name, CategoryId = modalNode.ParentId ?? 0, ImageUrl = model.ImageUrl });
-        }
-
-        showModal = false;
-        await LoadTree();
+            Id = cat.Id,
+            Name = cat.Name,
+            Level = 1,
+            ParentId = mcId,
+            ImageUrl = cat.ImageUrl
+        };
+        showModal = true;
     }
 
-    private void DeleteItem(CategoryNode node)
+    private void EditSub(SubCategoryDto sub, int catId)
     {
-        nodeToDelete = node;
+        currentTargetLevel = 2;
+        currentParentId = catId;
+        isEditing = true;
+        categoryModel = new CategoryForm.CategoryFormModel
+        {
+            Id = sub.Id,
+            Name = sub.Name,
+            Level = 2,
+            ParentId = catId,
+            ImageUrl = sub.ImageUrl
+        };
+        showModal = true;
+    }
+
+    // ── حفظ الإضافة أو التعديل ──
+    private async Task HandleSave(CategoryForm.CategoryFormModel model)
+    {
+        try
+        {
+            if (isEditing)
+            {
+                if (model.Level == 0)
+                {
+                    await Api.UpdateMainCategoryAsync(model.Id, new MainCategoryDto
+                    {
+                        Id = model.Id,
+                        Name = model.Name,
+                        Icon = model.Icon,
+                        Color = model.Color,
+                        DisplayOrder = model.DisplayOrder,
+                        ImageUrl = model.ImageUrl
+                    });
+                    await LoadMainCategories();
+                }
+                else if (model.Level == 1)
+                {
+                    var parentMcId = currentParentId ?? model.ParentId ?? 0;
+                    await Api.UpdateCategoryAsync(model.Id, new CategoryDto
+                    {
+                        Id = model.Id,
+                        Name = model.Name,
+                        MainCategoryId = parentMcId,
+                        ImageUrl = model.ImageUrl
+                    });
+                    if (parentMcId > 0)
+                    {
+                        categoriesOf[parentMcId] = await Api.GetCategoriesByMainIdAsync(parentMcId);
+                    }
+                }
+                else
+                {
+                    var parentCatId = currentParentId ?? model.ParentId ?? 0;
+                    await Api.UpdateSubCategoryAsync(model.Id, new SubCategoryDto
+                    {
+                        Id = model.Id,
+                        Name = model.Name,
+                        CategoryId = parentCatId,
+                        ImageUrl = model.ImageUrl
+                    });
+                    if (parentCatId > 0)
+                    {
+                        subsOf[parentCatId] = await Api.GetSubCategoriesByCategoryIdAsync(parentCatId);
+                    }
+                }
+            }
+            else
+            {
+                if (model.Level == 0)
+                {
+                    await Api.CreateMainCategoryAsync(new MainCategoryDto
+                    {
+                        Name = model.Name,
+                        Icon = model.Icon,
+                        Color = model.Color,
+                        DisplayOrder = model.DisplayOrder,
+                        ImageUrl = model.ImageUrl
+                    });
+                    await LoadMainCategories();
+                }
+                else if (model.Level == 1)
+                {
+                    var parentMcId = currentParentId ?? model.ParentId ?? 0;
+                    await Api.CreateCategoryAsync(new CategoryDto
+                    {
+                        Name = model.Name,
+                        MainCategoryId = parentMcId,
+                        ImageUrl = model.ImageUrl
+                    });
+                    if (parentMcId > 0)
+                    {
+                        categoriesOf[parentMcId] = await Api.GetCategoriesByMainIdAsync(parentMcId);
+                    }
+                }
+                else
+                {
+                    var parentCatId = currentParentId ?? model.ParentId ?? 0;
+                    await Api.CreateSubCategoryAsync(new SubCategoryDto
+                    {
+                        Name = model.Name,
+                        CategoryId = parentCatId,
+                        ImageUrl = model.ImageUrl
+                    });
+                    if (parentCatId > 0)
+                    {
+                        subsOf[parentCatId] = await Api.GetSubCategoriesByCategoryIdAsync(parentCatId);
+                    }
+                }
+            }
+
+            showModal = false;
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "حدث خطأ أثناء الحفظ: " + ex.Message);
+        }
+    }
+
+    // ── الحذف والتأكيد ──
+    private void ConfirmDelete(int level, int id, string name, int? parentId)
+    {
+        itemLevelToDelete = level;
+        itemIdToDelete = id;
+        itemNameToDelete = name;
+        parentIdToDelete = parentId;
         showDeleteConfirm = true;
     }
 
     private async Task HandleDeleteConfirm()
     {
-        if (nodeToDelete == null) return;
-        try 
+        try
         {
-            if (nodeToDelete.Level == 0) await Api.DeleteMainCategoryAsync(nodeToDelete.Id);
-            else if (nodeToDelete.Level == 1) await Api.DeleteCategoryAsync(nodeToDelete.Id);
-            else await Api.DeleteSubCategoryAsync(nodeToDelete.Id);
-            
+            if (itemLevelToDelete == 0)
+            {
+                await Api.DeleteMainCategoryAsync(itemIdToDelete);
+                categoriesOf.Remove(itemIdToDelete);
+                if (expandedMain == itemIdToDelete) expandedMain = null;
+                await LoadMainCategories();
+            }
+            else if (itemLevelToDelete == 1)
+            {
+                await Api.DeleteCategoryAsync(itemIdToDelete);
+                subsOf.Remove(itemIdToDelete);
+                if (expandedCat == itemIdToDelete) expandedCat = null;
+                if (parentIdToDelete.HasValue)
+                {
+                    categoriesOf[parentIdToDelete.Value] = await Api.GetCategoriesByMainIdAsync(parentIdToDelete.Value);
+                }
+            }
+            else
+            {
+                await Api.DeleteSubCategoryAsync(itemIdToDelete);
+                if (parentIdToDelete.HasValue)
+                {
+                    subsOf[parentIdToDelete.Value] = await Api.GetSubCategoriesByCategoryIdAsync(parentIdToDelete.Value);
+                }
+            }
+
             showDeleteConfirm = false;
-            nodeToDelete = null;
-            await LoadTree();
         }
         catch (Exception ex)
         {
@@ -236,4 +676,3 @@
         }
     }
 }
-

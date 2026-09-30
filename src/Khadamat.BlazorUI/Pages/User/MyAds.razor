@@ -5,6 +5,7 @@
 @attribute [Authorize]
 @inject ApiClient Api
 @inject NavigationManager Navigation
+@inject Khadamat.BlazorUI.State.AppState State
 
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -12,8 +13,8 @@
             <h4 class="fw-bold mb-1">إعلاناتي</h4>
             <p class="text-muted small">تابع أداء حملاتك الإعلانية ونتائجها</p>
         </div>
-        <button class="btn btn-primary rounded-pill px-4" @onclick='() => Navigation.NavigateTo("/admin/adsmanagement")'>
-            <i class="fa-solid fa-plus me-2"></i> حملة جديدة
+        <button class="btn btn-primary rounded-pill px-4 shadow-sm" @onclick="() => showRequestModal = true">
+            <i class="fa-solid fa-bullhorn me-2"></i> طلب إعلان جديد
         </button>
     </div>
 
@@ -28,9 +29,13 @@
     {
         <div class="text-center py-5 glass-card rounded-5 shadow-sm">
             <div class="display-1 text-light mb-3"><i class="fa-solid fa-rectangle-ad"></i></div>
-            <h5>لا توجد إعلانات نشطة</h5>
-            <p class="text-muted">ابدأ بالترويج لخدماتك ووصول لآلاف العملاء اليوم.</p>
-            <button class="btn btn-primary rounded-pill px-5 mt-3" @onclick='() => Navigation.NavigateTo("/admin/adsmanagement")'>إنشاء أول إعلان</button>
+            <h5 class="fw-bold">لا توجد إعلانات مسجلة لحسابك حالياً</h5>
+            <p class="text-muted max-w-md mx-auto">
+                يتم إنشاء وتفعيل الحملات الإعلانية بالتنسيق المباشر مع إدارة المنصة لضمان أفضل موضع وظهور لخدماتك.
+            </p>
+            <button class="btn btn-primary rounded-pill px-5 mt-3 shadow-sm" @onclick="() => showRequestModal = true">
+                <i class="fa-solid fa-bullhorn me-2"></i> طلب إعلان عبر الإدارة
+            </button>
         </div>
     }
     else
@@ -49,7 +54,7 @@
                             }
                             <div class="ad-card-banner @cardClass" style="@(hasRealImage ? $"background-image: url('{imageUrl}');" : "")">
                                 <span class="badge @(ad.IsActive ? "bg-success" : "bg-warning") position-absolute top-0 end-0 m-3 rounded-pill shadow-sm">
-                                    @(ad.IsActive ? "نشط" : "قيد المراجعة")
+                                    @(ad.IsActive ? "نشط" : "موقوف / قيد المراجعة")
                                 </span>
                                 <div class="ad-card-overlay p-3 d-flex flex-column justify-content-end">
                                     <h6 class="text-white fw-bold mb-0">@ad.Title</h6>
@@ -75,15 +80,12 @@
                             
                             <div class="mt-4 pt-3 border-top">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <span class="small text-muted">ميزانية الحملة:</span>
+                                    <span class="small text-muted">الموضع والميزانية:</span>
                                     <span class="fw-bold text-success">@ad.AmountPaid.ToString("C0")</span>
                                 </div>
-                                <div class="progress rounded-pill mb-1" style="height: 6px;">
-                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 75%"></div>
-                                </div>
                                 <div class="d-flex justify-content-between extra-small text-muted">
-                                    <span>بدأ: @ad.StartDate?.ToShortDateString()</span>
-                                    <span>ينتهي: @ad.EndDate?.ToShortDateString()</span>
+                                    <span>بدأ: @ad.StartDate?.ToString("yyyy/MM/dd")</span>
+                                    <span>ينتهي: @ad.EndDate?.ToString("yyyy/MM/dd")</span>
                                 </div>
                             </div>
                         </div>
@@ -93,6 +95,74 @@
         </div>
     }
 </div>
+
+@* Modal طلب إعلان عبر الإدارة *@
+@if (showRequestModal)
+{
+    var waNumber = !string.IsNullOrWhiteSpace(State.ContactWhatsApp) ? State.ContactWhatsApp.TrimStart('+').Replace(" ", "") : "201065016032";
+    var waMsg = Uri.EscapeDataString("مرحباً إدارة خدمات، أود الاستفسار عن حجز وإطلاق حملة إعلانية لخدمتي على المنصة.");
+
+    <div class="modal-overlay" @onclick="() => showRequestModal = false">
+        <div class="glass-card rounded-5 p-4 shadow-2xl animate-pop position-relative bg-white" style="max-width: 600px; width: 95%;" @onclick:stopPropagation="true">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0 text-primary">
+                    <i class="fa-solid fa-bullhorn me-2"></i> طلب حجز حملة إعلانية
+                </h5>
+                <button class="btn-close" @onclick="() => showRequestModal = false"></button>
+            </div>
+
+            <div class="alert alert-info rounded-4 border-0 bg-opacity-10 d-flex align-items-start mb-3">
+                <i class="fa-solid fa-circle-info fs-4 me-3 text-info mt-1"></i>
+                <div class="small">
+                    <strong>الإعلانات تتم عبر الإدارة:</strong>
+                    لضمان الجودة العالية والاستهداف الدقيق للعملاء في منطقتك، يقوم فريق إدارة المنصة بتهيئة الإعلان وتحديد أفضل موضع له، ثم تفعيله وربطه بحسابك لتتابع إحصائياته هنا مباشرة.
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <h6 class="fw-bold small text-muted mb-2">الأماكن المتاحة للإعلان:</h6>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="p-2 border rounded-3 small bg-light">
+                            <i class="fa-solid fa-images text-primary me-1"></i> سلايدر الصفحة الرئيسية
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2 border rounded-3 small bg-light">
+                            <i class="fa-solid fa-table-columns text-info me-1"></i> القائمة الجانبية للشاشات
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2 border rounded-3 small bg-light">
+                            <i class="fa-solid fa-magnifying-glass text-warning me-1"></i> بين نتائج البحث والفئات
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2 border rounded-3 small bg-light">
+                            <i class="fa-solid fa-layer-group text-success me-1"></i> أسفل الصفحة (Bottom)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex flex-column gap-2 mt-4">
+                <a href="@($"https://wa.me/{waNumber}?text={waMsg}")" target="_blank" rel="noopener noreferrer" 
+                   class="btn btn-success rounded-pill py-2 shadow-sm d-flex align-items-center justify-content-center gap-2">
+                    <i class="fa-brands fa-whatsapp fs-5"></i>
+                    <span>تواصل عبر واتساب لحجز الإعلان</span>
+                </a>
+
+                <button class="btn btn-outline-primary rounded-pill py-2" @onclick='() => { showRequestModal = false; Navigation.NavigateTo("/contact"); }'>
+                    <i class="fa-solid fa-headset me-2"></i> الانتقال لصفحة التواصل والدعم
+                </button>
+
+                <button class="btn btn-link text-muted small mt-1" @onclick="() => showRequestModal = false">
+                    إغلاق
+                </button>
+            </div>
+        </div>
+    </div>
+}
 
 <style>
     .ad-card-banner {
@@ -112,11 +182,24 @@
     .hero-gradient-1 { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); }
     .hero-gradient-2 { background: linear-gradient(135deg, #0ea5e9 0%, #22c55e 100%); }
     .hero-gradient-3 { background: linear-gradient(135deg, #f43f5e 0%, #fb923c 100%); }
+
+    .modal-overlay {
+        position: fixed; inset: 0; z-index: 2000;
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(8px);
+        display: flex; align-items: center; justify-content: center;
+    }
+    .animate-pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    @@keyframes pop {
+        from { transform: scale(0.85); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
 </style>
 
 @code {
     private List<EnhancedAdDto>? myAds;
     private bool isLoading = true;
+    private bool showRequestModal = false;
 
     protected override async Task OnInitializedAsync()
     {

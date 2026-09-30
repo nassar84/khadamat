@@ -6,4 +6,6 @@ public interface ISecureStorageService
     Task<string?> GetAsync(string key);
     void Remove(string key);
     void RemoveAll();
+    Task RemoveAsync(string key);
+    Task RemoveAllAsync();
 }

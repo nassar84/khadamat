@@ -35,6 +35,9 @@ public class AppState
         set { if (_userRole != value) { _userRole = value; NotifyStateChanged(); } } 
     }
 
+    public bool IsAdmin => _userRole == "SystemAdmin" || _userRole == "SuperAdmin" || _userRole == "Admin";
+    public bool IsSuperAdmin => _userRole == "SuperAdmin";
+
     private string _userId = string.Empty;
     public string UserId 
     { 
@@ -83,6 +86,25 @@ public class AppState
     public string AppLogo { get; set; } = "";
     public string PrimaryColor { get; set; } = "#6366f1";
     public string SecondaryColor { get; set; } = "#a855f7";
+
+    // App Sharing Settings
+    public string AppShareUrl { get; set; } = "https://khadamawy.eis-dev.com/downloads/khadamat.apk";
+    public string AppShareText { get; set; } = "📲 تطبيق خدماوي — كل خدماتك في مكان واحد!\nتواصل مع أفضل الحرفيين والمهنيين بكل سهولة وأمان.\n\n🔗 حمل التطبيق الآن:";
+    public string AppStoreUrl { get; set; } = "";
+    public string GooglePlayUrl { get; set; } = "";
+
+    // Contact Information
+    public string ContactEmail { get; set; } = "khadamawy@gmail.com";
+    public string ContactPhone { get; set; } = "201065016032";
+    public string ContactWhatsApp { get; set; } = "201065016032";
+
+    // Admin Badges
+    private int _pendingApprovalsCount;
+    public int PendingApprovalsCount
+    {
+        get => _pendingApprovalsCount;
+        set { _pendingApprovalsCount = value; NotifyStateChanged(); }
+    }
 
     // Sound Settings
     public string? OpenAppSound { get; set; }
@@ -137,6 +159,25 @@ public class AppState
         IsProvider = isProvider;
         UserImageUrl = imageUrl;
         UserId = userId;
+        NotifyStateChanged();
+    }
+
+    public void ClearUserState()
+    {
+        _userToken = null;
+        _userId = string.Empty;
+        _userName = string.Empty;
+        _userRole = string.Empty;
+        _userImageUrl = string.Empty;
+        _isProvider = false;
+        _isProviderMode = false;
+        CityId = null;
+        GovernorateId = null;
+        PhoneNumber = null;
+        FavoriteServiceIds.Clear();
+        _pendingApprovalsCount = 0;
+        _notificationCount = 0;
+        HasUnreadMessages = false;
         NotifyStateChanged();
     }
 

@@ -4,6 +4,8 @@
 @inject Khadamat.BlazorUI.Services.Auth.IAuthService AuthService
 @inject Khadamat.BlazorUI.State.AppState State
 @inject IJSRuntime JS
+@inject Khadamat.BlazorUI.Services.ApiClient Api
+@inject Khadamat.BlazorUI.Services.Admin.IAdminService AdminService
 
 <div class="admin-layout @(IsCollapsed ? "collapsed" : "")" dir="rtl">
     @if (State.IsNativeApp)
@@ -58,6 +60,14 @@
                 <NavLink class="nav-link" href="/admin/users" @onclick="CloseSidebar">
                     <i class="fas fa-users"></i> 
                     <span class="nav-text">المستخدمين</span>
+                </NavLink>
+                 <NavLink class="nav-link" href="/admin/approvals" @onclick="CloseSidebar">
+                    <i class="fas fa-stamp text-warning"></i> 
+                    <span class="nav-text">مركز الموافقات</span>
+                    @if (State.PendingApprovalsCount > 0)
+                    {
+                        <span class="badge rounded-pill bg-danger ms-auto px-2 py-1" style="font-size: 0.72rem;">@State.PendingApprovalsCount</span>
+                    }
                 </NavLink>
                  <NavLink class="nav-link" href="/admin/approvals/providers" @onclick="CloseSidebar">
                     <i class="fas fa-user-check"></i> 
@@ -132,13 +142,38 @@
                     <h4 class="mb-0">لوحة التحكم</h4>
                 </div>
 
-                <div class="admin-user-info">
-                    <AuthorizeView>
-                        <Authorized>
-                            <span class="d-none d-md-inline">مرحباً، @context.User.Identity?.Name</span>
-                            <i class="fas fa-user-circle fs-4 d-md-none text-primary"></i>
-                        </Authorized>
-                    </AuthorizeView>
+                <div class="d-flex align-items-center gap-2">
+                    <!-- زر طلبات الموافقة للمدير الخارق بجوار الإشعارات مع عداد -->
+                    <button class="btn btn-header-action position-relative" title="طلبات الموافقة المعلقة" @onclick='() => Navigation.NavigateTo("/admin/approvals")'>
+                        <i class="fa-solid fa-clipboard-check fs-5 text-warning"></i>
+                        @if (State.PendingApprovalsCount > 0)
+                        {
+                            <span class="position-absolute top-0 start-0 translate-middle badge rounded-pill bg-danger border border-white" style="font-size: 0.7rem;">
+                                @State.PendingApprovalsCount
+                                <span class="visually-hidden">طلبات معلقة</span>
+                            </span>
+                        }
+                    </button>
+
+                    <!-- زر الإشعارات -->
+                    <button class="btn btn-header-action position-relative" title="الإشعارات" @onclick='() => Navigation.NavigateTo("/user/notifications")'>
+                        <i class="fa-solid fa-bell fs-5 text-secondary"></i>
+                        @if (State.NotificationCount > 0)
+                        {
+                            <span class="position-absolute top-0 start-0 translate-middle badge rounded-pill bg-warning text-dark border border-white" style="font-size: 0.7rem;">
+                                @State.NotificationCount
+                            </span>
+                        }
+                    </button>
+
+                    <div class="admin-user-info ms-2">
+                        <AuthorizeView>
+                            <Authorized>
+                                <span class="d-none d-md-inline fw-semibold">مرحباً، @context.User.Identity?.Name</span>
+                                <i class="fas fa-user-circle fs-4 d-md-none text-primary"></i>
+                            </Authorized>
+                        </AuthorizeView>
+                    </div>
                 </div>
             </div>
 
@@ -359,6 +394,24 @@
             padding: 15px;
         }
     }
+
+    .btn-header-action {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #ffffff;
+        border: 1px solid rgba(0,0,0,0.08);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        transition: all 0.2s ease;
+    }
+    .btn-header-action:hover {
+        background: #f8fafc;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    }
 </style>
 
 @code {
@@ -371,6 +424,29 @@
         State.OnChange += OnStateChange;
         Navigation.LocationChanged += HandleLocationChanged;
         CheckMobileMode();
+        _ = LoadPendingApprovalsCountAsync();
+    }
+
+    private async Task LoadPendingApprovalsCountAsync()
+    {
+        try
+        {
+            var pTask = AdminService.GetPendingProviders();
+            var sTask = Api.GetServicesAsync(page: 1, isApproved: false);
+            var eTask = AdminService.GetServiceEditRequests("Pending");
+            await Task.WhenAll(pTask, sTask, eTask);
+
+            var pCount = pTask.Result?.Count ?? 0;
+            var sCount = sTask.Result?.Items?.Count ?? 0;
+            var eCount = eTask.Result?.Count ?? 0;
+
+            State.PendingApprovalsCount = pCount + sCount + eCount;
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AdminLayout] Error loading pending approvals: {ex.Message}");
+        }
     }
 
     private async void OnStateChange()

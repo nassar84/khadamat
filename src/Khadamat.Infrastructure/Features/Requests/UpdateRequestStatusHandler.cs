@@ -1,6 +1,7 @@
 using MediatR;
 using Khadamat.Application.Common.Models;
 using Khadamat.Application.Features.Requests.Commands;
+using Khadamat.Application.Interfaces;
 using Khadamat.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System.Threading;
@@ -11,10 +12,12 @@ namespace Khadamat.Infrastructure.Features.Requests;
 public class UpdateRequestStatusHandler : IRequestHandler<UpdateRequestStatusCommand, ApiResponse<bool>>
 {
     private readonly KhadamatDbContext _context;
+    private readonly INotificationService _notificationService;
 
-    public UpdateRequestStatusHandler(KhadamatDbContext context)
+    public UpdateRequestStatusHandler(KhadamatDbContext context, INotificationService notificationService)
     {
         _context = context;
+        _notificationService = notificationService;
     }
 
     public async Task<ApiResponse<bool>> Handle(UpdateRequestStatusCommand request, CancellationToken cancellationToken)
@@ -32,26 +35,28 @@ public class UpdateRequestStatusHandler : IRequestHandler<UpdateRequestStatusCom
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        // Notify customer of status change
+        // Notify customer of status change (DB + Real-time SignalR)
         try
         {
             string statusText = request.Status switch
             {
-                Domain.Enums.RequestStatus.Accepted => "تم قبول طلبك",
-                Domain.Enums.RequestStatus.Rejected => "تم الاعتذار عن طلبك",
+                Domain.Enums.RequestStatus.Accepted => "تم قبول طلبك ✅",
+                Domain.Enums.RequestStatus.Rejected => "تم الاعتذار عن طلبك ❌",
                 Domain.Enums.RequestStatus.Completed => "تم إكمال طلبك بنجاح! شاركنا تقييمك للخدمة ومقدمها ⭐",
                 _ => "تم تحديث حالة طلبك"
             };
 
-            var notif = new Domain.Entities.Notification(
+            var title = request.Status == Domain.Enums.RequestStatus.Completed
+                ? "طلب مكتمل - قيّم تجربتك ⭐"
+                : statusText;
+
+            await _notificationService.SendNotificationAsync(
                 serviceRequest.UserId,
-                request.Status == Domain.Enums.RequestStatus.Completed ? "طلب مكتمل - قيم تجربتك" : statusText,
+                title,
                 $"طلبك لخدمة {serviceRequest.Service?.Name ?? "الخدمة"}: {statusText}",
                 "Order",
                 "/user/my-requests"
             );
-            _context.Notifications.Add(notif);
-            await _context.SaveChangesAsync(cancellationToken);
         }
         catch (System.Exception notifEx)
         {

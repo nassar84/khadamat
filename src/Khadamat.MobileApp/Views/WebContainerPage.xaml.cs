@@ -7,7 +7,7 @@ using Khadamat.MobileApp.Security;
 namespace Khadamat.MobileApp.Views;
 
 [QueryProperty(nameof(DeepLinkRoute), "route")]
-public partial class WebContainerPage : ContentPage
+public partial class WebContainerPage : ContentPage, IQueryAttributable
 {
     private string _deepLinkRoute = "";
 
@@ -24,6 +24,24 @@ public partial class WebContainerPage : ContentPage
             }
         }
     }
+
+    public void SetRouteSilently(string route)
+    {
+        _deepLinkRoute = route;
+    }
+
+    public void ApplyQueryAttributes(IDictionary<string, object> query)
+    {
+        if (query.TryGetValue("route", out var r) && r != null)
+        {
+            DeepLinkRoute = r.ToString() ?? "";
+        }
+        else
+        {
+            _deepLinkRoute = "";
+        }
+    }
+
     protected string _route = string.Empty;
 
     public WebContainerPage()
@@ -520,7 +538,8 @@ public partial class WebContainerPage : ContentPage
                     if (isSuccess)
                     {
                         MainThread.BeginInvokeOnMainThread(async () => {
-                            await Shell.Current.GoToAsync("//HomePage");
+                            string target = (isProvider && !isAdmin) ? "//Provider_Dashboard" : "//Client_Home";
+                            try { await Shell.Current.GoToAsync(target); } catch { }
                         });
                     }
                 }
@@ -528,13 +547,19 @@ public partial class WebContainerPage : ContentPage
             else if (url.Contains("auth_logout"))
             {
                 _ = Task.Run(() => {
-                    try { Microsoft.Maui.Storage.SecureStorage.Remove("authToken"); } catch { }
+                    try { 
+                        Microsoft.Maui.Storage.SecureStorage.Remove("authToken"); 
+                        Microsoft.Maui.Storage.SecureStorage.Remove("refreshToken"); 
+                    } catch { }
                 });
 
                 if (Shell.Current.BindingContext is ViewModels.ShellViewModel vm)
                 {
                     vm.SetAuthenticated(false);
-                    MainThread.BeginInvokeOnMainThread(() => BottomNav.RefreshAuthState());
+                    MainThread.BeginInvokeOnMainThread(async () => {
+                        BottomNav.RefreshAuthState();
+                        try { await Shell.Current.GoToAsync("//Guest_Home"); } catch { }
+                    });
                 }
             }
             return;
@@ -759,6 +784,14 @@ public partial class WebContainerPage : ContentPage
 
     protected override bool OnBackButtonPressed()
     {
+        // 0. If Flyout (side menu) is open, close it first
+        if (Shell.Current.FlyoutIsPresented)
+        {
+            Console.WriteLine("ANTIGRAVITY_LOG: Back button pressed — closing open flyout/sidebar.");
+            Shell.Current.FlyoutIsPresented = false;
+            return true; // Consumed — don't go back further
+        }
+
         // 1. Try to go back in the WebView (Blazor's internal history)
         if (MainWebView != null && MainWebView.CanGoBack)
         {
@@ -779,13 +812,14 @@ public partial class WebContainerPage : ContentPage
         var currentState = Shell.Current.CurrentState;
         var currentRoute = currentState.Location.ToString();
         
-        // If we are on Marketplace/Favorites/Profile, return to Home Tab
-        if (!currentRoute.EndsWith("//HomePage") && !currentRoute.EndsWith("//"))
+        // If we are on sub-pages or other tabs, return to Home Tab
+        if (!currentRoute.Contains("Home") && !currentRoute.Contains("Dashboard") && !currentRoute.EndsWith("//"))
         {
-            Console.WriteLine($"ANTIGRAVITY_LOG: Not on HomePage ({currentRoute}), returning to Home Tab.");
-            
-            // If we are in Marketplace root, but want to go back to Home:
-            Shell.Current.GoToAsync("//HomePage");
+            Console.WriteLine($"ANTIGRAVITY_LOG: Not on Home ({currentRoute}), returning to Home Tab.");
+            string target = (Shell.Current.BindingContext is ViewModels.ShellViewModel vm && vm.IsProviderActive) 
+                ? "//Provider_Dashboard" 
+                : (Shell.Current.BindingContext is ViewModels.ShellViewModel vm2 && vm2.IsAuthenticated ? "//Client_Home" : "//Guest_Home");
+            try { Shell.Current.GoToAsync(target); } catch { }
             return true;
         }
 

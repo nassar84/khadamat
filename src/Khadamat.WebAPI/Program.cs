@@ -206,25 +206,51 @@ try
     // Version check endpoint
     app.MapGet("/version", () => Results.Ok(new { version = "v2.0.0-fix", date = "2026-06-26", note = "لو شايف ده يبقى التعديلات وصلت" }));
 
-    // Dedicated APK & Downloads handler to support Arabic filename (خدماوى.apk) and all variants
+    // Dedicated APK & Downloads handler to support all variants (khadamat.apk, Khadamawy.apk, خدماوى.apk)
     app.MapGet("/downloads/{*fileName}", (string fileName, IWebHostEnvironment env) =>
     {
-        var decoded = System.Net.WebUtility.UrlDecode(fileName ?? "");
+        var decoded = System.Net.WebUtility.UrlDecode(fileName ?? "").Trim().TrimStart('/', '\\');
         var webRoot = env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
         var downloadsDir = Path.Combine(webRoot, "downloads");
-        
-        var filePath = Path.Combine(downloadsDir, decoded);
-        if (decoded.EndsWith(".apk", StringComparison.OrdinalIgnoreCase))
+
+        if (!Directory.Exists(downloadsDir))
         {
-            // Always map any .apk download request to the single Khadamawy.apk file
-            var singleApk = Path.Combine(downloadsDir, "Khadamawy.apk");
-            if (File.Exists(singleApk))
+            return Results.NotFound();
+        }
+
+        string? filePath = null;
+        if (!string.IsNullOrEmpty(decoded))
+        {
+            var directPath = Path.Combine(downloadsDir, decoded);
+            if (File.Exists(directPath))
             {
-                filePath = singleApk;
+                filePath = directPath;
             }
         }
 
-        if (File.Exists(filePath))
+        // If not found directly and it's an APK request (or empty)
+        if (filePath == null && (string.IsNullOrEmpty(decoded) || decoded.EndsWith(".apk", StringComparison.OrdinalIgnoreCase)))
+        {
+            // Search in order of preference
+            var candidateNames = new[] { "khadamat.apk", "Khadamawy.apk", "خدماوى.apk", "app.apk" };
+            foreach (var cand in candidateNames)
+            {
+                var candPath = Path.Combine(downloadsDir, cand);
+                if (File.Exists(candPath))
+                {
+                    filePath = candPath;
+                    break;
+                }
+            }
+
+            // Fallback: search for any .apk in downloads directory
+            if (filePath == null)
+            {
+                filePath = Directory.GetFiles(downloadsDir, "*.apk").FirstOrDefault();
+            }
+        }
+
+        if (filePath != null && File.Exists(filePath))
         {
             var isApk = filePath.EndsWith(".apk", StringComparison.OrdinalIgnoreCase);
             var contentType = isApk ? "application/vnd.android.package-archive" : "application/octet-stream";

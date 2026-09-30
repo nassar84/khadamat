@@ -20,8 +20,20 @@ public class MauiSecureStorageService : ISecureStorageService
         SecureStorage.Default.Remove(key);
     }
 
+    public Task RemoveAsync(string key)
+    {
+        SecureStorage.Default.Remove(key);
+        return Task.CompletedTask;
+    }
+
     public void RemoveAll()
     {
         SecureStorage.Default.RemoveAll();
+    }
+
+    public Task RemoveAllAsync()
+    {
+        SecureStorage.Default.RemoveAll();
+        return Task.CompletedTask;
     }
 }

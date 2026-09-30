@@ -7,6 +7,9 @@ public class ServiceRequestDto
 {
     public int Id { get; set; }
     public string UserId { get; set; } = string.Empty;
+    public string CustomerName { get; set; } = string.Empty;
+    public string CustomerPhone { get; set; } = string.Empty;
+    public string? CustomerPhoto { get; set; }
     public int ServiceId { get; set; }
     public string ServiceTitle { get; set; } = string.Empty;
     public string ServiceIcon { get; set; } = "fa-briefcase";

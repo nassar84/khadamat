@@ -55,15 +55,38 @@
                                 <i class="fa-solid @r.ServiceIcon text-primary fs-4"></i>
                             </div>
                             <div class="flex-grow-1">
-                                <h6 class="fw-bold mb-1">@r.ServiceTitle</h6>
-                                <p class="text-muted small mb-2">طلب من عميل • @r.RequestedAt.ToString("dd/MM/yyyy")</p>
-                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <div class="d-flex justify-content-between align-items-start flex-wrap gap-1 mb-1">
+                                    <h6 class="fw-bold mb-0 text-primary">@r.ServiceTitle</h6>
                                     <span class="badge @GetStatusBadge(r.Status)">@r.StatusText</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+                                    <span class="small fw-bold text-dark">
+                                        <i class="fa-solid fa-user text-muted me-1"></i> العميل: @(string.IsNullOrEmpty(r.CustomerName) ? "عميل" : r.CustomerName)
+                                    </span>
+                                    @if (!string.IsNullOrEmpty(r.UserId))
+                                    {
+                                        <button class="btn btn-sm btn-outline-primary rounded-pill px-2 py-0" style="font-size: 0.75rem;" @onclick='() => OpenChat(r.UserId, r.CustomerName)'>
+                                            <i class="fa-solid fa-comments me-1"></i> مراسلة
+                                        </button>
+                                    }
+                                    @if (!string.IsNullOrEmpty(r.CustomerPhone))
+                                    {
+                                        <a href="tel:@r.CustomerPhone" class="btn btn-sm btn-light border rounded-pill px-2 py-0 text-dark" style="font-size: 0.75rem;">
+                                            <i class="fa-solid fa-phone text-success me-1"></i> @r.CustomerPhone
+                                        </a>
+                                        <a href="https://wa.me/@(r.CustomerPhone.Replace("+","").Replace(" ",""))" target="_blank" class="btn btn-sm btn-success rounded-pill px-2 py-0 text-white" style="font-size: 0.75rem;">
+                                            <i class="fa-brands fa-whatsapp me-1"></i> واتساب
+                                        </a>
+                                    }
+                                </div>
+                                <div class="d-flex align-items-center gap-3 text-muted x-small flex-wrap">
+                                    <span>
+                                        <i class="fa-regular fa-clock me-1"></i> تاريخ الطلب: @r.RequestedAt.ToString("dd/MM/yyyy - hh:mm tt")
+                                    </span>
                                     @if (r.PreferredDate.HasValue)
                                     {
-                                        <span class="text-muted x-small">
-                                            <i class="fa-solid fa-calendar me-1"></i>
-                                            التاريخ المفضل: @r.PreferredDate.Value.ToString("dd/MM/yyyy")
+                                        <span class="text-primary fw-bold">
+                                            <i class="fa-solid fa-calendar-check me-1"></i> التاريخ المفضل: @r.PreferredDate.Value.ToString("dd/MM/yyyy")
                                         </span>
                                     }
                                 </div>
@@ -202,5 +225,11 @@
     private void ViewServiceDetails(int serviceId)
     {
         Navigation.NavigateTo($"/service/{serviceId}");
+    }
+
+    private void OpenChat(string userId, string? customerName)
+    {
+        var nameParam = !string.IsNullOrEmpty(customerName) ? $"?name={Uri.EscapeDataString(customerName)}" : "";
+        Navigation.NavigateTo($"/user/messages/{userId}{nameParam}");
     }
 }

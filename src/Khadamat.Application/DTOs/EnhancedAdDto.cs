@@ -54,6 +54,7 @@ public class EnhancedAdDto
     // البيانات الوصفية - Metadata
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public string? CreatedBy { get; set; }
+    public string? AdvertiserName { get; set; }
 }
 
 /// <summary>

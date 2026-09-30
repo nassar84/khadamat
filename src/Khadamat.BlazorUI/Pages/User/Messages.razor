@@ -31,8 +31,11 @@
             <!-- Sidebar: Conversations List -->
             <div class="col-12 col-md-4 col-lg-3 conversation-sidebar @(string.IsNullOrEmpty(OtherUserId) ? "" : "d-none d-md-block")">
                 <div class="p-3 border-bottom bg-light d-flex align-items-center justify-content-between">
-                    <h5 class="mb-0 fw-bold">المحادثات</h5>
-                    <button class="btn btn-sm btn-outline-primary rounded-circle"><i class="fas fa-edit"></i></button>
+                    <h5 class="mb-0 fw-bold"><i class="fa-solid fa-comments text-primary me-2"></i>المحادثات</h5>
+                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm d-flex align-items-center gap-1" @onclick="OpenNewChatModal" title="محادثة جديدة">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        <span class="small fw-bold">جديدة</span>
+                    </button>
                 </div>
                 <div class="conversation-list overflow-auto">
                     @if (conversations == null)
@@ -45,7 +48,11 @@
                     {
                         <div class="p-4 text-center text-muted">
                             <i class="far fa-comments fs-1 mb-3 opacity-25"></i>
-                            <p>لا توجد محادثات بعد</p>
+                            <h6 class="fw-bold text-dark mb-1">لا توجد محادثات بعد</h6>
+                            <p class="small text-muted mb-3">ستظهر هنا رسائلك واستفساراتك مع العملاء ومقدمي الخدمات.</p>
+                            <button class="btn btn-outline-primary btn-sm rounded-pill px-3" @onclick="OpenNewChatModal">
+                                <i class="fa-solid fa-pen-to-square me-1"></i> بدء محادثة جديدة
+                            </button>
                         </div>
                     }
                     else
@@ -78,13 +85,15 @@
             <div class="col-12 col-md-8 col-lg-9 chat-area d-flex flex-column @(string.IsNullOrEmpty(OtherUserId) ? "d-none d-md-flex justify-content-center align-items-center bg-light" : "")">
                 @if (string.IsNullOrEmpty(OtherUserId))
                 {
-                    <div class="text-center p-5">
-                        <div class="welcome-chat-icon mb-4">
-                            <i class="fas fa-comments text-primary display-1 opacity-25"></i>
+                    <div class="text-center p-4 p-md-5 text-muted d-flex flex-column align-items-center justify-content-center h-100">
+                        <div class="mb-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 70px; height: 70px; border-radius: 50%; background: rgba(99, 102, 241, 0.1);">
+                            <i class="fa-solid fa-comments text-primary fs-2"></i>
                         </div>
-                        <h3 class="fw-bold">اهلا بك في الرسائل</h3>
-                        <p class="text-muted">اختر محادثة من القائمة للبدء أو تصفح الخدمات للتواصل مع المزودين</p>
-                        <button class="btn btn-primary-premium rounded-pill px-4 mt-3" @onclick='() => Navigation.NavigateTo("/services")'>تصفح الخدمات</button>
+                        <h5 class="fw-bold text-dark mb-1">المحادثات والرسائل</h5>
+                        <p class="text-muted small mb-3" style="max-width: 380px;">اختر محادثة من القائمة لعرض الرسائل أو اضغط على زر محادثة جديدة للتواصل المباشر.</p>
+                        <button class="btn btn-primary rounded-pill px-4 btn-sm shadow-sm" @onclick="OpenNewChatModal">
+                            <i class="fa-solid fa-pen-to-square me-1"></i> بدء محادثة جديدة
+                        </button>
                     </div>
                 }
                 else
@@ -122,10 +131,7 @@
                             DateTime? lastDate = null;
                             @foreach (var msg in messages)
                             {
-                                bool isMe = msg.SenderId == State.UserToken; // Needs proper comparison, maybe decode token or use State.UserName
-                                // For now, assume MessageDto has IsMine property calculated by API or we do it here
-                                // Let's use simplified logic:
-                                bool mine = msg.SenderId != OtherUserId;
+                                bool mine = (!string.IsNullOrEmpty(currentUserId) && msg.SenderId == currentUserId) || (msg.SenderId != OtherUserId);
 
                                 if (lastDate == null || lastDate.Value.Date != msg.CreatedAt.Date)
                                 {
@@ -171,6 +177,60 @@
         </div>
     }
 </div>
+
+@if (showNewChatModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5); z-index: 1050;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-pen-to-square text-primary me-2"></i>بدء محادثة جديدة</h5>
+                    <button type="button" class="btn-close" @onclick="CloseNewChatModal"></button>
+                </div>
+                <div class="modal-body p-3">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" class="form-control" placeholder="ابحث باسم الخدمة أو المزود..." @bind="newChatSearchQuery" @bind:event="oninput" @onkeyup="SearchProvidersForChat" />
+                    </div>
+
+                    @if (isSearchingProviders)
+                    {
+                        <div class="text-center py-4">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                            <span class="ms-2 small text-muted">جاري البحث...</span>
+                        </div>
+                    }
+                    else if (chatProviderResults == null || !chatProviderResults.Any())
+                    {
+                        <div class="text-center py-4 text-muted">
+                            <p class="small mb-0">لم يتم العثور على نتائج للبحث</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="list-group list-group-flush overflow-auto" style="max-height: 320px;">
+                            @foreach (var s in chatProviderResults)
+                            {
+                                <div class="list-group-item list-group-item-action d-flex align-items-center gap-3 p-2 rounded-3 mb-1 cursor-pointer border-0" @onclick="() => StartChatWithService(s)">
+                                    <img src="@(!string.IsNullOrEmpty(s.ProviderPhoto) ? s.ProviderPhoto : (s.Images?.FirstOrDefault() ?? "/img/default-avatar.png"))" class="rounded-circle" style="width: 44px; height: 44px; object-fit: cover;" />
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <div class="fw-bold small text-truncate">@s.Title</div>
+                                        <div class="text-muted x-small text-truncate">
+                                            <i class="fa-solid fa-user me-1 text-primary"></i>@(string.IsNullOrEmpty(s.ProviderName) ? s.CategoryName : s.ProviderName)
+                                        </div>
+                                    </div>
+                                    <span class="btn btn-sm btn-primary-subtle text-primary rounded-pill px-3 py-1" style="font-size: 0.75rem;">
+                                        مراسلة <i class="fa-solid fa-arrow-left ms-1"></i>
+                                    </span>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 <style>
     .messages-container {
@@ -321,12 +381,16 @@
 
 @code {
     [Parameter] public string? OtherUserId { get; set; }
+    [SupplyParameterFromQuery(Name = "name")] public string? ProviderNameParam { get; set; }
+    [SupplyParameterFromQuery(Name = "photo")] public string? ProviderPhotoParam { get; set; }
 
     private List<ConversationDto>? conversations;
     private List<MessageDto>? messages;
     private string newMessage = "";
     private string? currentOtherPartyName;
     private string? currentOtherPartyPhoto;
+    private string? currentUserId;
+    private string? _lastLoadedUserId;
     private bool isNotAuthenticated = false;
 
     protected override async Task OnInitializedAsync()
@@ -338,12 +402,30 @@
             return;
         }
 
+        currentUserId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+            ?? authState.User.FindFirst("sub")?.Value;
+
         SignalRService.MessageReceived += HandleMessageReceived;
         await LoadConversations();
 
         if (!string.IsNullOrEmpty(OtherUserId))
         {
+            _lastLoadedUserId = OtherUserId;
             await LoadMessages(OtherUserId);
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!string.IsNullOrEmpty(OtherUserId) && OtherUserId != _lastLoadedUserId)
+        {
+            _lastLoadedUserId = OtherUserId;
+            await LoadMessages(OtherUserId);
+        }
+        else if (string.IsNullOrEmpty(OtherUserId))
+        {
+            _lastLoadedUserId = null;
+            messages = null;
         }
     }
 
@@ -364,9 +446,8 @@
         }
         else 
         {
-             // If navigating from service page, details might not be in conversations yet
-             // Need a way to fetch user info if not in list
-             currentOtherPartyName = "المزود";
+            currentOtherPartyName = !string.IsNullOrWhiteSpace(ProviderNameParam) ? ProviderNameParam : "مقدم الخدمة";
+            currentOtherPartyPhoto = !string.IsNullOrWhiteSpace(ProviderPhotoParam) ? ProviderPhotoParam : null;
         }
         
         StateHasChanged();
@@ -384,6 +465,8 @@
     private void GoBackToConversations()
     {
         OtherUserId = null;
+        _lastLoadedUserId = null;
+        messages = null;
         Navigation.NavigateTo("/user/messages", false);
     }
 
@@ -397,10 +480,9 @@
         var success = await Api.SendMessageAsync(OtherUserId, content);
         if (success)
         {
-            // Add to UI immediately
             var msg = new MessageDto
             {
-                SenderId = State.UserToken ?? "", // Use actual ID from token
+                SenderId = currentUserId ?? "",
                 ReceiverId = OtherUserId,
                 Content = content,
                 CreatedAt = DateTime.UtcNow,
@@ -409,9 +491,7 @@
             
             messages?.Add(msg);
             
-            // Update conversation list item or move to top
             await LoadConversations();
-            
             await ScrollToBottom();
         }
     }
@@ -419,7 +499,6 @@
     private void HandleMessageReceived(MessageDto message)
     {
         InvokeAsync(async () => {
-            // If the message is from the currently active chat
             if (message.SenderId == OtherUserId)
             {
                 messages?.Add(message);
@@ -454,6 +533,55 @@
             await JS.InvokeVoidAsync("scrollToBottom", "chatMessages");
         }
         catch { }
+    }
+
+    // ─── New Chat Modal Logic ────────────────────────────────────────────────
+    private bool showNewChatModal = false;
+    private bool isSearchingProviders = false;
+    private string newChatSearchQuery = "";
+    private List<ServiceDto> chatProviderResults = new();
+
+    private async Task OpenNewChatModal()
+    {
+        showNewChatModal = true;
+        newChatSearchQuery = "";
+        await SearchProvidersForChat();
+    }
+
+    private void CloseNewChatModal()
+    {
+        showNewChatModal = false;
+    }
+
+    private async Task SearchProvidersForChat()
+    {
+        isSearchingProviders = true;
+        try
+        {
+            var res = await Api.GetServicesAsync(search: string.IsNullOrWhiteSpace(newChatSearchQuery) ? null : newChatSearchQuery, pageSize: 12);
+            chatProviderResults = res?.Items?.Where(s => !string.IsNullOrEmpty(s.UserId) && s.UserId != currentUserId).ToList() ?? new();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error searching services for chat: {ex.Message}");
+            chatProviderResults = new();
+        }
+        finally
+        {
+            isSearchingProviders = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task StartChatWithService(ServiceDto service)
+    {
+        if (string.IsNullOrEmpty(service.UserId)) return;
+        showNewChatModal = false;
+        OtherUserId = service.UserId;
+        currentOtherPartyName = !string.IsNullOrEmpty(service.ProviderName) ? service.ProviderName : service.Title;
+        currentOtherPartyPhoto = !string.IsNullOrEmpty(service.ProviderPhoto) ? service.ProviderPhoto : service.Images?.FirstOrDefault();
+        Navigation.NavigateTo($"/user/messages/{service.UserId}?name={Uri.EscapeDataString(currentOtherPartyName)}", false);
+        await LoadMessages(service.UserId);
     }
 
     public void Dispose()

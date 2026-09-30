@@ -14,10 +14,6 @@ namespace Khadamat.MobileApp;
     Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable },
     DataScheme = "khadamat",
     DataHost = "callback")]
-// Also handle the bare scheme: khadamat:// (no host)
-[IntentFilter(new[] { Intent.ActionView },
-    Categories = new[] { Intent.CategoryDefault, Intent.CategoryBrowsable },
-    DataScheme = "khadamat")]
 public class WebAuthenticatorActivity : Microsoft.Maui.Authentication.WebAuthenticatorCallbackActivity
 {
 }

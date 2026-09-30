@@ -439,21 +439,24 @@ public class AdminController : ControllerBase
             await _userManager.UpdateAsync(user);
         }
 
-        // Notify Provider
+        await _context.SaveChangesAsync();
+
+        // Notify Provider (DB + Real-time SignalR)
         try
         {
-            var notif = new Domain.Entities.Notification(
+            await _notificationService.SendNotificationAsync(
                 provider.UserId,
                 "تم قبول حسابك كمقدم خدمة 🎉",
                 "تهانينا! تمت مراجعة حسابك وتفعيله بنجاح، يمكنك الآن إدارة خدماتك واستقبال الطلبات.",
-                "Admin",
+                "ProviderApproved",
                 "/provider/dashboard"
             );
-            _context.Notifications.Add(notif);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AdminController] Error sending provider approval notification: {ex.Message}");
+        }
 
-        await _context.SaveChangesAsync();
         return Ok(ApiResponse<bool>.Succeed(true));
     }
 
@@ -465,19 +468,21 @@ public class AdminController : ControllerBase
 
         var userId = provider.UserId;
 
-        // Notify Provider
+        // Notify Provider (DB + Real-time SignalR) - before removing the profile
         try
         {
-            var notif = new Domain.Entities.Notification(
+            await _notificationService.SendNotificationAsync(
                 userId,
                 "تحديث بشأن طلب الانضمام كمقدم خدمة",
                 "نأسف لإبلاغك بأنه لم يتم قبول طلب الانضمام في الوقت الحالي، يمكنك مراجعة بياناتك والتواصل مع الإدارة.",
-                "Admin",
+                "ProviderRejected",
                 "/profile"
             );
-            _context.Notifications.Add(notif);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AdminController] Error sending provider rejection notification: {ex.Message}");
+        }
 
         _context.ProviderProfiles.Remove(provider);
         await _context.SaveChangesAsync();
@@ -579,25 +584,28 @@ public class AdminController : ControllerBase
             }
         }
 
-        // Notify Service Owner
+        await _context.SaveChangesAsync();
+
+        // Notify Service Owner (DB + Real-time SignalR)
         try
         {
             var ownerUserId = service.UserCreated ?? provider?.UserId;
             if (!string.IsNullOrEmpty(ownerUserId))
             {
-                var notif = new Domain.Entities.Notification(
+                await _notificationService.SendNotificationAsync(
                     ownerUserId,
                     "تمت الموافقة على خدمتك 🎉",
                     $"تمت مراجعة خدمتك \"{service.Name}\" والموافقة على نشرها، وهي متاحة الآن للعملاء على المنصة.",
-                    "Admin",
+                    "ServiceApproved",
                     $"/service/{service.Id}"
                 );
-                _context.Notifications.Add(notif);
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AdminController] Error sending service approval notification: {ex.Message}");
+        }
 
-        await _context.SaveChangesAsync();
         return Ok(ApiResponse<bool>.Succeed(true));
     }
 
@@ -607,7 +615,7 @@ public class AdminController : ControllerBase
         var service = await _context.Services.FindAsync(id);
         if (service == null) return NotFound();
 
-        // Notify Service Owner before soft delete
+        // Notify Service Owner before soft delete (DB + Real-time SignalR)
         try
         {
             var ownerUserId = service.UserCreated;
@@ -618,17 +626,19 @@ public class AdminController : ControllerBase
             }
             if (!string.IsNullOrEmpty(ownerUserId))
             {
-                var notif = new Domain.Entities.Notification(
+                await _notificationService.SendNotificationAsync(
                     ownerUserId,
                     "تحديث بشأن خدمتك",
-                    $"تم رفض نشر خدمتك \"{service.Name}\" من قبل الإدارة.",
-                    "Admin",
+                    $"تم رفض نشر خدمتك \"{service.Name}\" من قبل الإدارة، يمكنك مراجعة البيانات والتواصل مع الإدارة.",
+                    "ServiceRejected",
                     "/provider/my-services"
                 );
-                _context.Notifications.Add(notif);
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AdminController] Error sending service rejection notification: {ex.Message}");
+        }
 
         // Soft Delete
         service.Reject("تم الرفض أو الحذف بواسطة المدير");

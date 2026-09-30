@@ -79,7 +79,7 @@
                     <h5 class="fw-bold mb-3 fs-6"><i class="fa-solid fa-address-book me-2 text-success"></i>بيانات التواصل</h5>
                     <div class="mb-3">
                         <label class="form-label small fw-bold">البريد الإلكتروني للدعم</label>
-                        <input type="email" @bind="settings.ContactEmail" class="form-control rounded-pill px-3" placeholder="support@example.com">
+                        <input type="email" @bind="settings.ContactEmail" class="form-control rounded-pill px-3" placeholder="khadamawy@gmail.com">
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold">رقم الهاتف للدعم</label>
@@ -321,6 +321,39 @@
                 </div>
             </div>
 
+            <!-- App Sharing Settings -->
+            <div class="col-12 mb-2">
+                <div class="glass-card p-3">
+                    <h5 class="fw-bold mb-3 fs-6"><i class="fa-solid fa-share-nodes me-2 text-success"></i>إعدادات مشاركة التطبيق</h5>
+                    <p class="text-muted small mb-3">هذه الإعدادات تُستخدم في جميع أزرار "شارك التطبيق" داخل الموقع والتطبيق</p>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-bold"><i class="fa-solid fa-link me-1 text-primary"></i>رابط تحميل / مشاركة التطبيق</label>
+                            <input type="url" @bind="settings.AppShareUrl" class="form-control rounded-pill px-3" placeholder="https://khadamawy.eis-dev.com/downloads/app.apk">
+                            <div class="x-small text-muted mt-1">رابط تحميل APK أو صفحة التطبيق — يُستخدم في كل أزرار المشاركة</div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-bold"><i class="fa-brands fa-google-play me-1 text-success"></i>رابط Google Play</label>
+                            <input type="url" @bind="settings.GooglePlayUrl" class="form-control rounded-pill px-3" placeholder="https://play.google.com/store/apps/...">
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-bold"><i class="fa-brands fa-apple me-1"></i>رابط App Store (iOS)</label>
+                            <input type="url" @bind="settings.AppStoreUrl" class="form-control rounded-pill px-3" placeholder="https://apps.apple.com/...">
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-bold"><i class="fa-solid fa-message me-1 text-warning"></i>نص رسالة المشاركة</label>
+                            <textarea @bind="settings.AppShareText" class="form-control rounded-3 px-3" rows="3"
+                                      placeholder="📲 تطبيق خدماوي — كل خدماتك في مكان واحد!&#10;تواصل مع أفضل الحرفيين والمهنيين بكل سهولة وأمان.&#10;&#10;🔗 حمل التطبيق الآن:"></textarea>
+                            <div class="x-small text-muted mt-1">سيُضاف الرابط تلقائياً في نهاية الرسالة</div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold mb-2">معاينة كارت المشاركة</label>
+                            <AppShareCard ShowTagline="true" ShowStoreButtons="true" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Legal Documents -->
             <div class="col-12 col-md-6 mb-2">
                 <div class="glass-card p-3 h-100">
@@ -496,6 +529,14 @@
             if (response.Success && response.Data != null)
             {
                 settings = response.Data;
+                if (!string.IsNullOrEmpty(settings.AppShareUrl)) AppState.AppShareUrl = settings.AppShareUrl;
+                if (!string.IsNullOrEmpty(settings.AppShareText)) AppState.AppShareText = settings.AppShareText;
+                if (!string.IsNullOrEmpty(settings.AppStoreUrl)) AppState.AppStoreUrl = settings.AppStoreUrl;
+                if (!string.IsNullOrEmpty(settings.GooglePlayUrl)) AppState.GooglePlayUrl = settings.GooglePlayUrl;
+                if (!string.IsNullOrEmpty(settings.ContactEmail)) AppState.ContactEmail = settings.ContactEmail;
+                if (!string.IsNullOrEmpty(settings.ContactPhone)) AppState.ContactPhone = settings.ContactPhone;
+                if (!string.IsNullOrEmpty(settings.ContactWhatsApp)) AppState.ContactWhatsApp = settings.ContactWhatsApp;
+                AppState.TriggerStateChanged();
             }
             else
             {
@@ -549,7 +590,11 @@
             TwitterUrl = settings.TwitterUrl,
             InstagramUrl = settings.InstagramUrl,
             TermsAndConditions = settings.TermsAndConditions,
-            PrivacyPolicy = settings.PrivacyPolicy
+            PrivacyPolicy = settings.PrivacyPolicy,
+            AppShareUrl = settings.AppShareUrl,
+            AppShareText = settings.AppShareText,
+            AppStoreUrl = settings.AppStoreUrl,
+            GooglePlayUrl = settings.GooglePlayUrl
         };
 
         try
@@ -565,6 +610,10 @@
                 AppState.AppLogo = settings.LogoUrl ?? string.Empty;
                 AppState.PrimaryColor = settings.PrimaryColor ?? string.Empty;
                 AppState.SecondaryColor = settings.SecondaryColor ?? string.Empty;
+                AppState.AppShareUrl = settings.AppShareUrl ?? string.Empty;
+                AppState.AppShareText = settings.AppShareText ?? string.Empty;
+                AppState.AppStoreUrl = settings.AppStoreUrl ?? string.Empty;
+                AppState.GooglePlayUrl = settings.GooglePlayUrl ?? string.Empty;
                 AppState.TriggerStateChanged();
             }
             else

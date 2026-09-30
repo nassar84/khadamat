@@ -233,12 +233,21 @@
             if (!AppState.IsMobileApp) AppState.IsMobileApp = true;
         }
 
+        if (uri.AbsolutePath.StartsWith("/provider", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!AppState.IsProviderMode) AppState.IsProviderMode = true;
+        }
+
         // Handle deep link redirect from native app to avoid 404s on refresh/direct loads
         if (query.TryGetValue("redirect", out var rValue))
         {
             var target = rValue.ToString();
             if (!string.IsNullOrEmpty(target))
             {
+                if (target.StartsWith("provider/", StringComparison.OrdinalIgnoreCase) || target.StartsWith("/provider/", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (!AppState.IsProviderMode) AppState.IsProviderMode = true;
+                }
                 // Remove the redirect param and navigate
                 var newUri = Navigation.GetUriWithQueryParameter("redirect", (string?)null);
                 Navigation.NavigateTo(target);
@@ -290,6 +299,15 @@
 
     private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
     {
+        try
+        {
+            var path = new Uri(e.Location).AbsolutePath;
+            if (path.StartsWith("/provider", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!AppState.IsProviderMode) AppState.IsProviderMode = true;
+            }
+        }
+        catch { }
         _ = CheckMobileModeAsync();
         StateHasChanged();
     }
@@ -313,6 +331,21 @@
                 AppState.OpenDetailsSound = settingsResult.Data.OpenDetailsSound;
                 AppState.MessageReceivedSound = settingsResult.Data.MessageReceivedSound;
                 AppState.NotificationReceivedSound = settingsResult.Data.NotificationReceivedSound;
+
+                if (!string.IsNullOrEmpty(settingsResult.Data.AppShareUrl))
+                    AppState.AppShareUrl = settingsResult.Data.AppShareUrl;
+                if (!string.IsNullOrEmpty(settingsResult.Data.AppShareText))
+                    AppState.AppShareText = settingsResult.Data.AppShareText;
+                if (!string.IsNullOrEmpty(settingsResult.Data.AppStoreUrl))
+                    AppState.AppStoreUrl = settingsResult.Data.AppStoreUrl;
+                if (!string.IsNullOrEmpty(settingsResult.Data.GooglePlayUrl))
+                    AppState.GooglePlayUrl = settingsResult.Data.GooglePlayUrl;
+                if (!string.IsNullOrEmpty(settingsResult.Data.ContactEmail))
+                    AppState.ContactEmail = settingsResult.Data.ContactEmail;
+                if (!string.IsNullOrEmpty(settingsResult.Data.ContactPhone))
+                    AppState.ContactPhone = settingsResult.Data.ContactPhone;
+                if (!string.IsNullOrEmpty(settingsResult.Data.ContactWhatsApp))
+                    AppState.ContactWhatsApp = settingsResult.Data.ContactWhatsApp;
 
                 AppState.TriggerStateChanged();
                 

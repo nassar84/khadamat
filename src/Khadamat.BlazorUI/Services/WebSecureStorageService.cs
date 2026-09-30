@@ -24,13 +24,21 @@ public class WebSecureStorageService : ISecureStorageService
 
     public void Remove(string key)
     {
-        // Blazored LocalStorage doesn't have synchronous Remove, so we provide an async context wrapper if needed
-        // but for now we Task.Run or ignore the return
         _ = _localStorage.RemoveItemAsync(key);
+    }
+
+    public Task RemoveAsync(string key)
+    {
+        return _localStorage.RemoveItemAsync(key).AsTask();
     }
 
     public void RemoveAll()
     {
         _ = _localStorage.ClearAsync();
+    }
+
+    public Task RemoveAllAsync()
+    {
+        return _localStorage.ClearAsync().AsTask();
     }
 }

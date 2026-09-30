@@ -30,9 +30,10 @@ public class AdsController : ControllerBase
     public async Task<IActionResult> GetAdsByPlacement(string placement)
     {
         var now = DateTime.UtcNow;
+        var today = now.Date;
         var ads = await _context.Ads
             .Where(a => !a.IsDeleted && a.Approved && a.Placement == placement && 
-                        a.StartDate <= now && a.EndDate >= now)
+                        a.StartDate.Date <= today && a.EndDate.Date >= today)
             .OrderBy(a => a.DisplayOrder)
             .Select(a => new EnhancedAdDto
             {
@@ -71,43 +72,47 @@ public class AdsController : ControllerBase
     [Authorize(Policy = "RequireAdmin")]
     public async Task<IActionResult> GetAllAds()
     {
-        var ads = await _context.Ads
-            .Where(a => !a.IsDeleted)
-            .OrderByDescending(a => a.CreatedAt)
-            .Select(a => new EnhancedAdDto
-            {
-                Id = a.Id,
-                Title = a.Title,
-                Description = a.Description,
-                AdType = a.AdType,
-                ImageUrl = a.ImagePath,
-                VideoUrl = a.VideoUrl,
-                TextContent = a.TextContent,
-                TargetUrl = a.RedirectUrl,
-                ServiceId = a.ServiceID,
-                TargetCategories = a.CategoryID.HasValue ? a.CategoryID.ToString() : null,
-                TargetKeywords = a.TargetKeywords,
-                Placement = a.Placement,
-                DisplayOrder = a.DisplayOrder,
-                StartDate = a.StartDate,
-                EndDate = a.EndDate,
-                IsActive = a.Approved,
-                ViewCount = a.Views,
-                ClickCount = a.Clicks,
-                CreatedAt = a.CreatedAt,
-                TargetGovernorates = a.TargetGovernorates,
-                TargetCities = a.TargetCities,
-                TargetServices = a.TargetServices,
-                TargetUserGender = a.TargetUserGender,
-                TargetDays = a.TargetDays,
-                TargetMonths = a.TargetMonths,
-                TargetTimeStart = a.TargetTimeStart,
-                TargetTimeEnd = a.TargetTimeEnd,
-                TargetDeepSubCategories = a.TargetDeepSubCategories,
-                AmountPaid = a.AmountPaid,
-                CreatedBy = a.UserCreated
-            })
-            .ToListAsync();
+        var ads = await (from a in _context.Ads.Where(a => !a.IsDeleted)
+                         join u in _context.Users on a.UserCreated equals u.Id into userGroup
+                         from u in userGroup.DefaultIfEmpty()
+                         join s in _context.Services on a.ServiceID equals s.Id into serviceGroup
+                         from s in serviceGroup.DefaultIfEmpty()
+                         orderby a.CreatedAt descending
+                         select new EnhancedAdDto
+                         {
+                             Id = a.Id,
+                             Title = a.Title,
+                             Description = a.Description,
+                             AdType = a.AdType,
+                             ImageUrl = a.ImagePath,
+                             VideoUrl = a.VideoUrl,
+                             TextContent = a.TextContent,
+                             TargetUrl = a.RedirectUrl,
+                             ServiceId = a.ServiceID,
+                             TargetCategories = a.CategoryID.HasValue ? a.CategoryID.ToString() : null,
+                             TargetSubCategories = a.SubCategoryID.HasValue ? a.SubCategoryID.ToString() : null,
+                             TargetKeywords = a.TargetKeywords,
+                             Placement = a.Placement,
+                             DisplayOrder = a.DisplayOrder,
+                             StartDate = a.StartDate,
+                             EndDate = a.EndDate,
+                             IsActive = a.Approved,
+                             ViewCount = a.Views,
+                             ClickCount = a.Clicks,
+                             CreatedAt = a.CreatedAt,
+                             TargetGovernorates = a.TargetGovernorates,
+                             TargetCities = a.TargetCities,
+                             TargetServices = a.TargetServices,
+                             TargetUserGender = a.TargetUserGender,
+                             TargetDays = a.TargetDays,
+                             TargetMonths = a.TargetMonths,
+                             TargetTimeStart = a.TargetTimeStart,
+                             TargetTimeEnd = a.TargetTimeEnd,
+                             TargetDeepSubCategories = a.TargetDeepSubCategories,
+                             AmountPaid = a.AmountPaid,
+                             CreatedBy = a.UserCreated,
+                             AdvertiserName = u != null ? u.FullName : (s != null ? s.Name : null)
+                         }).ToListAsync();
 
         return Ok(ApiResponse<List<EnhancedAdDto>>.Succeed(ads));
     }
@@ -119,6 +124,13 @@ public class AdsController : ControllerBase
         var ad = await _context.Ads.FindAsync(id);
         if (ad == null || ad.IsDeleted) return NotFound();
 
+        string? advertiserName = null;
+        if (!string.IsNullOrEmpty(ad.UserCreated))
+        {
+            var user = await _context.Users.FindAsync(ad.UserCreated);
+            advertiserName = user?.FullName;
+        }
+
         var dto = new EnhancedAdDto
         {
             Id = ad.Id,
@@ -129,6 +141,9 @@ public class AdsController : ControllerBase
             VideoUrl = ad.VideoUrl,
             TextContent = ad.TextContent,
             TargetUrl = ad.RedirectUrl,
+            ServiceId = ad.ServiceID,
+            TargetCategories = ad.CategoryID.HasValue ? ad.CategoryID.ToString() : null,
+            TargetSubCategories = ad.SubCategoryID.HasValue ? ad.SubCategoryID.ToString() : null,
             Placement = ad.Placement,
             DisplayOrder = ad.DisplayOrder,
             StartDate = ad.StartDate,
@@ -148,7 +163,8 @@ public class AdsController : ControllerBase
             TargetTimeEnd = ad.TargetTimeEnd,
             TargetDeepSubCategories = ad.TargetDeepSubCategories,
             AmountPaid = ad.AmountPaid,
-            CreatedBy = ad.UserCreated
+            CreatedBy = ad.UserCreated,
+            AdvertiserName = advertiserName
         };
 
         return Ok(ApiResponse<EnhancedAdDto>.Succeed(dto));
@@ -158,9 +174,12 @@ public class AdsController : ControllerBase
     [Authorize(Policy = "RequireAdmin")]
     public async Task<IActionResult> CreateAd([FromBody] EnhancedAdDto dto)
     {
-        // Parse category ID if simple single selection, else extend logic
+        // Parse category IDs
         int? categoryId = null;
         if (int.TryParse(dto.TargetCategories, out int cid)) categoryId = cid;
+
+        int? subCategoryId = null;
+        if (int.TryParse(dto.TargetSubCategories, out int scid)) subCategoryId = scid;
 
         var ad = new Ad(
             dto.Title, 
@@ -170,7 +189,7 @@ public class AdsController : ControllerBase
             dto.AdType ?? "Image",
             null, // ActivityId
             categoryId,
-            null, // subCategoryId
+            subCategoryId,
             dto.ServiceId // Linked service ID
         );
 
@@ -197,17 +216,33 @@ public class AdsController : ControllerBase
             dto.TargetTimeStart,
             dto.TargetTimeEnd,
             categoryId,
-            null, // subCategoryId
+            subCategoryId,
             dto.ServiceId, // Linked service ID
             dto.AmountPaid
         );
 
-        // Link to user if logged in
-        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        if (!string.IsNullOrEmpty(userId))
+        // Determine owner (advertiser)
+        var currentAdminId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        string? ownerId = null;
+        if (!string.IsNullOrWhiteSpace(dto.CreatedBy))
         {
-            ad.SetOwner(userId);
+            ownerId = dto.CreatedBy;
         }
+        else if (dto.ServiceId.HasValue)
+        {
+            var svc = await _context.Services.FindAsync(dto.ServiceId.Value);
+            if (svc != null && !string.IsNullOrEmpty(svc.UserCreated))
+            {
+                ownerId = svc.UserCreated;
+            }
+        }
+        
+        if (string.IsNullOrEmpty(ownerId))
+        {
+            ownerId = currentAdminId;
+        }
+
+        ad.SetOwner(ownerId);
 
         if (dto.IsActive) ad.Approve(); else ad.Reject();
         ad.SetDisplayOrder(dto.DisplayOrder);
@@ -262,6 +297,9 @@ public class AdsController : ControllerBase
         var ad = await _context.Ads.FindAsync(id);
         if (ad == null || ad.IsDeleted) return NotFound();
 
+        int? categoryId = int.TryParse(dto.TargetCategories, out int cid2) ? cid2 : null;
+        int? subCategoryId = int.TryParse(dto.TargetSubCategories, out int scid2) ? scid2 : null;
+
         ad.UpdateDetails(
             dto.Title,
             dto.Description ?? "",
@@ -284,11 +322,24 @@ public class AdsController : ControllerBase
             dto.TargetMonths,
             dto.TargetTimeStart,
             dto.TargetTimeEnd,
-            int.TryParse(dto.TargetCategories, out int cid2) ? cid2 : null,
-            int.TryParse(dto.TargetSubCategories, out int scid2) ? scid2 : null,
-            null, // serviceId
+            categoryId,
+            subCategoryId,
+            dto.ServiceId, // Fixed: Pass dto.ServiceId
             dto.AmountPaid
         );
+
+        if (!string.IsNullOrWhiteSpace(dto.CreatedBy))
+        {
+            ad.SetOwner(dto.CreatedBy);
+        }
+        else if (dto.ServiceId.HasValue && string.IsNullOrEmpty(ad.UserCreated))
+        {
+            var svc = await _context.Services.FindAsync(dto.ServiceId.Value);
+            if (svc != null && !string.IsNullOrEmpty(svc.UserCreated))
+            {
+                ad.SetOwner(svc.UserCreated);
+            }
+        }
 
         if (!string.IsNullOrEmpty(dto.ImageBase64))
         {

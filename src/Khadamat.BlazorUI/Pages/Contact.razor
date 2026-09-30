@@ -2,14 +2,6 @@
 @inject Khadamat.BlazorUI.State.AppState State
 @inject IJSRuntime JS
 
-@* ──── ثوابت التواصل ──── *@
-@{
-    const string WhatsAppNumber = "201065016032";
-    const string WhatsAppUrl    = "https://wa.me/" + WhatsAppNumber;
-    const string SupportEmail   = "support@khadamat.app";
-    const string SupportHours   = "السبت – الخميس: 9ص – 9م";
-}
-
 <div class="contact-page container py-4" style="max-width:860px;">
 
     <!-- ── رأس الصفحة ── -->
@@ -24,6 +16,7 @@
     <!-- ── زر واتساب البارز ── -->
     <a href="@WhatsAppUrl?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D8%8C%20%D8%A3%D8%AD%D8%AA%D8%A7%D8%AC%20%D9%85%D8%B3%D8%A7%D8%B9%D8%AF%D8%A9"
        target="_blank"
+       rel="noopener noreferrer"
        class="whatsapp-hero d-flex align-items-center justify-content-between animate-up"
        style="--delay:0.05s">
         <div class="d-flex align-items-center gap-3">
@@ -33,7 +26,7 @@
             <div class="text-start">
                 <div class="fw-bold fs-5">تواصل عبر واتساب</div>
                 <div class="wa-sub">اضغط هنا للتحدث مع فريق الدعم مباشرةً</div>
-                <div class="wa-number">+@WhatsAppNumber</div>
+                <div class="wa-number" dir="ltr" style="direction: ltr !important; unicode-bidi: isolate !important; text-align: right;">@WhatsAppDisplay</div>
             </div>
         </div>
         <div class="wa-arrow">
@@ -50,14 +43,14 @@
                 <h5 class="fw-bold mb-4">طرق التواصل</h5>
 
                 <!-- واتساب -->
-                <a href="@WhatsAppUrl" target="_blank" class="contact-method-link mb-3">
+                <a href="@WhatsAppUrl" target="_blank" rel="noopener noreferrer" class="contact-method-link mb-3">
                     <div class="contact-method wa-method">
                         <div class="cm-icon">
                             <i class="fa-brands fa-whatsapp"></i>
                         </div>
                         <div class="cm-body">
                             <div class="cm-label">واتساب</div>
-                            <div class="cm-value">@("+20 106 5016032")</div>
+                            <div class="cm-value" dir="ltr" style="direction: ltr !important; unicode-bidi: isolate !important; text-align: right;">@WhatsAppDisplay</div>
                         </div>
                         <i class="fa-solid fa-arrow-up-right-from-square cm-ext text-success"></i>
                     </div>
@@ -71,7 +64,7 @@
                         </div>
                         <div class="cm-body">
                             <div class="cm-label">البريد الإلكتروني</div>
-                            <div class="cm-value">@SupportEmail</div>
+                            <div class="cm-value" dir="ltr" style="direction: ltr !important; unicode-bidi: isolate !important; text-align: right;">@SupportEmail</div>
                         </div>
                         <i class="fa-solid fa-arrow-up-right-from-square cm-ext"></i>
                     </div>
@@ -92,13 +85,10 @@
 
                 <h6 class="fw-bold mb-3">تابعنا على</h6>
                 <div class="d-flex gap-2 flex-wrap">
-                    <a href="#" class="social-pill facebook">
+                    <a href="@FacebookUrl" target="_blank" rel="noopener noreferrer" class="social-pill facebook">
                         <i class="fa-brands fa-facebook-f me-1"></i> فيسبوك
                     </a>
-                    <a href="#" class="social-pill instagram">
-                        <i class="fa-brands fa-instagram me-1"></i> إنستجرام
-                    </a>
-                    <a href="@WhatsAppUrl" target="_blank" class="social-pill whatsapp">
+                    <a href="@WhatsAppUrl" target="_blank" rel="noopener noreferrer" class="social-pill whatsapp">
                         <i class="fa-brands fa-whatsapp me-1"></i> واتساب
                     </a>
                 </div>
@@ -111,7 +101,7 @@
                 <h5 class="fw-bold mb-1">أرسل رسالتك</h5>
                 <p class="text-muted small mb-4">
                     أو راسلنا مباشرة عبر
-                    <a href="@WhatsAppUrl" target="_blank" class="text-success fw-bold text-decoration-none">
+                    <a href="@WhatsAppUrl" target="_blank" rel="noopener noreferrer" class="text-success fw-bold text-decoration-none">
                         <i class="fa-brands fa-whatsapp me-1"></i>واتساب
                     </a>
                     للرد الفوري.
@@ -130,8 +120,8 @@
                                     @onclick="() => submitted = false">
                                 إرسال رسالة أخرى
                             </button>
-                            <a href="@WhatsAppUrl" target="_blank"
-                               class="btn btn-success rounded-pill px-4">
+                            <a href="@WhatsAppUrl" target="_blank" rel="noopener noreferrer"
+                               class="btn btn-whatsapp-send rounded-pill px-4">
                                 <i class="fa-brands fa-whatsapp me-2"></i>واتساب مباشر
                             </a>
                         </div>
@@ -177,7 +167,7 @@
                     <!-- أزرار الإرسال -->
                     <div class="d-flex gap-2 flex-wrap">
                         <button id="contact-submit-btn"
-                                class="btn btn-primary-premium flex-fill py-3 rounded-pill fw-bold"
+                                class="btn btn-contact-submit flex-fill py-3 rounded-pill fw-bold"
                                 @onclick="HandleSubmit" disabled="@isSending">
                             @if (isSending)
                             {
@@ -191,7 +181,7 @@
                             }
                         </button>
 
-                        <a href="@BuildWhatsAppUrl()" target="_blank"
+                        <a href="@BuildWhatsAppUrl()" target="_blank" rel="noopener noreferrer"
                            class="btn btn-whatsapp-send flex-fill py-3 rounded-pill fw-bold">
                             <i class="fa-brands fa-whatsapp me-2 fs-5"></i>
                             واتساب مباشر
@@ -225,7 +215,7 @@
     /* ── زر واتساب البارز ── */
     .whatsapp-hero {
         display: flex;
-        background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+        background: linear-gradient(135deg, #25d366 0%, #128c7e 100%) !important;
         border-radius: 20px;
         padding: 20px 24px;
         color: white !important;
@@ -248,7 +238,7 @@
     }
     .wa-sub  { font-size: .85rem; opacity: .85; margin-top: 2px; }
     .wa-number {
-        font-size: .9rem; font-weight: 700;
+        font-size: .95rem; font-weight: 700;
         letter-spacing: 1px;
         margin-top: 4px;
         opacity: .95;
@@ -279,7 +269,7 @@
     }
     .wa-method    { border-color: rgba(37,211,102,.25); color: #25d366; }
     .wa-method:hover { background: rgba(37,211,102,.06); }
-    .email-method { color: var(--theme-primary); }
+    .email-method { color: var(--theme-primary, #2A7F8F); }
     .clock-method { color: #f59e0b; cursor: default; }
     .cm-icon {
         width: 40px; height: 40px;
@@ -291,11 +281,11 @@
         flex-shrink: 0;
     }
     .wa-method    .cm-icon { background: rgba(37,211,102,.15); color: #25d366; }
-    .email-method .cm-icon { background: rgba(99,102,241,.12); color: var(--theme-primary); }
+    .email-method .cm-icon { background: rgba(42,127,143,.12); color: var(--theme-primary, #2A7F8F); }
     .clock-method .cm-icon { background: rgba(245,158,11,.12); color: #f59e0b; }
     .cm-body   { flex: 1; }
     .cm-label  { font-size: .75rem; color: #94a3b8; font-weight: 600; }
-    .cm-value  { font-size: .88rem; font-weight: 700; color: #1e293b; }
+    .cm-value  { font-size: .9rem; font-weight: 700; color: #1e293b; }
     .cm-ext    { font-size: .75rem; opacity: .5; }
 
     /* ── أزرار السوشيال ── */
@@ -310,7 +300,6 @@
     }
     .social-pill:hover { transform: translateY(-2px); }
     .social-pill.facebook  { background: rgba(59,89,152,.1); color: #3b5998; }
-    .social-pill.instagram { background: rgba(228,64,95,.1);  color: #e4405f; }
     .social-pill.whatsapp  { background: rgba(37,211,102,.12); color: #25d366; }
 
     /* ── حقول النموذج ── */
@@ -323,23 +312,55 @@
     }
     .premium-input:focus {
         background: white;
-        border-color: var(--theme-primary);
-        box-shadow: 0 0 0 4px rgba(var(--theme-primary-rgb,42,127,143),.1);
+        border-color: var(--theme-primary, #2A7F8F);
+        box-shadow: 0 0 0 4px rgba(42,127,143,.1);
         outline: none;
     }
 
-    /* ── زر واتساب إرسال ── */
-    .btn-whatsapp-send {
-        background: linear-gradient(135deg, #25d366, #128c7e);
-        color: white !important;
-        border: none;
-        box-shadow: 0 4px 16px rgba(37,211,102,.3);
-        transition: all .25s;
+    /* ── زر الإرسال ── */
+    .btn.btn-contact-submit,
+    button.btn-contact-submit {
+        background: linear-gradient(135deg, #1d6e7e 0%, #15515d 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        box-shadow: 0 4px 16px rgba(29, 110, 126, 0.35) !important;
+        transition: all .25s !important;
+        text-decoration: none !important;
+        opacity: 1 !important;
     }
-    .btn-whatsapp-send:hover {
+    .btn.btn-contact-submit:hover,
+    button.btn-contact-submit:hover {
+        background: linear-gradient(135deg, #227f92 0%, #1a6472 100%) !important;
         transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(37,211,102,.4);
-        color: white !important;
+        box-shadow: 0 8px 24px rgba(29, 110, 126, 0.45) !important;
+        color: #ffffff !important;
+    }
+    .btn.btn-contact-submit i,
+    .btn.btn-contact-submit span {
+        color: #ffffff !important;
+    }
+
+    /* ── زر واتساب إرسال (الزر البارز الأخضر بدون بهتان) ── */
+    .btn.btn-whatsapp-send,
+    a.btn-whatsapp-send {
+        background: linear-gradient(135deg, #25d366 0%, #128c7e 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+        box-shadow: 0 4px 16px rgba(37,211,102,.35) !important;
+        transition: all .25s !important;
+        text-decoration: none !important;
+        opacity: 1 !important;
+    }
+    .btn.btn-whatsapp-send:hover,
+    a.btn-whatsapp-send:hover {
+        background: linear-gradient(135deg, #2ce871 0%, #16a090 100%) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(37,211,102,.45) !important;
+        color: #ffffff !important;
+    }
+    .btn.btn-whatsapp-send i,
+    .btn.btn-whatsapp-send span {
+        color: #ffffff !important;
     }
 
     /* ── دائرة النجاح ── */
@@ -365,9 +386,21 @@
 </style>
 
 @code {
-    private const string WaNumber = "201065016032";
+    private string WhatsAppNumber => !string.IsNullOrWhiteSpace(State.ContactWhatsApp)
+        ? State.ContactWhatsApp.TrimStart('+').Replace(" ", "")
+        : "201065016032";
 
-    private ContactForm form    = new();
+    private string WhatsAppDisplay => $"+{WhatsAppNumber}";
+    private string WhatsAppUrl => $"https://wa.me/{WhatsAppNumber}";
+
+    private string SupportEmail => !string.IsNullOrWhiteSpace(State.ContactEmail)
+        ? State.ContactEmail
+        : "khadamawy@gmail.com";
+
+    private const string FacebookUrl = "https://www.facebook.com/share/1bpy2Jh2NF/";
+    private const string SupportHours = "السبت – الخميس: 9ص – 9م";
+
+    private ContactForm form      = new();
     private bool        isSending = false;
     private bool        submitted = false;
     private string?     errorMsg;
@@ -380,7 +413,7 @@
         var msg = $"مرحباً، أنا {form.Name}.\n" +
                   (!string.IsNullOrWhiteSpace(form.Subject) ? $"الموضوع: {SubjectLabel(form.Subject)}\n" : "") +
                   (!string.IsNullOrWhiteSpace(form.Message)  ? $"\n{form.Message}" : "\nأحتاج مساعدة.");
-        return $"https://wa.me/{WaNumber}?text={Uri.EscapeDataString(msg)}";
+        return $"https://wa.me/{WhatsAppNumber}?text={Uri.EscapeDataString(msg)}";
     }
 
     private async Task HandleSubmit()

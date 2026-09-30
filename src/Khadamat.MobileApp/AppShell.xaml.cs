@@ -26,9 +26,13 @@ namespace Khadamat.MobileApp
             Routing.RegisterRoute("settings", typeof(Views.SettingsPage));
             Routing.RegisterRoute("categories", typeof(Views.CategoriesPage));
             Routing.RegisterRoute("my-services", typeof(Views.MyServicesPage));
+            Routing.RegisterRoute("my-requests", typeof(Views.MyRequestsPage));
             Routing.RegisterRoute("provider/apply", typeof(Views.PostServicePage));
-            Routing.RegisterRoute("provider/dashboard", typeof(Views.MyServicesPage));
-            Routing.RegisterRoute("support", typeof(Views.WebContainerPage));
+            Routing.RegisterRoute("provider/dashboard", typeof(Views.ProviderDashboardPage));
+            Routing.RegisterRoute("provider/create-request", typeof(Views.CreateServicePage));
+            Routing.RegisterRoute("admin/approvals", typeof(Views.ApprovalsPage));
+            Routing.RegisterRoute("admin/complaints", typeof(Views.ComplaintsPage));
+            Routing.RegisterRoute("support", typeof(Views.SupportPage));
             Routing.RegisterRoute("terms", typeof(Views.TermsPage));
             Routing.RegisterRoute("notifications", typeof(Views.WebContainerPage));
             Routing.RegisterRoute("search", typeof(Views.WebContainerPage));
@@ -64,7 +68,7 @@ namespace Khadamat.MobileApp
                 // If navigating to the Home page (either by tab click or menu)
                 // and it's either the exact same location or a base navigation without params,
                 // we force the WebView to return to root.
-                if (targetPath.EndsWith("HomePage") || targetPath == "//")
+                if (targetPath.EndsWith("HomePage") || targetPath == "//" || targetPath.EndsWith("_Home"))
                 {
                     // If no specific route param is provided, or navigation is to the same full location
                     if (!targetLoc.Contains("route=") || targetLoc.EndsWith("route=") || (args.Current != null && args.Current.Location.ToString() == targetLoc))

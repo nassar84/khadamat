@@ -2,20 +2,70 @@
 @page "/user/requests"
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
+@using Khadamat.BlazorUI.State
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @inject ApiClient Api
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject AppState State
 
 <div class="px-3 pt-3 pb-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <h3 class="fw-bold mb-0">طلباتي</h3>
-            <p class="text-muted small">متابعة حالة الطلبات التي قدمتها للمهنيين</p>
+            <h3 class="fw-bold mb-1">طلباتي</h3>
+            <p class="text-muted small mb-0">متابعة حالة الطلبات التي أرسلتها للمهنيين ومقدمي الخدمات</p>
         </div>
-        <button class="btn btn-primary-premium rounded-pill px-4" @onclick='() => Navigation.NavigateTo("/services")'>
-            <i class="fa-solid fa-magnifying-glass me-2"></i> طلب جديد
+        <button class="btn btn-primary-premium rounded-pill px-4 shadow-sm" @onclick='() => Navigation.NavigateTo("/services")'>
+            <i class="fa-solid fa-plus me-2"></i> طلب خدمة جديدة
         </button>
     </div>
+
+    <!-- Provider Notice Banner -->
+    @if (State.IsProvider)
+    {
+        <div class="alert alert-info border-0 shadow-sm rounded-4 d-flex align-items-center justify-content-between p-3 mb-4 flex-wrap gap-2" style="background: rgba(59, 130, 246, 0.08);">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-primary text-white rounded-circle p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 42px; height: 42px;">
+                    <i class="fa-solid fa-briefcase fs-6"></i>
+                </div>
+                <div>
+                    <div class="fw-bold text-dark small">أنت مسجل كمقدم خدمة</div>
+                    <div class="text-muted x-small">هذه الصفحة خاصة بطلباتك الشخصية. لإدارة طلبات العملاء الواردة على خدماتك المعروضة:</div>
+                </div>
+            </div>
+            <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" @onclick='() => Navigation.NavigateTo("/provider/incoming-requests")'>
+                <i class="fa-solid fa-inbox me-1"></i> الطلبات الواردة لخدماتي
+            </button>
+        </div>
+    }
+
+    <!-- Filter Pills -->
+    @if (!isLoading && requests != null && requests.Any())
+    {
+        <div class="d-flex gap-2 overflow-auto pb-2 mb-4 scrollbar-none">
+            <button class="btn btn-sm rounded-pill px-3 fw-bold @(activeFilter == "all" ? "btn-primary shadow-sm" : "btn-light border")"
+                    @onclick='() => activeFilter = "all"'>
+                الكل (@requests.Count)
+            </button>
+            <button class="btn btn-sm rounded-pill px-3 fw-bold @(activeFilter == "pending" ? "btn-primary shadow-sm" : "btn-light border")"
+                    @onclick='() => activeFilter = "pending"'>
+                قيد الانتظار (@requests.Count(r => r.Status == Khadamat.Domain.Enums.RequestStatus.Pending))
+            </button>
+            <button class="btn btn-sm rounded-pill px-3 fw-bold @(activeFilter == "in_progress" ? "btn-primary shadow-sm" : "btn-light border")"
+                    @onclick='() => activeFilter = "in_progress"'>
+                قيد التنفيذ (@requests.Count(r => r.Status == Khadamat.Domain.Enums.RequestStatus.Accepted || r.Status == Khadamat.Domain.Enums.RequestStatus.InProgress))
+            </button>
+            <button class="btn btn-sm rounded-pill px-3 fw-bold @(activeFilter == "completed" ? "btn-primary shadow-sm" : "btn-light border")"
+                    @onclick='() => activeFilter = "completed"'>
+                المكتملة (@requests.Count(r => r.Status == Khadamat.Domain.Enums.RequestStatus.Completed))
+            </button>
+            <button class="btn btn-sm rounded-pill px-3 fw-bold @(activeFilter == "cancelled" ? "btn-primary shadow-sm" : "btn-light border")"
+                    @onclick='() => activeFilter = "cancelled"'>
+                الملغاة (@requests.Count(r => r.Status == Khadamat.Domain.Enums.RequestStatus.Cancelled || r.Status == Khadamat.Domain.Enums.RequestStatus.Rejected))
+            </button>
+        </div>
+    }
 
     @if (isLoading)
     {
@@ -25,17 +75,33 @@
     }
     else if (requests == null || !requests.Any())
     {
-        <div class="glass-card p-5 text-center">
-            <i class="fa-solid fa-clipboard-list display-1 text-muted opacity-25 mb-3"></i>
-            <h5>لا توجد طلبات جارية</h5>
-            <p class="text-muted">لم تقم بتقديم أي طلبات خدمات مؤخراً.</p>
-            <button class="btn btn-primary rounded-pill px-5 mt-3" @onclick='() => Navigation.NavigateTo("/services")'>تصفح الخدمات</button>
+        <div class="glass-card p-5 text-center rounded-4 shadow-sm">
+            <div class="mb-3">
+                <i class="fa-solid fa-clipboard-list display-1 text-primary opacity-25"></i>
+            </div>
+            <h5 class="fw-bold mb-2">سجل طلباتك فارغ حالياً</h5>
+            <p class="text-muted small mb-4 mx-auto" style="max-width: 480px;">
+                لم تقم بإرسال أي طلبات خدمات للمهنيين حتى الآن. يمكنك استكشاف الخدمات والتواصل مع الفنيين لطلب الخدمة التي تحتاجها.
+            </p>
+            <button class="btn btn-primary-premium rounded-pill px-5 py-2 shadow" @onclick='() => Navigation.NavigateTo("/services")'>
+                <i class="fa-solid fa-magnifying-glass me-2"></i> استكشف الخدمات وقدم طلبك الأول
+            </button>
+        </div>
+    }
+    else if (!FilteredRequests.Any())
+    {
+        <div class="glass-card p-5 text-center rounded-4 shadow-sm">
+            <i class="fa-solid fa-filter display-3 text-muted opacity-25 mb-3"></i>
+            <h6 class="fw-bold text-dark">لا توجد طلبات في هذا التصنيف</h6>
+            <button class="btn btn-outline-secondary btn-sm rounded-pill px-4 mt-3" @onclick='() => activeFilter = "all"'>
+                عرض كل الطلبات
+            </button>
         </div>
     }
     else
     {
         <div class="d-flex flex-column gap-3">
-            @foreach (var r in requests)
+            @foreach (var r in FilteredRequests)
             {
                 <div class="glass-card p-3 animate-up">
                     <div class="d-flex justify-content-between align-items-start">
@@ -205,6 +271,23 @@
 @code {
     private List<ServiceRequestDto>? requests;
     private bool isLoading = true;
+    private string activeFilter = "all";
+
+    private IEnumerable<ServiceRequestDto> FilteredRequests
+    {
+        get
+        {
+            if (requests == null) return Enumerable.Empty<ServiceRequestDto>();
+            return activeFilter switch
+            {
+                "pending" => requests.Where(r => r.Status == Khadamat.Domain.Enums.RequestStatus.Pending),
+                "in_progress" => requests.Where(r => r.Status == Khadamat.Domain.Enums.RequestStatus.Accepted || r.Status == Khadamat.Domain.Enums.RequestStatus.InProgress),
+                "completed" => requests.Where(r => r.Status == Khadamat.Domain.Enums.RequestStatus.Completed),
+                "cancelled" => requests.Where(r => r.Status == Khadamat.Domain.Enums.RequestStatus.Cancelled || r.Status == Khadamat.Domain.Enums.RequestStatus.Rejected),
+                _ => requests
+            };
+        }
+    }
 
     // Rating State
     private ServiceRequestDto? selectedRequestForRating;

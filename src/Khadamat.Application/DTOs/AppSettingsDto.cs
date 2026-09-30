@@ -13,7 +13,7 @@ public class AppSettingsDto
 
     public string PrimaryColor { get; set; } = string.Empty;
     public string SecondaryColor { get; set; } = string.Empty;
-    public string ContactEmail { get; set; } = string.Empty;
+    public string ContactEmail { get; set; } = "khadamawy@gmail.com";
     public string ContactPhone { get; set; } = string.Empty;
     
     // Contact & Payments (InstaPay, Vodafone Cash, Wallets)
@@ -53,6 +53,12 @@ public class AppSettingsDto
     // Legal
     public string TermsAndConditions { get; set; } = string.Empty;
     public string PrivacyPolicy { get; set; } = string.Empty;
+
+    // App Sharing
+    public string AppShareUrl { get; set; } = string.Empty;
+    public string AppShareText { get; set; } = string.Empty;
+    public string AppStoreUrl { get; set; } = string.Empty;
+    public string GooglePlayUrl { get; set; } = string.Empty;
 }
 
 public class UpdateAppSettingsRequest : AppSettingsDto

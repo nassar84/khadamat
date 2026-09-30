@@ -55,18 +55,23 @@ public static class ImageNamingHelper
         var folderPath = Path.Combine(BasePath, "images", folderName);
         var oldFilePath = Path.Combine(folderPath, fileNameOnly);
 
-        // If the temporary file doesn't exist there, check general/temp uploads folder
+        // If the temporary file doesn't exist there, check general and other upload folders
         if (!File.Exists(oldFilePath))
         {
-            var generalPath = Path.Combine(BasePath, "images", "general", fileNameOnly);
-            if (File.Exists(generalPath))
+            string[] otherFolders = { "general", "users", "services", "marketplace", "ads", "categories", "subcategories" };
+            bool found = false;
+            foreach (var f in otherFolders)
             {
-                oldFilePath = generalPath;
+                var cand = Path.Combine(BasePath, "images", f, fileNameOnly);
+                if (File.Exists(cand))
+                {
+                    oldFilePath = cand;
+                    found = true;
+                    break;
+                }
             }
-            else
+            if (!found)
             {
-                // If it doesn't exist anywhere, it might be a seed filename or already renamed
-                // Just return the filename only to keep database clean
                 return fileNameOnly;
             }
         }

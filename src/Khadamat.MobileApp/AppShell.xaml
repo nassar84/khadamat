@@ -105,7 +105,7 @@
                 <Grid Grid.Row="0">
 
                     <!-- GUEST Header: White bg, logo + app name -->
-                    <VerticalStackLayout IsVisible="{Binding IsNotAuthenticated}" Padding="20,50,20,10" Spacing="0">
+                    <VerticalStackLayout IsVisible="{Binding IsGuest}" Padding="20,50,20,10" Spacing="0">
                         <!-- Logo + App Name -->
                         <HorizontalStackLayout Spacing="10" VerticalOptions="Center" HorizontalOptions="Start">
                             <HorizontalStackLayout.GestureRecognizers>
@@ -130,19 +130,11 @@
                                 <Label Grid.Column="1" Text="🏠" FontSize="18" VerticalOptions="Center" />
                             </Grid>
                         </Border>
-                        <!-- Refresh -->
-                        <Grid Padding="8,10" ColumnDefinitions="*,Auto">
-                            <Grid.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding RefreshCommand}" />
-                            </Grid.GestureRecognizers>
-                            <Label Text="تحديث التطبيق" TextColor="#334155" FontSize="14" VerticalOptions="Center" />
-                            <Label Grid.Column="1" Text="🔄" FontSize="16" VerticalOptions="Center" />
-                        </Grid>
                     </VerticalStackLayout>
 
-                    <!-- AUTHENTICATED Header: Purple gradient -->
+                    <!-- AUTHENTICATED Header: Gradient with user info & role badge -->
                     <Grid IsVisible="{Binding IsAuthenticated}">
-                        <!-- Purple Gradient Background -->
+                        <!-- Gradient Background -->
                         <Border StrokeThickness="0">
                             <Border.StrokeShape><RoundRectangle CornerRadius="0,0,0,32" /></Border.StrokeShape>
                             <Border.Background>
@@ -151,24 +143,52 @@
                                     <GradientStop Color="#a855f7" Offset="1.0" />
                                 </LinearGradientBrush>
                             </Border.Background>
-                            <ContentView HeightRequest="140" />
+                            <ContentView HeightRequest="155" />
                         </Border>
 
                         <!-- Overlay Content -->
-                        <Grid Padding="20,50,20,20" ColumnDefinitions="*,Auto">
-                            <Grid.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="profile" />
-                            </Grid.GestureRecognizers>
-                            <!-- Name + Welcome -->
+                        <Grid Padding="20,45,20,15" ColumnDefinitions="*,Auto">
+                            <!-- Name + Welcome + Role Badge -->
                             <VerticalStackLayout VerticalOptions="Center" Spacing="4">
                                 <Label Text="مرحباً بك،" TextColor="White" FontSize="13" Opacity="0.85" />
                                 <Label Text="{Binding UserName}" TextColor="White" FontSize="18" FontAttributes="Bold" />
+                                
+                                <!-- Role Badge & Mode Switch -->
+                                <HorizontalStackLayout Spacing="6" Margin="0,4,0,0">
+                                    <Border BackgroundColor="#3b82f6" StrokeThickness="0" Padding="8,2" IsVisible="{Binding IsClient}">
+                                        <Border.StrokeShape><RoundRectangle CornerRadius="8" /></Border.StrokeShape>
+                                        <Label Text="عميل 🌟" TextColor="White" FontSize="11" FontAttributes="Bold" />
+                                    </Border>
+                                    
+                                    <Border BackgroundColor="#f59e0b" StrokeThickness="0" Padding="8,2" IsVisible="{Binding IsProviderActive}">
+                                        <Border.StrokeShape><RoundRectangle CornerRadius="8" /></Border.StrokeShape>
+                                        <Label Text="مزود خدمة ⭐️" TextColor="White" FontSize="11" FontAttributes="Bold" />
+                                    </Border>
+
+                                    <Border BackgroundColor="#ef4444" StrokeThickness="0" Padding="8,2" IsVisible="{Binding IsAdminActive}">
+                                        <Border.StrokeShape><RoundRectangle CornerRadius="8" /></Border.StrokeShape>
+                                        <Label Text="إدارة النظام 🛡️" TextColor="White" FontSize="11" FontAttributes="Bold" />
+                                    </Border>
+                                    
+                                    <!-- Mode Toggle button for Providers -->
+                                    <Border BackgroundColor="White" StrokeThickness="0" Padding="8,2" IsVisible="{Binding IsProvider}">
+                                        <Border.StrokeShape><RoundRectangle CornerRadius="8" /></Border.StrokeShape>
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding ToggleModeCommand}" />
+                                        </Border.GestureRecognizers>
+                                        <Label Text="تبديل الوضع 🔄" TextColor="{DynamicResource Primary}" FontSize="11" FontAttributes="Bold" />
+                                    </Border>
+                                </HorizontalStackLayout>
                             </VerticalStackLayout>
+                            
                             <!-- Avatar (square rounded) -->
-                            <Border Grid.Column="1" WidthRequest="62" HeightRequest="62"
+                            <Border Grid.Column="1" WidthRequest="60" HeightRequest="60"
                                     StrokeThickness="3" Stroke="White">
                                 <Border.StrokeShape><RoundRectangle CornerRadius="14" /></Border.StrokeShape>
                                 <Border.Shadow><Shadow Brush="#000000" Offset="0,6" Radius="16" Opacity="0.2" /></Border.Shadow>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="profile" />
+                                </Border.GestureRecognizers>
                                 <Image Source="{Binding UserImage}" Aspect="AspectFill" />
                             </Border>
                         </Grid>
@@ -176,73 +196,81 @@
 
                 </Grid>
 
-                <!-- ═══ MIDDLE CONTENT ═══ -->
+                <!-- ═══ MIDDLE CONTENT (ROLE-TAILORED) ═══ -->
                 <VerticalStackLayout Grid.Row="1" Padding="20,0" Spacing="0">
 
-                    <!-- ──── GUEST: Join Card ──── -->
-                    <Border IsVisible="{Binding IsNotAuthenticated}"
-                            BackgroundColor="White" StrokeThickness="1" Stroke="#f1f5f9"
-                            Padding="20" Margin="0,8,0,0">
-                        <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
-                        <Border.Shadow><Shadow Brush="#000000" Offset="0,4" Radius="12" Opacity="0.06" /></Border.Shadow>
-                        <VerticalStackLayout Spacing="12" HorizontalOptions="Center">
-                            <Border BackgroundColor="#f3f0ff" StrokeThickness="0" WidthRequest="60" HeightRequest="60" HorizontalOptions="Center">
-                                <Border.StrokeShape><Ellipse /></Border.StrokeShape>
-                                <Label Text="👤" FontSize="26" HorizontalOptions="Center" VerticalOptions="Center" />
-                            </Border>
-                            <Label Text="انضم إلينا الآن" FontSize="18" FontAttributes="Bold" TextColor="#0f172a" HorizontalOptions="Center" />
-                            <Label Text="سجل دخولك لتتمكن من طلب الخدمات والتواصل مع المزودين"
-                                   FontSize="12" TextColor="#64748b" HorizontalOptions="Center"
-                                   HorizontalTextAlignment="Center" LineHeight="1.5" />
-                            <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,4,0,0">
-                                <Border Grid.Column="0" BackgroundColor="{DynamicResource Primary}" StrokeThickness="0">
-                                    <Border.StrokeShape><RoundRectangle CornerRadius="10" /></Border.StrokeShape>
-                                    <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="login" />
-                                    </Border.GestureRecognizers>
-                                    <Label Text="دخول" TextColor="White" FontAttributes="Bold" FontSize="14" HorizontalOptions="Center" Padding="0,12" />
+                    <!-- ────────────────────────────────────────── -->
+                    <!-- 1. GUEST CONTENT                           -->
+                    <!-- ────────────────────────────────────────── -->
+                    <VerticalStackLayout IsVisible="{Binding IsGuest}" Spacing="0">
+                        <!-- Join Card -->
+                        <Border BackgroundColor="White" StrokeThickness="1" Stroke="#f1f5f9"
+                                Padding="20" Margin="0,8,0,16">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
+                            <Border.Shadow><Shadow Brush="#000000" Offset="0,4" Radius="12" Opacity="0.06" /></Border.Shadow>
+                            <VerticalStackLayout Spacing="12" HorizontalOptions="Center">
+                                <Border BackgroundColor="#f3f0ff" StrokeThickness="0" WidthRequest="55" HeightRequest="55" HorizontalOptions="Center">
+                                    <Border.StrokeShape><Ellipse /></Border.StrokeShape>
+                                    <Label Text="👤" FontSize="24" HorizontalOptions="Center" VerticalOptions="Center" />
                                 </Border>
-                                <Border Grid.Column="1" BackgroundColor="White" StrokeThickness="1.5" Stroke="{DynamicResource Primary}">
-                                    <Border.StrokeShape><RoundRectangle CornerRadius="10" /></Border.StrokeShape>
-                                    <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="register" />
-                                    </Border.GestureRecognizers>
-                                    <Label Text="حساب جديد" TextColor="{DynamicResource Primary}" FontAttributes="Bold" FontSize="13" HorizontalOptions="Center" Padding="0,12" />
-                                </Border>
-                            </Grid>
-                        </VerticalStackLayout>
-                    </Border>
-
-                    <!-- ──── AUTHENTICATED: Main Menu + Activity ──── -->
-                    <VerticalStackLayout IsVisible="{Binding IsAuthenticated}" Spacing="0" Margin="0,16,0,0">
-
-                        <!-- Section: القائمة الرئيسية -->
-                        <Label Text="القائمة الرئيسية" FontSize="12" TextColor="#94a3b8" FontAttributes="Bold" Margin="8,0,8,8" />
-
-                        <!-- Home (active) -->
-                        <Border BackgroundColor="{DynamicResource Primary}" StrokeThickness="0" Margin="0,0,0,8">
-                            <Border.StrokeShape><RoundRectangle CornerRadius="14" /></Border.StrokeShape>
-                            <Border.Shadow><Shadow Brush="{DynamicResource Primary}" Offset="0,8" Radius="20" Opacity="0.3" /></Border.Shadow>
-                            <Border.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="home" />
-                            </Border.GestureRecognizers>
-                            <Grid Padding="16,14" ColumnDefinitions="*,Auto">
-                                <Label Text="الرئيسية" TextColor="White" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" />
-                                <Label Grid.Column="1" Text="🏠" FontSize="18" VerticalOptions="Center" />
-                            </Grid>
+                                <Label Text="انضم إلينا الآن" FontSize="17" FontAttributes="Bold" TextColor="#0f172a" HorizontalOptions="Center" />
+                                <Label Text="سجل دخولك لتتمكن من طلب الخدمات والتواصل مع المزودين"
+                                       FontSize="12" TextColor="#64748b" HorizontalOptions="Center"
+                                       HorizontalTextAlignment="Center" LineHeight="1.4" />
+                                <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,4,0,0">
+                                    <Border Grid.Column="0" BackgroundColor="{DynamicResource Primary}" StrokeThickness="0">
+                                        <Border.StrokeShape><RoundRectangle CornerRadius="10" /></Border.StrokeShape>
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="login" />
+                                        </Border.GestureRecognizers>
+                                        <Label Text="دخول" TextColor="White" FontAttributes="Bold" FontSize="14" HorizontalOptions="Center" Padding="0,11" />
+                                    </Border>
+                                    <Border Grid.Column="1" BackgroundColor="White" StrokeThickness="1.5" Stroke="{DynamicResource Primary}">
+                                        <Border.StrokeShape><RoundRectangle CornerRadius="10" /></Border.StrokeShape>
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="register" />
+                                        </Border.GestureRecognizers>
+                                        <Label Text="حساب جديد" TextColor="{DynamicResource Primary}" FontAttributes="Bold" FontSize="13" HorizontalOptions="Center" Padding="0,11" />
+                                    </Border>
+                                </Grid>
+                            </VerticalStackLayout>
                         </Border>
 
-                        <!-- Explore Services -->
+                        <!-- Guest Links -->
+                        <Label Text="استكشاف المنصة" FontSize="12" TextColor="#94a3b8" FontAttributes="Bold" Margin="8,0,8,8" />
+                        
                         <Grid Padding="12,13" ColumnDefinitions="*,Auto" BackgroundColor="#fafbff" Margin="0,0,0,2">
                             <Grid.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="services" />
                             </Grid.GestureRecognizers>
-                            <Label Text="الخدمات" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
-                            <Label Grid.Column="1" Text="🔧" FontSize="18" VerticalOptions="Center" />
+                            <Label Text="استكشاف الخدمات" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="🔍" FontSize="18" VerticalOptions="Center" />
                         </Grid>
 
-                        <!-- Public Feed (آخر التحديثات) -->
                         <Grid Padding="12,13" ColumnDefinitions="*,Auto" BackgroundColor="#fafbff" Margin="0,0,0,2">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="categories" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="الأقسام والتصنيفات" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="📂" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+
+                        <!-- Join as Provider Button -->
+                        <Border BackgroundColor="#eff6ff" StrokeThickness="1" Stroke="#bfdbfe" Margin="0,4,0,4">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="provider/apply" />
+                            </Border.GestureRecognizers>
+                            <Grid Padding="14,12" ColumnDefinitions="*,Auto">
+                                <VerticalStackLayout Spacing="2">
+                                    <Label Text="اعرض خدماتك معنا 💼" TextColor="#1d4ed8" FontSize="14" FontAttributes="Bold" />
+                                    <Label Text="انضم كصاحب مهنة وزود دخلك" TextColor="#60a5fa" FontSize="11" />
+                                </VerticalStackLayout>
+                                <Label Grid.Column="1" Text="←" TextColor="#1d4ed8" FontSize="18" FontAttributes="Bold" VerticalOptions="Center" />
+                            </Grid>
+                        </Border>
+
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto" Margin="0,0,0,2">
                             <Grid.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="feed" />
                             </Grid.GestureRecognizers>
@@ -250,63 +278,55 @@
                             <Label Grid.Column="1" Text="📢" FontSize="18" VerticalOptions="Center" />
                         </Grid>
 
-                        <BoxView HeightRequest="1" Color="#f1f5f9" Margin="0,4,0,4" />
-
-                        <!-- Refresh -->
                         <Grid Padding="12,13" ColumnDefinitions="*,Auto">
                             <Grid.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding RefreshCommand}" />
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="contact" />
                             </Grid.GestureRecognizers>
-                            <Label Text="تحديث التطبيق" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
-                            <Label Grid.Column="1" Text="🔄" FontSize="18" VerticalOptions="Center" />
+                            <Label Text="تواصل معنا والدعم" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="🎧" FontSize="18" VerticalOptions="Center" />
                         </Grid>
+                    </VerticalStackLayout>
 
-                        <BoxView HeightRequest="8" Color="#f8fafc" Margin="0,8,0,8" />
+                    <!-- ────────────────────────────────────────── -->
+                    <!-- 2. CLIENT CONTENT                          -->
+                    <!-- ────────────────────────────────────────── -->
+                    <VerticalStackLayout IsVisible="{Binding IsClient}" Spacing="0" Margin="0,16,0,0">
+                        <!-- Provider Banner for Clients -->
+                        <Border BackgroundColor="#f5f3ff" StrokeThickness="1" Stroke="#ddd6fe" Margin="0,0,0,12">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="provider/apply" />
+                            </Border.GestureRecognizers>
+                            <Grid Padding="12,11" ColumnDefinitions="*,Auto">
+                                <VerticalStackLayout Spacing="2">
+                                    <Label Text="صاحب مهنة أو حرفة؟ 💼" TextColor="{DynamicResource Primary}" FontSize="13" FontAttributes="Bold" />
+                                    <Label Text="اعرض خدماتك الآن وزود دخلك معنا" TextColor="#7c3aed" FontSize="11" />
+                                </VerticalStackLayout>
+                                <Label Grid.Column="1" Text="ابدأ الآن ←" TextColor="{DynamicResource Primary}" FontSize="12" FontAttributes="Bold" VerticalOptions="Center" />
+                            </Grid>
+                        </Border>
 
                         <!-- Section: نشاطي -->
                         <Label Text="نشاطي" FontSize="12" TextColor="#94a3b8" FontAttributes="Bold" Margin="8,0,8,8" />
-
-                        <!-- خدماتي -->
+                        
                         <Grid Padding="12,13" ColumnDefinitions="*,Auto">
                             <Grid.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="my-services" />
-                            </Grid.GestureRecognizers>
-                            <Label Text="خدماتي" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
-                            <Label Grid.Column="1" Text="💼" FontSize="18" VerticalOptions="Center" />
-                        </Grid>
-                        <BoxView HeightRequest="1" Color="#f1f5f9" />
-
-                        <!-- طلباتي -->
-                        <Grid Padding="12,13" ColumnDefinitions="*,Auto">
-                            <Grid.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="services" />
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="my-requests" />
                             </Grid.GestureRecognizers>
                             <Label Text="طلباتي" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
                             <Label Grid.Column="1" Text="📋" FontSize="18" VerticalOptions="Center" />
                         </Grid>
                         <BoxView HeightRequest="1" Color="#f1f5f9" />
 
-                        <!-- رسائلي -->
                         <Grid Padding="12,13" ColumnDefinitions="*,Auto">
                             <Grid.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="messages" />
                             </Grid.GestureRecognizers>
                             <Label Text="رسائلي" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
-                            <Label Grid.Column="1" Text="✉️" FontSize="18" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="💬" FontSize="18" VerticalOptions="Center" />
                         </Grid>
                         <BoxView HeightRequest="1" Color="#f1f5f9" />
 
-                        <!-- الإشعارات -->
-                        <Grid Padding="12,13" ColumnDefinitions="*,Auto">
-                            <Grid.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="notifications" />
-                            </Grid.GestureRecognizers>
-                            <Label Text="الإشعارات" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
-                            <Label Grid.Column="1" Text="🔔" FontSize="18" VerticalOptions="Center" />
-                        </Grid>
-                        <BoxView HeightRequest="1" Color="#f1f5f9" />
-
-                        <!-- المفضلة -->
                         <Grid Padding="12,13" ColumnDefinitions="*,Auto">
                             <Grid.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="favorites" />
@@ -316,78 +336,61 @@
                         </Grid>
                         <BoxView HeightRequest="1" Color="#f1f5f9" />
 
-                        <!-- Admin Section -->
-                        <VerticalStackLayout IsVisible="{Binding IsAdmin}" Spacing="0">
-                            <Label Text="الإدارة" FontSize="12" TextColor="#94a3b8" FontAttributes="Bold" Margin="8,10,8,8" />
-
-                            <!-- لوحة التحكم -->
-                            <Grid Padding="12,13" ColumnDefinitions="*,Auto">
-                                <Grid.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="admin" />
-                                </Grid.GestureRecognizers>
-                                <Label Text="لوحة التحكم" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
-                                <Label Grid.Column="1" Text="📊" FontSize="18" VerticalOptions="Center" />
-                            </Grid>
-                            <BoxView HeightRequest="1" Color="#f1f5f9" />
-
-                            <!-- إدارة المستخدمين (SuperAdmin Only) -->
-                            <Grid Padding="12,13" ColumnDefinitions="*,Auto" IsVisible="{Binding IsSuperAdmin}">
-                                <Grid.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="admin/users" />
-                                </Grid.GestureRecognizers>
-                                <Label Text="إدارة المستخدمين" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
-                                <Label Grid.Column="1" Text="👥" FontSize="18" VerticalOptions="Center" />
-                            </Grid>
-                            <BoxView HeightRequest="1" Color="#f1f5f9" IsVisible="{Binding IsSuperAdmin}" />
-
-                            <!-- إدارة التصنيفات -->
-                            <Grid Padding="12,13" ColumnDefinitions="*,Auto">
-                                <Grid.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="admin/categories" />
-                                </Grid.GestureRecognizers>
-                                <Label Text="إدارة التصنيفات" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
-                                <Label Grid.Column="1" Text="📂" FontSize="18" VerticalOptions="Center" />
-                            </Grid>
-                            <BoxView HeightRequest="1" Color="#f1f5f9" />
-
-                            <!-- إدارة الخدمات -->
-                            <Grid Padding="12,13" ColumnDefinitions="*,Auto">
-                                <Grid.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="admin/services" />
-                                </Grid.GestureRecognizers>
-                                <Label Text="إدارة الخدمات" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
-                                <Label Grid.Column="1" Text="🛠️" FontSize="18" VerticalOptions="Center" />
-                            </Grid>
-                            <BoxView HeightRequest="1" Color="#f1f5f9" />
-
-                            <!-- الأماكن والمدن -->
-                            <Grid Padding="12,13" ColumnDefinitions="*,Auto">
-                                <Grid.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="admin/governorates" />
-                                </Grid.GestureRecognizers>
-                                <Label Text="المحافظات والمدن" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
-                                <Label Grid.Column="1" Text="📍" FontSize="18" VerticalOptions="Center" />
-                            </Grid>
-                            <BoxView HeightRequest="1" Color="#f1f5f9" />
-
-                            <!-- الشكاوى -->
-                            <Grid Padding="12,13" ColumnDefinitions="*,Auto">
-                                <Grid.GestureRecognizers>
-                                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="admin/complaints" />
-                                </Grid.GestureRecognizers>
-                                <Label Text="الشكاوى" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
-                                <Label Grid.Column="1" Text="📞" FontSize="18" VerticalOptions="Center" />
-                            </Grid>
-                            <BoxView HeightRequest="1" Color="#f1f5f9" />
-                        </VerticalStackLayout>
-
-                        <!-- Settings -->
                         <Grid Padding="12,13" ColumnDefinitions="*,Auto">
                             <Grid.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="settings" />
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="notifications" />
                             </Grid.GestureRecognizers>
-                            <Label Text="الإعدادات" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
-                            <Label Grid.Column="1" Text="⚙️" FontSize="18" VerticalOptions="Center" />
+                            <Label Text="الإشعارات" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="🔔" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="8" Color="#f8fafc" Margin="0,8,0,8" />
+
+                        <!-- Section: استكشاف -->
+                        <Label Text="استكشاف" FontSize="12" TextColor="#94a3b8" FontAttributes="Bold" Margin="8,0,8,8" />
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="home" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="الرئيسية" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="🏠" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="1" Color="#f1f5f9" />
+
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="services" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="الخدمات" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="🔍" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="1" Color="#f1f5f9" />
+
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="feed" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="آخر التحديثات" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="📢" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="8" Color="#f8fafc" Margin="0,8,0,8" />
+
+                        <!-- Section: الحساب والدعم -->
+                        <Label Text="الحساب والدعم" FontSize="12" TextColor="#94a3b8" FontAttributes="Bold" Margin="8,0,8,8" />
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="profile" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="الملف الشخصي" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="👤" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="1" Color="#f1f5f9" />
+
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="contact" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="تواصل معنا" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="🎧" FontSize="18" VerticalOptions="Center" />
                         </Grid>
                         <BoxView HeightRequest="1" Color="#f1f5f9" />
 
@@ -399,7 +402,255 @@
                             <Label Text="تسجيل الخروج" TextColor="#e11d48" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
                             <Label Grid.Column="1" Text="🚪" FontSize="18" VerticalOptions="Center" />
                         </Grid>
+                    </VerticalStackLayout>
 
+                    <!-- ────────────────────────────────────────── -->
+                    <!-- 3. SERVICE PROVIDER CONTENT                -->
+                    <!-- ────────────────────────────────────────── -->
+                    <VerticalStackLayout IsVisible="{Binding IsProviderActive}" Spacing="0" Margin="0,16,0,0">
+                        <!-- Mode Switch Banner -->
+                        <Border BackgroundColor="#e0e7ff" StrokeThickness="0" Margin="0,0,0,12" Padding="14,10">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding ToggleModeCommand}" />
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Text="أنت في وضع المزود (اضغط للتبديل كعميل) 🔄" TextColor="{DynamicResource Primary}" FontSize="12" FontAttributes="Bold" VerticalOptions="Center" />
+                                <Label Grid.Column="1" Text="تبديل" TextColor="{DynamicResource Primary}" FontSize="12" FontAttributes="Bold" VerticalOptions="Center" />
+                            </Grid>
+                        </Border>
+
+                        <!-- Section: إدارة الأعمال -->
+                        <Label Text="إدارة الأعمال والخدمات" FontSize="12" TextColor="#94a3b8" FontAttributes="Bold" Margin="8,0,8,8" />
+                        
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="provider/dashboard" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="لوحة التحكم" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="📊" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="1" Color="#f1f5f9" />
+
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="my-services" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="خدماتي الحالية" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="💼" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="1" Color="#f1f5f9" />
+
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto" BackgroundColor="#ecfdf5">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="provider/create-request" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="أضف خدمة جديدة ➕" TextColor="#059669" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="✨" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="1" Color="#f1f5f9" />
+
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="provider/incoming-requests" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="طلبات العملاء الواردة" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="📥" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="1" Color="#f1f5f9" />
+
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="provider/subscription" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="باقتي واشتراكي" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="💳" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="8" Color="#f8fafc" Margin="0,8,0,8" />
+
+                        <!-- Section: التواصل -->
+                        <Label Text="التواصل" FontSize="12" TextColor="#94a3b8" FontAttributes="Bold" Margin="8,0,8,8" />
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="messages" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="المحادثات" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="💬" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="1" Color="#f1f5f9" />
+
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="notifications" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="الإشعارات" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="🔔" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="8" Color="#f8fafc" Margin="0,8,0,8" />
+
+                        <!-- Section: الحساب والإعدادات -->
+                        <Label Text="الحساب والدعم" FontSize="12" TextColor="#94a3b8" FontAttributes="Bold" Margin="8,0,8,8" />
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="profile" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="الملف الشخصي" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="👤" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="1" Color="#f1f5f9" />
+
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="contact" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="تواصل مع الإدارة والدعم" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="🎧" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="1" Color="#f1f5f9" />
+
+                        <!-- Logout -->
+                        <Grid Padding="12,14" ColumnDefinitions="*,Auto" Margin="0,8,0,0" BackgroundColor="#fff1f2">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="logout" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="تسجيل الخروج" TextColor="#e11d48" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="🚪" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                    </VerticalStackLayout>
+
+                    <!-- ────────────────────────────────────────── -->
+                    <!-- 4. SYSTEM ADMIN CONTENT                    -->
+                    <!-- ────────────────────────────────────────── -->
+                    <VerticalStackLayout IsVisible="{Binding IsAdminActive}" Spacing="0" Margin="0,16,0,0">
+                        <Label Text="إدارة المنصة والنظام" FontSize="12" TextColor="#dc2626" FontAttributes="Bold" Margin="8,0,8,8" />
+
+                        <!-- لوحة التحكم -->
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto" BackgroundColor="#fef2f2">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="admin" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="لوحة التحكم العامة" TextColor="#b91c1c" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="📊" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="1" Color="#f1f5f9" />
+
+                        <!-- مركز الموافقات -->
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto" BackgroundColor="#fffbeb">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="admin/approvals" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="مركز الموافقات السريعة 🛡️" TextColor="#b45309" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="⚡" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="1" Color="#f1f5f9" />
+
+                        <!-- الشكاوى -->
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="admin/complaints" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="الشكاوى والبلاغات" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="📞" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="1" Color="#f1f5f9" />
+
+                        <!-- إدارة الخدمات -->
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="admin/services" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="إدارة الخدمات" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="🛠️" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="1" Color="#f1f5f9" />
+
+                        <!-- إدارة التصنيفات -->
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="admin/categories" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="إدارة التصنيفات" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="📂" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="1" Color="#f1f5f9" />
+
+                        <!-- المحافظات والمدن -->
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="admin/governorates" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="المحافظات والمدن" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="📍" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="1" Color="#f1f5f9" />
+
+                        <!-- إدارة المستخدمين (SuperAdmin) -->
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto" IsVisible="{Binding IsSuperAdmin}">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="admin/users" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="إدارة المستخدمين" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="👥" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="1" Color="#f1f5f9" IsVisible="{Binding IsSuperAdmin}" />
+
+                        <!-- الإعلانات -->
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="admin/ads" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="إدارة الإعلانات والبنرات" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="📢" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="1" Color="#f1f5f9" />
+
+                        <!-- إعدادات النظام -->
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="admin/settings" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="إعدادات النظام" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="⚙️" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="8" Color="#f8fafc" Margin="0,8,0,8" />
+
+                        <!-- معاينة المنصة -->
+                        <Label Text="معاينة المنصة كجمهور" FontSize="12" TextColor="#94a3b8" FontAttributes="Bold" Margin="8,0,8,8" />
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="home" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="الرئيسية" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="🏠" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="1" Color="#f1f5f9" />
+
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="services" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="الخدمات" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="🔍" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="8" Color="#f8fafc" Margin="0,8,0,8" />
+
+                        <!-- الملف الشخصي وتسجيل الخروج -->
+                        <Grid Padding="12,13" ColumnDefinitions="*,Auto">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="profile" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="الملف الشخصي" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="👤" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
+                        <BoxView HeightRequest="1" Color="#f1f5f9" />
+
+                        <Grid Padding="12,14" ColumnDefinitions="*,Auto" Margin="0,8,0,0" BackgroundColor="#fff1f2">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="logout" />
+                            </Grid.GestureRecognizers>
+                            <Label Text="تسجيل الخروج" TextColor="#e11d48" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <Label Grid.Column="1" Text="🚪" FontSize="18" VerticalOptions="Center" />
+                        </Grid>
                     </VerticalStackLayout>
 
                 </VerticalStackLayout>
@@ -415,8 +666,17 @@
                         <Label Text="شارك التطبيق" TextColor="{DynamicResource Primary}" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
                         <Label Grid.Column="1" Text="🔗" FontSize="16" VerticalOptions="Center" />
                     </Grid>
-                    <!-- Terms / Privacy -->
-                    <HorizontalStackLayout Spacing="16" HorizontalOptions="Center">
+                    <!-- Terms / Privacy / Contact -->
+                    <HorizontalStackLayout Spacing="12" HorizontalOptions="Center">
+                        <Label TextColor="#64748b" FontSize="12">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="contact" />
+                            </Label.GestureRecognizers>
+                            <Label.FormattedText>
+                                <FormattedString><Span Text="تواصل معنا" TextDecorations="Underline" /></FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                        <Label Text="|" TextColor="#cbd5e1" FontSize="12" VerticalOptions="Center" />
                         <Label TextColor="#64748b" FontSize="12">
                             <Label.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="terms" />
@@ -428,7 +688,7 @@
                         <Label Text="|" TextColor="#cbd5e1" FontSize="12" VerticalOptions="Center" />
                         <Label TextColor="#64748b" FontSize="12">
                             <Label.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="terms" />
+                                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="privacy" />
                             </Label.GestureRecognizers>
                             <Label.FormattedText>
                                 <FormattedString><Span Text="الخصوصية" TextDecorations="Underline" /></FormattedString>
@@ -442,127 +702,102 @@
         </ScrollView>
     </Shell.FlyoutContent>
 
-
-
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- MAIN TAB BAR (5 TABS DYNAMICALLY TAILORED FOR EACH ROLE)   -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
     <TabBar x:Name="MainTabBar">
-        <!-- 1. Home (house) - \uf015 -->
-        <Tab Title="الرئيسية" Route="HomePage">
+
+        <!-- ═════════ 1. GUEST TABS ═════════ -->
+        <Tab Title="الرئيسية" Route="Guest_Home" IsVisible="{Binding IsGuest}">
             <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F3E0;" Color="#6366f1" /></Tab.Icon>
             <ShellContent ContentTemplate="{DataTemplate views:HomePage}" />
         </Tab>
-
-        <!-- 2. Categories (th-large) - \uf009 -->
-        <Tab Title="الأقسام" Route="CategoriesPage" IsVisible="{Binding IsClientMode}">
-            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4C2;" Color="{Binding IsClientMode, Converter={StaticResource BooleanToColorConverter}}" /></Tab.Icon>
-            <ShellContent ContentTemplate="{DataTemplate views:CategoriesPage}" />
-        </Tab>
-
-        <!-- 3. Services - \uf0b1 -->
-        <Tab Title="الخدمات" Route="ServicesPage" IsVisible="{Binding IsClientMode}">
-            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4BC;" Color="#6366f1" /></Tab.Icon>
+        <Tab Title="الخدمات" Route="Guest_Services" IsVisible="{Binding IsGuest}">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F50D;" Color="#6366f1" /></Tab.Icon>
             <ShellContent ContentTemplate="{DataTemplate views:ServicesPage}" />
         </Tab>
-
-        <!-- 4. Client: Favorites (heart) - \uf004 | Provider: My Services (briefcase) - \uf0b1 -->
-        <Tab Title="المفضلة" Route="FavoritesPage" IsVisible="{Binding IsClientMode}">
-            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2764;" Color="#ef4444" /></Tab.Icon>
-            <ShellContent ContentTemplate="{DataTemplate views:FavoritesPage}" />
+        <Tab Title="اعرض خدماتك" Route="Guest_Apply" IsVisible="{Binding IsGuest}">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4BC;" Color="#6366f1" /></Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:PostServicePage}" />
         </Tab>
-        
-        <Tab Title="خدماتي" Route="MyServicesPage" IsVisible="{Binding IsProviderMode}">
+        <Tab Title="تواصل معنا" Route="Guest_Contact" IsVisible="{Binding IsGuest}">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F3A7;" Color="#6366f1" /></Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:SupportPage}" />
+        </Tab>
+        <Tab Title="دخول" Route="Guest_Login" IsVisible="{Binding IsGuest}">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F464;" Color="#6366f1" /></Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:LoginPage}" />
+        </Tab>
+
+        <!-- ═════════ 2. CLIENT TABS ═════════ -->
+        <Tab Title="الرئيسية" Route="Client_Home" IsVisible="{Binding IsClient}">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F3E0;" Color="#6366f1" /></Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:HomePage}" />
+        </Tab>
+        <Tab Title="الخدمات" Route="Client_Services" IsVisible="{Binding IsClient}">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F50D;" Color="#6366f1" /></Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:ServicesPage}" />
+        </Tab>
+        <Tab Title="طلباتي" Route="Client_Requests" IsVisible="{Binding IsClient}">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4CB;" Color="#6366f1" /></Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:MyRequestsPage}" />
+        </Tab>
+        <Tab Title="رسائلي" Route="Client_Messages" IsVisible="{Binding IsClient}">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4AC;" Color="#6366f1" /></Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:MessagesPage}" />
+        </Tab>
+        <Tab Title="حسابي" Route="Client_Profile" IsVisible="{Binding IsClient}">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F464;" Color="#6366f1" /></Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:ProfilePage}" />
+        </Tab>
+
+        <!-- ═════════ 3. PROVIDER TABS ═════════ -->
+        <Tab Title="لوحة التحكم" Route="Provider_Dashboard" IsVisible="{Binding IsProviderActive}">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4CA;" Color="#6366f1" /></Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:ProviderDashboardPage}" />
+        </Tab>
+        <Tab Title="خدماتي" Route="Provider_Services" IsVisible="{Binding IsProviderActive}">
             <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4BC;" Color="#6366f1" /></Tab.Icon>
             <ShellContent ContentTemplate="{DataTemplate views:MyServicesPage}" />
         </Tab>
-
-        <!-- 5. Profile/Account -->
-        <Tab Title="{Binding UserTitle}" Route="ProfileTab">
-            <Tab.Icon>
-                <FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F464;" Color="#64748b" />
-            </Tab.Icon>
-            <ShellContent Title="الحساب" ContentTemplate="{DataTemplate views:ProfilePage}" IsVisible="{Binding IsAuthenticated}" />
-            <ShellContent Title="دخول" ContentTemplate="{DataTemplate views:LoginPage}" IsVisible="{Binding IsNotAuthenticated}" />
+        <Tab Title="أضف خدمة" Route="Provider_Add" IsVisible="{Binding IsProviderActive}">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2795;" Color="#6366f1" /></Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:CreateServicePage}" />
         </Tab>
+        <Tab Title="المحادثات" Route="Provider_Messages" IsVisible="{Binding IsProviderActive}">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4AC;" Color="#6366f1" /></Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:MessagesPage}" />
+        </Tab>
+        <Tab Title="حسابي" Route="Provider_Profile" IsVisible="{Binding IsProviderActive}">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F464;" Color="#6366f1" /></Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:ProfilePage}" />
+        </Tab>
+
+        <!-- ═════════ 4. ADMIN TABS ═════════ -->
+        <Tab Title="التطبيق" Route="Admin_Home" IsVisible="{Binding IsAdminActive}">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F3E0;" Color="#6366f1" /></Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:HomePage}" />
+        </Tab>
+        <Tab Title="لوحة المدير" Route="Admin_Dashboard" IsVisible="{Binding IsAdminActive}">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4CA;" Color="#6366f1" /></Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:AdminPage}" />
+        </Tab>
+        <Tab Title="الموافقات" Route="Admin_Approvals" IsVisible="{Binding IsAdminActive}">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F6E1;" Color="#6366f1" /></Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:ApprovalsPage}" />
+        </Tab>
+        <Tab Title="الشكاوى" Route="Admin_Complaints" IsVisible="{Binding IsAdminActive}">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4DE;" Color="#6366f1" /></Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:ComplaintsPage}" />
+        </Tab>
+        <Tab Title="الإدارة" Route="Admin_Profile" IsVisible="{Binding IsAdminActive}">
+            <Tab.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2699;" Color="#6366f1" /></Tab.Icon>
+            <ShellContent ContentTemplate="{DataTemplate views:ProfilePage}" />
+        </Tab>
+
     </TabBar>
 
-    <!-- Side Menu (Flyout) Navigation Groups -->
-    
-    <!-- ==== الاستكشاف ==== -->
-    <FlyoutItem Title="الرئيسية" Route="flyout_home" FlyoutDisplayOptions="AsSingleItem">
-        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F3E0;" Color="#0f172a" /></FlyoutItem.Icon>
-        <ShellContent ContentTemplate="{DataTemplate views:HomePage}" />
-    </FlyoutItem>
-
-    <FlyoutItem Title="التصنيفات" Route="flyout_categories" FlyoutDisplayOptions="AsSingleItem">
-        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4C2;" Color="#0f172a" /></FlyoutItem.Icon>
-        <ShellContent ContentTemplate="{DataTemplate views:CategoriesPage}" />
-    </FlyoutItem>
-
-    <FlyoutItem Title="الخدمات" Route="flyout_services_explore" FlyoutDisplayOptions="AsSingleItem">
-        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4BC;" Color="#0f172a" /></FlyoutItem.Icon>
-        <ShellContent ContentTemplate="{DataTemplate views:ServicesPage}" />
-    </FlyoutItem>
-
-    <FlyoutItem Title="آخر التحديثات" Route="flyout_feed" FlyoutDisplayOptions="AsSingleItem">
-        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4E2;" Color="#0f172a" /></FlyoutItem.Icon>
-        <ShellContent ContentTemplate="{DataTemplate views:FeedPage}" />
-    </FlyoutItem>
-
-    <FlyoutItem Title="أضف إعلان" Route="flyout_provider/apply" FlyoutDisplayOptions="AsSingleItem">
-        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2795;" Color="#0f172a" /></FlyoutItem.Icon>
-        <ShellContent ContentTemplate="{DataTemplate views:PostServicePage}" />
-    </FlyoutItem>
-
-    <!-- ==== نشاطاتي (Visible Only if Authenticated) ==== -->
-    <FlyoutItem Title="إعلاناتي" Route="flyout_my-services" IsVisible="{Binding IsAuthenticated}" FlyoutDisplayOptions="AsSingleItem">
-        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4BC;" Color="#0f172a" /></FlyoutItem.Icon>
-        <ShellContent ContentTemplate="{DataTemplate views:MyServicesPage}" />
-    </FlyoutItem>
-
-    <FlyoutItem Title="خدماتي" Route="flyout_services" IsVisible="{Binding IsAuthenticated}" FlyoutDisplayOptions="AsSingleItem">
-        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2705;" Color="#0f172a" /></FlyoutItem.Icon>
-        <ShellContent ContentTemplate="{DataTemplate views:ServicesPage}" />
-    </FlyoutItem>
-
-    <FlyoutItem Title="المفضلة" Route="flyout_favorites" IsVisible="{Binding IsAuthenticated}" FlyoutDisplayOptions="AsSingleItem">
-        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2764;" Color="#0f172a" /></FlyoutItem.Icon>
-        <ShellContent ContentTemplate="{DataTemplate views:FavoritesPage}" />
-    </FlyoutItem>
-
-    <FlyoutItem Title="الرسائل" Route="flyout_messages" IsVisible="{Binding IsAuthenticated}" FlyoutDisplayOptions="AsSingleItem">
-        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4AC;" Color="#0f172a" /></FlyoutItem.Icon>
-        <ShellContent ContentTemplate="{DataTemplate views:MessagesPage}" />
-    </FlyoutItem>
-
-    <!-- ==== الإدارة (Visible Only if Admin) ==== -->
-    <FlyoutItem Title="لوحة المدير" Route="flyout_admin" IsVisible="{Binding IsAdmin}" FlyoutDisplayOptions="AsSingleItem">
-        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F6E1;" Color="#0f172a" /></FlyoutItem.Icon>
-        <ShellContent ContentTemplate="{DataTemplate views:AdminPage}" />
-    </FlyoutItem>
-
-    <FlyoutItem Title="إدارة الإعلانات" Route="flyout_admin/ads" IsVisible="{Binding IsAdmin}" FlyoutDisplayOptions="AsSingleItem">
-        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4DC;" Color="#0f172a" /></FlyoutItem.Icon>
-        <ShellContent ContentTemplate="{DataTemplate views:AdminAdsPage}" />
-    </FlyoutItem>
-
     <!-- Visual Separator -->
-    <MenuItem Text="━━━━━━━━━━━━" IsEnabled="False" />
-
-    <!-- ==== النظام ==== -->
-    <FlyoutItem Title="الإعدادات" Route="flyout_settings" IsVisible="{Binding IsAuthenticated}" FlyoutDisplayOptions="AsSingleItem">
-        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x2699;" Color="#0f172a" /></FlyoutItem.Icon>
-        <ShellContent ContentTemplate="{DataTemplate views:SettingsPage}" />
-    </FlyoutItem>
-
-    <FlyoutItem Title="الدعم والمساعدة" Route="flyout_support" FlyoutDisplayOptions="AsSingleItem">
-        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F198;" Color="#0f172a" /></FlyoutItem.Icon>
-        <ShellContent ContentTemplate="{DataTemplate views:SupportPage}" />
-    </FlyoutItem>
-
-    <FlyoutItem Title="الشروط والأحكام" Route="flyout_terms" FlyoutDisplayOptions="AsSingleItem">
-        <FlyoutItem.Icon><FontImageSource FontFamily="OpenSansRegular" Glyph="&#x1F4DC;" Color="#0f172a" /></FlyoutItem.Icon>
-        <ShellContent ContentTemplate="{DataTemplate views:TermsPage}" />
-    </FlyoutItem>
-
     <MenuItem Text="تحديث التطبيق" Command="{Binding RefreshCommand}" IconImageSource="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1f504;', Color='#0f172a'}" />
     
     <!-- Logout is in FlyoutFooter -->

@@ -14,7 +14,7 @@ public class AppSettings : BaseEntity
 
     public string PrimaryColor { get; set; } = "#6366f1";
     public string SecondaryColor { get; set; } = "#a855f7";
-    public string ContactEmail { get; set; } = "";
+    public string ContactEmail { get; set; } = "khadamawy@gmail.com";
     public string ContactPhone { get; set; } = "";
     
     // Contact & Payments (InstaPay, Vodafone Cash, Wallets)
@@ -54,4 +54,10 @@ public class AppSettings : BaseEntity
     // Legal
     public string TermsAndConditions { get; set; } = "";
     public string PrivacyPolicy { get; set; } = "";
+
+    // App Sharing & Store Links
+    public string AppShareUrl { get; set; } = "";
+    public string AppShareText { get; set; } = "";
+    public string AppStoreUrl { get; set; } = "";
+    public string GooglePlayUrl { get; set; } = "";
 }

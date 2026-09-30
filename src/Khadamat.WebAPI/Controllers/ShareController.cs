@@ -23,11 +23,13 @@ public class ShareController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly IConfiguration _configuration;
+    private readonly IWebHostEnvironment _env;
 
-    public ShareController(IMediator mediator, IConfiguration configuration)
+    public ShareController(IMediator mediator, IConfiguration configuration, IWebHostEnvironment env)
     {
         _mediator = mediator;
         _configuration = configuration;
+        _env = env;
     }
 
     /// <summary>
@@ -72,9 +74,9 @@ public class ShareController : ControllerBase
 
         // Check if a pre-rendered premium card image exists for this service
         string imageUrl = $"{baseUrl}/images/logo.png"; // safe default — always assigned
-        var basePath = Directory.GetCurrentDirectory();
+        var webRoot = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
         var cardRelativePath = $"images/share_cards/card_{id}.png";
-        var cardPhysicalPath = Path.Combine(basePath, "wwwroot", cardRelativePath);
+        var cardPhysicalPath = Path.Combine(webRoot, cardRelativePath);
 
         if (System.IO.File.Exists(cardPhysicalPath))
         {
@@ -127,7 +129,7 @@ public class ShareController : ControllerBase
                     bool foundCategoryImg = false;
                     if (service.SubCategoryId.HasValue && service.CategoryId.HasValue)
                     {
-                        var catPath = Path.Combine(basePath, "wwwroot", "images", "categories", $"c_{service.CategoryId}_{service.SubCategoryId}.png");
+                        var catPath = Path.Combine(webRoot, "images", "categories", $"c_{service.CategoryId}_{service.SubCategoryId}.png");
                         if (System.IO.File.Exists(catPath))
                         {
                             imageUrl = $"{baseUrl}/images/categories/c_{service.CategoryId}_{service.SubCategoryId}.png";
@@ -136,7 +138,7 @@ public class ShareController : ControllerBase
                     }
                     if (!foundCategoryImg && service.CategoryId.HasValue && service.MainCategoryId > 0)
                     {
-                        var catPath = Path.Combine(basePath, "wwwroot", "images", "categories", $"c_{service.MainCategoryId}_{service.CategoryId}.png");
+                        var catPath = Path.Combine(webRoot, "images", "categories", $"c_{service.MainCategoryId}_{service.CategoryId}.png");
                         if (System.IO.File.Exists(catPath))
                         {
                             imageUrl = $"{baseUrl}/images/categories/c_{service.MainCategoryId}_{service.CategoryId}.png";
@@ -146,7 +148,7 @@ public class ShareController : ControllerBase
                     if (!foundCategoryImg)
                     {
                         // Use branded logo for best social preview when no service image exists
-                        var logoPath = Path.Combine(basePath, "wwwroot", "images", "logo.png");
+                        var logoPath = Path.Combine(webRoot, "images", "logo.png");
                         imageUrl = System.IO.File.Exists(logoPath)
                             ? $"{baseUrl}/images/logo.png"
                             : $"{baseUrl}/images/defaults/default_service.png";
@@ -230,7 +232,7 @@ public class ShareController : ControllerBase
         var pageTitle = HttpUtility.HtmlEncode($"{service.Title} • {service.CategoryName} في {service.CityName}");
 
         // App download URLs
-        var appStoreUrl = $"{baseUrl}/downloads/Khadamawy.apk";
+        var appStoreUrl = $"{baseUrl}/downloads/khadamat.apk";
 
         var html = new StringBuilder();
         html.AppendLine("<!DOCTYPE html>");
@@ -240,23 +242,25 @@ public class ShareController : ControllerBase
         html.AppendLine("  <meta name=\"build-version\" content=\"v2.0.0-fix-20260824\" />");
         html.AppendLine($"  <title>{pageTitle}</title>");
 
-        var ogImageUrl = $"{baseUrl}/share/service/{id}/og-image";
+        var cardExists = System.IO.File.Exists(cardPhysicalPath);
+        var finalOgImage = cardExists ? imageUrl : $"{baseUrl}/share/service/{id}/og-image";
+        var ogImageType = cardExists ? "image/png" : "image/jpeg";
 
         // === Standard Open Graph tags (Facebook, LinkedIn, Discord, WhatsApp, Telegram) ===
         html.AppendLine("  <meta property=\"og:type\"        content=\"website\" />");
         html.AppendLine($"  <meta property=\"og:url\"         content=\"{shareUrl}\" />");
         html.AppendLine($"  <meta property=\"og:title\"       content=\"{pageTitle}\" />");
         html.AppendLine($"  <meta property=\"og:description\" content=\"{safeOgDesc}\" />");
-        html.AppendLine($"  <meta property=\"og:image\"       content=\"{ogImageUrl}\" />");
-        html.AppendLine($"  <meta property=\"og:image:secure_url\" content=\"{ogImageUrl}\" />");
-        html.AppendLine("  <meta property=\"og:image:type\"   content=\"image/jpeg\" />");
+        html.AppendLine($"  <meta property=\"og:image\"       content=\"{finalOgImage}\" />");
+        html.AppendLine($"  <meta property=\"og:image:secure_url\" content=\"{finalOgImage}\" />");
+        html.AppendLine($"  <meta property=\"og:image:type\"   content=\"{ogImageType}\" />");
         html.AppendLine("  <meta property=\"og:image:width\"  content=\"1200\" />");
         html.AppendLine("  <meta property=\"og:image:height\" content=\"630\" />");
         html.AppendLine($"  <meta property=\"og:image:alt\"    content=\"{pageTitle}\" />");
         html.AppendLine("  <meta property=\"og:locale\"      content=\"ar_AR\" />");
         html.AppendLine("  <meta property=\"og:site_name\"   content=\"خدماوي\" />");
-        html.AppendLine($"  <link rel=\"image_src\"           href=\"{ogImageUrl}\" />");
-        html.AppendLine($"  <meta itemprop=\"image\"          content=\"{ogImageUrl}\" />");
+        html.AppendLine($"  <link rel=\"image_src\"           href=\"{finalOgImage}\" />");
+        html.AppendLine($"  <meta itemprop=\"image\"          content=\"{finalOgImage}\" />");
 
         // === Facebook specific ===
         html.AppendLine("  <meta property=\"fb:app_id\"      content=\"1546767603438579\" />");
@@ -265,7 +269,7 @@ public class ShareController : ControllerBase
         html.AppendLine("  <meta name=\"twitter:card\"        content=\"summary_large_image\" />");
         html.AppendLine($"  <meta name=\"twitter:title\"       content=\"{pageTitle}\" />");
         html.AppendLine($"  <meta name=\"twitter:description\" content=\"{safeOgDesc}\" />");
-        html.AppendLine($"  <meta name=\"twitter:image\"       content=\"{ogImageUrl}\" />");
+        html.AppendLine($"  <meta name=\"twitter:image\"       content=\"{finalOgImage}\" />");
 
         // === SEO ===
         html.AppendLine($"  <meta name=\"description\" content=\"{safeOgDesc}\" />");
@@ -727,8 +731,8 @@ public class ShareController : ControllerBase
 
         try
         {
-            var basePath = Directory.GetCurrentDirectory();
-            var folderPath = Path.Combine(basePath, "wwwroot", "images", "share_cards");
+            var webRoot = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
+            var folderPath = Path.Combine(webRoot, "images", "share_cards");
 
             if (!Directory.Exists(folderPath))
                 Directory.CreateDirectory(folderPath);
@@ -738,6 +742,13 @@ public class ShareController : ControllerBase
             using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true))
             {
                 await file.CopyToAsync(stream);
+            }
+
+            // Remove any cached fallback OG image
+            var cachedOgPath = Path.Combine(folderPath, $"og_contained_{id}.jpg");
+            if (System.IO.File.Exists(cachedOgPath))
+            {
+                try { System.IO.File.Delete(cachedOgPath); } catch { }
             }
 
             return Ok(new { success = true, message = "Card image uploaded successfully" });
@@ -769,48 +780,19 @@ public class ShareController : ControllerBase
         if (baseUrl.Contains("localhost") || baseUrl.Contains("127.0.0.1"))
             baseUrl = _configuration["ApiSettings:WebAppBaseUrl"]?.TrimEnd('/') ?? "https://khadamawy.eis-dev.com";
 
-        var basePath     = Directory.GetCurrentDirectory();
+        var webRoot      = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
         var cardRelPath  = $"images/share_cards/card_{id}.png";
-        var cardFullPath = Path.Combine(basePath, "wwwroot", cardRelPath);
+        var cardFullPath = Path.Combine(webRoot, cardRelPath);
 
         // 1. Pre-generated card exists → return it
         if (System.IO.File.Exists(cardFullPath))
         {
             var ts = System.IO.File.GetLastWriteTimeUtc(cardFullPath).Ticks;
-            return Ok(new { success = true, imageUrl = $"{baseUrl}/{cardRelPath}?v={ts}" });
+            return Ok(new { success = true, cardExists = true, imageUrl = $"{baseUrl}/{cardRelPath}?v={ts}" });
         }
 
-        // 2. Pick the best fallback image
-        string imageUrl = $"{baseUrl}/images/logo.png";
-        var firstImg = service.Images?.FirstOrDefault();
-        bool isRealImage = !string.IsNullOrEmpty(firstImg) &&
-                           !firstImg.Contains("/gen/") &&
-                           !firstImg.Contains("/placeholders/") &&
-                           !firstImg.Contains("picsum");
-
-        if (isRealImage)
-        {
-            imageUrl = firstImg!.StartsWith("http", StringComparison.OrdinalIgnoreCase)
-                ? firstImg
-                : $"{baseUrl}/images/services/{firstImg.TrimStart('/')}";
-        }
-        else if (!string.IsNullOrEmpty(service.SubCategoryImageUrl))
-        {
-            imageUrl = service.SubCategoryImageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)
-                ? service.SubCategoryImageUrl
-                : $"{baseUrl}/images/subcategories/{service.SubCategoryImageUrl.TrimStart('/')}";
-        }
-        else if (!string.IsNullOrEmpty(service.CategoryImageUrl))
-        {
-            imageUrl = service.CategoryImageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)
-                ? service.CategoryImageUrl
-                : $"{baseUrl}/images/categories/{service.CategoryImageUrl.TrimStart('/')}";
-        }
-
-        if (imageUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
-            imageUrl = "https://" + imageUrl[7..];
-
-        return Ok(new { success = true, imageUrl });
+        // 2. Card does NOT exist yet → return success: false so client captures and uploads it
+        return Ok(new { success = false, cardExists = false, imageUrl = (string?)null, message = "Card not generated yet" });
     }
 
     /// <summary>
@@ -820,17 +802,17 @@ public class ShareController : ControllerBase
     [HttpGet("service/{id:int}/og-image")]
     public async Task<IActionResult> GetOgImage(int id)
     {
-        var basePath = Directory.GetCurrentDirectory();
+        var webRoot = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
 
         // 1. If an HTML-rendered high-res card exists, serve it
-        var cardPath = Path.Combine(basePath, "wwwroot", "images", "share_cards", $"card_{id}.png");
+        var cardPath = Path.Combine(webRoot, "images", "share_cards", $"card_{id}.png");
         if (System.IO.File.Exists(cardPath))
         {
             return PhysicalFile(cardPath, "image/png");
         }
 
         // 2. If a cached contained OG image exists, serve it
-        var shareCardsDir = Path.Combine(basePath, "wwwroot", "images", "share_cards");
+        var shareCardsDir = Path.Combine(webRoot, "images", "share_cards");
         if (!Directory.Exists(shareCardsDir)) Directory.CreateDirectory(shareCardsDir);
 
         var cachedOgPath = Path.Combine(shareCardsDir, $"og_contained_{id}.jpg");
@@ -843,7 +825,7 @@ public class ShareController : ControllerBase
         var service = await _mediator.Send(new GetServiceByIdQuery(id));
         if (service == null)
         {
-            var logoPath = Path.Combine(basePath, "wwwroot", "images", "logo.png");
+            var logoPath = Path.Combine(webRoot, "images", "logo.png");
             if (System.IO.File.Exists(logoPath)) return PhysicalFile(logoPath, "image/png");
             return NotFound();
         }
@@ -853,27 +835,27 @@ public class ShareController : ControllerBase
         if (!string.IsNullOrEmpty(firstImg) && !firstImg.Contains("/gen/") && !firstImg.Contains("/placeholders/"))
         {
             var cleanName = firstImg.TrimStart('/').Replace("images/services/", "").Replace("images/", "");
-            var testPath = Path.Combine(basePath, "wwwroot", "images", "services", cleanName);
+            var testPath = Path.Combine(webRoot, "images", "services", cleanName);
             if (System.IO.File.Exists(testPath)) sourceFile = testPath;
         }
 
         if (sourceFile == null && !string.IsNullOrEmpty(service.SubCategoryImageUrl))
         {
             var cleanName = service.SubCategoryImageUrl.TrimStart('/').Replace("images/subcategories/", "");
-            var testPath = Path.Combine(basePath, "wwwroot", "images", "subcategories", cleanName);
+            var testPath = Path.Combine(webRoot, "images", "subcategories", cleanName);
             if (System.IO.File.Exists(testPath)) sourceFile = testPath;
         }
 
         if (sourceFile == null && !string.IsNullOrEmpty(service.CategoryImageUrl))
         {
             var cleanName = service.CategoryImageUrl.TrimStart('/').Replace("images/categories/", "");
-            var testPath = Path.Combine(basePath, "wwwroot", "images", "categories", cleanName);
+            var testPath = Path.Combine(webRoot, "images", "categories", cleanName);
             if (System.IO.File.Exists(testPath)) sourceFile = testPath;
         }
 
         if (sourceFile == null)
         {
-            var logoCandidate = Path.Combine(basePath, "wwwroot", "images", "logo.png");
+            var logoCandidate = Path.Combine(webRoot, "images", "logo.png");
             if (System.IO.File.Exists(logoCandidate)) sourceFile = logoCandidate;
         }
 

@@ -1045,7 +1045,9 @@ public class ApiClient
             var response = await _http.PostAsync($"share/service/{serviceId}/generate-card", null);
             if (!response.IsSuccessStatusCode) return (false, null);
             var json = await response.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();
-            return (json.GetProperty("success").GetBoolean(), json.GetProperty("imageUrl").GetString());
+            bool success = json.TryGetProperty("success", out var sProp) && sProp.GetBoolean();
+            string? imgUrl = json.TryGetProperty("imageUrl", out var iProp) && iProp.ValueKind == System.Text.Json.JsonValueKind.String ? iProp.GetString() : null;
+            return (success, imgUrl);
         }
         catch
         {

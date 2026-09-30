@@ -6,20 +6,12 @@
              FlowDirection="RightToLeft">
 
     <!--
-        Matches the web BottomNav.razor exactly:
-          Row 0 (30px): protrusion space for the elevated home circle
-          Row 1 (68px): the actual nav bar (height ~= web's 75px)
-          
-        RTL column order (visual left → right when FlowDirection=RTL):
-          Col 0 (visual RIGHT) = المتجر
-          Col 1               = المفضلة
-          Col 2 (CENTER)      = [HOME spacer]
-          Col 3               = الرسائل
-          Col 4 (visual LEFT) = حسابي / دخول
-          
-        Icons use FontAwesome 6 Free Solid (FA6Solid) to match the web's font-awesome icons.
-        Inactive color: #475569 (slate-600) — same as web .nav-item color
-        Active color:   Primary (purple) — same as web .nav-item.active color
+        Role-aware Bottom Navigation Bar.
+        Mirrors the Blazor MobileBottomNav.razor logic:
+          - Guest:    Home | Services | (center: Add Service) | Contact | Login
+          - Client:   Categories | Services | (center: My Requests) | Messages | Account
+          - Provider: Dashboard | My Services | (center: Home) | Incoming Requests | Messages  
+          - Admin:    App | Admin Panel | (center: Approvals) | Complaints | Account
     -->
     <Grid VerticalOptions="End" x:Name="RootGrid" x:DataType="viewModels:ShellViewModel">
         <Grid.RowDefinitions>
@@ -49,77 +41,125 @@
         <BoxView Grid.Row="1" VerticalOptions="Start"
                  HeightRequest="1" Color="#f1f5f9" />
 
-        <!-- ═══════ 4 Side Nav Items (Row 1) ═══════ -->
+        <!-- ═══════ GUEST Nav (Row 1) ═══════ -->
         <Grid Grid.Row="1"
+              IsVisible="{Binding IsGuest}"
               ColumnDefinitions="*,*,64,*,*"
               HorizontalOptions="Fill" VerticalOptions="Fill">
 
-            <!-- Col 0 (RTL right) ═ الأقسام -->
+            <!-- Home -->
             <VerticalStackLayout Grid.Column="0" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
                 <VerticalStackLayout.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="categories" />
+                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="home" />
                 </VerticalStackLayout.GestureRecognizers>
-                <Label x:Name="CategoriesRightIcon" Text="&#xF009;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
-                    <Label.Triggers>
-                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="categories">
-                            <Setter Property="TextColor" Value="{DynamicResource Primary}" />
-                        </DataTrigger>
-                    </Label.Triggers>
-                </Label>
-                <Label x:Name="CategoriesRightLabel" Text="الأقسام" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
-                    <Label.Triggers>
-                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="categories">
-                            <Setter Property="TextColor" Value="{DynamicResource Primary}" />
-                        </DataTrigger>
-                    </Label.Triggers>
-                </Label>
+                <Label Text="&#xF015;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}" />
+                <Label Text="الرئيسية" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}" />
             </VerticalStackLayout>
-            
-            <!-- Col 1 ═ الخدمات -->
+
+            <!-- Services -->
             <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
                 <VerticalStackLayout.GestureRecognizers>
                     <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="services" />
                 </VerticalStackLayout.GestureRecognizers>
-                <Label x:Name="ServicesRightIcon" Text="&#xF0B1;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
-                    <Label.Triggers>
-                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="services">
-                            <Setter Property="TextColor" Value="{DynamicResource Primary}" />
-                        </DataTrigger>
-                    </Label.Triggers>
-                </Label>
-                <Label x:Name="ServicesRightLabel" Text="الخدمات" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
-                    <Label.Triggers>
-                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="services">
-                            <Setter Property="TextColor" Value="{DynamicResource Primary}" />
-                        </DataTrigger>
-                    </Label.Triggers>
-                </Label>
+                <Label Text="&#xF0B1;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}" />
+                <Label Text="الخدمات" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}" />
             </VerticalStackLayout>
 
+            <!-- (Center Spacer) -->
             <ContentView Grid.Column="2" />
 
-            <!-- Col 3 ═ المفضلة -->
+            <!-- Contact -->
             <VerticalStackLayout Grid.Column="3" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
                 <VerticalStackLayout.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="favorites" />
+                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="contact" />
                 </VerticalStackLayout.GestureRecognizers>
-                <Label x:Name="FavoritesIcon" Text="&#xF004;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
+                <Label Text="&#xF095;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}" />
+                <Label Text="تواصل معنا" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}" />
+            </VerticalStackLayout>
+
+            <!-- Login -->
+            <VerticalStackLayout Grid.Column="4" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
+                <VerticalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="login" />
+                </VerticalStackLayout.GestureRecognizers>
+                <Label Text="&#xF2F6;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}" />
+                <Label Text="دخول" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}" />
+            </VerticalStackLayout>
+        </Grid>
+
+        <!-- ═══════ CLIENT Nav (Row 1) ═══════ -->
+        <Grid Grid.Row="1"
+              IsVisible="{Binding IsClient}"
+              ColumnDefinitions="*,*,64,*,*"
+              HorizontalOptions="Fill" VerticalOptions="Fill">
+
+            <!-- Categories -->
+            <VerticalStackLayout Grid.Column="0" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
+                <VerticalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="categories" />
+                </VerticalStackLayout.GestureRecognizers>
+                <Label Text="&#xF009;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
                     <Label.Triggers>
-                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="favorites">
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="categories">
                             <Setter Property="TextColor" Value="{DynamicResource Primary}" />
                         </DataTrigger>
                     </Label.Triggers>
                 </Label>
-                <Label x:Name="FavoritesLabel" Text="المفضلة" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
+                <Label Text="الأقسام" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
                     <Label.Triggers>
-                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="favorites">
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="categories">
                             <Setter Property="TextColor" Value="{DynamicResource Primary}" />
                         </DataTrigger>
                     </Label.Triggers>
                 </Label>
             </VerticalStackLayout>
 
-            <!-- Col 4 ═ حسابي / دخول -->
+            <!-- Services -->
+            <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
+                <VerticalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="services" />
+                </VerticalStackLayout.GestureRecognizers>
+                <Label Text="&#xF002;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="services">
+                            <Setter Property="TextColor" Value="{DynamicResource Primary}" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+                <Label Text="الخدمات" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="services">
+                            <Setter Property="TextColor" Value="{DynamicResource Primary}" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+            </VerticalStackLayout>
+
+            <!-- Center Spacer -->
+            <ContentView Grid.Column="2" />
+
+            <!-- Messages -->
+            <VerticalStackLayout Grid.Column="3" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
+                <VerticalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="messages" />
+                </VerticalStackLayout.GestureRecognizers>
+                <Label Text="&#xF086;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="messages">
+                            <Setter Property="TextColor" Value="{DynamicResource Primary}" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+                <Label Text="رسائلي" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="messages">
+                            <Setter Property="TextColor" Value="{DynamicResource Primary}" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+            </VerticalStackLayout>
+
+            <!-- Profile / Account -->
             <VerticalStackLayout Grid.Column="4" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
                 <VerticalStackLayout.GestureRecognizers>
                     <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="profile" />
@@ -132,12 +172,11 @@
                             </DataTrigger>
                         </Label.Triggers>
                     </Label>
-
-                    <Border x:Name="ProfileImageBorder" IsVisible="False" WidthRequest="24" HeightRequest="24" 
+                    <Border x:Name="ProfileImageBorder" IsVisible="False" WidthRequest="24" HeightRequest="24"
                             StrokeThickness="2" HorizontalOptions="Center" VerticalOptions="Center"
                             Stroke="Transparent">
-                         <Border.StrokeShape><Ellipse /></Border.StrokeShape>
-                         <Border.Triggers>
+                        <Border.StrokeShape><Ellipse /></Border.StrokeShape>
+                        <Border.Triggers>
                             <DataTrigger TargetType="Border" Binding="{Binding CurrentTab}" Value="profile">
                                 <Setter Property="Stroke" Value="{DynamicResource Primary}" />
                             </DataTrigger>
@@ -155,11 +194,131 @@
             </VerticalStackLayout>
         </Grid>
 
+        <!-- ═══════ PROVIDER Nav (Row 1) ═══════ -->
+        <Grid Grid.Row="1"
+              IsVisible="{Binding IsProviderActive}"
+              ColumnDefinitions="*,*,64,*,*"
+              HorizontalOptions="Fill" VerticalOptions="Fill">
+
+            <!-- Provider Dashboard -->
+            <VerticalStackLayout Grid.Column="0" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
+                <VerticalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="provider/dashboard" />
+                </VerticalStackLayout.GestureRecognizers>
+                <Label Text="&#xF201;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="favorites">
+                            <Setter Property="TextColor" Value="{DynamicResource Primary}" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+                <Label Text="لوحتي" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="favorites">
+                            <Setter Property="TextColor" Value="{DynamicResource Primary}" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+            </VerticalStackLayout>
+
+            <!-- My Services -->
+            <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
+                <VerticalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="my-services" />
+                </VerticalStackLayout.GestureRecognizers>
+                <Label Text="&#xF0B1;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}" />
+                <Label Text="خدماتي" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}" />
+            </VerticalStackLayout>
+
+            <!-- Center Spacer -->
+            <ContentView Grid.Column="2" />
+
+            <!-- Incoming Requests -->
+            <VerticalStackLayout Grid.Column="3" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
+                <VerticalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="provider/incoming-requests" />
+                </VerticalStackLayout.GestureRecognizers>
+                <Label Text="&#xF0E0;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}" />
+                <Label Text="الطلبات" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}" />
+            </VerticalStackLayout>
+
+            <!-- Messages -->
+            <VerticalStackLayout Grid.Column="4" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
+                <VerticalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="messages" />
+                </VerticalStackLayout.GestureRecognizers>
+                <Label Text="&#xF086;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="messages">
+                            <Setter Property="TextColor" Value="{DynamicResource Primary}" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+                <Label Text="رسائلي" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}">
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label" Binding="{Binding CurrentTab}" Value="messages">
+                            <Setter Property="TextColor" Value="{DynamicResource Primary}" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+            </VerticalStackLayout>
+        </Grid>
+
+        <!-- ═══════ ADMIN Nav (Row 1) ═══════ -->
+        <Grid Grid.Row="1"
+              IsVisible="{Binding IsAdminActive}"
+              ColumnDefinitions="*,*,64,*,*"
+              HorizontalOptions="Fill" VerticalOptions="Fill">
+
+            <!-- Home -->
+            <VerticalStackLayout Grid.Column="0" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
+                <VerticalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="home" />
+                </VerticalStackLayout.GestureRecognizers>
+                <Label Text="&#xF015;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}" />
+                <Label Text="التطبيق" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}" />
+            </VerticalStackLayout>
+
+            <!-- Admin Dashboard -->
+            <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
+                <VerticalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="admin" />
+                </VerticalStackLayout.GestureRecognizers>
+                <Label Text="&#xF200;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}" />
+                <Label Text="لوحة المدير" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}" />
+            </VerticalStackLayout>
+
+            <!-- Center Spacer -->
+            <ContentView Grid.Column="2" />
+
+            <!-- Complaints -->
+            <VerticalStackLayout Grid.Column="3" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
+                <VerticalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="admin/complaints" />
+                </VerticalStackLayout.GestureRecognizers>
+                <Label Text="&#xF095;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}" />
+                <Label Text="الشكاوى" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}" />
+            </VerticalStackLayout>
+
+            <!-- Admin Profile -->
+            <VerticalStackLayout Grid.Column="4" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
+                <VerticalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="profile" />
+                </VerticalStackLayout.GestureRecognizers>
+                <Label Text="&#xF007;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}" />
+                <Label Text="الإدارة" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}" />
+            </VerticalStackLayout>
+        </Grid>
+
         <!-- ═══════ HOME Elevated Circle (spans rows 0 & 1, horizontally centered) ═══════
-             Matches web: .home-circle — 52px, purple gradient, white 4px border, purple shadow
+             For Guest: Add Service   | For Client: My Requests  
+             For Provider: Home       | For Admin: Approvals
         -->
-        <Border x:Name="HomeCircle"
+
+        <!-- Client Center Circle (My Requests) -->
+        <Border x:Name="ClientHomeCircle"
                 Grid.RowSpan="2"
+                IsVisible="{Binding IsClient}"
                 HorizontalOptions="Center"
                 VerticalOptions="Start"
                 Margin="0,5,0,0"
@@ -167,37 +326,144 @@
                 HeightRequest="52"
                 Stroke="White"
                 StrokeThickness="4">
-            <Border.StrokeShape>
-                <Ellipse />
-            </Border.StrokeShape>
+            <Border.StrokeShape><Ellipse /></Border.StrokeShape>
             <Border.Background>
-                <!-- Matches web: linear-gradient(135deg, #8b5cf6, #6366f1) -->
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                     <GradientStop Color="{DynamicResource Primary}" Offset="0.0" />
                     <GradientStop Color="{DynamicResource Secondary}" Offset="1.0" />
                 </LinearGradientBrush>
             </Border.Background>
             <Border.Shadow>
-                <!-- Matches web: box-shadow: 0 8px 15px rgba(139, 92, 246, 0.3) -->
-                <Shadow Brush="{DynamicResource Primary}"
-                        Offset="0,8" Radius="15" Opacity="0.3" />
+                <Shadow Brush="{DynamicResource Primary}" Offset="0,8" Radius="15" Opacity="0.3" />
+            </Border.Shadow>
+            <Border.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="my-requests" />
+            </Border.GestureRecognizers>
+            <Label Text="&#xF0AE;" FontFamily="FA6Solid" FontSize="22" TextColor="White"
+                   HorizontalOptions="Center" VerticalOptions="Center" />
+        </Border>
+
+        <!-- Provider Center Circle (Home) -->
+        <Border x:Name="ProviderHomeCircle"
+                Grid.RowSpan="2"
+                IsVisible="{Binding IsProviderActive}"
+                HorizontalOptions="Center"
+                VerticalOptions="Start"
+                Margin="0,5,0,0"
+                WidthRequest="52"
+                HeightRequest="52"
+                Stroke="White"
+                StrokeThickness="4">
+            <Border.StrokeShape><Ellipse /></Border.StrokeShape>
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#f59e0b" Offset="0.0" />
+                    <GradientStop Color="#d97706" Offset="1.0" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.Shadow>
+                <Shadow Brush="#f59e0b" Offset="0,8" Radius="15" Opacity="0.3" />
+            </Border.Shadow>
+            <Border.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="home" />
+            </Border.GestureRecognizers>
+            <Label Text="&#xF015;" FontFamily="FA6Solid" FontSize="22" TextColor="White"
+                   HorizontalOptions="Center" VerticalOptions="Center" />
+        </Border>
+
+        <!-- Admin Center Circle (Approvals) -->
+        <Border x:Name="AdminHomeCircle"
+                Grid.RowSpan="2"
+                IsVisible="{Binding IsAdminActive}"
+                HorizontalOptions="Center"
+                VerticalOptions="Start"
+                Margin="0,5,0,0"
+                WidthRequest="52"
+                HeightRequest="52"
+                Stroke="White"
+                StrokeThickness="4">
+            <Border.StrokeShape><Ellipse /></Border.StrokeShape>
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#ef4444" Offset="0.0" />
+                    <GradientStop Color="#b91c1c" Offset="1.0" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.Shadow>
+                <Shadow Brush="#ef4444" Offset="0,8" Radius="15" Opacity="0.3" />
+            </Border.Shadow>
+            <Border.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="admin/approvals" />
+            </Border.GestureRecognizers>
+            <Label Text="&#xF3ED;" FontFamily="FA6Solid" FontSize="22" TextColor="White"
+                   HorizontalOptions="Center" VerticalOptions="Center" />
+        </Border>
+
+        <!-- Guest Center Circle (Provider Apply) -->
+        <Border x:Name="GuestHomeCircle"
+                Grid.RowSpan="2"
+                IsVisible="{Binding IsGuest}"
+                HorizontalOptions="Center"
+                VerticalOptions="Start"
+                Margin="0,5,0,0"
+                WidthRequest="52"
+                HeightRequest="52"
+                Stroke="White"
+                StrokeThickness="4">
+            <Border.StrokeShape><Ellipse /></Border.StrokeShape>
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="{DynamicResource Primary}" Offset="0.0" />
+                    <GradientStop Color="{DynamicResource Secondary}" Offset="1.0" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.Shadow>
+                <Shadow Brush="{DynamicResource Primary}" Offset="0,8" Radius="15" Opacity="0.3" />
             </Border.Shadow>
             <Border.GestureRecognizers>
                 <TapGestureRecognizer Tapped="OnHomeTapped" />
             </Border.GestureRecognizers>
-            <!-- fa-house (&#xF015;) — white icon inside the circle -->
-            <Label Text="&#xF015;"
-                   FontFamily="FA6Solid"
-                   FontSize="22"
-                   TextColor="White"
-                   HorizontalOptions="Center"
-                   VerticalOptions="Center" />
+            <Label Text="&#xF015;" FontFamily="FA6Solid" FontSize="22" TextColor="White"
+                   HorizontalOptions="Center" VerticalOptions="Center" />
         </Border>
 
-        <!-- HOME label — bottom of bar, centered, always in primary purple -->
+        <!-- HOME label for Client (My Requests) -->
         <Label Grid.Row="1"
-               x:Name="HomeLabel"
+               Text="طلباتي"
+               IsVisible="{Binding IsClient}"
+               FontSize="10"
+               FontAttributes="Bold"
+               TextColor="{DynamicResource Primary}"
+               HorizontalOptions="Center"
+               VerticalOptions="End"
+               Margin="0,0,0,7" />
+
+        <!-- HOME label for Provider (Home) -->
+        <Label Grid.Row="1"
                Text="الرئيسية"
+               IsVisible="{Binding IsProviderActive}"
+               FontSize="10"
+               FontAttributes="Bold"
+               TextColor="{DynamicResource Primary}"
+               HorizontalOptions="Center"
+               VerticalOptions="End"
+               Margin="0,0,0,7" />
+
+        <!-- HOME label for Admin (Approvals) -->
+        <Label Grid.Row="1"
+               Text="الموافقات"
+               IsVisible="{Binding IsAdminActive}"
+               FontSize="10"
+               FontAttributes="Bold"
+               TextColor="#ef4444"
+               HorizontalOptions="Center"
+               VerticalOptions="End"
+               Margin="0,0,0,7" />
+
+        <!-- HOME label for Guest (Home) -->
+        <Label Grid.Row="1"
+               Text="الرئيسية"
+               IsVisible="{Binding IsGuest}"
                FontSize="10"
                FontAttributes="Bold"
                TextColor="{DynamicResource Primary}"

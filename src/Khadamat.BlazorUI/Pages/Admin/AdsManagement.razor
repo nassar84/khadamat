@@ -154,8 +154,9 @@
                         <div class="p-3">
                             <h6 class="fw-bold mb-1 text-truncate">@ad.Title</h6>
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="text-muted x-small text-truncate" title="صاحب الإعلان">
-                                    <i class="fa-solid fa-user me-1"></i> @(string.IsNullOrEmpty(ad.CreatedBy) ? "النظام" : ad.CreatedBy.Substring(0, Math.Min(10, ad.CreatedBy.Length)) + "...")
+                                <span class="text-muted x-small text-truncate" title="صاحب الإعلان: @(ad.AdvertiserName ?? ad.CreatedBy ?? "إعلان للمنصة")">
+                                    <i class="fa-solid fa-user-tag me-1 text-primary"></i>
+                                    @(string.IsNullOrEmpty(ad.AdvertiserName) ? (string.IsNullOrEmpty(ad.CreatedBy) ? "إعلان المنصة" : (ad.CreatedBy.Length > 12 ? ad.CreatedBy.Substring(0, 10) + "..." : ad.CreatedBy)) : ad.AdvertiserName)
                                 </span>
                                 <span class="badge bg-soft-warning p-1 px-2 text-warning rounded-pill small">@ad.AmountPaid.ToString("C0")</span>
                             </div>
@@ -250,18 +251,36 @@
                         </div>
                     </div>
 
-                    <div class="col-md-8">
+                    <div class="col-md-6">
                         <label class="form-label small fw-bold">الخدمة المرتبطة (اختياري)</label>
                         <select class="form-select rounded-pill" value="@(currentAd.ServiceId ?? 0)" @onchange="OnLinkedServiceChanged">
                             <option value="0">-- بدون ربط بخدمة --</option>
                             @foreach (var svc in availableServices)
                             {
-                                <option value="@svc.Id">[@svc.Id] @svc.Title</option>
+                                <option value="@svc.Id">[@svc.Id] @svc.Title (@(string.IsNullOrEmpty(svc.ProviderName) ? "بدون مزود" : svc.ProviderName))</option>
                             }
                         </select>
                         <div class="form-text extra-small mt-1 text-success">
                             <i class="fa-solid fa-circle-info me-1"></i>
-                            عند اختيار خدمة، سيفتح زر "عرض التفاصيل" صفحة الخدمة مباشرة.
+                            عند اختيار خدمة، يتم تحديد الرابط والمزود تلقائياً.
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">المعلن / صاحب الإعلان (المزود)</label>
+                        <select class="form-select rounded-pill" @bind="currentAd.CreatedBy">
+                            <option value="">-- إعلان المنصة / النظام --</option>
+                            @foreach (var u in availableUsers.Where(u => u.IsProvider || u.Role == "Provider"))
+                            {
+                                <option value="@u.Id">⭐ مزود: @u.FullName (@u.UserName)</option>
+                            }
+                            @foreach (var u in availableUsers.Where(u => !u.IsProvider && u.Role != "Provider"))
+                            {
+                                <option value="@u.Id">👤 مستخدم: @u.FullName (@u.UserName)</option>
+                            }
+                        </select>
+                        <div class="form-text extra-small mt-1 text-muted">
+                            المزود المحدد يستطيع متابعة إحصائيات هذا الإعلان في حسابه.
                         </div>
                     </div>
 
@@ -411,8 +430,55 @@
                     <button class="btn-close" @onclick="() => showMap = false"></button>
                 </div>
                 
-                <div class="text-center mb-4">
-                    <img src="ad_placements_map.png" class="img-fluid rounded-4 shadow-sm border" alt="Ads Placement Guide" style="max-height: 500px;" />
+                <div class="mockup-browser mb-4 p-3 bg-light rounded-4 border">
+                    <div class="mockup-header d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                        <span class="dot bg-danger"></span>
+                        <span class="dot bg-warning"></span>
+                        <span class="dot bg-success"></span>
+                        <div class="bg-white rounded-pill px-3 py-1 flex-grow-1 text-center small text-muted">
+                            <i class="fa-solid fa-lock me-1 text-success"></i> khadamat-app.com
+                        </div>
+                    </div>
+                    
+                    <div class="mockup-body d-flex flex-column gap-2">
+                        <!-- Top Slider Placement -->
+                        <div class="p-3 rounded-3 text-center text-white shadow-sm" style="background: linear-gradient(135deg, #4f46e5, #6366f1);">
+                            <span class="badge bg-white text-primary fw-bold mb-1">1. السلايدر الرئيسي (Slider)</span>
+                            <div class="extra-small opacity-90">شريط متحرك أعلى الصفحة الرئيسية وفي صفحات الاستكشاف</div>
+                        </div>
+
+                        <!-- Split Content: Sidebar & Native -->
+                        <div class="row g-2">
+                            <div class="col-4">
+                                <div class="p-3 rounded-3 text-center text-white h-100 shadow-sm d-flex flex-column justify-content-center" style="background: linear-gradient(135deg, #0284c7, #38bdf8);">
+                                    <span class="badge bg-white text-info fw-bold mb-1">2. جانبي (Sidebar)</span>
+                                    <div class="extra-small opacity-90">قائمة جانبية ثابتة للشاشات الكبيرة</div>
+                                </div>
+                            </div>
+                            <div class="col-8">
+                                <div class="bg-white p-2 rounded-3 border d-flex flex-column gap-2">
+                                    <div class="p-2 bg-light rounded text-muted extra-small text-center"><i class="fa-solid fa-briefcase me-1"></i> بطاقات الخدمات العادية</div>
+                                    <div class="p-2 rounded-3 text-center text-white shadow-sm" style="background: linear-gradient(135deg, #d97706, #f59e0b);">
+                                        <span class="badge bg-white text-warning fw-bold mb-1">3. الفئات والبحث (Category & Search)</span>
+                                        <div class="extra-small opacity-90">إعلان أصلي يظهر كبطاقة مميزة وممولة بين نتائج الخدمات</div>
+                                    </div>
+                                    <div class="p-2 bg-light rounded text-muted extra-small text-center"><i class="fa-solid fa-briefcase me-1"></i> بطاقات الخدمات العادية</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Placement -->
+                        <div class="p-2 rounded-3 text-center text-white shadow-sm" style="background: linear-gradient(135deg, #059669, #10b981);">
+                            <span class="badge bg-white text-success fw-bold mb-1">4. أسفل الصفحة (Bottom)</span>
+                            <div class="extra-small opacity-90">بنر عريض قبل تذييل الصفحة (Footer) مباشرة</div>
+                        </div>
+
+                        <!-- Popup Placement -->
+                        <div class="p-2 rounded-3 text-center text-white shadow-sm" style="background: linear-gradient(135deg, #e11d48, #f43f5e);">
+                            <span class="badge bg-white text-danger fw-bold mb-1">5. نافذة منبثقة (Popup)</span>
+                            <div class="extra-small opacity-90">تظهر في منتصف الشاشة للعروض والمناسبات الخاصة</div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="row g-3">
@@ -487,6 +553,7 @@
     private List<EnhancedAdDto>? ads;
     private List<EnhancedAdDto>? filteredAds;
     private List<ServiceDto> availableServices = new();
+    private List<UserDto> availableUsers = new();
     private List<MainCategoryDto> mainCategories = new();
     private List<CategoryDto> subCategories = new();
     private List<SubCategoryDto> deepSubCategories = new();
@@ -529,6 +596,15 @@
             mainCategories = await Api.GetMainCategoriesAsync();
             var svcResult = await Api.GetServicesAsync(isApproved: true, pageSize: 200);
             availableServices = svcResult?.Items ?? new();
+
+            try
+            {
+                availableUsers = await Api.GetUsersManagementAsync() ?? new();
+            }
+            catch (Exception exUser)
+            {
+                Console.WriteLine($"Could not load users for ads: {exUser.Message}");
+            }
         }
         catch (Exception ex)
         {
@@ -602,6 +678,7 @@
         filteredAds = ads
             .Where(a => string.IsNullOrEmpty(searchText) || 
                         (a.Title?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                        (a.AdvertiserName?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false) ||
                         (a.CreatedBy?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false))
             .Where(a => string.IsNullOrEmpty(filterPlacement) || a.Placement == filterPlacement)
             .Where(a => string.IsNullOrEmpty(filterStatus) || (filterStatus == "active" ? a.IsActive : !a.IsActive))
@@ -616,11 +693,12 @@
             AdType = "Image", 
             Placement = "Slider",
             IsActive = true,
-            StartDate = DateTime.Now,
-            EndDate = DateTime.Now.AddMonths(1),
+            StartDate = DateTime.Today,
+            EndDate = DateTime.Today.AddMonths(1),
             TargetUserGender = "All",
             TargetDays = "Sat,Sun,Mon,Tue,Wed,Thu,Fri",
-            ServiceId = null
+            ServiceId = null,
+            CreatedBy = null
         };
         selectedMainCategoryId = 0;
         selectedSubCategoryId = 0;
@@ -661,7 +739,10 @@
             TargetTimeStart = ad.TargetTimeStart,
             TargetTimeEnd = ad.TargetTimeEnd,
             TargetKeywords = ad.TargetKeywords,
-            TargetDeepSubCategories = ad.TargetDeepSubCategories
+            TargetDeepSubCategories = ad.TargetDeepSubCategories,
+            AmountPaid = ad.AmountPaid,
+            CreatedBy = ad.CreatedBy,
+            AdvertiserName = ad.AdvertiserName
         };
 
         if (int.TryParse(currentAd.TargetCategories, out int cid)) 
@@ -709,6 +790,9 @@
         currentAd.TargetSubCategories = selectedSubCategoryId > 0 ? selectedSubCategoryId.ToString() : null;
         currentAd.TargetDeepSubCategories = selectedDeepSubCategoryId > 0 ? selectedDeepSubCategoryId.ToString() : null;
 
+        if (string.IsNullOrWhiteSpace(currentAd.CreatedBy) || currentAd.CreatedBy == "0")
+            currentAd.CreatedBy = null;
+
         bool success;
         if (currentAd.Id == 0)
             success = await Api.CreateAdAsync(currentAd);
@@ -729,6 +813,16 @@
         {
             currentAd.ServiceId = sid;
             currentAd.TargetUrl = $"/service/{sid}";
+            var svc = availableServices.FirstOrDefault(s => s.Id == sid);
+            if (svc != null)
+            {
+                if (string.IsNullOrWhiteSpace(currentAd.Title))
+                    currentAd.Title = svc.Title;
+                if (string.IsNullOrWhiteSpace(currentAd.Description))
+                    currentAd.Description = svc.Description;
+                if (!string.IsNullOrEmpty(svc.UserId))
+                    currentAd.CreatedBy = svc.UserId;
+            }
         }
         else
         {

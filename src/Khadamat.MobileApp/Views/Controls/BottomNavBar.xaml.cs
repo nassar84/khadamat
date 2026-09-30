@@ -2,8 +2,6 @@ namespace Khadamat.MobileApp.Views.Controls;
 
 public partial class BottomNavBar : ContentView
 {
-    private string _activeTab = "home";
-
     public BottomNavBar()
     {
         InitializeComponent();
@@ -69,10 +67,10 @@ public partial class BottomNavBar : ContentView
                                 vm.UserImage != "app_logo.png" &&
                                 !vm.UserImage.ToLower().Contains("default");
 
-                ProfileIcon.IsVisible = !hasImage;
-                ProfileImageBorder.IsVisible = hasImage;
+                if (ProfileIcon != null) ProfileIcon.IsVisible = !hasImage;
+                if (ProfileImageBorder != null) ProfileImageBorder.IsVisible = hasImage;
 
-                if (hasImage)
+                if (hasImage && ProfileImage != null)
                 {
                     if (vm.UserImage.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || 
                         vm.UserImage.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
@@ -97,7 +95,7 @@ public partial class BottomNavBar : ContentView
                         };
                     }
                 }
-                else
+                else if (ProfileImage != null)
                 {
                     ProfileImage.Source = null;
                 }
@@ -113,7 +111,7 @@ public partial class BottomNavBar : ContentView
 
     public void SetActiveTab(string tab)
     {
-        _activeTab = tab;
+        // Tab tracking is now handled via DataTrigger bindings in XAML
     }
 
     // ─── Tap Handlers ────────────────────────────────────────────────────────
@@ -123,22 +121,18 @@ public partial class BottomNavBar : ContentView
         if (BindingContext is ViewModels.ShellViewModel vm)
         {
             vm.NavigateCommand.Execute("home");
-            _ = AnimateHomeCircleAsync();
+            _ = AnimateCircleAsync(GuestHomeCircle);
         }
     }
 
-    // Handlers for side items are now handled via Command bindings in XAML, 
-    // but we can keep these as empty or remove if we remove their Tapped attributes in XAML.
-    // I already removed Tapped attributes in XAML for side items.
-
     // ─── Animations ──────────────────────────────────────────────────────────
 
-    private async Task AnimateHomeCircleAsync()
+    private async Task AnimateCircleAsync(Border circle)
     {
         try
         {
-            await HomeCircle.ScaleTo(0.88, 80, Easing.CubicOut);
-            await HomeCircle.ScaleTo(1.0,  140, Easing.BounceOut);
+            await circle.ScaleTo(0.88, 80, Easing.CubicOut);
+            await circle.ScaleTo(1.0, 140, Easing.BounceOut);
         }
         catch { }
     }

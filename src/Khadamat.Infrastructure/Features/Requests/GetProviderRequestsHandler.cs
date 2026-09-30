@@ -29,24 +29,36 @@ public class GetProviderRequestsHandler : IRequestHandler<GetProviderRequestsQue
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync(cancellationToken);
 
-        return requests.Select(r => new ServiceRequestDto
-        {
-            Id = r.Id,
-            UserId = r.UserId,
-            ServiceId = r.ServiceId,
-            ServiceTitle = r.Service.Name,
-            ServiceIcon = GetIconFromCategory(r.Service.CategoryId),
-            ProviderId = r.ProviderId,
-            ProviderName = r.Provider.BusinessName,
-            Status = r.Status,
-            StatusText = GetStatusArabic(r.Status),
-            Notes = r.Notes,
-            ProviderNotes = r.ProviderNotes,
-            RequestedAt = r.CreatedAt,
-            PreferredDate = r.PreferredDate,
-            HasRated = r.Rating != null,
-            RatingStars = r.Rating?.Stars,
-            RatingComment = r.Rating?.Comment
+        var userIds = requests.Select(r => r.UserId).Where(id => !string.IsNullOrEmpty(id)).Distinct().ToList();
+        var users = await _context.Users
+            .Where(u => userIds.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id, cancellationToken);
+
+        return requests.Select(r => {
+            users.TryGetValue(r.UserId, out var clientUser);
+            var custName = !string.IsNullOrWhiteSpace(clientUser?.FullName) ? clientUser.FullName : (clientUser?.UserName ?? "عميل");
+            return new ServiceRequestDto
+            {
+                Id = r.Id,
+                UserId = r.UserId,
+                CustomerName = custName,
+                CustomerPhone = clientUser?.PhoneNumber ?? string.Empty,
+                CustomerPhoto = clientUser?.ProfileImageUrl,
+                ServiceId = r.ServiceId,
+                ServiceTitle = r.Service?.Name ?? "خدمة",
+                ServiceIcon = GetIconFromCategory(r.Service?.CategoryId),
+                ProviderId = r.ProviderId,
+                ProviderName = r.Provider?.BusinessName ?? string.Empty,
+                Status = r.Status,
+                StatusText = GetStatusArabic(r.Status),
+                Notes = r.Notes,
+                ProviderNotes = r.ProviderNotes,
+                RequestedAt = r.CreatedAt,
+                PreferredDate = r.PreferredDate,
+                HasRated = r.Rating != null,
+                RatingStars = r.Rating?.Stars,
+                RatingComment = r.Rating?.Comment
+            };
         }).ToList();
     }
 

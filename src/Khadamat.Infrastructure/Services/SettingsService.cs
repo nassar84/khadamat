@@ -23,8 +23,13 @@ public class SettingsService : ISettingsService
         if (settings == null)
         {
             // Seed default settings if not exists
-            settings = new AppSettings();
+            settings = new AppSettings { ContactEmail = "khadamawy@gmail.com" };
             _context.AppSettings.Add(settings);
+            await _context.SaveChangesAsync();
+        }
+        else if (string.IsNullOrWhiteSpace(settings.ContactEmail))
+        {
+            settings.ContactEmail = "khadamawy@gmail.com";
             await _context.SaveChangesAsync();
         }
 
@@ -64,7 +69,11 @@ public class SettingsService : ISettingsService
             TwitterUrl = settings.TwitterUrl,
             InstagramUrl = settings.InstagramUrl,
             TermsAndConditions = settings.TermsAndConditions,
-            PrivacyPolicy = settings.PrivacyPolicy
+            PrivacyPolicy = settings.PrivacyPolicy,
+            AppShareUrl = settings.AppShareUrl,
+            AppShareText = settings.AppShareText,
+            AppStoreUrl = settings.AppStoreUrl,
+            GooglePlayUrl = settings.GooglePlayUrl
         });
     }
 
@@ -113,6 +122,10 @@ public class SettingsService : ISettingsService
         settings.InstagramUrl = request.InstagramUrl;
         settings.TermsAndConditions = request.TermsAndConditions;
         settings.PrivacyPolicy = request.PrivacyPolicy;
+        settings.AppShareUrl = request.AppShareUrl;
+        settings.AppShareText = request.AppShareText;
+        settings.AppStoreUrl = request.AppStoreUrl;
+        settings.GooglePlayUrl = request.GooglePlayUrl;
         settings.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();

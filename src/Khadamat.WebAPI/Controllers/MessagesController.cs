@@ -46,17 +46,18 @@ public class MessagesController : ControllerBase
         var userIds = conversationData.Select(c => c.OtherUserId).ToList();
         var users = await _context.Users
             .Where(u => userIds.Contains(u.Id))
-            .ToDictionaryAsync(u => u.Id, u => new { u.UserName, ImageUrl = u.ProfileImageUrl }); // Use ProfileImageUrl
+            .ToDictionaryAsync(u => u.Id, u => new { Name = !string.IsNullOrEmpty(u.FullName) ? u.FullName : u.UserName, ImageUrl = u.ProfileImageUrl });
 
         foreach (var conv in conversationData.OrderByDescending(x => x.LastMessage.CreatedAt))
         {
-            var name = users.ContainsKey(conv.OtherUserId) ? users[conv.OtherUserId].UserName : "Unknown";
-            // var photo = users.ContainsKey(conv.OtherUserId) ? users[conv.OtherUserId].ImageUrl : null;
+            var name = users.ContainsKey(conv.OtherUserId) ? users[conv.OtherUserId].Name : "مستخدم";
+            var photo = users.ContainsKey(conv.OtherUserId) ? users[conv.OtherUserId].ImageUrl : null;
 
             conversations.Add(new ConversationDto
             {
                 OtherPartyId = conv.OtherUserId,
-                OtherPartyName = name ?? "User",
+                OtherPartyName = name ?? "مستخدم",
+                OtherPartyPhoto = photo,
                 LastMessage = conv.LastMessage.Content,
                 LastMessageTime = conv.LastMessage.CreatedAt,
                 UnreadCount = conv.UnreadCount

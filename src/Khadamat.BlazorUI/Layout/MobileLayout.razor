@@ -163,6 +163,22 @@ else
                     AppState.AppLogo = settingsResult.Data.LogoUrl;
                     AppState.PrimaryColor = settingsResult.Data.PrimaryColor;
                     AppState.SecondaryColor = settingsResult.Data.SecondaryColor;
+
+                    if (!string.IsNullOrEmpty(settingsResult.Data.AppShareUrl))
+                        AppState.AppShareUrl = settingsResult.Data.AppShareUrl;
+                    if (!string.IsNullOrEmpty(settingsResult.Data.AppShareText))
+                        AppState.AppShareText = settingsResult.Data.AppShareText;
+                    if (!string.IsNullOrEmpty(settingsResult.Data.AppStoreUrl))
+                        AppState.AppStoreUrl = settingsResult.Data.AppStoreUrl;
+                    if (!string.IsNullOrEmpty(settingsResult.Data.GooglePlayUrl))
+                        AppState.GooglePlayUrl = settingsResult.Data.GooglePlayUrl;
+                    if (!string.IsNullOrEmpty(settingsResult.Data.ContactEmail))
+                        AppState.ContactEmail = settingsResult.Data.ContactEmail;
+                    if (!string.IsNullOrEmpty(settingsResult.Data.ContactPhone))
+                        AppState.ContactPhone = settingsResult.Data.ContactPhone;
+                    if (!string.IsNullOrEmpty(settingsResult.Data.ContactWhatsApp))
+                        AppState.ContactWhatsApp = settingsResult.Data.ContactWhatsApp;
+
                     AppState.TriggerStateChanged();
 
                     try

@@ -20,14 +20,6 @@
             <span class="fw-bold fs-5 text-dark">@(string.IsNullOrEmpty(State.AppNameAr) ? State.AppName : State.AppNameAr)</span>
         </div>
 
-        <!-- Hamburger Menu (Resized Browser Only) -->
-        @if (!State.IsNativeApp)
-        {
-            <div class="icon-action-btn d-lg-none" @onclick="ToggleSidebar" title="القائمة" style="margin-right: -10px;">
-                <i class="fa-solid fa-bars-staggered" style="font-size: 1.2rem;"></i>
-            </div>
-        }
-
         
         <!-- Search Section (Expanded & Elegant) -->
         <div class="header-search-section flex-grow-1 d-flex align-items-center" style="max-width: 600px;">
@@ -62,7 +54,15 @@
 
         <!-- Actions & Profile Section -->
         <div class="header-actions-section d-flex align-items-center gap-2 gap-md-3">
-            
+
+            <!-- Hamburger Menu (Small/Medium Screens - Browser Only) -->
+            @if (!State.IsNativeApp)
+            {
+                <div class="icon-action-btn d-lg-none" @onclick="ToggleSidebar" title="القائمة">
+                    <i class="fa-solid fa-bars-staggered" style="font-size: 1.2rem;"></i>
+                </div>
+            }
+
             <!-- Theme Toggle -->
             <div id="themeToggle" class="icon-action-btn position-relative" @onclick="ToggleThemeMenu" title="تغيير الثيم">
                 <i class="fa-solid fa-palette text-secondary"></i>

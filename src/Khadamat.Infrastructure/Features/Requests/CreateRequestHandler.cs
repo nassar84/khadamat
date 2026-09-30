@@ -1,6 +1,7 @@
 using MediatR;
 using Khadamat.Application.Common.Models;
 using Khadamat.Application.Features.Requests.Commands;
+using Khadamat.Application.Interfaces;
 using Khadamat.Infrastructure.Persistence;
 using Khadamat.Domain.Entities;
 using System.Threading;
@@ -13,10 +14,12 @@ namespace Khadamat.Infrastructure.Features.Requests;
 public class CreateRequestHandler : IRequestHandler<CreateRequestCommand, ApiResponse<int>>
 {
     private readonly KhadamatDbContext _context;
+    private readonly INotificationService _notificationService;
 
-    public CreateRequestHandler(KhadamatDbContext context)
+    public CreateRequestHandler(KhadamatDbContext context, INotificationService notificationService)
     {
         _context = context;
+        _notificationService = notificationService;
     }
 
     public async Task<ApiResponse<int>> Handle(CreateRequestCommand request, CancellationToken cancellationToken)
@@ -66,21 +69,19 @@ public class CreateRequestHandler : IRequestHandler<CreateRequestCommand, ApiRes
             _context.ServiceRequests.Add(serviceRequest);
             await _context.SaveChangesAsync(cancellationToken);
 
-            // Notify Provider of new request
+            // Notify Provider of new request (DB + Real-time SignalR)
             try
             {
                 var providerProfile = await _context.ProviderProfiles.FindAsync(new object[] { providerId }, cancellationToken);
                 if (providerProfile != null && !string.IsNullOrEmpty(providerProfile.UserId))
                 {
-                    var notif = new Notification(
+                    await _notificationService.SendNotificationAsync(
                         providerProfile.UserId,
-                        "طلب خدمة جديد",
+                        "طلب خدمة جديد 🔔",
                         $"لديك طلب جديد لخدمة: {service.Name}",
                         "Order",
                         "/provider/incoming-requests"
                     );
-                    _context.Notifications.Add(notif);
-                    await _context.SaveChangesAsync(cancellationToken);
                 }
             }
             catch (Exception notifEx)

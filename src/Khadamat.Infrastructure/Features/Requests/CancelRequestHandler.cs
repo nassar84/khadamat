@@ -1,6 +1,7 @@
 using MediatR;
 using Khadamat.Application.Common.Models;
 using Khadamat.Domain.Enums;
+using Khadamat.Application.Interfaces;
 using Khadamat.Infrastructure.Persistence;
 using Khadamat.Application.Features.Requests.Commands;
 using Microsoft.EntityFrameworkCore;
@@ -12,10 +13,12 @@ namespace Khadamat.Infrastructure.Features.Requests;
 public class CancelRequestHandler : IRequestHandler<CancelRequestCommand, ApiResponse<bool>>
 {
     private readonly KhadamatDbContext _context;
+    private readonly INotificationService _notificationService;
 
-    public CancelRequestHandler(KhadamatDbContext context)
+    public CancelRequestHandler(KhadamatDbContext context, INotificationService notificationService)
     {
         _context = context;
+        _notificationService = notificationService;
     }
 
     public async Task<ApiResponse<bool>> Handle(CancelRequestCommand request, CancellationToken cancellationToken)
@@ -34,21 +37,19 @@ public class CancelRequestHandler : IRequestHandler<CancelRequestCommand, ApiRes
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        // Notify provider that customer cancelled
+        // Notify provider that customer cancelled (DB + Real-time SignalR)
         try
         {
             var providerProfile = await _context.ProviderProfiles.FindAsync(new object[] { serviceRequest.ProviderId }, cancellationToken);
             if (providerProfile != null && !string.IsNullOrEmpty(providerProfile.UserId))
             {
-                var notif = new Domain.Entities.Notification(
+                await _notificationService.SendNotificationAsync(
                     providerProfile.UserId,
                     "تم إلغاء الطلب",
                     "قام العميل بإلغاء طلب الخدمة المعلق.",
                     "Order",
                     "/provider/incoming-requests"
                 );
-                _context.Notifications.Add(notif);
-                await _context.SaveChangesAsync(cancellationToken);
             }
         }
         catch (System.Exception ex)
