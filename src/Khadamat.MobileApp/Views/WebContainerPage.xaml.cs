@@ -231,7 +231,7 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
     private void ShowOfflineState(bool isOffline)
     {
         OfflineOverlay.IsVisible = isOffline;
-        PullToRefresh.IsVisible = !isOffline;
+        MainWebView.IsVisible = !isOffline;
     }
 
     private async void RetryButton_Clicked(object sender, EventArgs e)
@@ -258,10 +258,6 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
         }
     }
 
-    private void PullToRefresh_Refreshing(object sender, EventArgs e)
-    {
-        MainWebView.Reload();
-    }
 
     private async void MainWebView_Navigating(object sender, WebNavigatingEventArgs e)
     {
@@ -615,23 +611,12 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
                     string target = url;
                     if (target.Contains("wa.me/"))
                     {
-                        var afterDomain = target.Substring(target.IndexOf("wa.me/") + 6).TrimStart('/');
-                        if (afterDomain.StartsWith("?text="))
-                        {
-                            target = "whatsapp://send?text=" + afterDomain.Substring(6);
-                        }
-                        else
-                        {
-                            var parts = afterDomain.Split(new[] { "?text=" }, 2, StringSplitOptions.None);
-                            var phone = parts[0].Trim();
-                            var text = parts.Length > 1 ? parts[1] : string.Empty;
-                            if (!string.IsNullOrEmpty(phone))
-                            {
-                                target = string.IsNullOrEmpty(text)
-                                    ? $"whatsapp://send?phone={phone}"
-                                    : $"whatsapp://send?phone={phone}&text={text}";
-                            }
-                        }
+                        // Open wa.me links directly in external browser — most reliable method
+                        // avoids double-encoding issues with whatsapp:// URI scheme
+                        await Microsoft.Maui.ApplicationModel.Browser.Default.OpenAsync(
+                            new Uri(target),
+                            Microsoft.Maui.ApplicationModel.BrowserLaunchMode.External);
+                        return;
                     }
                     else if (target.Contains("t.me/share/url?"))
                     {
@@ -663,7 +648,6 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
     private async void MainWebView_Navigated(object sender, WebNavigatedEventArgs e)
     {
         LoadingOverlay.IsVisible = false;
-        PullToRefresh.IsRefreshing = false;
 
         if (e.Result != WebNavigationResult.Success)
         {

@@ -79,56 +79,63 @@ public class SettingsService : ISettingsService
 
     public async Task<ApiResponse<bool>> UpdateSettingsAsync(UpdateAppSettingsRequest request)
     {
-        var settings = await _context.AppSettings.FirstOrDefaultAsync();
-        
-        if (settings == null)
+        try
         {
-            settings = new AppSettings();
-            _context.AppSettings.Add(settings);
+            var settings = await _context.AppSettings.FirstOrDefaultAsync();
+            
+            if (settings == null)
+            {
+                settings = new AppSettings();
+                _context.AppSettings.Add(settings);
+            }
+
+            if (!string.IsNullOrEmpty(request.ApplicationName)) settings.ApplicationName = request.ApplicationName;
+            if (!string.IsNullOrEmpty(request.ApplicationNameAr)) settings.ApplicationNameAr = request.ApplicationNameAr;
+            if (!string.IsNullOrEmpty(request.ApplicationNameEn)) settings.ApplicationNameEn = request.ApplicationNameEn;
+            if (request.LogoUrl != null) settings.LogoUrl = request.LogoUrl;
+            if (request.ApkFilename != null) settings.ApkFilename = request.ApkFilename;
+            if (request.ApkIconUrl != null) settings.ApkIconUrl = request.ApkIconUrl;
+            if (!string.IsNullOrEmpty(request.PrimaryColor)) settings.PrimaryColor = request.PrimaryColor;
+            if (!string.IsNullOrEmpty(request.SecondaryColor)) settings.SecondaryColor = request.SecondaryColor;
+            if (request.ContactEmail != null) settings.ContactEmail = request.ContactEmail;
+            if (request.ContactPhone != null) settings.ContactPhone = request.ContactPhone;
+            if (request.ContactWhatsApp != null) settings.ContactWhatsApp = request.ContactWhatsApp;
+            if (request.InstaPayNumber != null) settings.InstaPayNumber = request.InstaPayNumber;
+            if (request.VodafoneCashNumber != null) settings.VodafoneCashNumber = request.VodafoneCashNumber;
+            if (request.OtherWalletNumber != null) settings.OtherWalletNumber = request.OtherWalletNumber;
+            if (request.PaymentInstructions != null) settings.PaymentInstructions = request.PaymentInstructions;
+            settings.IsMaintenanceMode = request.IsMaintenanceMode;
+            if (request.WelcomeMessage != null) settings.WelcomeMessage = request.WelcomeMessage;
+            if (request.OpenAppSound != null) settings.OpenAppSound = request.OpenAppSound;
+            if (request.FindServiceSound != null) settings.FindServiceSound = request.FindServiceSound;
+            if (request.OpenDetailsSound != null) settings.OpenDetailsSound = request.OpenDetailsSound;
+            if (request.MessageReceivedSound != null) settings.MessageReceivedSound = request.MessageReceivedSound;
+            if (request.NotificationReceivedSound != null) settings.NotificationReceivedSound = request.NotificationReceivedSound;
+            settings.AllowUserRegistration = request.AllowUserRegistration;
+            settings.RequireEmailVerification = request.RequireEmailVerification;
+            if (request.MaxServicesPerProvider > 0) settings.MaxServicesPerProvider = request.MaxServicesPerProvider;
+            settings.EnableReviewAutoApproval = request.EnableReviewAutoApproval;
+            if (request.MarketplaceDefaultListingDays > 0) settings.MarketplaceDefaultListingDays = request.MarketplaceDefaultListingDays;
+            if (request.MarketplaceMaxListingsPerUser > 0) settings.MarketplaceMaxListingsPerUser = request.MarketplaceMaxListingsPerUser;
+            settings.MarketplaceRequireApproval = request.MarketplaceRequireApproval;
+            settings.MarketplaceAutoExpire = request.MarketplaceAutoExpire;
+            if (request.FacebookUrl != null) settings.FacebookUrl = request.FacebookUrl;
+            if (request.TwitterUrl != null) settings.TwitterUrl = request.TwitterUrl;
+            if (request.InstagramUrl != null) settings.InstagramUrl = request.InstagramUrl;
+            if (request.TermsAndConditions != null) settings.TermsAndConditions = request.TermsAndConditions;
+            if (request.PrivacyPolicy != null) settings.PrivacyPolicy = request.PrivacyPolicy;
+            if (request.AppShareUrl != null) settings.AppShareUrl = request.AppShareUrl;
+            if (request.AppShareText != null) settings.AppShareText = request.AppShareText;
+            if (request.AppStoreUrl != null) settings.AppStoreUrl = request.AppStoreUrl;
+            if (request.GooglePlayUrl != null) settings.GooglePlayUrl = request.GooglePlayUrl;
+            settings.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return ApiResponse<bool>.Succeed(true, "تم تحديث الإعدادات بنجاح");
         }
-
-        settings.ApplicationName = request.ApplicationName;
-        settings.ApplicationNameAr = request.ApplicationNameAr;
-        settings.ApplicationNameEn = request.ApplicationNameEn;
-        settings.LogoUrl = request.LogoUrl;
-        settings.ApkFilename = request.ApkFilename;
-        settings.ApkIconUrl = request.ApkIconUrl;
-        settings.PrimaryColor = request.PrimaryColor;
-        settings.SecondaryColor = request.SecondaryColor;
-        settings.ContactEmail = request.ContactEmail;
-        settings.ContactPhone = request.ContactPhone;
-        settings.ContactWhatsApp = request.ContactWhatsApp;
-        settings.InstaPayNumber = request.InstaPayNumber;
-        settings.VodafoneCashNumber = request.VodafoneCashNumber;
-        settings.OtherWalletNumber = request.OtherWalletNumber;
-        settings.PaymentInstructions = request.PaymentInstructions;
-        settings.IsMaintenanceMode = request.IsMaintenanceMode;
-        settings.WelcomeMessage = request.WelcomeMessage;
-        settings.OpenAppSound = request.OpenAppSound;
-        settings.FindServiceSound = request.FindServiceSound;
-        settings.OpenDetailsSound = request.OpenDetailsSound;
-        settings.MessageReceivedSound = request.MessageReceivedSound;
-        settings.NotificationReceivedSound = request.NotificationReceivedSound;
-        settings.AllowUserRegistration = request.AllowUserRegistration;
-        settings.RequireEmailVerification = request.RequireEmailVerification;
-        settings.MaxServicesPerProvider = request.MaxServicesPerProvider;
-        settings.EnableReviewAutoApproval = request.EnableReviewAutoApproval;
-        settings.MarketplaceDefaultListingDays = request.MarketplaceDefaultListingDays;
-        settings.MarketplaceMaxListingsPerUser = request.MarketplaceMaxListingsPerUser;
-        settings.MarketplaceRequireApproval = request.MarketplaceRequireApproval;
-        settings.MarketplaceAutoExpire = request.MarketplaceAutoExpire;
-        settings.FacebookUrl = request.FacebookUrl;
-        settings.TwitterUrl = request.TwitterUrl;
-        settings.InstagramUrl = request.InstagramUrl;
-        settings.TermsAndConditions = request.TermsAndConditions;
-        settings.PrivacyPolicy = request.PrivacyPolicy;
-        settings.AppShareUrl = request.AppShareUrl;
-        settings.AppShareText = request.AppShareText;
-        settings.AppStoreUrl = request.AppStoreUrl;
-        settings.GooglePlayUrl = request.GooglePlayUrl;
-        settings.UpdatedAt = DateTime.UtcNow;
-
-        await _context.SaveChangesAsync();
-        return ApiResponse<bool>.Succeed(true, "تم تحديث الإعدادات بنجاح");
+        catch (Exception ex)
+        {
+            return ApiResponse<bool>.Fail($"خطأ في حفظ الإعدادات بقاعدة البيانات: {ex.Message}");
+        }
     }
 }

@@ -54,7 +54,7 @@ public class ContactController : ControllerBase
     /// Admin: list all contact messages (optionally filter by resolved status).
     /// </summary>
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> GetAll([FromQuery] bool? resolved = null)
     {
         var query = _context.ContactMessages
@@ -89,7 +89,7 @@ public class ContactController : ControllerBase
     /// Admin: mark a message as resolved.
     /// </summary>
     [HttpPut("{id}/resolve")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> Resolve(int id, [FromBody] ResolveRequest? req)
     {
         var msg = await _context.ContactMessages.FindAsync(id);

@@ -239,6 +239,43 @@
             await window.shareServiceAsImage(elementId, shareUrl, fileName);
         };
 
+        // Standardized Unified Sharing (Native Mobile Share / Clipboard Fallback)
+        window.shareUnified = async (title, shareText, shareUrl) => {
+            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+            const isNative = (navigator.userAgent && navigator.userAgent.indexOf('KhadamatNativeApp') !== -1) ||
+                             window.location.search.indexOf('nativeapp=1') !== -1 || 
+                             sessionStorage.getItem('nativeapp') === '1';
+
+            if (isNative) {
+                const fullText = (shareText ? shareText + '\n\n' : '') + (shareUrl || '');
+                let shareUri = 'khadamat://share?title=' + encodeURIComponent(title || 'منصة خدماوي') + '&text=' + encodeURIComponent(fullText);
+                if (shareUrl) shareUri += '&url=' + encodeURIComponent(shareUrl);
+                window.location.href = shareUri;
+                return 'native';
+            }
+
+            if (isMobile && navigator.share) {
+                try {
+                    await navigator.share({ title: title || 'منصة خدماوي', text: shareText || '', url: shareUrl });
+                    return 'shared';
+                } catch (e) {
+                    if (e.name === 'AbortError') return 'cancelled';
+                    console.warn('[ShareUnified] navigator.share failed:', e.message);
+                }
+            }
+
+            // Fallback: Copy full post text to clipboard
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(shareText || shareUrl);
+                    return 'copied';
+                }
+            } catch (err) {
+                console.warn('[ShareUnified] clipboard error:', err.message);
+            }
+            return 'fallback';
+        };
+
         // 5. Native share on mobile or custom share dialog on desktop
         window.shareCardWithPlatform = async (elementId, shareUrl, fileName, shareText, imageUrl) => {
             const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -705,9 +742,61 @@
     </script>
 
     <div id="blazor-error-ui">
-        حدث خطأ غير متوقع.
-        <a href="." class="reload">إعادة تحميل</a>
-        <span class="dismiss">🗙</span>
+        <span class="err-dismiss" onclick="document.getElementById('blazor-error-ui').style.display='none'" title="إغلاق">✕</span>
+        <div class="err-particle" style="width:8px;height:8px;background:#a78bfa;bottom:-20px;left:15%;animation-duration:7s;animation-delay:0s;"></div>
+        <div class="err-particle" style="width:5px;height:5px;background:#f472b6;bottom:-20px;left:35%;animation-duration:9s;animation-delay:1.5s;"></div>
+        <div class="err-particle" style="width:10px;height:10px;background:#60a5fa;bottom:-20px;left:55%;animation-duration:6s;animation-delay:0.8s;"></div>
+        <div class="err-particle" style="width:6px;height:6px;background:#34d399;bottom:-20px;left:75%;animation-duration:8s;animation-delay:2s;"></div>
+        <div class="err-particle" style="width:7px;height:7px;background:#fbbf24;bottom:-20px;left:90%;animation-duration:10s;animation-delay:0.3s;"></div>
+        <div class="err-inner">
+            <div class="err-logo">
+                <img src="images/logo.png" alt="Logo" />
+                <span class="err-logo-text">خدماوي</span>
+            </div>
+            <div class="err-card">
+                <div class="err-astronaut-wrap">
+                    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" fill="none">
+                        <ellipse cx="100" cy="130" rx="42" ry="52" fill="#e8e8f0" stroke="#c4c4d4" stroke-width="2"/>
+                        <circle cx="100" cy="78" r="38" fill="#d0d0e8" stroke="#b8b8d0" stroke-width="2"/>
+                        <ellipse cx="100" cy="80" rx="26" ry="24" fill="#1a1a3e" opacity="0.9"/>
+                        <ellipse cx="92" cy="70" rx="8" ry="6" fill="rgba(255,255,255,0.15)" transform="rotate(-20,92,70)"/>
+                        <ellipse cx="91" cy="78" rx="4" ry="5" fill="white" opacity="0.9"/>
+                        <ellipse cx="109" cy="78" rx="4" ry="5" fill="white" opacity="0.9"/>
+                        <circle cx="91" cy="80" r="2.5" fill="#6366f1"/>
+                        <circle cx="109" cy="80" r="2.5" fill="#6366f1"/>
+                        <ellipse cx="88" cy="86" rx="2" ry="3" fill="#60a5fa" opacity="0.8"/>
+                        <path d="M 90 88 Q 100 84 110 88" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.7" fill="none"/>
+                        <ellipse cx="60" cy="128" rx="14" ry="28" fill="#d8d8ea" stroke="#c4c4d4" stroke-width="1.5" transform="rotate(15,60,128)"/>
+                        <ellipse cx="140" cy="128" rx="14" ry="28" fill="#d8d8ea" stroke="#c4c4d4" stroke-width="1.5" transform="rotate(-15,140,128)"/>
+                        <line x1="150" y1="100" x2="150" y2="70" stroke="#a78bfa" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M 150 70 L 170 75 L 150 80 Z" fill="#8b5cf6" opacity="0.9"/>
+                        <rect x="85" y="118" width="30" height="20" rx="5" fill="#b0b0c8" stroke="#a0a0b8" stroke-width="1"/>
+                        <circle cx="96" cy="128" r="3" fill="#f472b6" opacity="0.8"/>
+                        <circle cx="104" cy="128" r="3" fill="#60a5fa" opacity="0.8"/>
+                        <ellipse cx="85" cy="176" rx="15" ry="10" fill="#c8c8dc" stroke="#b8b8cc" stroke-width="1.5"/>
+                        <ellipse cx="115" cy="176" rx="15" ry="10" fill="#c8c8dc" stroke="#b8b8cc" stroke-width="1.5"/>
+                        <text x="30" y="60" font-size="14" fill="#fbbf24" opacity="0.8">✦</text>
+                        <text x="158" y="55" font-size="10" fill="#a78bfa" opacity="0.7">✧</text>
+                        <text x="170" y="130" font-size="8" fill="#60a5fa" opacity="0.6">✦</text>
+                        <text x="22" y="150" font-size="10" fill="#f472b6" opacity="0.6">✧</text>
+                    </svg>
+                </div>
+                <h2 class="err-title">عذراً، حدث خطأ ما!</h2>
+                <div class="err-divider"></div>
+                <p class="err-subtitle">
+                    نعتذر عن هذا الإزعاج.<br/>
+                    فريقنا يعمل على حل المشكلة في أقرب وقت.<br/>
+                    <span style="font-size:0.82rem;opacity:0.6;">يمكنك المحاولة مجدداً أو العودة للصفحة الرئيسية.</span>
+                </p>
+                <div class="err-actions">
+                    <a href="." class="err-btn-primary">
+                        <span class="err-icon-spin">↻</span>
+                        إعادة تحميل الصفحة
+                    </a>
+                    <a href="/" class="err-btn-secondary">🏠 العودة للرئيسية</a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="lib/swiper/swiper-bundle.min.js"></script>
@@ -896,6 +985,43 @@
                 // Potentially handle back navigation if logic dictates
             }
         });
+    </script>
+
+    <!-- Smart Pull-to-Refresh Prevention: only allow refresh when at top of scrollable area -->
+    <script>
+        (function () {
+            var _startY = 0;
+            var _startEl = null;
+
+            function getScrollableParent(el) {
+                while (el && el !== document.body) {
+                    var style = window.getComputedStyle(el);
+                    var overflowY = style.overflowY;
+                    if ((overflowY === 'auto' || overflowY === 'scroll') && el.scrollHeight > el.clientHeight) {
+                        return el;
+                    }
+                    el = el.parentElement;
+                }
+                return document.scrollingElement || document.documentElement;
+            }
+
+            document.addEventListener('touchstart', function (e) {
+                if (e.touches.length !== 1) return;
+                _startY = e.touches[0].clientY;
+                _startEl = getScrollableParent(e.target);
+            }, { passive: true });
+
+            document.addEventListener('touchmove', function (e) {
+                if (!_startEl) return;
+                var dy = e.touches[0].clientY - _startY;
+                var scrollTop = _startEl.scrollTop;
+
+                // If pulling DOWN (dy > 0) and NOT at the top → block overscroll / pull-to-refresh
+                if (dy > 0 && scrollTop > 0) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+        })();
     </script>
 </body>
 

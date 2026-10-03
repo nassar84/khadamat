@@ -248,10 +248,14 @@
             var serviceUrl = $"https://khadamawy.eis-dev.com/share/service/{service.Id}";
             var desc = service.Description ?? "";
             if (desc.Length > 120) desc = desc.Substring(0, 117) + "...";
-            var shareText = $"🌟 {service.Title}\n{desc}\n\n🔗 رابط الخدمة:\n{serviceUrl}\n\n📲 منصة وتطبيق خدماوي - سوق الخدمات والأعمال الأول في مصر";
+            var shareText = $"🌟 {service.Title}\n" +
+                           (!string.IsNullOrEmpty(desc) ? $"📝 {desc}\n" : "") +
+                           $"\n🔗 رابط الخدمة والتفاصيل:\n{serviceUrl}\n\n" +
+                           $"📲 منصة وتطبيق خدماوي — سوق الخدمات والأعمال الأول في مصر 🇪🇬\n" +
+                           $"حمل تطبيق خدماوي مجاناً وتصفح آلاف الخدمات والوظائف القريبة منك وتواصل مباشرة مع أصحاب الأعمال:\n" +
+                           $"https://khadamawy.eis-dev.com/downloads/khadamat.apk";
             
-            var firstImg = service.Images?.FirstOrDefault();
-            var imageUrl = !string.IsNullOrEmpty(firstImg) ? Api.GetAbsoluteUrl(firstImg) : $"https://khadamawy.eis-dev.com/images/share_cards/card_{service.Id}.png";
+            var imageUrl = $"https://khadamawy.eis-dev.com/images/share_cards/card_{service.Id}.png";
 
             await Share.ShareImageWithTextAsync(imageUrl, shareText, $"🌟 {service.Title}");
         }

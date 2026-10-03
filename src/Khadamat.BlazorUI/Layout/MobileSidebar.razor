@@ -1,3 +1,4 @@
+@using System.Security.Claims
 @using Khadamat.BlazorUI.State
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Authorization
@@ -6,46 +7,119 @@
 @inject IJSRuntime JS
 @inject Khadamat.BlazorUI.Services.Auth.IAuthService AuthService
 @inject Khadamat.Shared.Interfaces.IShareService ShareService
+@inject AuthenticationStateProvider AuthStateProvider
 @implements IDisposable
 
 <div class="sidebar-overlay @(State.IsSidebarOpen ? "show" : "")" @onclick="CloseSidebar"></div>
 
 <aside class="mobile-sidebar-drawer @(State.IsSidebarOpen ? "open" : "")">
     <div class="sidebar-menu">
-        <AuthorizeView>
-            <Authorized>
-                <div class="sidebar-top-modern profile-header">
-                    <div class="user-brief-modern-row" @onclick='() => NavigateTo("/profile")'>
-                        <div class="user-info-modern-left">
-                            <span class="welcome-text">مرحباً بك،</span>
-                            <span class="user-name-title">@State.UserName</span>
+        @if (_isAuthenticated)
+        {
+            <div class="sidebar-top-modern profile-header">
+                <div class="user-brief-modern-row" @onclick='() => NavigateTo("/profile")'>
+                    <div class="user-info-modern-left">
+                        <span class="welcome-text">مرحباً بك،</span>
+                        <span class="user-name-title">@(!string.IsNullOrEmpty(State.UserName) ? State.UserName : "مستخدم")</span>
+                        <span class="user-role-badge @GetRoleBadgeClass()">@DisplayName</span>
+                    </div>
+                    <div class="avatar-circle-shadow">
+                        <img src="@State.UserImageUrl" class="user-avatar-modern" alt="Avatar" />
+                    </div>
+                </div>
+            </div>
+
+            @if (!_isAdmin && !_isProvider)
+            {
+                <div class="px-3 pt-3 pb-1">
+                    <div class="p-3 rounded-4 shadow-sm text-white d-flex align-items-center justify-content-between cursor-pointer"
+                         style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);"
+                         @onclick='() => NavigateTo("/provider/create-request")'>
+                        <div>
+                            <div class="fw-bold mb-1" style="font-size: 0.95rem;">صنايعي أو صاحب مهنة؟</div>
+                            <div class="opacity-90 mb-2" style="font-size: 0.75rem;">اعرض خدماتك الآن وزود دخلك معانا</div>
+                            <span class="badge bg-white text-primary rounded-pill px-3 py-1 fw-bold">اعرض خدماتك ←</span>
                         </div>
-                        <div class="avatar-circle-shadow">
-                            <img src="@State.UserImageUrl" class="user-avatar-modern" />
+                        <div class="bg-white bg-opacity-20 rounded-circle p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
+                            <i class="fa-solid fa-briefcase fs-5 text-white"></i>
                         </div>
                     </div>
                 </div>
+            }
 
-                @if (!State.IsProvider)
+            <div class="menu-sections-wrapper">
+                @if (_isAdmin)
                 {
-                    <div class="px-3 pt-3 pb-1">
-                        <div class="p-3 rounded-4 shadow-sm text-white d-flex align-items-center justify-content-between cursor-pointer"
-                             style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);"
-                             @onclick='() => NavigateTo("/provider/create-request")'>
-                            <div>
-                                <div class="fw-bold mb-1" style="font-size: 0.95rem;">صنايعي أو صاحب مهنة؟</div>
-                                <div class="opacity-90 mb-2" style="font-size: 0.75rem;">اعرض خدماتك الآن وزود دخلك معانا</div>
-                                <span class="badge bg-white text-primary rounded-pill px-3 py-1 fw-bold">اعرض خدماتك ←</span>
+                    <!-- 1. لوحة الإدارة والتحكم للمدير -->
+                    <div class="menu-section">
+                        <h6 class="section-title">لوحة الإدارة والتحكم</h6>
+                        <div class="menu-items">
+                            <div class="menu-item admin-link-premium @GetActiveClass("admin")" @onclick='() => NavigateTo("/admin")'>
+                                <i class="fa-solid fa-chart-pie text-primary"></i>
+                                <span class="fw-bold">لوحة المدير</span>
                             </div>
-                            <div class="bg-white bg-opacity-20 rounded-circle p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
-                                <i class="fa-solid fa-briefcase fs-5 text-white"></i>
+                            <div class="menu-item @GetActiveClass("admin/approvals")" style="background: rgba(245, 158, 11, 0.1);" @onclick='() => NavigateTo("/admin/approvals")'>
+                                <i class="fa-solid fa-shield-halved text-warning"></i>
+                                <span class="fw-bold">مركز الموافقات ⚡</span>
+                                @if (State.PendingApprovalsCount > 0)
+                                {
+                                    <span class="badge rounded-pill bg-danger ms-auto px-2 py-1">@State.PendingApprovalsCount</span>
+                                }
                             </div>
+                            <div class="menu-item @GetActiveClass("admin/ads")" @onclick='() => NavigateTo("/admin/ads")'>
+                                <i class="fa-solid fa-rectangle-ad text-primary"></i>
+                                <span>إدارة الإعلانات</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("admin/users")" @onclick='() => NavigateTo("/admin/users")'>
+                                <i class="fa-solid fa-users text-primary"></i>
+                                <span>إدارة المستخدمين</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("admin/approvals/providers")" @onclick='() => NavigateTo("/admin/approvals/providers")'>
+                                <i class="fa-solid fa-user-check text-primary"></i>
+                                <span>اعتماد مقدمي الخدمات</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("admin/services")" @onclick='() => NavigateTo("/admin/services")'>
+                                <i class="fa-solid fa-briefcase text-primary"></i>
+                                <span>إدارة الخدمات</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("admin/categories")" @onclick='() => NavigateTo("/admin/categories")'>
+                                <i class="fa-solid fa-th-large text-primary"></i>
+                                <span>التصنيفات والأقسام</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("admin/locations")" @onclick='() => NavigateTo("/admin/locations")'>
+                                <i class="fa-solid fa-map-marker-alt text-primary"></i>
+                                <span>المناطق والمحافظات</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("admin/complaints")" @onclick='() => NavigateTo("/admin/complaints")'>
+                                <i class="fa-solid fa-headset text-danger"></i>
+                                <span>الشكاوى والبلاغات</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("admin/reports")" @onclick='() => NavigateTo("/admin/reports")'>
+                                <i class="fa-solid fa-file-alt text-primary"></i>
+                                <span>التقارير والإحصائيات</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("admin/settings")" @onclick='() => NavigateTo("/admin/settings")'>
+                                <i class="fa-solid fa-cogs text-primary"></i>
+                                <span>إعدادات لوحة التحكم</span>
+                            </div>
+                            @if (_isSuperAdmin)
+                            {
+                                <div class="menu-item @GetActiveClass("admin/systemsettings")" style="background: rgba(var(--theme-primary-rgb), 0.08);" @onclick='() => NavigateTo("/admin/systemsettings")'>
+                                    <i class="fa-solid fa-gears text-primary"></i>
+                                    <span>إعدادات الموقع والتطبيق</span>
+                                </div>
+                                <div class="menu-item @GetActiveClass("admin/auditlogs")" style="background: rgba(var(--theme-primary-rgb), 0.08);" @onclick='() => NavigateTo("/admin/auditlogs")'>
+                                    <i class="fa-solid fa-shield-halved text-primary"></i>
+                                    <span>سجلات النشاط والأمان</span>
+                                </div>
+                            }
                         </div>
                     </div>
-                }
-                <div class="menu-sections-wrapper">
+
+                    <!-- تصفح المنصة للمدير -->
                     <div class="menu-section">
-                        <h6 class="section-title">القائمة الرئيسية</h6>
+                        <h6 class="section-title">تصفح المنصة</h6>
+                        <div class="menu-items">
                             <div class="menu-item @GetActiveClass("")" @onclick='() => NavigateTo("/")'>
                                 <i class="fa-solid fa-house"></i>
                                 <span>الرئيسية</span>
@@ -62,33 +136,72 @@
                                 <i class="fa-solid fa-rotate"></i>
                                 <span>تحديث التطبيق</span>
                             </div>
+                        </div>
+                    </div>
+                }
+                else if (_isProvider)
+                {
+                    <!-- 2. لوحة صاحب الخدمة / المزود -->
+                    <div class="menu-section">
+                        <h6 class="section-title">إدارة أعمالي وخدماتي</h6>
+                        <div class="menu-items">
+                            <div class="menu-item @GetActiveClass("provider/dashboard")" @onclick='() => NavigateTo("/provider/dashboard")'>
+                                <i class="fa-solid fa-gauge-high text-primary"></i>
+                                <span class="fw-bold">لوحة صاحب الخدمة</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("provider/create-request")" style="background: rgba(99, 102, 241, 0.08); color: #4f46e5;" @onclick='() => NavigateTo("/provider/create-request")'>
+                                <i class="fa-solid fa-circle-plus text-primary"></i>
+                                <span class="fw-bold">أضف خدمة جديدة ➕</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("provider/incoming-requests")" @onclick='() => NavigateTo("/provider/incoming-requests")'>
+                                <i class="fa-solid fa-inbox text-primary"></i>
+                                <span>طلبات العملاء الواردة</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("provider/my-services")" @onclick='() => NavigateTo("/provider/my-services")'>
+                                <i class="fa-solid fa-briefcase text-primary"></i>
+                                <span>خدماتي الحالية</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("provider/statistics")" @onclick='() => NavigateTo("/provider/statistics")'>
+                                <i class="fa-solid fa-chart-line text-success"></i>
+                                <span>إحصائيات المشاهدات</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("provider/referrals")" @onclick='() => NavigateTo("/provider/referrals")'>
+                                <i class="fa-solid fa-users-viewfinder text-primary"></i>
+                                <span class="text-primary fw-bold">نظام الإحالة والأرباح</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("provider/ad-analytics")" @onclick='() => NavigateTo("/provider/ad-analytics")'>
+                                <i class="fa-solid fa-chart-pie text-success"></i>
+                                <span class="text-success fw-bold">إحصائيات الإعلانات</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("provider/subscription")" @onclick='() => NavigateTo("/provider/subscription")'>
+                                <i class="fa-solid fa-gem text-warning"></i>
+                                <span>اشتراكي وباقاتي</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("provider/settings")" @onclick='() => NavigateTo("/provider/settings")'>
+                                <i class="fa-solid fa-sliders text-secondary"></i>
+                                <span>إعدادات صاحب الخدمة</span>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="menu-section">
-                        <h6 class="section-title">نشاطي</h6>
+                        <h6 class="section-title">نشاطي وتواصلي</h6>
                         <div class="menu-items">
-                            @if (State.IsProvider)
-                            {
-                                <div class="menu-item @GetActiveClass("provider/my-services")" @onclick='() => NavigateTo("/provider/my-services")'>
-                                    <i class="fa-solid fa-briefcase text-primary"></i>
-                                    <span>خدماتي الحالية</span>
-                                </div>
-                                <div class="menu-item @GetActiveClass("provider/create-request")" style="background: rgba(99, 102, 241, 0.08); color: #4f46e5;" @onclick='() => NavigateTo("/provider/create-request")'>
-                                    <i class="fa-solid fa-circle-plus text-primary"></i>
-                                    <span>أضف خدمة جديدة ➕</span>
-                                </div>
-                            }
-                            <div class="menu-item @GetActiveClass("user/my-requests")" @onclick='() => NavigateTo("/user/my-requests")'>
-                                <i class="fa-solid fa-list-check text-secondary"></i>
-                                <span>طلباتي</span>
-                            </div>
                             <div class="menu-item @GetActiveClass("user/messages")" @onclick='() => NavigateTo("/user/messages")'>
                                 <i class="fa-solid fa-envelope text-secondary"></i>
-                                <span>رسائلي</span>
+                                <span>رسائلي ومحادثاتي</span>
                             </div>
                             <div class="menu-item @GetActiveClass("user/notifications")" @onclick='() => NavigateTo("/user/notifications")'>
                                 <i class="fa-solid fa-bell text-secondary"></i>
                                 <span>الإشعارات</span>
+                                @if (State.NotificationCount > 0)
+                                {
+                                    <span class="badge rounded-pill bg-danger ms-auto px-2 py-1">@State.NotificationCount</span>
+                                }
+                            </div>
+                            <div class="menu-item @GetActiveClass("user/my-requests")" @onclick='() => NavigateTo("/user/my-requests")'>
+                                <i class="fa-solid fa-list-check text-secondary"></i>
+                                <span>طلباتي كعميل</span>
                             </div>
                             <div class="menu-item @GetActiveClass("client/favorites")" @onclick='() => NavigateTo("/client/favorites")'>
                                 <i class="fa-solid fa-heart text-danger"></i>
@@ -98,228 +211,164 @@
                     </div>
 
                     <div class="menu-section">
-                        <h6 class="section-title">الإعدادات</h6>
+                        <h6 class="section-title">استكشاف المنصة</h6>
                         <div class="menu-items">
-                            <div class="menu-item @GetActiveClass("profile")" @onclick='() => NavigateTo("/profile")'>
-                                <i class="fa-solid fa-user-gear"></i>
-                                <span>الملف الشخصي</span>
+                            <div class="menu-item @GetActiveClass("")" @onclick='() => NavigateTo("/")'>
+                                <i class="fa-solid fa-house"></i>
+                                <span>الرئيسية</span>
                             </div>
-
                             <div class="menu-item @GetActiveClass("services")" @onclick='() => NavigateTo("/services")'>
-                                <i class="fa-solid fa-briefcase"></i>
+                                <i class="fa-solid fa-compass text-primary"></i>
                                 <span>استكشاف الخدمات</span>
                             </div>
-                            <div class="menu-item @GetActiveClass("explore")" @onclick='() => NavigateTo("/explore")'>
-                                <i class="fa-solid fa-compass"></i>
-                                <span>استكشف</span>
+                            <div class="menu-item @GetActiveClass("categories")" @onclick='() => NavigateTo("/categories")'>
+                                <i class="fa-solid fa-th-large text-info"></i>
+                                <span>الأقسام والتصنيفات</span>
                             </div>
-                            <AuthorizeView Roles="SystemAdmin,SuperAdmin" Context="adminCtx">
-                                <div class="menu-item admin-link-premium" @onclick='() => NavigateTo("/admin")'>
-                                    <i class="fa-solid fa-chart-pie"></i>
-                                    <span>لوحة المدير</span>
-                                </div>
-                                <div class="menu-item" style="background: rgba(245, 158, 11, 0.1);" @onclick='() => NavigateTo("/admin/approvals")'>
-                                    <i class="fa-solid fa-shield-halved text-warning"></i>
-                                    <span class="fw-bold">مركز الموافقات ⚡</span>
-                                </div>
-                                <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.05);" @onclick='() => NavigateTo("/admin/complaints")'>
-                                    <i class="fa-solid fa-headset text-danger"></i>
-                                    <span>الشكاوى والبلاغات</span>
-                                </div>
-                                <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.05);" @onclick='() => NavigateTo("/admin/users")'>
-                                    <i class="fa-solid fa-users text-primary"></i>
-                                    <span>إدارة المستخدمين</span>
-                                </div>
-                                <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.05);" @onclick='() => NavigateTo("/admin/approvals/providers")'>
-                                    <i class="fa-solid fa-user-check text-primary"></i>
-                                    <span>اعتماد مقدمي الخدمات</span>
-                                </div>
-                                <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.05);" @onclick='() => NavigateTo("/admin/services")'>
-                                    <i class="fa-solid fa-briefcase text-primary"></i>
-                                    <span>إدارة الخدمات</span>
-                                </div>
-                                <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.05);" @onclick='() => NavigateTo("/admin/adsmanagement")'>
-    <i class="fa-solid fa-rectangle-ad text-primary"></i>
-    <span>إدارة الإعلانات</span>
-</div>
-                                <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.05);" @onclick='() => NavigateTo("/admin/categories")'>
-                                    <i class="fa-solid fa-th-large text-primary"></i>
-                                    <span>التصنيفات</span>
-                                </div>
-                                <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.05);" @onclick='() => NavigateTo("/admin/locations")'>
-                                    <i class="fa-solid fa-map-marker-alt text-primary"></i>
-                                    <span>المناطق</span>
-                                </div>
-                                <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.05);" @onclick='() => NavigateTo("/admin/reports")'>
-                                    <i class="fa-solid fa-file-alt text-primary"></i>
-                                    <span>التقارير</span>
-                                </div>
-                                <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.05);" @onclick='() => NavigateTo("/admin/settings")'>
-                                    <i class="fa-solid fa-cogs text-primary"></i>
-                                    <span>إعدادات لوحة التحكم</span>
-                                </div>
-                                <AuthorizeView Roles="SuperAdmin" Context="superCtx">
-                                    <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.08);" @onclick='() => NavigateTo("/admin/systemsettings")'>
-                                        <i class="fa-solid fa-gears text-primary"></i>
-                                        <span>إعدادات الموقع والتطبيق</span>
-                                    </div>
-                                    <div class="menu-item" style="background: rgba(var(--theme-primary-rgb), 0.08);" @onclick='() => NavigateTo("/admin/auditlogs")'>
-                                        <i class="fa-solid fa-shield-halved text-primary"></i>
-                                        <span>سجلات النشاط</span>
-                                    </div>
-                                </AuthorizeView>
-                            </AuthorizeView>
+                            <div class="menu-item" @onclick="RefreshApp">
+                                <i class="fa-solid fa-rotate"></i>
+                                <span>تحديث التطبيق</span>
+                            </div>
                         </div>
                     </div>
-
-                    @if (State.IsProvider)
-                    {
-                        <div class="menu-section">
-                            <h6 class="section-title">إعدادات صاحب الخدمة</h6>
-                            <div class="menu-items">
-                                 <div class="menu-item provider-switch-item" @onclick="ToggleProviderMode">
-                                    <i class="fa-solid fa-shuffle"></i>
-                                    <span>@(State.IsProviderMode ? "التبديل للمستخدم العادي" : "التبديل لصاحب الخدمة")</span>
-                                 </div>
-                                @if (State.IsProviderMode)
+                }
+                else
+                {
+                    <!-- 3. دور العميل / المستخدم العادي -->
+                    <div class="menu-section">
+                        <h6 class="section-title">نشاطي وطلباتي</h6>
+                        <div class="menu-items">
+                            <div class="menu-item @GetActiveClass("user/my-requests")" @onclick='() => NavigateTo("/user/my-requests")'>
+                                <i class="fa-solid fa-list-check text-primary"></i>
+                                <span class="fw-bold">طلباتي</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("user/messages")" @onclick='() => NavigateTo("/user/messages")'>
+                                <i class="fa-solid fa-envelope text-secondary"></i>
+                                <span>رسائلي ومحادثاتي</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("user/notifications")" @onclick='() => NavigateTo("/user/notifications")'>
+                                <i class="fa-solid fa-bell text-secondary"></i>
+                                <span>الإشعارات</span>
+                                @if (State.NotificationCount > 0)
                                 {
-                                    <div class="menu-item @GetActiveClass("provider/dashboard")" @onclick='() => NavigateTo("/provider/dashboard")'>
-                                        <i class="fa-solid fa-gauge-high"></i>
-                                        <span>لوحة صاحب الخدمة</span>
-                                    </div>
-                                    <div class="menu-item @GetActiveClass("provider/incoming-requests")" @onclick='() => NavigateTo("/provider/incoming-requests")'>
-                                        <i class="fa-solid fa-inbox text-primary"></i>
-                                        <span>طلبات العملاء الواردة</span>
-                                    </div>
-                                    <div class="menu-item @GetActiveClass("provider/my-services")" @onclick='() => NavigateTo("/provider/my-services")'>
-                                        <i class="fa-solid fa-briefcase"></i>
-                                        <span>خدماتي</span>
-                                    </div>
-                                    <div class="menu-item @GetActiveClass("provider/create-service")" @onclick='() => NavigateTo("/provider/create-service")'>
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                        <span>منشور جديد</span>
-                                    </div>
-                                    <div class="menu-item @GetActiveClass("provider/statistics")" @onclick='() => NavigateTo("/provider/statistics")'>
-                                        <i class="fa-solid fa-chart-line"></i>
-                                        <span>الإحصائيات</span>
-                                    </div>
-                                    <div class="menu-item @GetActiveClass("provider/referrals")" @onclick='() => NavigateTo("/provider/referrals")'>
-                                        <i class="fa-solid fa-users-viewfinder text-primary"></i>
-                                        <span class="text-primary fw-bold">نظام الإحالة</span>
-                                    </div>
-                                    <div class="menu-item @GetActiveClass("provider/ad-analytics")" @onclick='() => NavigateTo("/provider/ad-analytics")'>
-                                        <i class="fa-solid fa-chart-pie text-success"></i>
-                                        <span class="text-success fw-bold">إحصائيات الإعلانات</span>
-                                    </div>
-                                    <div class="menu-item @GetActiveClass("provider/subscription")" @onclick='() => NavigateTo("/provider/subscription")'>
-                                        <i class="fa-solid fa-gem"></i>
-                                        <span>اشتراكي</span>
-                                    </div>
-                                    <div class="menu-item @GetActiveClass("provider/settings")" @onclick='() => NavigateTo("/provider/settings")'>
-                                        <i class="fa-solid fa-sliders"></i>
-                                        <span>إعدادات صاحب الخدمة</span>
-                                    </div>
-
-                                    <!-- روابط العميل لصاحب الخدمة -->
-                                    <div class="border-top my-2 pt-2">
-                                        <div class="text-muted x-small px-3 mb-2 fw-bold">نشاطي كعميل</div>
-                                        <div class="menu-item @GetActiveClass("user/my-requests")" @onclick='() => NavigateTo("/user/my-requests")'>
-                                            <i class="fa-solid fa-list-check text-info"></i>
-                                            <span>طلباتي المرسلة (كمستخدم)</span>
-                                        </div>
-                                        <div class="menu-item @GetActiveClass("client/favorites")" @onclick='() => NavigateTo("/client/favorites")'>
-                                            <i class="fa-solid fa-heart text-danger"></i>
-                                            <span>المفضلة</span>
-                                        </div>
-                                        <div class="menu-item @GetActiveClass("client/my-comments")" @onclick='() => NavigateTo("/client/my-comments")'>
-                                            <i class="fa-solid fa-comments text-warning"></i>
-                                            <span>تعليقاتي على الخدمات</span>
-                                        </div>
-                                        <div class="menu-item @GetActiveClass("services")" @onclick='() => NavigateTo("/services")'>
-                                            <i class="fa-solid fa-compass text-primary"></i>
-                                            <span>تصفح واستكشاف الخدمات</span>
-                                        </div>
-                                    </div>
+                                    <span class="badge rounded-pill bg-danger ms-auto px-2 py-1">@State.NotificationCount</span>
                                 }
                             </div>
+                            <div class="menu-item @GetActiveClass("client/favorites")" @onclick='() => NavigateTo("/client/favorites")'>
+                                <i class="fa-solid fa-heart text-danger"></i>
+                                <span>الخدمات المفضلة</span>
+                            </div>
                         </div>
+                    </div>
+
+                    <div class="menu-section">
+                        <h6 class="section-title">استكشاف الخدمات</h6>
+                        <div class="menu-items">
+                            <div class="menu-item @GetActiveClass("")" @onclick='() => NavigateTo("/")'>
+                                <i class="fa-solid fa-house"></i>
+                                <span>الرئيسية</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("services")" @onclick='() => NavigateTo("/services")'>
+                                <i class="fa-solid fa-compass text-primary"></i>
+                                <span>استكشاف الخدمات</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("categories")" @onclick='() => NavigateTo("/categories")'>
+                                <i class="fa-solid fa-th-large text-info"></i>
+                                <span>الأقسام والتصنيفات</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("explore")" @onclick='() => NavigateTo("/explore")'>
+                                <i class="fa-solid fa-layer-group text-warning"></i>
+                                <span>استكشف</span>
+                            </div>
+                            <div class="menu-item" @onclick="RefreshApp">
+                                <i class="fa-solid fa-rotate"></i>
+                                <span>تحديث التطبيق</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- المشترك لجميع المستخدمين المسجلين: الحساب والخروج -->
+                <div class="menu-section mt-auto">
+                    <h6 class="section-title">الحساب والمساعدة</h6>
+                    <div class="menu-items">
+                        <div class="menu-item @GetActiveClass("profile")" @onclick='() => NavigateTo("/profile")'>
+                            <i class="fa-solid fa-user-gear text-secondary"></i>
+                            <span>الملف الشخصي</span>
+                        </div>
+                        <div class="menu-item @GetActiveClass("contact")" @onclick='() => NavigateTo("/contact")'>
+                            <i class="fa-solid fa-headset text-success"></i>
+                            <span>تواصل معنا</span>
+                        </div>
+                        <div class="menu-item @GetActiveClass("support")" @onclick='() => NavigateTo("/support")'>
+                            <span class="item-icon">🆘</span>
+                            <span>الدعم والمساعدة</span>
+                        </div>
+                        <div class="menu-item logout-item-new mt-3 cursor-pointer" @onclick="HandleLogout">
+                            <i class="fa-solid fa-power-off text-danger"></i>
+                            <span class="text-danger fw-bold">تسجيل الخروج</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- 4. قائمة الزوار (Guest) -->
+            <div class="guest-header-white px-4 pt-5 pb-3">
+                <div class="d-flex align-items-center gap-2 mb-3" style="cursor:pointer" @onclick='() => NavigateTo("/")'>
+                    @if (!string.IsNullOrEmpty(State.AppLogo))
+                    {
+                        <img src="@State.GetAbsoluteUrl(State.AppLogo)" alt="Logo" style="height: 38px; width: auto; object-fit: contain;" />
                     }
+                    else
+                    {
+                        <span style="font-size:1.6rem; color: var(--theme-primary);">⚡</span>
+                    }
+                    <span style="font-size:1.3rem; font-weight:800; color: var(--theme-primary);">@(string.IsNullOrEmpty(State.AppNameAr) ? State.AppName : State.AppNameAr)</span>
+                </div>
+                <hr class="my-2" style="border-color:#f1f5f9;" />
+                <p class="section-title mb-2">إكتشف @State.AppName</p>
+                <div class="menu-item mb-2" @onclick='() => NavigateTo("/")'>
+                    <i class="fa-solid fa-house"></i>
+                    <span>الرئيسية</span>
+                </div>
+                <div class="menu-item mb-2 @GetActiveClass("services")" @onclick='() => NavigateTo("/services")'>
+                    <i class="fa-solid fa-compass text-primary"></i>
+                    <span>استكشاف الخدمات</span>
+                </div>
+                <div class="menu-item mb-2 @GetActiveClass("categories")" @onclick='() => NavigateTo("/categories")'>
+                    <i class="fa-solid fa-th-large text-info"></i>
+                    <span>الأقسام والتصنيفات</span>
+                </div>
+                <div class="menu-item mb-2" @onclick='() => NavigateTo("/feed")'>
+                    <i class="fa-regular fa-newspaper text-info"></i>
+                    <span>آخر التحديثات</span>
+                </div>
+                <div class="menu-item mb-2 @GetActiveClass("contact")" @onclick='() => NavigateTo("/contact")'>
+                    <i class="fa-solid fa-headset text-success"></i>
+                    <span>تواصل معنا</span>
+                </div>
+                <div class="menu-item" @onclick="RefreshApp">
+                    <i class="fa-solid fa-rotate"></i>
+                    <span>تحديث التطبيق</span>
+                </div>
+            </div>
 
-                    <div class="menu-section mt-auto">
-                        <div class="menu-items mt-5">
-                            <div class="menu-item @GetActiveClass("contact")" @onclick='() => NavigateTo("/contact")'>
-                                <i class="fa-solid fa-headset text-success"></i>
-                                <span>تواصل معنا</span>
-                            </div>
-                            <div class="menu-item" @onclick='() => NavigateTo("/support")'>
-                                <span class="item-icon">🆘</span>
-                                <span>الدعم والمساعدة</span>
-                            </div>
-                            <div class="menu-item" @onclick='() => NavigateTo("/terms")'>
-                                <span class="item-icon">📜</span>
-                                <span>الشروط والأحكام</span>
-                            </div>
-                            <div class="menu-item logout-item-new mt-3" @onclick="HandleLogout">
-                                <i class="fa-solid fa-power-off"></i>
-                                <span>تسجيل الخروج</span>
-                            </div>
-                        </div>
+            <div class="px-3 mt-2">
+                <div class="join-card-web">
+                    <div class="join-icon-circle">
+                        <i class="fa-solid fa-user-plus"></i>
+                    </div>
+                    <h5 class="join-title">انضم إلينا الآن</h5>
+                    <p class="join-subtitle">سجل دخولك لتتمكن من طلب الخدمات والتواصل مع المزودين</p>
+                    <div class="d-flex gap-2 mt-3">
+                        <button class="btn-join-primary flex-fill" @onclick='() => NavigateTo("/login")'>دخول</button>
+                        <button class="btn-join-outline flex-fill" @onclick='() => NavigateTo("/login?tab=register")'>حساب جديد</button>
                     </div>
                 </div>
-            </Authorized>
-            <NotAuthorized>
-                <!-- Guest Header: White bg, logo + app name -->
-                <div class="guest-header-white px-4 pt-5 pb-3">
-                    <div class="d-flex align-items-center gap-2 mb-3" style="cursor:pointer" @onclick='() => NavigateTo("/")'>
-                        @if (!string.IsNullOrEmpty(State.AppLogo))
-                        {
-                            <img src="@State.GetAbsoluteUrl(State.AppLogo)" alt="Logo" style="height: 38px; width: auto; object-fit: contain;" />
-                        }
-                        else
-                        {
-                            <span style="font-size:1.6rem; color: var(--theme-primary);">⚡</span>
-                        }
-                        <span style="font-size:1.3rem; font-weight:800; color: var(--theme-primary);">@(string.IsNullOrEmpty(State.AppNameAr) ? State.AppName : State.AppNameAr)</span>
-                    </div>
-                    <hr class="my-2" style="border-color:#f1f5f9;" />
-                    <!-- Section label -->
-                    <p class="section-title mb-2">إكتشف @State.AppName</p>
-                    <!-- Home Button - active/filled -->
-                    <div class="menu-item mb-2" @onclick='() => NavigateTo("/")'>
-                        <i class="fa-solid fa-house"></i>
-                        <span>الرئيسية</span>
-                    </div>
-                    <div class="menu-item mb-2" @onclick='() => NavigateTo("/feed")'>
-                        <i class="fa-regular fa-newspaper"></i>
-                        <span>آخر التحديثات</span>
-                    </div>
-                    <div class="menu-item mb-2 @GetActiveClass("contact")" @onclick='() => NavigateTo("/contact")'>
-                        <i class="fa-solid fa-headset text-success"></i>
-                        <span>تواصل معنا</span>
-                    </div>
-                    <!-- Refresh -->
-                    <div class="menu-item" @onclick="RefreshApp">
-                        <i class="fa-solid fa-rotate"></i>
-                        <span>تحديث التطبيق</span>
-                    </div>
-                </div>
-
-                <!-- Join Card -->
-                <div class="px-3 mt-2">
-                    <div class="join-card-web">
-                        <div class="join-icon-circle">
-                            <i class="fa-solid fa-user-plus"></i>
-                        </div>
-                        <h5 class="join-title">انضم إلينا الآن</h5>
-                        <p class="join-subtitle">سجل دخولك لتتمكن من طلب الخدمات والتواصل مع المزودين</p>
-                        <div class="d-flex gap-2 mt-3">
-                            <button class="btn-join-primary flex-fill" @onclick='() => NavigateTo("/login")'>دخول</button>
-                            <button class="btn-join-outline flex-fill" @onclick='() => NavigateTo("/login?tab=register")'>حساب جديد</button>
-                        </div>
-                    </div>
-                </div>
-            </NotAuthorized>
-        </AuthorizeView>
+            </div>
+        }
     </div>
 
     <div class="sidebar-bottom">
@@ -333,7 +382,7 @@
             <a href="/privacy" class="text-muted text-decoration-none smaller" @onclick="CloseSidebar">الخصوصية</a>
             <a href="/delete-account" class="text-muted text-decoration-none smaller" @onclick="CloseSidebar">حذف الحساب</a>
         </div>
-        <div class="app-version">إصدار 1.0.0</div>
+        @* app-version removed *@
     </div>
 </aside>
 
@@ -357,7 +406,7 @@
     .mobile-sidebar-drawer {
         position: fixed;
         top: 0;
-        right: -300px; /* Hidden off-screen to the right side */
+        right: -300px;
         left: auto !important;
         width: 300px;
         height: 100vh;
@@ -367,13 +416,10 @@
         display: flex;
         flex-direction: column;
         box-shadow: -10px 0 30px rgba(0, 0, 0, 0.05);
-        direction: rtl; /* Ensure internal content is RTL too */
-        
-        /* Enable scrolling */
+        direction: rtl;
         overflow-y: auto;
     }
 
-    /* Modern & Subtle Scrollbar for Mobile Sidebar */
     .mobile-sidebar-drawer::-webkit-scrollbar {
         width: 4px;
     }
@@ -394,15 +440,15 @@
 
     .profile-header {
         background: linear-gradient(90deg, #6366f1 0%, #a855f7 100%);
-        border-radius: 0 0 0 40px; /* Custom curve matching image */
-        padding: 40px 20px;
+        border-radius: 0 0 0 40px;
+        padding: 30px 20px;
     }
 
     .user-brief-modern-row {
         display: flex;
         align-items: center;
         justify-content: flex-end;
-        gap: 20px;
+        gap: 16px;
         cursor: pointer;
     }
 
@@ -414,10 +460,10 @@
     }
 
     .avatar-circle-shadow {
-        width: 75px;
-        height: 75px;
+        width: 65px;
+        height: 65px;
         background: white;
-        border-radius: 20px;
+        border-radius: 18px;
         padding: 3px;
         box-shadow: 0 8px 20px rgba(0,0,0,0.2);
     }
@@ -425,41 +471,72 @@
     .user-avatar-modern {
         width: 100%;
         height: 100%;
-        border-radius: 18px;
+        border-radius: 16px;
         object-fit: cover;
     }
 
     .welcome-text {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         font-weight: 600;
         opacity: 0.9;
+        color: white;
     }
 
     .user-name-title {
-        font-size: 1.25rem;
+        font-size: 1.15rem;
         font-weight: 800;
-        margin-top: 4px;
+        margin-top: 2px;
         letter-spacing: -0.5px;
+        color: white;
+    }
+
+    .user-role-badge {
+        font-size: 0.7rem;
+        padding: 2px 8px;
+        border-radius: 8px;
+        margin-top: 4px;
+        font-weight: 700;
+        display: inline-block;
+    }
+
+    .user-role-badge.badge-superadmin {
+        background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%) !important;
+        color: #fff !important;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+    .user-role-badge.badge-admin {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+        color: #fff !important;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+    .user-role-badge.badge-provider {
+        background: linear-gradient(135deg, #10b981 0%, #047857 100%) !important;
+        color: #fff !important;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+    .user-role-badge.badge-client {
+        background: rgba(255, 255, 255, 0.25) !important;
+        color: #fff !important;
     }
 
     /* Menu Items */
     .menu-item {
         display: flex;
         align-items: center;
-        gap: 20px;
-        padding: 16px 20px;
-        border-radius: 18px;
+        gap: 16px;
+        padding: 14px 18px;
+        border-radius: 16px;
         color: #1e293b;
         font-weight: 700;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         cursor: pointer;
-        font-size: 1.05rem;
+        font-size: 1rem;
     }
 
     .item-icon, .menu-item i {
-        font-size: 1.4rem;
-        width: 32px;
+        font-size: 1.25rem;
+        width: 28px;
         display: flex;
         justify-content: center;
         filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));
@@ -467,35 +544,29 @@
     }
 
     .menu-item:hover .item-icon, .menu-item:hover i {
-        transform: scale(1.1);
+        transform: scale(1.08);
     }
 
     .menu-item.active {
         background: #6366f1;
         color: white !important;
-        box-shadow: 0 10px 25px rgba(99, 102, 241, 0.35);
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35);
     }
 
     .menu-item.active i {
         color: white !important;
     }
 
-    .section-title {
-        font-size: 0.85rem;
-        font-weight: 800;
-        color: #94a3b8;
-        padding: 15px 20px 10px;
-        text-align: right;
+    .admin-link-premium {
+        background: rgba(99, 102, 241, 0.08);
     }
 
-    .premium-badge-mini {
-        background: linear-gradient(135deg, #f59e0b, #fbbf24);
-        color: white;
-        font-size: 0.65rem;
-        padding: 2px 10px;
-        border-radius: 10px;
-        margin-right: auto;
+    .section-title {
+        font-size: 0.8rem;
         font-weight: 800;
+        color: #94a3b8;
+        padding: 12px 18px 8px;
+        text-align: right;
     }
 
     .logout-item-new {
@@ -509,7 +580,6 @@
         font-size: 1.1rem;
     }
 
-
     .sidebar-bottom {
         padding: 20px;
         text-align: center;
@@ -518,7 +588,6 @@
         border-top: 1px solid #f1f5f9;
     }
 
-    /* ── Guest Join Card ── */
     .guest-header-white {
         background: #ffffff;
     }
@@ -593,25 +662,101 @@
 </style>
 
 @code {
+    private string DisplayName = "مستخدم";
+    private bool _isAuthenticated = false;
+    private bool _isAdmin = false;
+    private bool _isSuperAdmin = false;
+    private bool _isProvider = false;
     private bool _disposed = false;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         State.OnChange += OnStateChange;
+        AuthStateProvider.AuthenticationStateChanged += OnAuthStateChanged;
+        await UpdateUserDataAsync();
+    }
+
+    private async void OnAuthStateChanged(Task<AuthenticationState> task)
+    {
+        if (_disposed) return;
+        try
+        {
+            await UpdateUserDataAsync();
+            await InvokeAsync(StateHasChanged);
+        }
+        catch { }
     }
 
     private async void OnStateChange()
     {
         if (_disposed) return;
-        try { await InvokeAsync(StateHasChanged); }
+        try 
+        { 
+            await UpdateUserDataAsync();
+            await InvokeAsync(StateHasChanged); 
+        }
         catch (ObjectDisposedException) { }
         catch (InvalidOperationException) { }
+    }
+
+    private async Task UpdateUserDataAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            _isAuthenticated = (user.Identity?.IsAuthenticated == true) || State.IsLoggedIn;
+
+            if (_isAuthenticated)
+            {
+                var roleClaims = user.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
+                if (!roleClaims.Any())
+                {
+                    roleClaims = user.FindAll("role").Select(c => c.Value).ToList();
+                }
+
+                _isSuperAdmin = roleClaims.Any(r => r.Equals("SuperAdmin", StringComparison.OrdinalIgnoreCase)) 
+                                || State.IsSuperAdmin;
+                
+                _isAdmin = _isSuperAdmin 
+                           || roleClaims.Any(r => r.Equals("SystemAdmin", StringComparison.OrdinalIgnoreCase) || r.Equals("Admin", StringComparison.OrdinalIgnoreCase)) 
+                           || State.IsAdmin;
+
+                _isProvider = State.IsProvider || roleClaims.Any(r => r.Equals("Provider", StringComparison.OrdinalIgnoreCase) || r.Equals("Craftsman", StringComparison.OrdinalIgnoreCase));
+
+                if (_isSuperAdmin)
+                    DisplayName = "مدير خارق";
+                else if (_isAdmin)
+                    DisplayName = "مدير نظام";
+                else if (_isProvider)
+                    DisplayName = "صاحب خدمة";
+                else
+                    DisplayName = "عميل";
+            }
+            else
+            {
+                _isAdmin = false;
+                _isSuperAdmin = false;
+                _isProvider = false;
+                DisplayName = "زائر";
+            }
+        }
+        catch { }
+    }
+
+    private string GetRoleBadgeClass()
+    {
+        if (_isSuperAdmin) return "badge-superadmin";
+        if (_isAdmin) return "badge-admin";
+        if (_isProvider) return "badge-provider";
+        return "badge-client";
     }
 
     public void Dispose()
     {
         _disposed = true;
         State.OnChange -= OnStateChange;
+        AuthStateProvider.AuthenticationStateChanged -= OnAuthStateChanged;
     }
 
     private void CloseSidebar()
@@ -631,10 +776,7 @@
     {
         CloseSidebar();
         await AuthService.Logout();
-        // If running inside the native MAUI container, the Logout() call above
-        // fires khadamat://auth/auth_logout which triggers Shell.GoToAsync("//Guest_Home")
-        // on the native side — so we must NOT do a WebView navigation here.
-        // Only navigate in the browser if NOT in native app context.
+        await UpdateUserDataAsync();
         if (!State.IsNativeApp)
         {
             Navigation.NavigateTo("/login", forceLoad: false);
@@ -661,17 +803,5 @@
             : $"📲 منصة {State.AppName} — خدماتك في مكان واحد.. لكل المصريين!\nتواصل مباشرة مع أفضل الحرفيين والمهنيين ومقدمي الخدمات بكل سهولة وأمان.";
         var fullText = $"{shareText}\n\n🔗 رابط التحميل والمشاركة:\n{shareUrl}";
         await ShareService.ShareTextAsync(fullText, $"مشاركة تطبيق {State.AppName}");
-    }
-
-    private void ToggleProviderMode()
-    {
-        State.IsProviderMode = !State.IsProviderMode;
-        CloseSidebar();
-        // Let the page react to state change; in native app the ShellViewModel also
-        // gets notified separately. Navigate to the appropriate Blazor route.
-        if (State.IsProviderMode)
-            Navigation.NavigateTo("/provider/dashboard", forceLoad: false);
-        else
-            Navigation.NavigateTo("/", forceLoad: false);
     }
 }

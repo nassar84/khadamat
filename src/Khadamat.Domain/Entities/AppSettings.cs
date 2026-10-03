@@ -6,11 +6,11 @@ public class AppSettings : BaseEntity
     public string ApplicationName { get; set; } = "خدماوي";
     public string ApplicationNameAr { get; set; } = "خدماوي";
     public string ApplicationNameEn { get; set; } = "Khadamawi";
-    public string LogoUrl { get; set; } = "";
+    public string? LogoUrl { get; set; } = "";
     
     // APK Settings
-    public string ApkFilename { get; set; } = "Khadamawy.apk";
-    public string ApkIconUrl { get; set; } = "";
+    public string? ApkFilename { get; set; } = "Khadamawy.apk";
+    public string? ApkIconUrl { get; set; } = "";
 
     public string PrimaryColor { get; set; } = "#6366f1";
     public string SecondaryColor { get; set; } = "#a855f7";
@@ -18,21 +18,21 @@ public class AppSettings : BaseEntity
     public string ContactPhone { get; set; } = "";
     
     // Contact & Payments (InstaPay, Vodafone Cash, Wallets)
-    public string ContactWhatsApp { get; set; } = "";
-    public string InstaPayNumber { get; set; } = "";
-    public string VodafoneCashNumber { get; set; } = "";
-    public string OtherWalletNumber { get; set; } = "";
-    public string PaymentInstructions { get; set; } = "";
+    public string? ContactWhatsApp { get; set; } = "";
+    public string? InstaPayNumber { get; set; } = "";
+    public string? VodafoneCashNumber { get; set; } = "";
+    public string? OtherWalletNumber { get; set; } = "";
+    public string? PaymentInstructions { get; set; } = "";
 
     public bool IsMaintenanceMode { get; set; } = false;
-    public string WelcomeMessage { get; set; } = "مرحباً بكم في منصة خدماوي";
+    public string? WelcomeMessage { get; set; } = "مرحباً بكم في منصة خدماوي";
     
     // Sound Settings (Filenames in wwwroot/audio or similar)
-    public string OpenAppSound { get; set; } = "bic_ring1.mp3";
-    public string FindServiceSound { get; set; } = "find_service.mp3";
-    public string OpenDetailsSound { get; set; } = "open_details.mp3";
-    public string MessageReceivedSound { get; set; } = "message_received.mp3";
-    public string NotificationReceivedSound { get; set; } = "notification_received.mp3";
+    public string? OpenAppSound { get; set; } = "bic_ring1.mp3";
+    public string? FindServiceSound { get; set; } = "find_service.mp3";
+    public string? OpenDetailsSound { get; set; } = "open_details.mp3";
+    public string? MessageReceivedSound { get; set; } = "message_received.mp3";
+    public string? NotificationReceivedSound { get; set; } = "notification_received.mp3";
     
     // System Features Control
     public bool AllowUserRegistration { get; set; } = true;
@@ -47,17 +47,17 @@ public class AppSettings : BaseEntity
     public bool MarketplaceAutoExpire { get; set; } = true;        // إنهاء الإعلانات تلقائياً عند انتهاء المدة
 
     // App Info & Social
-    public string FacebookUrl { get; set; } = "";
-    public string TwitterUrl { get; set; } = "";
-    public string InstagramUrl { get; set; } = "";
+    public string? FacebookUrl { get; set; } = "";
+    public string? TwitterUrl { get; set; } = "";
+    public string? InstagramUrl { get; set; } = "";
     
     // Legal
-    public string TermsAndConditions { get; set; } = "";
-    public string PrivacyPolicy { get; set; } = "";
+    public string? TermsAndConditions { get; set; } = "";
+    public string? PrivacyPolicy { get; set; } = "";
 
     // App Sharing & Store Links
-    public string AppShareUrl { get; set; } = "";
-    public string AppShareText { get; set; } = "";
-    public string AppStoreUrl { get; set; } = "";
-    public string GooglePlayUrl { get; set; } = "";
+    public string? AppShareUrl { get; set; } = "";
+    public string? AppShareText { get; set; } = "";
+    public string? AppStoreUrl { get; set; } = "";
+    public string? GooglePlayUrl { get; set; } = "";
 }

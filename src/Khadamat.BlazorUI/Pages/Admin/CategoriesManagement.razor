@@ -201,6 +201,8 @@
 <CategoryForm Show="showModal" 
               IsEditing="isEditing" 
               Model="categoryModel" 
+              MainCategories="@mainCategories"
+              Categories="@allCategoriesForParent"
               OnSave="HandleSave" 
               OnCancel="() => showModal = false" />
 
@@ -359,6 +361,9 @@
     private readonly Dictionary<int, List<CategoryDto>> categoriesOf = new();
     private readonly Dictionary<int, List<SubCategoryDto>> subsOf = new();
 
+    // ── قائمة الفئات الكاملة لتعديل الأب ──
+    private List<CategoryDto> allCategoriesForParent = new();
+
     // ── المودال وإدارة النماذج ──
     private bool showModal = false;
     private bool isEditing = false;
@@ -509,11 +514,20 @@
         showModal = true;
     }
 
-    private void EditSub(SubCategoryDto sub, int catId)
+    private async Task EditSub(SubCategoryDto sub, int catId)
     {
         currentTargetLevel = 2;
         currentParentId = catId;
         isEditing = true;
+        // Load all categories for parent selection if not already done
+        if (!allCategoriesForParent.Any())
+        {
+            foreach (var mc in mainCategories)
+            {
+                var cats = categoriesOf.ContainsKey(mc.Id) ? categoriesOf[mc.Id] : await Api.GetCategoriesByMainIdAsync(mc.Id);
+                allCategoriesForParent.AddRange(cats);
+            }
+        }
         categoryModel = new CategoryForm.CategoryFormModel
         {
             Id = sub.Id,

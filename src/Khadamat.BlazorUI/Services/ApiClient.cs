@@ -125,6 +125,33 @@ public class ApiClient
     }
 
     /// <summary>
+    /// رفع صورة Hero للصفحة الرئيسية — POST /v1/upload/hero?slot={slot}
+    /// slot=1 → hero_banner.png, slot=2 → hero_banner2.png
+    /// </summary>
+    public async Task<bool> UploadHeroImageAsync(IBrowserFile file, int slot = 1, long maxSizeBytes = 10 * 1024 * 1024)
+    {
+        try
+        {
+            using var content = new MultipartFormDataContent();
+            using var stream = file.OpenReadStream(maxSizeBytes);
+            var fileContent = new StreamContent(stream);
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+            content.Add(fileContent, "file", file.Name);
+
+            var response = await _http.PostAsync($"v1/upload/hero?slot={slot}", content);
+            if (response.IsSuccessStatusCode) return true;
+            var error = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"[UploadHeroImageAsync] Failed: {response.StatusCode} — {error}");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[UploadHeroImageAsync] Error: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
     /// رفع صورة بنوع مخصص (string) — للحالات الاستثنائية.
     /// استخدم UploadImageAsync(IBrowserFile, EntityImageType) عادةً.
     /// </summary>
@@ -159,20 +186,49 @@ public class ApiClient
     private static readonly System.Collections.Generic.Dictionary<int, List<CityDto>> _citiesCache = new();
 
     // Settings
-    public async Task<ApiResponse<AppSettingsDto>> GetSettingsAsync()
+    public async Task<ApiResponse<AppSettingsDto>> GetSettingsAsync(bool forceRefresh = false)
     {
-        if (_settingsCache != null) return _settingsCache;
-        _settingsCache = await _http.GetFromJsonAsync<ApiResponse<AppSettingsDto>>("v1/settings") 
-               ?? ApiResponse<AppSettingsDto>.Fail("Failed to fetch settings");
-        return _settingsCache;
+        if (!forceRefresh && _settingsCache != null && _settingsCache.Success) return _settingsCache;
+        try
+        {
+            var res = await _http.GetFromJsonAsync<ApiResponse<AppSettingsDto>>("v1/settings");
+            if (res != null && res.Success)
+            {
+                _settingsCache = res;
+                return res;
+            }
+            return res ?? ApiResponse<AppSettingsDto>.Fail("Failed to fetch settings");
+        }
+        catch (Exception ex)
+        {
+            return ApiResponse<AppSettingsDto>.Fail($"Error fetching settings: {ex.Message}");
+        }
     }
 
     public async Task<ApiResponse<bool>> UpdateSettingsAsync(UpdateAppSettingsRequest request)
     {
-        var response = await _http.PutAsJsonAsync("v1/settings", request);
-        _settingsCache = null; // Invalidate cache
-        return await response.Content.ReadFromJsonAsync<ApiResponse<bool>>() 
-               ?? ApiResponse<bool>.Fail("Failed to update settings");
+        try
+        {
+            var response = await _http.PutAsJsonAsync("v1/settings", request);
+            _settingsCache = null; // Invalidate cache immediately
+            if (!response.IsSuccessStatusCode)
+            {
+                try
+                {
+                    var errorRes = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
+                    if (errorRes != null) return errorRes;
+                }
+                catch { }
+                var errorText = await response.Content.ReadAsStringAsync();
+                return ApiResponse<bool>.Fail($"فشل الحفظ ({response.StatusCode}): {errorText}");
+            }
+            return await response.Content.ReadFromJsonAsync<ApiResponse<bool>>() 
+                   ?? ApiResponse<bool>.Fail("Failed to update settings");
+        }
+        catch (Exception ex)
+        {
+            return ApiResponse<bool>.Fail($"خطأ في الاتصال بالخادم: {ex.Message}");
+        }
     }
  
     // Services

@@ -32,7 +32,7 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
 
             Console.WriteLine("ANTIGRAVITY_LOG: HttpClient Authorization header will be handled by AuthenticationHandler");
 
-            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt")));
+            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt", ClaimTypes.Name, ClaimTypes.Role)));
         } catch (Exception ex) {
             Console.WriteLine($"ANTIGRAVITY_LOG: GetAuthenticationStateAsync ERROR: {ex}");
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
@@ -43,14 +43,13 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
     {
         Console.WriteLine("ANTIGRAVITY_LOG: MarkUserAsAuthenticated called");
         
-        var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt"));
+        var authenticatedUser = new ClaimsPrincipal(new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt", ClaimTypes.Name, ClaimTypes.Role));
         var authState = Task.FromResult(new AuthenticationState(authenticatedUser));
         NotifyAuthenticationStateChanged(authState);
     }
 
     public void MarkUserAsLoggedOut()
     {
-        Console.WriteLine("ANTIGRAVITY_LOG: MarkUserAsLoggedOut called");
         Console.WriteLine("ANTIGRAVITY_LOG: MarkUserAsLoggedOut called");
         
         var anonymousUser = new ClaimsPrincipal(new ClaimsIdentity());
@@ -71,59 +70,65 @@ public class CustomAuthenticationStateProvider : AuthenticationStateProvider
             
             var payload = parts[1];
             var jsonBytes = ParseBase64WithoutPadding(payload);
-            var keyValuePairs = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonBytes);
+            using var doc = JsonDocument.Parse(jsonBytes);
 
-            if (keyValuePairs != null)
+            foreach (var property in doc.RootElement.EnumerateObject())
             {
-                // Handle Roles (try both short and long names)
-                object? roles = null;
-                if (!keyValuePairs.TryGetValue(ClaimTypes.Role, out roles))
-                {
-                    keyValuePairs.TryGetValue("role", out roles);
-                }
+                var key = property.Name;
+                var elem = property.Value;
 
-                if (roles != null)
+                if (key.Equals(ClaimTypes.Role, StringComparison.OrdinalIgnoreCase) || 
+                    key.Equals("role", StringComparison.OrdinalIgnoreCase) || 
+                    key.Equals("roles", StringComparison.OrdinalIgnoreCase))
                 {
-                    var rolesStr = roles.ToString()!.Trim();
-                    if (rolesStr.StartsWith("["))
+                    if (elem.ValueKind == JsonValueKind.Array)
                     {
-                        try
+                        foreach (var r in elem.EnumerateArray())
                         {
-                            var parsedRoles = JsonSerializer.Deserialize<string[]>(rolesStr);
-                            foreach (var parsedRole in parsedRoles!)
+                            var roleVal = r.GetString();
+                            if (!string.IsNullOrWhiteSpace(roleVal))
                             {
-                                claims.Add(new Claim(ClaimTypes.Role, parsedRole));
+                                claims.Add(new Claim(ClaimTypes.Role, roleVal));
+                                claims.Add(new Claim("role", roleVal));
                             }
                         }
-                        catch
+                    }
+                    else if (elem.ValueKind == JsonValueKind.String)
+                    {
+                        var roleVal = elem.GetString();
+                        if (!string.IsNullOrWhiteSpace(roleVal))
                         {
-                            // Fallback if not a valid JSON array
-                            claims.Add(new Claim(ClaimTypes.Role, rolesStr));
+                            claims.Add(new Claim(ClaimTypes.Role, roleVal));
+                            claims.Add(new Claim("role", roleVal));
                         }
                     }
-                    else
+                }
+                else if (key.Equals(ClaimTypes.Name, StringComparison.OrdinalIgnoreCase) || 
+                         key.Equals("unique_name", StringComparison.OrdinalIgnoreCase) || 
+                         key.Equals("name", StringComparison.OrdinalIgnoreCase))
+                {
+                    var nameVal = elem.GetString();
+                    if (!string.IsNullOrWhiteSpace(nameVal))
                     {
-                        claims.Add(new Claim(ClaimTypes.Role, rolesStr));
+                        claims.Add(new Claim(ClaimTypes.Name, nameVal));
+                        claims.Add(new Claim("name", nameVal));
                     }
-                    
-                    keyValuePairs.Remove(ClaimTypes.Role);
-                    keyValuePairs.Remove("role");
                 }
-
-                // Handle Names (try both short and long names)
-                object? name = null;
-                if (!keyValuePairs.TryGetValue(ClaimTypes.Name, out name))
+                else if (key.Equals(ClaimTypes.NameIdentifier, StringComparison.OrdinalIgnoreCase) || 
+                         key.Equals("sub", StringComparison.OrdinalIgnoreCase) || 
+                         key.Equals("nameid", StringComparison.OrdinalIgnoreCase))
                 {
-                    keyValuePairs.TryGetValue("unique_name", out name);
+                    var subVal = elem.GetString();
+                    if (!string.IsNullOrWhiteSpace(subVal))
+                    {
+                        claims.Add(new Claim(ClaimTypes.NameIdentifier, subVal));
+                        claims.Add(new Claim("sub", subVal));
+                    }
                 }
-                if (name != null)
+                else
                 {
-                    claims.Add(new Claim(ClaimTypes.Name, name.ToString()!));
-                    keyValuePairs.Remove(ClaimTypes.Name);
-                    keyValuePairs.Remove("unique_name");
+                    claims.Add(new Claim(key, elem.ToString() ?? ""));
                 }
-
-                claims.AddRange(keyValuePairs.Select(kvp => new Claim(kvp.Key, kvp.Value.ToString()!)));
             }
         } catch (Exception ex) {
             Console.WriteLine($"ANTIGRAVITY_LOG: ParseClaimsFromJwt Error: {ex.Message}");

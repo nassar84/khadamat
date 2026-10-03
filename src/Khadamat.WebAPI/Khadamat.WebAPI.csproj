@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <!-- NU1903: AutoMapper 13.0.1 vulnerability. NU1902: ImageSharp 2.1.9 (free Apache license) -->
     <NoWarn>$(NoWarn);NU1903;NU1902</NoWarn>
+    <ErrorOnDuplicatePublishAssets>false</ErrorOnDuplicatePublishAssets>
+    <ErrorOnDuplicateBuildAssets>false</ErrorOnDuplicateBuildAssets>
   </PropertyGroup>
 
   <ItemGroup>

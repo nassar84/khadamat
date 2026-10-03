@@ -6,8 +6,10 @@
 
 <header class="mobile-header-premium">
     <div class="header-glass-content">
-        <!-- Right Side (RTL): Avatar / Menu -->
+
+        <!-- Right Side (RTL): Hamburger menu FIRST, then Logo -->
         <div class="header-right">
+            <!-- Hamburger / Avatar toggle -->
             <AuthorizeView>
                 <Authorized>
                     <div class="user-profile-header-premium" @onclick="ToggleSidebar">
@@ -18,31 +20,32 @@
                     </div>
                 </Authorized>
                 <NotAuthorized>
+                    <!-- Show hamburger for guests too - login is in bottom nav -->
                     <button class="menu-toggle-btn-glass" @onclick="ToggleSidebar">
                         <i class="fa-solid fa-bars-staggered"></i>
                     </button>
                 </NotAuthorized>
             </AuthorizeView>
-        </div>
 
-        <!-- Center: Logo -->
-        <div class="header-center" @onclick='() => NavigateTo("/")'>
-            <div class="logo-wrapper-mobile">
-                @if (!string.IsNullOrEmpty(State.AppLogo))
-                {
-                    <img src="@State.GetAbsoluteUrl(State.AppLogo)" class="logo-img-mobile" alt="Logo" style="height: 34px; width: auto; object-fit: contain;" />
-                }
-                else
-                {
-                    <img src="images/logo.png" class="logo-img-mobile" alt="Logo" style="height: 34px; width: auto; object-fit: contain;" />
-                }
-                <span class="logo-text-premium">@(string.IsNullOrEmpty(State.AppNameAr) ? State.AppName : State.AppNameAr)</span>
+            <!-- Logo immediately after hamburger -->
+            <div class="header-logo-area" @onclick='() => NavigateTo("/")'>
+                <div class="logo-wrapper-mobile">
+                    @if (!string.IsNullOrEmpty(State.AppLogo))
+                    {
+                        <img src="@State.GetAbsoluteUrl(State.AppLogo)" class="logo-img-mobile" alt="Logo" style="height: 30px; width: auto; object-fit: contain; flex-shrink:0;" />
+                    }
+                    else
+                    {
+                        <img src="images/logo.png" class="logo-img-mobile" alt="Logo" style="height: 30px; width: auto; object-fit: contain; flex-shrink:0;" />
+                    }
+                    <span class="logo-text-premium">@(string.IsNullOrEmpty(State.AppNameAr) ? State.AppName : State.AppNameAr)</span>
+                </div>
             </div>
         </div>
 
         <!-- Left Side (RTL): Theme, Messages, Notifications -->
         <div class="header-left" dir="rtl">
-            
+
             <!-- Theme Toggle -->
             <div id="mobileThemeToggle" class="icon-btn-minimal theme-switcher-mobile" @onclick="ToggleThemeMenu" title="تغيير الثيم">
                 <i class="fa-solid fa-palette text-secondary"></i>
@@ -72,7 +75,6 @@
 
             <AuthorizeView>
                 <Authorized>
-
                     <!-- Notifications -->
                     <div class="icon-btn-minimal position-relative" @onclick='() => NavigateTo("/notifications")' title="الإشعارات" style="cursor: pointer;">
                         <i class="fa-regular fa-bell"></i>
@@ -93,7 +95,7 @@
             <div class="search-tap-icon-wrap">
                 <i class="fa-solid fa-magnifying-glass"></i>
             </div>
-            <span class="search-tap-placeholder">ابحث عن خدمة أو مهني...</span>
+            <span class="search-tap-placeholder">ابحث عن خدمة، تاجر، أو صناع...</span>
             <div class="search-tap-filter">
                 <i class="fa-solid fa-sliders"></i>
             </div>
@@ -108,7 +110,7 @@
         position: sticky;
         top: 0;
         z-index: 1000;
-        padding: 8px 15px;
+        padding: 8px 12px;
         background: transparent;
     }
 
@@ -118,40 +120,64 @@
         -webkit-backdrop-filter: blur(20px);
         border: 1px solid rgba(255, 255, 255, 0.3);
         border-radius: 20px;
-        height: 60px;
+        height: 56px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 15px;
+        padding: 0 10px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
         direction: rtl;
+        overflow: visible;
+    }
+
+    /* Right group: hamburger + logo side by side */
+    .header-right {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 1;
+        min-width: 0;
+        flex: 1;
+    }
+
+    /* Logo area sits right after hamburger */
+    .header-logo-area {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .logo-wrapper-mobile {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    /* Left group: action icons */
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        flex-shrink: 0;
     }
 
     .menu-toggle-btn-glass {
         background: rgba(var(--theme-primary-rgb), 0.1);
         border: none;
         color: var(--theme-primary);
-        width: 40px;
-        height: 40px;
+        width: 38px;
+        height: 38px;
         border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.2rem;
+        font-size: 1.15rem;
         transition: all 0.2s;
-    }
-
-    .logo-wrapper-mobile {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .header-right {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        flex-direction: row;
+        flex-shrink: 0;
     }
 
     .logo-icon-glow {
@@ -163,13 +189,29 @@
 
     .logo-text-premium {
         font-weight: 900;
-        font-size: 1.2rem;
+        font-size: 1.05rem;
         background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         letter-spacing: -0.5px;
         position: relative;
         overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        max-width: 90px;
+    }
+
+    /* Responsive: very small screens */
+    @@media (max-width: 360px) {
+        .logo-text-premium {
+            font-size: 0.9rem;
+            max-width: 70px;
+        }
+        .icon-btn-minimal {
+            width: 32px;
+            height: 32px;
+            font-size: 0.95rem;
+        }
     }
 
     .logo-text-premium::after {
@@ -197,6 +239,7 @@
         padding: 4px 4px 4px 12px;
         border-radius: 50px;
         border: 1px solid rgba(0, 0, 0, 0.03);
+        flex-shrink: 0;
     }
 
     [dir="rtl"] .user-profile-header-premium {
@@ -238,24 +281,25 @@
     }
 
     .icon-btn-minimal {
-        width: 38px;
-        height: 38px;
+        width: 36px;
+        height: 36px;
         display: flex;
         align-items: center;
         justify-content: center;
         color: #64748b;
-        font-size: 1.1rem;
+        font-size: 1rem;
         position: relative;
         cursor: pointer;
         transition: transform 0.2s, background 0.2s;
         border-radius: 12px;
+        flex-shrink: 0;
     }
-    
+
     .icon-btn-minimal:hover {
         background: rgba(0,0,0,0.05);
         transform: scale(1.05);
     }
-    
+
     .icon-btn-minimal:active {
         transform: scale(0.95);
     }
@@ -351,7 +395,7 @@
 
     .search-tap-placeholder {
         flex: 1;
-        font-size: 0.88rem;
+        font-size: 0.85rem;
         font-weight: 600;
         color: #94a3b8;
         text-align: right;
@@ -410,7 +454,7 @@
     .theme-dot-mobile:active { transform: scale(0.9); }
     .theme-dot-mobile.active { border-color: var(--theme-primary); transform: scale(1.1); }
 
-    .theme-dot-mobile.default { background: linear-gradient(135deg, #8e2de2, #4a00e0); }
+    .theme-dot-mobile.default { background: linear-gradient(135deg, #1a3a6b, #0f2044); }
     .theme-dot-mobile.sunset { background: linear-gradient(135deg, #ff4e50, #f9d423); }
     .theme-dot-mobile.ocean { background: linear-gradient(135deg, #00c6ff, #0072ff); }
     .theme-dot-mobile.forest { background: linear-gradient(135deg, #00f260, #0575e6); }

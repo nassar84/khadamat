@@ -3,7 +3,7 @@
 @if (Show)
 {
     <div class="modal-overlay" @onclick="Cancel">
-        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop" style="max-width: 500px;" @onclick:stopPropagation="true">
+        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop" style="max-width: 500px; max-height: 90vh; overflow-y: auto;" @onclick:stopPropagation="true">
             <div class="d-flex justify-content-between align-items-center mb-4 sticky-top bg-white pb-3" style="margin: -1rem -1rem 1rem -1rem; padding: 1rem 1rem 0.5rem 1rem; border-bottom: 1px solid #e9ecef;">
                 <h5 class="fw-bold mb-0 text-primary">
                     <i class="@GetIcon() me-2"></i>
@@ -26,10 +26,56 @@
                             <span class="input-group-text bg-light border-0"><i class="@Model.Icon"></i></span>
                             <input type="text" class="form-control rounded-pill-end border-0 bg-light px-3" @bind="Model.Icon" placeholder="fa-solid fa-...">
                         </div>
+                        <div class="form-text x-small mt-1">
+                            <i class="fa-solid fa-circle-info me-1 text-info"></i>
+                            مثال: fa-solid fa-home أو fa-brands fa-apple
+                        </div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label small fw-bold">اللون المميز</label>
                         <input type="color" class="form-control form-control-color w-100 rounded-pill border-0 bg-light p-1" @bind="Model.Color" style="height: 38px;">
+                    </div>
+                }
+
+                @* Parent selector for level 1 (Category under MainCategory) *@
+                @if (Model.Level == 1 && IsEditing && MainCategories != null && MainCategories.Any())
+                {
+                    <div class="col-12">
+                        <label class="form-label small fw-bold">
+                            <i class="fa-solid fa-sitemap me-1 text-primary"></i>التصنيف الرئيسي الأب
+                        </label>
+                        <select class="form-select rounded-pill px-3" value="@Model.ParentId" @onchange="OnParentChanged">
+                            <option value="">-- اختر التصنيف الرئيسي --</option>
+                            @foreach (var mc in MainCategories)
+                            {
+                                <option value="@mc.Id" selected="@(Model.ParentId == mc.Id)">@mc.Name</option>
+                            }
+                        </select>
+                        <div class="form-text x-small mt-1 text-warning">
+                            <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                            تغيير التصنيف الأب سينقل هذا القسم إلى تصنيف رئيسي مختلف.
+                        </div>
+                    </div>
+                }
+
+                @* Parent selector for level 2 (SubCategory under Category) *@
+                @if (Model.Level == 2 && IsEditing && Categories != null && Categories.Any())
+                {
+                    <div class="col-12">
+                        <label class="form-label small fw-bold">
+                            <i class="fa-solid fa-folder me-1 text-warning"></i>القسم الفرعي الأب
+                        </label>
+                        <select class="form-select rounded-pill px-3" value="@Model.ParentId" @onchange="OnParentChanged">
+                            <option value="">-- اختر القسم الفرعي --</option>
+                            @foreach (var cat in Categories)
+                            {
+                                <option value="@cat.Id" selected="@(Model.ParentId == cat.Id)">@cat.Name</option>
+                            }
+                        </select>
+                        <div class="form-text x-small mt-1 text-warning">
+                            <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                            تغيير القسم الأب سينقل هذا التخصص إلى قسم مختلف.
+                        </div>
                     </div>
                 }
 
@@ -63,6 +109,10 @@
     [Parameter] public bool IsEditing { get; set; }
     [Parameter] public CategoryFormModel Model { get; set; } = new();
 
+    // For parent editing (passed from CategoriesManagement)
+    [Parameter] public List<MainCategoryDto>? MainCategories { get; set; }
+    [Parameter] public List<CategoryDto>? Categories { get; set; }
+
     [Parameter] public EventCallback<CategoryFormModel> OnSave { get; set; }
     [Parameter] public EventCallback OnCancel { get; set; }
 
@@ -91,6 +141,14 @@
         1 => "fa-solid fa-folder",
         _ => "fa-solid fa-tag"
     };
+
+    private void OnParentChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int parentId))
+            Model.ParentId = parentId;
+        else
+            Model.ParentId = null;
+    }
 
     private async Task Save() => await OnSave.InvokeAsync(Model);
     private async Task Cancel() => await OnCancel.InvokeAsync();

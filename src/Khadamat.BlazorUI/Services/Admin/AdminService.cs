@@ -74,7 +74,21 @@ public class AdminService : IAdminService
     public async Task UpdateUser(string id, UserDto dto)
     {
         var response = await _http.PutAsJsonAsync($"v1/admin/users/{id}", dto);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            // Try to parse ApiResponse message
+            try
+            {
+                var error = System.Text.Json.JsonSerializer.Deserialize<Khadamat.Application.Common.Models.ApiResponse<bool>>(errorContent,
+                    new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                throw new Exception(error?.Message ?? $"خطأ {(int)response.StatusCode}: {response.ReasonPhrase}");
+            }
+            catch (System.Text.Json.JsonException)
+            {
+                throw new Exception($"خطأ {(int)response.StatusCode}: {response.ReasonPhrase}");
+            }
+        }
     }
 
     public async Task UpdateUserRole(string id, string role)

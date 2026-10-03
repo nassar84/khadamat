@@ -1,6 +1,7 @@
 @page "/admin/branding"
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
+@using Microsoft.AspNetCore.Components.Forms
 @inject ApiClient Api
 @inject Khadamat.BlazorUI.State.AppState AppState
 @inject IJSRuntime JS
@@ -54,18 +55,18 @@
                         <h5 class="fw-bold mb-3"><i class="fa-solid fa-palette me-2 text-primary"></i> الألوان والتنسيق</h5>
                         
                         <div class="row">
-                            <div class="col-6 mb-3">
+                            <div class="col-12 col-sm-6 mb-3">
                                 <label class="form-label fw-bold">اللون الأساسي</label>
-                                <div class="d-flex gap-2">
-                                    <input type="color" @bind="settings.PrimaryColor" class="form-control form-control-color border-0 rounded-circle" style="width: 45px; height: 45px;" />
-                                    <input @bind="settings.PrimaryColor" class="form-control rounded-3" />
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" @bind="settings.PrimaryColor" class="form-control form-control-color border-0 rounded-circle flex-shrink-0" style="width: 45px; height: 45px;" />
+                                    <input @bind="settings.PrimaryColor" class="form-control rounded-3" style="min-width: 0;" />
                                 </div>
                             </div>
-                            <div class="col-6 mb-3">
+                            <div class="col-12 col-sm-6 mb-3">
                                 <label class="form-label fw-bold">اللون الثانوي</label>
-                                <div class="d-flex gap-2">
-                                    <input type="color" @bind="settings.SecondaryColor" class="form-control form-control-color border-0 rounded-circle" style="width: 45px; height: 45px;" />
-                                    <input @bind="settings.SecondaryColor" class="form-control rounded-3" />
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" @bind="settings.SecondaryColor" class="form-control form-control-color border-0 rounded-circle flex-shrink-0" style="width: 45px; height: 45px;" />
+                                    <input @bind="settings.SecondaryColor" class="form-control rounded-3" style="min-width: 0;" />
                                 </div>
                             </div>
                         </div>
@@ -93,26 +94,77 @@
                             </div>
                         </div>
 
-                        <div class="form-check form-switch mt-3 py-2 px-4 rounded-3 border bg-white d-flex justify-content-between align-items-center">
-                            <div>
+                        <div class="form-check form-switch mt-3 py-2 px-3 rounded-3 border bg-white d-flex justify-content-between align-items-center gap-2">
+                            <div class="flex-grow-1" style="min-width: 0;">
                                 <label class="form-check-label fw-bold mb-0">وضع الصيانة (Maintenance Mode)</label>
                                 <p class="text-muted small mb-0">عند تفعيله، لن يتمكن المستخدمون العاديون من استخدام التطبيق.</p>
                             </div>
-                            <input class="form-check-input fs-4" type="checkbox" @bind="settings.IsMaintenanceMode">
+                            <input class="form-check-input fs-4 flex-shrink-0 ms-2" type="checkbox" @bind="settings.IsMaintenanceMode">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hero Images Section -->
+                <div class="col-12">
+                    <div class="section-card p-3 rounded-4 bg-light border">
+                        <h5 class="fw-bold mb-1"><i class="fa-solid fa-image me-2 text-primary"></i> صور الصفحة الرئيسية (Hero Slider)</h5>
+                        <p class="text-muted small mb-3">ارفع صور الشريحة الرئيسية للصفحة الرئيسية. تُحدَّث الصور فوراً بعد الرفع.</p>
+                        <div class="row g-3">
+                            @for (int s = 1; s <= 2; s++)
+                            {
+                                var slot = s;
+                                var imgUrl = slot == 1 ? "images/hero_banner.png" : $"images/hero_banner{slot}.png";
+                                <div class="col-12 col-md-6">
+                                    <div class="p-3 border rounded-3 bg-white h-100">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="fw-bold small">Hero Image #@slot</span>
+                                            <span class="badge bg-primary-subtle text-primary">الحالية</span>
+                                        </div>
+                                        <div class="rounded-3 overflow-hidden mb-2 border" style="height:120px;background:#f1f5f9;">
+                                            <img src="@(Api.GetAbsoluteUrl(imgUrl))?v=@heroTs"
+                                                 alt="Hero @slot"
+                                                 class="w-100 h-100"
+                                                 style="object-fit:cover;"
+                                                 onerror="this.style.display='none'" />
+                                        </div>
+                                        <label class="btn btn-sm btn-outline-primary rounded-pill w-100" style="cursor:pointer;">
+                                            @if (heroUploading == slot)
+                                            {
+                                                <span class="spinner-border spinner-border-sm me-1"></span>
+                                                <span>جاري الرفع...</span>
+                                            }
+                                            else
+                                            {
+                                                <i class="fa-solid fa-upload me-1"></i>
+                                                <span>رفع صورة جديدة</span>
+                                            }
+                                            <InputFile style="display:none;" OnChange="e => UploadHero(e, slot)" accept="image/*" disabled="@(heroUploading > 0)" />
+                                        </label>
+                                        @if (heroMsg.ContainsKey(slot))
+                                        {
+                                            <div class="mt-2 small alert @(heroOk.ContainsKey(slot) && heroOk[slot] ? "alert-success" : "alert-danger") py-1 px-2 rounded-3 mb-0">
+                                                @heroMsg[slot]
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
                         </div>
                     </div>
                 </div>
 
                 <!-- Actions -->
-                <div class="col-12 text-end mt-4">
-                    <button class="btn btn-light rounded-pill px-5 me-2" @onclick="LoadSettings">إعادة تعيين</button>
-                    <button class="btn btn-primary-premium rounded-pill px-5 py-2 shadow" @onclick="SaveSettings" disabled="@isSaving">
-                        @if (isSaving)
-                        {
-                            <span class="spinner-border spinner-border-sm me-2"></span>
-                        }
-                        حفظ التغييرات
-                    </button>
+                <div class="col-12 mt-4">
+                    <div class="d-flex flex-column flex-sm-row justify-content-end gap-2">
+                        <button class="btn btn-light rounded-pill px-4 py-2 order-2 order-sm-1" @onclick="LoadSettings">إعادة تعيين</button>
+                        <button class="btn btn-primary-premium rounded-pill px-4 py-2 shadow order-1 order-sm-2" @onclick="SaveSettings" disabled="@isSaving">
+                            @if (isSaving)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            حفظ التغييرات
+                        </button>
+                    </div>
                 </div>
             </div>
         }
@@ -134,10 +186,10 @@
         transform: translateY(-5px);
     }
     @@media (max-width: 767px) {
-        .glass-card { padding: 1rem !important; }
-        .section-card { padding: 1rem !important; margin-bottom: 0.5rem; }
-        .form-control, .btn { font-size: 0.9rem !important; }
-        .px-2 { padding-left: 8px !important; padding-right: 8px !important; }
+        .glass-card { padding: 0.85rem !important; }
+        .section-card { padding: 0.85rem !important; margin-bottom: 0.5rem; }
+        .form-control, .btn { font-size: 0.85rem !important; }
+        .px-2 { padding-left: 4px !important; padding-right: 4px !important; }
         .col-12.col-md-6 { margin-bottom: 1rem; }
     }
 </style>
@@ -148,6 +200,47 @@
     private bool isSaving = false;
     private string statusMessage = "";
     private bool isSuccess = false;
+
+    // Hero image upload state
+    private int heroUploading = 0;
+    private long heroTs = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+    private Dictionary<int, string> heroMsg = new();
+    private Dictionary<int, bool> heroOk = new();
+
+    private async Task UploadHero(InputFileChangeEventArgs e, int slot)
+    {
+        if (heroUploading > 0) return;
+        heroUploading = slot;
+        heroMsg.Remove(slot);
+        heroOk.Remove(slot);
+        StateHasChanged();
+
+        try
+        {
+            var ok = await Api.UploadHeroImageAsync(e.File, slot);
+            if (ok)
+            {
+                heroTs = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                heroMsg[slot] = $"✅ تم رفع Hero #{slot} بنجاح!";
+                heroOk[slot] = true;
+            }
+            else
+            {
+                heroMsg[slot] = $"❌ فشل الرفع. تأكد من صلاحيتك (SuperAdmin).";
+                heroOk[slot] = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            heroMsg[slot] = $"❌ خطأ: {ex.Message}";
+            heroOk[slot] = false;
+        }
+        finally
+        {
+            heroUploading = 0;
+            StateHasChanged();
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {

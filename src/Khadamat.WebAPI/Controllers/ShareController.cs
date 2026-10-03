@@ -222,10 +222,10 @@ public class ShareController : ControllerBase
             : $"{service.CategoryName} في {service.GovernorateName}";
         // Add location + price context
         var contextSuffix = $" | 📍 {service.GovernorateName}، {service.CityName} | 💰 {priceText}";
-        // Add a compelling CTA
-        var cta = " — 📲 حمل تطبيق خدماوي مجاناً واستمتع بآلاف الخدمات القريبة منك!";
+        // Add a compelling CTA with app definition and invitation
+        var cta = " — 📲 منصة وتطبيق خدماوي: سوق الخدمات والأعمال الأول في مصر. تصفح تفاصيل الخدمة وحمل التطبيق مجاناً لتواصل مباشر وآلاف الخدمات القريبة!";
         var combined = ogDesc + contextSuffix + cta;
-        if (combined.Length > 280) combined = combined[..277] + "...";
+        if (combined.Length > 300) combined = combined[..297] + "...";
         var safeOgDesc = HttpUtility.HtmlEncode(combined);
 
         // Page title (also used as og:title)

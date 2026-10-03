@@ -56,6 +56,7 @@ public class UploadController : ControllerBase
         { "marketplace",     "marketplace"     },   // متجر
         { "users",           "users"           },   // مستخدمون
         { "general",         "general"         },   // عام
+        { "hero",            ""                },   // hero banners (saved directly in images/)
     };
 
     private const long MaxFileSizeBytes = 10 * 1024 * 1024; // 10 MB
@@ -137,6 +138,61 @@ public class UploadController : ControllerBase
     /// Delete an uploaded image by filename and type.
     /// DELETE /v1/upload?type=services&filename=1749754465123_abc123.jpg
     /// </summary>
+    /// <summary>
+    /// Upload a hero banner image (saved as images/hero_banner.png, hero_banner2.png, etc.).
+    /// POST /v1/upload/hero?slot=1  (slot = 1 or 2 or 3)
+    /// Returns: { success, filename, url }
+    /// </summary>
+    [HttpPost("hero")]
+    [Authorize(Policy = "RequireAdmin")]
+    public async Task<IActionResult> UploadHeroImage(IFormFile file, [FromQuery] int slot = 1)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest(new { success = false, message = "لم يتم إرسال ملف" });
+
+        if (file.Length > MaxFileSizeBytes)
+            return BadRequest(new { success = false, message = $"حجم الملف يتجاوز {MaxFileSizeBytes / 1024 / 1024} MB" });
+
+        var ext = Path.GetExtension(file.FileName);
+        if (!AllowedExtensions.Contains(ext))
+            return BadRequest(new { success = false, message = "نوع الملف غير مدعوم" });
+
+        if (slot < 1 || slot > 5)
+            return BadRequest(new { success = false, message = "slot يجب أن يكون بين 1 و 5" });
+
+        try
+        {
+            var basePath = Directory.GetCurrentDirectory();
+            var folderPath = Path.Combine(basePath, "wwwroot", "images");
+
+            if (!Directory.Exists(folderPath))
+                Directory.CreateDirectory(folderPath);
+
+            // Always save as hero_banner.png or hero_banner2.png etc.
+            var filename = slot == 1 ? $"hero_banner{ext}" : $"hero_banner{slot}{ext}";
+            var filePath = Path.Combine(folderPath, filename);
+
+            using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            return Ok(new
+            {
+                success = true,
+                filename = filename,
+                url = $"/images/{filename}",
+                slot = slot,
+                message = $"تم رفع صورة Hero #{slot} بنجاح"
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[UploadController] Hero upload error: {ex.Message}");
+            return StatusCode(500, new { success = false, message = "حدث خطأ أثناء رفع الصورة" });
+        }
+    }
+
     [HttpDelete]
     [Authorize(Policy = "RequireAdmin")]
     public IActionResult DeleteImage([FromQuery] string type, [FromQuery] string filename)

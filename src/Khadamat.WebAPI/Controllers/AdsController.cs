@@ -19,10 +19,12 @@ namespace Khadamat.WebAPI.Controllers;
 public class AdsController : ControllerBase
 {
     private readonly KhadamatDbContext _context;
+    private readonly IWebHostEnvironment _env;
 
-    public AdsController(KhadamatDbContext context)
+    public AdsController(KhadamatDbContext context, IWebHostEnvironment env)
     {
         _context = context;
+        _env = env;
     }
 
     // Public Endpoint: Get active ads for slider or specific placement
@@ -271,7 +273,8 @@ public class AdsController : ControllerBase
     {
         try
         {
-            var folderPath = Path.Combine("wwwroot", "images", "ads");
+            var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var folderPath = Path.Combine(webRoot, "images", "ads");
             if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
 
             var fileName = $"ad_{adId}_1.jpg";
@@ -341,13 +344,15 @@ public class AdsController : ControllerBase
             }
         }
 
+        var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+
         if (!string.IsNullOrEmpty(dto.ImageBase64))
         {
             // Delete old file
             var currentFilename = ImageNamingHelper.ExtractFileName(ad.ImagePath);
             if (!string.IsNullOrEmpty(currentFilename))
             {
-                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "ads", currentFilename);
+                var oldPath = Path.Combine(webRoot, "images", "ads", currentFilename);
                 if (System.IO.File.Exists(oldPath))
                 {
                     try { System.IO.File.Delete(oldPath); } catch { }
@@ -363,7 +368,7 @@ public class AdsController : ControllerBase
             var currentFilename = ImageNamingHelper.ExtractFileName(ad.ImagePath);
             if (!string.IsNullOrEmpty(currentFilename) && currentFilename != cleanFilename)
             {
-                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "ads", currentFilename);
+                var oldPath = Path.Combine(webRoot, "images", "ads", currentFilename);
                 if (System.IO.File.Exists(oldPath))
                 {
                     try { System.IO.File.Delete(oldPath); } catch { }
@@ -379,7 +384,7 @@ public class AdsController : ControllerBase
             var currentFilename = ImageNamingHelper.ExtractFileName(ad.ImagePath);
             if (!string.IsNullOrEmpty(currentFilename))
             {
-                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "ads", currentFilename);
+                var oldPath = Path.Combine(webRoot, "images", "ads", currentFilename);
                 if (System.IO.File.Exists(oldPath))
                 {
                     try { System.IO.File.Delete(oldPath); } catch { }

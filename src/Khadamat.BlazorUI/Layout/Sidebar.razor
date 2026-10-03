@@ -1,239 +1,634 @@
 @using System.Security.Claims
 @using Khadamat.BlazorUI.State
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Authorization
+@using Khadamat.BlazorUI.Shared.Components
 @inject AppState State
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
+@inject Khadamat.BlazorUI.Services.Auth.IAuthService AuthService
+@inject Khadamat.Shared.Interfaces.IShareService ShareService
 @inject AuthenticationStateProvider AuthStateProvider
 @implements IDisposable
 
-<div class="app-sidebar @(IsCollapsed ? "collapsed" : "") d-none d-lg-flex">
-    <div class="sidebar-header">
-        <div class="logo-box" @onclick='() => Navigation.NavigateTo("/")' style="cursor:pointer">
+<div class="app-sidebar @(IsCollapsed ? "collapsed" : "") d-none d-lg-flex" dir="rtl">
+    <!-- Top Header -->
+    <div class="sidebar-top-bar">
+        <div class="logo-box" @onclick='() => NavigateTo("/")' style="cursor:pointer" title="@State.AppName">
             @if (!string.IsNullOrEmpty(State.AppLogo))
             {
-                <img src="@State.GetAbsoluteUrl(State.AppLogo)" class="logo-img" alt="Logo" style="height: 35px; width: auto; object-fit: contain;" />
+                <img src="@State.GetAbsoluteUrl(State.AppLogo)" class="logo-img" alt="Logo" />
             }
             else
             {
-                <img src="images/logo.png" class="logo-img" alt="Logo" style="height: 35px; width: auto; object-fit: contain;" />
+                <img src="images/logo.png" class="logo-img" alt="Logo" />
             }
-            <span class="logo-text">@(string.IsNullOrEmpty(State.AppNameAr) ? State.AppName : State.AppNameAr)</span>
+            @if (!IsCollapsed)
+            {
+                <span class="logo-text">@(string.IsNullOrEmpty(State.AppNameAr) ? State.AppName : State.AppNameAr)</span>
+            }
         </div>
-        <button class="collapse-btn" @onclick="ToggleCollapse">
+        <button class="collapse-btn" @onclick="ToggleCollapse" title="@(IsCollapsed ? "توسيع الشريط" : "تصغير الشريط")">
             <i class="fa-solid @(IsCollapsed ? "fa-chevron-left" : "fa-chevron-right")"></i>
         </button>
     </div>
 
-    <div class="sidebar-content">
-        <div class="menu-section">
-            <NavLink class="menu-item" href="/" Match="NavLinkMatch.All">
-                <i class="fa-solid fa-house"></i>
-                <span class="item-label">الرئيسية</span>
-            </NavLink>
-            <NavLink class="menu-item" href="/services">
-                <i class="fa-solid fa-briefcase"></i>
-                <span class="item-label">استكشاف الخدمات</span>
-            </NavLink>
-            <NavLink class="menu-item" href="/about">
-                <i class="fa-solid fa-circle-info"></i>
-                <span class="item-label">من نحن</span>
-            </NavLink>
-            <NavLink class="menu-item" href="/contact">
-                <i class="fa-solid fa-headset"></i>
-                <span class="item-label">تواصل معنا والشكاوى</span>
-            </NavLink>
-        </div>
+    @if (_isAuthenticated)
+    {
+        <!-- User Profile Header Banner -->
+        @if (!IsCollapsed)
+        {
+            <div class="sidebar-top-modern profile-header animate-fade-in" @onclick='() => NavigateTo("/profile")'>
+                <div class="user-brief-modern-row">
+                    <div class="user-info-modern-left">
+                        <span class="welcome-text">مرحباً بك،</span>
+                        <span class="user-name-title" title="@State.UserName">@(!string.IsNullOrEmpty(State.UserName) ? State.UserName : "مستخدم")</span>
+                        <span class="user-role-badge @GetRoleBadgeClass()">@DisplayName</span>
+                    </div>
+                    <div class="avatar-circle-shadow">
+                        <img src="@State.UserImageUrl" class="user-avatar-modern" alt="Avatar" />
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="collapsed-avatar-box my-3" @onclick='() => NavigateTo("/profile")' title="@State.UserName (@DisplayName)">
+                <img src="@State.UserImageUrl" class="collapsed-avatar" alt="Avatar" />
+            </div>
+        }
 
-        <AuthorizeView>
-            <Authorized>
-                <div class="menu-section">
-                    <div class="section-label">حسابي</div>
-                    <NavLink class="menu-item" href="/profile">
-                        <i class="fa-solid fa-user"></i>
-                        <span class="item-label">الملف الشخصي</span>
-                    </NavLink>
-                    <NavLink class="menu-item" href="/user/my-services">
+        <!-- Provider Request Banner (Only for regular clients - NEVER for Admins or Providers) -->
+        @if (!_isAdmin && !_isProvider)
+        {
+            @if (!IsCollapsed)
+            {
+                <div class="px-3 pt-3 pb-1 animate-fade-in">
+                    <div class="p-3 rounded-4 shadow-sm text-white d-flex align-items-center justify-content-between cursor-pointer"
+                         style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);"
+                         @onclick='() => NavigateTo("/provider/create-request")'>
+                        <div>
+                            <div class="fw-bold mb-1" style="font-size: 0.95rem;">صنايعي أو صاحب مهنة؟</div>
+                            <div class="opacity-90 mb-2" style="font-size: 0.75rem;">اعرض خدماتك الآن وزود دخلك معانا</div>
+                            <span class="badge bg-white text-primary rounded-pill px-3 py-1 fw-bold">اعرض خدماتك ←</span>
+                        </div>
+                        <div class="bg-white bg-opacity-20 rounded-circle p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
+                            <i class="fa-solid fa-briefcase fs-5 text-white"></i>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="text-center my-2">
+                    <button class="btn btn-sm btn-primary rounded-circle shadow-sm" style="width: 44px; height: 44px;" 
+                            @onclick='() => NavigateTo("/provider/create-request")' title="اعرض خدماتك وزود دخلك">
                         <i class="fa-solid fa-briefcase"></i>
-                        <span class="item-label">خدماتي</span>
+                    </button>
+                </div>
+            }
+        }
+    }
+    else
+    {
+        @if (!IsCollapsed)
+        {
+            <div class="guest-banner px-3 pt-3 pb-2 text-center animate-fade-in">
+                <p class="section-title mb-0">إكتشف @State.AppName</p>
+            </div>
+        }
+    }
+
+    <!-- Scrollable Menu Content -->
+    <div class="sidebar-content">
+        @if (_isAuthenticated)
+        {
+            @if (_isAdmin)
+            {
+                <!-- ==================== 1. دور الإدارة (SuperAdmin / SystemAdmin) ==================== -->
+                <div class="menu-section">
+                    <div class="section-label">لوحة الإدارة والتحكم</div>
+                    <NavLink class="menu-item admin-link-premium" href="/admin" Match="NavLinkMatch.All" title="لوحة المدير">
+                        <i class="fa-solid fa-chart-pie text-primary"></i>
+                        <span class="item-label fw-bold">لوحة المدير</span>
                     </NavLink>
-                    <NavLink class="menu-item" href="/user/my-requests">
-                        <i class="fa-solid fa-clipboard-list"></i>
-                        <span class="item-label">طلباتي</span>
+                    <NavLink class="menu-item approvals-highlight" href="/admin/approvals" title="مركز الموافقات">
+                        <i class="fa-solid fa-shield-halved text-warning"></i>
+                        <span class="item-label fw-bold">مركز الموافقات ⚡</span>
+                        @if (!IsCollapsed && State.PendingApprovalsCount > 0)
+                        {
+                            <span class="badge rounded-pill bg-danger ms-auto px-2 py-1">@State.PendingApprovalsCount</span>
+                        }
                     </NavLink>
-                    <NavLink class="menu-item" href="/user/messages">
-                        <i class="fa-solid fa-envelope"></i>
-                        <span class="item-label">رسائلي</span>
+                    <NavLink class="menu-item" href="/admin/ads" title="إدارة الإعلانات">
+                        <i class="fa-solid fa-rectangle-ad text-primary"></i>
+                        <span class="item-label">إدارة الإعلانات</span>
                     </NavLink>
-                    <NavLink class="menu-item" href="/client/favorites">
-                        <i class="fa-solid fa-heart"></i>
+                    <NavLink class="menu-item" href="/admin/users" title="إدارة المستخدمين">
+                        <i class="fa-solid fa-users text-primary"></i>
+                        <span class="item-label">إدارة المستخدمين</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/admin/approvals/providers" title="اعتماد مقدمي الخدمات">
+                        <i class="fa-solid fa-user-check text-primary"></i>
+                        <span class="item-label">اعتماد مقدمي الخدمات</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/admin/services" title="إدارة الخدمات">
+                        <i class="fa-solid fa-briefcase text-primary"></i>
+                        <span class="item-label">إدارة الخدمات</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/admin/categories" title="التصنيفات">
+                        <i class="fa-solid fa-th-large text-primary"></i>
+                        <span class="item-label">التصنيفات والأقسام</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/admin/locations" title="المناطق">
+                        <i class="fa-solid fa-map-marker-alt text-primary"></i>
+                        <span class="item-label">المناطق والمحافظات</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/admin/complaints" title="الشكاوى والبلاغات">
+                        <i class="fa-solid fa-headset text-danger"></i>
+                        <span class="item-label">الشكاوى والبلاغات</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/admin/reports" title="التقارير">
+                        <i class="fa-solid fa-file-alt text-primary"></i>
+                        <span class="item-label">التقارير والإحصائيات</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/admin/settings" title="إعدادات لوحة التحكم">
+                        <i class="fa-solid fa-cogs text-primary"></i>
+                        <span class="item-label">إعدادات لوحة التحكم</span>
+                    </NavLink>
+                    @if (_isSuperAdmin)
+                    {
+                        <NavLink class="menu-item" href="/admin/systemsettings" title="إعدادات الموقع والتطبيق">
+                            <i class="fa-solid fa-gears text-primary"></i>
+                            <span class="item-label">إعدادات الموقع والتطبيق</span>
+                        </NavLink>
+                        <NavLink class="menu-item" href="/admin/auditlogs" title="سجلات النشاط">
+                            <i class="fa-solid fa-shield-halved text-primary"></i>
+                            <span class="item-label">سجلات النشاط والأمان</span>
+                        </NavLink>
+                    }
+                </div>
+
+                <div class="menu-section">
+                    <div class="section-label">تصفح المنصة</div>
+                    <NavLink class="menu-item" href="/" Match="NavLinkMatch.All" title="الرئيسية">
+                        <i class="fa-solid fa-house"></i>
+                        <span class="item-label">الرئيسية</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/services" title="استكشاف الخدمات">
+                        <i class="fa-solid fa-compass text-primary"></i>
+                        <span class="item-label">استكشاف الخدمات</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/categories" title="الأقسام والتصنيفات">
+                        <i class="fa-solid fa-th-large text-info"></i>
+                        <span class="item-label">الأقسام والتصنيفات</span>
+                    </NavLink>
+                    <div class="menu-item cursor-pointer" @onclick="RefreshApp" title="تحديث الموقع">
+                        <i class="fa-solid fa-rotate"></i>
+                        <span class="item-label">تحديث الموقع</span>
+                    </div>
+                </div>
+            }
+            else if (_isProvider)
+            {
+                <!-- ==================== 2. دور صاحب الخدمة / المزود ==================== -->
+                <div class="menu-section">
+                    <div class="section-label">إدارة أعمالي وخدماتي</div>
+                    <NavLink class="menu-item" href="/provider/dashboard" Match="NavLinkMatch.All" title="لوحة صاحب الخدمة">
+                        <i class="fa-solid fa-gauge-high text-primary"></i>
+                        <span class="item-label fw-bold">لوحة صاحب الخدمة</span>
+                    </NavLink>
+                    <NavLink class="menu-item add-service-highlight" href="/provider/create-request" title="أضف خدمة جديدة">
+                        <i class="fa-solid fa-circle-plus text-primary"></i>
+                        <span class="item-label fw-bold">أضف خدمة جديدة ➕</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/provider/incoming-requests" title="طلبات العملاء الواردة">
+                        <i class="fa-solid fa-inbox text-primary"></i>
+                        <span class="item-label">طلبات العملاء الواردة</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/provider/my-services" title="خدماتي الحالية">
+                        <i class="fa-solid fa-briefcase text-primary"></i>
+                        <span class="item-label">خدماتي الحالية</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/provider/statistics" title="الإحصائيات">
+                        <i class="fa-solid fa-chart-line text-success"></i>
+                        <span class="item-label">إحصائيات المشاهدات</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/provider/referrals" title="نظام الإحالة">
+                        <i class="fa-solid fa-users-viewfinder text-primary"></i>
+                        <span class="item-label text-primary fw-bold">نظام الإحالة</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/provider/ad-analytics" title="إحصائيات الإعلانات">
+                        <i class="fa-solid fa-chart-pie text-success"></i>
+                        <span class="item-label text-success fw-bold">إحصائيات الإعلانات</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/provider/subscription" title="اشتراكي">
+                        <i class="fa-solid fa-gem text-warning"></i>
+                        <span class="item-label">اشتراكي وباقاتي</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/provider/settings" title="إعدادات صاحب الخدمة">
+                        <i class="fa-solid fa-sliders text-secondary"></i>
+                        <span class="item-label">إعدادات صاحب الخدمة</span>
+                    </NavLink>
+                </div>
+
+                <div class="menu-section">
+                    <div class="section-label">نشاطي وتواصلي</div>
+                    <NavLink class="menu-item" href="/user/messages" title="رسائلي ومحادثاتي">
+                        <i class="fa-solid fa-envelope text-secondary"></i>
+                        <span class="item-label">رسائلي ومحادثاتي</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/user/notifications" title="الإشعارات">
+                        <i class="fa-solid fa-bell text-secondary"></i>
+                        <span class="item-label">الإشعارات</span>
+                        @if (!IsCollapsed && State.NotificationCount > 0)
+                        {
+                            <span class="badge rounded-pill bg-danger ms-auto px-2 py-1">@State.NotificationCount</span>
+                        }
+                    </NavLink>
+                    <NavLink class="menu-item" href="/user/my-requests" title="طلباتي كعميل">
+                        <i class="fa-solid fa-list-check text-secondary"></i>
+                        <span class="item-label">طلباتي كعميل</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/client/favorites" title="المفضلة">
+                        <i class="fa-solid fa-heart text-danger"></i>
                         <span class="item-label">المفضلة</span>
                     </NavLink>
                 </div>
-            </Authorized>
-            <NotAuthorized>
-                <div class="menu-section auth-menu">
-                    <div class="section-label">انضم إلينا</div>
-                    <NavLink class="menu-item login-link" href="/login">
+
+                <div class="menu-section">
+                    <div class="section-label">استكشاف المنصة</div>
+                    <NavLink class="menu-item" href="/" Match="NavLinkMatch.All" title="الرئيسية">
+                        <i class="fa-solid fa-house"></i>
+                        <span class="item-label">الرئيسية</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/services" title="استكشاف الخدمات">
+                        <i class="fa-solid fa-compass text-primary"></i>
+                        <span class="item-label">استكشاف الخدمات</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/categories" title="الأقسام والتصنيفات">
+                        <i class="fa-solid fa-th-large text-info"></i>
+                        <span class="item-label">الأقسام والتصنيفات</span>
+                    </NavLink>
+                    <div class="menu-item cursor-pointer" @onclick="RefreshApp" title="تحديث الموقع">
+                        <i class="fa-solid fa-rotate"></i>
+                        <span class="item-label">تحديث الموقع</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- ==================== 3. دور العميل / المستخدم العادي ==================== -->
+                <div class="menu-section">
+                    <div class="section-label">نشاطي وطلباتي</div>
+                    <NavLink class="menu-item" href="/user/my-requests" title="طلباتي">
+                        <i class="fa-solid fa-list-check text-primary"></i>
+                        <span class="item-label fw-bold">طلباتي</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/user/messages" title="رسائلي ومحادثاتي">
+                        <i class="fa-solid fa-envelope text-secondary"></i>
+                        <span class="item-label">رسائلي ومحادثاتي</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/user/notifications" title="الإشعارات">
+                        <i class="fa-solid fa-bell text-secondary"></i>
+                        <span class="item-label">الإشعارات</span>
+                        @if (!IsCollapsed && State.NotificationCount > 0)
+                        {
+                            <span class="badge rounded-pill bg-danger ms-auto px-2 py-1">@State.NotificationCount</span>
+                        }
+                    </NavLink>
+                    <NavLink class="menu-item" href="/client/favorites" title="المفضلة">
+                        <i class="fa-solid fa-heart text-danger"></i>
+                        <span class="item-label">الخدمات المفضلة</span>
+                    </NavLink>
+                </div>
+
+                <div class="menu-section">
+                    <div class="section-label">تصفح الخدمات</div>
+                    <NavLink class="menu-item" href="/" Match="NavLinkMatch.All" title="الرئيسية">
+                        <i class="fa-solid fa-house"></i>
+                        <span class="item-label">الرئيسية</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/services" title="استكشاف الخدمات">
+                        <i class="fa-solid fa-compass text-primary"></i>
+                        <span class="item-label">استكشاف الخدمات</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/categories" title="الأقسام والتصنيفات">
+                        <i class="fa-solid fa-th-large text-info"></i>
+                        <span class="item-label">الأقسام والتصنيفات</span>
+                    </NavLink>
+                    <NavLink class="menu-item" href="/explore" title="استكشف">
+                        <i class="fa-solid fa-layer-group text-warning"></i>
+                        <span class="item-label">استكشف</span>
+                    </NavLink>
+                    <div class="menu-item cursor-pointer" @onclick="RefreshApp" title="تحديث الموقع">
+                        <i class="fa-solid fa-rotate"></i>
+                        <span class="item-label">تحديث الموقع</span>
+                    </div>
+                </div>
+            }
+
+            <!-- المشترك لجميع المستخدمين المسجلين: الحساب والخروج -->
+            <div class="menu-section mt-auto">
+                <div class="section-label">الحساب والمساعدة</div>
+                <NavLink class="menu-item" href="/profile" title="الملف الشخصي">
+                    <i class="fa-solid fa-user-gear text-secondary"></i>
+                    <span class="item-label">الملف الشخصي</span>
+                </NavLink>
+                <NavLink class="menu-item" href="/contact" title="تواصل معنا">
+                    <i class="fa-solid fa-headset text-success"></i>
+                    <span class="item-label">تواصل معنا</span>
+                </NavLink>
+                <NavLink class="menu-item" href="/support" title="الدعم والمساعدة">
+                    <span class="item-icon">🆘</span>
+                    <span class="item-label">الدعم والمساعدة</span>
+                </NavLink>
+                <div class="menu-item logout-item-new mt-2 cursor-pointer" @onclick="HandleLogout" title="تسجيل الخروج">
+                    <i class="fa-solid fa-power-off text-danger"></i>
+                    <span class="item-label text-danger fw-bold">تسجيل الخروج</span>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- ==================== 4. قائمة الزوار (Guest) ==================== -->
+            <div class="menu-section">
+                <div class="section-label">استكشاف المنصة</div>
+                <NavLink class="menu-item" href="/" Match="NavLinkMatch.All" title="الرئيسية">
+                    <i class="fa-solid fa-house"></i>
+                    <span class="item-label">الرئيسية</span>
+                </NavLink>
+                <NavLink class="menu-item" href="/services" title="استكشاف الخدمات">
+                    <i class="fa-solid fa-compass text-primary"></i>
+                    <span class="item-label">استكشاف الخدمات</span>
+                </NavLink>
+                <NavLink class="menu-item" href="/categories" title="الأقسام والتصنيفات">
+                    <i class="fa-solid fa-th-large text-info"></i>
+                    <span class="item-label">الأقسام والتصنيفات</span>
+                </NavLink>
+                <NavLink class="menu-item" href="/feed" title="آخر التحديثات">
+                    <i class="fa-regular fa-newspaper text-info"></i>
+                    <span class="item-label">آخر التحديثات</span>
+                </NavLink>
+                <NavLink class="menu-item" href="/contact" title="تواصل معنا">
+                    <i class="fa-solid fa-headset text-success"></i>
+                    <span class="item-label">تواصل معنا</span>
+                </NavLink>
+                <div class="menu-item cursor-pointer" @onclick="RefreshApp" title="تحديث الموقع">
+                    <i class="fa-solid fa-rotate"></i>
+                    <span class="item-label">تحديث الموقع</span>
+                </div>
+            </div>
+
+            @if (!IsCollapsed)
+            {
+                <!-- كارت الانضمام للزوار -->
+                <div class="px-2 mt-3 animate-fade-in">
+                    <div class="join-card-web">
+                        <div class="join-icon-circle">
+                            <i class="fa-solid fa-user-plus"></i>
+                        </div>
+                        <h5 class="join-title">انضم إلينا الآن</h5>
+                        <p class="join-subtitle">سجل دخولك لتتمكن من طلب الخدمات والتواصل مع المزودين</p>
+                        <div class="d-flex gap-2 mt-3">
+                            <button class="btn-join-primary flex-fill" @onclick='() => NavigateTo("/login")'>دخول</button>
+                            <button class="btn-join-outline flex-fill" @onclick='() => NavigateTo("/login?tab=register")'>حساب جديد</button>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="text-center my-3">
+                    <button class="btn btn-primary rounded-circle shadow-sm mb-2" style="width: 44px; height: 44px;" 
+                            @onclick='() => NavigateTo("/login")' title="تسجيل الدخول">
                         <i class="fa-solid fa-sign-in-alt"></i>
-                        <span class="item-label">تسجيل الدخول</span>
-                    </NavLink>
-                    <NavLink class="menu-item register-link" href="/register">
+                    </button>
+                    <button class="btn btn-outline-primary rounded-circle shadow-sm" style="width: 44px; height: 44px;" 
+                            @onclick='() => NavigateTo("/login?tab=register")' title="إنشاء حساب">
                         <i class="fa-solid fa-user-plus"></i>
-                        <span class="item-label">إنشاء حساب</span>
-                    </NavLink>
+                    </button>
                 </div>
-            </NotAuthorized>
-        </AuthorizeView>
+            }
+        }
 
-        <AuthorizeView Roles="Provider">
-            <Authorized>
-                <div class="menu-section">
-                    <div class="section-label">مزود الخدمة</div>
-                    <NavLink class="menu-item" href="/provider/dashboard">
-                        <i class="fa-solid fa-chart-line"></i>
-                        <span class="item-label">لوحة المزود</span>
-                    </NavLink>
-                </div>
-            </Authorized>
-        </AuthorizeView>
-
-        <AuthorizeView Roles="SystemAdmin,SuperAdmin" Context="adminContext">
-             <Authorized>
-                <div class="menu-section">
-                    <div class="section-label">الإدارة</div>
-                    <NavLink class="menu-item" href="/admin">
-                        <i class="fa-solid fa-gauge-high"></i>
-                        <span class="item-label">لوحة المدير</span>
-                    </NavLink>
-                    <NavLink class="menu-item" href="/admin/approvals/providers">
-                        <i class="fa-solid fa-user-check"></i>
-                        <span class="item-label">اعتماد المزودين</span>
-                    </NavLink>
-                    <NavLink class="menu-item" href="/admin/approvals/services">
-                        <i class="fa-solid fa-clipboard-check"></i>
-                        <span class="item-label">طلبات الخدمات</span>
-                    </NavLink>
-                    <AuthorizeView Roles="SuperAdmin" Context="superAdminContext">
-                        <NavLink class="menu-item" href="/admin/systemsettings">
-                            <i class="fa-solid fa-gears"></i>
-                            <span class="item-label">إعدادات النظام</span>
-                        </NavLink>
-                        <NavLink class="menu-item" href="/admin/auditlogs">
-                            <i class="fa-solid fa-shield-halved"></i>
-                            <span class="item-label">سجلات النشاط</span>
-                        </NavLink>
-                    </AuthorizeView>
-                </div>
-            </Authorized>
-        </AuthorizeView>
-
+        <!-- Sidebar Ad Banner Slot -->
         @if (!IsCollapsed)
         {
-            <div class="mt-4 px-3 pb-3">
+            <div class="mt-4 px-2 pb-2">
                 <Khadamat.BlazorUI.Components.Ads.AdLocation Placement="Sidebar" />
             </div>
         }
     </div>
 
-    <AuthorizeView>
-        <Authorized>
-            <div class="sidebar-footer">
-                <div class="theme-info" @onclick='() => Navigation.NavigateTo("/profile")'>
-                    <img src="@State.UserImageUrl" class="footer-avatar" />
-                    <div class="footer-user-info">
-                        <div class="footer-user-name" title="@State.UserName">@State.UserName</div>
-                        <div class="footer-user-role">@DisplayName</div>
-                    </div>
-                </div>
+    <!-- Bottom Footer Section -->
+    <div class="sidebar-bottom">
+        @if (!IsCollapsed)
+        {
+            <div class="px-2 mb-3">
+                <AppShareCard ShowTagline="true" ShowStoreButtons="false" OnShareClicked="ShareApp" />
             </div>
-        </Authorized>
-    </AuthorizeView>
+            <div class="sidebar-links mb-2 px-2 d-flex flex-wrap justify-content-center gap-2">
+                <a href="/contact" class="text-muted text-decoration-none smaller">تواصل معنا</a>
+                <span class="text-muted opacity-50">•</span>
+                <a href="/about" class="text-muted text-decoration-none smaller">من نحن</a>
+                <span class="text-muted opacity-50">•</span>
+                <a href="/terms" class="text-muted text-decoration-none smaller">الشروط</a>
+                <span class="text-muted opacity-50">•</span>
+                <a href="/privacy" class="text-muted text-decoration-none smaller">الخصوصية</a>
+            </div>
+            @* app-version removed *@
+        }
+        else
+        {
+            <div class="text-center">
+                <button class="btn btn-sm btn-light rounded-circle shadow-sm" @onclick="ShareApp" title="مشاركة التطبيق">
+                    <i class="fa-solid fa-share-nodes text-primary"></i>
+                </button>
+            </div>
+        }
+    </div>
 </div>
 
 <style>
     .app-sidebar {
         width: 280px;
         height: 100vh;
-        background: var(--glass-bg);
-        border-left: 1px solid rgba(0,0,0,0.05);
+        background: #ffffff;
+        border-left: 1px solid rgba(0, 0, 0, 0.06);
         display: flex;
         flex-direction: column;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         position: sticky;
         top: 0;
         z-index: 1001;
-        backdrop-filter: blur(var(--glass-blur));
-        -webkit-backdrop-filter: blur(var(--glass-blur));
-        box-shadow: -4px 0 15px rgba(0,0,0,0.03);
+        box-shadow: -4px 0 20px rgba(0, 0, 0, 0.04);
+        direction: rtl;
+        overflow: hidden;
     }
 
     .app-sidebar.collapsed {
         width: 80px;
     }
 
-    .sidebar-header {
-        padding: 25px;
+    .sidebar-top-bar {
+        padding: 16px 20px;
         display: flex;
         align-items: center;
         justify-content: space-between;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    }
+
+    .collapsed .sidebar-top-bar {
+        padding: 16px 12px;
+        justify-content: center;
+        flex-direction: column;
+        gap: 12px;
     }
 
     .logo-box {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
         overflow: hidden;
         white-space: nowrap;
     }
 
-    .logo-icon {
-        font-size: 1.8rem;
-        color: var(--theme-primary);
-        filter: drop-shadow(0 0 12px var(--theme-glow));
+    .logo-img {
+        height: 34px;
+        width: auto;
+        min-width: 34px;
+        object-fit: contain;
     }
 
     .logo-text {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
         font-weight: 800;
-        background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        transition: opacity 0.3s;
         letter-spacing: -0.5px;
     }
 
-    .collapsed .logo-text {
-        opacity: 0;
-        width: 0;
-    }
-
     .collapse-btn {
-        background: rgba(0, 0, 0, 0.05);
+        background: rgba(0, 0, 0, 0.04);
         border: none;
-        width: 30px;
-        height: 30px;
-        border-radius: 8px;
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
         color: #64748b;
-        transition: all 0.2s;
+        transition: all 0.2s ease;
     }
 
     .collapse-btn:hover {
-        background: var(--theme-primary);
+        background: var(--theme-primary, #6366f1);
         color: white;
-        box-shadow: 0 0 15px var(--theme-glow);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
     }
 
+    /* Profile Header - Matches MobileSidebar */
+    .profile-header {
+        background: linear-gradient(90deg, #6366f1 0%, #a855f7 100%);
+        border-radius: 0 0 0 28px;
+        padding: 24px 20px;
+        color: white;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+
+    .profile-header:hover {
+        transform: translateY(-2px);
+    }
+
+    .user-brief-modern-row {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 16px;
+    }
+
+    .user-info-modern-left {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        text-align: right;
+        overflow: hidden;
+    }
+
+    .avatar-circle-shadow {
+        width: 60px;
+        height: 60px;
+        background: white;
+        border-radius: 18px;
+        padding: 2px;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+        flex-shrink: 0;
+    }
+
+    .user-avatar-modern {
+        width: 100%;
+        height: 100%;
+        border-radius: 16px;
+        object-fit: cover;
+    }
+
+    .welcome-text {
+        font-size: 0.8rem;
+        font-weight: 600;
+        opacity: 0.9;
+    }
+
+    .user-name-title {
+        font-size: 1.1rem;
+        font-weight: 800;
+        margin-top: 2px;
+        max-width: 140px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .user-role-badge {
+        font-size: 0.7rem;
+        background: rgba(255, 255, 255, 0.22);
+        backdrop-filter: blur(4px);
+        padding: 2px 8px;
+        border-radius: 8px;
+        margin-top: 4px;
+        font-weight: 700;
+    }
+
+    .collapsed-avatar-box {
+        display: flex;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    .collapsed-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        border: 2px solid var(--theme-primary, #6366f1);
+        object-fit: cover;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+    }
+
+    /* Scrollable Content */
     .sidebar-content {
-        flex-grow: 1;
-        padding: 10px 15px;
+        flex: 1;
+        padding: 12px 14px;
         overflow-y: auto;
         overflow-x: hidden;
     }
 
-    /* Modern & Subtle Scrollbar */
+    .collapsed .sidebar-content {
+        padding: 12px 8px;
+    }
+
     .sidebar-content::-webkit-scrollbar {
         width: 4px;
     }
@@ -252,141 +647,322 @@
     }
 
     .menu-section {
-        margin-bottom: 25px;
+        margin-bottom: 20px;
     }
 
     .section-label {
-        font-size: 0.72rem;
+        font-size: 0.75rem;
         font-weight: 800;
-        text-transform: uppercase;
-        color: #64748b;
-        margin-bottom: 12px;
-        padding-right: 15px;
-        transition: opacity 0.3s;
-        letter-spacing: 0.05em;
+        color: #94a3b8;
+        padding: 8px 14px 6px;
+        text-align: right;
     }
 
     .collapsed .section-label {
-        opacity: 0;
+        display: none;
     }
 
+    /* Menu Items - Matches MobileSidebar */
     .menu-item {
         display: flex;
         align-items: center;
-        gap: 15px;
-        padding: 12px 15px;
+        gap: 14px;
+        padding: 11px 14px;
         border-radius: 14px;
-        color: #334155;
-        text-decoration: none;
-        transition: all 0.2s;
+        color: #1e293b;
+        font-weight: 700;
         margin-bottom: 5px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        font-size: 0.95rem;
+        text-decoration: none;
         white-space: nowrap;
-        font-weight: 600;
     }
 
-    .menu-item i {
-        font-size: 1.2rem;
-        width: 24px;
-        text-align: center;
+    .collapsed .menu-item {
+        justify-content: center;
+        padding: 12px 0;
+        gap: 0;
+    }
+
+    .menu-item i, .item-icon {
+        font-size: 1.15rem;
+        width: 26px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-shrink: 0;
+        transition: transform 0.2s ease;
+    }
+
+    .menu-item:hover i, .menu-item:hover .item-icon {
+        transform: scale(1.15);
     }
 
     .menu-item:hover {
-        background: var(--theme-light);
-        color: var(--theme-primary);
-        transform: translateX(5px);
+        background: rgba(99, 102, 241, 0.08);
+        color: var(--theme-primary, #6366f1);
+        transform: translateX(-3px);
+    }
+
+    .collapsed .menu-item:hover {
+        transform: scale(1.08);
     }
 
     .menu-item.active {
-        background: var(--theme-primary);
-        color: white;
-        box-shadow: 0 4px 15px var(--theme-glow);
-        font-weight: 700;
+        background: #6366f1 !important;
+        color: white !important;
+        box-shadow: 0 6px 18px rgba(99, 102, 241, 0.35);
+    }
+
+    .menu-item.active i {
+        color: white !important;
     }
 
     .collapsed .item-label {
         display: none;
     }
 
-    .sidebar-footer {
-        padding: 20px;
-        border-top: 1px solid rgba(0, 0, 0, 0.05);
+    .add-service-highlight {
+        background: rgba(99, 102, 241, 0.08);
+        color: #4f46e5;
     }
 
-    .theme-info {
+    .approvals-highlight {
+        background: rgba(245, 158, 11, 0.1);
+    }
+
+    .admin-link-premium {
+        background: rgba(99, 102, 241, 0.06);
+    }
+
+    .provider-switch-item {
+        background: rgba(16, 185, 129, 0.08);
+        color: #059669;
+    }
+
+    .logout-item-new {
+        color: #ef4444 !important;
+        background: #fef2f2 !important;
+        justify-content: center;
+        border: 1px solid #fee2e2;
+    }
+
+    .logout-item-new:hover {
+        background: #fee2e2 !important;
+        color: #dc2626 !important;
+    }
+
+    /* Guest Join Card */
+    .join-card-web {
+        background: #ffffff;
+        border: 1px solid #f1f5f9;
+        border-radius: 16px;
+        padding: 16px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .join-icon-circle {
+        width: 50px;
+        height: 50px;
+        background: #f3f0ff;
+        border-radius: 50%;
         display: flex;
         align-items: center;
-        gap: 12px;
+        justify-content: center;
+        margin: 0 auto 10px;
+    }
+
+    .join-icon-circle i {
+        font-size: 1.3rem;
+        color: var(--theme-primary, #6366f1);
+        width: auto;
+    }
+
+    .join-title {
+        font-size: 1rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 6px;
+    }
+
+    .join-subtitle {
+        font-size: 0.75rem;
+        color: #64748b;
+        line-height: 1.4;
+        margin-bottom: 0;
+    }
+
+    .btn-join-primary {
+        background: var(--theme-primary, #6366f1);
+        color: #ffffff;
+        border: none;
+        border-radius: 10px;
+        padding: 8px 0;
+        font-size: 0.85rem;
+        font-weight: 700;
         cursor: pointer;
-        padding: 10px;
-        border-radius: 12px;
+        transition: opacity 0.2s;
+    }
+
+    .btn-join-primary:hover { opacity: 0.88; }
+
+    .btn-join-outline {
+        background: #ffffff;
+        color: var(--theme-primary, #6366f1);
+        border: 1.5px solid var(--theme-primary, #6366f1);
+        border-radius: 10px;
+        padding: 8px 0;
+        font-size: 0.82rem;
+        font-weight: 700;
+        cursor: pointer;
         transition: background 0.2s;
     }
 
-    .theme-info:hover {
-        background: rgba(0, 0, 0, 0.03);
-    }
+    .btn-join-outline:hover { background: rgba(99, 102, 241, 0.06); }
 
-    .footer-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 12px;
-        object-fit: cover;
-    }
-
-    .footer-user-info {
-        overflow: hidden;
-        transition: opacity 0.3s;
-    }
-
-    .collapsed .footer-user-info {
-        opacity: 0;
-        width: 0;
-    }
-
-    .footer-user-name {
-        font-weight: 800;
-        font-size: 0.95rem;
-        color: var(--theme-primary);
-    }
-
-    .footer-user-role {
+    /* Footer Bottom */
+    .sidebar-bottom {
+        padding: 14px;
+        text-align: center;
+        color: #94a3b8;
         font-size: 0.75rem;
-        color: rgba(15, 23, 42, 0.7);
-        font-weight: 600;
+        border-top: 1px solid #f1f5f9;
+        background: #ffffff;
+    }
+
+    .collapsed .sidebar-bottom {
+        padding: 10px 4px;
+    }
+
+    .app-version {
+        font-size: 0.7rem;
+        opacity: 0.7;
+    }
+
+    .user-role-badge.badge-superadmin {
+        background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%) !important;
+        color: #fff !important;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+    .user-role-badge.badge-admin {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+        color: #fff !important;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+    .user-role-badge.badge-provider {
+        background: linear-gradient(135deg, #10b981 0%, #047857 100%) !important;
+        color: #fff !important;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+    .user-role-badge.badge-client {
+        background: rgba(255, 255, 255, 0.25) !important;
+        color: #fff !important;
+    }
+
+    .animate-fade-in {
+        animation: fadeIn 0.3s ease;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-6px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 </style>
 
 @code {
-    [Parameter] public bool IsCollapsed { get; set; }
+    [Parameter] public bool IsCollapsed { get; set; } = false;
     [Parameter] public EventCallback<bool> IsCollapsedChanged { get; set; }
-    
+
     private string DisplayName = "مستخدم";
+    private bool _isAuthenticated = false;
+    private bool _isAdmin = false;
+    private bool _isSuperAdmin = false;
+    private bool _isProvider = false;
     private bool _disposed = false;
 
     protected override async Task OnInitializedAsync()
     {
         State.OnChange += OnStateChange;
-        
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        if (user.Identity?.IsAuthenticated == true)
+        AuthStateProvider.AuthenticationStateChanged += OnAuthStateChanged;
+        await UpdateUserDataAsync();
+    }
+
+    private async void OnAuthStateChanged(Task<AuthenticationState> task)
+    {
+        if (_disposed) return;
+        try
         {
-            var role = user.FindFirst(ClaimTypes.Role)?.Value;
-            DisplayName = role switch
-            {
-                "SuperAdmin" => "مدير خارق",
-                "SystemAdmin" => "مدير نظام",
-                _ => "عميل"
-            };
+            await UpdateUserDataAsync();
+            await InvokeAsync(StateHasChanged);
         }
+        catch { }
     }
 
     private async void OnStateChange()
     {
         if (_disposed) return;
-        try { await InvokeAsync(StateHasChanged); }
+        try 
+        { 
+            await UpdateUserDataAsync();
+            await InvokeAsync(StateHasChanged); 
+        }
         catch (ObjectDisposedException) { }
         catch (InvalidOperationException) { }
+    }
+
+    private async Task UpdateUserDataAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            _isAuthenticated = (user.Identity?.IsAuthenticated == true) || State.IsLoggedIn;
+
+            if (_isAuthenticated)
+            {
+                var roleClaims = user.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
+                if (!roleClaims.Any())
+                {
+                    roleClaims = user.FindAll("role").Select(c => c.Value).ToList();
+                }
+
+                _isSuperAdmin = roleClaims.Any(r => r.Equals("SuperAdmin", StringComparison.OrdinalIgnoreCase)) 
+                                || State.IsSuperAdmin;
+                
+                _isAdmin = _isSuperAdmin 
+                           || roleClaims.Any(r => r.Equals("SystemAdmin", StringComparison.OrdinalIgnoreCase) || r.Equals("Admin", StringComparison.OrdinalIgnoreCase)) 
+                           || State.IsAdmin;
+
+                _isProvider = State.IsProvider || roleClaims.Any(r => r.Equals("Provider", StringComparison.OrdinalIgnoreCase) || r.Equals("Craftsman", StringComparison.OrdinalIgnoreCase));
+
+                if (_isSuperAdmin)
+                    DisplayName = "مدير خارق";
+                else if (_isAdmin)
+                    DisplayName = "مدير نظام";
+                else if (_isProvider)
+                    DisplayName = "صاحب خدمة";
+                else
+                    DisplayName = "عميل";
+            }
+            else
+            {
+                _isAdmin = false;
+                _isSuperAdmin = false;
+                _isProvider = false;
+                DisplayName = "زائر";
+            }
+        }
+        catch { }
+    }
+
+    private string GetRoleBadgeClass()
+    {
+        if (_isSuperAdmin) return "badge-superadmin";
+        if (_isAdmin) return "badge-admin";
+        if (_isProvider) return "badge-provider";
+        return "badge-client";
     }
 
     private async Task ToggleCollapse()
@@ -395,9 +971,40 @@
         await IsCollapsedChanged.InvokeAsync(IsCollapsed);
     }
 
+    private void NavigateTo(string path)
+    {
+        Navigation.NavigateTo(path, forceLoad: false);
+    }
+
+    private async Task HandleLogout()
+    {
+        await AuthService.Logout();
+        await UpdateUserDataAsync();
+        if (!State.IsNativeApp)
+        {
+            Navigation.NavigateTo("/login", forceLoad: false);
+        }
+    }
+
+    private async Task RefreshApp()
+    {
+        await JS.InvokeVoidAsync("location.reload");
+    }
+
+    private async Task ShareApp()
+    {
+        var shareUrl = !string.IsNullOrEmpty(State.AppShareUrl) ? State.AppShareUrl : "https://khadamawy.eis-dev.com";
+        var shareText = !string.IsNullOrEmpty(State.AppShareText)
+            ? State.AppShareText
+            : $"📲 منصة {State.AppName} — خدماتك في مكان واحد.. لكل المصريين!\nتواصل مباشرة مع أفضل الحرفيين والمهنيين ومقدمي الخدمات بكل سهولة وأمان.";
+        var fullText = $"{shareText}\n\n🔗 رابط التحميل والمشاركة:\n{shareUrl}";
+        await ShareService.ShareTextAsync(fullText, $"مشاركة تطبيق {State.AppName}");
+    }
+
     public void Dispose()
     {
         _disposed = true;
         State.OnChange -= OnStateChange;
+        AuthStateProvider.AuthenticationStateChanged -= OnAuthStateChanged;
     }
 }

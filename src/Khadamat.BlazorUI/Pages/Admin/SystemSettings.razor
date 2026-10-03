@@ -5,7 +5,7 @@
 @inject ApiClient Api
 @inject Khadamat.BlazorUI.State.AppState AppState
 @inject IJSRuntime JS
-@attribute [Authorize(Roles = "SuperAdmin")]
+@attribute [Authorize(Roles = "SuperAdmin,SystemAdmin")]
 
 <div class="px-2 pb-5 settings-page-wrapper">
     <div class="d-flex justify-content-between align-items-start align-items-md-center mb-4 flex-wrap gap-2 mt-2">
@@ -20,6 +20,17 @@
             </button>
         </div>
     </div>
+
+    @if (!string.IsNullOrEmpty(statusMessage))
+    {
+        <div class="alert @(isSuccess ? "alert-success" : "alert-danger") rounded-4 shadow-sm mb-4 d-flex align-items-center justify-content-between animate-fade-in" role="alert">
+            <div class="d-flex align-items-center gap-2">
+                <i class="fa-solid @(isSuccess ? "fa-circle-check text-success" : "fa-circle-exclamation text-danger") fs-5"></i>
+                <span class="fw-bold">@statusMessage</span>
+            </div>
+            <button type="button" class="btn-close" @onclick='() => statusMessage = ""'></button>
+        </div>
+    }
 
     @if (isLoading)
     {
@@ -49,7 +60,7 @@
                     </div>
                     <div class="mb-0">
                         <label class="form-label small fw-bold">شعار الموقع (Logo)</label>
-                        <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-4">
+                        <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-4 flex-wrap flex-sm-nowrap">
                             <div class="logo-preview-box bg-white p-2 rounded-3 border d-flex align-items-center justify-content-center flex-shrink-0" style="width: 70px; height: 70px;">
                                 @if (!string.IsNullOrEmpty(settings.LogoUrl))
                                 {
@@ -60,7 +71,7 @@
                                     <i class="fa-solid fa-image text-muted fs-3"></i>
                                 }
                             </div>
-                            <div class="flex-grow-1">
+                            <div class="flex-grow-1 w-100" style="min-width: 0;">
                                 <label class="btn btn-outline-primary btn-sm rounded-pill px-3 cursor-pointer w-100 mb-2">
                                     <i class="fa-solid fa-upload me-1"></i> رفع شعار جديد
                                     <InputFile OnChange="HandleLogoUpload" class="d-none" accept=".jpg,.jpeg,.png,.svg" />
@@ -187,7 +198,7 @@
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold">اللون الأساسي (Primary)</label>
-                        <div class="d-flex align-items-center gap-2">
+                        <div class="color-row">
                             <input type="color" @bind="settings.PrimaryColor" class="form-control form-control-color rounded-pill flex-shrink-0" style="width: 50px; height: 38px;">
                             <input type="text" value="@settings.PrimaryColor" @oninput="e => settings.PrimaryColor = e.Value?.ToString()" class="form-control rounded-pill px-3 small" placeholder="#6c5ce7">
                         </div>
@@ -195,7 +206,7 @@
 
                     <div class="mb-0">
                         <label class="form-label small fw-bold">اللون الثانوي (Secondary)</label>
-                        <div class="d-flex align-items-center gap-2">
+                        <div class="color-row">
                             <input type="color" @bind="settings.SecondaryColor" class="form-control form-control-color rounded-pill flex-shrink-0" style="width: 50px; height: 38px;">
                             <input type="text" value="@settings.SecondaryColor" @oninput="e => settings.SecondaryColor = e.Value?.ToString()" class="form-control rounded-pill px-3 small" placeholder="#a29bfe">
                         </div>
@@ -211,37 +222,37 @@
                     
                     <div class="mb-3">
                         <label class="form-label small fw-bold">صوت فتح التطبيق</label>
-                        <div class="input-group">
-                            <input type="text" @bind="settings.OpenAppSound" class="form-control rounded-start-pill px-3" placeholder="open_app.mp3">
-                            <button class="btn btn-outline-secondary rounded-end-pill px-3" @onclick='() => PlayPreview(settings.OpenAppSound ?? "")'><i class="fa-solid fa-play"></i></button>
+                        <div class="sound-input-row">
+                            <input type="text" @bind="settings.OpenAppSound" class="form-control rounded-pill px-3" placeholder="open_app.mp3">
+                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 sound-play-btn" @onclick='() => PlayPreview(settings.OpenAppSound ?? "")'><i class="fa-solid fa-play"></i></button>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold">صوت إيجاد خدمة</label>
-                        <div class="input-group">
-                            <input type="text" @bind="settings.FindServiceSound" class="form-control rounded-start-pill px-3" placeholder="find_service.mp3">
-                            <button class="btn btn-outline-secondary rounded-end-pill px-3" @onclick='() => PlayPreview(settings.FindServiceSound ?? "")'><i class="fa-solid fa-play"></i></button>
+                        <div class="sound-input-row">
+                            <input type="text" @bind="settings.FindServiceSound" class="form-control rounded-pill px-3" placeholder="find_service.mp3">
+                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 sound-play-btn" @onclick='() => PlayPreview(settings.FindServiceSound ?? "")'><i class="fa-solid fa-play"></i></button>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold">صوت فتح التفاصيل</label>
-                        <div class="input-group">
-                            <input type="text" @bind="settings.OpenDetailsSound" class="form-control rounded-start-pill px-3" placeholder="open_details.mp3">
-                            <button class="btn btn-outline-secondary rounded-end-pill px-3" @onclick='() => PlayPreview(settings.OpenDetailsSound ?? "")'><i class="fa-solid fa-play"></i></button>
+                        <div class="sound-input-row">
+                            <input type="text" @bind="settings.OpenDetailsSound" class="form-control rounded-pill px-3" placeholder="open_details.mp3">
+                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 sound-play-btn" @onclick='() => PlayPreview(settings.OpenDetailsSound ?? "")'><i class="fa-solid fa-play"></i></button>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold">صوت استقبال رسالة</label>
-                        <div class="input-group">
-                            <input type="text" @bind="settings.MessageReceivedSound" class="form-control rounded-start-pill px-3" placeholder="message.mp3">
-                            <button class="btn btn-outline-secondary rounded-end-pill px-3" @onclick='() => PlayPreview(settings.MessageReceivedSound ?? "")'><i class="fa-solid fa-play"></i></button>
+                        <div class="sound-input-row">
+                            <input type="text" @bind="settings.MessageReceivedSound" class="form-control rounded-pill px-3" placeholder="message.mp3">
+                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 sound-play-btn" @onclick='() => PlayPreview(settings.MessageReceivedSound ?? "")'><i class="fa-solid fa-play"></i></button>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold">صوت استقبال تنبيه</label>
-                        <div class="input-group">
-                            <input type="text" @bind="settings.NotificationReceivedSound" class="form-control rounded-start-pill px-3" placeholder="notif.mp3">
-                            <button class="btn btn-outline-secondary rounded-end-pill px-3" @onclick='() => PlayPreview(settings.NotificationReceivedSound ?? "")'><i class="fa-solid fa-play"></i></button>
+                        <div class="sound-input-row">
+                            <input type="text" @bind="settings.NotificationReceivedSound" class="form-control rounded-pill px-3" placeholder="notif.mp3">
+                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 sound-play-btn" @onclick='() => PlayPreview(settings.NotificationReceivedSound ?? "")'><i class="fa-solid fa-play"></i></button>
                         </div>
                     </div>
                 </div>
@@ -373,45 +384,45 @@
             <div class="col-12 mb-2">
                 <div class="glass-card p-3">
                     <h5 class="fw-bold mb-3 fs-6 text-dark"><i class="fa-solid fa-key me-2 text-dark"></i>نظرة عامة على صلاحيات الإدارة</h5>
-                    <div class="table-responsive">
-                        <table class="table table-borderless align-middle small mb-0">
+                    <div class="table-responsive" style="-webkit-overflow-scrolling: touch;">
+                        <table class="table table-borderless align-middle small mb-0" style="min-width: 320px;">
                             <thead>
                                 <tr class="border-bottom border-light">
-                                    <th>الميزة / العملية</th>
-                                    <th class="text-center"><span class="badge bg-primary text-white rounded-pill px-2">System Admin</span></th>
-                                    <th class="text-center"><span class="badge bg-dark text-white rounded-pill px-2">Super Admin</span></th>
+                                    <th style="min-width:130px;">الميزة / العملية</th>
+                                    <th class="text-center" style="min-width:90px;"><span class="badge bg-primary text-white rounded-pill px-2">Sys Admin</span></th>
+                                    <th class="text-center" style="min-width:90px;"><span class="badge bg-dark text-white rounded-pill px-2">Super Admin</span></th>
                                 </tr>
                             </thead>
                             <tbody class="text-muted">
                                 <tr>
                                     <td>إدارة المستخدمين</td>
-                                    <td class="text-center text-success"><i class="fa-solid fa-check"></i> كاملة</td>
-                                    <td class="text-center text-success"><i class="fa-solid fa-check"></i> كاملة</td>
+                                    <td class="text-center text-success"><i class="fa-solid fa-check"></i></td>
+                                    <td class="text-center text-success"><i class="fa-solid fa-check"></i></td>
                                 </tr>
                                 <tr>
-                                    <td>إعتماد الخدمات والسلع</td>
-                                    <td class="text-center text-success"><i class="fa-solid fa-check"></i> كاملة</td>
-                                    <td class="text-center text-success"><i class="fa-solid fa-check"></i> كاملة</td>
+                                    <td>اعتماد الخدمات</td>
+                                    <td class="text-center text-success"><i class="fa-solid fa-check"></i></td>
+                                    <td class="text-center text-success"><i class="fa-solid fa-check"></i></td>
                                 </tr>
                                 <tr>
-                                    <td>إدارة مديري النظام</td>
-                                    <td class="text-center text-danger"><i class="fa-solid fa-xmark"></i> لا توجد</td>
-                                    <td class="text-center text-success"><i class="fa-solid fa-check"></i> كاملة</td>
+                                    <td>إدارة المديرين</td>
+                                    <td class="text-center text-danger"><i class="fa-solid fa-xmark"></i></td>
+                                    <td class="text-center text-success"><i class="fa-solid fa-check"></i></td>
                                 </tr>
                                 <tr>
-                                    <td>تعديل إعدادات النظام</td>
-                                    <td class="text-center text-danger"><i class="fa-solid fa-xmark"></i> لا توجد</td>
-                                    <td class="text-center text-success"><i class="fa-solid fa-check"></i> كاملة</td>
+                                    <td>إعدادات النظام</td>
+                                    <td class="text-center text-danger"><i class="fa-solid fa-xmark"></i></td>
+                                    <td class="text-center text-success"><i class="fa-solid fa-check"></i></td>
                                 </tr>
                                 <tr>
-                                    <td>حذف المستخدمين نهائياً</td>
-                                    <td class="text-center text-danger"><i class="fa-solid fa-xmark"></i> لا توجد</td>
-                                    <td class="text-center text-success"><i class="fa-solid fa-check"></i> كاملة</td>
+                                    <td>حذف المستخدمين</td>
+                                    <td class="text-center text-danger"><i class="fa-solid fa-xmark"></i></td>
+                                    <td class="text-center text-success"><i class="fa-solid fa-check"></i></td>
                                 </tr>
                                 <tr>
-                                    <td>مشاهدة سجلات النشاط</td>
-                                    <td class="text-center text-danger"><i class="fa-solid fa-xmark"></i> لا توجد</td>
-                                    <td class="text-center text-success"><i class="fa-solid fa-check"></i> كاملة</td>
+                                    <td>سجلات النشاط</td>
+                                    <td class="text-center text-danger"><i class="fa-solid fa-xmark"></i></td>
+                                    <td class="text-center text-success"><i class="fa-solid fa-check"></i></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -442,6 +453,11 @@
     .settings-page-wrapper {
         overflow-x: hidden;
         max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .settings-page-wrapper * {
+        box-sizing: border-box;
     }
 
     .setting-toggle-row {
@@ -457,43 +473,124 @@
     .setting-toggle-row > div:first-child {
         flex: 1;
         min-width: 0;
+        word-break: break-word;
     }
 
     .form-check.form-switch {
         padding-left: 0;
         padding-right: 2.5em;
+        flex-shrink: 0;
+    }
+
+    /* Sound input row: input + play button side by side */
+    .sound-input-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .sound-input-row .form-control {
+        flex: 1;
+        min-width: 0;
+    }
+    .sound-play-btn {
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+
+    /* Color picker row */
+    .color-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: nowrap;
+    }
+    .color-row .form-control-color {
+        flex-shrink: 0;
+    }
+    .color-row .form-control {
+        flex: 1;
+        min-width: 0;
     }
 
     @@media (max-width: 767px) {
+        .settings-page-wrapper {
+            padding-left: 4px !important;
+            padding-right: 4px !important;
+        }
+
         .glass-card {
-            padding: 1rem 0.75rem !important;
+            padding: 0.85rem 0.65rem !important;
             margin-bottom: 0.75rem !important;
             border-radius: 12px !important;
         }
 
         .form-control, .btn {
-            font-size: 0.85rem !important;
+            font-size: 0.82rem !important;
         }
 
-        h1.fs-4 { font-size: 1.1rem !important; }
-        h5.fs-6 { font-size: 0.95rem !important; }
+        h1.fs-4 { font-size: 1rem !important; }
+        h5.fs-6 { font-size: 0.88rem !important; }
 
+        /* Table: allow horizontal scroll, no forced nowrap */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
         .table th, .table td {
-            font-size: 0.75rem !important;
-            padding: 0.4rem 0.5rem !important;
-            white-space: nowrap;
+            font-size: 0.72rem !important;
+            padding: 0.35rem 0.4rem !important;
         }
 
         .badge {
-            font-size: 0.6rem !important;
-            padding: 2px 5px !important;
+            font-size: 0.58rem !important;
+            padding: 2px 4px !important;
         }
 
-        .input-group .btn {
-            padding: 0.375rem 0.6rem !important;
+        /* Logo upload box: stack vertically on mobile */
+        .logo-preview-box {
+            width: 55px !important;
+            height: 55px !important;
         }
 
+        /* Sound rows: keep side by side but smaller */
+        .sound-input-row .form-control {
+            font-size: 0.78rem !important;
+        }
+        .sound-play-btn {
+            padding: 0.3rem 0.6rem !important;
+        }
+
+        /* Payment input-group: allow text wrap */
+        .input-group {
+            flex-wrap: nowrap;
+        }
+        .input-group .form-control {
+            min-width: 0;
+        }
+
+        /* Header row: ensure save button is full width */
         .w-md-auto { width: 100% !important; }
+
+        /* APK upload row */
+        .d-flex.align-items-center.gap-2 {
+            flex-wrap: wrap;
+        }
+
+        /* Share card: contain within screen */
+        .app-share-card,
+        [class*="share-card"] {
+            max-width: 100% !important;
+            overflow: hidden;
+        }
+
+        /* Setting toggle text truncate fix */
+        .setting-toggle-row {
+            padding: 10px 8px;
+            gap: 8px;
+        }
+        .setting-toggle-row .x-small {
+            font-size: 0.68rem !important;
+        }
     }
 
     @@media (min-width: 768px) {
@@ -525,7 +622,7 @@
         isLoading = true;
         try
         {
-            var response = await Api.GetSettingsAsync();
+            var response = await Api.GetSettingsAsync(forceRefresh: true);
             if (response.Success && response.Data != null)
             {
                 settings = response.Data;
@@ -540,12 +637,14 @@
             }
             else
             {
-                statusMessage = "فشل تحميل الإعدادات.";
+                statusMessage = response.Message ?? "فشل تحميل الإعدادات.";
+                isSuccess = false;
             }
         }
         catch (Exception ex)
         {
-            statusMessage = "حدث خطأ أثناء الاتصال بالخادم.";
+            statusMessage = $"حدث خطأ أثناء الاتصال بالخادم: {ex.Message}";
+            isSuccess = false;
             Console.WriteLine(ex.Message);
         }
         finally
@@ -561,7 +660,7 @@
         
         var request = new UpdateAppSettingsRequest
         {
-            ApplicationName = settings.ApplicationNameAr ?? settings.ApplicationName ?? string.Empty,
+            ApplicationName = !string.IsNullOrWhiteSpace(settings.ApplicationNameAr) ? settings.ApplicationNameAr : (settings.ApplicationName ?? string.Empty),
             ApplicationNameAr = settings.ApplicationNameAr ?? string.Empty,
             ApplicationNameEn = settings.ApplicationNameEn ?? string.Empty,
             LogoUrl = settings.LogoUrl ?? string.Empty,
@@ -569,15 +668,20 @@
             ApkIconUrl = settings.ApkIconUrl ?? string.Empty,
             PrimaryColor = settings.PrimaryColor ?? string.Empty,
             SecondaryColor = settings.SecondaryColor ?? string.Empty,
-            ContactEmail = settings.ContactEmail,
-            ContactPhone = settings.ContactPhone,
+            ContactEmail = settings.ContactEmail ?? string.Empty,
+            ContactPhone = settings.ContactPhone ?? string.Empty,
+            ContactWhatsApp = settings.ContactWhatsApp ?? string.Empty,
+            InstaPayNumber = settings.InstaPayNumber ?? string.Empty,
+            VodafoneCashNumber = settings.VodafoneCashNumber ?? string.Empty,
+            OtherWalletNumber = settings.OtherWalletNumber ?? string.Empty,
+            PaymentInstructions = settings.PaymentInstructions ?? string.Empty,
             IsMaintenanceMode = settings.IsMaintenanceMode,
-            WelcomeMessage = settings.WelcomeMessage,
-            OpenAppSound = settings.OpenAppSound,
-            FindServiceSound = settings.FindServiceSound,
-            OpenDetailsSound = settings.OpenDetailsSound,
-            MessageReceivedSound = settings.MessageReceivedSound,
-            NotificationReceivedSound = settings.NotificationReceivedSound,
+            WelcomeMessage = settings.WelcomeMessage ?? string.Empty,
+            OpenAppSound = settings.OpenAppSound ?? string.Empty,
+            FindServiceSound = settings.FindServiceSound ?? string.Empty,
+            OpenDetailsSound = settings.OpenDetailsSound ?? string.Empty,
+            MessageReceivedSound = settings.MessageReceivedSound ?? string.Empty,
+            NotificationReceivedSound = settings.NotificationReceivedSound ?? string.Empty,
             AllowUserRegistration = settings.AllowUserRegistration,
             RequireEmailVerification = settings.RequireEmailVerification,
             MaxServicesPerProvider = settings.MaxServicesPerProvider,
@@ -586,15 +690,15 @@
             MarketplaceMaxListingsPerUser = settings.MarketplaceMaxListingsPerUser,
             MarketplaceRequireApproval = settings.MarketplaceRequireApproval,
             MarketplaceAutoExpire = settings.MarketplaceAutoExpire,
-            FacebookUrl = settings.FacebookUrl,
-            TwitterUrl = settings.TwitterUrl,
-            InstagramUrl = settings.InstagramUrl,
-            TermsAndConditions = settings.TermsAndConditions,
-            PrivacyPolicy = settings.PrivacyPolicy,
-            AppShareUrl = settings.AppShareUrl,
-            AppShareText = settings.AppShareText,
-            AppStoreUrl = settings.AppStoreUrl,
-            GooglePlayUrl = settings.GooglePlayUrl
+            FacebookUrl = settings.FacebookUrl ?? string.Empty,
+            TwitterUrl = settings.TwitterUrl ?? string.Empty,
+            InstagramUrl = settings.InstagramUrl ?? string.Empty,
+            TermsAndConditions = settings.TermsAndConditions ?? string.Empty,
+            PrivacyPolicy = settings.PrivacyPolicy ?? string.Empty,
+            AppShareUrl = settings.AppShareUrl ?? string.Empty,
+            AppShareText = settings.AppShareText ?? string.Empty,
+            AppStoreUrl = settings.AppStoreUrl ?? string.Empty,
+            GooglePlayUrl = settings.GooglePlayUrl ?? string.Empty
         };
 
         try
@@ -603,10 +707,11 @@
             if (response.Success)
             {
                 isSuccess = true;
-                statusMessage = "تم حفظ الإعدادات بنجاح.";
+                statusMessage = "تم حفظ وتثبيت كافة إعدادات النظام بنجاح!";
                 
                 // Update AppState
-                AppState.AppName = settings.ApplicationName ?? string.Empty;
+                AppState.AppName = !string.IsNullOrEmpty(settings.ApplicationNameAr) ? settings.ApplicationNameAr : (settings.ApplicationName ?? string.Empty);
+                AppState.AppNameAr = settings.ApplicationNameAr ?? string.Empty;
                 AppState.AppLogo = settings.LogoUrl ?? string.Empty;
                 AppState.PrimaryColor = settings.PrimaryColor ?? string.Empty;
                 AppState.SecondaryColor = settings.SecondaryColor ?? string.Empty;
@@ -614,23 +719,30 @@
                 AppState.AppShareText = settings.AppShareText ?? string.Empty;
                 AppState.AppStoreUrl = settings.AppStoreUrl ?? string.Empty;
                 AppState.GooglePlayUrl = settings.GooglePlayUrl ?? string.Empty;
+                AppState.ContactEmail = settings.ContactEmail ?? string.Empty;
+                AppState.ContactPhone = settings.ContactPhone ?? string.Empty;
+                AppState.ContactWhatsApp = settings.ContactWhatsApp ?? string.Empty;
                 AppState.TriggerStateChanged();
+
+                // Reload fresh copy from DB
+                await LoadSettings();
             }
             else
             {
                 isSuccess = false;
-                statusMessage = response.Message ?? "فشل الحفظ.";
+                statusMessage = response.Message ?? "فشل حفظ الإعدادات على الخادم.";
             }
         }
         catch (Exception ex)
         {
             isSuccess = false;
-            statusMessage = "حدث خطأ غير متوقع.";
+            statusMessage = $"حدث خطأ غير متوقع: {ex.Message}";
             Console.WriteLine(ex.Message);
         }
         finally
         {
             isSaving = false;
+            StateHasChanged();
         }
     }
 

@@ -12,16 +12,12 @@
     <Grid RowDefinitions="*,Auto">
 
         <!-- ═══ WebView ═══ -->
-        <RefreshView Grid.Row="0"
-                     x:Name="PullToRefresh"
-                     Refreshing="PullToRefresh_Refreshing"
-                     RefreshColor="#6366f1">
-            <WebView x:Name="MainWebView"
-                     Navigating="MainWebView_Navigating"
-                     Navigated="MainWebView_Navigated"
-                     HorizontalOptions="FillAndExpand"
-                     VerticalOptions="FillAndExpand" />
-        </RefreshView>
+        <WebView Grid.Row="0"
+                 x:Name="MainWebView"
+                 Navigating="MainWebView_Navigating"
+                 Navigated="MainWebView_Navigated"
+                 HorizontalOptions="FillAndExpand"
+                 VerticalOptions="FillAndExpand" />
 
         <!-- ═══ Native Loading Overlay ═══ -->
         <Grid Grid.Row="0" x:Name="LoadingOverlay" BackgroundColor="White">

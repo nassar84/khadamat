@@ -6,6 +6,9 @@ Write-Host "==========================================================" -Foregro
 Write-Host " 1. Building Android APK (Release)..." -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 
+# Remove any old APK files first to guarantee fresh build
+Get-ChildItem -Path "src/Khadamat.MobileApp/bin/Release/net8.0-android" -Recurse -Filter "*.apk" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+
 dotnet publish src/Khadamat.MobileApp/Khadamat.MobileApp.csproj -f net8.0-android -c Release
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Android APK build failed!"
@@ -40,13 +43,17 @@ Write-Host "==========================================================" -Foregro
 
 New-Item -ItemType Directory -Force -Path "D:\maged\Khadamat\wwwroot\downloads" | Out-Null
 Copy-Item -Force $apkSource -Destination "D:\maged\Khadamat\wwwroot\downloads\khadamat.apk"
+(Get-Item "D:\maged\Khadamat\wwwroot\downloads\khadamat.apk").LastWriteTime = (Get-Date)
 Copy-Item -Force $apkSource -Destination "D:\maged\Khadamat\wwwroot\downloads\com.nassar84.khadamat-Signed.apk"
+(Get-Item "D:\maged\Khadamat\wwwroot\downloads\com.nassar84.khadamat-Signed.apk").LastWriteTime = (Get-Date)
 
 New-Item -ItemType Directory -Force -Path "src/Khadamat.WebAPI/wwwroot/downloads" | Out-Null
-Copy-Item -Force $apkSource -Destination "src/Khadamat.WebAPI/wwwroot/downloads/khadamat.apk"
+Copy-Item -Force $apkSource -Destination "src/Khadamat.WebAPI/wwwroot/downloads\khadamat.apk"
+(Get-Item "src/Khadamat.WebAPI/wwwroot/downloads\khadamat.apk").LastWriteTime = (Get-Date)
 
 Write-Host "`n==========================================================" -ForegroundColor Green
 Write-Host " PUBLISH COMPLETE! VERIFYING APK TIMESTAMP:" -ForegroundColor Green
 Write-Host "==========================================================" -ForegroundColor Green
 
 Get-Item "D:\maged\Khadamat\wwwroot\downloads\khadamat.apk" | Select-Object Name, Length, LastWriteTime, CreationTime | Format-Table -AutoSize
+Get-Item "src/Khadamat.WebAPI/wwwroot/downloads\khadamat.apk" | Select-Object Name, Length, LastWriteTime, CreationTime | Format-Table -AutoSize

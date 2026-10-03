@@ -5,12 +5,13 @@
 
 /* ===== THEME VARIABLES (BRIGHT METALLIC) ===== */
 :root {
-    /* Default Theme - Aurora (Metalic Bloom) */
-    --theme-primary: #8e2de2;
-    --theme-secondary: #4a00e0;
-    --theme-accent: #00d2ff;
-    --theme-light: rgba(142, 45, 226, 0.15);
-    --theme-glow: rgba(0, 210, 255, 0.4);
+    /* Default Theme - Navy Dark (كحلي غامق) */
+    --theme-primary: #1a3a6b;
+    --theme-secondary: #0f2044;
+    --theme-accent: #4dabf7;
+    --theme-light: rgba(26, 58, 107, 0.15);
+    --theme-glow: rgba(77, 171, 247, 0.4);
+    --theme-primary-rgb: 26, 58, 107;
 
     /* Metalic Glass Effect */
     --glass-bg: rgba(255, 255, 255, 0.22);

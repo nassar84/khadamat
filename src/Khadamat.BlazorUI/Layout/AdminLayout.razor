@@ -7,7 +7,7 @@
 @inject Khadamat.BlazorUI.Services.ApiClient Api
 @inject Khadamat.BlazorUI.Services.Admin.IAdminService AdminService
 
-<div class="admin-layout @(IsCollapsed ? "collapsed" : "")" dir="rtl">
+<div class="admin-layout @(IsCollapsed ? "collapsed" : "") @(State.IsNativeApp || State.IsMobileApp ? "mobile-app-mode" : "")" dir="rtl">
     @if (State.IsNativeApp)
     {
         <main class="mobile-content">
@@ -60,6 +60,10 @@
                 <NavLink class="nav-link" href="/admin/users" @onclick="CloseSidebar">
                     <i class="fas fa-users"></i> 
                     <span class="nav-text">المستخدمين</span>
+                </NavLink>
+                <NavLink class="nav-link" href="/admin/ads" @onclick="CloseSidebar">
+                    <i class="fas fa-rectangle-ad"></i> 
+                    <span class="nav-text">إدارة الإعلانات</span>
                 </NavLink>
                  <NavLink class="nav-link" href="/admin/approvals" @onclick="CloseSidebar">
                     <i class="fas fa-stamp text-warning"></i> 
@@ -188,7 +192,32 @@
     .admin-layout {
         display: flex;
         min-height: 100vh;
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* In-App / Mobile App Mode (MAUI or mobileapp=1) */
+    .admin-layout.mobile-app-mode {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        width: 100vw;
+        max-width: 100vw;
+        overflow: hidden;
+        background: #f8fafc;
+    }
+
+    .admin-layout.mobile-app-mode .mobile-content {
+        flex: 1;
+        width: 100%;
+        max-width: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        padding: 10px 8px 80px 8px;
+        box-sizing: border-box;
     }
 
     .admin-sidebar {
@@ -324,7 +353,10 @@
         flex-direction: column;
         gap: 20px;
         width: calc(100% - 320px); 
+        max-width: 100%;
+        overflow-x: hidden;
         transition: all 0.4s ease;
+        box-sizing: border-box;
     }
 
     .collapsed + .admin-content {
@@ -339,10 +371,16 @@
         border-radius: 18px;
         background: rgba(255, 255, 255, 0.8);
         backdrop-filter: blur(10px);
+        max-width: 100%;
+        box-sizing: border-box;
     }
 
     .content-body {
         flex: 1;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+        box-sizing: border-box;
     }
     
     .badge {
@@ -391,7 +429,15 @@
 
         .admin-content {
             width: 100% !important;
-            padding: 15px;
+            max-width: 100vw !important;
+            padding: 10px 8px !important;
+            overflow-x: hidden !important;
+        }
+
+        .admin-header {
+            padding: 10px 14px !important;
+            border-radius: 14px !important;
+            margin-bottom: 5px;
         }
     }
 

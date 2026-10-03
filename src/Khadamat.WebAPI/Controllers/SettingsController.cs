@@ -23,11 +23,15 @@ public class SettingsController : ControllerBase
         return Ok(result);
     }
 
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize(Roles = "SuperAdmin,SystemAdmin")]
     [HttpPut]
     public async Task<IActionResult> UpdateSettings(UpdateAppSettingsRequest request)
     {
         var result = await _settingsService.UpdateSettingsAsync(request);
+        if (!result.Success)
+        {
+            return BadRequest(result);
+        }
         return Ok(result);
     }
 

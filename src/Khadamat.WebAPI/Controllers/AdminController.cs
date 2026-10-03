@@ -201,8 +201,8 @@ public class AdminController : ControllerBase
         user.FullName = dto.FullName;
         
         // Handle Email & UserName sync
-        var emailChanged = user.Email != dto.Email;
-        if (emailChanged)
+        var emailChanged = !string.Equals(user.Email, dto.Email, StringComparison.OrdinalIgnoreCase);
+        if (emailChanged && !string.IsNullOrWhiteSpace(dto.Email))
         {
             // Check if new email is taken
             var emailUser = await _userManager.FindByEmailAsync(dto.Email);
@@ -215,14 +215,16 @@ public class AdminController : ControllerBase
             user.NormalizedEmail = dto.Email.ToUpper();
             
             // If UserName was previously matching Email, keep them in sync
-            if (user.UserName == user.Email || string.IsNullOrEmpty(user.UserName))
+            if (string.Equals(user.UserName, user.Email, StringComparison.OrdinalIgnoreCase) || 
+                string.IsNullOrEmpty(user.UserName))
             {
                 user.UserName = dto.Email;
                 user.NormalizedUserName = dto.Email.ToUpper();
             }
         }
 
-        if (!string.IsNullOrEmpty(dto.UserName) && user.UserName != dto.UserName)
+        if (!string.IsNullOrEmpty(dto.UserName) && 
+            !string.Equals(user.UserName, dto.UserName, StringComparison.OrdinalIgnoreCase))
         {
             var nameUser = await _userManager.FindByNameAsync(dto.UserName);
             if (nameUser != null && nameUser.Id != id)
@@ -233,7 +235,7 @@ public class AdminController : ControllerBase
             user.NormalizedUserName = dto.UserName.ToUpper();
         }
 
-        user.PhoneNumber = dto.PhoneNumber;
+        user.PhoneNumber = string.IsNullOrWhiteSpace(dto.PhoneNumber) ? null : dto.PhoneNumber;
         user.CityId = dto.CityId;
         user.IsActive = dto.IsActive;
         user.IsVerified = dto.IsVerified;
