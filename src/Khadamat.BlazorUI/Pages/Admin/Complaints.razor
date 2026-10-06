@@ -6,8 +6,8 @@
 <div class="px-3 pt-3 pb-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h3 class="fw-bold mb-0">الدعم الفني والشكاوى</h3>
-            <p class="text-muted small">رسائل التواصل والشكاوى المقدمة من المستخدمين</p>
+            <h3 class="fw-bold mb-0">الدعم الفني والرسائل الواردة</h3>
+            <p class="text-muted small">رسائل التواصل، الشكاوى، وطلبات انضمام الخدمات المقدمة من المستخدمين</p>
         </div>
         <div class="d-flex gap-2 align-items-center">
             <select class="form-select form-select-sm rounded-pill" style="width:auto;" @bind="filterResolved" @bind:after="LoadMessages">
@@ -41,40 +41,91 @@
         <div class="row g-3">
             @foreach (var msg in messages)
             {
+                var isServiceTemplate = IsServiceJoinRequest(msg);
                 <div class="col-12">
-                    <div class="glass-card p-4 shadow-sm @(msg.IsResolved ? "opacity-75" : "")">
+                    <div class="glass-card p-4 shadow-sm @(msg.IsResolved ? "opacity-75" : "") @(isServiceTemplate ? "border-primary border-2" : "")">
                         <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
-                            <div>
-                                <span class="fw-bold">@msg.Name</span>
-                                <span class="text-muted small ms-2">@msg.Email</span>
-                                <span class="badge rounded-pill ms-2 @SubjectBadge(msg.SubjectType)">@SubjectLabel(msg.SubjectType)</span>
-                                @if (msg.IsResolved)
+                            <div class="d-flex align-items-center flex-wrap gap-2">
+                                <span class="fw-bold fs-6">@msg.Name</span>
+                                <span class="text-muted small" dir="ltr">@msg.Email</span>
+                                @if (isServiceTemplate)
                                 {
-                                    <span class="badge bg-success rounded-pill ms-1">تم الحل</span>
+                                    <span class="badge bg-primary rounded-pill px-3 py-1">
+                                        <i class="fa-solid fa-star text-warning me-1"></i> طلب انضمام وإضافة خدمة
+                                    </span>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-warning text-dark rounded-pill ms-1">مفتوح</span>
+                                    <span class="badge rounded-pill @SubjectBadge(msg.SubjectType)">@SubjectLabel(msg.SubjectType)</span>
+                                }
+                                @if (msg.IsResolved)
+                                {
+                                    <span class="badge bg-success rounded-pill">تم الحل</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark rounded-pill">مفتوح</span>
                                 }
                             </div>
                             <span class="text-muted small">@msg.CreatedAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</span>
                         </div>
+
                         @if (!string.IsNullOrEmpty(msg.Subject))
                         {
-                            <div class="fw-bold small text-primary mb-1">@msg.Subject</div>
+                            <div class="fw-bold text-dark mb-2">@msg.Subject</div>
                         }
-                        <p class="text-muted small mb-3" style="white-space:pre-wrap;">@msg.Message</p>
-                        @if (!msg.IsResolved)
+
+                        @if (isServiceTemplate)
                         {
-                            <button class="btn btn-sm btn-outline-success rounded-pill px-3"
-                                    @onclick="() => ResolveMessage(msg.Id)">
-                                <i class="fa-solid fa-check me-1"></i>تحديد كـ محلول
-                            </button>
+                            <!-- عرض قالب الخدمة بشكل منظم ومميز -->
+                            <div class="p-3 bg-light rounded-4 border mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold small text-primary">
+                                        <i class="fa-solid fa-clipboard-list me-1"></i> تفاصيل قالب الخدمة:
+                                    </span>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1"
+                                            @onclick="() => CopyToClipboard(msg.Message)">
+                                        <i class="fa-regular fa-copy me-1"></i> نسخ القالب بالكامل
+                                    </button>
+                                </div>
+                                <div class="p-3 bg-white rounded-3 border small" style="white-space: pre-wrap; font-family: inherit; line-height: 1.6;">
+@msg.Message
+                                </div>
+                            </div>
                         }
-                        else if (!string.IsNullOrEmpty(msg.AdminNotes))
+                        else
                         {
-                            <div class="small text-muted fst-italic">ملاحظة: @msg.AdminNotes</div>
+                            <p class="text-muted small mb-3" style="white-space:pre-wrap;">@msg.Message</p>
                         }
+
+                        <!-- أزرار الإجراءات السريعة -->
+                        <div class="d-flex gap-2 flex-wrap align-items-center mt-3 pt-2 border-top">
+                            @if (!msg.IsResolved)
+                            {
+                                <button class="btn btn-sm btn-outline-success rounded-pill px-3"
+                                        @onclick="() => ResolveMessage(msg.Id)">
+                                    <i class="fa-solid fa-check me-1"></i>تحديد كـ محلول
+                                </button>
+                            }
+                            else if (!string.IsNullOrEmpty(msg.AdminNotes))
+                            {
+                                <div class="small text-muted fst-italic">ملاحظة: @msg.AdminNotes</div>
+                            }
+
+                            @{
+                                var phone = ExtractPhone(msg);
+                            }
+                            @if (!string.IsNullOrEmpty(phone))
+                            {
+                                <a href="https://wa.me/@(FormatWhatsAppDigits(phone))" target="_blank" rel="noopener noreferrer"
+                                   class="btn btn-sm btn-outline-success rounded-pill px-3">
+                                    <i class="fa-brands fa-whatsapp me-1"></i>تواصل واتساب
+                                </a>
+                                <a href="tel:@phone" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                    <i class="fa-solid fa-phone me-1"></i>اتصال
+                                </a>
+                            }
+                        </div>
                     </div>
                 </div>
             }
@@ -123,6 +174,44 @@
         {
             Console.WriteLine($"[Complaints] Resolve error: {ex.Message}");
         }
+    }
+
+    private bool IsServiceJoinRequest(ContactMessageItem msg)
+    {
+        return msg.SubjectType == "provider" ||
+               (msg.Message != null && msg.Message.Contains("=== [طلب انضمام وإضافة خدمة جديدة] ==="));
+    }
+
+    private async Task CopyToClipboard(string text)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
+            await JS.InvokeVoidAsync("alert", "تم نسخ بيانات القالب بنجاح إلى الحافظة!");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Clipboard error: {ex.Message}");
+        }
+    }
+
+    private string ExtractPhone(ContactMessageItem msg)
+    {
+        if (!string.IsNullOrWhiteSpace(msg.Email) && msg.Email.All(c => char.IsDigit(c) || c == '+' || c == ' ' || c == '-'))
+        {
+            return msg.Email.Trim();
+        }
+        var match = System.Text.RegularExpressions.Regex.Match(msg.Message ?? "", @"01[0125]\d{8}");
+        if (match.Success) return match.Value;
+
+        return "";
+    }
+
+    private string FormatWhatsAppDigits(string raw)
+    {
+        var digits = new string(raw.Where(char.IsDigit).ToArray());
+        if (digits.StartsWith("01") && digits.Length == 11) digits = "2" + digits;
+        return digits;
     }
 
     private string SubjectLabel(string? type) => type switch

@@ -2,19 +2,19 @@
 @inject Khadamat.BlazorUI.State.AppState State
 @inject IJSRuntime JS
 
-<div class="contact-page container py-4" style="max-width:860px;">
+<div class="contact-page container py-4" style="max-width:920px;">
 
     <!-- ── رأس الصفحة ── -->
     <div class="mb-4 text-center animate-up">
         <div class="page-icon-wrap mx-auto mb-3">
             <i class="fa-solid fa-headset"></i>
         </div>
-        <h1 class="fw-bold mb-1">تواصل معنا</h1>
-        <p class="text-muted">نحن هنا لمساعدتك على مدار الساعة.</p>
+        <h1 class="fw-bold mb-1">تواصل مع إدارة المنصة</h1>
+        <p class="text-muted">نحن هنا لمساعدتك والإجابة على استفساراتك واستقبال طلبات الانضمام للخدمات.</p>
     </div>
 
     <!-- ── زر واتساب البارز ── -->
-    <a href="@WhatsAppUrl?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D8%8C%20%D8%A3%D8%AD%D8%AA%D8%A7%D8%AC%20%D9%85%D8%B3%D8%A7%D8%B9%D8%AF%D8%A9"
+    <a href="@BuildWhatsAppDirectUrl()"
        target="_blank"
        rel="noopener noreferrer"
        class="whatsapp-hero d-flex align-items-center justify-content-between animate-up"
@@ -24,8 +24,8 @@
                 <i class="fa-brands fa-whatsapp"></i>
             </div>
             <div class="text-start">
-                <div class="fw-bold fs-5">تواصل عبر واتساب</div>
-                <div class="wa-sub">اضغط هنا للتحدث مع فريق الدعم مباشرةً</div>
+                <div class="fw-bold fs-5">تواصل عبر واتساب مباشرة</div>
+                <div class="wa-sub">اضغط هنا للتحدث مع فريق الدعم والإدارة فوراً</div>
                 <div class="wa-number" dir="ltr" style="direction: ltr !important; unicode-bidi: isolate !important; text-align: right;">@WhatsAppDisplay</div>
             </div>
         </div>
@@ -37,8 +37,8 @@
     <!-- ── معلومات + النموذج ── -->
     <div class="row g-4 mt-1">
 
-        <!-- معلومات التواصل -->
-        <div class="col-md-5">
+        <!-- معلومات التواصل الجانبية -->
+        <div class="col-lg-4 col-md-5">
             <div class="glass-card p-4 h-100 animate-up" style="--delay:0.1s">
                 <h5 class="fw-bold mb-4">طرق التواصل</h5>
 
@@ -76,9 +76,22 @@
                         <i class="fa-solid fa-clock"></i>
                     </div>
                     <div class="cm-body">
-                        <div class="cm-label">ساعات الدعم</div>
+                        <div class="cm-label">ساعات العمل</div>
                         <div class="cm-value">@SupportHours</div>
                     </div>
+                </div>
+
+                <div class="feature-box p-3 rounded-4 bg-light border mt-4 text-center">
+                    <div class="fw-bold small text-primary mb-1">
+                        <i class="fa-solid fa-sparkles me-1 text-warning"></i> انضم كمقدم خدمة
+                    </div>
+                    <p class="text-muted xx-small mb-2" style="font-size: 0.76rem;">
+                        هل تقدم خدمات أو أعمال مهنية؟ املأ قالب الخدمة وسيقوم فريقنا بمراجعته ونشره للعملاء.
+                    </p>
+                    <button class="btn btn-sm btn-outline-primary rounded-pill w-100 fw-bold"
+                            @onclick='() => SetTab("service")'>
+                        تعبئة قالب الخدمة 🚀
+                    </button>
                 </div>
 
                 <hr class="my-4" />
@@ -95,104 +108,278 @@
             </div>
         </div>
 
-        <!-- نموذج التواصل -->
-        <div class="col-md-7">
+        <!-- قسم النماذج والتبويبات -->
+        <div class="col-lg-8 col-md-7">
             <div class="glass-card p-4 animate-up" style="--delay:0.15s">
-                <h5 class="fw-bold mb-1">أرسل رسالتك</h5>
-                <p class="text-muted small mb-4">
-                    أو راسلنا مباشرة عبر
-                    <a href="@WhatsAppUrl" target="_blank" rel="noopener noreferrer" class="text-success fw-bold text-decoration-none">
-                        <i class="fa-brands fa-whatsapp me-1"></i>واتساب
-                    </a>
-                    للرد الفوري.
-                </p>
+
+                <!-- ── تبويبات الاختيار ── -->
+                <div class="contact-tabs d-flex p-1 bg-light rounded-pill mb-4 border shadow-sm">
+                    <button type="button" 
+                            class="tab-btn flex-fill py-2 px-3 rounded-pill border-0 fw-bold @(activeTab == "general" ? "active bg-white text-primary shadow-sm" : "text-muted")"
+                            @onclick='() => SetTab("general")'>
+                        <i class="fa-solid fa-envelope me-1"></i>
+                        <span>استفسار أو رسالة عامة</span>
+                    </button>
+                    <button type="button" 
+                            class="tab-btn flex-fill py-2 px-3 rounded-pill border-0 fw-bold @(activeTab == "service" ? "active bg-primary text-white shadow-sm" : "text-muted")"
+                            @onclick='() => SetTab("service")'>
+                        <i class="fa-solid fa-briefcase me-1"></i>
+                        <span>طلب انضمام / إضافة خدمة 🚀</span>
+                    </button>
+                </div>
 
                 @if (submitted)
                 {
-                    <div class="text-center py-4 animate-pop">
+                    <div class="text-center py-5 animate-pop">
                         <div class="success-circle mx-auto mb-4">
                             <i class="fa-solid fa-check fs-2 text-white"></i>
                         </div>
-                        <h5 class="fw-bold">تم الإرسال بنجاح!</h5>
-                        <p class="text-muted">شكراً لتواصلك معنا، سنرد عليك في أقرب وقت.</p>
-                        <div class="d-flex gap-2 justify-content-center flex-wrap mt-3">
+                        <h4 class="fw-bold">تم إرسال طلبك بنجاح! 🎉</h4>
+                        <p class="text-muted px-md-5">
+                            @(submittedWasService 
+                                ? "شكراً لرغبتك بالانضمام لمنصتنا! تم حفظ بيانات الخدمة وسيتم مراجعتها من قِبل الإدارة والتواصل معك قريباً." 
+                                : "شكراً لتواصلك معنا، سنرد عليك في أقرب وقت ممكن.")
+                        </p>
+                        <div class="d-flex gap-2 justify-content-center flex-wrap mt-4">
                             <button class="btn btn-outline-primary rounded-pill px-4"
-                                    @onclick="() => submitted = false">
-                                إرسال رسالة أخرى
+                                    @onclick="ResetForm">
+                                إرسال طلب آخر
                             </button>
-                            <a href="@WhatsAppUrl" target="_blank" rel="noopener noreferrer"
+                            <a href="@BuildWhatsAppDirectUrl()" target="_blank" rel="noopener noreferrer"
                                class="btn btn-whatsapp-send rounded-pill px-4">
-                                <i class="fa-brands fa-whatsapp me-2"></i>واتساب مباشر
+                                <i class="fa-brands fa-whatsapp me-2"></i>متابعة عبر واتساب
+                            </a>
+                        </div>
+                    </div>
+                }
+                else if (activeTab == "general")
+                {
+                    <!-- ── 1. نموذج الاستفسار العام ── -->
+                    <div class="animate-fade-in">
+                        <h5 class="fw-bold mb-1">أرسل استفسارك للإدارة</h5>
+                        <p class="text-muted small mb-4">
+                            يمكنك كتابة رسالتك هنا أو مراسلتنا مباشرة عبر واتساب.
+                        </p>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">الاسم الكامل <span class="text-danger">*</span></label>
+                            <input id="contact-name" type="text" class="form-control premium-input" @bind="form.Name"
+                                   placeholder="أدخل اسمك بالكامل" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">رقم الهاتف أو البريد الإلكتروني <span class="text-danger">*</span></label>
+                            <input id="contact-email" type="text" class="form-control premium-input" @bind="form.Email"
+                                   placeholder="01xxxxxxxxx أو example@email.com" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">الموضوع</label>
+                            <select id="contact-subject" class="form-select premium-input" @bind="form.Subject" @bind:after="OnGeneralSubjectChanged">
+                                <option value="">-- اختر موضوع الرسالة --</option>
+                                <option value="technical">مشكلة تقنية</option>
+                                <option value="account">مشكلة في الحساب</option>
+                                <option value="provider">الانضمام كمزود خدمة (قالب مخصص)</option>
+                                <option value="complaint">شكوى</option>
+                                <option value="suggestion">اقتراح</option>
+                                <option value="other">أخرى</option>
+                            </select>
+                        </div>
+
+                        @if (form.Subject == "provider")
+                        {
+                            <div class="alert alert-info rounded-4 small py-2 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                <div>
+                                    <i class="fa-solid fa-lightbulb text-warning me-1"></i>
+                                    <strong>هل ترغب في إضافة بيانات خدمتك بالتفصيل؟</strong> نوفر قالباً منظماً يسهل مراجعته بسرعة.
+                                </div>
+                                <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" @onclick='() => SetTab("service")'>
+                                    الانتقال لقالب الخدمة 🚀
+                                </button>
+                            </div>
+                        }
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold">الرسالة <span class="text-danger">*</span></label>
+                            <textarea id="contact-message" class="form-control premium-input" @bind="form.Message" rows="4"
+                                      placeholder="اكتب تفاصيل رسالتك هنا..."></textarea>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(errorMsg))
+                        {
+                            <div class="alert alert-danger rounded-4 small py-2 mb-3">
+                                <i class="fa-solid fa-circle-exclamation me-2"></i>@errorMsg
+                            </div>
+                        }
+
+                        <!-- أزرار الإرسال -->
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button id="contact-submit-btn"
+                                    class="btn btn-contact-submit flex-fill py-3 rounded-pill fw-bold"
+                                    @onclick="HandleSubmitGeneral" disabled="@isSending">
+                                @if (isSending)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                    <span>جاري الإرسال...</span>
+                                }
+                                else
+                                {
+                                    <i class="fa-solid fa-paper-plane me-2"></i>
+                                    <span>إرسال الرسالة</span>
+                                }
+                            </button>
+
+                            <a href="@BuildGeneralWhatsAppUrl()" target="_blank" rel="noopener noreferrer"
+                               class="btn btn-whatsapp-send flex-fill py-3 rounded-pill fw-bold">
+                                <i class="fa-brands fa-whatsapp me-2 fs-5"></i>
+                                إرسال عبر واتساب
                             </a>
                         </div>
                     </div>
                 }
                 else
                 {
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">الاسم الكامل <span class="text-danger">*</span></label>
-                        <input id="contact-name" type="text" class="form-control premium-input" @bind="form.Name"
-                               placeholder="أدخل اسمك بالكامل" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">رقم الواتساب أو البريد الإلكتروني <span class="text-danger">*</span></label>
-                        <input id="contact-email" type="text" class="form-control premium-input" @bind="form.Email"
-                               placeholder="01xxxxxxxxx أو example@email.com" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">الموضوع</label>
-                        <select id="contact-subject" class="form-select premium-input" @bind="form.Subject">
-                            <option value="">-- اختر موضوع الرسالة --</option>
-                            <option value="technical">مشكلة تقنية</option>
-                            <option value="account">مشكلة في الحساب</option>
-                            <option value="provider">الانضمام كمزود خدمة</option>
-                            <option value="complaint">شكوى</option>
-                            <option value="suggestion">اقتراح</option>
-                            <option value="other">أخرى</option>
-                        </select>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label small fw-bold">الرسالة <span class="text-danger">*</span></label>
-                        <textarea id="contact-message" class="form-control premium-input" @bind="form.Message" rows="4"
-                                  placeholder="اكتب تفاصيل رسالتك هنا..."></textarea>
-                    </div>
-
-                    @if (!string.IsNullOrEmpty(errorMsg))
-                    {
-                        <div class="alert alert-danger rounded-4 small py-2 mb-3">
-                            <i class="fa-solid fa-circle-exclamation me-2"></i>@errorMsg
+                    <!-- ── 2. قالب طلب انضمام وإضافة خدمة جديدة (Structured Service Template) ── -->
+                    <div class="animate-fade-in">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <h5 class="fw-bold mb-0 text-primary">
+                                <i class="fa-solid fa-clipboard-list me-2"></i>قالب بيانات الخدمة / النشاط التجاري
+                            </h5>
+                            <span class="badge bg-primary-subtle text-primary border rounded-pill px-3 py-1 small">
+                                منظم للإدارة ومساعد الذكاء الاصطناعي
+                            </span>
                         </div>
-                    }
+                        <p class="text-muted small mb-4">
+                            يرجى ملء بيانات نشاطك بدقة لتتمكن الإدارة من مراجعتها ونشرها على المنصة بأسرع وقت.
+                        </p>
 
-                    <!-- أزرار الإرسال -->
-                    <div class="d-flex gap-2 flex-wrap">
-                        <button id="contact-submit-btn"
-                                class="btn btn-contact-submit flex-fill py-3 rounded-pill fw-bold"
-                                @onclick="HandleSubmit" disabled="@isSending">
-                            @if (isSending)
-                            {
-                                <span class="spinner-border spinner-border-sm me-2"></span>
-                                <span>جاري الإرسال...</span>
-                            }
-                            else
-                            {
-                                <i class="fa-solid fa-paper-plane me-2"></i>
-                                <span>إرسال الرسالة</span>
-                            }
-                        </button>
+                        <!-- القسم 1: بيانات مقدم الطلب -->
+                        <div class="p-3 bg-light rounded-4 mb-3 border">
+                            <div class="fw-bold small text-dark mb-3">
+                                <i class="fa-solid fa-user-tie text-primary me-1"></i> 1. بيانات المسؤول ومقدم الطلب
+                            </div>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <label class="form-label xx-small fw-bold text-muted mb-1">اسم مقدم الطلب / المسؤول <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control form-control-sm premium-input" @bind="svcApplicantName" placeholder="مثال: م. أحمد محمد" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label xx-small fw-bold text-muted mb-1">رقم الهاتف الأساسي <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control form-control-sm premium-input" @bind="svcApplicantPhone" placeholder="01xxxxxxxxx" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label xx-small fw-bold text-muted mb-1">رقم الواتساب للتواصل (إن اختلف)</label>
+                                    <input type="text" class="form-control form-control-sm premium-input" @bind="svcApplicantWhatsApp" placeholder="01xxxxxxxxx" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label xx-small fw-bold text-muted mb-1">البريد الإلكتروني (اختياري)</label>
+                                    <input type="email" class="form-control form-control-sm premium-input" @bind="svcApplicantEmail" placeholder="example@email.com" />
+                                </div>
+                            </div>
+                        </div>
 
-                        <a href="@BuildWhatsAppUrl()" target="_blank" rel="noopener noreferrer"
-                           class="btn btn-whatsapp-send flex-fill py-3 rounded-pill fw-bold">
-                            <i class="fa-brands fa-whatsapp me-2 fs-5"></i>
-                            واتساب مباشر
-                        </a>
+                        <!-- القسم 2: تفاصيل الخدمة والنشاط -->
+                        <div class="p-3 bg-light rounded-4 mb-3 border">
+                            <div class="fw-bold small text-dark mb-3">
+                                <i class="fa-solid fa-store text-primary me-1"></i> 2. بيانات الخدمة والنشاط التجاري
+                            </div>
+                            <div class="row g-2">
+                                <div class="col-md-7">
+                                    <label class="form-label xx-small fw-bold text-muted mb-1">اسم الخدمة أو النشاط التجاري <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control form-control-sm premium-input" @bind="svcTitle" placeholder="مثال: ورشة الأمانة لصيانة السيارات الحديثة" />
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="form-label xx-small fw-bold text-muted mb-1">القسم أو المجال المقترح <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control form-control-sm premium-input" @bind="svcCategory" placeholder="مثال: صيانة سيارات، تشطيبات، صحة..." />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label xx-small fw-bold text-muted mb-1">المحافظة والمدينة <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control form-control-sm premium-input" @bind="svcGovCity" placeholder="مثال: القاهرة - مدينة نصر" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label xx-small fw-bold text-muted mb-1">العنوان بالتفصيل أو نطاق التغطية <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control form-control-sm premium-input" @bind="svcAddress" placeholder="مثال: شارع الطيران بجوار مسجد رابعة / خدمة منزلية" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- القسم 3: مواعيد العمل والتسعير والوصف -->
+                        <div class="p-3 bg-light rounded-4 mb-3 border">
+                            <div class="fw-bold small text-dark mb-3">
+                                <i class="fa-solid fa-clock-rotate-left text-primary me-1"></i> 3. مواعيد العمل، الأسعار وتفاصيل الخدمة
+                            </div>
+                            <div class="row g-2 mb-2">
+                                <div class="col-md-6">
+                                    <label class="form-label xx-small fw-bold text-muted mb-1">مواعيد وساعات العمل</label>
+                                    <input type="text" class="form-control form-control-sm premium-input" @bind="svcWorkHours" placeholder="مثال: يومياً من 9 صباحاً إلى 10 مساءً" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label xx-small fw-bold text-muted mb-1">السعر أو طريقة التعامل</label>
+                                    <input type="text" class="form-control form-control-sm premium-input" @bind="svcPrice" placeholder="مثال: يبدأ من 100 ج.م / كشف مجاني / بالمعاينة" />
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label xx-small fw-bold text-muted mb-1">صفحة فيسبوك أو رابط إضافي (اختياري)</label>
+                                    <input type="text" class="form-control form-control-sm premium-input" @bind="svcLinks" placeholder="https://facebook.com/yourpage" />
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label xx-small fw-bold text-muted mb-1">وصف تفصيلي للخدمة والمميزات <span class="text-danger">*</span></label>
+                                    <textarea class="form-control premium-input" rows="4" @bind="svcDescription"
+                                              placeholder="اكتب شرحاً وافياً عن الخدمات التي تقدمها، الخبرات، الضمانات، وأي عروض خاصة للعملاء..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- زر معاينة القالب المنظم -->
+                        <div class="mb-3">
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3"
+                                    @onclick="() => showTemplatePreview = !showTemplatePreview">
+                                <i class="fa-solid @(showTemplatePreview ? "fa-eye-slash" : "fa-eye") me-1"></i>
+                                @(showTemplatePreview ? "إخفاء معاينة القالب" : "معاينة القالب المنظم كما سيصل للإدارة والذكاء الاصطناعي")
+                            </button>
+
+                            @if (showTemplatePreview)
+                            {
+                                <div class="p-3 bg-dark text-light rounded-4 mt-2 font-monospace small" style="direction: rtl; text-align: right; white-space: pre-wrap; font-size: 0.82rem; line-height: 1.5; border: 1px solid #334155;">
+@BuildServiceTemplateText()
+                                </div>
+                            }
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(errorMsg))
+                        {
+                            <div class="alert alert-danger rounded-4 small py-2 mb-3">
+                                <i class="fa-solid fa-circle-exclamation me-2"></i>@errorMsg
+                            </div>
+                        }
+
+                        <!-- أزرار الإرسال -->
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button class="btn btn-contact-submit flex-fill py-3 rounded-pill fw-bold"
+                                    @onclick="HandleSubmitServiceTemplate" disabled="@isSending">
+                                @if (isSending)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                    <span>جاري الإرسال...</span>
+                                }
+                                else
+                                {
+                                    <i class="fa-solid fa-paper-plane me-2"></i>
+                                    <span>إرسال طلب الانضمام للإدارة</span>
+                                }
+                            </button>
+
+                            <a href="@BuildServiceWhatsAppUrl()" target="_blank" rel="noopener noreferrer"
+                               class="btn btn-whatsapp-send flex-fill py-3 rounded-pill fw-bold">
+                                <i class="fa-brands fa-whatsapp me-2 fs-5"></i>
+                                إرسال القالب عبر واتساب
+                            </a>
+                        </div>
                     </div>
-
-                    <p class="text-muted small text-center mt-3 mb-0">
-                        <i class="fa-solid fa-bolt text-warning me-1"></i>
-                        للرد الأسرع، تواصل معنا مباشرة عبر واتساب
-                    </p>
                 }
+
+                <p class="text-muted small text-center mt-3 mb-0">
+                    <i class="fa-solid fa-shield-halved text-success me-1"></i>
+                    بياناتك في أمان ويتم مراجعتها من قِبل إدارة منصة وتطبيق خدماوي.
+                </p>
+
             </div>
         </div>
     </div>
@@ -302,10 +489,16 @@
     .social-pill.facebook  { background: rgba(59,89,152,.1); color: #3b5998; }
     .social-pill.whatsapp  { background: rgba(37,211,102,.12); color: #25d366; }
 
+    /* ── التبويبات ── */
+    .contact-tabs .tab-btn {
+        transition: all .25s ease;
+        font-size: 0.9rem;
+    }
+
     /* ── حقول النموذج ── */
     .premium-input {
-        border: 2px solid #f1f5f9;
-        background: #f8fafc;
+        border: 2px solid #e2e8f0;
+        background: #ffffff;
         border-radius: 12px;
         padding: 10px 14px;
         transition: all .2s;
@@ -340,7 +533,7 @@
         color: #ffffff !important;
     }
 
-    /* ── زر واتساب إرسال (الزر البارز الأخضر بدون بهتان) ── */
+    /* ── زر واتساب إرسال ── */
     .btn.btn-whatsapp-send,
     a.btn-whatsapp-send {
         background: linear-gradient(135deg, #25d366 0%, #128c7e 100%) !important;
@@ -383,9 +576,16 @@
         from { transform: scale(.8); opacity: 0; }
         to   { transform: scale(1);  opacity: 1; }
     }
+    .animate-fade-in { animation: fadeIn .3s ease-in-out; }
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
 </style>
 
 @code {
+    private string activeTab = "general"; // "general" or "service"
+
     private string WhatsAppNumber => !string.IsNullOrWhiteSpace(State.ContactWhatsApp)
         ? State.ContactWhatsApp.TrimStart('+').Replace(" ", "")
         : "201065016032";
@@ -400,51 +600,149 @@
     private const string FacebookUrl = "https://www.facebook.com/share/1bpy2Jh2NF/";
     private const string SupportHours = "السبت – الخميس: 9ص – 9م";
 
-    private ContactForm form      = new();
-    private bool        isSending = false;
-    private bool        submitted = false;
-    private string?     errorMsg;
+    // General Form Fields
+    private ContactForm form = new();
+
+    // Service Template Fields
+    private string svcApplicantName = "";
+    private string svcApplicantPhone = "";
+    private string svcApplicantWhatsApp = "";
+    private string svcApplicantEmail = "";
+    private string svcTitle = "";
+    private string svcCategory = "";
+    private string svcGovCity = "";
+    private string svcAddress = "";
+    private string svcWorkHours = "";
+    private string svcPrice = "";
+    private string svcLinks = "";
+    private string svcDescription = "";
+
+    private bool showTemplatePreview = false;
+    private bool isSending = false;
+    private bool submitted = false;
+    private bool submittedWasService = false;
+    private string? errorMsg;
 
     [Inject] private Khadamat.BlazorUI.Services.ApiClient Api { get; set; } = default!;
 
-    /// بناء رابط واتساب يحتوي على بيانات النموذج مسبقاً
-    private string BuildWhatsAppUrl()
+    private void SetTab(string tab)
+    {
+        activeTab = tab;
+        errorMsg = null;
+    }
+
+    private void OnGeneralSubjectChanged()
+    {
+        if (form.Subject == "provider")
+        {
+            // Auto switch or alert user
+        }
+    }
+
+    private void ResetForm()
+    {
+        submitted = false;
+        form = new();
+        svcApplicantName = "";
+        svcApplicantPhone = "";
+        svcApplicantWhatsApp = "";
+        svcApplicantEmail = "";
+        svcTitle = "";
+        svcCategory = "";
+        svcGovCity = "";
+        svcAddress = "";
+        svcWorkHours = "";
+        svcPrice = "";
+        svcLinks = "";
+        svcDescription = "";
+        errorMsg = null;
+    }
+
+    /// <summary>
+    /// صياغة القالب المنظم بصيغة قياسية موحدة لقراءتها من المدير ومساعد الذكاء الاصطناعي
+    /// </summary>
+    private string BuildServiceTemplateText()
+    {
+        var wa = !string.IsNullOrWhiteSpace(svcApplicantWhatsApp) ? svcApplicantWhatsApp : svcApplicantPhone;
+        var em = !string.IsNullOrWhiteSpace(svcApplicantEmail) ? svcApplicantEmail : "غير محدد";
+        var hrs = !string.IsNullOrWhiteSpace(svcWorkHours) ? svcWorkHours : "متاح يومياً";
+        var prc = !string.IsNullOrWhiteSpace(svcPrice) ? svcPrice : "حسب المعاينة / بالتواصل";
+        var lnk = !string.IsNullOrWhiteSpace(svcLinks) ? svcLinks : "غير متوفر";
+
+        return
+            "=== [طلب انضمام وإضافة خدمة جديدة] ===\n" +
+            $"👤 مقدم الطلب: {svcApplicantName.Trim()}\n" +
+            $"📞 رقم الهاتف: {svcApplicantPhone.Trim()}\n" +
+            $"💬 رقم الواتساب: {wa.Trim()}\n" +
+            $"📧 البريد الإلكتروني: {em.Trim()}\n" +
+            "\n" +
+            "--- بيانات الخدمة والنشاط ---\n" +
+            $"📌 اسم الخدمة: {svcTitle.Trim()}\n" +
+            $"📁 المجال المقترح: {svcCategory.Trim()}\n" +
+            $"📍 المحافظة والمدينة: {svcGovCity.Trim()}\n" +
+            $"🏢 العنوان بالتفصيل: {svcAddress.Trim()}\n" +
+            $"⏰ مواعيد العمل: {hrs.Trim()}\n" +
+            $"💰 السعر / نظام العمل: {prc.Trim()}\n" +
+            $"🌐 صفحة فيسبوك / رابط: {lnk.Trim()}\n" +
+            "\n" +
+            "--- وصف وتفاصيل الخدمة ---\n" +
+            $"{svcDescription.Trim()}\n" +
+            "======================================";
+    }
+
+    private string BuildWhatsAppDirectUrl()
+    {
+        if (activeTab == "service" && (!string.IsNullOrWhiteSpace(svcTitle) || !string.IsNullOrWhiteSpace(svcApplicantName)))
+        {
+            return BuildServiceWhatsAppUrl();
+        }
+        return $"https://wa.me/{WhatsAppNumber}?text={Uri.EscapeDataString("مرحباً، أحتاج مساعدة أو استفسار بخصوص منصة وتطبيق خدماوي.")}";
+    }
+
+    private string BuildGeneralWhatsAppUrl()
     {
         var msg = $"مرحباً، أنا {form.Name}.\n" +
                   (!string.IsNullOrWhiteSpace(form.Subject) ? $"الموضوع: {SubjectLabel(form.Subject)}\n" : "") +
-                  (!string.IsNullOrWhiteSpace(form.Message)  ? $"\n{form.Message}" : "\nأحتاج مساعدة.");
+                  (!string.IsNullOrWhiteSpace(form.Message) ? $"\n{form.Message}" : "\nأحتاج مساعدة.");
         return $"https://wa.me/{WhatsAppNumber}?text={Uri.EscapeDataString(msg)}";
     }
 
-    private async Task HandleSubmit()
+    private string BuildServiceWhatsAppUrl()
+    {
+        var text = BuildServiceTemplateText();
+        return $"https://wa.me/{WhatsAppNumber}?text={Uri.EscapeDataString(text)}";
+    }
+
+    private async Task HandleSubmitGeneral()
     {
         if (string.IsNullOrWhiteSpace(form.Name) ||
             string.IsNullOrWhiteSpace(form.Email) ||
             string.IsNullOrWhiteSpace(form.Message))
         {
-            errorMsg = "يرجى ملء جميع الحقول المطلوبة";
+            errorMsg = "يرجى ملء جميع الحقول المطلوبة (الاسم، رقم التواصل، الرسالة)";
             return;
         }
 
         isSending = true;
-        errorMsg  = null;
+        errorMsg = null;
 
         try
         {
             var payload = new
             {
-                Name        = form.Name,
-                Email       = form.Email,
-                Subject     = form.Subject,
-                SubjectType = form.Subject,
-                Message     = form.Message
+                Name = form.Name.Trim(),
+                Email = form.Email.Trim(),
+                Subject = !string.IsNullOrWhiteSpace(form.Subject) ? SubjectLabel(form.Subject) : "استفسار عام",
+                SubjectType = !string.IsNullOrWhiteSpace(form.Subject) ? form.Subject : "other",
+                Message = form.Message.Trim()
             };
 
             var result = await Api.PostAsync<ContactResult>("v1/contact", payload);
             if (result?.Success == true)
             {
                 submitted = true;
-                form      = new();
+                submittedWasService = false;
+                form = new();
             }
             else
             {
@@ -454,6 +752,57 @@
         catch (Exception ex)
         {
             errorMsg = "حدث خطأ غير متوقع: " + ex.Message;
+        }
+        finally
+        {
+            isSending = false;
+        }
+    }
+
+    private async Task HandleSubmitServiceTemplate()
+    {
+        if (string.IsNullOrWhiteSpace(svcApplicantName) ||
+            string.IsNullOrWhiteSpace(svcApplicantPhone) ||
+            string.IsNullOrWhiteSpace(svcTitle) ||
+            string.IsNullOrWhiteSpace(svcCategory) ||
+            string.IsNullOrWhiteSpace(svcGovCity) ||
+            string.IsNullOrWhiteSpace(svcAddress) ||
+            string.IsNullOrWhiteSpace(svcDescription))
+        {
+            errorMsg = "يرجى ملء كافة الحقول الأساسية المطلوبة المؤشر عليها بـ (*)";
+            return;
+        }
+
+        isSending = true;
+        errorMsg = null;
+
+        try
+        {
+            var structuredText = BuildServiceTemplateText();
+
+            var payload = new
+            {
+                Name = svcApplicantName.Trim(),
+                Email = !string.IsNullOrWhiteSpace(svcApplicantEmail) ? svcApplicantEmail.Trim() : svcApplicantPhone.Trim(),
+                Subject = $"طلب انضمام خدمة: {svcTitle.Trim()}",
+                SubjectType = "provider",
+                Message = structuredText
+            };
+
+            var result = await Api.PostAsync<ContactResult>("v1/contact", payload);
+            if (result?.Success == true)
+            {
+                submitted = true;
+                submittedWasService = true;
+            }
+            else
+            {
+                errorMsg = result?.Message ?? "حدث خطأ أثناء إرسال القالب، يمكنك إرساله مباشرة عبر واتساب";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMsg = "حدث خطأ أثناء الإرسال: " + ex.Message;
         }
         finally
         {
@@ -473,15 +822,15 @@
 
     private class ContactForm
     {
-        public string Name    { get; set; } = "";
-        public string Email   { get; set; } = "";
+        public string Name { get; set; } = "";
+        public string Email { get; set; } = "";
         public string Subject { get; set; } = "";
         public string Message { get; set; } = "";
     }
 
     private class ContactResult
     {
-        public bool    Success { get; set; }
+        public bool Success { get; set; }
         public string? Message { get; set; }
     }
 }
