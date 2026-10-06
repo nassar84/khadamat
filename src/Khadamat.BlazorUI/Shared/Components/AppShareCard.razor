@@ -1,6 +1,7 @@
 @using Khadamat.BlazorUI.State
 @inject AppState State
 @inject IJSRuntime JS
+@inject NavigationManager Navigation
 
 @* ── كارت مشاركة التطبيق الموحد ── *@
 <div class="app-share-card @CssClass" @onclick="HandleShare" role="button" title="شارك التطبيق مع أصدقائك">
@@ -250,7 +251,7 @@
     [Parameter] public EventCallback OnShareClicked { get; set; }
 
     private string ShareUrl => string.IsNullOrEmpty(State.AppShareUrl)
-        ? "https://khadamawy.eis-dev.com"
+        ? Navigation.BaseUri
         : State.AppShareUrl;
 
     private string FullShareText => (string.IsNullOrEmpty(State.AppShareText)

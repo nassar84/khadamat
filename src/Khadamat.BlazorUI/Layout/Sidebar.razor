@@ -993,7 +993,7 @@
 
     private async Task ShareApp()
     {
-        var shareUrl = !string.IsNullOrEmpty(State.AppShareUrl) ? State.AppShareUrl : "https://khadamawy.eis-dev.com";
+        var shareUrl = !string.IsNullOrEmpty(State.AppShareUrl) ? State.AppShareUrl : Navigation.BaseUri;
         var shareText = !string.IsNullOrEmpty(State.AppShareText)
             ? State.AppShareText
             : $"📲 منصة {State.AppName} — خدماتك في مكان واحد.. لكل المصريين!\nتواصل مباشرة مع أفضل الحرفيين والمهنيين ومقدمي الخدمات بكل سهولة وأمان.";

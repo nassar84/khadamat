@@ -1,10 +1,16 @@
 {
-    "name": "خدماوي - Khidmawy",
+    "name": "خدماوي - Khadamawy",
     "short_name": "خدماوي",
+    "description": "منصتك المثالية للبحث عن الفنيين والمزودين وطلب الخدمات بكل سهولة في مصر.",
     "start_url": "/",
+    "scope": "/",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#2a7f8f",
+    "orientation": "portrait",
+    "lang": "ar",
+    "dir": "rtl",
+    "categories": ["business", "utilities", "lifestyle"],
     "icons": [
         {
             "src": "icon-192.png",
@@ -16,13 +22,13 @@
             "src": "icon-512.png",
             "sizes": "512x512",
             "type": "image/png",
-            "purpose": "any"
+            "purpose": "any maskable"
         },
         {
             "src": "apple-touch-icon.png",
             "sizes": "180x180",
             "type": "image/png",
-            "purpose": "any maskable"
+            "purpose": "any"
         },
         {
             "src": "favicon.png",
@@ -31,8 +37,26 @@
             "purpose": "any"
         }
     ],
-    "description": "منصتك المثالية للبحث عن الفنيين والمزودين وطلب الخدمات بكل سهولة.",
-    "orientation": "portrait",
-    "lang": "ar",
-    "dir": "rtl"
-}
+    "shortcuts": [
+        {
+            "name": "تصفح الخدمات",
+            "short_name": "الخدمات",
+            "url": "/services",
+            "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+        },
+        {
+            "name": "البحث عن فني",
+            "short_name": "بحث",
+            "url": "/search",
+            "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+        },
+        {
+            "name": "استكشاف التصنيفات",
+            "short_name": "تصنيفات",
+            "url": "/explore",
+            "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+        }
+    ],
+    "related_applications": [],
+    "prefer_related_applications": false
+}

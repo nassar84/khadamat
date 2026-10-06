@@ -1,5 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Webp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 namespace Khadamat.WebAPI.Controllers;
 
@@ -107,24 +111,72 @@ public class UploadController : ControllerBase
             if (!Directory.Exists(folderPath))
                 Directory.CreateDirectory(folderPath);
 
-            // Naming convention: {timestamp_ms}_{guid_compact}{ext}
-            var uniqueName = $"{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}_{Guid.NewGuid():N}{ext}";
-            var filePath = Path.Combine(folderPath, uniqueName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true))
+            var (maxWidth, maxHeight, targetQuality) = folder switch
             {
-                await file.CopyToAsync(stream);
+                "users" => (400, 400, 80),                                             // صور المستخدمين (15-35 KB)
+                "maincategories" or "categories" or "subcategories" => (512, 512, 85), // أيقونات الفئات (25-50 KB)
+                "hero" => (1920, 1080, 82),                                            // بنرات الصفحة الرئيسية
+                _ => (1200, 1200, 80)                                                  // الخدمات والمتجر والإعلانات (70-180 KB)
+            };
+
+            var webpName = $"{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}_{Guid.NewGuid():N}.webp";
+            var webpPath = Path.Combine(folderPath, webpName);
+
+            using var inputStream = file.OpenReadStream();
+            using var img = await Image.LoadAsync<Rgba32>(inputStream);
+
+            // Resize if dimensions exceed threshold
+            if (img.Width > maxWidth || img.Height > maxHeight)
+            {
+                img.Mutate(x => x.Resize(new ResizeOptions
+                {
+                    Size = new Size(maxWidth, maxHeight),
+                    Mode = ResizeMode.Max,
+                    Sampler = KnownResamplers.Lanczos3
+                }));
             }
 
-            // ✅ Return ONLY the filename → save this in DB
-            // ✅ Also return the full relative URL for immediate display
+            var webpEncoder = new WebpEncoder
+            {
+                FileFormat = WebpFileFormatType.Lossy,
+                Quality = targetQuality,
+                TransparentColorMode = WebpTransparentColorMode.Preserve,
+                Method = WebpEncodingMethod.BestQuality
+            };
+
+            await using (var outStream = new FileStream(webpPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))
+            {
+                await img.SaveAsync(outStream, webpEncoder);
+            }
+
+            // ضمان ألا يتعدى حجم الصورة النهائي 300 كيلوبايت (307,200 بايت)
+            const long MaxOutputSizeBytes = 300 * 1024;
+            var fileInfo = new FileInfo(webpPath);
+            if (fileInfo.Exists && fileInfo.Length > MaxOutputSizeBytes)
+            {
+                // إعادة ضغط بجودة أقل لضمان عدم تجاوز 300KB
+                var compressedEncoder = new WebpEncoder
+                {
+                    FileFormat = WebpFileFormatType.Lossy,
+                    Quality = 65,
+                    TransparentColorMode = WebpTransparentColorMode.Preserve,
+                    Method = WebpEncodingMethod.BestQuality
+                };
+
+                await using (var outStream = new FileStream(webpPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))
+                {
+                    await img.SaveAsync(outStream, compressedEncoder);
+                }
+            }
+
             return Ok(new
             {
                 success  = true,
-                filename = uniqueName,                          // ← store in DB
-                url      = $"/images/{folder}/{uniqueName}",   // ← use for <img src>
+                filename = webpName,                          // ← يُخزن في قاعدة البيانات
+                url      = $"/images/{folder}/{webpName}",   // ← رابط العرض
                 type     = folder,
-                message  = "تم رفع الصورة بنجاح"
+                sizeKb   = Math.Round(new FileInfo(webpPath).Length / 1024.0, 1),
+                message  = "تم رفع ومعالجة الصورة بنجاح بصيغة WebP بحجم مثالي"
             });
         }
         catch (Exception ex)

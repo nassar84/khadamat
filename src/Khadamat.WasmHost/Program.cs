@@ -33,6 +33,17 @@ IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
 // 2. Named Client with Configuration-based BaseAddress
 builder.Services.AddScoped<Khadamat.BlazorUI.Services.Auth.AuthenticationHandler>();
 
+// ── Khadamawy Dual-Domain Environment Resolution ─────────────────────────
+var activeEnv = builder.Configuration["Khadamawy:ActiveEnvironment"] ?? "Current";
+var envApiBaseUrl = builder.Configuration[$"Khadamawy:{activeEnv}:ApiBaseUrl"];
+var envWebBaseUrl = builder.Configuration[$"Khadamawy:{activeEnv}:WebBaseUrl"];
+
+if (!string.IsNullOrWhiteSpace(envApiBaseUrl))
+    builder.Configuration["ApiSettings:BaseUrl"] = envApiBaseUrl;
+
+if (!string.IsNullOrWhiteSpace(envWebBaseUrl))
+    builder.Configuration["ApiSettings:WebAppBaseUrl"] = envWebBaseUrl;
+
 builder.Services.AddHttpClient("KhadamatAPI", client =>
 {
     // ── Priority 1: cfg_api_url from sessionStorage (set by MobileBridge in index.html)

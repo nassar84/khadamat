@@ -144,8 +144,8 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
     private void LoadContent(bool force = false)
     {
         // 1. Resolve base url from preferences or configuration
-        string baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "https://khadamawy.eis-dev.com");
-        string apiBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("ApiBaseUrl", "https://khadamawy.eis-dev.com");
+        string baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "");
+        string apiBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("ApiBaseUrl", "");
         
         string routePart = !string.IsNullOrEmpty(DeepLinkRoute) ? DeepLinkRoute : (_route ?? "").TrimStart('/');
 
@@ -659,8 +659,8 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
                 
             if (runDiag)
             {
-                string baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "https://khadamawy.eis-dev.com");
-                string apiBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("ApiBaseUrl", "https://khadamawy.eis-dev.com");
+                string baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "");
+                string apiBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("ApiBaseUrl", "");
                 await RunWebViewDiagnosticsAsync(baseUrl, apiBaseUrl);
             }
 
@@ -816,7 +816,7 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
     {
         try
         {
-            string defaultBase = !string.IsNullOrEmpty(fallbackBaseUrl) ? fallbackBaseUrl : "https://khadamawy.eis-dev.com";
+            string defaultBase = !string.IsNullOrEmpty(fallbackBaseUrl) ? fallbackBaseUrl : Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "");
             string apiBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("ApiBaseUrl", defaultBase);
             string webAppBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", defaultBase);
             
@@ -857,7 +857,7 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
         {
             Console.WriteLine($"ANTIGRAVITY_LOG: Exception in HandleNativeExternalLogin: {ex.Message}");
             
-            string defaultBase = !string.IsNullOrEmpty(fallbackBaseUrl) ? fallbackBaseUrl : "https://khadamawy.eis-dev.com";
+            string defaultBase = !string.IsNullOrEmpty(fallbackBaseUrl) ? fallbackBaseUrl : Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "");
             string webAppBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", defaultBase);
             var targetUrl = $"{webAppBaseUrl.TrimEnd('/')}/login?error={Uri.EscapeDataString(ex.Message)}&nativeapp=1";
             LoadUrl(targetUrl, true);

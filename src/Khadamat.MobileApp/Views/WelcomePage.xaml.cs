@@ -35,7 +35,7 @@ namespace Khadamat.MobileApp.Views
         {
             try
             {
-                var configuredUrl = _configuration["ApiSettings:BaseUrl"] ?? "https://khadamawy.eis-dev.com";
+                var configuredUrl = _configuration["ApiSettings:BaseUrl"] ?? "";
                 var apiBaseUrl = Preferences.Default.Get("ApiBaseUrl", configuredUrl).TrimEnd('/');
                 if (string.IsNullOrEmpty(apiBaseUrl)) return;
 
@@ -120,9 +120,10 @@ namespace Khadamat.MobileApp.Views
         {
             try
             {
-                var apiBaseUrl = Preferences.Default.Get("ApiBaseUrl", 
-                    _configuration["ApiSettings:BaseUrl"] ?? "https://khadamawy.eis-dev.com");
+                var apiBaseUrl = Preferences.Default.Get("ApiBaseUrl",
+                    _configuration["ApiSettings:BaseUrl"] ?? "");
                 apiBaseUrl = apiBaseUrl.TrimEnd('/');
+                if (string.IsNullOrEmpty(apiBaseUrl)) return;
                 
                 Console.WriteLine($"ANTIGRAVITY_LOG: Testing connectivity to: {apiBaseUrl}");
                 
@@ -149,8 +150,8 @@ namespace Khadamat.MobileApp.Views
 
         private async void OnDevSettingsTriggered(object sender, EventArgs e)
         {
-            string currentWebUrl = Preferences.Default.Get("WebAppBaseUrl", "https://khadamawy.eis-dev.com");
-            string currentApiUrl = Preferences.Default.Get("ApiBaseUrl", "https://khadamawy.eis-dev.com");
+            string currentWebUrl = Preferences.Default.Get("WebAppBaseUrl", "");
+            string currentApiUrl = Preferences.Default.Get("ApiBaseUrl", "");
 
             string action = await DisplayActionSheet("خيارات المطور والاتصال", "إلغاء", null, 
                 "تعديل عناوين الخادم", "اختبار الاتصال والتحميل الحالي");

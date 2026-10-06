@@ -310,16 +310,6 @@
                             </div>
                         </div>
 
-                        <!-- Action Buttons: Request Service -->
-                        @if (!CanEdit)
-                        {
-                            <div class="action-buttons-v3 mb-2">
-                                <button class="btn btn-request-main w-100 py-3 shadow-md d-flex align-items-center justify-content-center gap-2" @onclick="OpenRequestModal">
-                                    <i class="fa-solid fa-calendar-check fs-5"></i>
-                                    <span class="fs-6 fw-bold">طلب الخدمة الآن</span>
-                                </button>
-                            </div>
-                        }
 
                         <!-- Action Buttons: Direct Phone Call -->
                         <div class="action-buttons-v3 mb-2">
@@ -1546,7 +1536,12 @@
             var host = uri.Host.ToLowerInvariant();
             if (host == "localhost" || host == "127.0.0.1" || host == "0.0.0.0" || State.IsNativeApp)
             {
-                return $"https://khadamawy.eis-dev.com/share/service/{Id}";
+                // Use the live site origin from AppShareUrl or current navigation
+                var baseOrigin = !string.IsNullOrEmpty(State.AppShareUrl)
+                    ? new Uri(State.AppShareUrl).GetLeftPart(UriPartial.Authority)
+                    : Navigation.BaseUri.TrimEnd('/');
+                try { baseOrigin = new Uri(baseOrigin).GetLeftPart(UriPartial.Authority); } catch { }
+                return $"{baseOrigin}/share/service/{Id}";
             }
             return $"{uri.Scheme}://{uri.Authority}/share/service/{Id}";
         }
@@ -1560,7 +1555,11 @@
             var host = uri.Host.ToLowerInvariant();
             if (host == "localhost" || host == "127.0.0.1" || host == "0.0.0.0" || State.IsNativeApp)
             {
-                return $"https://khadamawy.eis-dev.com/service/{Id}";
+                var baseOrigin = !string.IsNullOrEmpty(State.AppShareUrl)
+                    ? new Uri(State.AppShareUrl).GetLeftPart(UriPartial.Authority)
+                    : Navigation.BaseUri.TrimEnd('/');
+                try { baseOrigin = new Uri(baseOrigin).GetLeftPart(UriPartial.Authority); } catch { }
+                return $"{baseOrigin}/service/{Id}";
             }
             return $"{uri.Scheme}://{uri.Authority}/service/{Id}";
         }
@@ -1950,7 +1949,8 @@
                $"🔗 رابط صفحة الخدمة والتفاصيل:\n{SharePageUrl}\n\n" +
                $"📲 منصة وتطبيق خدماوي — سوق الخدمات والأعمال الأول في مصر 🇪🇬\n" +
                $"حمل تطبيق خدماوي مجاناً وتصفح آلاف الخدمات والوظائف القريبة منك وتواصل مباشرة مع أصحاب الأعمال:\n" +
-               $"https://khadamawy.eis-dev.com/downloads/khadamat.apk";
+               // App download link: prefer GooglePlayUrl, fall back to AppShareUrl
+               (string.IsNullOrEmpty(State.GooglePlayUrl) ? State.AppShareUrl : State.GooglePlayUrl);
     }
 
     private string GetFacebookPostText()
@@ -1968,13 +1968,14 @@
                $"🔗 رابط تفاصيل الخدمة والتواصل:\n{SharePageUrl}\n\n" +
                $"📲 منصة وتطبيق خدماوي — سوق الخدمات والأعمال الأول في مصر 🇪🇬\n" +
                $"حمل تطبيق خدماوي مجاناً وتصفح آلاف الخدمات والوظائف القريبة منك وتواصل مباشرة مع أفضل مقدمي الخدمات:\n" +
-               $"https://khadamawy.eis-dev.com/downloads/khadamat.apk";
+               // App download link: prefer GooglePlayUrl, fall back to AppShareUrl
+               (string.IsNullOrEmpty(State.GooglePlayUrl) ? State.AppShareUrl : State.GooglePlayUrl);
     }
 
     private string GetTwitterShareText()
     {
         var title = service?.Title ?? "";
-        return $"🌟 {title} على منصة وتطبيق خدماوي — سوق الخدمات الأول في مصر\n📲 حمل التطبيق مجاناً:\nhttps://khadamawy.eis-dev.com/downloads/khadamat.apk";
+        return $"🌟 {title} على منصة وتطبيق خدماوي — سوق الخدمات الأول في مصر\n📲 حمل التطبيق مجاناً:\n{(string.IsNullOrEmpty(State.GooglePlayUrl) ? State.AppShareUrl : State.GooglePlayUrl)}";
     }
 
     private string GetWhatsAppShareText() => GetUnifiedShareText();
@@ -2071,7 +2072,7 @@
         {
             return Api.GetAbsoluteUrl(firstImg);
         }
-        return $"https://khadamawy.eis-dev.com/images/share_cards/card_{Id}.png";
+        return $"{Navigation.BaseUri.TrimEnd('/')}/images/share_cards/card_{Id}.png";
     }
 
     private async Task ShareViaDeviceDirect()
@@ -2172,7 +2173,7 @@
             var addressDetail = GetCardDetailedAddress();
             var addressLine = !string.IsNullOrEmpty(addressDetail) ? $"\n📍 العنوان بالتفصيل: {addressDetail}" : "";
             var fbLine = !string.IsNullOrWhiteSpace(service?.Facebook) ? $"\n🌐 صفحة فيسبوك: {GetFacebookUrl(service.Facebook)}" : "";
-            var shareText = $"🌟 شاهد هذه الخدمة المميزة على منصة خدماوي:\n*{service?.Title}*\n🔗 رابط الخدمة والتفاصيل:\n{SharePageUrl}\n\n📝 {service?.Description}{addressLine}{fbLine}\n\n📲 حمّل تطبيق خدماوي مجاناً للأندرويد (APK):\nhttps://khadamawy.eis-dev.com/downloads/khadamat.apk";
+            var shareText = $"🌟 شاهد هذه الخدمة المميزة على منصة خدماوي:\n*{service?.Title}*\n🔗 رابط الخدمة والتفاصيل:\n{SharePageUrl}\n\n📝 {service?.Description}{addressLine}{fbLine}\n\n📲 حمّل تطبيق خدماوي مجاناً للأندرويد:\n{(string.IsNullOrEmpty(State.GooglePlayUrl) ? State.AppShareUrl : State.GooglePlayUrl)}";
             
             // Ensure card image is ready
             var imageUrl = shareCardImageUrl;

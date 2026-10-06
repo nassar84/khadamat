@@ -88,7 +88,7 @@ public class AppState
     public string SecondaryColor { get; set; } = "#a855f7";
 
     // App Sharing Settings
-    public string AppShareUrl { get; set; } = "https://khadamawy.eis-dev.com/downloads/khadamat.apk";
+    public string AppShareUrl { get; set; } = "";
     public string AppShareText { get; set; } = "📲 تطبيق خدماوي — كل خدماتك في مكان واحد!\nتواصل مع أفضل الحرفيين والمهنيين بكل سهولة وأمان.\n\n🔗 حمل التطبيق الآن:";
     public string AppStoreUrl { get; set; } = "";
     public string GooglePlayUrl { get; set; } = "";

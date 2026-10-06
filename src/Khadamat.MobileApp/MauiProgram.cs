@@ -65,20 +65,40 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
 
-        // Configure HttpClient for API
-        var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "https://khadamawy.eis-dev.com";
-        var webAppBaseUrl = builder.Configuration["ApiSettings:WebAppBaseUrl"] ?? "https://khadamawy.eis-dev.com";
-        
-        // Ensure URLs end with slash for consistency if needed, but here we prefer consistency with config
-        
-        // Save base web app URL config dynamically to Preferences for easy access in parameterless pages
-        Preferences.Default.Set("WebAppBaseUrl", webAppBaseUrl.TrimEnd('/') + "/");
-        Preferences.Default.Set("ApiBaseUrl", apiBaseUrl.TrimEnd('/') + "/");
-        
-        // Print it to help with debugging
+        // ── Khadamawy Dual-Domain Environment Resolution ─────────────────────────
+        // Reads Khadamawy:ActiveEnvironment (e.g. "Current" or "Production") and
+        // resolves ApiSettings:BaseUrl / ApiSettings:WebAppBaseUrl from the matching
+        // sub-section. To switch domains: change Khadamawy:ActiveEnvironment in
+        // Resources/Raw/appsettings.json and rebuild. No source-code changes needed.
+        var activeEnv = builder.Configuration["Khadamawy:ActiveEnvironment"] ?? "Current";
+        var resolvedApiBaseUrl   = builder.Configuration[$"Khadamawy:{activeEnv}:ApiBaseUrl"]
+                                    ?? builder.Configuration["ApiSettings:BaseUrl"]
+                                    ?? "https://khadamawy.eis-dev.com/";
+        var resolvedWebAppBaseUrl = builder.Configuration[$"Khadamawy:{activeEnv}:WebBaseUrl"]
+                                    ?? builder.Configuration["ApiSettings:WebAppBaseUrl"]
+                                    ?? "https://khadamawy.eis-dev.com/";
+        var googlePlayAppUrl      = builder.Configuration["Khadamawy:GooglePlayAppUrl"]
+                                    ?? "https://play.google.com/store/apps/details?id=com.nassar84.khadamat";
+
+        // Back-fill ApiSettings so any code that reads ApiSettings:BaseUrl still works
+        builder.Configuration["ApiSettings:BaseUrl"]      = resolvedApiBaseUrl;
+        builder.Configuration["ApiSettings:WebAppBaseUrl"] = resolvedWebAppBaseUrl;
+
+        // Normalise
+        var apiBaseUrl    = resolvedApiBaseUrl.TrimEnd('/') + "/";
+        var webAppBaseUrl = resolvedWebAppBaseUrl.TrimEnd('/') + "/";
+
+        // Persist to Preferences for pages that read them without DI configuration
+        Preferences.Default.Set("WebAppBaseUrl", webAppBaseUrl);
+        Preferences.Default.Set("ApiBaseUrl",    apiBaseUrl);
+        Preferences.Default.Set("GooglePlayAppUrl", googlePlayAppUrl);
+
+        // Print to help with debugging
+        Console.WriteLine($"ANTIGRAVITY_LOG: [KhadamawyConfig] ActiveEnvironment={activeEnv}");
         Console.WriteLine($"ANTIGRAVITY_LOG: Using API Base URL: {apiBaseUrl}");
         Console.WriteLine($"ANTIGRAVITY_LOG: Using Web Application Base URL: {webAppBaseUrl}");
-        
+        Console.WriteLine($"ANTIGRAVITY_LOG: Google Play URL: {googlePlayAppUrl}");
+
         // Register UI and state things via Native methods or simplified stubs if needed for push notifications
         // Note: We removed Blazor authentication handling from the mobile container as the WebView handles it natively
 

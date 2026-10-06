@@ -255,32 +255,44 @@ public static class CategoryIconResolver
 
         // 1. Check database images first (original, parent, then grandparent)
         if (!string.IsNullOrEmpty(originalImageUrl))
-            return ImagePathResolver.Resolve(originalImageUrl, entityFolder ?? slugFolder);
+            return ImagePathResolver.Resolve(EnsureWebp(originalImageUrl), entityFolder ?? slugFolder, "default.webp");
 
         if (!string.IsNullOrEmpty(parentImageUrl))
-            return ImagePathResolver.Resolve(parentImageUrl, parentEntityFolder ?? slugFolder);
+            return ImagePathResolver.Resolve(EnsureWebp(parentImageUrl), parentEntityFolder ?? slugFolder, "default.webp");
 
         if (!string.IsNullOrEmpty(grandparentImageUrl))
-            return ImagePathResolver.Resolve(grandparentImageUrl, grandparentEntityFolder ?? slugFolder);
+            return ImagePathResolver.Resolve(EnsureWebp(grandparentImageUrl), grandparentEntityFolder ?? slugFolder, "default.webp");
 
         // 2. Try to resolve a slug icon from the generic slug folder based on name
         if (!string.IsNullOrEmpty(categoryName))
         {
             string key = categoryName.Trim();
             if (_slugMap.TryGetValue(key, out string? slug))
-                return $"{slugFolder}/{slug}.png";
+                return $"{slugFolder}/{slug}.webp";
 
             // Hierarchical fallback: try parent
             if (!string.IsNullOrEmpty(parentCategoryName))
             {
                 string parentKey = parentCategoryName.Trim();
                 if (_slugMap.TryGetValue(parentKey, out string? parentSlug))
-                    return $"{slugFolder}/{parentSlug}.png";
+                    return $"{slugFolder}/{parentSlug}.webp";
             }
         }
 
         // 3. Ultimate fallback
-        return $"{slugFolder}/other_services.png";
+        return $"{slugFolder}/other_services.webp";
+    }
+
+    private static string EnsureWebp(string path)
+    {
+        if (string.IsNullOrEmpty(path)) return path;
+        if (path.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
+            path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+            path.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase))
+        {
+            return System.IO.Path.ChangeExtension(path, ".webp");
+        }
+        return path;
     }
 
     /// <summary>Resolve with entity folder set to images/maincategories</summary>

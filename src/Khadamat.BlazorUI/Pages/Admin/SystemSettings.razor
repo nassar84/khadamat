@@ -340,7 +340,7 @@
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
                             <label class="form-label small fw-bold"><i class="fa-solid fa-link me-1 text-primary"></i>رابط تحميل / مشاركة التطبيق</label>
-                            <input type="url" @bind="settings.AppShareUrl" class="form-control rounded-pill px-3" placeholder="https://khadamawy.eis-dev.com/downloads/app.apk">
+                            <input type="url" @bind="settings.AppShareUrl" class="form-control rounded-pill px-3" placeholder="https://.../downloads/app.apk">
                             <div class="x-small text-muted mt-1">رابط تحميل APK أو صفحة التطبيق — يُستخدم في كل أزرار المشاركة</div>
                         </div>
                         <div class="col-12 col-md-6">
@@ -368,14 +368,29 @@
             <!-- Legal Documents -->
             <div class="col-12 col-md-6 mb-2">
                 <div class="glass-card p-3 h-100">
-                    <h5 class="fw-bold mb-3 fs-6"><i class="fa-solid fa-gavel me-2 text-secondary"></i>المستندات القانونية</h5>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0 fs-6"><i class="fa-solid fa-gavel me-2 text-secondary"></i>المستندات القانونية</h5>
+                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" style="font-size:0.75rem;" @onclick="FillDefaultLegalTexts" title="استيراد وتعبئة النصوص من صفحات الموقع">
+                            <i class="fa-solid fa-rotate-left me-1"></i> استيراد من الموقع
+                        </button>
+                    </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">الشروط والأحكام</label>
-                        <textarea @bind="settings.TermsAndConditions" class="form-control rounded-3 px-3" rows="4" placeholder="أدخل نص الشروط والأحكام..."></textarea>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label small fw-bold mb-0">الشروط والأحكام</label>
+                            <a href="/terms" target="_blank" class="text-decoration-none x-small text-primary">
+                                <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>معاينة صفحة الشروط
+                            </a>
+                        </div>
+                        <textarea @bind="settings.TermsAndConditions" class="form-control rounded-3 px-3" rows="5" placeholder="أدخل نص الشروط والأحكام..."></textarea>
                     </div>
                     <div class="mb-0">
-                        <label class="form-label small fw-bold">سياسة الخصوصية</label>
-                        <textarea @bind="settings.PrivacyPolicy" class="form-control rounded-3 px-3" rows="4" placeholder="أدخل نص سياسة الخصوصية..."></textarea>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label small fw-bold mb-0">سياسة الخصوصية</label>
+                            <a href="/privacy" target="_blank" class="text-decoration-none x-small text-primary">
+                                <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>معاينة صفحة الخصوصية
+                            </a>
+                        </div>
+                        <textarea @bind="settings.PrivacyPolicy" class="form-control rounded-3 px-3" rows="5" placeholder="أدخل نص سياسة الخصوصية..."></textarea>
                     </div>
                 </div>
             </div>
@@ -744,6 +759,78 @@
             isSaving = false;
             StateHasChanged();
         }
+    }
+
+    private void FillDefaultLegalTexts()
+    {
+        var appName = !string.IsNullOrWhiteSpace(settings.ApplicationNameAr) 
+            ? settings.ApplicationNameAr 
+            : (!string.IsNullOrWhiteSpace(settings.ApplicationName) ? settings.ApplicationName : "خدماوى");
+
+        settings.TermsAndConditions = $@"شروط وأحكام استخدام تطبيق {appName}
+
+1. القبول بالشروط:
+باستخدامك لتطبيق {appName}، فإنك توافق على الالتزام بهذه الشروط والأحكام. إذا كنت لا توافق على أي منها، يُرجى التوقف عن استخدام التطبيق.
+
+2. شروط الحساب:
+- يجب أن يكون عمرك 18 عامًا أو أكثر لاستخدام المنصة.
+- يجب تقديم معلومات دقيقة وصحيحة عند التسجيل.
+- أنت مسؤول عن الحفاظ على سرية كلمة مرورك وأمان حسابك.
+- يُحظر إنشاء أكثر من حساب واحد لنفس الشخص أو انتحال شخصية الآخرين.
+
+3. قواعد نشر الخدمات:
+- يجب أن تكون الخدمات المعروضة قانونية وأخلاقية ومطابقة للأنظمة المعمول بها.
+- يُحظر نشر معلومات كاذبة أو مضللة أو غير حقيقية حول الخدمات أو الأسعار.
+- تخضع جميع الخدمات لمراجعة الإدارة والتحقق قبل النشر.
+- يحق للإدارة رفض أو تعديل أو إزالة أي خدمة تخالف القواعد والشروط.
+
+4. السلوك المحظور:
+- التحرش أو الإساءة للمستخدمين الآخرين أو مقدمي الخدمات بأي شكل.
+- نشر أي محتوى مسيء، غير لائق، أو ينتهك حقوق الملكية الفكرية.
+- محاولة اختراق أو تعطيل أو التلاعب بأنظمة المنصة.
+- استخدام المنصة لأي أغراض احتيالية أو غير مشروعة.
+
+5. الاشتراكات والمدفوعات:
+- رسوم الاشتراكات غير قابلة للاسترداد بعد تفعيل الباقة واستخدام الخدمة.
+- تحتفظ المنصة بحق تعديل أسعار الباقات مع إشعار مسبق للمستخدمين.
+- تتم جميع المعاملات المالية عبر وسائل الدفع الرسمية المعتمدة في التطبيق.
+
+6. المسؤولية القانونية:
+- تطبيق {appName} هو منصة وسيطة تربط بين مقدمي الخدمات والعملاء، ولا يتحمل مسؤولية مباشرة عن جودة الخدمات المنفذة أو الخلافات الفردية بين الأطراف، مع التزامنا الكامل بالتحقق المستمر من المزودين وتلقي الشكاوى واتخاذ الإجراءات اللازمة.";
+
+        settings.PrivacyPolicy = $@"سياسة الخصوصية لتطبيق {appName}
+
+1. مقدمة:
+يلتزم تطبيق {appName} بحماية خصوصية مستخدميه وأمان بياناتهم الشخصية. توضح هذه السياسة كيفية جمع بياناتك الشخصية واستخدامها وتخزينها وحمايتها عند استخدامك لمنصتنا وتطبيقاتنا.
+
+2. البيانات التي نجمعها:
+- معلومات الحساب: الاسم الكامل، البريد الإلكتروني، رقم الهاتف، والصورة الشخصية.
+- بيانات الموقع الجغرافي: المحافظة والمدينة لتقديم الخدمات الأقرب إليك.
+- بيانات الاستخدام: الصفحات التي تزورها، الخدمات المفضلة، وسجل الطلبات والتفاعلات.
+- معلومات الجهاز: نوع الجهاز، نظام التشغيل، والمتصفح لضمان توافق واستقرار التطبيق.
+
+3. كيف نستخدم بياناتك:
+- تشغيل الخدمة وتسهيل التواصل بين العملاء ومزودي الخدمات.
+- إرسال التنبيهات والإشعارات الهامة المتعلقة بحسابك أو طلباتك.
+- تحسين تجربة المستخدم وتطوير ميزات التطبيق بناءً على تحليلات الاستخدام.
+- منع الاحتيال وضمان أمان وحماية جميع المستخدمين على المنصة.
+
+4. حماية البيانات وأمن المعلومات:
+نستخدم أحدث تقنيات التشفير (SSL/TLS) لحماية جميع الاتصالات والبيانات المخزنة، ونطبق معايير أمنية صارمة تمنع الوصول غير المصرح به أو تسريب البيانات.
+
+5. مشاركة البيانات مع أطراف ثالثة:
+نحن لا نبيع ولا نؤجر بياناتك الشخصية لأي طرف ثالث. قد نشارك بعض البيانات المحدودة فقط مع مزودي البنية التحتية والخدمات السحابية الضرورية لتشغيل التطبيق وفق اتفاقيات سرية صارمة.
+
+6. حقوق المستخدم:
+- يحق لك في أي وقت الوصول إلى بياناتك الشخصية ومراجعتها وتعديلها.
+- يحق لك طلب حذف حسابك وبياناتك الشخصية بالكامل من المنصة.
+- التحكم في تفضيلات الإشعارات والرسائل التسويقية.
+
+7. التواصل معنا:
+لأي استفسارات بخصوص سياسة الخصوصية، يمكنك التواصل معنا عبر البريد الإلكتروني: khadamawy@gmail.com أو عبر صفحة التواصل في التطبيق.";
+
+        statusMessage = "تم استيراد النصوص من الموقع بنجاح! اضغط 'حفظ كافة الإعدادات' لحفظ التغييرات.";
+        isSuccess = true;
     }
 
     private async Task HandleLogoUpload(InputFileChangeEventArgs e)

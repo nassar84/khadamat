@@ -1,15 +1,57 @@
+# ==============================================================================
+# Khadamawy (خدماوي) Robots.txt
+# Official Crawler & AI Agent Configuration (SEO & GEO)
+# ==============================================================================
+
+# 1. Default rule for all web search crawlers
 User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /v1/
+Disallow: /api/
+Disallow: /downloads/
 
-# Allow all major search engine bots
+# 2. Major Search Engines
 User-agent: Googlebot
 Allow: /
 
 User-agent: Bingbot
 Allow: /
 
-User-agent: Yahoo! Slurp
+User-agent: Applebot
 Allow: /
 
-# Sitemap location
-Sitemap: https://khadamat.vercel.app/sitemap.xml
+User-agent: YandexBot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+# 3. Generative AI Search & Answer Engines (GEO - Generative Engine Optimization)
+# Allows AI models (ChatGPT, Perplexity, Gemini, Claude, Copilot) to crawl, index, and cite Khadamawy
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: Meta-ExternalAgent
+Allow: /
+
+# 4. Sitemap Location
+Sitemap: https://khadamawy.eis-dev.com/sitemap.xml

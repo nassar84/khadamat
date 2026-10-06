@@ -41,18 +41,18 @@ public static class KhadamatDbContextSeed
             {
                 var mainCategories = new List<MainCategory>
                 {
-                    new MainCategory { Name = "صحة", Icon = "🏥", Color = "medical", DisplayOrder = 1, ImageUrl = "images/maincategories/cat_1.png" },
-                    new MainCategory { Name = "تعليم", Icon = "🎓", Color = "education", DisplayOrder = 2, ImageUrl = "images/maincategories/cat_2.png" },
-                    new MainCategory { Name = "متاجر", Icon = "🏪", Color = "stores", DisplayOrder = 3, ImageUrl = "images/maincategories/cat_3.png" },
-                    new MainCategory { Name = "ماكولات ومشروبات", Icon = "🍲", Color = "food", DisplayOrder = 4, ImageUrl = "images/maincategories/cat_4.png" },
-                    new MainCategory { Name = "مكاتب", Icon = "🏢", Color = "offices", DisplayOrder = 5, ImageUrl = "images/maincategories/cat_5.png" },
-                    new MainCategory { Name = "حرفيون", Icon = "🛠️", Color = "crafts", DisplayOrder = 6, ImageUrl = "images/maincategories/cat_8.png" },
-                    new MainCategory { Name = "تسوق اون لين", Icon = "🛒", Color = "online", DisplayOrder = 7, ImageUrl = "images/maincategories/cat_9.png" },
-                    new MainCategory { Name = "مواصلات", Icon = "🚗", Color = "transport", DisplayOrder = 8, ImageUrl = "images/maincategories/cat_10.png" },
-                    new MainCategory { Name = "صيانة سيارات", Icon = "🔧", Color = "auto", DisplayOrder = 9, ImageUrl = "images/maincategories/cat_11.png" },
-                    new MainCategory { Name = "خدمات حكومية", Icon = "🏛️", Color = "gov", DisplayOrder = 10, ImageUrl = "images/maincategories/cat_12.png" },
-                    new MainCategory { Name = "متجر السلع", Icon = "🛍️", Color = "marketplace", DisplayOrder = 11, ImageUrl = "images/maincategories/cat_7.png" },
-                    new MainCategory { Name = "خدمات اخرى", Icon = "✨", Color = "other", DisplayOrder = 12, ImageUrl = "images/maincategories/cat_6.png" }
+                    new MainCategory { Name = "صحة", Icon = "🏥", Color = "medical", DisplayOrder = 1, ImageUrl = "images/maincategories/cat_1.webp" },
+                    new MainCategory { Name = "تعليم", Icon = "🎓", Color = "education", DisplayOrder = 2, ImageUrl = "images/maincategories/cat_2.webp" },
+                    new MainCategory { Name = "متاجر", Icon = "🏪", Color = "stores", DisplayOrder = 3, ImageUrl = "images/maincategories/cat_3.webp" },
+                    new MainCategory { Name = "ماكولات ومشروبات", Icon = "🍲", Color = "food", DisplayOrder = 4, ImageUrl = "images/maincategories/cat_4.webp" },
+                    new MainCategory { Name = "مكاتب", Icon = "🏢", Color = "offices", DisplayOrder = 5, ImageUrl = "images/maincategories/cat_5.webp" },
+                    new MainCategory { Name = "حرفيون", Icon = "🛠️", Color = "crafts", DisplayOrder = 6, ImageUrl = "images/maincategories/cat_8.webp" },
+                    new MainCategory { Name = "تسوق اون لين", Icon = "🛒", Color = "online", DisplayOrder = 7, ImageUrl = "images/maincategories/cat_9.webp" },
+                    new MainCategory { Name = "مواصلات", Icon = "🚗", Color = "transport", DisplayOrder = 8, ImageUrl = "images/maincategories/cat_10.webp" },
+                    new MainCategory { Name = "صيانة سيارات", Icon = "🔧", Color = "auto", DisplayOrder = 9, ImageUrl = "images/maincategories/cat_11.webp" },
+                    new MainCategory { Name = "خدمات حكومية", Icon = "🏛️", Color = "gov", DisplayOrder = 10, ImageUrl = "images/maincategories/cat_12.webp" },
+                    new MainCategory { Name = "متجر السلع", Icon = "🛍️", Color = "marketplace", DisplayOrder = 11, ImageUrl = "images/maincategories/cat_7.webp" },
+                    new MainCategory { Name = "خدمات اخرى", Icon = "✨", Color = "other", DisplayOrder = 12, ImageUrl = "images/maincategories/cat_6.webp" }
                 };
                 await context.MainCategories.AddRangeAsync(mainCategories);
                 await context.SaveChangesAsync();

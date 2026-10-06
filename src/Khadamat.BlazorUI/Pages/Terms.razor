@@ -1,5 +1,6 @@
 @page "/terms"
 @inject Khadamat.BlazorUI.State.AppState State
+@inject Khadamat.BlazorUI.Services.ApiClient Api
 
 <div class="container py-5" style="max-width:780px;">
     <div class="mb-5 text-center animate-up">
@@ -8,60 +9,69 @@
             <i class="fa-solid fa-file-contract"></i>
         </div>
         <h1 class="fw-bold mb-2">الشروط والأحكام</h1>
-        <p class="text-muted">آخر تحديث: فبراير 2026</p>
+        <p class="text-muted">آخر تحديث: @(lastUpdatedDate)</p>
     </div>
 
     <div class="glass-card p-4 p-md-5 shadow-sm lh-lg">
-        <section class="mb-5">
-            <h4 class="fw-bold text-warning mb-3"><i class="fa-solid fa-handshake me-2"></i>القبول بالشروط</h4>
-            <p>
-                باستخدامك لتطبيق <strong>@State.AppName</strong>، فإنك توافق على الالتزام بهذه الشروط والأحكام. إذا كنت لا توافق على أي منها، يُرجى التوقف عن استخدام التطبيق.
-            </p>
-        </section>
+        @if (!string.IsNullOrWhiteSpace(customTerms))
+        {
+            <div class="terms-content" style="white-space: pre-line; font-size: 1.05rem; line-height: 2;">
+                @customTerms
+            </div>
+        }
+        else
+        {
+            <section class="mb-5">
+                <h4 class="fw-bold text-warning mb-3"><i class="fa-solid fa-handshake me-2"></i>القبول بالشروط</h4>
+                <p>
+                    باستخدامك لتطبيق <strong>@State.AppName</strong>، فإنك توافق على الالتزام بهذه الشروط والأحكام. إذا كنت لا توافق على أي منها، يُرجى التوقف عن استخدام التطبيق.
+                </p>
+            </section>
 
-        <section class="mb-5">
-            <h4 class="fw-bold text-warning mb-3"><i class="fa-solid fa-user me-2"></i>شروط الحساب</h4>
-            <ul class="ps-4">
-                <li class="mb-2">يجب أن يكون عمرك 18 عامًا أو أكثر لاستخدام المنصة</li>
-                <li class="mb-2">يجب تقديم معلومات دقيقة وصحيحة عند التسجيل</li>
-                <li class="mb-2">أنت مسؤول عن الحفاظ على سرية كلمة مرورك</li>
-                <li class="mb-2">يُحظر إنشاء أكثر من حساب واحد لنفس الشخص</li>
-            </ul>
-        </section>
+            <section class="mb-5">
+                <h4 class="fw-bold text-warning mb-3"><i class="fa-solid fa-user me-2"></i>شروط الحساب</h4>
+                <ul class="ps-4">
+                    <li class="mb-2">يجب أن يكون عمرك 18 عامًا أو أكثر لاستخدام المنصة</li>
+                    <li class="mb-2">يجب تقديم معلومات دقيقة وصحيحة عند التسجيل</li>
+                    <li class="mb-2">أنت مسؤول عن الحفاظ على سرية كلمة مرورك</li>
+                    <li class="mb-2">يُحظر إنشاء أكثر من حساب واحد لنفس الشخص</li>
+                </ul>
+            </section>
 
-        <section class="mb-5">
-            <h4 class="fw-bold text-warning mb-3"><i class="fa-solid fa-briefcase me-2"></i>قواعد نشر الخدمات</h4>
-            <ul class="ps-4">
-                <li class="mb-2">يجب أن تكون الخدمات المعروضة قانونية وأخلاقية</li>
-                <li class="mb-2">يُحظر نشر معلومات كاذبة أو مضللة</li>
-                <li class="mb-2">تخضع جميع الخدمات لمراجعة الإدارة قبل النشر</li>
-                <li class="mb-2">يحق للإدارة رفض أو إزالة أي خدمة تخالف القواعد</li>
-            </ul>
-        </section>
+            <section class="mb-5">
+                <h4 class="fw-bold text-warning mb-3"><i class="fa-solid fa-briefcase me-2"></i>قواعد نشر الخدمات</h4>
+                <ul class="ps-4">
+                    <li class="mb-2">يجب أن تكون الخدمات المعروضة قانونية وأخلاقية</li>
+                    <li class="mb-2">يُحظر نشر معلومات كاذبة أو مضللة</li>
+                    <li class="mb-2">تخضع جميع الخدمات لمراجعة الإدارة قبل النشر</li>
+                    <li class="mb-2">يحق للإدارة رفض أو إزالة أي خدمة تخالف القواعد</li>
+                </ul>
+            </section>
 
-        <section class="mb-5">
-            <h4 class="fw-bold text-warning mb-3"><i class="fa-solid fa-ban me-2"></i>السلوك المحظور</h4>
-            <ul class="ps-4">
-                <li class="mb-2">التحرش أو الإساءة للمستخدمين الآخرين</li>
-                <li class="mb-2">نشر محتوى مسيء أو غير لائق</li>
-                <li class="mb-2">محاولة اختراق أو التلاعب بالمنصة</li>
-                <li class="mb-2">استخدام المنصة لأغراض احتيالية</li>
-            </ul>
-        </section>
+            <section class="mb-5">
+                <h4 class="fw-bold text-warning mb-3"><i class="fa-solid fa-ban me-2"></i>السلوك المحظور</h4>
+                <ul class="ps-4">
+                    <li class="mb-2">التحرش أو الإساءة للمستخدمين الآخرين</li>
+                    <li class="mb-2">نشر محتوى مسيء أو غير لائق</li>
+                    <li class="mb-2">محاولة اختراق أو التلاعب بالمنصة</li>
+                    <li class="mb-2">استخدام المنصة لأغراض احتيالية</li>
+                </ul>
+            </section>
 
-        <section class="mb-5">
-            <h4 class="fw-bold text-warning mb-3"><i class="fa-solid fa-circle-dollar-to-slot me-2"></i>الاشتراكات والمدفوعات</h4>
-            <p>
-                رسوم الاشتراكات غير قابلة للاسترداد بعد تفعيل الباقة. نحتفظ بحق تغيير أسعار الباقات مع إشعار مسبق للمستخدمين.
-            </p>
-        </section>
+            <section class="mb-5">
+                <h4 class="fw-bold text-warning mb-3"><i class="fa-solid fa-circle-dollar-to-slot me-2"></i>الاشتراكات والمدفوعات</h4>
+                <p>
+                    رسوم الاشتراكات غير قابلة للاسترداد بعد تفعيل الباقة. نحتفظ بحق تغيير أسعار الباقات مع إشعار مسبق للمستخدمين.
+                </p>
+            </section>
 
-        <section class="mb-5">
-            <h4 class="fw-bold text-warning mb-3"><i class="fa-solid fa-scale-balanced me-2"></i>المسؤولية القانونية</h4>
-            <p>
-                @State.AppName وسيط بين مقدمي الخدمات والعملاء، ولا يتحمل مسؤولية مباشرة عن جودة الخدمات المقدمة. الإدارة تسعى دائماً للتحقق من المزودين وضمان جودة الخدمة.
-            </p>
-        </section>
+            <section class="mb-5">
+                <h4 class="fw-bold text-warning mb-3"><i class="fa-solid fa-scale-balanced me-2"></i>المسؤولية القانونية</h4>
+                <p>
+                    @State.AppName وسيط بين مقدمي الخدمات والعملاء، ولا يتحمل مسؤولية مباشرة عن جودة الخدمات المقدمة. الإدارة تسعى دائماً للتحقق من المزودين وضمان جودة الخدمة.
+                </p>
+            </section>
+        }
 
         <div class="alert alert-light border rounded-4 mt-4">
             <i class="fa-solid fa-envelope me-2 text-warning"></i>
@@ -69,6 +79,27 @@
         </div>
     </div>
 </div>
+
+@code {
+    private string? customTerms;
+    private string lastUpdatedDate = "أكتوبر 2026";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var res = await Api.GetSettingsAsync();
+            if (res.Success && !string.IsNullOrWhiteSpace(res.Data?.TermsAndConditions))
+            {
+                customTerms = res.Data.TermsAndConditions;
+            }
+        }
+        catch
+        {
+            // fallback gracefully
+        }
+    }
+}
 
 <style>
     .animate-up { animation: fadeInUp 0.5s both; }

@@ -3,6 +3,7 @@
 @using Khadamat.BlazorUI.Services
 @using Khadamat.BlazorUI.Components.Common
 @using Khadamat.BlazorUI.Shared.Components
+@using Khadamat.BlazorUI.Helpers
 @inject ApiClient Api
 @inject IJSRuntime JS
 
@@ -54,17 +55,14 @@
                                     }
                                 </span>
 
-                                @if (!string.IsNullOrEmpty(mc.ImageUrl))
+                                <img src="@GetCategoryIconUrl(mc.Name, mc.ImageUrl, 0)" class="cat-thumb ms-2" alt="@mc.Name" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
+                                @if (!string.IsNullOrWhiteSpace(mc.Icon) && (mc.Icon.Contains("fa-") || mc.Icon.Contains("fa ")))
                                 {
-                                    <img src="@mc.ImageUrl" class="cat-thumb me-1" alt="@mc.Name" />
-                                }
-                                else if (!string.IsNullOrEmpty(mc.Icon))
-                                {
-                                    <i class="@mc.Icon ms-1" style="color: @(string.IsNullOrEmpty(mc.Color) ? "var(--theme-primary)" : mc.Color);"></i>
+                                    <i class="@CategoryForm.FormatFaIcon(mc.Icon) fs-5 ms-2 text-primary" style="display:none;@(string.IsNullOrEmpty(mc.Color) ? "" : $"color: {mc.Color} !important;")"></i>
                                 }
                                 else
                                 {
-                                    <i class="fa-solid fa-layer-group text-primary ms-1"></i>
+                                    <i class="fa-solid fa-layer-group text-primary ms-2" style="display:none;"></i>
                                 }
 
                                 <span class="tree-label fw-bold">@mc.Name</span>
@@ -115,13 +113,15 @@
                                                     }
                                                 </span>
 
-                                                @if (!string.IsNullOrEmpty(cat.ImageUrl))
+                                                @if (!string.IsNullOrWhiteSpace(cat.ImageUrl))
                                                 {
-                                                    <img src="@cat.ImageUrl" class="cat-thumb me-1" alt="@cat.Name" />
+                                                    <img src="@GetCategoryIconUrl(cat.Name, cat.ImageUrl, 1)" class="cat-thumb ms-2" alt="@cat.Name" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
+                                                    <i class="fa-solid fa-folder text-warning ms-2" style="display:none;"></i>
                                                 }
                                                 else
                                                 {
-                                                    <i class="fa-solid fa-folder text-warning ms-1"></i>
+                                                    <img src="@GetCategoryIconUrl(cat.Name, null, 1)" class="cat-thumb ms-2" alt="@cat.Name" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
+                                                    <i class="fa-solid fa-folder text-warning ms-2" style="display:none;"></i>
                                                 }
 
                                                 <span class="tree-label">@cat.Name</span>
@@ -162,13 +162,15 @@
                                                         <div class="tree-row sub-row">
                                                             <div class="tree-main-clickable">
                                                                 <span class="bullet-dot ms-2"></span>
-                                                                @if (!string.IsNullOrEmpty(sub.ImageUrl))
+                                                                @if (!string.IsNullOrWhiteSpace(sub.ImageUrl))
                                                                 {
-                                                                    <img src="@sub.ImageUrl" class="cat-thumb me-1" alt="@sub.Name" />
+                                                                    <img src="@GetCategoryIconUrl(sub.Name, sub.ImageUrl, 2)" class="cat-thumb ms-2" alt="@sub.Name" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
+                                                                    <i class="fa-solid fa-tag text-info ms-2" style="display:none;"></i>
                                                                 }
                                                                 else
                                                                 {
-                                                                    <i class="fa-solid fa-tag text-info ms-1"></i>
+                                                                    <img src="@GetCategoryIconUrl(sub.Name, null, 2)" class="cat-thumb ms-2" alt="@sub.Name" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='inline-block';" />
+                                                                    <i class="fa-solid fa-tag text-info ms-2" style="display:none;"></i>
                                                                 }
                                                                 <span class="tree-label text-dark">@sub.Name</span>
                                                             </div>
@@ -463,6 +465,30 @@
         }
     }
 
+    // ── أيقونات التصنيفات والمسارات ──
+    private string GetCategoryIconUrl(string name, string? imageUrl, int level)
+    {
+        if (!string.IsNullOrWhiteSpace(imageUrl))
+        {
+            var folder = level switch
+            {
+                0 => ImagePathResolver.MainCategories,
+                1 => ImagePathResolver.Categories,
+                _ => ImagePathResolver.SubCategories
+            };
+            var resolved = ImagePathResolver.Resolve(imageUrl, folder);
+            return Api.GetAbsoluteUrl(resolved);
+        }
+
+        var slugUrl = level switch
+        {
+            0 => CategoryIconResolver.GetMainCategoryIcon(name, null),
+            1 => CategoryIconResolver.GetCategoryIcon(name, null),
+            _ => CategoryIconResolver.GetSubCategoryIcon(name, null)
+        };
+        return Api.GetAbsoluteUrl(slugUrl);
+    }
+
     // ── إضافة عناصر ──
     private void AddItem(int level, int? parentId)
     {
@@ -474,7 +500,7 @@
             Level = level,
             ParentId = parentId,
             Icon = "fa-solid fa-layer-group",
-            Color = "#6366f1"
+            Color = "#1a3a6b"
         };
         showModal = true;
     }
@@ -491,7 +517,7 @@
             Name = mc.Name,
             Level = 0,
             Icon = mc.Icon ?? "fa-solid fa-layer-group",
-            Color = mc.Color ?? "#6366f1",
+            Color = string.IsNullOrEmpty(mc.Color) ? "#1a3a6b" : mc.Color,
             ImageUrl = mc.ImageUrl,
             DisplayOrder = mc.DisplayOrder
         };
@@ -509,34 +535,53 @@
             Name = cat.Name,
             Level = 1,
             ParentId = mcId,
-            ImageUrl = cat.ImageUrl
+            ImageUrl = cat.ImageUrl,
+            DisplayOrder = cat.DisplayOrder
         };
         showModal = true;
     }
 
-    private async Task EditSub(SubCategoryDto sub, int catId)
+    private void EditSub(SubCategoryDto sub, int catId)
     {
         currentTargetLevel = 2;
         currentParentId = catId;
         isEditing = true;
-        // Load all categories for parent selection if not already done
-        if (!allCategoriesForParent.Any())
-        {
-            foreach (var mc in mainCategories)
-            {
-                var cats = categoriesOf.ContainsKey(mc.Id) ? categoriesOf[mc.Id] : await Api.GetCategoriesByMainIdAsync(mc.Id);
-                allCategoriesForParent.AddRange(cats);
-            }
-        }
         categoryModel = new CategoryForm.CategoryFormModel
         {
             Id = sub.Id,
             Name = sub.Name,
             Level = 2,
             ParentId = catId,
-            ImageUrl = sub.ImageUrl
+            ImageUrl = sub.ImageUrl,
+            DisplayOrder = sub.DisplayOrder
         };
         showModal = true;
+
+        // Load all categories for parent selector if needed without blocking modal
+        if (!allCategoriesForParent.Any())
+        {
+            var cached = categoriesOf.Values.SelectMany(x => x).GroupBy(c => c.Id).Select(g => g.First()).ToList();
+            if (cached.Any())
+            {
+                allCategoriesForParent = cached;
+            }
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var loaded = new List<CategoryDto>();
+                    foreach (var mc in mainCategories)
+                    {
+                        var cats = categoriesOf.ContainsKey(mc.Id) ? categoriesOf[mc.Id] : await Api.GetCategoriesByMainIdAsync(mc.Id);
+                        loaded.AddRange(cats);
+                    }
+                    allCategoriesForParent = loaded.GroupBy(c => c.Id).Select(g => g.First()).ToList();
+                    await InvokeAsync(StateHasChanged);
+                }
+                catch { }
+            });
+        }
     }
 
     // ── حفظ الإضافة أو التعديل ──
@@ -561,14 +606,19 @@
                 }
                 else if (model.Level == 1)
                 {
-                    var parentMcId = currentParentId ?? model.ParentId ?? 0;
+                    var parentMcId = model.ParentId ?? currentParentId ?? 0;
                     await Api.UpdateCategoryAsync(model.Id, new CategoryDto
                     {
                         Id = model.Id,
                         Name = model.Name,
                         MainCategoryId = parentMcId,
-                        ImageUrl = model.ImageUrl
+                        ImageUrl = model.ImageUrl,
+                        DisplayOrder = model.DisplayOrder
                     });
+                    if (currentParentId.HasValue && currentParentId.Value != parentMcId && categoriesOf.ContainsKey(currentParentId.Value))
+                    {
+                        categoriesOf[currentParentId.Value] = await Api.GetCategoriesByMainIdAsync(currentParentId.Value);
+                    }
                     if (parentMcId > 0)
                     {
                         categoriesOf[parentMcId] = await Api.GetCategoriesByMainIdAsync(parentMcId);
@@ -576,14 +626,19 @@
                 }
                 else
                 {
-                    var parentCatId = currentParentId ?? model.ParentId ?? 0;
+                    var parentCatId = model.ParentId ?? currentParentId ?? 0;
                     await Api.UpdateSubCategoryAsync(model.Id, new SubCategoryDto
                     {
                         Id = model.Id,
                         Name = model.Name,
                         CategoryId = parentCatId,
-                        ImageUrl = model.ImageUrl
+                        ImageUrl = model.ImageUrl,
+                        DisplayOrder = model.DisplayOrder
                     });
+                    if (currentParentId.HasValue && currentParentId.Value != parentCatId && subsOf.ContainsKey(currentParentId.Value))
+                    {
+                        subsOf[currentParentId.Value] = await Api.GetSubCategoriesByCategoryIdAsync(currentParentId.Value);
+                    }
                     if (parentCatId > 0)
                     {
                         subsOf[parentCatId] = await Api.GetSubCategoriesByCategoryIdAsync(parentCatId);
@@ -606,12 +661,13 @@
                 }
                 else if (model.Level == 1)
                 {
-                    var parentMcId = currentParentId ?? model.ParentId ?? 0;
+                    var parentMcId = model.ParentId ?? currentParentId ?? 0;
                     await Api.CreateCategoryAsync(new CategoryDto
                     {
                         Name = model.Name,
                         MainCategoryId = parentMcId,
-                        ImageUrl = model.ImageUrl
+                        ImageUrl = model.ImageUrl,
+                        DisplayOrder = model.DisplayOrder
                     });
                     if (parentMcId > 0)
                     {
@@ -620,12 +676,13 @@
                 }
                 else
                 {
-                    var parentCatId = currentParentId ?? model.ParentId ?? 0;
+                    var parentCatId = model.ParentId ?? currentParentId ?? 0;
                     await Api.CreateSubCategoryAsync(new SubCategoryDto
                     {
                         Name = model.Name,
                         CategoryId = parentCatId,
-                        ImageUrl = model.ImageUrl
+                        ImageUrl = model.ImageUrl,
+                        DisplayOrder = model.DisplayOrder
                     });
                     if (parentCatId > 0)
                     {

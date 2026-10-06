@@ -23,7 +23,7 @@
                     <div class="col-md-6">
                         <label class="form-label small fw-bold">الأيقونة (FontAwesome)</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-light border-0"><i class="@Model.Icon"></i></span>
+                            <span class="input-group-text bg-light border-0"><i class="@FormatFaIcon(Model.Icon)"></i></span>
                             <input type="text" class="form-control rounded-pill-end border-0 bg-light px-3" @bind="Model.Icon" placeholder="fa-solid fa-...">
                         </div>
                         <div class="form-text x-small mt-1">
@@ -101,6 +101,25 @@
 }
 
 <style>
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: rgba(15, 23, 42, 0.65);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+    }
+    .animate-pop {
+        animation: modalPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @@keyframes modalPopIn {
+        from { transform: scale(0.92); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
     .rounded-pill-end { border-top-right-radius: 50rem !important; border-bottom-right-radius: 50rem !important; }
 </style>
 
@@ -122,7 +141,7 @@
         public string Name { get; set; } = "";
         public int Level { get; set; }
         public string Icon { get; set; } = "fa-solid fa-layer-group";
-        public string Color { get; set; } = "#6366f1";
+        public string Color { get; set; } = "#1a3a6b";
         public string? ImageUrl { get; set; }
         public int DisplayOrder { get; set; }
         public int? ParentId { get; set; }
@@ -141,6 +160,21 @@
         1 => "fa-solid fa-folder",
         _ => "fa-solid fa-tag"
     };
+
+    public static string FormatFaIcon(string? icon)
+    {
+        if (string.IsNullOrWhiteSpace(icon)) return "fa-solid fa-layer-group";
+        var trimmed = icon.Trim();
+        if (!trimmed.StartsWith("fa-") && !trimmed.StartsWith("fas ") && !trimmed.StartsWith("far ") && !trimmed.StartsWith("fab "))
+        {
+            return $"fa-solid fa-{trimmed}";
+        }
+        if (!trimmed.Contains(" "))
+        {
+            return $"fa-solid {trimmed}";
+        }
+        return trimmed;
+    }
 
     private void OnParentChanged(ChangeEventArgs e)
     {

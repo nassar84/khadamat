@@ -16,52 +16,54 @@
     <meta name="language" content="Arabic" />
     <meta name="revisit-after" content="7 days" />
     <meta name="rating" content="general" />
-    <link rel="canonical" href="https://khadamat.vercel.app" />
+    <link rel="canonical" href="https://khadamawy.eis-dev.com" />
 
     <!-- Social Media Meta Tags (Open Graph) -->
     <meta property="og:title" content="خدماوي - Khadamawy | منصة الخدمات المتكاملة" />
-    <meta property="og:description" content="اكتشف وطلب أفضل الخدمات في مكان واحد. خدماوي يوفر لك فنيين محترفين وخدمات متنوعة بسهولة وأمان." />
-    <meta property="og:image" content="https://khadamat.vercel.app/logo.png" />
+    <meta property="og:description" content="اكتشف وطلب أفضل الخدمات في مكان واحد. خدماوي يوفر لك فنيين محترفين وخدمات متنوعة بسهولة وأمان في مصر." />
+    <meta property="og:image" content="https://khadamawy.eis-dev.com/logo.png" />
     <meta property="og:image:width" content="512" />
     <meta property="og:image:height" content="512" />
     <meta property="og:image:alt" content="شعار خدماوي - منصة الخدمات المتكاملة" />
-    <meta property="og:url" content="https://khadamat.vercel.app" />
+    <meta property="og:url" content="https://khadamawy.eis-dev.com" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="خدماوي - Khadamawy" />
     <meta property="og:locale" content="ar_EG" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="خدماوي - Khadamawy | منصة الخدمات المتكاملة" />
     <meta name="twitter:description" content="اكتشف وطلب أفضل الخدمات في مكان واحد. فنيين محترفين في مصر." />
-    <meta name="twitter:image" content="https://khadamat.vercel.app/logo.png" />
+    <meta name="twitter:image" content="https://khadamawy.eis-dev.com/logo.png" />
     <meta name="twitter:image:alt" content="خدماوي - Khadamawy" />
     <meta name="theme-color" content="#2a7f8f" />
     <meta name="apple-mobile-web-app-title" content="خدماوي" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
-    <!-- Structured Data (JSON-LD) for Search Engines -->
+    <!-- Structured Data (JSON-LD) for Search Engines & Generative AI (GEO) -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
       "name": "خدماوي - Khadamawy",
       "alternateName": "Khadamawy",
-      "url": "https://khadamat.vercel.app",
-      "description": "منصة الخدمات المتكاملة في مصر - فنيين محترفين لجميع الخدمات المنزلية",
+      "url": "https://khadamawy.eis-dev.com",
+      "inLanguage": "ar",
+      "description": "منصة الخدمات المتكاملة الأولى في مصر - حجز فنيين محترفين، سباكة، كهرباء، نجارة، صيانة أجهزة، وتوصيل طلبات بسهولة وموثوقية.",
       "potentialAction": {
         "@type": "SearchAction",
         "target": {
           "@type": "EntryPoint",
-          "urlTemplate": "https://khadamat.vercel.app/search?q={search_term_string}"
+          "urlTemplate": "https://khadamawy.eis-dev.com/search?q={search_term_string}"
         },
         "query-input": "required name=search_term_string"
       },
       "publisher": {
         "@type": "Organization",
-        "name": "Khadamawy",
+        "name": "خدماوي - Khadamawy",
+        "url": "https://khadamawy.eis-dev.com",
         "logo": {
           "@type": "ImageObject",
-          "url": "https://khadamat.vercel.app/logo.png"
+          "url": "https://khadamawy.eis-dev.com/logo.png"
         }
       }
     }
@@ -69,16 +71,37 @@
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "Organization",
-      "name": "خدماوي - Khadamawy",
-      "url": "https://khadamat.vercel.app",
-      "logo": "https://khadamat.vercel.app/logo.png",
-      "description": "منصة الخدمات المنزلية المتكاملة في مصر",
+      "@type": "Service",
+      "serviceType": "Home and Professional Services Directory",
+      "provider": {
+        "@type": "Organization",
+        "name": "خدماوي - Khadamawy",
+        "url": "https://khadamawy.eis-dev.com",
+        "logo": "https://khadamawy.eis-dev.com/logo.png"
+      },
       "areaServed": {
         "@type": "Country",
         "name": "Egypt"
       },
-      "serviceType": ["Home Services", "Technical Services", "Plumbing", "Electrical", "Carpentry", "Painting", "Air Conditioning"]
+      "audience": {
+        "@type": "Audience",
+        "geographicArea": {
+          "@type": "AdministrativeArea",
+          "name": "جمهورية مصر العربية"
+        }
+      },
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "خدمات خدماوي",
+        "itemListElement": [
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "صحة ورعاية طبية" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "تعليم ودروس خصوصية" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "حرفيون وصيانة منزلية" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "سباكة وكهرباء ونجارة" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "صيانة سيارات ونقل" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "توصيل وطلبات" } }
+        ]
+      }
     }
     </script>
 
@@ -97,8 +120,8 @@
     <link rel="stylesheet" href="_content/Khadamat.BlazorUI/css/app.css" />
     <link rel="stylesheet" href="_content/Khadamat.BlazorUI/lib/fontawesome/css/all.min.css" />
     <link rel="stylesheet" href="_content/Khadamat.BlazorUI/lib/swiper/swiper-bundle.min.css" />
-    <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=3" />
-    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=3" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=4" />
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=4" />
     <link rel="manifest" href="manifest.json" />
     <!-- Antigravity Update: 2026-09-14 (Mobile UI Fix & Cache Purge) -->
     <meta name="version" content="1.2.0-20260914" />
@@ -1330,6 +1353,21 @@
                 // When scrollTop > 0 (not at top): do nothing — allow native scroll freely
             }, { passive: false });
         })();
+    </script>
+
+    <!-- PWA: Service Worker Registration (required for Play Store TWA) -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(function (reg) {
+                        console.log('[SW] Registered successfully. Scope:', reg.scope);
+                    })
+                    .catch(function (err) {
+                        console.warn('[SW] Registration failed:', err);
+                    });
+            });
+        }
     </script>
 </body>
 

@@ -67,7 +67,7 @@ public static class ImagePathResolver
     // ============================================================
     //  Default fallback filenames (موجودة في images/defaults/)
     // ============================================================
-    public const string DefaultImage    = "default.png";
+    public const string DefaultImage    = "default.webp";
     public const string DefaultService  = "default_service.png";
     public const string DefaultUser     = "default-user.png";
     public const string DefaultAd       = "default-ad.png";
@@ -112,24 +112,30 @@ public static class ImagePathResolver
         return $"{folder}/{name}";
     }
 
+    private static string? EnsureWebp(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return name;
+        if (name.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
+            name.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+            name.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase))
+        {
+            return System.IO.Path.ChangeExtension(name, ".webp");
+        }
+        return name;
+    }
+
     // ============================================================
     //  Entity-specific helpers — استخدم هذه مباشرة في الـ Razor
     // ============================================================
 
     /// <summary>صور الفئات الرئيسية → images/maincategories/{name}</summary>
-    public static string MainCategory(string? name) => Resolve(name, MainCategories, DefaultImage);
+    public static string MainCategory(string? name) => Resolve(EnsureWebp(name), MainCategories, DefaultImage);
 
     /// <summary>صور الفئات → images/categories/{name}</summary>
-    public static string Category(string? name)
-    {
-        // Seed images were converted from JPG to PNG (160x120)
-        if (!string.IsNullOrEmpty(name) && name.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase))
-            name = System.IO.Path.ChangeExtension(name, ".png");
-        return Resolve(name, Categories, DefaultImage);
-    }
+    public static string Category(string? name) => Resolve(EnsureWebp(name), Categories, DefaultImage);
 
     /// <summary>صور الفئات الفرعية → images/subcategories/{name}</summary>
-    public static string SubCategory(string? name) => Resolve(name, SubCategories, DefaultImage);
+    public static string SubCategory(string? name) => Resolve(EnsureWebp(name), SubCategories, DefaultImage);
 
     /// <summary>صور الخدمات → images/services/{name}</summary>
     public static string Service(string? name) => Resolve(name, Services, DefaultService);

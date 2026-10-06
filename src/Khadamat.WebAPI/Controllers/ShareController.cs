@@ -124,13 +124,19 @@ public class ShareController : ControllerBase
                 }
                 else
                 {
-                    // Try ID-based category image (files exist as c_{id}_{id}.png)
+                    // Try ID-based category image (prefer .webp, fallback .png)
                     // Fallback to logo.png for a branded look instead of generic placeholder
                     bool foundCategoryImg = false;
                     if (service.SubCategoryId.HasValue && service.CategoryId.HasValue)
                     {
-                        var catPath = Path.Combine(webRoot, "images", "categories", $"c_{service.CategoryId}_{service.SubCategoryId}.png");
-                        if (System.IO.File.Exists(catPath))
+                        var webpPath = Path.Combine(webRoot, "images", "categories", $"c_{service.CategoryId}_{service.SubCategoryId}.webp");
+                        var pngPath  = Path.Combine(webRoot, "images", "categories", $"c_{service.CategoryId}_{service.SubCategoryId}.png");
+                        if (System.IO.File.Exists(webpPath))
+                        {
+                            imageUrl = $"{baseUrl}/images/categories/c_{service.CategoryId}_{service.SubCategoryId}.webp";
+                            foundCategoryImg = true;
+                        }
+                        else if (System.IO.File.Exists(pngPath))
                         {
                             imageUrl = $"{baseUrl}/images/categories/c_{service.CategoryId}_{service.SubCategoryId}.png";
                             foundCategoryImg = true;
@@ -138,8 +144,14 @@ public class ShareController : ControllerBase
                     }
                     if (!foundCategoryImg && service.CategoryId.HasValue && service.MainCategoryId > 0)
                     {
-                        var catPath = Path.Combine(webRoot, "images", "categories", $"c_{service.MainCategoryId}_{service.CategoryId}.png");
-                        if (System.IO.File.Exists(catPath))
+                        var webpPath = Path.Combine(webRoot, "images", "categories", $"c_{service.MainCategoryId}_{service.CategoryId}.webp");
+                        var pngPath  = Path.Combine(webRoot, "images", "categories", $"c_{service.MainCategoryId}_{service.CategoryId}.png");
+                        if (System.IO.File.Exists(webpPath))
+                        {
+                            imageUrl = $"{baseUrl}/images/categories/c_{service.MainCategoryId}_{service.CategoryId}.webp";
+                            foundCategoryImg = true;
+                        }
+                        else if (System.IO.File.Exists(pngPath))
                         {
                             imageUrl = $"{baseUrl}/images/categories/c_{service.MainCategoryId}_{service.CategoryId}.png";
                             foundCategoryImg = true;

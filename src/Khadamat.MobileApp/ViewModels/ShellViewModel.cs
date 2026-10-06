@@ -429,8 +429,13 @@ public partial class ShellViewModel : ObservableObject
         try
         {
             var prefs = Microsoft.Maui.Storage.Preferences.Default;
-            var shareUrl = prefs.Get("AppShareUrl", "https://khadamawy.eis-dev.com/downloads/Khadamawy.apk");
+            // Prefer the Google Play URL from config; fall back to AppShareUrl from DB settings
+            var googlePlayUrl = prefs.Get("GooglePlayAppUrl", "");
+            var shareUrl = !string.IsNullOrEmpty(googlePlayUrl)
+                ? googlePlayUrl
+                : prefs.Get("AppShareUrl", prefs.Get("WebAppBaseUrl", "https://khadamawy.eis-dev.com/"));
             var customShareText = prefs.Get("AppShareText", "");
+            var currentWebUrl = prefs.Get("WebAppBaseUrl", "https://khadamawy.eis-dev.com/").TrimEnd('/');
 
             var appDisplayName = string.IsNullOrEmpty(AppNameAr) ? AppName : AppNameAr;
             var text = !string.IsNullOrWhiteSpace(customShareText)
@@ -438,7 +443,7 @@ public partial class ShellViewModel : ObservableObject
                 : $"📲 تطبيق {appDisplayName} — خدماتك في مكان واحد.. لكل المصريين!\n\n" +
                   "تواصل مباشرة مع أفضل الحرفيين والمهنيين ومقدمي الخدمات بكل سهولة وأمان.\n\n" +
                   $"🔗 رابط تحميل التطبيق:\n{shareUrl}\n\n" +
-                  "🌐 أو تصفح الموقع مباشرة:\nhttps://khadamawy.eis-dev.com";
+                  $"🌐 أو تصفح الموقع مباشرة:\n{currentWebUrl}";
 
             string title = $"مشاركة تطبيق {appDisplayName}";
 
@@ -643,8 +648,8 @@ public partial class ShellViewModel : ObservableObject
                 return;
             }
 
-            var baseUrl = _configuration["ApiSettings:BaseUrl"] ?? 
-                          Microsoft.Maui.Storage.Preferences.Default.Get("ApiBaseUrl", "https://khadamawy.eis-dev.com");
+            var baseUrl = _configuration["ApiSettings:BaseUrl"]
+                          ?? Microsoft.Maui.Storage.Preferences.Default.Get("ApiBaseUrl", "");
             baseUrl = baseUrl.TrimEnd('/');
 
             using var req = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}/v1/auth/profile");
@@ -696,7 +701,7 @@ public partial class ShellViewModel : ObservableObject
 
         if (string.IsNullOrEmpty(baseUrl))
         {
-            baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("ApiBaseUrl", "https://khadamawy.eis-dev.com");
+            baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("ApiBaseUrl", "");
         }
         baseUrl = baseUrl.TrimEnd('/');
 

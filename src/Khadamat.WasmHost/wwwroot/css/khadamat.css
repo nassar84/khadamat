@@ -1369,3 +1369,19 @@ body::after {
 .skeleton-title { height: 1.5rem; margin-bottom: 1rem; border-radius: 4px; width: 60%; }
 .skeleton-circle { border-radius: 50%; width: 40px; height: 40px; }
 .skeleton-card { height: 200px; border-radius: 16px; margin-bottom: 1rem; }
+
+/* Modal Overlay Global Base */
+.modal-overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 3050 !important;
+    background: rgba(15, 23, 42, 0.65) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 16px !important;
+    overscroll-behavior: contain !important;
+    overflow-y: auto !important;
+}

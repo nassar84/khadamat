@@ -26,6 +26,30 @@ try
     builder.Configuration.AddJsonFile("appsettings.Secrets.json", optional: true, reloadOnChange: true);
     builder.Host.UseSerilog();
 
+    // ── Khadamawy Dual-Domain Environment Resolution ─────────────────────────
+    // Reads Khadamawy:ActiveEnvironment (e.g. "Current" or "Production") and
+    // populates ApiSettings:WebAppBaseUrl from the matching sub-section.
+    // To switch domains: change Khadamawy:ActiveEnvironment in appsettings.json
+    // and restart. No source-code changes are required.
+    {
+        var activeEnv = builder.Configuration["Khadamawy:ActiveEnvironment"] ?? "Current";
+        var webBaseUrl = builder.Configuration[$"Khadamawy:{activeEnv}:WebBaseUrl"];
+        var apiBaseUrl = builder.Configuration[$"Khadamawy:{activeEnv}:ApiBaseUrl"];
+
+        if (!string.IsNullOrWhiteSpace(webBaseUrl))
+            builder.Configuration["ApiSettings:WebAppBaseUrl"] = webBaseUrl;
+
+        // ApiBaseUrl is surfaced for future use; WebAPI serves its own routes so
+        // the API base is the same host in current deployment.
+        if (!string.IsNullOrWhiteSpace(apiBaseUrl))
+            builder.Configuration["ApiSettings:BaseUrl"] = apiBaseUrl;
+
+        Log.Information(
+            "[KhadamawyConfig] ActiveEnvironment={Env} | WebBaseUrl={Web} | ApiBaseUrl={Api} | GooglePlayAppUrl={Play}",
+            activeEnv, webBaseUrl, apiBaseUrl,
+            builder.Configuration["Khadamawy:GooglePlayAppUrl"]);
+    }
+
     // 2. Add Core services
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
@@ -148,9 +172,48 @@ try
 
     app.UseDefaultFiles();
 
-    // Configure Static Files to allow .apk downloads
+    // Configure Static Files to allow .apk downloads and .webp
     var provider = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
     provider.Mappings[".apk"] = "application/vnd.android.package-archive";
+    provider.Mappings[".webp"] = "image/webp";
+    // Required for Digital Asset Links (TWA / Google Play Store)
+    provider.Mappings[".json"] = "application/json";
+
+    // Serve .well-known/assetlinks.json for TWA (Trusted Web Activity) verification
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+            System.IO.Path.Combine(app.Environment.WebRootPath, ".well-known")),
+        RequestPath = "/.well-known",
+        ContentTypeProvider = provider,
+        ServeUnknownFileTypes = true
+    });
+
+    // Auto-rewrite category image requests (.png / .jpg) to .webp when the .webp file exists on disk
+    app.Use(async (context, next) =>
+    {
+        var path = context.Request.Path.Value;
+        if (!string.IsNullOrEmpty(path) &&
+            (path.StartsWith("/images/categories/", StringComparison.OrdinalIgnoreCase) ||
+             path.StartsWith("/images/maincategories/", StringComparison.OrdinalIgnoreCase) ||
+             path.StartsWith("/images/subcategories/", StringComparison.OrdinalIgnoreCase) ||
+             path.StartsWith("/images/defaults/", StringComparison.OrdinalIgnoreCase)))
+        {
+            if (path.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
+                path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                path.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase))
+            {
+                var webpPath = System.IO.Path.ChangeExtension(path, ".webp");
+                var env = context.RequestServices.GetRequiredService<IWebHostEnvironment>();
+                var physicalPath = System.IO.Path.Combine(env.WebRootPath, webpPath.TrimStart('/').Replace('/', System.IO.Path.DirectorySeparatorChar));
+                if (System.IO.File.Exists(physicalPath))
+                {
+                    context.Request.Path = webpPath;
+                }
+            }
+        }
+        await next();
+    });
     
     app.UseBlazorFrameworkFiles();
     app.UseStaticFiles(new StaticFileOptions
