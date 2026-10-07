@@ -143,6 +143,14 @@
         <!-- Copy root convenience copy -->
         <Copy SourceFiles="$(_SourceSignedApk)" DestinationFiles="$(MSBuildProjectDirectory)\..\..\khadamat.apk" Condition="Exists('$(_SourceSignedApk)')" ContinueOnError="true" />
 
+        <!-- Clean up any extra/old APK files to guarantee only ONE APK exists -->
+        <Delete Files="$(MSBuildProjectDirectory)\..\Khadamat.WebAPI\wwwroot\downloads\com.nassar84.khadamat-Signed.apk" ContinueOnError="true" />
+        <Delete Files="$(MSBuildProjectDirectory)\..\Khadamat.WebAPI\wwwroot\downloads\Khadamawy.apk" ContinueOnError="true" />
+        <Delete Files="$(MSBuildProjectDirectory)\..\Khadamat.WebAPI\wwwroot\downloads\خدماوى.apk" ContinueOnError="true" />
+        <Delete Files="$(_DestinationFolderMaged)\wwwroot\downloads\com.nassar84.khadamat-Signed.apk" Condition="Exists('$(_DestinationFolderMaged)')" ContinueOnError="true" />
+        <Delete Files="$(_DestinationFolderMaged)\wwwroot\downloads\Khadamawy.apk" Condition="Exists('$(_DestinationFolderMaged)')" ContinueOnError="true" />
+        <Delete Files="$(_DestinationFolderMaged)\wwwroot\downloads\خدماوى.apk" Condition="Exists('$(_DestinationFolderMaged)')" ContinueOnError="true" />
+
         <!-- Clean up stale signed artifacts from project root -->
         <Delete Files="$(MSBuildProjectDirectory)\..\..\com.nassar84.khadamat-Signed.apk" ContinueOnError="true" />
         <Delete Files="$(MSBuildProjectDirectory)\..\..\Khadamat-Signed.apk" ContinueOnError="true" />

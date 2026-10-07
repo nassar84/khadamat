@@ -2,19 +2,38 @@
 description: كيفية عمل Publish ورفع الموقع (WebAPI + Blazor WASM)
 ---
 
-هذا الدليل يوضح الخطوات اللازمة لإنتاج نسخة نهائية من المشروع (API وواجهة المستخدم) ورفعها على سيرفر الاستضافة.
+هذا الدليل يوضح الخطوات اللازمة لإنتاج نسخة نهائية من المشروع (API وواجهة المستخدم والـ APK) ورفعها على سيرفر الاستضافة.
 
-### **1. الخطوة الأولى: بناء تطبيق الموبايل (Android APK) وتحديثه**
-دائماً وقبل نشر الموقع، يجب بناء أحدث ملف APK حتى يكون متوفراً للتحميل الفوري من الموقع:
+> [!TIP]
+> **الطريقة الأسهل والأسرع (الموصى بها):**
+> تشغيل سكريبت النشر الموحد في الطرفية (PowerShell):
+> ```powershell
+> .\publish_all.ps1
+> ```
+> يقوم هذا السكريبت تلقائياً بـ:
+> 1. تنظيف أي نسخ قديمة من الـ APK وحذف الملفات الزائدة.
+> 2. بناء ملف APK واحد فقط محدّث بتاريخ ولحظة البناء الحالية.
+> 3. نشر الـ WebAPI مع Blazor WASM إلى مجلد `D:\maged\Khadamat`.
+> 4. التأكد الصارم من وجود **ملف APK واحد فقط** (`khadamat.apk`) بتاريخ وتوقيت حديث داخل مجلد التحميل `downloads/`.
+
+---
+
+### **1. الخطوة الأولى (يدوياً): بناء تطبيق الموبايل (Android APK) وتحديثه**
+دائماً وقبل نشر الموقع، يتم بناء أحدث ملف APK والتأكد من تنظيف النسخ القديمة:
 ```powershell
+# حذف أي ملفات APK قديمة للتأكد من نشر ملف واحد فقط
+Get-ChildItem -Path "src/Khadamat.MobileApp/bin/Release/net8.0-android" -Recurse -Filter "*.apk" -ErrorAction SilentlyContinue | Remove-Item -Force
+Get-ChildItem -Path "src/Khadamat.WebAPI/wwwroot/downloads" -Filter "*.apk" -ErrorAction SilentlyContinue | Remove-Item -Force
+
 dotnet publish src/Khadamat.MobileApp/Khadamat.MobileApp.csproj -f net8.0-android -c Release
 ```
-* ملف الـ APK الموقع (Signed) الجديد ينتج في المجلد التالي:
+* ملف الـ APK الموقع (Signed) الجديد ينتج في:
   `src/Khadamat.MobileApp/bin/Release/net8.0-android/android-arm64/publish/com.nassar84.khadamat-Signed.apk`
-* يتم نسخ هذا الملف فوراً إلى:
-  `D:\maged\Khadamat\wwwroot\downloads\khadamat.apk`
+* يتم نسخ هذا الملف باسم واحد فقط (`khadamat.apk`) وتحديث وقته وتاريخه:
+  `src/Khadamat.WebAPI/wwwroot/downloads/khadamat.apk`
   وإلى:
-  `src/Khadamat.WebAPI/wwwroot/downloads\khadamat.apk`
+  `D:\maged\Khadamat\wwwroot\downloads/khadamat.apk`
+* **ملاحظة هامة:** يُمنع نشر أكثر من ملف APK واحد في مجلد `downloads/`.
 
 ---
 
@@ -28,11 +47,12 @@ dotnet publish src/Khadamat.WebAPI/Khadamat.WebAPI.csproj -c Release -o D:\maged
 
 ---
 
-### **3. الخطوة الثالثة: التأكد من وجود ملف الـ APK وتاريخه**
-بعد انتهاء نشر الموقع، تأكد من وجود ملف الـ APK وفحص تاريخه ووقته عبر:
+### **3. الخطوة الثالثة: التأكد من وجود ملف APK واحد فقط وتاريخه**
+بعد انتهاء نشر الموقع، تأكد من وجود ملف الـ APK الوحيد وفحص تاريخه ووقته عبر:
 ```powershell
-Get-Item D:\maged\Khadamat\wwwroot\downloads\khadamat.apk | Select-Object Name, Length, LastWriteTime, CreationTime
+Get-ChildItem -Path "D:\maged\Khadamat\wwwroot\downloads" -Filter "*.apk" | Select-Object Name, Length, LastWriteTime, CreationTime
 ```
+يجب أن يظهر ملف واحد فقط وهو `khadamat.apk` بتاريخ ووقت النشر الحالي.
 
 ---
 
