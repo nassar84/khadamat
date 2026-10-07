@@ -382,10 +382,10 @@
         background: transparent;
         border: 1px solid #e2e8f0;
         border-radius: 12px;
-        color: #64748b;
+        color: var(--text-muted);
         transition: all 0.2s;
     }
-    .btn-ghost:hover { background: white; color: #1e293b; }
+    .btn-ghost:hover { background: white; color: var(--text-body); }
 
     .gallery-card-glass, .description-card-glass, .info-card-glass, .seller-card-glass {
         background: white;
@@ -489,7 +489,7 @@
         display: flex;
         align-items: center;
         gap: 0.4rem;
-        color: #64748b;
+        color: var(--text-muted);
         font-size: 0.85rem;
     }
 
@@ -520,7 +520,7 @@
         padding: 5px 12px;
         border-radius: 20px;
         font-size: 0.8rem;
-        color: #475569;
+        color: var(--text-secondary);
     }
 
     .tag-new { background: rgba(16, 185, 129, 0.1); color: #059669; }
@@ -529,14 +529,14 @@
     .description-text {
         white-space: pre-line;
         line-height: 1.9;
-        color: #475569;
+        color: var(--text-secondary);
         font-size: 0.95rem;
     }
 
     .seller-avatar {
         width: 52px;
         height: 52px;
-        background: linear-gradient(135deg, var(--theme-primary, #3b82f6), #6366f1);
+        background: linear-gradient(135deg, var(--theme-primary, #3b82f6), var(--theme-secondary, #6366f1));
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -559,7 +559,7 @@
         list-style: none;
         padding: 0;
         font-size: 0.82rem;
-        color: #64748b;
+        color: var(--text-muted);
     }
 
     .safety-list li {
@@ -650,7 +650,7 @@
         background: white;
         padding: 0 15px;
         font-size: 0.75rem;
-        color: #64748b;
+        color: var(--text-muted);
         font-weight: 700;
         position: absolute;
     }

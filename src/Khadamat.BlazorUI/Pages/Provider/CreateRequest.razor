@@ -322,14 +322,14 @@
     .step-badge {
         width: 40px;
         height: 40px;
-        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        background: linear-gradient(135deg, var(--theme-primary, #3b82f6), var(--theme-secondary, #1d4ed8));
         color: white;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: bold;
-        box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.5);
+        box-shadow: 0 4px 6px -1px rgba(var(--theme-primary-rgb, 59, 130, 246), 0.5);
     }
 
     .border-dashed {
@@ -338,7 +338,7 @@
     }
 
     .border-dashed:hover {
-        border-color: #3b82f6 !important;
+        border-color: var(--theme-primary, #3b82f6) !important;
         background-color: #f1f5f9 !important;
     }
 
@@ -349,20 +349,20 @@
     .premium-input {
         padding: 0.85rem 1.25rem;
         border-radius: 1rem;
-        border: 1px solid #e2e8f0;
-        background-color: #fff;
+        border: 1px solid var(--input-border);
+        background-color: var(--input-bg);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         font-size: 0.95rem;
     }
 
     .premium-input:focus {
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        border-color: var(--input-focus-border);
+        box-shadow: var(--input-focus-shadow);
         transform: translateY(-2px);
     }
 
     .btn-primary-gradient {
-        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        background: linear-gradient(135deg, var(--theme-primary, #3b82f6), var(--theme-secondary, #2563eb));
         border: none;
         color: white;
         font-weight: bold;
@@ -371,9 +371,9 @@
     }
 
     .btn-primary-gradient:hover:not(:disabled) {
-        background: linear-gradient(135deg, #2563eb, #1e40af);
+        background: linear-gradient(135deg, var(--theme-primary-hover, #2563eb), var(--theme-secondary, #1e40af));
         transform: translateY(-4px) scale(1.02);
-        box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.4) !important;
+        box-shadow: 0 20px 25px -5px rgba(var(--theme-primary-rgb, 59, 130, 246), 0.4) !important;
     }
 
     .floating-btn-hover:hover .fa-solid {

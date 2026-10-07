@@ -67,11 +67,11 @@
         padding: 12px 5px;
         font-size: 1.1rem;
         outline: none;
-        color: #1e293b;
+        color: var(--text-body);
     }
 
     .modern-search-input::placeholder {
-        color: #94a3b8;
+        color: var(--text-placeholder);
     }
 
     .divider {
@@ -84,7 +84,7 @@
     .voice-search-btn {
         background: transparent;
         border: none;
-        color: #64748b;
+        color: var(--text-muted);
         font-size: 1.2rem;
         padding: 10px;
         cursor: pointer;
@@ -92,11 +92,11 @@
     }
 
     .voice-search-btn:hover {
-        color: var(--primary);
+        color: var(--theme-primary);
     }
 
     .modern-search-btn {
-        background: var(--primary);
+        background: var(--theme-primary);
         color: white;
         border: none;
         border-radius: 12px;
@@ -110,7 +110,7 @@
     }
 
     .modern-search-btn:hover {
-        background: #4f46e5;
+        background: var(--theme-primary-hover, #4f46e5);
         transform: scale(1.02);
     }
 
@@ -123,7 +123,7 @@
         background: rgba(255, 255, 255, 0.5);
         padding: 4px 12px;
         border-radius: 8px;
-        color: #64748b;
+        color: var(--text-muted);
         cursor: pointer;
         border: 1px solid rgba(0, 0, 0, 0.05);
         transition: all 0.2s;
