@@ -27,8 +27,65 @@
             <button class="btn btn-outline-warning rounded-pill px-3 ms-2" @onclick="() => showMap = true">
                 <i class="fa-solid fa-map me-2"></i> دليل الأماكن
             </button>
+            <button class="btn btn-outline-primary rounded-pill px-3 ms-2" @onclick="() => showDimensionsGuide = !showDimensionsGuide">
+                <i class="fa-solid fa-ruler-combined me-2"></i> دليل أبعاد الصور
+            </button>
         </div>
     </div>
+
+    <!-- Dimensions Guide Card (Hero & Ads) -->
+    @if (showDimensionsGuide)
+    {
+        <div class="card glass-card border-0 rounded-4 p-3 mb-4 shadow-sm animate-pop" style="background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(240,249,255,0.98)); border-right: 4px solid #0284c7 !important;">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold text-primary mb-0"><i class="fa-solid fa-ruler-combined me-2"></i> دليل الأبعاد والمقاسات الموصى بها للصور (الهيرو والإعلانات)</h6>
+                <button class="btn-close btn-sm" @onclick="() => showDimensionsGuide = false"></button>
+            </div>
+            <p class="text-muted small mb-3">لضمان مظهر حاد واحترافي دون تشويه أو اقتصاص غير مرغوب على أجهزة الكمبيوتر، التابلت، الهواتف الذكية، وتطبيق الموبايل:</p>
+            <div class="row g-2">
+                <div class="col-12 col-md-6 col-lg-3">
+                    <div class="p-2.5 rounded-3 bg-white border h-100 shadow-2xs">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <span class="badge bg-primary-subtle text-primary fw-bold">الهيرو (Hero Slider)</span>
+                            <span class="small fw-bold text-dark">1920 × 1080</span>
+                        </div>
+                        <div class="extra-small text-muted">نسبة 16:9 (أو 1920×640 نسبة 3:1). الحجم الأقصى 300KB. مناسب لواجهة الموقع الرئيسية ويملأ الشاشة تلقائياً.</div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-lg-3">
+                    <div class="p-2.5 rounded-3 bg-white border h-100 shadow-2xs">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <span class="badge bg-success-subtle text-success fw-bold">سلايدر الإعلانات (Slider)</span>
+                            <span class="small fw-bold text-dark">1200 × 400</span>
+                        </div>
+                        <div class="extra-small text-muted">نسبة 3:1 (أو 1200×500 نسبة 2.4:1). الحجم الأقصى 150KB. متناسق مع ارتفاع السلايدر (200px) وعرض الشاشات.</div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-lg-3">
+                    <div class="p-2.5 rounded-3 bg-white border h-100 shadow-2xs">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <span class="badge bg-info-subtle text-info fw-bold">الجانبي والبطاقات (Cards)</span>
+                            <span class="small fw-bold text-dark">800 × 800</span>
+                        </div>
+                        <div class="extra-small text-muted">نسبة 1:1 مربعة (أو 1200×800 نسبة 3:2). مخصص للقوائم الجانبية والبطاقات الممولة في نتائج البحث والفئات.</div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-lg-3">
+                    <div class="p-2.5 rounded-3 bg-white border h-100 shadow-2xs">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <span class="badge bg-warning-subtle text-warning fw-bold">أسفل الصفحة (Bottom)</span>
+                            <span class="small fw-bold text-dark">1200 × 300</span>
+                        </div>
+                        <div class="extra-small text-muted">نسبة 4:1 شريط بانورامي عريض يظهر قبل تذييل الصفحة (Footer).</div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-2.5 pt-2 border-top extra-small text-muted d-flex align-items-center gap-2">
+                <i class="fa-solid fa-lightbulb text-warning fs-6"></i>
+                <span><strong>قاعدة منطقة الأمان (Safe Zone):</strong> ضع النصوص والعناصر الأساسية في الـ <strong>60% الوسطى</strong> من مساحة الصورة لتفادي اقتصاصها عند فتح الموقع أو التطبيق من الهاتف. يُفضل دائماً حفظ الصور بصيغة <strong>WebP</strong>.</span>
+            </div>
+        </div>
+    }
 
     <!-- Filter & Stats Bar -->
     @if (ads != null)
@@ -229,6 +286,11 @@
                                 <i class="fa-solid fa-upload"></i>
                                 <InputFile id="adImageFile" class="d-none" OnChange="HandleFileSelected" />
                             </label>
+                        </div>
+                        <div class="form-text extra-small mt-1 text-primary">
+                            <i class="fa-solid fa-circle-info me-1"></i>
+                            <strong>الأبعاد الموصى بها:</strong> للسلايدر (1200×400 بكسل نسبة 3:1) | للجانبي والبطاقات (800×800 بكسل 1:1) | الهيرو (1920×1080 بكسل).
+                            <span class="text-muted d-block mt-0.5">تمركز العناصر المهمة في الـ 60% الوسطى (Safe Zone) يضمن ظهورها ممتازاً على الموبايل وداخل التطبيق.</span>
                         </div>
                         @if (!string.IsNullOrEmpty(imagePreview))
                         {
@@ -584,6 +646,7 @@
     private string filterStatus = "";
     private bool isPageLoading = true;
     private bool showMap = false;
+    private bool showDimensionsGuide = false;
     private List<string> selectedDays = new();
 
     private Dictionary<string, string> allDays = new()
@@ -594,12 +657,12 @@
 
     private Dictionary<string, string> placementDescriptions = new()
     {
-        { "Slider", "يظهر في السلايدر الرئيسي أعلى الصفحة الرئيسية وصفحات الاستكشاف." },
-        { "Sidebar", "يظهر في القائمة الجانبية في جميع صفحات الموقع للشاشات الكبيرة." },
-        { "Bottom", "يظهر في أسفل الصفحة الرئيسية قبل التذييل (Footer)." },
-        { "Category", "يظهر بشكل أصلي (Native) داخل قائمة الخدمات أثناء التصفح." },
-        { "Search", "يظهر بشكل أصلي (Native) داخل نتائج البحث بين الخدمات." },
-        { "Popup", "يظهر كنافذة منبثقة عند دخول الموقع (قيد التطوير حالياً)." }
+        { "Slider", "المقاس الأنسب: 1200×400 بكسل (نسبة 3:1). يظهر في السلايدر الرئيسي أعلى الصفحة الرئيسية والاستكشاف ومتوافق مع الموبايل والتطبيق." },
+        { "Sidebar", "المقاس الأنسب: 800×800 بكسل (نسبة 1:1 مربعة). يظهر في القائمة الجانبية للشاشات الكبيرة." },
+        { "Bottom", "المقاس الأنسب: 1200×300 بكسل (نسبة 4:1). يظهر في أسفل الصفحة الرئيسية قبل التذييل (Footer)." },
+        { "Category", "المقاس الأنسب: 800×800 بكسل (نسبة 1:1). يظهر بشكل أصلي (Native) داخل قائمة الخدمات أثناء التصفح." },
+        { "Search", "المقاس الأنسب: 800×800 بكسل (نسبة 1:1). يظهر بشكل أصلي (Native) داخل نتائج البحث بين الخدمات." },
+        { "Popup", "المقاس الأنسب: 600×600 بكسل (نسبة 1:1). يظهر كنافذة منبثقة وسط الشاشة عند دخول الموقع." }
     };
 
     protected override async Task OnInitializedAsync()

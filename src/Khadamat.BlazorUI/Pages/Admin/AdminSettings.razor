@@ -108,7 +108,22 @@
                 <div class="col-12">
                     <div class="section-card p-3 rounded-4 bg-light border">
                         <h5 class="fw-bold mb-1"><i class="fa-solid fa-image me-2 text-primary"></i> صور الصفحة الرئيسية (Hero Slider)</h5>
-                        <p class="text-muted small mb-3">ارفع صور الشريحة الرئيسية للصفحة الرئيسية. تُحدَّث الصور فوراً بعد الرفع.</p>
+                        <p class="text-muted small mb-2">ارفع صور الشريحة الرئيسية للصفحة الرئيسية. تُحدَّث الصور فوراً بعد الرفع.</p>
+
+                        <!-- Hero Dimensions & Guidelines Alert -->
+                        <div class="alert alert-info rounded-4 border-0 shadow-sm p-3 mb-3" style="background: rgba(238, 242, 255, 0.9);">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="fa-solid fa-circle-info fs-5 mt-1 text-primary"></i>
+                                <div class="w-100">
+                                    <div class="fw-bold small mb-1 text-primary">إرشادات الأبعاد الموصى بها لصورة الهيرو (لكل الشاشات والتطبيق):</div>
+                                    <ul class="mb-0 small ps-3 text-secondary">
+                                        <li><strong>المقاس القياسي المثالي:</strong> <code>1920 × 1080 بكسل</code> (نسبة 16:9) أو <code>1920 × 640 بكسل</code> (نسبة 3:1 بنر عريض).</li>
+                                        <li><strong>منطقة الأمان (Safe Zone):</strong> ضع العناصر والنصوص المهمة في الـ <strong>60% الوسطى</strong> من الصورة، لتجنب اقتصاصها على الشاشات الرأسية (الموبايل وداخل التطبيق).</li>
+                                        <li><strong>الحجم والصيغة:</strong> يُفضل صيغة <strong>WebP</strong> أو <strong>JPG</strong> بحجم أقل من <strong>300 كيلوبايت</strong> لسرعة التحميل.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
                         <div class="row g-3">
                             @for (int s = 1; s <= 2; s++)
                             {
