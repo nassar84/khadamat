@@ -1,4 +1,6 @@
+@implements IDisposable
 @inject Khadamat.BlazorUI.State.AppState State
+@inject AuthenticationStateProvider AuthStateProvider
 
 <footer class="app-footer">
     <div class="footer-content">
@@ -8,7 +10,10 @@
             <a href="/privacy">سياسة الخصوصية</a>
             <a href="/terms">الشروط والأحكام</a>
             <a href="/contact">تواصل معنا</a>
-            <a href="/delete-account" class="text-danger opacity-75">حذف الحساب</a>
+            @if (_isAuthenticated)
+            {
+                <a href="/delete-account" class="text-danger opacity-75">حذف الحساب</a>
+            }
         </div>
         <div class="footer-app-badges">
             <span class="small text-muted d-block mb-2">حمل تطبيقنا الآن:</span>
@@ -49,7 +54,47 @@
 </style>
 
 @code {
+    private bool _isAuthenticated;
+    private bool _disposed;
 
+    protected override async Task OnInitializedAsync()
+    {
+        State.OnChange += OnStateChange;
+        await UpdateAuthStateAsync();
+    }
+
+    private async void OnStateChange()
+    {
+        if (_disposed) return;
+        try
+        {
+            await UpdateAuthStateAsync();
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (ObjectDisposedException) { }
+        catch (InvalidOperationException) { }
+        catch { }
+    }
+
+    private async Task UpdateAuthStateAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            _isAuthenticated = (user.Identity?.IsAuthenticated == true) || State.IsAuthenticated || State.IsLoggedIn;
+        }
+        catch
+        {
+            _isAuthenticated = State.IsAuthenticated || State.IsLoggedIn;
+        }
+    }
+
+    public void Dispose()
+    {
+        _disposed = true;
+        State.OnChange -= OnStateChange;
+    }
 }
 
 <style>
