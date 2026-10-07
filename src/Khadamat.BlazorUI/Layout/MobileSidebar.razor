@@ -29,7 +29,7 @@
                 </div>
             </div>
 
-            @if (!_isAdmin && !_isProvider)
+            @if (!_isAdmin && !_isProvider && !IsOnCreateServicePage)
             {
                 <div class="px-3 pt-3 pb-1">
                     <div class="p-3 rounded-4 shadow-sm text-white d-flex align-items-center justify-content-between cursor-pointer"
@@ -380,7 +380,10 @@
             <a href="/about" class="text-muted text-decoration-none smaller" @onclick="CloseSidebar">من نحن</a>
             <a href="/terms" class="text-muted text-decoration-none smaller" @onclick="CloseSidebar">الشروط والأحكام</a>
             <a href="/privacy" class="text-muted text-decoration-none smaller" @onclick="CloseSidebar">الخصوصية</a>
-            <a href="/delete-account" class="text-muted text-decoration-none smaller" @onclick="CloseSidebar">حذف الحساب</a>
+            @if (_isAuthenticated)
+            {
+                <a href="/delete-account" class="text-muted text-decoration-none smaller" @onclick="CloseSidebar">حذف الحساب</a>
+            }
         </div>
         @* app-version removed *@
     </div>
@@ -523,6 +526,7 @@
     .menu-item {
         display: flex;
         align-items: center;
+        justify-content: flex-start;
         gap: 16px;
         padding: 14px 18px;
         border-radius: 16px;
@@ -532,6 +536,8 @@
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         cursor: pointer;
         font-size: 1rem;
+        direction: rtl;
+        text-align: right;
     }
 
     .item-icon, .menu-item i {
@@ -795,13 +801,29 @@
         return currentPath == path.Trim('/') ? "active" : "";
     }
 
+    private bool IsOnCreateServicePage
+    {
+        get
+        {
+            var uri = Navigation.Uri;
+            return uri.Contains("/provider/create-request", StringComparison.OrdinalIgnoreCase)
+                || uri.Contains("/provider/create-service", StringComparison.OrdinalIgnoreCase)
+                || uri.Contains("/provider/apply", StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
     private async Task ShareApp()
     {
-        var shareUrl = !string.IsNullOrEmpty(State.AppShareUrl) ? State.AppShareUrl : Navigation.BaseUri;
-        var shareText = !string.IsNullOrEmpty(State.AppShareText)
-            ? State.AppShareText
-            : $"📲 منصة {State.AppName} — خدماتك في مكان واحد.. لكل المصريين!\nتواصل مباشرة مع أفضل الحرفيين والمهنيين ومقدمي الخدمات بكل سهولة وأمان.";
-        var fullText = $"{shareText}\n\n🔗 رابط التحميل والمشاركة:\n{shareUrl}";
-        await ShareService.ShareTextAsync(fullText, $"مشاركة تطبيق {State.AppName}");
+        var appName = !string.IsNullOrEmpty(State.AppNameAr) ? State.AppNameAr : (string.IsNullOrEmpty(State.AppName) ? "خدماوي" : State.AppName);
+        var appDownloadUrl = !string.IsNullOrEmpty(State.GooglePlayUrl)
+            ? State.GooglePlayUrl
+            : (!string.IsNullOrEmpty(State.AppShareUrl) ? State.AppShareUrl : $"{Navigation.BaseUri.TrimEnd('/')}/downloads/khadamat.apk");
+        var websiteUrl = Navigation.BaseUri.TrimEnd('/');
+
+        var fullText = $"📲 منصة وتطبيق {appName} — خدماتك في مكان واحد.. لكل المصريين!\n" +
+                       "تواصل مباشرة مع أفضل الحرفيين والمهنيين ومقدمي الخدمات بكل سهولة وأمان.\n\n" +
+                       $"📱 رابط تحميل التطبيق:\n{appDownloadUrl}\n\n" +
+                       $"🌐 رابط موقع الويب:\n{websiteUrl}";
+        await ShareService.ShareTextAsync(fullText, $"مشاركة تطبيق {appName}");
     }
 }

@@ -255,6 +255,32 @@
             height: 44px !important;
             border-radius: 12px !important;
         }
+        /* Ensure header stays in one row - prevent wrapping */
+        .header-inner-container {
+            flex-wrap: nowrap !important;
+            gap: 8px !important;
+        }
+        .header-actions-section {
+            flex-shrink: 0 !important;
+            flex-wrap: nowrap !important;
+            gap: 4px !important;
+        }
+        /* Hide messages & notifications icons on very small screens (available in sidebar) */
+        .header-actions-section .icon-action-btn:not(.d-lg-none) {
+            display: none !important;
+        }
+        /* Keep avatar and hamburger visible */
+        .user-dropdown-wrapper,
+        .icon-action-btn.d-lg-none {
+            display: flex !important;
+        }
+        /* Shrink brand section to give more room */
+        .header-brand-section span {
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
     }
     
     .search-container-glass {

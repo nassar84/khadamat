@@ -58,8 +58,8 @@
             </div>
         }
 
-        <!-- Provider Request Banner (Only for regular clients - NEVER for Admins or Providers) -->
-        @if (!_isAdmin && !_isProvider)
+        <!-- Provider Request Banner (Only for regular clients - NEVER for Admins or Providers or when on create service page) -->
+        @if (!_isAdmin && !_isProvider && !IsOnCreateServicePage)
         {
             @if (!IsCollapsed)
             {
@@ -666,6 +666,7 @@
     .menu-item {
         display: flex;
         align-items: center;
+        justify-content: flex-start;
         gap: 14px;
         padding: 11px 14px;
         border-radius: 14px;
@@ -677,6 +678,8 @@
         font-size: 0.95rem;
         text-decoration: none;
         white-space: nowrap;
+        direction: rtl;
+        text-align: right;
     }
 
     .collapsed .menu-item {
@@ -991,14 +994,30 @@
         await JS.InvokeVoidAsync("location.reload");
     }
 
+    private bool IsOnCreateServicePage
+    {
+        get
+        {
+            var uri = Navigation.Uri;
+            return uri.Contains("/provider/create-request", StringComparison.OrdinalIgnoreCase)
+                || uri.Contains("/provider/create-service", StringComparison.OrdinalIgnoreCase)
+                || uri.Contains("/provider/apply", StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
     private async Task ShareApp()
     {
-        var shareUrl = !string.IsNullOrEmpty(State.AppShareUrl) ? State.AppShareUrl : Navigation.BaseUri;
-        var shareText = !string.IsNullOrEmpty(State.AppShareText)
-            ? State.AppShareText
-            : $"📲 منصة {State.AppName} — خدماتك في مكان واحد.. لكل المصريين!\nتواصل مباشرة مع أفضل الحرفيين والمهنيين ومقدمي الخدمات بكل سهولة وأمان.";
-        var fullText = $"{shareText}\n\n🔗 رابط التحميل والمشاركة:\n{shareUrl}";
-        await ShareService.ShareTextAsync(fullText, $"مشاركة تطبيق {State.AppName}");
+        var appName = !string.IsNullOrEmpty(State.AppNameAr) ? State.AppNameAr : (string.IsNullOrEmpty(State.AppName) ? "خدماوي" : State.AppName);
+        var appDownloadUrl = !string.IsNullOrEmpty(State.GooglePlayUrl)
+            ? State.GooglePlayUrl
+            : (!string.IsNullOrEmpty(State.AppShareUrl) ? State.AppShareUrl : $"{Navigation.BaseUri.TrimEnd('/')}/downloads/khadamat.apk");
+        var websiteUrl = Navigation.BaseUri.TrimEnd('/');
+
+        var fullText = $"📲 منصة وتطبيق {appName} — خدماتك في مكان واحد.. لكل المصريين!\n" +
+                       "تواصل مباشرة مع أفضل الحرفيين والمهنيين ومقدمي الخدمات بكل سهولة وأمان.\n\n" +
+                       $"📱 رابط تحميل التطبيق:\n{appDownloadUrl}\n\n" +
+                       $"🌐 رابط موقع الويب:\n{websiteUrl}";
+        await ShareService.ShareTextAsync(fullText, $"مشاركة تطبيق {appName}");
     }
 
     public void Dispose()

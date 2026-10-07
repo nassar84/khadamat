@@ -5,7 +5,7 @@
 @inject NavigationManager Navigation
 @inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider AuthStateProvider
 
-<div class="service-card animate-up card-variant-@(Service.Id % 6)" @onclick="HandleClick">
+<div class="service-card animate-up card-variant-@(Service.Id % 6)" @onclick="HandleClick" style="overflow: visible;">
     <div class="card-accent-bar"></div>
     <div class="p-3" style="position: relative; z-index: 1;">
         <div class="d-flex gap-3">

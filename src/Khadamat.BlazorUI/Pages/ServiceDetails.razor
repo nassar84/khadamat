@@ -1,4 +1,4 @@
-@page "/service/{Id:int}"
+﻿@page "/service/{Id:int}"
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
 @using Khadamat.BlazorUI.Services.Auth
@@ -366,7 +366,7 @@
                                     <h6 class="fw-800 mb-1">هل لاحظت شيئاً غير دقيق؟</h6>
                                     <p class="small text-muted mb-0">ساعدنا وساعد بقية المستخدمين بتصحيح بيانات هذه الخدمة لتبقى تجربتكم دائماً الأفضل.</p>
                                 </div>
-                                <button class="btn btn-info rounded-pill px-4 py-2 text-white fw-bold shadow-sm" @onclick="OpenRequestEditModal">
+                                <button class="btn btn-info rounded-pill px-3 py-1 text-white fw-bold shadow-sm flex-shrink-0" style="font-size:0.8rem; white-space:nowrap;" @onclick="OpenRequestEditModal">
                                     تحديث البيانات <i class="fa-solid fa-magic-wand-sparkles ms-1"></i>
                                 </button>
                             </div>
