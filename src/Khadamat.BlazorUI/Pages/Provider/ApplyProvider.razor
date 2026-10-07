@@ -11,7 +11,7 @@
 @inject Khadamat.BlazorUI.State.AppState AppState
 
 <div class="request-page pb-5">
-    <div class="header-banner text-white py-5 text-center mb-0" style="background: linear-gradient(135deg, #7c3aed, #4f46e5);">
+    <div class="header-banner text-white py-5 text-center mb-0" style="background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));">
         <div class="container animate-fade-in">
             <i class="fa-solid fa-briefcase fs-1 mb-3 floating"></i>
             <h1 class="fw-bold h2">انضم كـ مقدم خدمة</h1>
@@ -195,21 +195,34 @@
 </div>
 
 <style>
-    /* Reuse styles from CreateRequest.razor via CSS Isolation or copy */
-    .request-page { background-color: #f8fafc; min-height: 100vh; }
+    .request-page { background-color: transparent; min-height: 100vh; }
     .mt-n5 { margin-top: -3.5rem !important; }
     .step-badge {
-        width: 40px; height: 40px; background: linear-gradient(135deg, #7c3aed, #4f46e5); color: white;
+        width: 40px; height: 40px;
+        background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));
+        color: white;
         border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;
+        box-shadow: 0 4px 12px var(--theme-glow);
     }
-    .border-dashed { border: 2px dashed #e2e8f0 !important; transition: all 0.3s; }
-    .border-dashed:hover { border-color: #7c3aed !important; background-color: #f1f5f9 !important; }
-    .bg-light-soft { background-color: #f8fafc; }
+    .border-dashed { border: 2px dashed var(--input-border) !important; transition: all 0.3s; }
+    .border-dashed:hover { border-color: var(--theme-primary) !important; background-color: rgba(255,255,255,0.6) !important; }
+    .bg-light-soft { background-color: rgba(255,255,255,0.4); backdrop-filter: blur(10px); }
     .premium-input {
-        padding: 0.85rem 1.25rem; border-radius: 1rem; border: 1px solid #e2e8f0; background-color: #fff;
+        padding: 0.85rem 1.25rem; border-radius: 1rem;
+        border: 1.5px solid var(--input-border);
+        background: var(--input-bg);
+        color: var(--text-body);
     }
     .btn-primary-gradient {
-        background: linear-gradient(135deg, #7c3aed, #4f46e5); border: none; color: white; font-weight: bold; font-size: 1.1rem;
+        background: linear-gradient(135deg, var(--theme-primary), var(--theme-secondary));
+        border: none; color: white; font-weight: bold; font-size: 1.1rem;
+        box-shadow: 0 8px 20px var(--theme-glow);
+        transition: all 0.3s ease;
+    }
+    .btn-primary-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px var(--theme-glow);
+        color: white;
     }
     .animate-scale-in { animation: scaleIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
     @@keyframes scaleIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }

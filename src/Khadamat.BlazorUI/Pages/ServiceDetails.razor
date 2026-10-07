@@ -734,94 +734,68 @@
                 <!-- WhatsApp Share -->
                 <button type="button"
                    class="share-social-btn share-whatsapp border-0 shadow-sm" 
-                   title="مشاركة مباشرة على واتساب"
+                   title="ظ…ط´ط§ط±ظƒط© ظ…ط¨ط§ط´ط±ط© ط¹ظ„ظ‰ ظˆط§طھط³ط§ط¨"
                    @onclick='() => ShareToSocial("whatsapp")'>
                     <i class="fa-brands fa-whatsapp"></i>
-                    <span>واتساب</span>
+                    <span>ظˆط§طھط³ط§ط¨</span>
                 </button>
                 <!-- Facebook Share -->
                 <button type="button"
                    class="share-social-btn share-facebook border-0 shadow-sm" 
-                   title="مشاركة على فيسبوك بكارت الخدمة"
+                   title="ظ…ط´ط§ط±ظƒط© ط¹ظ„ظ‰ ظپظٹط³ط¨ظˆظƒ ط¨ظƒط§ط±طھ ط§ظ„ط®ط¯ظ…ط©"
                    @onclick='() => ShareToSocial("facebook")'>
                     <i class="fa-brands fa-facebook-f"></i>
-                    <span>فيسبوك</span>
+                    <span>ظپظٹط³ط¨ظˆظƒ</span>
                 </button>
                 <!-- Telegram Share -->
                 <button type="button"
                    class="share-social-btn share-telegram border-0 shadow-sm" 
-                   title="مشاركة على تيليجرام"
+                   title="ظ…ط´ط§ط±ظƒط© ط¹ظ„ظ‰ طھظٹظ„ظٹط¬ط±ط§ظ…"
                    @onclick='() => ShareToSocial("telegram")'>
                     <i class="fa-brands fa-telegram"></i>
-                    <span>تيليجرام</span>
+                    <span>طھظٹظ„ظٹط¬ط±ط§ظ…</span>
                 </button>
                 <!-- Twitter / X Share -->
                 <button type="button"
                    class="share-social-btn share-twitter border-0 shadow-sm" 
-                   title="مشاركة على تويتر (X)"
+                   title="ظ…ط´ط§ط±ظƒط© ط¹ظ„ظ‰ طھظˆظٹطھط± (X)"
                    @onclick='() => ShareToSocial("twitter")'>
                     <i class="fa-brands fa-x-twitter"></i>
-                    <span>تويتر (X)</span>
-                </button>
-                <!-- Copy Link -->
-                <button type="button"
-                   class="share-social-btn share-copy border-0 shadow-sm" 
-                   title="نسخ الرابط بالمنشور"
-                   @onclick="CopyCompleteShareText">
-                    <i class="fa-solid fa-copy"></i>
-                    <span>نسخ المنشور</span>
+                    <span>طھظˆظٹطھط± (X)</span>
                 </button>
             </div>
 
             <!-- App Promo Box -->
             <div class="app-promo-box rounded-4 p-3 mb-3" style="background: linear-gradient(135deg, #1d6070 0%, #2a7f8f 60%, #f47c30 100%); color: white; direction: rtl;">
                 <div class="d-flex align-items-start gap-3">
-                    <img src="/favicon.png" width="44" height="44" alt="خدماوي" style="border-radius: 10px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.25);" />
+                    <img src="/favicon.png" width="44" height="44" alt="ط®ط¯ظ…ط§ظˆظٹ" style="border-radius: 10px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.25);" />
                     <div class="flex-grow-1">
-                        <div class="fw-800 mb-1" style="font-size: 0.95rem;">📲 تطبيق ومنصة خدماوي</div>
-                        <div class="mb-2" style="font-size: 0.8rem; opacity: 0.92; line-height: 1.5;">سوق الخدمات والأعمال الأول في مصر — تصفح آلاف الخدمات القريبة منك وتواصل مباشرة مع مقدميها مجاناً!</div>
-                        <a href="/downloads/khadamat.apk"
-                           download="خدماوى.apk"
+                        <div class="fw-800 mb-1" style="font-size: 0.95rem;">ًں“² طھط·ط¨ظٹظ‚ ظˆظ…ظ†طµط© ط®ط¯ظ…ط§ظˆظٹ</div>
+                        <div class="mb-2" style="font-size: 0.8rem; opacity: 0.92; line-height: 1.5;">ط³ظˆظ‚ ط§ظ„ط®ط¯ظ…ط§طھ ظˆط§ظ„ط£ط¹ظ…ط§ظ„ ط§ظ„ط£ظˆظ„ ظپظٹ ظ…طµط± â€” طھطµظپط­ ط¢ظ„ط§ظپ ط§ظ„ط®ط¯ظ…ط§طھ ط§ظ„ظ‚ط±ظٹط¨ط© ظ…ظ†ظƒ ظˆطھظˆط§طµظ„ ظ…ط¨ط§ط´ط±ط© ظ…ط¹ ظ…ظ‚ط¯ظ…ظٹظ‡ط§ ظ…ط¬ط§ظ†ط§ظ‹!</div>
+                        <a href="@AppDownloadUrl"
+                           download="ط®ط¯ظ…ط§ظˆظ‰.apk"
                            class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill fw-bold"
                            style="background: white; color: #1d6070; font-size: 0.78rem; text-decoration: none; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
                             <i class="fa-brands fa-android text-success" style="font-size: 1rem;"></i>
-                            <span>حمل التطبيق مجاناً (APK)</span>
+                            <span>ط­ظ…ظ„ ط§ظ„طھط·ط¨ظٹظ‚ ظ…ط¬ط§ظ†ط§ظ‹ (APK)</span>
                         </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Action buttons (Copy full text, Copy link, Download card) -->
-            <div class="d-flex flex-column gap-2">
-                <button class="btn btn-outline-primary rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-2"
-                        @onclick="CopyCompleteShareText">
-                    <i class="fa-solid fa-copy"></i>
-                    <span>نسخ نص المنشور كاملاً مع رابط التطبيق</span>
-                </button>
-
-                <!-- Copy Link Input -->
-                <div class="input-group">
-                    <input type="text" class="form-control rounded-start-pill bg-light border-light text-start" dir="ltr" readonly value="@SharePageUrl" />
-                    <button class="btn btn-outline-secondary rounded-end-pill px-3 fw-bold" @onclick="CopyShareLink">
-                        <i class="fa-solid fa-link me-1"></i> نسخ الرابط
-                    </button>
+            @if (!string.IsNullOrEmpty(shareCopyStatus))
+            {
+                <div class="alert alert-success py-2 text-center small rounded-4 mb-2 animate-fade-in fw-bold">
+                    @shareCopyStatus
                 </div>
+            }
 
-                @if (!string.IsNullOrEmpty(shareCopyStatus))
-                {
-                    <div class="alert alert-success py-2 text-center small rounded-4 mb-1 animate-fade-in fw-bold">
-                        @shareCopyStatus
-                    </div>
-                }
-
-                <button class="btn btn-light text-muted btn-sm rounded-pill w-100 py-2 border" @onclick="DownloadCardImage">
-                    <i class="fa-solid fa-download me-1"></i> تحميل بطاقة الخدمة كصورة (PNG)
-                </button>
-            </div>
+            <button class="btn btn-light text-muted btn-sm rounded-pill w-100 py-2 border shadow-2xs" @onclick="DownloadCardImage">
+                <i class="fa-solid fa-download me-1"></i> طھط­ظ…ظٹظ„ ط¨ط·ط§ظ‚ط© ط§ظ„ط®ط¯ظ…ط© ظƒطµظˆط±ط© (PNG)
+            </button>
         </div>
     }
 </div>
-
 <!-- Rating Modal -->
 @if (showRateModal)
 {
@@ -1945,10 +1919,21 @@
             if (segments.Length > 1 && !string.IsNullOrWhiteSpace(segments[1]))
             {
                 var pageName = segments[1].Split('?')[0].TrimEnd('/');
-                return string.IsNullOrWhiteSpace(pageName) ? "فيسبوك" : pageName;
+                return string.IsNullOrWhiteSpace(pageName) ? "ظپظٹط³ط¨ظˆظƒ" : pageName;
             }
         }
         return clean;
+    }
+
+    private string AppDownloadUrl
+    {
+        get
+        {
+            if (!string.IsNullOrEmpty(State.GooglePlayUrl)) return State.GooglePlayUrl;
+            if (!string.IsNullOrEmpty(State.AppShareUrl)) return State.AppShareUrl;
+            var baseUri = Navigation.BaseUri.TrimEnd('/');
+            return $"{baseUri}/downloads/khadamat.apk";
+        }
     }
 
     private string WhatsAppShareUrl => $"https://api.whatsapp.com/send?text={Uri.EscapeDataString(GetUnifiedShareText())}";
@@ -1961,44 +1946,28 @@
         var title = service?.Title ?? "";
         var desc = service?.Description ?? "";
         if (desc.Length > 120) desc = desc.Substring(0, 117) + "...";
-        var priceText = service?.Price.HasValue == true ? $"{service.Price:N0} ج.م" : "مجاناً / بالتواصل";
+        var priceText = service?.Price.HasValue == true ? $"{service.Price:N0} ط¬.ظ…" : "ظ…ط¬ط§ظ†ط§ظ‹ / ط¨ط§ظ„طھظˆط§طµظ„";
         var addressDetail = GetCardDetailedAddress();
-        var addressLine = !string.IsNullOrEmpty(addressDetail) ? $"\n📍 العنوان: {addressDetail}" : "";
-        var phoneLine = !string.IsNullOrEmpty(service?.Phone1) ? $"\n📞 الهاتف: {service.Phone1}" : "";
+        var addressLine = !string.IsNullOrEmpty(addressDetail) ? $"\nًں“چ ط§ظ„ط¹ظ†ظˆط§ظ†: {addressDetail}" : "";
+        var phoneLine = !string.IsNullOrEmpty(service?.Phone1) ? $"\nًں“‍ ط§ظ„ظ‡ط§طھظپ: {service.Phone1}" : "";
 
-        return $"🌟 *{title}*\n" +
-               (!string.IsNullOrEmpty(desc) ? $"📝 {desc}\n" : "") +
-               $"💰 السعر: {priceText}{addressLine}{phoneLine}\n\n" +
-               $"🔗 رابط صفحة الخدمة والتفاصيل:\n{SharePageUrl}\n\n" +
-               $"📲 منصة وتطبيق خدماوي — سوق الخدمات والأعمال الأول في مصر 🇪🇬\n" +
-               $"حمل تطبيق خدماوي مجاناً وتصفح آلاف الخدمات والوظائف القريبة منك وتواصل مباشرة مع أصحاب الأعمال:\n" +
-               // App download link: prefer GooglePlayUrl, fall back to AppShareUrl
-               (string.IsNullOrEmpty(State.GooglePlayUrl) ? State.AppShareUrl : State.GooglePlayUrl);
+        return $"ًںŒں *{title}*\n" +
+               (!string.IsNullOrEmpty(desc) ? $"ًں“‌ {desc}\n" : "") +
+               $"ًں’° ط§ظ„ط³ط¹ط±: {priceText}{addressLine}{phoneLine}\n\n" +
+               $"ًں”— ط±ط§ط¨ط· طµظپط­ط© ط§ظ„ط®ط¯ظ…ط© ط¨ط§ظ„طھظپطµظٹظ„:\n{SharePageUrl}\n\n" +
+               $"ًں“² *ط¯ط¹ظˆط© ظ„طھط­ظ…ظٹظ„ طھط·ط¨ظٹظ‚ ظˆظ…ظ†طµط© ط®ط¯ظ…ط§ظˆظٹ* ًں‡ھًں‡¬\n" +
+               $"ط³ظˆظ‚ ط§ظ„ط®ط¯ظ…ط§طھ ظˆط§ظ„ط£ط¹ظ…ط§ظ„ ط§ظ„ط£ظˆظ„ ظپظٹ ظ…طµط± â€” طھطµظپط­ ط¢ظ„ط§ظپ ط§ظ„ط®ط¯ظ…ط§طھ ظˆط§ظ„ظˆط¸ط§ط¦ظپ ط§ظ„ظ‚ط±ظٹط¨ط© ظ…ظ†ظƒ ظˆطھظˆط§طµظ„ ظ…ط¨ط§ط´ط±ط© ظ…ط¹ ط£طµط­ط§ط¨ ط§ظ„ط£ط¹ظ…ط§ظ„ ظˆط§ظ„ظ…ظ‡ظ†ظٹظٹظ†!\n" +
+               $"ًں‘‡ ط±ط§ط¨ط· طھط­ظ…ظٹظ„ ط§ظ„طھط·ط¨ظٹظ‚ ط§ظ„ظ…ط¨ط§ط´ط± (APK):\n{AppDownloadUrl}";
     }
 
-    private string GetFacebookPostText()
-    {
-        var title = service?.Title ?? "";
-        var desc = service?.Description ?? "";
-        if (desc.Length > 120) desc = desc.Substring(0, 117) + "...";
-        var priceText = service?.Price.HasValue == true ? $"{service.Price:N0} ج.م" : "مجاناً / بالتواصل";
-        var addressDetail = GetCardDetailedAddress();
-        var addressLine = !string.IsNullOrEmpty(addressDetail) ? $"\n📍 العنوان: {addressDetail}" : "";
-
-        return $"🌟 {title}\n" +
-               (!string.IsNullOrEmpty(desc) ? $"📝 {desc}\n" : "") +
-               $"💰 السعر: {priceText}{addressLine}\n\n" +
-               $"🔗 رابط تفاصيل الخدمة والتواصل:\n{SharePageUrl}\n\n" +
-               $"📲 منصة وتطبيق خدماوي — سوق الخدمات والأعمال الأول في مصر 🇪🇬\n" +
-               $"حمل تطبيق خدماوي مجاناً وتصفح آلاف الخدمات والوظائف القريبة منك وتواصل مباشرة مع أفضل مقدمي الخدمات:\n" +
-               // App download link: prefer GooglePlayUrl, fall back to AppShareUrl
-               (string.IsNullOrEmpty(State.GooglePlayUrl) ? State.AppShareUrl : State.GooglePlayUrl);
-    }
+    private string GetFacebookPostText() => GetUnifiedShareText();
 
     private string GetTwitterShareText()
     {
         var title = service?.Title ?? "";
-        return $"🌟 {title} على منصة وتطبيق خدماوي — سوق الخدمات الأول في مصر\n📲 حمل التطبيق مجاناً:\n{(string.IsNullOrEmpty(State.GooglePlayUrl) ? State.AppShareUrl : State.GooglePlayUrl)}";
+        return $"ًںŒں {title}\n" +
+               $"ًں“² ط­ظ…ظ„ طھط·ط¨ظٹظ‚ ط®ط¯ظ…ط§ظˆظٹ ظ…ط¬ط§ظ†ط§ظ‹:\n{AppDownloadUrl}\n" +
+               $"ًں”— ط§ظ„طھظپط§طµظٹظ„: {SharePageUrl}";
     }
 
     private string GetWhatsAppShareText() => GetUnifiedShareText();

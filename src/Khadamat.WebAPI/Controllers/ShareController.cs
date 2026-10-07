@@ -227,24 +227,17 @@ public class ShareController : ControllerBase
         if (shortDesc.Length > 120) shortDesc = shortDesc[..117] + "...";
         var safeDesc = HttpUtility.HtmlEncode(shortDesc);
 
-        // OG description — Must be PROMOTIONAL (not raw data) for social sharing appeal
-        // WhatsApp/Facebook show this text under the title — make it enticing!
-        var ogDesc = !string.IsNullOrEmpty(shortDesc)
-            ? shortDesc
-            : $"{service.CategoryName} في {service.GovernorateName}";
-        // Add location + price context
-        var contextSuffix = $" | 📍 {service.GovernorateName}، {service.CityName} | 💰 {priceText}";
-        // Add a compelling CTA with app definition and invitation
-        var cta = " — 📲 منصة وتطبيق خدماوي: سوق الخدمات والأعمال الأول في مصر. تصفح تفاصيل الخدمة وحمل التطبيق مجاناً لتواصل مباشر وآلاف الخدمات القريبة!";
-        var combined = ogDesc + contextSuffix + cta;
+        // App download URLs
+        var appStoreUrl = $"{baseUrl}/downloads/khadamat.apk";
+
+        // OG description — Must be PROMOTIONAL with app invitation and download link
+        var inviteText = $"📲 حمّل تطبيق خدماوي مجاناً وتصفح آلاف الخدمات القريبة وتواصل مباشرة: {appStoreUrl}";
+        var combined = $"{safeTitle} • {priceText} | {location} — {inviteText}";
         if (combined.Length > 300) combined = combined[..297] + "...";
         var safeOgDesc = HttpUtility.HtmlEncode(combined);
 
         // Page title (also used as og:title)
-        var pageTitle = HttpUtility.HtmlEncode($"{service.Title} • {service.CategoryName} في {service.CityName}");
-
-        // App download URLs
-        var appStoreUrl = $"{baseUrl}/downloads/khadamat.apk";
+        var pageTitle = HttpUtility.HtmlEncode($"🌟 {service.Title} • تطبيق ومنصة خدماوي");
 
         var html = new StringBuilder();
         html.AppendLine("<!DOCTYPE html>");
@@ -611,6 +604,13 @@ public class ShareController : ControllerBase
 
         // ── Card Body ──
         html.AppendLine("    <div class=\"card-body\">");
+
+        // App Promo & Download Invitation Box (Prominent at top below hero card)
+        html.AppendLine("      <div class=\"promo-box\" style=\"background: linear-gradient(135deg, #1d6070 0%, #2a7f8f 60%, #f47c30 100%); color: white; padding: 16px; border-radius: 16px; margin-bottom: 18px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.15);\">");
+        html.AppendLine("        <div style=\"font-weight: 800; font-size: 1.05rem; margin-bottom: 6px;\">📲 حمل تطبيق ومنصة خدماوي مجاناً</div>");
+        html.AppendLine("        <div style=\"font-size: 0.85rem; margin-bottom: 12px; opacity: 0.95;\">سوق الخدمات والأعمال الأول في مصر — تصفح آلاف الخدمات القريبة منك وتواصل مباشرة مع مقدميها مجاناً!</div>");
+        html.AppendLine($"        <a href=\"{appStoreUrl}\" class=\"btn-promo btn-promo-app\" style=\"display: inline-block; background: white; color: #1d6070; font-weight: 800; padding: 9px 24px; border-radius: 25px; text-decoration: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); font-size: 0.9rem;\">📲 تحميل تطبيق خدماوي (APK)</a>");
+        html.AppendLine("      </div>");
 
         // Redirect Notice
         html.AppendLine("    <div class=\"redirect-notice\">");
