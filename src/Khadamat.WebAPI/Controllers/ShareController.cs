@@ -237,7 +237,7 @@ public class ShareController : ControllerBase
         var safeOgDesc = HttpUtility.HtmlEncode(combined);
 
         // Page title (also used as og:title)
-        var pageTitle = HttpUtility.HtmlEncode($"🌟 {service.Title} • تطبيق ومنصة خدماوي");
+        var pageTitle = HttpUtility.HtmlEncode($"🌟 {service.Title} ({priceText}) • منصة وتطبيق خدماوي 📲 حمّل التطبيق");
 
         var html = new StringBuilder();
         html.AppendLine("<!DOCTYPE html>");

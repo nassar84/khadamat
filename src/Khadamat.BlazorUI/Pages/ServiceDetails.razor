@@ -637,14 +637,14 @@
                                 </h3>
 
                                 <!-- Location & Work Schedule Row -->
-                                <div style="display: flex; gap: 6px; align-items: center; width: 100%; flex-wrap: nowrap; overflow: hidden;">
-                                    <div style="background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 6px; padding: 2px 7px; font-size: 0.64rem; font-weight: 800; display: inline-flex; align-items: center; gap: 3px; max-width: 55%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 1;">
-                                        <span style="font-size: 0.68rem; color: #ef4444;">📍</span>
-                                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@GetCardDetailedAddress()</span>
+                                <div style="display: flex; gap: 6px; align-items: center; width: 100%; flex-wrap: nowrap; overflow: hidden; direction: rtl;">
+                                    <div style="background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 6px; padding: 2px 7px; font-size: 0.64rem; font-weight: 800; display: inline-flex; align-items: center; gap: 3px; max-width: 55%; white-space: nowrap; overflow: hidden; flex-shrink: 1; direction: rtl;">
+                                        <span style="font-size: 0.68rem; color: #ef4444; flex-shrink: 0;">ًں“چ</span>
+                                        <span dir="rtl" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; unicode-bidi: isolate; font-family: Tajawal, Arial, sans-serif;">@GetCardDetailedAddress()</span>
                                     </div>
-                                    <div style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; border-radius: 6px; padding: 2px 7px; font-size: 0.62rem; font-weight: 800; display: inline-flex; align-items: center; gap: 3px; max-width: 45%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 1;">
-                                        <span style="color: #0284c7;">⏰</span>
-                                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@(string.IsNullOrEmpty(service?.WorkDays) ? "متاح يومياً" : service.WorkDays)@(!string.IsNullOrEmpty(service?.WorkHours) ? " - " + service.WorkHours : "")</span>
+                                    <div style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; border-radius: 6px; padding: 2px 7px; font-size: 0.62rem; font-weight: 800; display: inline-flex; align-items: center; gap: 3px; max-width: 45%; white-space: nowrap; overflow: hidden; flex-shrink: 1; direction: rtl;">
+                                        <span style="color: #0284c7; flex-shrink: 0;">âڈ°</span>
+                                        <span dir="rtl" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; unicode-bidi: isolate; font-family: Tajawal, Arial, sans-serif;">@(string.IsNullOrEmpty(service?.WorkDays) ? "متاح يومياً" : service.WorkDays)@(!string.IsNullOrEmpty(service?.WorkHours) ? " - " + service.WorkHours : "")</span>
                                     </div>
                                 </div>
 
@@ -734,50 +734,50 @@
                 <!-- WhatsApp Share -->
                 <button type="button"
                    class="share-social-btn share-whatsapp border-0 shadow-sm" 
-                   title="ظ…ط´ط§ط±ظƒط© ظ…ط¨ط§ط´ط±ط© ط¹ظ„ظ‰ ظˆط§طھط³ط§ط¨"
+                   title="مشاركة على واتساب"
                    @onclick='() => ShareToSocial("whatsapp")'>
                     <i class="fa-brands fa-whatsapp"></i>
-                    <span>ظˆط§طھط³ط§ط¨</span>
+                    <span>واتساب</span>
                 </button>
                 <!-- Facebook Share -->
                 <button type="button"
                    class="share-social-btn share-facebook border-0 shadow-sm" 
-                   title="ظ…ط´ط§ط±ظƒط© ط¹ظ„ظ‰ ظپظٹط³ط¨ظˆظƒ ط¨ظƒط§ط±طھ ط§ظ„ط®ط¯ظ…ط©"
+                   title="مشاركة على فيسبوك"
                    @onclick='() => ShareToSocial("facebook")'>
                     <i class="fa-brands fa-facebook-f"></i>
-                    <span>ظپظٹط³ط¨ظˆظƒ</span>
+                    <span>فيسبوك</span>
                 </button>
                 <!-- Telegram Share -->
                 <button type="button"
                    class="share-social-btn share-telegram border-0 shadow-sm" 
-                   title="ظ…ط´ط§ط±ظƒط© ط¹ظ„ظ‰ طھظٹظ„ظٹط¬ط±ط§ظ…"
+                   title="مشاركة على تيليجرام"
                    @onclick='() => ShareToSocial("telegram")'>
                     <i class="fa-brands fa-telegram"></i>
-                    <span>طھظٹظ„ظٹط¬ط±ط§ظ…</span>
+                    <span>تيليجرام</span>
                 </button>
                 <!-- Twitter / X Share -->
                 <button type="button"
                    class="share-social-btn share-twitter border-0 shadow-sm" 
-                   title="ظ…ط´ط§ط±ظƒط© ط¹ظ„ظ‰ طھظˆظٹطھط± (X)"
+                   title="مشاركة على تويتر (X)"
                    @onclick='() => ShareToSocial("twitter")'>
                     <i class="fa-brands fa-x-twitter"></i>
-                    <span>طھظˆظٹطھط± (X)</span>
+                    <span>تويتر (X)</span>
                 </button>
             </div>
 
             <!-- App Promo Box -->
             <div class="app-promo-box rounded-4 p-3 mb-3" style="background: linear-gradient(135deg, #1d6070 0%, #2a7f8f 60%, #f47c30 100%); color: white; direction: rtl;">
                 <div class="d-flex align-items-start gap-3">
-                    <img src="/favicon.png" width="44" height="44" alt="ط®ط¯ظ…ط§ظˆظٹ" style="border-radius: 10px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.25);" />
+                    <img src="/favicon.png" width="44" height="44" alt="خدماوي" style="border-radius: 10px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.25);" />
                     <div class="flex-grow-1">
-                        <div class="fw-800 mb-1" style="font-size: 0.95rem;">ًں“² طھط·ط¨ظٹظ‚ ظˆظ…ظ†طµط© ط®ط¯ظ…ط§ظˆظٹ</div>
-                        <div class="mb-2" style="font-size: 0.8rem; opacity: 0.92; line-height: 1.5;">ط³ظˆظ‚ ط§ظ„ط®ط¯ظ…ط§طھ ظˆط§ظ„ط£ط¹ظ…ط§ظ„ ط§ظ„ط£ظˆظ„ ظپظٹ ظ…طµط± â€” طھطµظپط­ ط¢ظ„ط§ظپ ط§ظ„ط®ط¯ظ…ط§طھ ط§ظ„ظ‚ط±ظٹط¨ط© ظ…ظ†ظƒ ظˆطھظˆط§طµظ„ ظ…ط¨ط§ط´ط±ط© ظ…ط¹ ظ…ظ‚ط¯ظ…ظٹظ‡ط§ ظ…ط¬ط§ظ†ط§ظ‹!</div>
+                        <div class="fw-800 mb-1" style="font-size: 0.95rem;">📲 تطبيق ومنصة خدماوي</div>
+                        <div class="mb-2" style="font-size: 0.8rem; opacity: 0.92; line-height: 1.5;">سوق الخدمات والأعمال الأول في مصر – تصفح آلاف الخدمات القريبة منك وتواصل مباشرة مع مقدميها مجاناً!</div>
                         <a href="@AppDownloadUrl"
-                           download="ط®ط¯ظ…ط§ظˆظ‰.apk"
+                           download="خدماوي.apk"
                            class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill fw-bold"
                            style="background: white; color: #1d6070; font-size: 0.78rem; text-decoration: none; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
                             <i class="fa-brands fa-android text-success" style="font-size: 1rem;"></i>
-                            <span>ط­ظ…ظ„ ط§ظ„طھط·ط¨ظٹظ‚ ظ…ط¬ط§ظ†ط§ظ‹ (APK)</span>
+                            <span>حمل التطبيق مجاناً (APK)</span>
                         </a>
                     </div>
                 </div>
@@ -791,7 +791,7 @@
             }
 
             <button class="btn btn-light text-muted btn-sm rounded-pill w-100 py-2 border shadow-2xs" @onclick="DownloadCardImage">
-                <i class="fa-solid fa-download me-1"></i> طھط­ظ…ظٹظ„ ط¨ط·ط§ظ‚ط© ط§ظ„ط®ط¯ظ…ط© ظƒطµظˆط±ط© (PNG)
+                <i class="fa-solid fa-download me-1"></i> تحميل بطاقة الخدمة كصورة (PNG)
             </button>
         </div>
     }
@@ -1919,7 +1919,7 @@
             if (segments.Length > 1 && !string.IsNullOrWhiteSpace(segments[1]))
             {
                 var pageName = segments[1].Split('?')[0].TrimEnd('/');
-                return string.IsNullOrWhiteSpace(pageName) ? "ظپظٹط³ط¨ظˆظƒ" : pageName;
+                return string.IsNullOrWhiteSpace(pageName) ? "فيسبوك" : pageName;
             }
         }
         return clean;
@@ -1946,18 +1946,18 @@
         var title = service?.Title ?? "";
         var desc = service?.Description ?? "";
         if (desc.Length > 120) desc = desc.Substring(0, 117) + "...";
-        var priceText = service?.Price.HasValue == true ? $"{service.Price:N0} ط¬.ظ…" : "ظ…ط¬ط§ظ†ط§ظ‹ / ط¨ط§ظ„طھظˆط§طµظ„";
+        var priceText = service?.Price.HasValue == true ? $"{service.Price:N0} ج.م" : "مجاناً / بالتواصل";
         var addressDetail = GetCardDetailedAddress();
-        var addressLine = !string.IsNullOrEmpty(addressDetail) ? $"\nًں“چ ط§ظ„ط¹ظ†ظˆط§ظ†: {addressDetail}" : "";
-        var phoneLine = !string.IsNullOrEmpty(service?.Phone1) ? $"\nًں“‍ ط§ظ„ظ‡ط§طھظپ: {service.Phone1}" : "";
+        var addressLine = !string.IsNullOrEmpty(addressDetail) ? $"\n📍 العنوان: {addressDetail}" : "";
+        var phoneLine = !string.IsNullOrEmpty(service?.Phone1) ? $"\n📞 الهاتف: {service.Phone1}" : "";
 
-        return $"ًںŒں *{title}*\n" +
-               (!string.IsNullOrEmpty(desc) ? $"ًں“‌ {desc}\n" : "") +
-               $"ًں’° ط§ظ„ط³ط¹ط±: {priceText}{addressLine}{phoneLine}\n\n" +
-               $"ًں”— ط±ط§ط¨ط· طµظپط­ط© ط§ظ„ط®ط¯ظ…ط© ط¨ط§ظ„طھظپطµظٹظ„:\n{SharePageUrl}\n\n" +
-               $"ًں“² *ط¯ط¹ظˆط© ظ„طھط­ظ…ظٹظ„ طھط·ط¨ظٹظ‚ ظˆظ…ظ†طµط© ط®ط¯ظ…ط§ظˆظٹ* ًں‡ھًں‡¬\n" +
-               $"ط³ظˆظ‚ ط§ظ„ط®ط¯ظ…ط§طھ ظˆط§ظ„ط£ط¹ظ…ط§ظ„ ط§ظ„ط£ظˆظ„ ظپظٹ ظ…طµط± â€” طھطµظپط­ ط¢ظ„ط§ظپ ط§ظ„ط®ط¯ظ…ط§طھ ظˆط§ظ„ظˆط¸ط§ط¦ظپ ط§ظ„ظ‚ط±ظٹط¨ط© ظ…ظ†ظƒ ظˆطھظˆط§طµظ„ ظ…ط¨ط§ط´ط±ط© ظ…ط¹ ط£طµط­ط§ط¨ ط§ظ„ط£ط¹ظ…ط§ظ„ ظˆط§ظ„ظ…ظ‡ظ†ظٹظٹظ†!\n" +
-               $"ًں‘‡ ط±ط§ط¨ط· طھط­ظ…ظٹظ„ ط§ظ„طھط·ط¨ظٹظ‚ ط§ظ„ظ…ط¨ط§ط´ط± (APK):\n{AppDownloadUrl}";
+        return $"🌟 *{title}*\n" +
+               (!string.IsNullOrEmpty(desc) ? $"📝 {desc}\n" : "") +
+               $"💰 السعر: {priceText}{addressLine}{phoneLine}\n\n" +
+               $"🔗 رابط صفحة الخدمة بالتفصيل:\n{SharePageUrl}\n\n" +
+               $"📲 *دعوة لتحميل تطبيق ومنصة خدماوي* 🇪🇬\n" +
+               $"سوق الخدمات والأعمال الأول في مصر — تصفح آلاف الخدمات والوظائف القريبة منك وتواصل مباشرة مع أصحاب الأعمال والمهنيين!\n" +
+               $"👇 رابط تحميل التطبيق المباشر (APK):\n{AppDownloadUrl}";
     }
 
     private string GetFacebookPostText() => GetUnifiedShareText();
@@ -1965,9 +1965,9 @@
     private string GetTwitterShareText()
     {
         var title = service?.Title ?? "";
-        return $"ًںŒں {title}\n" +
-               $"ًں“² ط­ظ…ظ„ طھط·ط¨ظٹظ‚ ط®ط¯ظ…ط§ظˆظٹ ظ…ط¬ط§ظ†ط§ظ‹:\n{AppDownloadUrl}\n" +
-               $"ًں”— ط§ظ„طھظپط§طµظٹظ„: {SharePageUrl}";
+        return $"🌟 {title}\n" +
+               $"📲 حمّل تطبيق خدماوي مجاناً:\n{AppDownloadUrl}\n" +
+               $"🔗 التفاصيل: {SharePageUrl}";
     }
 
     private string GetWhatsAppShareText() => GetUnifiedShareText();
