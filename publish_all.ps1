@@ -52,10 +52,12 @@ Copy-Item -Force $apkSource -Destination "src/Khadamat.WebAPI/wwwroot/downloads/
 (Get-Item "src/Khadamat.WebAPI/wwwroot/downloads/khadamat.apk").LastWriteTime = $now
 
 Write-Host "`n==========================================================" -ForegroundColor Cyan
-Write-Host " 4. Publishing WebAPI & Blazor WASM to D:\maged\Khadamat..." -ForegroundColor Cyan
+Write-Host " 4. Publishing WebAPI & Blazor WASM to D:\maged\Khadamat (Self-Contained win-x64)..." -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 
-dotnet publish src/Khadamat.WebAPI/Khadamat.WebAPI.csproj -c Release -o D:\maged\Khadamat
+# Self-contained: bundles .NET 8 runtime so the host server does NOT need it pre-installed.
+# This fixes HTTP Error 500.31 (Failed to load ASP.NET Core runtime).
+dotnet publish src/Khadamat.WebAPI/Khadamat.WebAPI.csproj -c Release -r win-x64 --self-contained true -o D:\maged\Khadamat
 if ($LASTEXITCODE -ne 0) {
     Write-Error "WebAPI publish failed!"
     exit $LASTEXITCODE

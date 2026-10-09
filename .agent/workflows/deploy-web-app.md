@@ -40,9 +40,10 @@ dotnet publish src/Khadamat.MobileApp/Khadamat.MobileApp.csproj -f net8.0-androi
 ### **2. الخطوة الثانية: عمل الـ Publish للموقع كاملاً (WebAPI + Blazor WASM)**
 يجب استخدام مشروع الـ **WebAPI** كنقطة انطلاق للـ Publish، لأنه مهيأ للعمل كـ (Hosted Model) يحتوي على الـ API والـ Blazor معاً:
 ```powershell
-dotnet publish src/Khadamat.WebAPI/Khadamat.WebAPI.csproj -c Release -o D:\maged\Khadamat
+dotnet publish src/Khadamat.WebAPI/Khadamat.WebAPI.csproj -c Release -r win-x64 --self-contained true -o D:\maged\Khadamat
 ```
 *   `-c Release`: لضمان بناء نسخة محسنة وسريعة.
+*   `-r win-x64 --self-contained true`: **(هام جداً)** تضمين Runtime الخاص بـ .NET 8 داخل الحزمة لتفادي خطأ `HTTP 500.31 - Failed to load ASP.NET Core runtime` في حال كان السيرفر لا يحتوي على .NET 8 مثبت مسبقاً.
 *   `-o D:\maged\Khadamat`: المجلد المستهدف للرفع على السيرفر (Production).
 
 ---
@@ -74,11 +75,11 @@ Get-ChildItem -Path "D:\maged\Khadamat\wwwroot\downloads" -Filter "*.apk" | Sele
 2.  **لوحة التحكم**: اذهب إلى **File Manager** الخاص بموقعك على الإنترنت.
 3.  **الحذف (اختياري)**: احذف أي ملفات قديمة موجودة في المجلد الرئيسي للموقع (`/`).
 4.  **الرفع وفك الضغط**: ارفع ملف الـ `.zip` ثم اختر **Unzip** أو **Extract**.
-5.  **إعدادات الـ Application Pool (SmarterASP)**:
-    اذهب إلى **Website Management** -> **Application Pools**، واضغط **Actions** بجانب الموقع:
-    - ✅ تأكد من اختيار **.Net Core (No Managed Code)**.
-    - ✅ تأكد من اختيار **64-bit mode** (ضروري لـ .NET 8).
-    - ✅ اضغط **Stop Pool** ثم **Start Pool** لتفعيل التغييرات.
+5.  **إعدادات الـ Application Pool و web.config (SmarterASP)**:
+    - ✅ التأكد من أن ملف `web.config` يحتوي على:
+      `<aspNetCore processPath=".\Khadamat.WebAPI.exe" arguments="" stdoutLogEnabled="false" stdoutLogFile=".\logs\stdout" hostingModel="OutOfProcess" />`
+      *(وضع `OutOfProcess` ضروري جداً لأن سيرفرات SmarterASP المشتركة تعمل بنظام 32-bit افتراضياً لتفادي خطأ HTTP 500.32)*.
+    - ✅ في لوحة تحكم SmarterASP: اذهب إلى **Website Management** -> **Application Pools**، واضغط **Stop Pool** ثم **Start Pool** بعد أي تعديل.
 
 ---
 

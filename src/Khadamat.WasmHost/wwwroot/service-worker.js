@@ -40,6 +40,16 @@ self.addEventListener('fetch', (event) => {
         return; 
     }
 
+    // Network-First for navigation/HTML and blazor.boot.json so updates are immediately discovered
+    if (event.request.mode === 'navigate' ||
+        event.request.url.endsWith('/index.html') ||
+        event.request.url.endsWith('blazor.boot.json')) {
+        event.respondWith(
+            fetch(event.request).catch(() => caches.match(event.request))
+        );
+        return;
+    }
+
     event.respondWith(
         caches.match(event.request)
             .then((response) => response || fetch(event.request))

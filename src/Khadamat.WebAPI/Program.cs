@@ -215,6 +215,53 @@ try
         await next();
     });
     
+    // Smart Caching Middleware for Blazor WASM & Static Assets
+    app.Use(async (context, next) =>
+    {
+        context.Response.OnStarting(() =>
+        {
+            var path = context.Request.Path.Value ?? string.Empty;
+
+            // 1. Critical: Never cache HTML files, root, blazor.boot.json, service-worker, or APIs
+            if (string.IsNullOrEmpty(path) ||
+                path.Equals("/", StringComparison.Ordinal) ||
+                path.EndsWith(".html", StringComparison.OrdinalIgnoreCase) ||
+                path.EndsWith("blazor.boot.json", StringComparison.OrdinalIgnoreCase) ||
+                path.EndsWith("service-worker.js", StringComparison.OrdinalIgnoreCase) ||
+                path.StartsWith("/v1/", StringComparison.OrdinalIgnoreCase) ||
+                path.StartsWith("/api/", StringComparison.OrdinalIgnoreCase))
+            {
+                context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+                context.Response.Headers["Pragma"] = "no-cache";
+                context.Response.Headers["Expires"] = "0";
+            }
+            // 2. Aggressively cache immutable Blazor framework binaries (_framework/*.wasm, *.dll, etc.)
+            else if (path.StartsWith("/_framework/", StringComparison.OrdinalIgnoreCase))
+            {
+                context.Response.Headers["Cache-Control"] = "public, max-age=31536000, immutable";
+            }
+            // 3. Cache static assets (images, css, js, fonts) for 30 days
+            else if (path.StartsWith("/images/", StringComparison.OrdinalIgnoreCase) ||
+                     path.StartsWith("/css/", StringComparison.OrdinalIgnoreCase) ||
+                     path.StartsWith("/js/", StringComparison.OrdinalIgnoreCase) ||
+                     path.StartsWith("/fonts/", StringComparison.OrdinalIgnoreCase) ||
+                     path.EndsWith(".css", StringComparison.OrdinalIgnoreCase) ||
+                     path.EndsWith(".js", StringComparison.OrdinalIgnoreCase) ||
+                     path.EndsWith(".webp", StringComparison.OrdinalIgnoreCase) ||
+                     path.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
+                     path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                     path.EndsWith(".svg", StringComparison.OrdinalIgnoreCase) ||
+                     path.EndsWith(".woff2", StringComparison.OrdinalIgnoreCase))
+            {
+                context.Response.Headers["Cache-Control"] = "public, max-age=2592000";
+            }
+
+            return Task.CompletedTask;
+        });
+
+        await next();
+    });
+
     app.UseBlazorFrameworkFiles();
     app.UseStaticFiles(new StaticFileOptions
     {
@@ -325,8 +372,16 @@ try
         return Results.NotFound();
     });
 
-    // SPA Fallback
-    app.MapFallbackToFile("index.html");
+    // SPA Fallback with strict no-cache headers
+    app.MapFallbackToFile("index.html", new StaticFileOptions
+    {
+        OnPrepareResponse = ctx =>
+        {
+            ctx.Context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+            ctx.Context.Response.Headers["Pragma"] = "no-cache";
+            ctx.Context.Response.Headers["Expires"] = "0";
+        }
+    });
 
     app.Run();
 }

@@ -734,10 +734,10 @@
                 <!-- WhatsApp Share -->
                 <button type="button"
                    class="share-social-btn share-whatsapp border-0 shadow-sm" 
-                   title="مشاركة على واتساب"
+                   title="مشاركة كارت الخدمة على واتساب كصورة مع دعوة تحميل التطبيق"
                    @onclick='() => ShareToSocial("whatsapp")'>
                     <i class="fa-brands fa-whatsapp"></i>
-                    <span>واتساب</span>
+                    <span>واتساب (كارت الخدمة)</span>
                 </button>
                 <!-- Facebook Share -->
                 <button type="button"
@@ -1970,13 +1970,57 @@
                $"🔗 التفاصيل: {SharePageUrl}";
     }
 
-    private string GetWhatsAppShareText() => GetUnifiedShareText();
+    private string GetCardAttachedShareText()
+    {
+        var appName = !string.IsNullOrEmpty(State.AppNameAr) ? State.AppNameAr : (!string.IsNullOrEmpty(State.AppName) ? State.AppName : "خدماوي");
+        return $"📲 *دعوة لتجربة واستخدام تطبيق ومنصة {appName}* 🇪🇬\n" +
+               $"سوق الخدمات والأعمال الأول في مصر — تصفح آلاف الخدمات والمهنيين وتواصل معهم مباشرة مجاناً!\n\n" +
+               $"👇 رابط تحميل التطبيق المباشر (APK):\n{AppDownloadUrl}\n\n" +
+               $"🔗 أو تصفح تفاصيل الخدمة على الموقع:\n{SharePageUrl}";
+    }
+
+    private string GetWhatsAppShareText() => GetCardAttachedShareText();
     private string GetShareText() => GetUnifiedShareText();
     private string GetTelegramShareText() => GetUnifiedShareText();
 
     private void RecordShare()
     {
         _ = Api.RecordShareAsync("Service", Id);
+    }
+
+    private async Task ShareCardToWhatsApp()
+    {
+        RecordShare();
+        var fileName = $"Khadamat_Service_{service?.Id ?? Id}";
+        var inviteText = GetCardAttachedShareText();
+
+        try
+        {
+            var res = await JS.InvokeAsync<string>(
+                "shareServiceCardToWhatsApp",
+                "service-share-card",
+                SharePageUrl,
+                fileName,
+                inviteText,
+                shareCardImageUrl ?? GetBestServiceImageUrl()
+            );
+
+            if (res == "shared_file" || res == "native")
+            {
+                shareCopyStatus = "تمت مشاركة كارت الخدمة بنجاح!";
+            }
+            else if (res == "downloaded_and_opened")
+            {
+                shareCopyStatus = "تم حفظ صورة الكارت ونسخ دعوة التحميل! يمكنك إرسالها الآن عبر واتساب.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Share] WhatsApp share error: {ex.Message}");
+            var waUrl = $"https://api.whatsapp.com/send?text={Uri.EscapeDataString(inviteText)}";
+            await JS.InvokeVoidAsync("openExternalUrl", waUrl);
+        }
+        StateHasChanged();
     }
 
     private async Task ShareUnifiedAsync()
@@ -2021,8 +2065,8 @@
         switch (platform.ToLowerInvariant())
         {
             case "whatsapp":
-                url = WhatsAppShareUrl;
-                break;
+                await ShareCardToWhatsApp();
+                return;
             case "facebook":
                 url = FacebookShareUrl;
                 try

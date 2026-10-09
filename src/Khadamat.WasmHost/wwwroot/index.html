@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>خدماوي | Khadamawy</title>
     <base href="/" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
 
     <!-- SEO: Primary Meta Tags -->
     <meta name="title" content="خدماوي - Khadamawy | منصة الخدمات المتكاملة" />
@@ -592,6 +595,96 @@
         // 4. Download card image (alias)
         window.downloadServiceCard = async (elementId, shareUrl, fileName) => {
             await window.shareServiceAsImage(elementId, shareUrl, fileName);
+        };
+
+        // 4b. Share card directly as image + text to WhatsApp (Web Share API / Native Intent / Desktop fallback)
+        window.shareServiceCardToWhatsApp = async (elementId, shareUrl, fileName, inviteText, fallbackImageUrl) => {
+            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+            const isNative = (navigator.userAgent && navigator.userAgent.indexOf('KhadamatNativeApp') !== -1) ||
+                             window.location.search.indexOf('nativeapp=1') !== -1 || 
+                             sessionStorage.getItem('nativeapp') === '1';
+
+            // 1. Native mobile app (MAUI): pass intent with image + text
+            if (isNative) {
+                let shareUri = 'khadamat://share?title=' + encodeURIComponent('منصة خدماوي') + '&text=' + encodeURIComponent(inviteText || '');
+                if (shareUrl) shareUri += '&url=' + encodeURIComponent(shareUrl);
+                if (fallbackImageUrl) shareUri += '&image=' + encodeURIComponent(fallbackImageUrl);
+                window.location.href = shareUri;
+                return 'native';
+            }
+
+            // 2. Render / Capture the card element to canvas and image File
+            let file = null;
+            let dataUrl = null;
+            try {
+                const canvas = await window._captureElementAsCanvas(elementId, shareUrl);
+                if (canvas) {
+                    dataUrl = canvas.toDataURL('image/png');
+                    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                    if (blob) {
+                        file = new File([blob], (fileName || 'khadamat_service') + '.png', { type: 'image/png' });
+                    }
+                }
+            } catch (err) {
+                console.warn('[ShareCard] Canvas capture for WhatsApp failed:', err.message);
+            }
+
+            // If canvas capture failed, try using fallbackImageUrl if available
+            if (!file && fallbackImageUrl) {
+                try {
+                    const resp = await fetch(fallbackImageUrl);
+                    if (resp.ok) {
+                        const blob = await resp.blob();
+                        file = new File([blob], (fileName || 'khadamat_service') + '.png', { type: blob.type || 'image/png' });
+                    }
+                } catch (fetchErr) {
+                    console.warn('[ShareCard] Fallback image fetch failed:', fetchErr.message);
+                }
+            }
+
+            // 3. Web Share API with File (Supported on Android Chrome, iOS Safari 15+, etc.)
+            if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: 'منصة خدماوي',
+                        text: inviteText || ''
+                    });
+                    return 'shared_file';
+                } catch (e) {
+                    if (e.name === 'AbortError') return 'cancelled';
+                    console.warn('[ShareCard] navigator.share with file failed:', e.message);
+                }
+            }
+
+            // 4. Desktop or browsers without file-sharing capability:
+            // Download the card image to user device + copy invitation text + open WhatsApp Web
+            if (dataUrl) {
+                const a = document.createElement('a');
+                a.href = dataUrl;
+                a.download = (fileName || 'khadamat_service') + '.png';
+                a.click();
+            }
+            if (inviteText && navigator.clipboard && navigator.clipboard.writeText) {
+                try {
+                    await navigator.clipboard.writeText(inviteText);
+                } catch (clipErr) { }
+            }
+
+            const waText = encodeURIComponent(inviteText || shareUrl);
+            const waUrl = isMobile ? `https://api.whatsapp.com/send?text=${waText}` : `https://web.whatsapp.com/send?text=${waText}`;
+            window.open(waUrl, '_blank');
+            return 'downloaded_and_opened';
+        };
+
+        // Scroll Ads Slider to specific index
+        window.scrollAdsSlider = (index) => {
+            const el = document.getElementById('adsTrackContainer');
+            if (!el) return;
+            const cards = el.querySelectorAll('.ad-card-item');
+            if (cards && cards[index]) {
+                cards[index].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
         };
 
         // Standardized Unified Sharing (Native Mobile Share / Clipboard Fallback)
