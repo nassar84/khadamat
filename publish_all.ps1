@@ -88,6 +88,13 @@ if ($publishedApks.Count -ne 1) {
     exit 1
 }
 
+Write-Host "`n==========================================================" -ForegroundColor Cyan
+Write-Host " 6. Creating deployment package (D:\maged\Khadamat_publish.zip)..." -ForegroundColor Cyan
+Write-Host "==========================================================" -ForegroundColor Cyan
+
+Compress-Archive -Path "D:\maged\Khadamat\*" -DestinationPath "D:\maged\Khadamat_publish.zip" -Force
+Write-Host "ZIP package created successfully at: D:\maged\Khadamat_publish.zip" -ForegroundColor Green
+
 Write-Host "`n==========================================================" -ForegroundColor Green
 Write-Host " PUBLISH COMPLETE! Exactly ONE APK published with current timestamp:" -ForegroundColor Green
 Write-Host "==========================================================" -ForegroundColor Green

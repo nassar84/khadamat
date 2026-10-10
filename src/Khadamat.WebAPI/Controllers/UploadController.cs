@@ -43,6 +43,13 @@ namespace Khadamat.WebAPI.Controllers;
 [Authorize]
 public class UploadController : ControllerBase
 {
+    private readonly Khadamat.Application.Interfaces.IImageStorageService _imageStorage;
+
+    public UploadController(Khadamat.Application.Interfaces.IImageStorageService imageStorage)
+    {
+        _imageStorage = imageStorage;
+    }
+
     private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
         { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
 
@@ -105,11 +112,7 @@ public class UploadController : ControllerBase
 
         try
         {
-            var basePath = Directory.GetCurrentDirectory();
-            var folderPath = Path.Combine(basePath, "wwwroot", "images", folder);
-
-            if (!Directory.Exists(folderPath))
-                Directory.CreateDirectory(folderPath);
+            var folderPath = _imageStorage.GetFolderPath(folder);
 
             var (maxWidth, maxHeight, targetQuality) = folder switch
             {
@@ -214,11 +217,7 @@ public class UploadController : ControllerBase
 
         try
         {
-            var basePath = Directory.GetCurrentDirectory();
-            var folderPath = Path.Combine(basePath, "wwwroot", "images");
-
-            if (!Directory.Exists(folderPath))
-                Directory.CreateDirectory(folderPath);
+            var folderPath = _imageStorage.GetFolderPath("");
 
             // Always save as hero_banner.png or hero_banner2.png etc.
             var filename = slot == 1 ? $"hero_banner{ext}" : $"hero_banner{slot}{ext}";
@@ -256,12 +255,10 @@ public class UploadController : ControllerBase
         if (filename.Contains("..") || filename.Contains("/") || filename.Contains("\\"))
             return BadRequest(new { success = false, message = "اسم الملف غير صحيح" });
 
-        var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", folder, filename);
-
-        if (!System.IO.File.Exists(filePath))
+        if (!_imageStorage.FileExists(folder, filename))
             return NotFound(new { success = false, message = "الملف غير موجود" });
 
-        System.IO.File.Delete(filePath);
+        _imageStorage.DeleteFile(folder, filename);
         return Ok(new { success = true, message = "تم حذف الصورة" });
     }
 }

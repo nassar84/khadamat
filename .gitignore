@@ -23,6 +23,10 @@ Desktop.ini
 # src/Khadamat.WebAPI/appsettings.json
 # src/Khadamat.WebAPI/appsettings.Development.json
 
+# Server-only secrets file — NEVER commit or deploy from local machine
+# This file lives on the server only and overrides appsettings.json values
+appsettings.Secrets.json
+
 # Build logs
 build_log.txt
 my_build_log.txt

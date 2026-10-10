@@ -24,12 +24,18 @@ public class ShareController : ControllerBase
     private readonly IMediator _mediator;
     private readonly IConfiguration _configuration;
     private readonly IWebHostEnvironment _env;
+    private readonly Khadamat.Application.Interfaces.IImageStorageService _imageStorage;
 
-    public ShareController(IMediator mediator, IConfiguration configuration, IWebHostEnvironment env)
+    public ShareController(
+        IMediator mediator,
+        IConfiguration configuration,
+        IWebHostEnvironment env,
+        Khadamat.Application.Interfaces.IImageStorageService imageStorage)
     {
         _mediator = mediator;
         _configuration = configuration;
         _env = env;
+        _imageStorage = imageStorage;
     }
 
     /// <summary>
@@ -743,13 +749,7 @@ public class ShareController : ControllerBase
 
         try
         {
-            var webRoot = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
-            var folderPath = Path.Combine(webRoot, "images", "share_cards");
-
-            if (!Directory.Exists(folderPath))
-                Directory.CreateDirectory(folderPath);
-
-            var filePath = Path.Combine(folderPath, $"card_{id}.png");
+            var filePath = _imageStorage.GetFilePath("share_cards", $"card_{id}.png");
 
             using (var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true))
             {
@@ -757,7 +757,7 @@ public class ShareController : ControllerBase
             }
 
             // Remove any cached fallback OG image
-            var cachedOgPath = Path.Combine(folderPath, $"og_contained_{id}.jpg");
+            var cachedOgPath = _imageStorage.GetFilePath("share_cards", $"og_contained_{id}.jpg");
             if (System.IO.File.Exists(cachedOgPath))
             {
                 try { System.IO.File.Delete(cachedOgPath); } catch { }
@@ -817,17 +817,14 @@ public class ShareController : ControllerBase
         var webRoot = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
 
         // 1. If an HTML-rendered high-res card exists, serve it
-        var cardPath = Path.Combine(webRoot, "images", "share_cards", $"card_{id}.png");
+        var cardPath = _imageStorage.GetFilePath("share_cards", $"card_{id}.png");
         if (System.IO.File.Exists(cardPath))
         {
             return PhysicalFile(cardPath, "image/png");
         }
 
         // 2. If a cached contained OG image exists, serve it
-        var shareCardsDir = Path.Combine(webRoot, "images", "share_cards");
-        if (!Directory.Exists(shareCardsDir)) Directory.CreateDirectory(shareCardsDir);
-
-        var cachedOgPath = Path.Combine(shareCardsDir, $"og_contained_{id}.jpg");
+        var cachedOgPath = _imageStorage.GetFilePath("share_cards", $"og_contained_{id}.jpg");
         if (System.IO.File.Exists(cachedOgPath))
         {
             return PhysicalFile(cachedOgPath, "image/jpeg");
@@ -847,22 +844,37 @@ public class ShareController : ControllerBase
         if (!string.IsNullOrEmpty(firstImg) && !firstImg.Contains("/gen/") && !firstImg.Contains("/placeholders/"))
         {
             var cleanName = firstImg.TrimStart('/').Replace("images/services/", "").Replace("images/", "");
-            var testPath = Path.Combine(webRoot, "images", "services", cleanName);
+            var testPath = _imageStorage.GetFilePath("services", cleanName);
             if (System.IO.File.Exists(testPath)) sourceFile = testPath;
+            else
+            {
+                var fallback = Path.Combine(webRoot, "images", "services", cleanName);
+                if (System.IO.File.Exists(fallback)) sourceFile = fallback;
+            }
         }
 
         if (sourceFile == null && !string.IsNullOrEmpty(service.SubCategoryImageUrl))
         {
             var cleanName = service.SubCategoryImageUrl.TrimStart('/').Replace("images/subcategories/", "");
-            var testPath = Path.Combine(webRoot, "images", "subcategories", cleanName);
+            var testPath = _imageStorage.GetFilePath("subcategories", cleanName);
             if (System.IO.File.Exists(testPath)) sourceFile = testPath;
+            else
+            {
+                var fallback = Path.Combine(webRoot, "images", "subcategories", cleanName);
+                if (System.IO.File.Exists(fallback)) sourceFile = fallback;
+            }
         }
 
         if (sourceFile == null && !string.IsNullOrEmpty(service.CategoryImageUrl))
         {
             var cleanName = service.CategoryImageUrl.TrimStart('/').Replace("images/categories/", "");
-            var testPath = Path.Combine(webRoot, "images", "categories", cleanName);
+            var testPath = _imageStorage.GetFilePath("categories", cleanName);
             if (System.IO.File.Exists(testPath)) sourceFile = testPath;
+            else
+            {
+                var fallback = Path.Combine(webRoot, "images", "categories", cleanName);
+                if (System.IO.File.Exists(fallback)) sourceFile = fallback;
+            }
         }
 
         if (sourceFile == null)

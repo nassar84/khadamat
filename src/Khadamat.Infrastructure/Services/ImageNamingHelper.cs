@@ -1,11 +1,21 @@
 using System;
 using System.IO;
+using Khadamat.Application.Interfaces;
 
 namespace Khadamat.Infrastructure.Services;
 
 public static class ImageNamingHelper
 {
+    private static IImageStorageService? _storageService;
     private static readonly string BasePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+
+    /// <summary>
+    /// Configures the shared image storage service instance.
+    /// </summary>
+    public static void Configure(IImageStorageService storageService)
+    {
+        _storageService = storageService;
+    }
 
     /// <summary>
     /// Extract filename only from any path/URL.
@@ -24,11 +34,15 @@ public static class ImageNamingHelper
     /// Renames a temporary uploaded file to the target format.
     /// </summary>
     /// <param name="tempFileName">The temporary filename or full path/url (e.g. "123_guid.png" or "/images/services/123_guid.png")</param>
-    /// <param name="folderName">The target subfolder under wwwroot/images/ (e.g. "maincategories", "categories", "subcategories", "ads", "users")</param>
+    /// <param name="folderName">The target subfolder under images/ (e.g. "maincategories", "categories", "subcategories", "ads", "users")</param>
     /// <param name="targetNameWithoutExtension">The target filename without extension (e.g. "cat_4", "c_3_2")</param>
     /// <returns>The final filename only (e.g. "cat_4.png"), or the original value if renaming wasn't possible/needed.</returns>
     public static string? RenameImage(string? tempFileName, string folderName, string targetNameWithoutExtension)
     {
+        if (_storageService != null)
+        {
+            return _storageService.RenameImage(tempFileName, folderName, targetNameWithoutExtension);
+        }
         if (string.IsNullOrWhiteSpace(tempFileName)) return null;
 
         // If it's a URL or base64 data, return as is

@@ -204,11 +204,21 @@ try
                 path.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase))
             {
                 var webpPath = System.IO.Path.ChangeExtension(path, ".webp");
-                var env = context.RequestServices.GetRequiredService<IWebHostEnvironment>();
-                var physicalPath = System.IO.Path.Combine(env.WebRootPath, webpPath.TrimStart('/').Replace('/', System.IO.Path.DirectorySeparatorChar));
+                var imgStorage = context.RequestServices.GetRequiredService<Khadamat.Application.Interfaces.IImageStorageService>();
+                var relativeImgPath = webpPath.Substring("/images/".Length).Replace('/', System.IO.Path.DirectorySeparatorChar);
+                var physicalPath = System.IO.Path.Combine(imgStorage.RootImagesPath, relativeImgPath);
                 if (System.IO.File.Exists(physicalPath))
                 {
                     context.Request.Path = webpPath;
+                }
+                else
+                {
+                    var env = context.RequestServices.GetRequiredService<IWebHostEnvironment>();
+                    var fallbackPath = System.IO.Path.Combine(env.WebRootPath ?? "", webpPath.TrimStart('/').Replace('/', System.IO.Path.DirectorySeparatorChar));
+                    if (System.IO.File.Exists(fallbackPath))
+                    {
+                        context.Request.Path = webpPath;
+                    }
                 }
             }
         }
@@ -261,6 +271,23 @@ try
 
         await next();
     });
+
+    // Serve uploaded images from permanent external storage directory if configured
+    var imageStorage = app.Services.GetRequiredService<Khadamat.Application.Interfaces.IImageStorageService>();
+    if (imageStorage.IsExternalStorageConfigured)
+    {
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(imageStorage.RootImagesPath),
+            RequestPath = "/images",
+            ContentTypeProvider = provider,
+            OnPrepareResponse = ctx =>
+            {
+                ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
+                ctx.Context.Response.Headers.Append("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+            }
+        });
+    }
 
     app.UseBlazorFrameworkFiles();
     app.UseStaticFiles(new StaticFileOptions

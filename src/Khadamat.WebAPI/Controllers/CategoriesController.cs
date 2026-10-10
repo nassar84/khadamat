@@ -18,10 +18,12 @@ namespace Khadamat.WebAPI.Controllers;
 public class CategoriesController : ControllerBase
 {
     private readonly KhadamatDbContext _context;
+    private readonly Khadamat.Application.Interfaces.IImageStorageService _imageStorage;
 
-    public CategoriesController(KhadamatDbContext context)
+    public CategoriesController(KhadamatDbContext context, Khadamat.Application.Interfaces.IImageStorageService imageStorage)
     {
         _context = context;
+        _imageStorage = imageStorage;
     }
 
     [HttpGet("main")]
@@ -175,25 +177,14 @@ public class CategoriesController : ControllerBase
             // Delete old file
             if (!string.IsNullOrEmpty(category.ImageUrl))
             {
-                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "maincategories", category.ImageUrl);
-                if (System.IO.File.Exists(oldPath))
-                {
-                    try { System.IO.File.Delete(oldPath); } catch { }
-                }
+                _imageStorage.DeleteFile("maincategories", category.ImageUrl);
             }
             cleanDtoImage = ImageNamingHelper.RenameImage(cleanDtoImage, "maincategories", $"cat_{id}");
         }
         else if (string.IsNullOrEmpty(cleanDtoImage) && !string.IsNullOrEmpty(category.ImageUrl))
         {
             // Delete old file
-            if (!string.IsNullOrEmpty(category.ImageUrl))
-            {
-                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "maincategories", category.ImageUrl);
-                if (System.IO.File.Exists(oldPath))
-                {
-                    try { System.IO.File.Delete(oldPath); } catch { }
-                }
-            }
+            _imageStorage.DeleteFile("maincategories", category.ImageUrl);
         }
 
         category.Update(dto.Name, dto.Icon, dto.Color, dto.DisplayOrder, cleanDtoImage);
@@ -211,11 +202,7 @@ public class CategoriesController : ControllerBase
         // Delete image file if exists
         if (!string.IsNullOrEmpty(category.ImageUrl))
         {
-            var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "maincategories", category.ImageUrl);
-            if (System.IO.File.Exists(path))
-            {
-                try { System.IO.File.Delete(path); } catch { }
-            }
+            _imageStorage.DeleteFile("maincategories", category.ImageUrl);
         }
 
         _context.MainCategories.Remove(category);
@@ -258,25 +245,14 @@ public class CategoriesController : ControllerBase
             // Delete old file
             if (!string.IsNullOrEmpty(category.ImageUrl))
             {
-                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "categories", category.ImageUrl);
-                if (System.IO.File.Exists(oldPath))
-                {
-                    try { System.IO.File.Delete(oldPath); } catch { }
-                }
+                _imageStorage.DeleteFile("categories", category.ImageUrl);
             }
             cleanDtoImage = ImageNamingHelper.RenameImage(cleanDtoImage, "categories", $"c_{dto.MainCategoryId}_{id}");
         }
         else if (string.IsNullOrEmpty(cleanDtoImage) && !string.IsNullOrEmpty(category.ImageUrl))
         {
             // Delete old file
-            if (!string.IsNullOrEmpty(category.ImageUrl))
-            {
-                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "categories", category.ImageUrl);
-                if (System.IO.File.Exists(oldPath))
-                {
-                    try { System.IO.File.Delete(oldPath); } catch { }
-                }
-            }
+            _imageStorage.DeleteFile("categories", category.ImageUrl);
         }
 
         category.Update(dto.Name, dto.MainCategoryId, cleanDtoImage, dto.DisplayOrder);
@@ -294,11 +270,7 @@ public class CategoriesController : ControllerBase
         // Delete image file if exists
         if (!string.IsNullOrEmpty(category.ImageUrl))
         {
-            var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "categories", category.ImageUrl);
-            if (System.IO.File.Exists(path))
-            {
-                try { System.IO.File.Delete(path); } catch { }
-            }
+            _imageStorage.DeleteFile("categories", category.ImageUrl);
         }
 
         _context.Categories.Remove(category);
@@ -341,25 +313,14 @@ public class CategoriesController : ControllerBase
             // Delete old file
             if (!string.IsNullOrEmpty(sub.ImageUrl))
             {
-                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "subcategories", sub.ImageUrl);
-                if (System.IO.File.Exists(oldPath))
-                {
-                    try { System.IO.File.Delete(oldPath); } catch { }
-                }
+                _imageStorage.DeleteFile("subcategories", sub.ImageUrl);
             }
             cleanDtoImage = ImageNamingHelper.RenameImage(cleanDtoImage, "subcategories", $"subc_{dto.CategoryId}_{id}");
         }
         else if (string.IsNullOrEmpty(cleanDtoImage) && !string.IsNullOrEmpty(sub.ImageUrl))
         {
             // Delete old file
-            if (!string.IsNullOrEmpty(sub.ImageUrl))
-            {
-                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "subcategories", sub.ImageUrl);
-                if (System.IO.File.Exists(oldPath))
-                {
-                    try { System.IO.File.Delete(oldPath); } catch { }
-                }
-            }
+            _imageStorage.DeleteFile("subcategories", sub.ImageUrl);
         }
 
         sub.Update(dto.Name, dto.CategoryId, cleanDtoImage, dto.DisplayOrder);
@@ -377,11 +338,7 @@ public class CategoriesController : ControllerBase
         // Delete image file if exists
         if (!string.IsNullOrEmpty(sub.ImageUrl))
         {
-            var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "subcategories", sub.ImageUrl);
-            if (System.IO.File.Exists(path))
-            {
-                try { System.IO.File.Delete(path); } catch { }
-            }
+            _imageStorage.DeleteFile("subcategories", sub.ImageUrl);
         }
 
         _context.SubCategories.Remove(sub);

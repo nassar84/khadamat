@@ -27,16 +27,20 @@ public class AdminController : ControllerBase
     private readonly MediatR.IMediator _mediator;
     private readonly INotificationService _notificationService;
 
+    private readonly Khadamat.Application.Interfaces.IImageStorageService _imageStorage;
+
     public AdminController(
         UserManager<ApplicationUser> userManager, 
         KhadamatDbContext context, 
         MediatR.IMediator mediator,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        Khadamat.Application.Interfaces.IImageStorageService imageStorage)
     {
         _userManager = userManager;
         _context = context;
         _mediator = mediator;
         _notificationService = notificationService;
+        _imageStorage = imageStorage;
     }
 
     [HttpGet("users")]
@@ -246,11 +250,7 @@ public class AdminController : ControllerBase
             // Delete old file
             if (!string.IsNullOrEmpty(user.ProfileImageUrl) && !user.ProfileImageUrl.StartsWith("http"))
             {
-                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "users", user.ProfileImageUrl);
-                if (System.IO.File.Exists(oldPath))
-                {
-                    try { System.IO.File.Delete(oldPath); } catch { }
-                }
+                _imageStorage.DeleteFile("users", user.ProfileImageUrl);
             }
             user.ProfileImageUrl = ImageNamingHelper.RenameImage(cleanImage, "users", $"u_{user.Id}");
         }
@@ -258,11 +258,7 @@ public class AdminController : ControllerBase
         {
             if (!string.IsNullOrEmpty(user.ProfileImageUrl) && !user.ProfileImageUrl.StartsWith("http"))
             {
-                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "users", user.ProfileImageUrl);
-                if (System.IO.File.Exists(oldPath))
-                {
-                    try { System.IO.File.Delete(oldPath); } catch { }
-                }
+                _imageStorage.DeleteFile("users", user.ProfileImageUrl);
             }
             user.ProfileImageUrl = null;
         }
@@ -780,11 +776,7 @@ public class AdminController : ControllerBase
             // Delete old file
             if (!string.IsNullOrEmpty(oldImageName))
             {
-                var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "services", oldImageName);
-                if (System.IO.File.Exists(oldPath))
-                {
-                    try { System.IO.File.Delete(oldPath); } catch { }
-                }
+                _imageStorage.DeleteFile("services", oldImageName);
             }
 
             // Rename the new temp file to the standard format
@@ -796,11 +788,7 @@ public class AdminController : ControllerBase
         else if (string.IsNullOrEmpty(cleanNewImage) && !string.IsNullOrEmpty(oldImageName))
         {
             // If the image was cleared, delete the old file
-            var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "services", oldImageName);
-            if (System.IO.File.Exists(oldPath))
-            {
-                try { System.IO.File.Delete(oldPath); } catch { }
-            }
+            _imageStorage.DeleteFile("services", oldImageName);
             service.SetImage(null);
         }
 

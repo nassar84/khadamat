@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
@@ -37,6 +37,9 @@ public static class DependencyInjection
         services.AddScoped<Khadamat.Application.Interfaces.IMarketplaceService, Khadamat.Infrastructure.Services.MarketplaceService>();
         services.AddScoped(typeof(Khadamat.Application.Interfaces.IGenericRepository<>), typeof(Khadamat.Infrastructure.Persistence.Repositories.GenericRepository<>));
         services.AddScoped<Khadamat.Application.Interfaces.IUserService, Khadamat.Infrastructure.Identity.UserService>();
+
+        // Image & File Storage System
+        services.AddSingleton<Khadamat.Application.Interfaces.IImageStorageService, Khadamat.Infrastructure.Services.ImageStorageService>();
 
         // Advertisement & Growth System
         services.AddScoped<Khadamat.Application.Interfaces.IAdvertisementService, AdvertisementService>();

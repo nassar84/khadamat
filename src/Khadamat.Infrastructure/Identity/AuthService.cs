@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -26,6 +26,7 @@ public class AuthService : IAuthService
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IEmailService _emailService;
+    private readonly Khadamat.Application.Interfaces.IImageStorageService _imageStorage;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
@@ -33,7 +34,8 @@ public class AuthService : IAuthService
         IConfiguration configuration,
         IHttpContextAccessor httpContextAccessor,
         IHttpClientFactory httpClientFactory,
-        IEmailService emailService)
+        IEmailService emailService,
+        Khadamat.Application.Interfaces.IImageStorageService imageStorage)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -41,6 +43,7 @@ public class AuthService : IAuthService
         _httpContextAccessor = httpContextAccessor;
         _httpClientFactory = httpClientFactory;
         _emailService = emailService;
+        _imageStorage = imageStorage;
     }
 
     public async Task<ApiResponse<AuthResponse>> ExternalTokenLoginAsync(string provider, string token)
@@ -237,18 +240,7 @@ public class AuthService : IAuthService
         if (string.IsNullOrEmpty(currentImageName) || currentImageName.StartsWith("http", StringComparison.OrdinalIgnoreCase))
             return;
 
-        try
-        {
-            var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "users", currentImageName);
-            if (File.Exists(oldPath))
-            {
-                File.Delete(oldPath);
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error deleting old profile image: {ex.Message}");
-        }
+        _imageStorage.DeleteFile("users", currentImageName);
     }
 
     private async Task<string?> SaveUserProfileImageAsync(string? base64OrUrlOrFilename, string userId)
@@ -261,11 +253,8 @@ public class AuthService : IAuthService
             return base64OrUrlOrFilename;
         }
 
-        var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "users");
-        if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
-
         var targetFileName = $"u_{userId}.jpg";
-        var filePath = Path.Combine(folderPath, targetFileName);
+        var filePath = _imageStorage.GetFilePath("users", targetFileName);
 
         if (base64OrUrlOrFilename.StartsWith("data:", StringComparison.OrdinalIgnoreCase) || base64OrUrlOrFilename.Contains(","))
         {

@@ -15,10 +15,12 @@ namespace Khadamat.Infrastructure.Services;
 public class MarketplaceService : IMarketplaceService
 {
     private readonly KhadamatDbContext _context;
+    private readonly Khadamat.Application.Interfaces.IImageStorageService _imageStorage;
 
-    public MarketplaceService(KhadamatDbContext context)
+    public MarketplaceService(KhadamatDbContext context, Khadamat.Application.Interfaces.IImageStorageService imageStorage)
     {
         _context = context;
+        _imageStorage = imageStorage;
     }
 
     public async Task<MarketplaceItemDto?> GetItemByIdAsync(int id)
@@ -220,11 +222,8 @@ public class MarketplaceService : IMarketplaceService
     {
         try
         {
-            var folderPath = System.IO.Path.Combine("wwwroot", "images", "marketplace");
-            if (!System.IO.Directory.Exists(folderPath)) System.IO.Directory.CreateDirectory(folderPath);
-
             var fileName = $"mp_{itemId}_{index + 1}.jpg";
-            var filePath = System.IO.Path.Combine(folderPath, fileName);
+            var filePath = _imageStorage.GetFilePath("marketplace", fileName);
 
             var data = base64Data.Contains(",") ? base64Data.Split(',')[1] : base64Data;
             var bytes = Convert.FromBase64String(data);

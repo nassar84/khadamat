@@ -20,11 +20,13 @@ public class AdsController : ControllerBase
 {
     private readonly KhadamatDbContext _context;
     private readonly IWebHostEnvironment _env;
+    private readonly Khadamat.Application.Interfaces.IImageStorageService _imageStorage;
 
-    public AdsController(KhadamatDbContext context, IWebHostEnvironment env)
+    public AdsController(KhadamatDbContext context, IWebHostEnvironment env, Khadamat.Application.Interfaces.IImageStorageService imageStorage)
     {
         _context = context;
         _env = env;
+        _imageStorage = imageStorage;
     }
 
     // Public Endpoint: Get active ads for slider or specific placement
@@ -273,12 +275,8 @@ public class AdsController : ControllerBase
     {
         try
         {
-            var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-            var folderPath = Path.Combine(webRoot, "images", "ads");
-            if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
-
             var fileName = $"ad_{adId}_1.jpg";
-            var filePath = Path.Combine(folderPath, fileName);
+            var filePath = _imageStorage.GetFilePath("ads", fileName);
 
             var data = base64Data.Contains(",") ? base64Data.Split(',')[1] : base64Data;
             var bytes = Convert.FromBase64String(data);
@@ -344,19 +342,13 @@ public class AdsController : ControllerBase
             }
         }
 
-        var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-
         if (!string.IsNullOrEmpty(dto.ImageBase64))
         {
             // Delete old file
             var currentFilename = ImageNamingHelper.ExtractFileName(ad.ImagePath);
             if (!string.IsNullOrEmpty(currentFilename))
             {
-                var oldPath = Path.Combine(webRoot, "images", "ads", currentFilename);
-                if (System.IO.File.Exists(oldPath))
-                {
-                    try { System.IO.File.Delete(oldPath); } catch { }
-                }
+                _imageStorage.DeleteFile("ads", currentFilename);
             }
 
             var imageUrl = await SaveImage(dto.ImageBase64, ad.Id);
@@ -368,11 +360,7 @@ public class AdsController : ControllerBase
             var currentFilename = ImageNamingHelper.ExtractFileName(ad.ImagePath);
             if (!string.IsNullOrEmpty(currentFilename) && currentFilename != cleanFilename)
             {
-                var oldPath = Path.Combine(webRoot, "images", "ads", currentFilename);
-                if (System.IO.File.Exists(oldPath))
-                {
-                    try { System.IO.File.Delete(oldPath); } catch { }
-                }
+                _imageStorage.DeleteFile("ads", currentFilename);
             }
 
             var finalName = ImageNamingHelper.RenameImage(cleanFilename, "ads", $"ad_{ad.Id}_1");
@@ -384,11 +372,7 @@ public class AdsController : ControllerBase
             var currentFilename = ImageNamingHelper.ExtractFileName(ad.ImagePath);
             if (!string.IsNullOrEmpty(currentFilename))
             {
-                var oldPath = Path.Combine(webRoot, "images", "ads", currentFilename);
-                if (System.IO.File.Exists(oldPath))
-                {
-                    try { System.IO.File.Delete(oldPath); } catch { }
-                }
+                _imageStorage.DeleteFile("ads", currentFilename);
             }
             ad.SetMainImage(null);
         }

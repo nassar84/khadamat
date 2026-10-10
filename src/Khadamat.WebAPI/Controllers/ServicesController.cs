@@ -18,11 +18,13 @@ public class ServicesController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly KhadamatDbContext _context;
+    private readonly Khadamat.Application.Interfaces.IImageStorageService _imageStorage;
 
-    public ServicesController(IMediator mediator, KhadamatDbContext context)
+    public ServicesController(IMediator mediator, KhadamatDbContext context, Khadamat.Application.Interfaces.IImageStorageService imageStorage)
     {
         _mediator = mediator;
         _context = context;
+        _imageStorage = imageStorage;
     }
 
     [HttpGet]
@@ -117,11 +119,7 @@ public class ServicesController : ControllerBase
                     // Clean up the old image file if it exists
                     if (!string.IsNullOrEmpty(oldImageName))
                     {
-                        var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "services", oldImageName);
-                        if (System.IO.File.Exists(oldPath))
-                        {
-                            try { System.IO.File.Delete(oldPath); } catch { }
-                        }
+                        _imageStorage.DeleteFile("services", oldImageName);
                     }
 
                     // Rename the new temp file to the standard format
@@ -140,11 +138,7 @@ public class ServicesController : ControllerBase
         else if (updatedService != null && string.IsNullOrEmpty(updatedService.ImageUrl) && !string.IsNullOrEmpty(oldImageName))
         {
             // If the image was cleared, delete the old file
-            var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "services", oldImageName);
-            if (System.IO.File.Exists(oldPath))
-            {
-                try { System.IO.File.Delete(oldPath); } catch { }
-            }
+            _imageStorage.DeleteFile("services", oldImageName);
         }
 
         return NoContent();
