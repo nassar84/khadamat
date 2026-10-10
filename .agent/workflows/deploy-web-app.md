@@ -114,7 +114,7 @@ Get-ChildItem -Path "D:\maged\Khadamat\wwwroot\downloads" -Filter "*.apk" | Sele
 ├── wwwroot/                     ← يُحذف ويُستبدل عند كل نشر
 │   └── downloads/
 ├── appsettings.json             ← يُحذف ويُستبدل (انتبه لإعداده!)
-└── uploads/                     ← 🔒 محمي لا يُحذف أبداً
+└── KhadamawyImages/             ← 🔒 محمي لا يُحذف أبداً
     ├── profiles/
     ├── services/
     ├── ads/
@@ -131,23 +131,24 @@ Get-ChildItem -Path "D:\maged\Khadamat\wwwroot\downloads" -Filter "*.apk" | Sele
    - **مثال:** إذا كان المجلد في `D:\hosting\khadamawy` فيكون:
      ```json
      "Uploads": {
-       "ImagesPath": "D:\\hosting\\khadamawy\\uploads"
+       "ImagesPath": "D:\\hosting\\khadamawy\\KhadamawyImages"
      }
      ```
 
 2. **طريقة الرفع الآمنة على السيرفر (بدلاً من حذف كل شيء):**
-   - ❌ **لا تحذف مجلد `uploads`** عند الرفع.
-   - ✅ احذف كل شيء **ماعدا** مجلد `uploads` ثم ارفع الملفات الجديدة.
+   - ❌ **لا تحذف مجلد `KhadamawyImages`** عند الرفع.
+   - ✅ احذف كل شيء **ماعدا** مجلد `KhadamawyImages` ثم ارفع الملفات الجديدة.
    - في File Manager: احذف الملفات والمجلدات الأخرى يدوياً، ثم ارفع ملف الـ zip وافضضه.
 
 3. **خطة نقل الصور الحالية (Migration Steps - أول مرة فقط):**
-   - **الخطوة أ:** من File Manager، أنشئ مجلداً جديداً باسم `uploads` داخل مجلد الموقع `khadamawy/`.
-   - **الخطوة ب:** انسخ محتويات مجلد `wwwroot/Images` الحالي إلى مجلد `uploads/`.
-   - **الخطوة ج:** عدّل `appsettings.json` على السيرفر ليشير إلى مجلد `uploads`.
+   - **الخطوة أ:** من File Manager، أنشئ مجلداً جديداً باسم `KhadamawyImages` داخل مجلد الموقع `khadamawy/`.
+   - **الخطوة ب:** انسخ محتويات مجلد `wwwroot/Images` الحالي إلى مجلد `KhadamawyImages/`.
+   - **الخطوة ج:** عدّل `appsettings.Secrets.json` على السيرفر ليشير إلى مجلد `KhadamawyImages`.
    - **الخطوة د:** أعد تشغيل التطبيق (Stop / Start Pool).
-   - **النتيجة:** الصور محمية داخل `uploads/` ولن تُحذف في أي عملية نشر مستقبلية.
+   - **النتيجة:** الصور محمية داخل `KhadamawyImages/` ولن تُحذف في أي عملية نشر مستقبلية.
 
 > [!WARNING]
 > بعد كل عملية نشر، تأكد من أن `appsettings.json` على السيرفر يحتوي على مسار `ImagesPath` الصحيح.
 > يمكن إنشاء ملف `appsettings.Secrets.json` على السيرفر فقط ليحتوي على هذا الإعداد تلقائياً دون الحاجة لتعديله بعد كل نشر.
+> يوجد قالب جاهز في `server-config/appsettings.Secrets.json.template` كمرجع.
 
