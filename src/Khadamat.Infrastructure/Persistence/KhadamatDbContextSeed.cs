@@ -30,7 +30,72 @@ public static class KhadamatDbContextSeed
                         ALTER TABLE AppSettings ADD OtherWalletNumber nvarchar(max) NULL;
                     IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('AppSettings') AND name = 'PaymentInstructions')
                         ALTER TABLE AppSettings ADD PaymentInstructions nvarchar(max) NULL;
+
+                    IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'ReminderCampaigns')
+                    BEGIN
+                        CREATE TABLE ReminderCampaigns (
+                            Id INT IDENTITY(1,1) PRIMARY KEY,
+                            Title NVARCHAR(250) NOT NULL,
+                            InternalDescription NVARCHAR(MAX) NULL,
+                            Message NVARCHAR(MAX) NOT NULL,
+                            Language NVARCHAR(20) NOT NULL DEFAULT 'ar',
+                            Status INT NOT NULL DEFAULT 1,
+                            StartDate DATETIME2 NOT NULL,
+                            EndDate DATETIME2 NULL,
+                            RecurrenceType INT NOT NULL DEFAULT 1,
+                            ScheduledTime TIME NOT NULL DEFAULT '20:00:00',
+                            IntervalValue INT NOT NULL DEFAULT 1,
+                            DaysOfWeek NVARCHAR(100) NULL,
+                            DurationDays INT NULL,
+                            MaxOccurrences INT NULL,
+                            TimeZoneId NVARCHAR(100) NOT NULL DEFAULT 'Local',
+                            Priority INT NOT NULL DEFAULT 1,
+                            TargetAudience INT NOT NULL DEFAULT 0,
+                            TargetRole NVARCHAR(100) NULL,
+                            DisplayType INT NOT NULL DEFAULT 0,
+                            ActionRoute NVARCHAR(300) NOT NULL DEFAULT '/',
+                            IsActive BIT NOT NULL DEFAULT 1,
+                            ExecutionCount INT NOT NULL DEFAULT 0,
+                            LastTriggeredAt DATETIME2 NULL,
+                            CreatedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+                            CreatedBy NVARCHAR(100) NULL,
+                            UpdatedAt DATETIME2 NULL,
+                            UpdatedBy NVARCHAR(100) NULL,
+                            IsDeleted BIT NOT NULL DEFAULT 0,
+                            DeletedAt DATETIME2 NULL,
+                            DeletedBy NVARCHAR(100) NULL
+                        );
+                    END
                 ");
+
+                // Seed default Google Play 14-day tester campaign if no reminders exist
+                if (!await context.ReminderCampaigns.AnyAsync())
+                {
+                    var defaultTesterReminder = new ReminderCampaign
+                    {
+                        Title = "تذكير المختبرين بالاستخدام اليومي",
+                        InternalDescription = "دعم الاختبار المغلق لتطبيق خدماوى على Google Play",
+                        Message = "مرحبًا بك في اختبار خدماوى! افتح التطبيق اليوم، وجرّب إحدى وظائفه، وساعدنا في اكتشاف أي مشكلة أو اقتراح تحسين قبل الإطلاق الرسمي. شكرًا لمشاركتك.",
+                        Language = "ar",
+                        Status = ReminderStatus.Active,
+                        StartDate = DateTime.UtcNow,
+                        EndDate = DateTime.UtcNow.AddDays(14),
+                        RecurrenceType = ReminderRecurrenceType.Daily,
+                        ScheduledTime = new TimeSpan(20, 0, 0),
+                        IntervalValue = 1,
+                        DurationDays = 14,
+                        TimeZoneId = "Local",
+                        Priority = ReminderPriority.Normal,
+                        TargetAudience = ReminderTargetAudience.Testers,
+                        DisplayType = ReminderDisplayType.NotificationBar,
+                        ActionRoute = "/",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow,
+                        CreatedBy = "System"
+                    };
+                    await context.ReminderCampaigns.AddAsync(defaultTesterReminder);
+                    await context.SaveChangesAsync();
+                }
             }
             catch { }
 

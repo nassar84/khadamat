@@ -15,6 +15,8 @@
 
     <!-- ── زر واتساب البارز ── -->
     <a href="@BuildWhatsAppDirectUrl()"
+       @onclick="OpenDirectWhatsApp"
+       @onclick:preventDefault="false"
        target="_blank"
        rel="noopener noreferrer"
        class="whatsapp-hero d-flex align-items-center justify-content-between animate-up"
@@ -43,7 +45,7 @@
                 <h5 class="fw-bold mb-4">طرق التواصل</h5>
 
                 <!-- واتساب -->
-                <a href="@WhatsAppUrl" target="_blank" rel="noopener noreferrer" class="contact-method-link mb-3">
+                <a href="@WhatsAppUrl" @onclick="OpenSimpleWhatsApp" target="_blank" rel="noopener noreferrer" class="contact-method-link mb-3">
                     <div class="contact-method wa-method">
                         <div class="cm-icon">
                             <i class="fa-brands fa-whatsapp"></i>
@@ -227,11 +229,13 @@
                                 }
                             </button>
 
-                            <a href="@BuildGeneralWhatsAppUrl()" target="_blank" rel="noopener noreferrer"
-                               class="btn btn-whatsapp-send flex-fill py-3 rounded-pill fw-bold">
+                            <button type="button"
+                                    id="contact-whatsapp-btn"
+                                    @onclick="OpenGeneralWhatsApp"
+                                    class="btn btn-whatsapp-send flex-fill py-3 rounded-pill fw-bold">
                                 <i class="fa-brands fa-whatsapp me-2 fs-5"></i>
                                 إرسال عبر واتساب
-                            </a>
+                            </button>
                         </div>
                     </div>
                 }
@@ -366,11 +370,13 @@
                                 }
                             </button>
 
-                            <a href="@BuildServiceWhatsAppUrl()" target="_blank" rel="noopener noreferrer"
-                               class="btn btn-whatsapp-send flex-fill py-3 rounded-pill fw-bold">
+                            <button type="button"
+                                    id="contact-service-whatsapp-btn"
+                                    @onclick="OpenServiceWhatsApp"
+                                    class="btn btn-whatsapp-send flex-fill py-3 rounded-pill fw-bold">
                                 <i class="fa-brands fa-whatsapp me-2 fs-5"></i>
                                 إرسال القالب عبر واتساب
-                            </a>
+                            </button>
                         </div>
                     </div>
                 }
@@ -711,6 +717,26 @@
     {
         var text = BuildServiceTemplateText();
         return $"https://wa.me/{WhatsAppNumber}?text={Uri.EscapeDataString(text)}";
+    }
+
+    private async Task OpenDirectWhatsApp()
+    {
+        await JS.InvokeVoidAsync("openExternalUrl", BuildWhatsAppDirectUrl());
+    }
+
+    private async Task OpenSimpleWhatsApp()
+    {
+        await JS.InvokeVoidAsync("openExternalUrl", WhatsAppUrl);
+    }
+
+    private async Task OpenGeneralWhatsApp()
+    {
+        await JS.InvokeVoidAsync("openExternalUrl", BuildGeneralWhatsAppUrl());
+    }
+
+    private async Task OpenServiceWhatsApp()
+    {
+        await JS.InvokeVoidAsync("openExternalUrl", BuildServiceWhatsAppUrl());
     }
 
     private async Task HandleSubmitGeneral()

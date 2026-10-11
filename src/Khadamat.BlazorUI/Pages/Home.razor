@@ -8,6 +8,8 @@
 @inject Khadamat.Application.Interfaces.IOfflineDataService OfflineData
 @inject IJSRuntime JS
 @inject HttpClient Http
+@inject Khadamat.Shared.Interfaces.IShareService DeviceShareService
+@using Khadamat.BlazorUI.Helpers
 @implements IDisposable
 
 
@@ -56,7 +58,7 @@
                 }
                 else
                 {
-                    <div class="d-flex gap-3 overflow-auto pb-2" style="scrollbar-width: none; -ms-overflow-style: none;">
+                    <div class="d-flex gap-3 pb-2 horizontal-scroll-container" style="overflow-x: auto !important; overflow-y: hidden !important; touch-action: pan-x; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none;">
                         @foreach (var service in featuredServices)
                         {
                             <div style="min-width: 280px; max-width: 280px; flex-shrink: 0;">
@@ -651,9 +653,6 @@
 
     private async Task ShareApp()
     {
-        var shareUrl = Navigation.BaseUri;
-        var shareTitle = $"تطبيق {AppState.AppName}";
-        var shareText = $"حمل أفضل تطبيق للخدمات! كل ما تحتاجه في تطبيق واحد مع {AppState.AppName} 🚀";
-        await JS.InvokeVoidAsync("shareApp", shareTitle, shareText, shareUrl);
+        await AppShareHelper.ShareAppAsync(DeviceShareService, AppState, Navigation.BaseUri, JS);
     }
 }

@@ -11,7 +11,7 @@
     <div class="d-flex align-items-center justify-content-between mb-2 px-1">
         <div class="d-flex align-items-center gap-2">
             <span class="live-dot-green"></span>
-            <span class="fw-bold fs-6 text-white" style="letter-spacing: -0.2px;">اقتراحات</span>
+            <span class="fw-bold fs-6" style="letter-spacing: -0.2px; color: #1e293b;">اقتراحات</span>
         </div>
     </div>
 
@@ -31,8 +31,7 @@
                     var imageUrl = ResolveAdImage(ad.ImageUrl);
 
                     <div class="ad-card-item @(i == currentIndex ? "is-focused" : "")" 
-                         @onclick="() => OnAdClick(ad)" 
-                         title="@ad.Title">
+                         @onclick="() => OnAdClick(ad)">
                         
                         <!-- Background Image: Ambient Blur + 100% Contained Foreground Image (Zero Cropping) -->
                         @if (!string.IsNullOrEmpty(imageUrl))
@@ -44,7 +43,8 @@
                                  onerror="this.src='/images/ads/ad_electrician.jpg';" />
 
                             <img src="@imageUrl" 
-                                 alt="@ad.Title" 
+                                 alt="" 
+                                 aria-hidden="true"
                                  class="ad-card-bg-contain" 
                                  onerror="this.src='/images/ads/ad_electrician.jpg';" />
                         }
@@ -67,7 +67,10 @@
                         <!-- Bottom Content: Title + Subtitle + Action Button "دور دلوقتي ←" -->
                         <div class="ad-card-bottom-row">
                             <div class="ad-text-box">
-                                <h3 class="ad-title-text">@ad.Title</h3>
+                                @if (!string.IsNullOrWhiteSpace(ad.Title))
+                                {
+                                    <h3 class="ad-title-text">@ad.Title</h3>
+                                }
                                 <p class="ad-desc-text">@(!string.IsNullOrEmpty(ad.Description) ? ad.Description : ad.TextContent)</p>
                             </div>
                             <div class="ad-action-pill">
@@ -184,6 +187,8 @@
         transform: scale(1.15);
         z-index: 0;
         pointer-events: none;
+        font-size: 0 !important;
+        color: transparent !important;
     }
 
     /* Foreground image: 100% CONTAINED - zero cropping or missing parts */
@@ -197,6 +202,8 @@
         z-index: 1;
         pointer-events: none;
         transition: transform 0.4s ease;
+        font-size: 0 !important;
+        color: transparent !important;
     }
 
     .ad-card-item:hover .ad-card-bg-contain {

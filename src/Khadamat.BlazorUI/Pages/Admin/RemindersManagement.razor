@@ -1,0 +1,764 @@
+@page "/admin/reminders"
+@attribute [Authorize(Roles = "SuperAdmin,SystemAdmin")]
+@using Khadamat.Application.DTOs
+@using Khadamat.Domain.Enums
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<div class="px-2 pb-5 reminders-page-wrapper" dir="rtl">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-start align-items-md-center mb-4 flex-wrap gap-2 mt-2">
+        <div>
+            <h1 class="fw-bold mb-1 text-primary fs-4">
+                <i class="fa-solid fa-bell me-2"></i>إدارة التذكيرات والإشعارات المحلية
+            </h1>
+            <p class="text-muted small mb-0">تحكم كامل في مواعيد ونصوص وطرق عرض التذكيرات لحملات الاختبار والمستخدمين</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-outline-info rounded-pill px-3 shadow-sm btn-sm" @onclick='() => Navigation.NavigateTo("/admin/send-notification")' title="إرسال إشعار فوري لجميع المستخدمين أو فئة معينة">
+                <i class="fa-solid fa-paper-plane me-1"></i>إرسال تنبيه فوري
+            </button>
+            <button class="btn btn-outline-primary rounded-pill px-3 shadow-sm btn-sm" @onclick="LoadDefaultTesterTemplate" title="إنشاء أو استعادة حملة اختبار Google Play">
+                <i class="fa-brands fa-google-play me-1 text-success"></i>حملة الـ 14 يوماً للمختبرين
+            </button>
+            <button class="btn btn-primary-premium rounded-pill px-4 shadow-sm btn-sm" @onclick="OpenCreateModal">
+                <i class="fa-solid fa-plus me-1"></i>تذكير جديد
+            </button>
+        </div>
+    </div>
+
+    <!-- Alert / Status Message -->
+    @if (!string.IsNullOrEmpty(statusMessage))
+    {
+        <div class="alert @(isSuccess ? "alert-success" : "alert-danger") rounded-4 shadow-sm mb-4 d-flex align-items-center justify-content-between animate-fade-in" role="alert">
+            <div class="d-flex align-items-center gap-2">
+                <i class="fa-solid @(isSuccess ? "fa-circle-check text-success" : "fa-circle-exclamation text-danger") fs-5"></i>
+                <span class="fw-bold">@statusMessage</span>
+            </div>
+            <button type="button" class="btn-close" @onclick='() => statusMessage = ""'></button>
+        </div>
+    }
+
+    <!-- Quick Stats Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="glass-card p-3 text-center border-start border-primary border-4">
+                <span class="text-muted small d-block mb-1">إجمالي التذكيرات</span>
+                <h3 class="fw-bold mb-0 text-primary">@reminders.Count</h3>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="glass-card p-3 text-center border-start border-success border-4">
+                <span class="text-muted small d-block mb-1">المفعلة حالياً</span>
+                <h3 class="fw-bold mb-0 text-success">@reminders.Count(r => r.Status == ReminderStatus.Active)</h3>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="glass-card p-3 text-center border-start border-warning border-4">
+                <span class="text-muted small d-block mb-1">متوقفة مؤقتاً</span>
+                <h3 class="fw-bold mb-0 text-warning">@reminders.Count(r => r.Status == ReminderStatus.Paused)</h3>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="glass-card p-3 text-center border-start border-secondary border-4">
+                <span class="text-muted small d-block mb-1">المسودات والمنتهية</span>
+                <h3 class="fw-bold mb-0 text-muted">@reminders.Count(r => r.Status == ReminderStatus.Draft || r.Status == ReminderStatus.Expired)</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Bar -->
+    <div class="glass-card p-3 mb-4">
+        <div class="row g-2 align-items-center">
+            <div class="col-12 col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
+                    <input type="text" class="form-control border-start-0 ps-0" placeholder="بحث بالاسم أو نص الرسالة..." 
+                           @bind="filter.SearchTerm" @bind:event="oninput" @onkeyup="HandleSearch" />
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <select class="form-select" @bind="selectedStatusString" @bind:after="ApplyFilter">
+                    <option value="">جميع الحالات</option>
+                    <option value="Active">مفعّل</option>
+                    <option value="Paused">متوقف مؤقتاً</option>
+                    <option value="Draft">مسودة</option>
+                    <option value="Expired">منتهي</option>
+                </select>
+            </div>
+            <div class="col-6 col-md-3">
+                <select class="form-select" @bind="selectedAudienceString" @bind:after="ApplyFilter">
+                    <option value="">جميع الفئات</option>
+                    <option value="Testers">مختبرو التطبيق</option>
+                    <option value="AllUsers">جميع المستخدمين</option>
+                    <option value="Clients">العملاء</option>
+                    <option value="Providers">مقدمو الخدمات</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-3 text-md-start">
+                <button class="btn btn-outline-secondary w-100 rounded-pill" @onclick="ResetFilters">
+                    <i class="fa-solid fa-rotate-left me-1"></i>إعادة تعيين
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- List of Reminders -->
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">جاري تحميل التذكيرات...</p>
+        </div>
+    }
+    else if (!reminders.Any())
+    {
+        <div class="glass-card p-5 text-center">
+            <div class="mb-3">
+                <i class="fa-regular fa-bell-slash fs-1 text-muted"></i>
+            </div>
+            <h5 class="fw-bold">لا توجد تذكيرات مطابقة</h5>
+            <p class="text-muted small">يمكنك إضافة تذكير جديد أو تفعيل نموذج حملة مختبري Google Play بنقرة واحدة.</p>
+            <div class="d-flex justify-content-center gap-2 mt-3">
+                <button class="btn btn-primary-premium rounded-pill px-4 btn-sm" @onclick="LoadDefaultTesterTemplate">
+                    <i class="fa-brands fa-google-play me-1"></i>تفعيل حملة المختبرين الافتراضية
+                </button>
+                <button class="btn btn-outline-primary rounded-pill px-4 btn-sm" @onclick="OpenCreateModal">
+                    <i class="fa-solid fa-plus me-1"></i>إنشاء تذكير جديد
+                </button>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var rem in reminders)
+            {
+                <div class="col-12 col-lg-6" key="@rem.Id">
+                    <div class="glass-card p-3 h-100 d-flex flex-column border @(rem.Status == ReminderStatus.Active ? "border-success-subtle" : "border-light") shadow-sm">
+                        <!-- Top Row: Title, Badges, Dropdown -->
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                    <h5 class="fw-bold mb-0 fs-6 text-dark">@rem.Title</h5>
+                                    <span class="badge @GetStatusBadgeClass(rem.Status) rounded-pill px-2 py-1 small">
+                                        @rem.StatusText
+                                    </span>
+                                    <span class="badge bg-light text-dark border rounded-pill px-2 py-1 small">
+                                        <i class="fa-solid fa-clock me-1 text-primary"></i>@rem.ScheduledTimeString
+                                    </span>
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(rem.InternalDescription))
+                                {
+                                    <span class="text-muted x-small d-block"><i class="fa-solid fa-tag me-1"></i>@rem.InternalDescription</span>
+                                }
+                            </div>
+
+                            <div class="d-flex gap-1">
+                                <button class="btn btn-sm btn-outline-secondary rounded-circle" title="معاينة التذكير" @onclick="() => OpenPreviewModal(rem)">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary rounded-circle" title="تعديل" @onclick="() => OpenEditModal(rem)">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-info rounded-circle" title="نسخ لإنشاء تذكير مشابه" @onclick="() => DuplicateReminder(rem.Id)">
+                                    <i class="fa-solid fa-clone"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger rounded-circle" title="حذف" @onclick="() => DeleteReminder(rem.Id)">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Message Body Preview -->
+                        <div class="bg-light p-2 rounded-3 mb-3 border-start border-3 border-primary text-secondary small flex-grow-1">
+                            @rem.Message
+                        </div>
+
+                        <!-- Meta details badges -->
+                        <div class="d-flex flex-wrap gap-2 text-muted x-small mb-3">
+                            <span class="badge bg-light text-secondary border">
+                                <i class="fa-solid fa-repeat me-1 text-info"></i>@rem.RecurrenceTypeText
+                            </span>
+                            <span class="badge bg-light text-secondary border">
+                                <i class="fa-solid fa-users me-1 text-primary"></i>@rem.TargetAudienceText
+                            </span>
+                            <span class="badge bg-light text-secondary border">
+                                <i class="fa-solid fa-tv me-1 text-warning"></i>@rem.DisplayTypeText
+                            </span>
+                            <span class="badge bg-light text-secondary border">
+                                <i class="fa-solid fa-location-arrow me-1 text-danger"></i>الوجهة: @rem.ActionRoute
+                            </span>
+                            @if (rem.DurationDays.HasValue)
+                            {
+                                <span class="badge bg-light text-secondary border">
+                                    <i class="fa-solid fa-hourglass-half me-1 text-success"></i>المدة: @rem.DurationDays يوم
+                                </span>
+                            }
+                        </div>
+
+                        <!-- Footer: Dates & Quick Action buttons -->
+                        <div class="d-flex justify-content-between align-items-center pt-2 border-top x-small mt-auto">
+                            <span class="text-muted">
+                                <i class="fa-regular fa-calendar me-1"></i>من: @rem.StartDate.ToString("yyyy/MM/dd") 
+                                @(rem.EndDate.HasValue ? $"إلى: {rem.EndDate.Value:yyyy/MM/dd}" : "")
+                            </span>
+
+                            <div class="d-flex gap-1">
+                                @if (rem.Status == ReminderStatus.Active)
+                                {
+                                    <button class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1 x-small" @onclick="() => ToggleStatus(rem.Id, ReminderStatus.Paused)">
+                                        <i class="fa-solid fa-pause me-1"></i>إيقاف مؤقت
+                                    </button>
+                                }
+                                else if (rem.Status == ReminderStatus.Paused || rem.Status == ReminderStatus.Draft)
+                                {
+                                    <button class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 x-small" @onclick="() => ToggleStatus(rem.Id, ReminderStatus.Active)">
+                                        <i class="fa-solid fa-play me-1"></i>تفعيل
+                                    </button>
+                                }
+                                @if (rem.Status != ReminderStatus.Expired)
+                                {
+                                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1 x-small" @onclick="() => ToggleStatus(rem.Id, ReminderStatus.Expired)" title="إنهاء الحملة">
+                                        <i class="fa-solid fa-stop me-1"></i>إنهاء
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- ========================================== -->
+<!-- Modal: Create / Edit Reminder              -->
+<!-- ========================================== -->
+@if (showEditModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);" dir="rtl">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content glass-card border-0 shadow-lg rounded-4">
+                <div class="modal-header border-bottom pb-3">
+                    <h5 class="modal-title fw-bold text-primary">
+                        <i class="fa-solid @(isEditing ? "fa-pen" : "fa-plus") me-2"></i>
+                        @(isEditing ? "تعديل التذكير" : "إنشاء تذكير جديد")
+                    </h5>
+                    <button type="button" class="btn-close ms-0 me-auto" @onclick="CloseEditModal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <!-- Title -->
+                        <div class="col-12 col-md-8">
+                            <label class="form-label small fw-bold">عنوان التذكير <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control rounded-pill" @bind="currentForm.Title" placeholder="مثلاً: تذكير المختبرين بالاستخدام اليومي" />
+                        </div>
+
+                        <!-- Language -->
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small fw-bold">اللغة</label>
+                            <select class="form-select rounded-pill" @bind="currentForm.Language">
+                                <option value="ar">العربية (ar)</option>
+                                <option value="en">الإنجليزية (en)</option>
+                                <option value="all">جميع اللغات (all)</option>
+                            </select>
+                        </div>
+
+                        <!-- Internal Description -->
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">الغرض الداخلي (للمدير فقط)</label>
+                            <input type="text" class="form-control rounded-pill" @bind="currentForm.InternalDescription" placeholder="مثلاً: دعم الاختبار المغلق لمدة 14 يوماً على Google Play" />
+                        </div>
+
+                        <!-- Message Body -->
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">نص الرسالة للمستخدم <span class="text-danger">*</span></label>
+                            <textarea class="form-control rounded-3" rows="4" @bind="currentForm.Message" placeholder="اكتب النص الذي سيظهر في الإشعار أو داخل التطبيق..."></textarea>
+                            <span class="x-small text-muted">احرص على كتابة نص جذاب وواضح يشجع المستخدم على التفاعل دون إزعاج.</span>
+                        </div>
+
+                        <!-- Schedule & Recurrence -->
+                        <div class="col-12">
+                            <div class="border-top pt-3 mt-2">
+                                <h6 class="fw-bold text-dark small mb-3"><i class="fa-solid fa-clock me-1 text-primary"></i>الجدولة والتكرار</h6>
+                            </div>
+                        </div>
+
+                        <!-- Recurrence Type -->
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small fw-bold">نوع التكرار</label>
+                            <select class="form-select rounded-pill" @bind="currentForm.RecurrenceType">
+                                <option value="@ReminderRecurrenceType.Daily">يومياً</option>
+                                <option value="@ReminderRecurrenceType.Once">مرة واحدة</option>
+                                <option value="@ReminderRecurrenceType.Weekly">أسبوعياً</option>
+                                <option value="@ReminderRecurrenceType.SpecificDaysOfWeek">أيام محددة من الأسبوع</option>
+                                <option value="@ReminderRecurrenceType.IntervalHours">كل عدد ساعات</option>
+                                <option value="@ReminderRecurrenceType.IntervalDays">كل عدد أيام</option>
+                            </select>
+                        </div>
+
+                        <!-- Time of Day -->
+                        <div class="col-6 col-md-4">
+                            <label class="form-label small fw-bold">موعد العرض / الإرسال</label>
+                            <input type="time" class="form-control rounded-pill" @bind="scheduledTimeVal" />
+                            <span class="x-small text-muted">حسب التوقيت المحلي للجهاز</span>
+                        </div>
+
+                        <!-- Duration in Days -->
+                        <div class="col-6 col-md-4">
+                            <label class="form-label small fw-bold">مدة الحملة (بالأيام)</label>
+                            <input type="number" class="form-control rounded-pill" @bind="currentForm.DurationDays" placeholder="مثلاً: 14" min="1" max="365" />
+                        </div>
+
+                        <!-- Start Date -->
+                        <div class="col-6 col-md-6">
+                            <label class="form-label small fw-bold">تاريخ البداية</label>
+                            <input type="date" class="form-control rounded-pill" @bind="startDateVal" />
+                        </div>
+
+                        <!-- End Date -->
+                        <div class="col-6 col-md-6">
+                            <label class="form-label small fw-bold">تاريخ النهاية (اختياري)</label>
+                            <input type="date" class="form-control rounded-pill" @bind="endDateVal" />
+                        </div>
+
+                        <!-- Display & Audience -->
+                        <div class="col-12">
+                            <div class="border-top pt-3 mt-2">
+                                <h6 class="fw-bold text-dark small mb-3"><i class="fa-solid fa-sliders me-1 text-primary"></i>طريقة العرض والجمهور المستهدف</h6>
+                            </div>
+                        </div>
+
+                        <!-- Display Type -->
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small fw-bold">طريقة العرض</label>
+                            <select class="form-select rounded-pill" @bind="currentForm.DisplayType">
+                                <option value="@ReminderDisplayType.NotificationBar">إشعار محلي بشريط النظام</option>
+                                <option value="@ReminderDisplayType.InAppBanner">شريط تنبيهي داخل التطبيق</option>
+                                <option value="@ReminderDisplayType.InAppDialog">نافذة حوارية منبثقة</option>
+                                <option value="@ReminderDisplayType.TaskReminder">تذكير بمهمة محددة</option>
+                            </select>
+                        </div>
+
+                        <!-- Action Route Dropdown -->
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small fw-bold">وجهة الضغط (الصفحة)</label>
+                            <select class="form-select rounded-pill" @bind="currentForm.ActionRoute">
+                                <option value="/">الصفحة الرئيسية (/)</option>
+                                <option value="/search">صفحة البحث والاستكشاف (/search)</option>
+                                <option value="/services">تصفح الخدمات (/services)</option>
+                                <option value="/categories">الأقسام والتصنيفات (/categories)</option>
+                                <option value="/profile">الملف الشخصي (/profile)</option>
+                                <option value="/contact">تواصل معنا والدعم (/contact)</option>
+                            </select>
+                        </div>
+
+                        <!-- Target Audience -->
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small fw-bold">الجمهور المستهدف</label>
+                            <select class="form-select rounded-pill" @bind="currentForm.TargetAudience">
+                                <option value="@ReminderTargetAudience.Testers">مختبرو التطبيق (Google Play)</option>
+                                <option value="@ReminderTargetAudience.AllUsers">جميع المستخدمين</option>
+                                <option value="@ReminderTargetAudience.Clients">العملاء والباحثون عن خدمات</option>
+                                <option value="@ReminderTargetAudience.Providers">مقدمو الخدمات فقط</option>
+                            </select>
+                        </div>
+
+                        <!-- Priority & Status -->
+                        <div class="col-6 col-md-6">
+                            <label class="form-label small fw-bold">أولوية التذكير</label>
+                            <select class="form-select rounded-pill" @bind="currentForm.Priority">
+                                <option value="@ReminderPriority.Normal">عادية</option>
+                                <option value="@ReminderPriority.Low">منخفضة</option>
+                                <option value="@ReminderPriority.High">مرتفعة</option>
+                                <option value="@ReminderPriority.Urgent">عاجلة</option>
+                            </select>
+                        </div>
+
+                        <div class="col-6 col-md-6">
+                            <label class="form-label small fw-bold">الحالة الأولية</label>
+                            <select class="form-select rounded-pill" @bind="currentForm.Status">
+                                <option value="@ReminderStatus.Active">مفعّل فوراً</option>
+                                <option value="@ReminderStatus.Draft">مسودة</option>
+                                <option value="@ReminderStatus.Paused">متوقف مؤقتاً</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-top pt-3 d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" @onclick="CloseEditModal">إلغاء</button>
+                    <button type="button" class="btn btn-primary-premium rounded-pill px-4 shadow-sm" @onclick="SaveReminder" disabled="@isSaving">
+                        @if (isSaving) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                        <i class="fa-solid fa-check me-1"></i>حفظ التغييرات
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ========================================== -->
+<!-- Modal: Preview Reminder                    -->
+<!-- ========================================== -->
+@if (showPreviewModal && previewItem != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.6);" dir="rtl">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header border-bottom pb-2 bg-light">
+                    <h6 class="modal-title fw-bold text-dark">
+                        <i class="fa-solid fa-mobile-screen me-2 text-primary"></i>معاينة شكل التذكير على الهاتف
+                    </h6>
+                    <button type="button" class="btn-close ms-0 me-auto" @onclick='() => showPreviewModal = false'></button>
+                </div>
+                <div class="modal-body p-4 bg-dark bg-opacity-10 text-center">
+                    <!-- Phone Frame Mockup -->
+                    <div class="phone-mockup mx-auto p-3 rounded-4 shadow bg-white text-start text-rtl" style="max-width: 320px;">
+                        <!-- Status Bar -->
+                        <div class="d-flex justify-content-between align-items-center mb-3 text-muted x-small">
+                            <span class="fw-bold">@previewItem.ScheduledTimeString</span>
+                            <div>
+                                <i class="fa-solid fa-wifi me-1"></i>
+                                <i class="fa-solid fa-battery-full"></i>
+                            </div>
+                        </div>
+
+                        @if (previewItem.DisplayType == ReminderDisplayType.NotificationBar)
+                        {
+                            <!-- Android Notification Shade Card -->
+                            <div class="p-3 rounded-3 shadow-sm border bg-light text-dark mb-2">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 22px; height: 22px; font-size: 11px;">
+                                        <i class="fa-solid fa-handshake-angle"></i>
+                                    </div>
+                                    <span class="fw-bold small">خدماوى</span>
+                                    <span class="text-muted x-small ms-auto">الآن</span>
+                                </div>
+                                <h6 class="fw-bold mb-1 fs-6">@previewItem.Title</h6>
+                                <p class="text-secondary small mb-0">@previewItem.Message</p>
+                            </div>
+                            <span class="text-muted x-small text-center d-block">عند الضغط، سيتم فتح: <strong>@previewItem.ActionRoute</strong></span>
+                        }
+                        else
+                        {
+                            <!-- In-App Dialog / Banner Mockup -->
+                            <div class="p-3 rounded-3 shadow-sm border bg-white text-dark mb-2">
+                                <div class="text-center mb-2">
+                                    <i class="fa-solid fa-bell text-warning fs-3"></i>
+                                </div>
+                                <h6 class="fw-bold text-center mb-1">@previewItem.Title</h6>
+                                <p class="text-muted small text-center mb-3">@previewItem.Message</p>
+                                <button class="btn btn-primary-premium w-100 rounded-pill btn-sm">تصفح الآن</button>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="modal-footer border-top pt-2">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4 btn-sm" @onclick='() => showPreviewModal = false'>إغلاق</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .reminders-page-wrapper {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+    .x-small {
+        font-size: 0.75rem;
+    }
+    .phone-mockup {
+        border: 2px solid #e2e8f0;
+    }
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+@code {
+    private List<ReminderCampaignDto> reminders = new();
+    private ReminderFilterDto filter = new();
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private string statusMessage = "";
+    private bool isSuccess = true;
+
+    private string selectedStatusString = "";
+    private string selectedAudienceString = "";
+
+    // Edit modal state
+    private bool showEditModal = false;
+    private bool isEditing = false;
+    private int currentEditingId = 0;
+    private CreateReminderCampaignDto currentForm = new();
+    private TimeOnly scheduledTimeVal = new(20, 0);
+    private DateTime startDateVal = DateTime.UtcNow.Date;
+    private DateTime? endDateVal = DateTime.UtcNow.Date.AddDays(14);
+
+    // Preview modal state
+    private bool showPreviewModal = false;
+    private ReminderCampaignDto? previewItem;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadReminders();
+    }
+
+    private async Task LoadReminders()
+    {
+        isLoading = true;
+        try
+        {
+            reminders = await Api.GetRemindersAsync(filter);
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"حدث خطأ أثناء تحميل التذكيرات: {ex.Message}";
+            isSuccess = false;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleSearch()
+    {
+        await LoadReminders();
+    }
+
+    private async Task ApplyFilter()
+    {
+        filter.Status = string.IsNullOrEmpty(selectedStatusString) 
+            ? null 
+            : Enum.Parse<ReminderStatus>(selectedStatusString);
+
+        filter.TargetAudience = string.IsNullOrEmpty(selectedAudienceString)
+            ? null
+            : Enum.Parse<ReminderTargetAudience>(selectedAudienceString);
+
+        await LoadReminders();
+    }
+
+    private async Task ResetFilters()
+    {
+        filter = new ReminderFilterDto();
+        selectedStatusString = "";
+        selectedAudienceString = "";
+        await LoadReminders();
+    }
+
+    private void OpenCreateModal()
+    {
+        isEditing = false;
+        currentEditingId = 0;
+        currentForm = new CreateReminderCampaignDto
+        {
+            Title = "",
+            InternalDescription = "",
+            Message = "",
+            Language = "ar",
+            Status = ReminderStatus.Active,
+            RecurrenceType = ReminderRecurrenceType.Daily,
+            ScheduledTime = new TimeSpan(20, 0, 0),
+            DurationDays = 14,
+            StartDate = DateTime.UtcNow.Date,
+            EndDate = DateTime.UtcNow.Date.AddDays(14),
+            Priority = ReminderPriority.Normal,
+            TargetAudience = ReminderTargetAudience.Testers,
+            DisplayType = ReminderDisplayType.NotificationBar,
+            ActionRoute = "/",
+            IsActive = true
+        };
+        scheduledTimeVal = new(20, 0);
+        startDateVal = DateTime.UtcNow.Date;
+        endDateVal = DateTime.UtcNow.Date.AddDays(14);
+        showEditModal = true;
+    }
+
+    private void OpenEditModal(ReminderCampaignDto rem)
+    {
+        isEditing = true;
+        currentEditingId = rem.Id;
+        currentForm = new CreateReminderCampaignDto
+        {
+            Title = rem.Title,
+            InternalDescription = rem.InternalDescription,
+            Message = rem.Message,
+            Language = rem.Language,
+            Status = rem.Status,
+            RecurrenceType = rem.RecurrenceType,
+            ScheduledTime = rem.ScheduledTime,
+            IntervalValue = rem.IntervalValue,
+            DaysOfWeek = rem.DaysOfWeek,
+            DurationDays = rem.DurationDays,
+            MaxOccurrences = rem.MaxOccurrences,
+            TimeZoneId = rem.TimeZoneId,
+            Priority = rem.Priority,
+            TargetAudience = rem.TargetAudience,
+            TargetRole = rem.TargetRole,
+            DisplayType = rem.DisplayType,
+            ActionRoute = rem.ActionRoute,
+            IsActive = rem.IsActive,
+            StartDate = rem.StartDate,
+            EndDate = rem.EndDate
+        };
+        scheduledTimeVal = TimeOnly.FromTimeSpan(rem.ScheduledTime);
+        startDateVal = rem.StartDate.Date;
+        endDateVal = rem.EndDate?.Date;
+        showEditModal = true;
+    }
+
+    private void CloseEditModal()
+    {
+        showEditModal = false;
+    }
+
+    private async Task SaveReminder()
+    {
+        if (string.IsNullOrWhiteSpace(currentForm.Title) || string.IsNullOrWhiteSpace(currentForm.Message))
+        {
+            await JS.InvokeVoidAsync("alert", "يرجى ملء عنوان التذكير ونص الرسالة");
+            return;
+        }
+
+        currentForm.ScheduledTime = scheduledTimeVal.ToTimeSpan();
+        currentForm.StartDate = startDateVal;
+        currentForm.EndDate = endDateVal;
+
+        isSaving = true;
+        try
+        {
+            if (isEditing)
+            {
+                var updateDto = new UpdateReminderCampaignDto
+                {
+                    Id = currentEditingId,
+                    Title = currentForm.Title,
+                    InternalDescription = currentForm.InternalDescription,
+                    Message = currentForm.Message,
+                    Language = currentForm.Language,
+                    Status = currentForm.Status,
+                    StartDate = currentForm.StartDate,
+                    EndDate = currentForm.EndDate,
+                    RecurrenceType = currentForm.RecurrenceType,
+                    ScheduledTime = currentForm.ScheduledTime,
+                    IntervalValue = currentForm.IntervalValue,
+                    DaysOfWeek = currentForm.DaysOfWeek,
+                    DurationDays = currentForm.DurationDays,
+                    MaxOccurrences = currentForm.MaxOccurrences,
+                    TimeZoneId = currentForm.TimeZoneId,
+                    Priority = currentForm.Priority,
+                    TargetAudience = currentForm.TargetAudience,
+                    TargetRole = currentForm.TargetRole,
+                    DisplayType = currentForm.DisplayType,
+                    ActionRoute = currentForm.ActionRoute,
+                    IsActive = (currentForm.Status == ReminderStatus.Active)
+                };
+                var result = await Api.UpdateReminderAsync(currentEditingId, updateDto);
+                if (result != null)
+                {
+                    statusMessage = "تم حفظ تعديلات التذكير بنجاح وسيتم تحديث الجدولة على الأجهزة تلقائياً.";
+                    isSuccess = true;
+                }
+            }
+            else
+            {
+                var result = await Api.CreateReminderAsync(currentForm);
+                if (result != null)
+                {
+                    statusMessage = "تم إنشاء التذكير الجديد بنجاح.";
+                    isSuccess = true;
+                }
+            }
+
+            showEditModal = false;
+            await LoadReminders();
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"حدث خطأ أثناء الحفظ: {ex.Message}";
+            isSuccess = false;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task ToggleStatus(int id, ReminderStatus newStatus)
+    {
+        var ok = await Api.UpdateReminderStatusAsync(id, newStatus);
+        if (ok)
+        {
+            statusMessage = $"تم تغيير حالة التذكير بنجاح.";
+            isSuccess = true;
+            await LoadReminders();
+        }
+    }
+
+    private async Task DuplicateReminder(int id)
+    {
+        var clone = await Api.DuplicateReminderAsync(id);
+        if (clone != null)
+        {
+            statusMessage = $"تم إنشاء نسخة مسودة من التذكير بنجاح.";
+            isSuccess = true;
+            await LoadReminders();
+        }
+    }
+
+    private async Task DeleteReminder(int id)
+    {
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", "هل أنت متأكد من حذف هذا التذكير؟");
+        if (!confirmed) return;
+
+        var ok = await Api.DeleteReminderAsync(id);
+        if (ok)
+        {
+            statusMessage = "تم حذف التذكير بنجاح.";
+            isSuccess = true;
+            await LoadReminders();
+        }
+    }
+
+    private async Task LoadDefaultTesterTemplate()
+    {
+        try
+        {
+            var res = await Api.SeedDefaultTesterReminderAsync();
+            if (res != null)
+            {
+                statusMessage = "تم تفعيل / التأكد من جاهزية حملة تذكير المختبرين بالاستخدام اليومي (14 يوماً).";
+                isSuccess = true;
+                await LoadReminders();
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"خطأ: {ex.Message}";
+            isSuccess = false;
+        }
+    }
+
+    private void OpenPreviewModal(ReminderCampaignDto rem)
+    {
+        previewItem = rem;
+        showPreviewModal = true;
+    }
+
+    private string GetStatusBadgeClass(ReminderStatus status) => status switch
+    {
+        ReminderStatus.Active => "bg-success text-white",
+        ReminderStatus.Paused => "bg-warning text-dark",
+        ReminderStatus.Draft => "bg-secondary text-white",
+        ReminderStatus.Expired => "bg-dark text-white",
+        _ => "bg-light text-dark"
+    };
+}

@@ -470,16 +470,25 @@
                     try {
                         new QRCode(qrContainer, {
                             text: qrText,
-                            width: 128,
-                            height: 128,
+                            width: 44,
+                            height: 44,
                             colorDark: "#000000",
                             colorLight: "#ffffff",
                             correctLevel: QRCode.CorrectLevel.M
                         });
                         const qrImg = qrContainer.querySelector('img');
                         if (qrImg) {
+                            qrImg.style.width = "44px";
+                            qrImg.style.height = "44px";
+                            qrImg.style.display = "block";
                             qrImg.style.borderRadius = "0";
                             qrImg.style.imageRendering = "pixelated";
+                        }
+                        const qrCanvas = qrContainer.querySelector('canvas');
+                        if (qrCanvas) {
+                            qrCanvas.style.width = "44px";
+                            qrCanvas.style.height = "44px";
+                            qrCanvas.style.display = "block";
                         }
                     } catch (qrErr) {
                         console.warn('[ShareCard] QR generation failed:', qrErr.message);
@@ -677,19 +686,69 @@
             return 'downloaded_and_opened';
         };
 
-        // Scroll Ads Slider to specific index
+        // 4c. Share card directly as image + text to Facebook (Web Share API / Native Intent / Web Sharer with Open Graph)
+        window.shareServiceCardToFacebook = async (elementId, shareUrl, fileName, inviteText, fallbackImageUrl, fbShareUrl) => {
+            const isNative = (navigator.userAgent && navigator.userAgent.indexOf('KhadamatNativeApp') !== -1) ||
+                             window.location.search.indexOf('nativeapp=1') !== -1 || 
+                             sessionStorage.getItem('nativeapp') === '1';
+
+            // 1. Native mobile app (MAUI): pass intent with image + text
+            if (isNative) {
+                let shareUri = 'khadamat://share?title=' + encodeURIComponent('منصة خدماوي') + '&text=' + encodeURIComponent(inviteText || '');
+                if (shareUrl) shareUri += '&url=' + encodeURIComponent(shareUrl);
+                if (fallbackImageUrl) shareUri += '&image=' + encodeURIComponent(fallbackImageUrl);
+                window.location.href = shareUri;
+                return 'native';
+            }
+
+            // 2. ALWAYS copy full invitation text + download link to clipboard FIRST
+            if (inviteText && navigator.clipboard && navigator.clipboard.writeText) {
+                try {
+                    await navigator.clipboard.writeText(inviteText);
+                } catch (clipErr) {
+                    console.warn('[FacebookShare] Clipboard write failed:', clipErr.message);
+                }
+            }
+
+            // 3. Pre-upload card image to server in background so Facebook OG crawler has it ready
+            try {
+                if (typeof window.uploadShareCardImage === 'function') {
+                    const svcId = (fileName || '').replace(/[^0-9]/g, '');
+                    if (svcId) {
+                        window.uploadShareCardImage(elementId, shareUrl, svcId, window.apiBaseUrl).catch(() => {});
+                    }
+                }
+            } catch (err) { }
+
+            // 4. Open Facebook Sharer with the canonical OG URL
+            // (Facebook scrapes the URL to display the interactive card image, title & domain)
+            // (The user pastes the invitation text directly into the Facebook post caption)
+            const targetUrl = fbShareUrl || `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+            if (isMobile) {
+                window.open(targetUrl, '_blank');
+            } else {
+                window.open(targetUrl, '_blank', 'width=650,height=520,toolbar=0,status=0,resizable=1');
+            }
+            return 'opened_dialog';
+        };
+
+        // Scroll Ads Slider to specific index (horizontal within container only - never scrolls page vertically)
         window.scrollAdsSlider = (index) => {
             const el = document.getElementById('adsTrackContainer');
             if (!el) return;
             const cards = el.querySelectorAll('.ad-card-item');
             if (cards && cards[index]) {
-                cards[index].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                const targetCard = cards[index];
+                const cardRect = targetCard.getBoundingClientRect();
+                const containerRect = el.getBoundingClientRect();
+                const delta = (cardRect.left + cardRect.width / 2) - (containerRect.left + containerRect.width / 2);
+                el.scrollBy({ left: delta, behavior: 'smooth' });
             }
         };
 
-        // Standardized Unified Sharing (Native Mobile Share / Clipboard Fallback)
+        // Standardized Unified Sharing (Native Mobile Share / Web Share / Clipboard Fallback)
         window.shareUnified = async (title, shareText, shareUrl) => {
-            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
             const isNative = (navigator.userAgent && navigator.userAgent.indexOf('KhadamatNativeApp') !== -1) ||
                              window.location.search.indexOf('nativeapp=1') !== -1 || 
                              sessionStorage.getItem('nativeapp') === '1';
@@ -702,7 +761,7 @@
                 return 'native';
             }
 
-            if (isMobile && navigator.share) {
+            if (navigator.share) {
                 try {
                     await navigator.share({ title: title || 'منصة خدماوي', text: shareText || '', url: shareUrl });
                     return 'shared';
@@ -879,18 +938,42 @@
             // Handle WhatsApp links
             if (targetUrl.includes('api.whatsapp.com/send') || targetUrl.includes('wa.me')) {
                 let textPart = '';
-                const idx = targetUrl.indexOf('text=');
-                if (idx !== -1) {
-                    textPart = targetUrl.substring(idx + 5);
+                let phonePart = '';
+
+                const textIdx = targetUrl.indexOf('text=');
+                if (textIdx !== -1) {
+                    const ampIdx = targetUrl.indexOf('&', textIdx);
+                    textPart = ampIdx !== -1 ? targetUrl.substring(textIdx + 5, ampIdx) : targetUrl.substring(textIdx + 5);
                 }
+
+                const phoneIdx = targetUrl.indexOf('phone=');
+                if (phoneIdx !== -1) {
+                    const ampIdx = targetUrl.indexOf('&', phoneIdx);
+                    phonePart = ampIdx !== -1 ? targetUrl.substring(phoneIdx + 6, ampIdx) : targetUrl.substring(phoneIdx + 6);
+                } else if (targetUrl.includes('wa.me/')) {
+                    const afterWa = targetUrl.substring(targetUrl.indexOf('wa.me/') + 6);
+                    const qIdx = afterWa.indexOf('?');
+                    phonePart = qIdx !== -1 ? afterWa.substring(0, qIdx) : afterWa;
+                }
+
+                phonePart = phonePart.replace(/[^0-9]/g, '');
+
+                let waScheme = 'whatsapp://send?';
+                if (phonePart) waScheme += 'phone=' + encodeURIComponent(phonePart) + '&';
+                if (textPart) waScheme += 'text=' + textPart;
+                if (waScheme.endsWith('&') || waScheme.endsWith('?')) waScheme = waScheme.slice(0, -1);
+
                 if (isNative) {
-                    window.location.href = 'khadamat://openurl?url=' + encodeURIComponent('whatsapp://send?text=' + textPart);
+                    window.location.href = 'khadamat://openurl?url=' + encodeURIComponent(waScheme);
                     return;
                 } else if (isMobile) {
-                    window.location.href = 'whatsapp://send?text=' + textPart;
+                    window.location.href = waScheme;
                     setTimeout(function() {
-                        window.location.href = 'https://api.whatsapp.com/send?text=' + textPart;
+                        window.location.href = targetUrl;
                     }, 1200);
+                    return;
+                } else {
+                    window.open(targetUrl, '_blank', 'noopener,noreferrer');
                     return;
                 }
             }
@@ -1275,18 +1358,42 @@
             // Handle WhatsApp links
             if (targetUrl.includes('api.whatsapp.com/send') || targetUrl.includes('wa.me')) {
                 let textPart = '';
-                const idx = targetUrl.indexOf('text=');
-                if (idx !== -1) {
-                    textPart = targetUrl.substring(idx + 5);
+                let phonePart = '';
+
+                const textIdx = targetUrl.indexOf('text=');
+                if (textIdx !== -1) {
+                    const ampIdx = targetUrl.indexOf('&', textIdx);
+                    textPart = ampIdx !== -1 ? targetUrl.substring(textIdx + 5, ampIdx) : targetUrl.substring(textIdx + 5);
                 }
+
+                const phoneIdx = targetUrl.indexOf('phone=');
+                if (phoneIdx !== -1) {
+                    const ampIdx = targetUrl.indexOf('&', phoneIdx);
+                    phonePart = ampIdx !== -1 ? targetUrl.substring(phoneIdx + 6, ampIdx) : targetUrl.substring(phoneIdx + 6);
+                } else if (targetUrl.includes('wa.me/')) {
+                    const afterWa = targetUrl.substring(targetUrl.indexOf('wa.me/') + 6);
+                    const qIdx = afterWa.indexOf('?');
+                    phonePart = qIdx !== -1 ? afterWa.substring(0, qIdx) : afterWa;
+                }
+
+                phonePart = phonePart.replace(/[^0-9]/g, '');
+
+                let waScheme = 'whatsapp://send?';
+                if (phonePart) waScheme += 'phone=' + encodeURIComponent(phonePart) + '&';
+                if (textPart) waScheme += 'text=' + textPart;
+                if (waScheme.endsWith('&') || waScheme.endsWith('?')) waScheme = waScheme.slice(0, -1);
+
                 if (isNative) {
-                    window.location.href = 'khadamat://openurl?url=' + encodeURIComponent('whatsapp://send?text=' + textPart);
+                    window.location.href = 'khadamat://openurl?url=' + encodeURIComponent(waScheme);
                     return;
                 } else if (isMobile) {
-                    window.location.href = 'whatsapp://send?text=' + textPart;
+                    window.location.href = waScheme;
                     setTimeout(function() {
-                        window.location.href = 'https://api.whatsapp.com/send?text=' + textPart;
+                        window.location.href = targetUrl;
                     }, 1200);
+                    return;
+                } else {
+                    window.open(targetUrl, '_blank', 'noopener,noreferrer');
                     return;
                 }
             }

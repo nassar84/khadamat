@@ -97,13 +97,6 @@
                                 </div>
                             }
                         }
-                        else
-                        {
-                            <div class="col-12 text-center py-5">
-                                <i class="fa-solid fa-layer-group fs-1 text-muted mb-3 opacity-50"></i>
-                                <p class="text-muted fw-bold">لا توجد أنواع في هذا التصنيف حالياً</p>
-                            </div>
-                        }
                     }
                     else 
                     { 
@@ -113,6 +106,37 @@
                                 <Khadamat.BlazorUI.Shared.SkeletonLoader Type="card" Count="1" />
                             </div>
                         }
+                    }
+                    @* عرض الخدمات المباشرة في هذا التصنيف *@
+                    @if (services != null && services.Any())
+                    {
+                        <div class="col-12 mt-2">
+                            <h6 class="fw-bold text-muted mb-3 border-bottom pb-2">
+                                <i class="fa-solid fa-briefcase me-2 text-primary"></i>خدمات متوفرة
+                            </h6>
+                        </div>
+                        @for (int i = 0; i < services.Count; i++)
+                        {
+                            var service = services[i];
+                            <div class="col-12 col-md-6 mb-3">
+                                <ServiceCard Service="service" OnClick='(s) => Navigation.NavigateTo($"/service/{s.Id}")' />
+                            </div>
+                            @if ((i + 1) % 3 == 0 && categoryAds != null && categoryAds.Any())
+                            {
+                                var adIndex = ((i + 1) / 3 - 1) % categoryAds.Count;
+                                var ad = categoryAds[adIndex];
+                                <div class="col-12 col-md-6 mb-3">
+                                    <NativeAdCard Ad="ad" />
+                                </div>
+                            }
+                        }
+                    }
+                    else if (subCategories != null && !subCategories.Any() && services != null && !services.Any())
+                    {
+                        <div class="col-12 text-center py-5">
+                            <i class="fa-solid fa-layer-group fs-1 text-muted mb-3 opacity-50"></i>
+                            <p class="text-muted fw-bold">لا توجد خدمات مسجلة في هذا التصنيف حالياً</p>
+                        </div>
                     }
                 }
                 else if (Level == "subcategory")
@@ -242,13 +266,16 @@
                     });
                     breadcrumbItems.Add(new BreadcrumbItem { Label = Name, IsActive = true });
                 }
-                Console.WriteLine($"Explore: Loading subcategories for CategoryId={Id}");
-                subCategories = await Api.GetSubCategoriesByCategoryIdAsync(Id);
-                Console.WriteLine($"Explore: Got {subCategories?.Count ?? 0} subcategories");
-                if (subCategories != null && !subCategories.Any())
-                {
-                    errorMessage = $"لا توجد أنواع فرعية تحت \u201c{Name}\u201d حالياً";
-                }
+                Console.WriteLine($"Explore: Loading subcategories and services for CategoryId={Id}");
+                // تحميل التصنيفات الفرعية والخدمات معاً بالتوازي
+                var subCatsTask = Api.GetSubCategoriesByCategoryIdAsync(Id);
+                var servicesTask = Api.GetServicesAsync(categoryId: Id);
+                var categoryAdsTask = Api.GetCategoryAdsAsync(Id);
+                await Task.WhenAll(subCatsTask, servicesTask, categoryAdsTask);
+                subCategories = subCatsTask.Result;
+                services = servicesTask.Result.Items;
+                categoryAds = categoryAdsTask.Result;
+                Console.WriteLine($"Explore: Got {subCategories?.Count ?? 0} subcategories, {services?.Count ?? 0} services");
             }
             else if (Level == "subcategory")
             {

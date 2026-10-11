@@ -417,11 +417,11 @@
                                         <div class="x-small fw-bold">@service.ProviderName</div>
                                         <div class="ms-auto x-small text-muted">@post.CreatedAt.ToString("dd/MM")</div>
                                     </div>
-                                    <p class="mb-3 small">@post.Content</p>
                                     @if (!string.IsNullOrEmpty(post.ImageUrl))
                                     {
                                         <img src="@post.ImageUrl" class="w-100 rounded-4 mb-3" />
                                     }
+                                    <p class="mb-3 small">@post.Content</p>
                                     <div class="d-flex gap-3 pt-3 border-top x-small">
                                         <span><i class="fa-regular fa-heart"></i> @post.LikesCount</span>
                                         <span class="cursor-pointer" @onclick="() => ToggleComments(post.Id)">
@@ -589,14 +589,9 @@
                         <div style="display: flex; flex-direction: row; direction: rtl; height: 255px; max-height: 255px; width: 600px; overflow: hidden; box-sizing: border-box; background: #ffffff;">
                             
                             <!-- RIGHT: Service Image Panel (Width 220px) -->
-                            <div style="width: 220px; min-width: 220px; max-width: 220px; height: 255px; overflow: hidden; position: relative; background: #0f172a; box-sizing: border-box; display: flex; align-items: center; justify-content: center;">
-                                <!-- Blurred Ambient Background -->
-                                <img src="@Api.GetAbsoluteUrl(mainImage)"
-                                     crossorigin="anonymous"
-                                     onerror="this.onerror=null;this.src='/images/logo.png';"
-                                     style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; filter: blur(14px); opacity: 0.55; transform: scale(1.15);" />
-                                <!-- Modern Vignette Gradient -->
-                                <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(15,23,42,0.45) 0%, rgba(15,23,42,0.1) 40%, rgba(15,23,42,0.85) 100%);"></div>
+                            <div style="width: 220px; min-width: 220px; max-width: 220px; height: 255px; overflow: hidden; position: relative; background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%); box-sizing: border-box; display: flex; align-items: center; justify-content: center;">
+                                <!-- Vignette Gradient -->
+                                <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(15,23,42,0.3) 0%, rgba(15,23,42,0.05) 40%, rgba(15,23,42,0.85) 100%);"></div>
                                 <!-- Sharp Contained Image -->
                                 <img src="@Api.GetAbsoluteUrl(mainImage)"
                                      crossorigin="anonymous"
@@ -604,16 +599,12 @@
                                      style="position: relative; width: 100%; height: 100%; object-fit: contain; padding: 12px; z-index: 2;" alt="@service?.Title" />
                                 
                                 <!-- Rating Badge (Top-Right) -->
-                                <div style="position: absolute; top: 10px; right: 10px; z-index: 3; background: rgba(15, 23, 42, 0.82); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 20px; padding: 3px 9px; font-size: 0.72rem; font-weight: 800; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); direction: ltr;">
+                                <div style="position: absolute; top: 10px; right: 10px; z-index: 3; background: rgba(15, 23, 42, 0.85); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 20px; padding: 3px 9px; font-size: 0.72rem; font-weight: 800; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); direction: ltr;">
                                     <span>⭐</span>
                                     <span style="color: #ffffff; font-weight: 900;">@service?.Rating.ToString("0.0")</span>
                                 </div>
 
-                                <!-- Price Badge (Bottom-Right) -->
-                                <div style="position: absolute; bottom: 10px; right: 10px; z-index: 3; background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: #ffffff; font-size: 0.74rem; font-weight: 900; padding: 4px 12px; border-radius: 20px; box-shadow: 0 4px 12px rgba(16,185,129,0.45); border: 1px solid rgba(255,255,255,0.25); display: flex; align-items: center; gap: 4px;">
-                                    <span>💰</span>
-                                    <span>@(service?.Price.HasValue == true ? service.Price.Value.ToString("N0") + " ج.م" : "مجاناً / بالتواصل")</span>
-                                </div>
+                                <!-- Price Badge removed from share card -->
                             </div>
 
                             <!-- LEFT: Info Details (Width 380px) -->
@@ -627,29 +618,29 @@
                                     </div>
                                     <div style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 2px 8px; border-radius: 12px; font-size: 0.62rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 190px; display: flex; align-items: center; gap: 4px;">
                                         <span style="color: #0284c7;">📁</span>
-                                        <span style="overflow: hidden; text-overflow: ellipsis;">@service?.MainCategoryName › @service?.CategoryName</span>
+                                        <span style="overflow: hidden; text-overflow: ellipsis;">@GetCardCategoryDisplay()</span>
                                     </div>
                                 </div>
 
                                 <!-- Title -->
-                                <h3 style="font-size: 1.05rem; font-weight: 900; color: var(--text-title); margin: 0; line-height: 1.3; text-align: right; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; width: 100%; word-break: break-word;">
+                                <h3 style="font-size: 1.02rem; font-weight: 900; color: #0f172a; margin: 0; line-height: 1.35; text-align: right; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; max-height: 2.7em; width: 100%; word-break: break-word;">
                                     @service?.Title
                                 </h3>
 
                                 <!-- Location & Work Schedule Row -->
                                 <div style="display: flex; gap: 6px; align-items: center; width: 100%; flex-wrap: nowrap; overflow: hidden; direction: rtl;">
-                                    <div style="background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 6px; padding: 2px 7px; font-size: 0.64rem; font-weight: 800; display: inline-flex; align-items: center; gap: 3px; max-width: 55%; white-space: nowrap; overflow: hidden; flex-shrink: 1; direction: rtl;">
-                                        <span style="font-size: 0.68rem; color: #ef4444; flex-shrink: 0;">ًں“چ</span>
-                                        <span dir="rtl" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; unicode-bidi: isolate; font-family: Tajawal, Arial, sans-serif;">@GetCardDetailedAddress()</span>
+                                    <div style="background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 6px; padding: 2px 7px; font-size: 0.64rem; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; max-width: 55%; white-space: nowrap; overflow: hidden; flex-shrink: 1; direction: rtl;">
+                                        <svg width="10" height="10" viewBox="0 0 384 512" fill="#ef4444" style="flex-shrink:0;"><path d="M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"/></svg>
+                                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'Tajawal', sans-serif;">@GetCardDetailedAddress()</span>
                                     </div>
-                                    <div style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; border-radius: 6px; padding: 2px 7px; font-size: 0.62rem; font-weight: 800; display: inline-flex; align-items: center; gap: 3px; max-width: 45%; white-space: nowrap; overflow: hidden; flex-shrink: 1; direction: rtl;">
-                                        <span style="color: #0284c7; flex-shrink: 0;">âڈ°</span>
-                                        <span dir="rtl" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; unicode-bidi: isolate; font-family: Tajawal, Arial, sans-serif;">@(string.IsNullOrEmpty(service?.WorkDays) ? "متاح يومياً" : service.WorkDays)@(!string.IsNullOrEmpty(service?.WorkHours) ? " - " + service.WorkHours : "")</span>
+                                    <div style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; border-radius: 6px; padding: 2px 7px; font-size: 0.62rem; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; max-width: 45%; white-space: nowrap; overflow: hidden; flex-shrink: 1; direction: rtl;">
+                                        <svg width="10" height="10" viewBox="0 0 512 512" fill="#0284c7" style="flex-shrink:0;"><path d="M256 0a256 256 0 1 1 0 512A256 256 0 1 1 256 0zM232 120V256c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 236.1V120c0-13.3-10.7-24-24-24s-24 10.7-24 24z"/></svg>
+                                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'Tajawal', sans-serif;">@(string.IsNullOrEmpty(service?.WorkDays) ? "متاح يومياً" : service.WorkDays)@(!string.IsNullOrEmpty(service?.WorkHours) ? " - " + service.WorkHours : "")</span>
                                     </div>
                                 </div>
 
                                 <!-- Description -->
-                                <div style="font-size: 0.67rem; color: var(--text-secondary); line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; text-align: right; width: 100%;">
+                                <div style="font-size: 0.67rem; color: #475569; line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; max-height: 2.7em; text-align: right; width: 100%;">
                                     @service?.Description
                                 </div>
 
@@ -729,40 +720,59 @@
                 </div>
             </div>
 
-            <!-- Direct Social Share Buttons Row (Single Unified Method) -->
-            <div class="d-flex gap-2 mb-3 justify-content-center flex-wrap">
-                <!-- WhatsApp Share -->
-                <button type="button"
-                   class="share-social-btn share-whatsapp border-0 shadow-sm" 
-                   title="مشاركة كارت الخدمة على واتساب كصورة مع دعوة تحميل التطبيق"
-                   @onclick='() => ShareToSocial("whatsapp")'>
-                    <i class="fa-brands fa-whatsapp"></i>
-                    <span>واتساب (كارت الخدمة)</span>
-                </button>
-                <!-- Facebook Share -->
-                <button type="button"
-                   class="share-social-btn share-facebook border-0 shadow-sm" 
-                   title="مشاركة على فيسبوك"
-                   @onclick='() => ShareToSocial("facebook")'>
-                    <i class="fa-brands fa-facebook-f"></i>
-                    <span>فيسبوك</span>
-                </button>
-                <!-- Telegram Share -->
-                <button type="button"
-                   class="share-social-btn share-telegram border-0 shadow-sm" 
-                   title="مشاركة على تيليجرام"
-                   @onclick='() => ShareToSocial("telegram")'>
-                    <i class="fa-brands fa-telegram"></i>
-                    <span>تيليجرام</span>
-                </button>
-                <!-- Twitter / X Share -->
-                <button type="button"
-                   class="share-social-btn share-twitter border-0 shadow-sm" 
-                   title="مشاركة على تويتر (X)"
-                   @onclick='() => ShareToSocial("twitter")'>
-                    <i class="fa-brands fa-x-twitter"></i>
-                    <span>تويتر (X)</span>
-                </button>
+            <!-- Comprehensive Share Channels Grid (Web & Mobile) -->
+            <div class="mb-3">
+                <div class="d-flex flex-wrap gap-2 justify-content-center">
+                    <!-- WhatsApp -->
+                    <button type="button" class="btn btn-sm rounded-pill px-3 py-2 fw-bold text-white shadow-sm d-flex align-items-center gap-2"
+                            style="background: #25D366; border: none; font-size: 0.88rem;"
+                            @onclick="ShareCardToWhatsApp" title="مشاركة مباشرة عبر واتساب">
+                        <i class="fa-brands fa-whatsapp fs-5"></i>
+                        <span>واتساب</span>
+                    </button>
+                    <!-- Facebook -->
+                    <button type="button" class="btn btn-sm rounded-pill px-3 py-2 fw-bold text-white shadow-sm d-flex align-items-center gap-2"
+                            style="background: #1877F2; border: none; font-size: 0.88rem;"
+                            @onclick="ShareCardToFacebook" title="مشاركة على فيسبوك">
+                        <i class="fa-brands fa-facebook-f fs-5"></i>
+                        <span>فيسبوك</span>
+                    </button>
+                    <!-- Telegram -->
+                    <button type="button" class="btn btn-sm rounded-pill px-3 py-2 fw-bold text-white shadow-sm d-flex align-items-center gap-2"
+                            style="background: #229ED9; border: none; font-size: 0.88rem;"
+                            @onclick='() => ShareToSocial("telegram")' title="مشاركة عبر تيليجرام">
+                        <i class="fa-brands fa-telegram fs-5"></i>
+                        <span>تيليجرام</span>
+                    </button>
+                    <!-- Twitter/X -->
+                    <button type="button" class="btn btn-sm rounded-pill px-3 py-2 fw-bold text-white shadow-sm d-flex align-items-center gap-2"
+                            style="background: #0f1419; border: none; font-size: 0.88rem;"
+                            @onclick='() => ShareToSocial("twitter")' title="مشاركة على منصة X">
+                        <i class="fa-brands fa-x-twitter fs-5"></i>
+                        <span>منصة X</span>
+                    </button>
+                    <!-- Quick System Share -->
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-2 fw-bold shadow-sm d-flex align-items-center gap-2"
+                            style="font-size: 0.88rem;"
+                            @onclick="ShareUnifiedAsync" title="مشاركة عبر تطبيقات الجهاز">
+                        <i class="fa-solid fa-share-nodes"></i>
+                        <span>مشاركة سريعة</span>
+                    </button>
+                    <!-- Copy Link -->
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-2 fw-bold shadow-sm d-flex align-items-center gap-2"
+                            style="font-size: 0.88rem;"
+                            @onclick="CopyShareLink" title="نسخ رابط الخدمة المباشر">
+                        <i class="fa-solid fa-link"></i>
+                        <span>نسخ الرابط</span>
+                    </button>
+                    <!-- Copy Full Text -->
+                    <button type="button" class="btn btn-sm btn-outline-dark rounded-pill px-3 py-2 fw-bold shadow-sm d-flex align-items-center gap-2"
+                            style="font-size: 0.88rem;"
+                            @onclick="CopyCompleteShareText" title="نسخ نص المنشور كاملاً">
+                        <i class="fa-regular fa-copy"></i>
+                        <span>نسخ المنشور</span>
+                    </button>
+                </div>
             </div>
 
             <!-- App Promo Box -->
@@ -1906,7 +1916,7 @@
         if (!string.IsNullOrWhiteSpace(service.GovernorateName)) parts.Add(service.GovernorateName.Trim());
         if (!string.IsNullOrWhiteSpace(service.CityName)) parts.Add(service.CityName.Trim());
         if (!string.IsNullOrWhiteSpace(service.Address)) parts.Add(service.Address.Trim());
-        return parts.Count > 0 ? string.Join(" - ", parts) : "مصر";
+        return parts.Count > 0 ? string.Join(" ، ", parts) : "مصر";
     }
 
     private string GetCardFacebookDisplay(string? fb)
@@ -1925,6 +1935,18 @@
         return clean;
     }
 
+    private string GetCardCategoryDisplay()
+    {
+        if (service == null) return "خدمات";
+        if (!string.IsNullOrEmpty(service.MainCategoryName) && !string.IsNullOrEmpty(service.CategoryName) && !string.Equals(service.MainCategoryName.Trim(), service.CategoryName.Trim(), StringComparison.OrdinalIgnoreCase))
+            return $"{service.MainCategoryName.Trim()} › {service.CategoryName.Trim()}";
+        if (!string.IsNullOrEmpty(service.CategoryName))
+            return service.CategoryName.Trim();
+        if (!string.IsNullOrEmpty(service.MainCategoryName))
+            return service.MainCategoryName.Trim();
+        return "خدمات عامة";
+    }
+
     private string AppDownloadUrl
     {
         get
@@ -1937,7 +1959,7 @@
     }
 
     private string WhatsAppShareUrl => $"https://api.whatsapp.com/send?text={Uri.EscapeDataString(GetUnifiedShareText())}";
-    private string FacebookShareUrl => $"https://www.facebook.com/sharer/sharer.php?u={Uri.EscapeDataString(SharePageUrl)}&quote={Uri.EscapeDataString(GetFacebookPostText())}";
+    private string FacebookShareUrl => $"https://www.facebook.com/sharer/sharer.php?u={Uri.EscapeDataString(SharePageUrl)}";
     private string TwitterShareUrl => $"https://twitter.com/intent/tweet?url={Uri.EscapeDataString(SharePageUrl)}&text={Uri.EscapeDataString(GetTwitterShareText())}";
     private string TelegramShareUrl => $"https://t.me/share/url?url={Uri.EscapeDataString(SharePageUrl)}&text={Uri.EscapeDataString(GetUnifiedShareText())}";
 
@@ -1946,14 +1968,13 @@
         var title = service?.Title ?? "";
         var desc = service?.Description ?? "";
         if (desc.Length > 120) desc = desc.Substring(0, 117) + "...";
-        var priceText = service?.Price.HasValue == true ? $"{service.Price:N0} ج.م" : "مجاناً / بالتواصل";
         var addressDetail = GetCardDetailedAddress();
         var addressLine = !string.IsNullOrEmpty(addressDetail) ? $"\n📍 العنوان: {addressDetail}" : "";
         var phoneLine = !string.IsNullOrEmpty(service?.Phone1) ? $"\n📞 الهاتف: {service.Phone1}" : "";
 
         return $"🌟 *{title}*\n" +
                (!string.IsNullOrEmpty(desc) ? $"📝 {desc}\n" : "") +
-               $"💰 السعر: {priceText}{addressLine}{phoneLine}\n\n" +
+               $"{addressLine}{phoneLine}\n\n" +
                $"🔗 رابط صفحة الخدمة بالتفصيل:\n{SharePageUrl}\n\n" +
                $"📲 *دعوة لتحميل تطبيق ومنصة خدماوي* 🇪🇬\n" +
                $"سوق الخدمات والأعمال الأول في مصر — تصفح آلاف الخدمات والوظائف القريبة منك وتواصل مباشرة مع أصحاب الأعمال والمهنيين!\n" +
@@ -1973,7 +1994,12 @@
     private string GetCardAttachedShareText()
     {
         var appName = !string.IsNullOrEmpty(State.AppNameAr) ? State.AppNameAr : (!string.IsNullOrEmpty(State.AppName) ? State.AppName : "خدماوي");
-        return $"📲 *دعوة لتجربة واستخدام تطبيق ومنصة {appName}* 🇪🇬\n" +
+        var addressDetail = GetCardDetailedAddress();
+        var addressLine = !string.IsNullOrEmpty(addressDetail) ? $"\n📍 المنطقة: {addressDetail}" : "";
+        var phoneLine = !string.IsNullOrEmpty(service?.Phone1) ? $"\n📞 التواصل: {service.Phone1}" : "";
+
+        return $"🌟 *{service?.Title}*{addressLine}{phoneLine}\n\n" +
+               $"📲 *دعوة لتجربة واستخدام تطبيق ومنصة {appName}* 🇪🇬\n" +
                $"سوق الخدمات والأعمال الأول في مصر — تصفح آلاف الخدمات والمهنيين وتواصل معهم مباشرة مجاناً!\n\n" +
                $"👇 رابط تحميل التطبيق المباشر (APK):\n{AppDownloadUrl}\n\n" +
                $"🔗 أو تصفح تفاصيل الخدمة على الموقع:\n{SharePageUrl}";
@@ -2023,6 +2049,41 @@
         StateHasChanged();
     }
 
+    private async Task ShareCardToFacebook()
+    {
+        RecordShare();
+        var fileName = $"Khadamat_Service_{service?.Id ?? Id}";
+        var inviteText = GetCardAttachedShareText();
+
+        try
+        {
+            var res = await JS.InvokeAsync<string>(
+                "shareServiceCardToFacebook",
+                "service-share-card",
+                SharePageUrl,
+                fileName,
+                inviteText,
+                shareCardImageUrl ?? GetBestServiceImageUrl(),
+                FacebookShareUrl
+            );
+
+            if (res == "native")
+            {
+                shareCopyStatus = "تمت مشاركة كارت الخدمة ودعوة التحميل بنجاح!";
+            }
+            else
+            {
+                shareCopyStatus = "تم فتح فيسبوك ونسخ نص الدعوة ورابط تحميل التطبيق تلقائياً! 📋 الصقه (Paste) الآن في منشورك على فيسبوك.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Share] Facebook share error: {ex.Message}");
+            await JS.InvokeVoidAsync("openExternalUrl", FacebookShareUrl);
+        }
+        StateHasChanged();
+    }
+
     private async Task ShareUnifiedAsync()
     {
         RecordShare();
@@ -2068,16 +2129,8 @@
                 await ShareCardToWhatsApp();
                 return;
             case "facebook":
-                url = FacebookShareUrl;
-                try
-                {
-                    // Copy Facebook post text with app definition and invitation for user to paste
-                    await JS.InvokeVoidAsync("navigator.clipboard.writeText", GetFacebookPostText());
-                    shareCopyStatus = "تم نسخ نص المنشور ودعوة تحميل التطبيق تلقائياً! يمكنك لصقها (Paste) في منشورك على فيسبوك.";
-                    StateHasChanged();
-                }
-                catch { }
-                break;
+                await ShareCardToFacebook();
+                return;
             case "twitter":
             case "x":
                 url = TwitterShareUrl;

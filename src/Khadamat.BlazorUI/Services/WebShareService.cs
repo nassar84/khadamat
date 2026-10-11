@@ -26,12 +26,9 @@ public class WebShareService : IShareService
 
         try
         {
-            await _js.InvokeVoidAsync("navigator.share", new { title = title, text = text });
+            await _js.InvokeVoidAsync("navigator.clipboard.writeText", text);
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"ShareText fallback error: {ex.Message}");
-        }
+        catch { }
     }
 
     public async Task ShareLinkAsync(string url, string title = "مشاركة رابط")
@@ -49,12 +46,9 @@ public class WebShareService : IShareService
 
         try
         {
-            await _js.InvokeVoidAsync("navigator.share", new { title = title, url = url });
+            await _js.InvokeVoidAsync("navigator.clipboard.writeText", url);
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"ShareLink fallback error: {ex.Message}");
-        }
+        catch { }
     }
 
     public async Task ShareFileAsync(string filePath, string title = "مشاركة ملف")
@@ -81,12 +75,10 @@ public class WebShareService : IShareService
 
         try
         {
-            await _js.InvokeVoidAsync("navigator.share", new { title = title, text = text, url = imageUrl });
+            var shareContent = (string.IsNullOrEmpty(text) ? "" : text + "\n") + imageUrl;
+            await _js.InvokeVoidAsync("navigator.clipboard.writeText", shareContent);
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"ShareImageWithText fallback error: {ex.Message}");
-        }
+        catch { }
     }
 
     private class ShareResult

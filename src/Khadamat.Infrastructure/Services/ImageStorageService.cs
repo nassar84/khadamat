@@ -28,35 +28,71 @@ public class ImageStorageService : IImageStorageService
         _fallbackImagesPath = Path.Combine(webRoot, "images");
 
         var configuredPath = configuration["Uploads:ImagesPath"]?.Trim();
-
-        if (!string.IsNullOrWhiteSpace(configuredPath))
+        if (string.IsNullOrWhiteSpace(configuredPath))
         {
-            // Verify that the configured permanent directory exists
-            if (!Directory.Exists(configuredPath))
+            configuredPath = "KhadamawyImages";
+        }
+
+        string resolvedPath = null;
+        if (Path.IsPathRooted(configuredPath) && Directory.Exists(configuredPath))
+        {
+            resolvedPath = configuredPath;
+        }
+        else
+        {
+            // Probe candidates in order:
+            // 1. AppContext.BaseDirectory / configuredPath (e.g. /khadamawy/KhadamawyImages on IIS)
+            // 2. Parent of BaseDirectory / configuredPath
+            // 3. CurrentDirectory / configuredPath
+            // 4. WebRoot parent / configuredPath
+            // 5. Well-known local fallback paths (D:\maged\KhadamawyImages, D:\maged\images)
+            var candidates = new System.Collections.Generic.List<string>
             {
-                var errorMsg = $"CRITICAL CONFIGURATION ERROR: The configured Uploads:ImagesPath '{configuredPath}' does not exist or is not accessible. " +
-                               $"To prevent data loss during deployment, the application will not start with an invalid storage path. " +
-                               $"Please ensure the directory exists and the IIS Application Pool identity has Read/Write permissions.";
-                _logger.LogCritical(errorMsg);
-                throw new InvalidOperationException(errorMsg);
+                Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, configuredPath)),
+                Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", configuredPath)),
+                Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), configuredPath)),
+                Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", configuredPath)),
+                Path.GetFullPath(Path.Combine(webRoot, "..", configuredPath)),
+                @"D:\maged\KhadamawyImages",
+                @"D:\maged\images"
+            };
+
+            foreach (var cand in candidates)
+            {
+                if (Directory.Exists(cand))
+                {
+                    resolvedPath = cand;
+                    break;
+                }
             }
 
-            // Verify write permissions by probing the directory
-            try
+            // If none existed yet, default to AppContext.BaseDirectory / configuredPath
+            resolvedPath ??= Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, configuredPath));
+        }
+
+        // Ensure directory exists or create it automatically
+        bool dirReady = false;
+        try
+        {
+            if (!Directory.Exists(resolvedPath))
             {
-                var probeFile = Path.Combine(configuredPath, $".probe_{Guid.NewGuid():N}.tmp");
-                File.WriteAllText(probeFile, "test");
-                File.Delete(probeFile);
-            }
-            catch (Exception ex)
-            {
-                var errorMsg = $"CRITICAL PERMISSION ERROR: The configured Uploads:ImagesPath '{configuredPath}' is not writable. " +
-                               $"Please grant Modify/Write permissions to the IIS Application Pool identity. Error: {ex.Message}";
-                _logger.LogCritical(ex, errorMsg);
-                throw new InvalidOperationException(errorMsg, ex);
+                Directory.CreateDirectory(resolvedPath);
             }
 
-            _rootImagesPath = configuredPath;
+            // Verify write permissions
+            var probeFile = Path.Combine(resolvedPath, $".probe_{Guid.NewGuid():N}.tmp");
+            File.WriteAllText(probeFile, "test");
+            File.Delete(probeFile);
+            dirReady = true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Resolved Uploads:ImagesPath '{Path}' cannot be accessed or written to. Falling back to local wwwroot storage: {Fallback}", resolvedPath, _fallbackImagesPath);
+        }
+
+        if (dirReady)
+        {
+            _rootImagesPath = resolvedPath;
             _isExternalStorageConfigured = true;
             _logger.LogInformation("Permanent image storage successfully configured at: {Path}", _rootImagesPath);
         }
@@ -69,7 +105,7 @@ public class ImageStorageService : IImageStorageService
             {
                 Directory.CreateDirectory(_rootImagesPath);
             }
-            _logger.LogInformation("No external Uploads:ImagesPath configured. Using local wwwroot storage: {Path}", _rootImagesPath);
+            _logger.LogInformation("Using local wwwroot storage: {Path}", _rootImagesPath);
         }
 
         // Initialize ImageNamingHelper with this service instance

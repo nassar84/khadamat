@@ -7,7 +7,7 @@ public partial class App : MauiApp
 {
     private readonly Views.WelcomePage _welcomePage;
 
-    public App(Views.WelcomePage welcomePage)
+    public App(Views.WelcomePage welcomePage, ILocalReminderScheduler reminderScheduler)
     {
         try 
         {
@@ -26,6 +26,34 @@ public partial class App : MauiApp
                     await Shell.Current.GoToAsync(url);
                 }
             };
+
+            // In-app reminder dialog handler
+            reminderScheduler.OnInAppReminderDue += (reminder) =>
+            {
+                MainThread.BeginInvokeOnMainThread(async () =>
+                {
+                    try
+                    {
+                        if (Current?.MainPage != null)
+                        {
+                            bool open = await Current.MainPage.DisplayAlert(reminder.Title, reminder.Message, "انتقال الآن", "لاحقاً");
+                            reminderScheduler.MarkInAppReminderSeen(reminder.Id);
+                            if (open && !string.IsNullOrEmpty(reminder.ActionRoute))
+                            {
+                                DeepLinkBridge.Raise(reminder.ActionRoute);
+                            }
+                        }
+                    }
+                    catch { }
+                });
+            };
+
+            // Initialize local reminders and sync schedule in background
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(1000); // Allow app bootstrap to complete first
+                await reminderScheduler.InitializeAsync();
+            });
         }
         catch (Exception ex)
         {

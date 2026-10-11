@@ -28,11 +28,35 @@ public class MainActivity : MauiAppCompatActivity
 
             // Plugin.Fingerprint setup
             Plugin.Fingerprint.CrossFingerprint.SetCurrentActivityResolver(() => this);
+
+            // Handle incoming notification click intent
+            HandleNotificationIntent(Intent);
         }
         catch (Exception ex)
         {
             // Use native Android log in case Console.WriteLine is not attached
             Android.Util.Log.Error("MAUI_KHADAMAT", $"CRITICAL ERROR in OnCreate: {ex.Message}\n{ex.StackTrace}");
+        }
+    }
+
+    protected override void OnNewIntent(global::Android.Content.Intent? intent)
+    {
+        base.OnNewIntent(intent);
+        HandleNotificationIntent(intent);
+    }
+
+    private void HandleNotificationIntent(global::Android.Content.Intent? intent)
+    {
+        if (intent == null) return;
+        var route = intent.GetStringExtra("action_route");
+        if (!string.IsNullOrEmpty(route))
+        {
+            Console.WriteLine($"[MainActivity] Notification tapped. Target route: {route}");
+            // Give the app shell/webview a moment to initialize if coming from cold start
+            Task.Delay(500).ContinueWith(_ =>
+            {
+                Services.DeepLinkBridge.Raise(route);
+            });
         }
     }
 }

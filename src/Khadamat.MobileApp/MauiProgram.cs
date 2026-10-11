@@ -121,6 +121,14 @@ public static class MauiProgram
         builder.Services.AddSingleton<AppShell>();
         builder.Services.AddSingleton<Views.WelcomePage>();
         
+        // ── Local Reminders System ─────────────────────────────────────────────
+#if ANDROID
+        builder.Services.AddSingleton<IPlatformReminderScheduler, Platforms.Android.AndroidReminderScheduler>();
+#else
+        builder.Services.AddSingleton<IPlatformReminderScheduler, FallbackReminderScheduler>();
+#endif
+        builder.Services.AddSingleton<ILocalReminderScheduler, LocalReminderScheduler>();
+
         // Connectivity
         builder.Services.AddSingleton<IConnectivity>(Connectivity.Current);
         builder.Services.AddSingleton<IConnectivityService, ConnectivityService>();

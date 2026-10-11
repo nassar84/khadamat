@@ -10,9 +10,14 @@
             <h2 class="fw-bold mb-0">إرسال تنبيهات النظام</h2>
             <p class="text-muted">أرسل إشعارات فورية للمستخدمين أو مجموعات مخصصة</p>
         </div>
-        <button class="btn btn-outline-secondary rounded-pill" @onclick='() => Navigation.NavigateTo("/admin")'>
-            <i class="fas fa-arrow-right me-2"></i> العودة للوحة الإدارة
-        </button>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary rounded-pill btn-sm" @onclick='() => Navigation.NavigateTo("/admin/reminders")'>
+                <i class="fas fa-bell me-1"></i> إدارة التذكيرات المجدولة
+            </button>
+            <button class="btn btn-outline-secondary rounded-pill btn-sm" @onclick='() => Navigation.NavigateTo("/admin")'>
+                <i class="fas fa-arrow-right me-1"></i> العودة للوحة الإدارة
+            </button>
+        </div>
     </div>
 
     <div class="row">

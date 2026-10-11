@@ -68,7 +68,7 @@ public class Ad : BaseEntity
     protected Ad() { }
 
     public Ad(
-        string title, 
+        string? title, 
         string description,
         DateTime startDate,
         DateTime endDate,
@@ -79,13 +79,10 @@ public class Ad : BaseEntity
         int? serviceId = null,
         string? userCreated = null)
     {
-        if (string.IsNullOrWhiteSpace(title))
-            throw new ArgumentException("Ad title is required.");
-            
         if (endDate <= startDate)
             throw new ArgumentException("End date must be after start date.");
 
-        Title = title;
+        Title = title?.Trim() ?? string.Empty;
         Description = description;
         StartDate = startDate;
         EndDate = endDate;
@@ -106,7 +103,7 @@ public class Ad : BaseEntity
     }
 
     public void UpdateDetails(
-        string title, 
+        string? title, 
         string description,
         DateTime startDate,
         DateTime endDate,
@@ -132,13 +129,10 @@ public class Ad : BaseEntity
         int? serviceId = null,
         decimal amountPaid = 0)
     {
-        if (string.IsNullOrWhiteSpace(title))
-            throw new ArgumentException("Ad title is required.");
-            
         if (endDate <= startDate)
             throw new ArgumentException("End date must be after start date.");
  
-        Title = title;
+        Title = title?.Trim() ?? string.Empty;
         Description = description;
         StartDate = startDate;
         EndDate = endDate;

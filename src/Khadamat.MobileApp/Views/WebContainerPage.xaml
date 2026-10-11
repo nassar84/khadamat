@@ -9,7 +9,7 @@
              FlowDirection="RightToLeft">
 
     <!-- Row 0 = WebView  |  Row 1 = Custom Bottom Nav -->
-    <Grid RowDefinitions="*,Auto">
+    <Grid RowDefinitions="*,Auto" BackgroundColor="White">
 
         <!-- ═══ WebView ═══ -->
         <WebView Grid.Row="0"

@@ -1,6 +1,7 @@
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
 @inject Khadamat.BlazorUI.State.AppState State
+@inject Khadamat.Shared.Interfaces.IShareService ShareService
 @implements IDisposable
 
 @if (State.IsMobileApp || State.IsNativeApp) { return; }
@@ -526,22 +527,7 @@
     {
         try
         {
-            var shareUrl = Navigation.BaseUri;
-            var shareTitle = $"حمّل تطبيق {State.AppName ?? "خدماوى"} - عالم من الخدمات";
-            var shareText = $"🌟 اكتشف تطبيق {State.AppName ?? "خدماوى"} الجديد!\n\n" +
-                            "كل ما تحتاجه من خدمات في تطبيق واحد:\n" +
-                            "✅ خدمات طبية وتمريضية منزلية\n" +
-                            "✅ صيانة منزلية (سباكة، كهرباء، نجارة)\n" +
-                            "✅ خدمات تعليمية وتدريبية\n" +
-                            "✅ توصيل وخدمات لوجستية\n" +
-                            "✅ استشارات قانونية ومهنية\n\n" +
-                            "🚀 تجربة عصرية، سهولة في الطلب، وأمان تام.\n\n" +
-                            "جربه الآن عبر الرابط:";
-            
-            if (JS != null)
-            {
-                await JS.InvokeVoidAsync("shareApp", shareTitle, shareText, shareUrl);
-            }
+            await AppShareHelper.ShareAppAsync(ShareService, State, Navigation.BaseUri, JS);
         }
         catch (Exception ex)
         {
@@ -553,23 +539,19 @@
     {
         get
         {
-            var shareText = $"اكتشف تطبيق {State.AppName ?? "خدماتو"} المتكامل لكل الخدمات!\n" +
-                            "تمريض، تعليم، حرف، توصيل.. كل شيء في مكان واحد.\n" +
-                            "جربه الآن: " + Navigation.BaseUri;
+            var shareText = AppShareHelper.GetInvitationText(State, Navigation.BaseUri);
             return $"https://wa.me/?text={Uri.EscapeDataString(shareText)}";
         }
     }
 
     private string FacebookShareUrl =>
-        $"https://www.facebook.com/sharer/sharer.php?u={Uri.EscapeDataString(Navigation.BaseUri)}";
+        $"https://www.facebook.com/sharer/sharer.php?u={Uri.EscapeDataString(AppShareHelper.GetDownloadUrl(State, Navigation.BaseUri))}";
 
     private string TwitterShareUrl
     {
         get
         {
-            var shareText = $"اكتشف تطبيق {State.AppName ?? "خدماتو"} المتكامل لكل الخدمات!\n" +
-                            "تمريض، تعليم، حرف، توصيل.. كل شيء في مكان واحد.\n" +
-                            "جربه الآن: " + Navigation.BaseUri;
+            var shareText = AppShareHelper.GetInvitationText(State, Navigation.BaseUri);
             return $"https://twitter.com/intent/tweet?text={Uri.EscapeDataString(shareText)}";
         }
     }

@@ -40,10 +40,28 @@ public class ApiClient
 
     public async Task<T?> PostAsync<T>(string url, object data)
     {
-        var response = await _http.PostAsJsonAsync(url, data);
-        if (response.IsSuccessStatusCode)
-            return await response.Content.ReadFromJsonAsync<T>();
-        return default;
+        try
+        {
+            var response = await _http.PostAsJsonAsync(url, data);
+            if (response.IsSuccessStatusCode)
+                return await response.Content.ReadFromJsonAsync<T>();
+
+            // Extract the server error body to give a meaningful exception message
+            var errorBody = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException(
+                $"[{(int)response.StatusCode}] {response.ReasonPhrase}: {errorBody}",
+                null,
+                response.StatusCode);
+        }
+        catch (HttpRequestException)
+        {
+            throw; // Re-throw so the caller's catch block can display the message
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ApiClient.PostAsync] {url} — {ex.Message}");
+            throw;
+        }
     }
 
     public async Task<T?> PostMultipartAsync<T>(string url, MultipartFormDataContent content)
@@ -1625,6 +1643,86 @@ public class ApiClient
         {
             return new ImageUploadResponse { Success = false, Message = $"Upload error: {ex.Message}" };
         }
+    }
+
+    // ── Reminders Management (Admin & Client) ─────────────────────────────────
+    public async Task<List<ReminderCampaignDto>> GetRemindersAsync(ReminderFilterDto? filter = null)
+    {
+        filter ??= new ReminderFilterDto();
+        var query = new List<string>();
+        if (!string.IsNullOrWhiteSpace(filter.SearchTerm)) query.Add($"searchTerm={Uri.EscapeDataString(filter.SearchTerm)}");
+        if (filter.Status.HasValue) query.Add($"status={(int)filter.Status.Value}");
+        if (filter.TargetAudience.HasValue) query.Add($"targetAudience={(int)filter.TargetAudience.Value}");
+        if (filter.DisplayType.HasValue) query.Add($"displayType={(int)filter.DisplayType.Value}");
+        query.Add($"page={filter.Page}");
+        query.Add($"pageSize={filter.PageSize}");
+
+        var url = "v1/reminders" + (query.Count > 0 ? "?" + string.Join("&", query) : "");
+        var res = await GetAsync<ApiResponse<List<ReminderCampaignDto>>>(url);
+        return res?.Data ?? new List<ReminderCampaignDto>();
+    }
+
+    public async Task<ReminderCampaignDto?> GetReminderByIdAsync(int id)
+    {
+        var res = await GetAsync<ApiResponse<ReminderCampaignDto>>($"v1/reminders/{id}");
+        return res?.Data;
+    }
+
+    public async Task<ReminderCampaignDto?> CreateReminderAsync(CreateReminderCampaignDto dto)
+    {
+        var res = await PostAsync<ApiResponse<ReminderCampaignDto>>("v1/reminders", dto);
+        return res?.Data;
+    }
+
+    public async Task<ReminderCampaignDto?> UpdateReminderAsync(int id, UpdateReminderCampaignDto dto)
+    {
+        var res = await PutAsync<ApiResponse<ReminderCampaignDto>>($"v1/reminders/{id}", dto);
+        return res?.Data;
+    }
+
+    public async Task<bool> UpdateReminderStatusAsync(int id, Khadamat.Domain.Enums.ReminderStatus status)
+    {
+        try
+        {
+            var res = await _http.PatchAsJsonAsync($"v1/reminders/{id}/status", new UpdateReminderStatusRequest { Status = status });
+            return res.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> DeleteReminderAsync(int id)
+    {
+        try
+        {
+            var res = await _http.DeleteAsync($"v1/reminders/{id}");
+            return res.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<ReminderCampaignDto?> DuplicateReminderAsync(int id)
+    {
+        var res = await PostAsync<ApiResponse<ReminderCampaignDto>>($"v1/reminders/{id}/duplicate", new { });
+        return res?.Data;
+    }
+
+    public async Task<ReminderCampaignDto?> SeedDefaultTesterReminderAsync()
+    {
+        var res = await PostAsync<ApiResponse<ReminderCampaignDto>>("v1/reminders/seed-default", new { });
+        return res?.Data;
+    }
+
+    public async Task<List<ActiveClientReminderDto>> GetActiveClientRemindersAsync(string? role = null, bool isTester = true, string lang = "ar")
+    {
+        var url = $"v1/reminders/active?role={Uri.EscapeDataString(role ?? "")}&isTester={isTester}&lang={Uri.EscapeDataString(lang)}";
+        var res = await GetAsync<ApiResponse<List<ActiveClientReminderDto>>>(url);
+        return res?.Data ?? new List<ActiveClientReminderDto>();
     }
 }
 

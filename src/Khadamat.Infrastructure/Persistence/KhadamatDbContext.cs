@@ -58,12 +58,14 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<RewardConversion> RewardConversions { get; set; }
     public DbSet<PointRewardRule> PointRewardRules { get; set; }
     public DbSet<ContentReport>  ContentReports   { get; set; }
+    public DbSet<ReminderCampaign> ReminderCampaigns { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
 
         // Global Filter for Soft Delete
+        builder.Entity<ReminderCampaign>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<Service>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<ServiceRequest>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<ProviderProfile>().HasQueryFilter(e => !e.IsDeleted);

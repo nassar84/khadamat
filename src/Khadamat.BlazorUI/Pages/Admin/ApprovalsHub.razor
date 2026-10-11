@@ -9,128 +9,326 @@
 @inject IJSRuntime JS
 @inject Khadamat.BlazorUI.State.AppState State
 
-<PageTitle>مركز طلبات الموافقة والاعتماد</PageTitle>
+<PageTitle>مركز الموافقات والاعتمادات - الإدارة</PageTitle>
 
-<div class="px-2 pb-5">
-    <!-- Header -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+<div class="approvals-hub-container px-2 px-md-3 pb-5">
+    <!-- Top Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 mt-2">
         <div>
-            <div class="d-flex align-items-center gap-2">
-                <h4 class="fw-bold mb-0">مركز طلبات الموافقة</h4>
-                @if (TotalPendingCount > 0)
-                {
-                    <span class="badge rounded-pill bg-danger px-3 py-2 fs-6">
-                        @TotalPendingCount بانتظار المراجعة
-                    </span>
-                }
-                else
-                {
-                    <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2">
-                        <i class="fa-solid fa-check me-1"></i> مكتمل
-                    </span>
-                }
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <div class="hub-icon-badge shadow-sm">
+                    <i class="fa-solid fa-stamp text-warning fs-4"></i>
+                </div>
+                <div>
+                    <h3 class="fw-bold mb-0 text-dark">مركز الموافقات والاعتمادات</h3>
+                    <p class="text-muted small mb-0 mt-1">المركز الموحد لمراجعة واعتماد طلبات أصحاب الخدمات والخدمات المعلقة</p>
+                </div>
             </div>
-            <p class="text-muted small mb-0 mt-1">مراجعة واعتماد طلبات الانضمام والخدمات والتعديلات المعلقة للمدير الخارق</p>
         </div>
 
-        <div class="d-flex gap-2">
-            <button class="btn btn-outline-primary rounded-pill px-3" @onclick="ReloadAllAsync">
-                <i class="fa-solid fa-rotate me-1"></i> تحديث الكل
+        <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-outline-primary rounded-pill px-3 shadow-2xs" @onclick="ReloadAllAsync" disabled="@isLoading">
+                <i class="fa-solid fa-rotate @(isLoading ? "fa-spin" : "") me-1"></i> تحديث الكل
             </button>
         </div>
     </div>
 
-    <!-- Navigation Tabs -->
-    <div class="approval-tabs glass-card p-2 mb-4 d-flex gap-2 overflow-x-auto">
-        <button class="tab-btn flex-fill @(activeTab == "providers" ? "active" : "")" @onclick='() => SetTab("providers")'>
-            <i class="fa-solid fa-user-check me-2"></i>
-            <span>مقدمي الخدمات</span>
-            @if (pendingProviders.Count > 0)
-            {
-                <span class="tab-badge bg-danger text-white">@pendingProviders.Count</span>
-            }
-        </button>
+    <!-- Alert Message / Toast -->
+    @if (!string.IsNullOrEmpty(statusMessage))
+    {
+        <div class="alert alert-@statusMessageType alert-dismissible fade show rounded-4 shadow-sm mb-4 d-flex align-items-center gap-2 animate-fade-in" role="alert">
+            <i class="fa-solid @(statusMessageType == "success" ? "fa-circle-check text-success" : "fa-triangle-exclamation text-danger") fs-5"></i>
+            <span class="fw-bold small">@statusMessage</span>
+            <button type="button" class="btn-close ms-auto" @onclick="() => statusMessage = null"></button>
+        </div>
+    }
 
-        <button class="tab-btn flex-fill @(activeTab == "services" ? "active" : "")" @onclick='() => SetTab("services")'>
-            <i class="fa-solid fa-briefcase me-2"></i>
-            <span>الخدمات الجديدة</span>
-            @if (pendingServices.Count > 0)
-            {
-                <span class="tab-badge bg-warning text-dark">@pendingServices.Count</span>
-            }
-        </button>
+    <!-- Stat Summary Cards Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-4">
+            <div class="stat-card glass-card p-3 rounded-4 d-flex align-items-center gap-3 cursor-pointer @(activeTab == "providers" ? "active-stat border-primary" : "")"
+                 @onclick='() => SetTab("providers")'>
+                <div class="stat-icon-wrap bg-danger-subtle text-danger">
+                    <i class="fa-solid fa-user-shield fs-4"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="text-muted x-small fw-bold">أصحاب الخدمات (المزودين)</div>
+                    <div class="d-flex align-items-baseline gap-2">
+                        <span class="fs-4 fw-bold text-dark">@pendingProviders.Count</span>
+                        <span class="x-small text-muted">بانتظار الاعتماد</span>
+                    </div>
+                </div>
+                @if (pendingProviders.Count > 0)
+                {
+                    <span class="badge bg-danger rounded-pill px-2 py-1">@pendingProviders.Count</span>
+                }
+            </div>
+        </div>
 
-        <button class="tab-btn flex-fill @(activeTab == "edits" ? "active" : "")" @onclick='() => SetTab("edits")'>
-            <i class="fa-solid fa-pen-to-square me-2"></i>
-            <span>تعديلات الخدمات</span>
-            @if (pendingEdits.Count > 0)
-            {
-                <span class="tab-badge bg-info text-dark">@pendingEdits.Count</span>
-            }
-        </button>
+        <div class="col-12 col-sm-4">
+            <div class="stat-card glass-card p-3 rounded-4 d-flex align-items-center gap-3 cursor-pointer @(activeTab == "services" ? "active-stat border-warning" : "")"
+                 @onclick='() => SetTab("services")'>
+                <div class="stat-icon-wrap bg-warning-subtle text-warning">
+                    <i class="fa-solid fa-briefcase fs-4"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="text-muted x-small fw-bold">الخدمات الجديدة</div>
+                    <div class="d-flex align-items-baseline gap-2">
+                        <span class="fs-4 fw-bold text-dark">@pendingServices.Count</span>
+                        <span class="x-small text-muted">بانتظار المراجعة</span>
+                    </div>
+                </div>
+                @if (pendingServices.Count > 0)
+                {
+                    <span class="badge bg-warning text-dark rounded-pill px-2 py-1">@pendingServices.Count</span>
+                }
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-4">
+            <div class="stat-card glass-card p-3 rounded-4 d-flex align-items-center gap-3 cursor-pointer @(activeTab == "edits" ? "active-stat border-info" : "")"
+                 @onclick='() => SetTab("edits")'>
+                <div class="stat-icon-wrap bg-info-subtle text-info">
+                    <i class="fa-solid fa-pen-to-square fs-4"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="text-muted x-small fw-bold">تعديلات الخدمات المقترحة</div>
+                    <div class="d-flex align-items-baseline gap-2">
+                        <span class="fs-4 fw-bold text-dark">@pendingEdits.Count</span>
+                        <span class="x-small text-muted">بانتظار التدقيق</span>
+                    </div>
+                </div>
+                @if (pendingEdits.Count > 0)
+                {
+                    <span class="badge bg-info text-dark rounded-pill px-2 py-1">@pendingEdits.Count</span>
+                }
+            </div>
+        </div>
     </div>
 
-    <!-- Content Area -->
+    <!-- Navigation Tabs & Search Controls -->
+    <div class="glass-card p-3 rounded-4 mb-4 shadow-sm">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <!-- Segmented Tabs -->
+            <div class="nav-segment-wrap d-flex p-1 rounded-pill bg-light border">
+                <button type="button" class="segment-btn @(activeTab == "providers" ? "active" : "")" @onclick='() => SetTab("providers")'>
+                    <i class="fa-solid fa-user-check me-2"></i>
+                    <span>موافقة أصحاب الخدمات</span>
+                    @if (pendingProviders.Count > 0)
+                    {
+                        <span class="badge bg-danger rounded-pill ms-2">@pendingProviders.Count</span>
+                    }
+                </button>
+
+                <button type="button" class="segment-btn @(activeTab == "services" ? "active" : "")" @onclick='() => SetTab("services")'>
+                    <i class="fa-solid fa-briefcase me-2"></i>
+                    <span>موافقة الخدمات</span>
+                    @if (pendingServices.Count > 0)
+                    {
+                        <span class="badge bg-warning text-dark rounded-pill ms-2">@pendingServices.Count</span>
+                    }
+                </button>
+
+                @if (pendingEdits.Count > 0)
+                {
+                    <button type="button" class="segment-btn @(activeTab == "edits" ? "active" : "")" @onclick='() => SetTab("edits")'>
+                        <i class="fa-solid fa-pen-to-square me-2"></i>
+                        <span>تعديلات الخدمات</span>
+                        <span class="badge bg-info text-dark rounded-pill ms-2">@pendingEdits.Count</span>
+                    </button>
+                }
+            </div>
+
+            <!-- Instant Search Input -->
+            <div class="search-input-wrap position-relative flex-grow-1" style="max-width: 380px;">
+                <i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                <input type="text"
+                       class="form-control rounded-pill ps-5 pe-3 bg-light border-0 py-2 small"
+                       placeholder="بحث سريع بالاسم، الهاتف، التصنيف، المدينة..."
+                       @bind="searchQuery"
+                       @bind:event="oninput" />
+                @if (!string.IsNullOrEmpty(searchQuery))
+                {
+                    <button class="btn btn-sm position-absolute top-50 end-0 translate-middle-y me-2 text-muted border-0 bg-transparent"
+                            @onclick="() => searchQuery = string.Empty">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
     @if (isLoading)
     {
-        <div class="text-center p-5">
-            <div class="spinner-border text-primary" role="status"></div>
-            <p class="mt-2 text-muted small">جاري تحميل طلبات الموافقة...</p>
+        <div class="text-center p-5 glass-card rounded-4">
+            <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+            <h5 class="fw-bold">جاري تحميل طلبات الموافقة...</h5>
+            <p class="text-muted small mb-0">يرجى الانتظار لحظات ريثما يتم جلب أحدث البيانات</p>
         </div>
     }
     else
     {
-        @* ── TAB 1: مقدمي الخدمات ── *@
+        @* ══════════════════════════════════════════════════════════════════════
+           TAB 1: موافقة على صاحب خدمة (Provider Approval)
+           ══════════════════════════════════════════════════════════════════════ *@
         @if (activeTab == "providers")
         {
-            @if (!pendingProviders.Any())
+            var filteredProviders = FilteredProviders;
+            @if (!filteredProviders.Any())
             {
-                <div class="glass-card p-5 text-center">
+                <div class="glass-card p-5 text-center rounded-4 shadow-sm">
                     <i class="fa-solid fa-circle-check text-success display-1 mb-3 opacity-25"></i>
-                    <h5 class="fw-bold">لا توجد طلبات انضمام معلقة</h5>
-                    <p class="text-muted">تمت مراجعة جميع طلبات مقدمي الخدمات بنجاح.</p>
+                    <h4 class="fw-bold text-dark">لا توجد طلبات انضمام معلقة</h4>
+                    <p class="text-muted mb-0">تمت مراجعة واعتماد جميع طلبات مقدمي الخدمات بنجاح.</p>
                 </div>
             }
             else
             {
                 <div class="row g-4">
-                    @foreach (var provider in pendingProviders)
+                    @foreach (var provider in filteredProviders)
                     {
-                        <div class="col-12 col-md-6 col-lg-4">
-                            <div class="glass-card p-0 overflow-hidden border-0 shadow-sm h-100 animate-up">
-                                <div class="p-3 bg-light d-flex align-items-center gap-3 border-bottom">
-                                    <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(provider.Name)" class="rounded-circle shadow-sm" width="50" height="50" alt="@provider.Name" />
-                                    <div>
-                                        <h6 class="fw-bold mb-0">@provider.Name</h6>
-                                        <span class="small text-muted">@provider.Expertise</span>
+                        <div class="col-12 col-lg-6">
+                            <div class="approval-card glass-card p-0 rounded-4 overflow-hidden shadow-sm h-100 d-flex flex-column animate-up border">
+                                <!-- Card Header -->
+                                <div class="p-3 bg-light border-bottom d-flex align-items-center gap-3">
+                                    <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(provider.Name)"
+                                         class="rounded-circle shadow-sm border border-2 border-white flex-shrink-0"
+                                         width="56" height="56" alt="@provider.Name" />
+                                    <div class="flex-grow-1 min-w-0">
+                                        <div class="d-flex align-items-center justify-content-between gap-2">
+                                            <h6 class="fw-bold mb-0 text-dark text-truncate">@provider.Name</h6>
+                                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-1 x-small">
+                                                طلب انضمام جديد
+                                            </span>
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(provider.BusinessName))
+                                        {
+                                            <div class="small fw-semibold text-primary text-truncate">
+                                                <i class="fa-solid fa-briefcase me-1"></i>@provider.BusinessName
+                                            </div>
+                                        }
+                                        <div class="x-small text-muted mt-1">
+                                            <i class="fa-solid fa-clock me-1"></i>تاريخ الطلب: @provider.JoinedAt.ToString("yyyy/MM/dd - hh:mm tt")
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="p-3">
-                                    <div class="small mb-3">
-                                        <div class="mb-1"><i class="fa-solid fa-envelope me-2 text-primary opacity-50"></i> @provider.Email</div>
-                                        <div class="mb-1"><i class="fa-solid fa-phone me-2 text-primary opacity-50"></i> @provider.Phone</div>
-                                        <div class="mb-1"><i class="fa-solid fa-location-dot me-2 text-primary opacity-50"></i> @provider.City</div>
+
+                                <!-- Card Body: Info & Contacts -->
+                                <div class="p-3 flex-grow-1 d-flex flex-column gap-3">
+                                    <!-- Contact details bar -->
+                                    <div class="row g-2 small">
+                                        <div class="col-sm-6">
+                                            <div class="p-2 rounded-3 bg-light border d-flex align-items-center gap-2">
+                                                <i class="fa-solid fa-phone text-primary"></i>
+                                                <span class="fw-bold text-truncate" dir="ltr">@provider.Phone</span>
+                                                <div class="ms-auto d-flex gap-1">
+                                                    <a href="tel:@provider.Phone" class="btn btn-xs btn-outline-primary rounded-circle" title="اتصال">
+                                                        <i class="fa-solid fa-phone-volume"></i>
+                                                    </a>
+                                                    <a href="@GetWhatsAppLink(provider.Phone)" target="_blank" class="btn btn-xs btn-outline-success rounded-circle" title="واتساب">
+                                                        <i class="fa-brands fa-whatsapp"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="p-2 rounded-3 bg-light border d-flex align-items-center gap-2">
+                                                <i class="fa-solid fa-envelope text-primary"></i>
+                                                <span class="text-truncate" dir="ltr">@provider.Email</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="p-2 rounded-3 bg-light border d-flex align-items-center gap-2">
+                                                <i class="fa-solid fa-location-dot text-danger"></i>
+                                                <span>المدينة / المنطقة: <strong>@(string.IsNullOrEmpty(provider.City) ? "غير محدد" : provider.City)</strong></span>
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <div class="docs-preview d-flex gap-2 mb-3">
-                                        <div class="doc-item flex-grow-1 p-2 rounded-3 bg-light text-center cursor-pointer" @onclick='() => ViewDoc(provider, "ID")'>
-                                            <i class="fa-solid fa-id-card d-block mb-1 text-muted"></i>
-                                            <span class="x-small fw-bold">البطاقة الشخصية</span>
+                                    <!-- Bio / Expertise -->
+                                    @if (!string.IsNullOrWhiteSpace(provider.Expertise))
+                                    {
+                                        <div class="p-3 rounded-3 bg-light-subtle border">
+                                            <div class="x-small fw-bold text-muted mb-1"><i class="fa-solid fa-award me-1 text-warning"></i>الخبرات والتخصص والنبذة:</div>
+                                            <div class="small text-dark lh-base">@provider.Expertise</div>
                                         </div>
-                                        <div class="doc-item flex-grow-1 p-2 rounded-3 bg-light text-center cursor-pointer" @onclick='() => ViewDoc(provider, "Certificate")'>
-                                            <i class="fa-solid fa-certificate d-block mb-1 text-muted"></i>
-                                            <span class="x-small fw-bold">الشهادات</span>
-                                        </div>
-                                    </div>
+                                    }
 
-                                    <div class="d-flex gap-2">
-                                        <button class="btn btn-success flex-grow-1 rounded-pill btn-sm py-2" @onclick="() => ApproveProvider(provider)">
-                                            <i class="fa-solid fa-check me-1"></i> قبول
-                                        </button>
-                                        <button class="btn btn-danger flex-grow-1 rounded-pill btn-sm py-2" @onclick="() => RejectProvider(provider)">
-                                            <i class="fa-solid fa-xmark me-1"></i> رفض
-                                        </button>
+                                    <!-- Official Documents Verification Section (معاينة المستندات) -->
+                                    <div>
+                                        <div class="x-small fw-bold text-muted mb-2 d-flex align-items-center gap-1">
+                                            <i class="fa-solid fa-file-shield text-primary"></i>
+                                            <span>معاينة المستندات والوثائق الرسمية:</span>
+                                        </div>
+                                        <div class="row g-2">
+                                            <!-- National ID Card Preview -->
+                                            <div class="col-6">
+                                                <div class="doc-card p-2 rounded-3 border text-center cursor-pointer position-relative @(!string.IsNullOrEmpty(provider.IdCardImage) ? "border-primary bg-primary-subtle bg-opacity-10" : "bg-light")"
+                                                     @onclick='() => ViewDoc(provider, "ID")' title="انقر للمعاينة بالحجم الكامل">
+                                                    @if (!string.IsNullOrEmpty(provider.IdCardImage))
+                                                    {
+                                                        <div class="doc-thumb-wrap mb-1 position-relative overflow-hidden rounded-2">
+                                                            <img src="@Api.GetAbsoluteUrl(provider.IdCardImage)" class="doc-thumb-img" alt="البطاقة الشخصية" />
+                                                            <div class="doc-hover-overlay">
+                                                                <i class="fa-solid fa-magnifying-glass-plus text-white fs-5"></i>
+                                                            </div>
+                                                        </div>
+                                                        <span class="x-small fw-bold text-primary d-block">البطاقة الشخصية</span>
+                                                        <span class="badge bg-success-subtle text-success border border-success-subtle x-small mt-1">مرفق</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="py-3 text-muted">
+                                                            <i class="fa-solid fa-id-card fs-3 mb-1 opacity-50"></i>
+                                                            <div class="x-small fw-bold">البطاقة الشخصية</div>
+                                                            <span class="badge bg-secondary-subtle text-secondary x-small mt-1">غير مرفق</span>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+
+                                            <!-- Certificate Preview -->
+                                            <div class="col-6">
+                                                <div class="doc-card p-2 rounded-3 border text-center cursor-pointer position-relative @(!string.IsNullOrEmpty(provider.CertificateImage) ? "border-info bg-info-subtle bg-opacity-10" : "bg-light")"
+                                                     @onclick='() => ViewDoc(provider, "Certificate")' title="انقر للمعاينة بالحجم الكامل">
+                                                    @if (!string.IsNullOrEmpty(provider.CertificateImage))
+                                                    {
+                                                        <div class="doc-thumb-wrap mb-1 position-relative overflow-hidden rounded-2">
+                                                            <img src="@Api.GetAbsoluteUrl(provider.CertificateImage)" class="doc-thumb-img" alt="الشهادة المهنية" />
+                                                            <div class="doc-hover-overlay">
+                                                                <i class="fa-solid fa-magnifying-glass-plus text-white fs-5"></i>
+                                                            </div>
+                                                        </div>
+                                                        <span class="x-small fw-bold text-info d-block">الشهادة / الترخيص</span>
+                                                        <span class="badge bg-success-subtle text-success border border-success-subtle x-small mt-1">مرفق</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="py-3 text-muted">
+                                                            <i class="fa-solid fa-certificate fs-3 mb-1 opacity-50"></i>
+                                                            <div class="x-small fw-bold">الشهادة المهنية</div>
+                                                            <span class="badge bg-secondary-subtle text-secondary x-small mt-1">غير مرفق</span>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
+                                </div>
+
+                                <!-- Card Footer: Full Actions (قبول، رفض، تواصل) -->
+                                <div class="p-3 bg-light border-top mt-auto d-flex gap-2">
+                                    <button class="btn btn-success flex-grow-1 rounded-pill py-2 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2"
+                                            @onclick="() => ApproveProvider(provider)">
+                                        <i class="fa-solid fa-check fs-6"></i>
+                                        <span>قبول واعتماد المزود</span>
+                                    </button>
+                                    <button class="btn btn-outline-danger flex-grow-1 rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-2"
+                                            @onclick="() => RejectProvider(provider)">
+                                        <i class="fa-solid fa-xmark fs-6"></i>
+                                        <span>رفض الطلب</span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -139,64 +337,154 @@
             }
         }
 
-        @* ── TAB 2: الخدمات الجديدة ── *@
+        @* ══════════════════════════════════════════════════════════════════════
+           TAB 2: موافقة على خدمة (Service Approval)
+           ══════════════════════════════════════════════════════════════════════ *@
         @if (activeTab == "services")
         {
-            @if (!pendingServices.Any())
+            var filteredServices = FilteredServices;
+            @if (!filteredServices.Any())
             {
-                <div class="glass-card p-5 text-center">
+                <div class="glass-card p-5 text-center rounded-4 shadow-sm">
                     <i class="fa-solid fa-circle-check text-success display-1 mb-3 opacity-25"></i>
-                    <h5 class="fw-bold">لا توجد خدمات بانتظار المراجعة</h5>
-                    <p class="text-muted">تمت مراجعة جميع الخدمات المنشورة.</p>
+                    <h4 class="fw-bold text-dark">لا توجد خدمات بانتظار المراجعة</h4>
+                    <p class="text-muted mb-0">تمت مراجعة واعتماد ونشر جميع الخدمات بنجاح.</p>
                 </div>
             }
             else
             {
                 <div class="row g-4">
-                    @foreach (var service in pendingServices)
+                    @foreach (var service in filteredServices)
                     {
-                        <div class="col-12 col-md-6 col-lg-4">
-                            <div class="glass-card p-3 border-0 shadow-sm rounded-4 h-100 d-flex flex-direction-column justify-content-between">
-                                <div>
-                                    <div class="d-flex align-items-start gap-3 mb-3">
-                                        <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(service.Images?.FirstOrDefault(), service.SubCategoryName, service.CategoryName, service.MainCategoryName))"
-                                             class="rounded-3 object-fit-cover flex-shrink-0" width="64" height="64" alt="@service.Title" />
+                        var mainImg = service.Images?.FirstOrDefault();
+                        var serviceImgUrl = Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(mainImg, service.SubCategoryName, service.CategoryName, service.MainCategoryName));
+
+                        <div class="col-12 col-lg-6">
+                            <div class="approval-card glass-card p-0 rounded-4 overflow-hidden shadow-sm h-100 d-flex flex-column animate-up border">
+                                <!-- Top Bar -->
+                                <div class="p-3 bg-light border-bottom d-flex align-items-center justify-content-between gap-2">
+                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fw-bold">
+                                            @service.CategoryName
+                                        </span>
+                                        @if (!string.IsNullOrEmpty(service.SubCategoryName))
+                                        {
+                                            <span class="badge bg-light text-muted border rounded-pill px-2 py-1 x-small">
+                                                @service.SubCategoryName
+                                            </span>
+                                        }
+                                    </div>
+                                    <span class="x-small text-muted">
+                                        <i class="fa-solid fa-clock me-1"></i>@service.CreatedAt.ToString("yyyy/MM/dd")
+                                    </span>
+                                </div>
+
+                                <!-- Service Details Body -->
+                                <div class="p-3 flex-grow-1 d-flex flex-column gap-3">
+                                    <div class="d-flex align-items-start gap-3">
+                                        <!-- Main Image with Clickable Zoom -->
+                                        <div class="service-img-preview-box flex-shrink-0 cursor-pointer position-relative rounded-3 overflow-hidden shadow-2xs border"
+                                             @onclick="() => PreviewImage(serviceImgUrl, service.Title)" title="انقر لتكبير الصورة">
+                                            <img src="@serviceImgUrl" class="w-100 h-100 object-fit-cover" alt="@service.Title" />
+                                            <div class="doc-hover-overlay">
+                                                <i class="fa-solid fa-magnifying-glass-plus text-white"></i>
+                                            </div>
+                                        </div>
+
+                                        <!-- Title & Price -->
                                         <div class="flex-grow-1 min-w-0">
-                                            <div class="fw-bold text-dark text-truncate mb-1">@service.Title</div>
-                                            <div class="small text-muted text-truncate mb-1">@service.Description</div>
-                                            <div class="d-flex align-items-center gap-2 flex-wrap">
-                                                <span class="badge bg-light text-dark border" style="font-size:0.7rem;">@service.CategoryName</span>
-                                                @if (service.Price.HasValue)
+                                            <h5 class="fw-bold mb-1 text-dark">@service.Title</h5>
+                                            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                                                @if (service.Price.HasValue && service.Price.Value > 0)
                                                 {
-                                                    <span class="badge bg-primary-subtle text-primary" style="font-size:0.7rem;">@service.Price.Value.ToString("N0") ج.م</span>
+                                                    <span class="badge bg-success-subtle text-success fs-6 fw-bold px-2 py-1">
+                                                        @service.Price.Value.ToString("N0") ج.م
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary-subtle text-secondary px-2 py-1 small">
+                                                        السعر حسب الاتفاق
+                                                    </span>
+                                                }
+
+                                                @if (!string.IsNullOrEmpty(service.GovernorateName) || !string.IsNullOrEmpty(service.CityName))
+                                                {
+                                                    <span class="badge bg-light text-dark border small">
+                                                        <i class="fa-solid fa-location-dot me-1 text-danger"></i>
+                                                        @service.GovernorateName @(!string.IsNullOrEmpty(service.CityName) ? " - " + service.CityName : "")
+                                                    </span>
                                                 }
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
-                                        <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(service.ProviderName, null, service.ProviderPhoto))"
-                                             class="rounded-circle flex-shrink-0" width="28" height="28" alt="@service.ProviderName" />
-                                        <div class="small">
-                                            <span class="fw-bold">@service.ProviderName</span>
-                                            @if (!string.IsNullOrEmpty(service.CityName))
-                                            {
-                                                <span class="text-muted"> - @service.CityName</span>
-                                            }
+                                    <!-- Description -->
+                                    <div class="p-3 rounded-3 bg-light-subtle border">
+                                        <div class="x-small fw-bold text-muted mb-1"><i class="fa-solid fa-align-right me-1 text-primary"></i>تفاصيل ووصف الخدمة:</div>
+                                        <div class="small text-dark lh-base" style="white-space: pre-line;">@service.Description</div>
+                                    </div>
+
+                                    <!-- Additional Images Gallery (معرض صور الخدمة) -->
+                                    @if (service.Images != null && service.Images.Count > 1)
+                                    {
+                                        <div>
+                                            <div class="x-small fw-bold text-muted mb-1"><i class="fa-solid fa-images me-1 text-primary"></i>صور الخدمة المرفقة (@service.Images.Count صور):</div>
+                                            <div class="d-flex gap-2 overflow-x-auto pb-1">
+                                                @foreach (var img in service.Images)
+                                                {
+                                                    var fullImgUrl = Api.GetAbsoluteUrl(img);
+                                                    <div class="gallery-thumb cursor-pointer border rounded-2 overflow-hidden position-relative flex-shrink-0"
+                                                         style="width: 50px; height: 50px;"
+                                                         @onclick="() => PreviewImage(fullImgUrl, service.Title)">
+                                                        <img src="@fullImgUrl" class="w-100 h-100 object-fit-cover" alt="Service photo" />
+                                                    </div>
+                                                }
+                                            </div>
                                         </div>
-                                        <div class="ms-auto x-small text-muted">@service.CreatedAt.ToString("dd/MM")</div>
+                                    }
+
+                                    <!-- Provider Info Bar -->
+                                    <div class="p-2 rounded-3 bg-light border d-flex align-items-center justify-content-between gap-2 mt-auto">
+                                        <div class="d-flex align-items-center gap-2 min-w-0">
+                                            <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(service.ProviderName, null, service.ProviderPhoto))"
+                                                 class="rounded-circle border" width="34" height="34" alt="@service.ProviderName" />
+                                            <div class="min-w-0">
+                                                <div class="fw-bold small text-dark text-truncate">@service.ProviderName</div>
+                                                <div class="x-small text-muted">صاحب الخدمة</div>
+                                            </div>
+                                        </div>
+
+                                        @if (!string.IsNullOrEmpty(service.Phone1))
+                                        {
+                                            <div class="d-flex gap-1">
+                                                <a href="tel:@service.Phone1" class="btn btn-xs btn-outline-primary rounded-circle" title="اتصال">
+                                                    <i class="fa-solid fa-phone"></i>
+                                                </a>
+                                                <a href="@GetWhatsAppLink(service.Phone1)" target="_blank" class="btn btn-xs btn-outline-success rounded-circle" title="واتساب">
+                                                    <i class="fa-brands fa-whatsapp"></i>
+                                                </a>
+                                            </div>
+                                        }
                                     </div>
                                 </div>
 
-                                <div class="d-flex gap-2 mt-2">
-                                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3 flex-grow-1" @onclick="@(() => Navigation.NavigateTo($"/service/{service.Id}"))">
-                                        <i class="fa-solid fa-eye me-1"></i> عرض
+                                <!-- Card Footer: Full Control (معاينة، قبول، رفض) -->
+                                <div class="p-3 bg-light border-top d-flex flex-wrap gap-2">
+                                    <button class="btn btn-outline-primary rounded-pill px-3 py-2 fw-bold d-flex align-items-center gap-1"
+                                            @onclick='() => Navigation.NavigateTo($"/service/{service.Id}")' title="فتح صفحة الخدمة لمعاينتها كاملاً">
+                                        <i class="fa-solid fa-eye"></i>
+                                        <span>معاينة الخدمة</span>
                                     </button>
-                                    <button class="btn btn-sm btn-success rounded-pill px-3 flex-grow-1" @onclick="() => ApproveService(service)">
-                                        <i class="fa-solid fa-check me-1"></i> قبول
+                                    <button class="btn btn-success flex-grow-1 rounded-pill py-2 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-1"
+                                            @onclick="() => ApproveService(service)">
+                                        <i class="fa-solid fa-check"></i>
+                                        <span>قبول ونشر الخدمة</span>
                                     </button>
-                                    <button class="btn btn-sm btn-danger rounded-pill px-3 flex-grow-1" @onclick="() => RejectService(service)">
-                                        <i class="fa-solid fa-xmark me-1"></i> رفض
+                                    <button class="btn btn-outline-danger flex-grow-1 rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-1"
+                                            @onclick="() => RejectService(service)">
+                                        <i class="fa-solid fa-xmark"></i>
+                                        <span>رفض الخدمة</span>
                                     </button>
                                 </div>
                             </div>
@@ -206,15 +494,17 @@
             }
         }
 
-        @* ── TAB 3: تعديلات الخدمات ── *@
+        @* ══════════════════════════════════════════════════════════════════════
+           TAB 3: تعديلات الخدمات المقترحة (Service Edits)
+           ══════════════════════════════════════════════════════════════════════ *@
         @if (activeTab == "edits")
         {
             @if (!pendingEdits.Any())
             {
-                <div class="glass-card p-5 text-center">
+                <div class="glass-card p-5 text-center rounded-4 shadow-sm">
                     <i class="fa-solid fa-circle-check text-success display-1 mb-3 opacity-25"></i>
-                    <h5 class="fw-bold">لا توجد طلبات تعديل معلقة</h5>
-                    <p class="text-muted">تمت معالجة جميع اقتراحات التعديل المقدمة.</p>
+                    <h4 class="fw-bold text-dark">لا توجد طلبات تعديل معلقة</h4>
+                    <p class="text-muted mb-0">تمت معالجة جميع اقتراحات التعديل المقدمة.</p>
                 </div>
             }
             else
@@ -222,26 +512,26 @@
                 <div class="d-flex flex-column gap-3">
                     @foreach (var req in pendingEdits)
                     {
-                        <div class="card border-0 shadow-sm edit-request-card rounded-4 overflow-hidden">
-                            <div class="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
+                        <div class="card border-0 shadow-sm rounded-4 overflow-hidden border">
+                            <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
                                 <div class="d-flex align-items-center gap-3">
-                                    <div class="bg-primary-subtle p-2 rounded-3">
-                                        <i class="fa-solid fa-pen-to-square text-primary"></i>
+                                    <div class="bg-primary-subtle p-2 rounded-3 text-primary">
+                                        <i class="fa-solid fa-pen-to-square fs-5"></i>
                                     </div>
                                     <div>
                                         <h6 class="mb-0 fw-bold">@req.ServiceName</h6>
-                                        <small class="text-muted">بواسطة: @req.RequesterName | @req.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                                        <small class="text-muted">مقدم الطلب: @req.RequesterName | @req.CreatedAt.ToString("yyyy/MM/dd HH:mm")</small>
                                     </div>
                                 </div>
-                                <span class="badge bg-warning text-dark rounded-pill px-3">معلق</span>
+                                <span class="badge bg-warning text-dark rounded-pill px-3">بانتظار المراجعة</span>
                             </div>
                             <div class="card-body p-4 bg-light-subtle">
                                 <div class="row g-3">
                                     @if (!string.IsNullOrEmpty(req.ProposedName))
                                     {
                                         <div class="col-md-6">
-                                            <div class="p-2 bg-white rounded-3 border">
-                                                <small class="text-muted d-block">الاسم المقترح:</small>
+                                            <div class="p-3 bg-white rounded-3 border">
+                                                <small class="text-muted d-block mb-1">الاسم المقترح:</small>
                                                 <strong>@req.ProposedName</strong>
                                             </div>
                                         </div>
@@ -249,17 +539,17 @@
                                     @if (!string.IsNullOrEmpty(req.ProposedPhone1))
                                     {
                                         <div class="col-md-6">
-                                            <div class="p-2 bg-white rounded-3 border">
-                                                <small class="text-muted d-block">الهاتف المقترح:</small>
-                                                <strong>@req.ProposedPhone1</strong>
+                                            <div class="p-3 bg-white rounded-3 border">
+                                                <small class="text-muted d-block mb-1">الهاتف المقترح:</small>
+                                                <strong dir="ltr">@req.ProposedPhone1</strong>
                                             </div>
                                         </div>
                                     }
                                     @if (!string.IsNullOrEmpty(req.ProposedDescription))
                                     {
                                         <div class="col-12">
-                                            <div class="p-2 bg-white rounded-3 border">
-                                                <small class="text-muted d-block">الوصف المقترح:</small>
+                                            <div class="p-3 bg-white rounded-3 border">
+                                                <small class="text-muted d-block mb-1">الوصف المقترح:</small>
                                                 <span>@req.ProposedDescription</span>
                                             </div>
                                         </div>
@@ -267,8 +557,8 @@
                                     @if (!string.IsNullOrEmpty(req.ProposedAddress))
                                     {
                                         <div class="col-12">
-                                            <div class="p-2 bg-white rounded-3 border">
-                                                <small class="text-muted d-block">العنوان المقترح:</small>
+                                            <div class="p-3 bg-white rounded-3 border">
+                                                <small class="text-muted d-block mb-1">العنوان المقترح:</small>
                                                 <span>@req.ProposedAddress</span>
                                             </div>
                                         </div>
@@ -295,81 +585,168 @@
     }
 </div>
 
-@* Modal لعرض مستندات مقدم الخدمة *@
-@if (selectedDocProvider != null)
+<!-- Document / Image Fullscreen Preview Modal -->
+@if (isDocModalOpen)
 {
-    <div class="modal-overlay" @onclick="() => selectedDocProvider = null">
-        <div class="glass-card p-4 rounded-4 w-75 animate-pop text-center" @onclick:stopPropagation="true">
-            <h5 class="fw-bold mb-3">مستند: @(selectedDocType == "ID" ? "البطاقة الشخصية" : "الشهادة المهنية")</h5>
-            <img src="@GetSelectedDocImage()" class="img-fluid rounded-4 mb-3 shadow-lg" style="max-height: 80vh;" alt="Document" />
-            <button class="btn btn-light rounded-pill px-5" @onclick="() => selectedDocProvider = null">إغلاق</button>
+    <div class="approvals-modal-overlay" @onclick="CloseDocModal">
+        <div class="glass-card p-4 rounded-4 animate-pop approvals-modal-container text-center shadow-lg" @onclick:stopPropagation="true">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0 text-dark">
+                    <i class="fa-solid fa-file-image text-primary me-2"></i>@modalTitle
+                </h5>
+                <button class="btn-close" @onclick="CloseDocModal"></button>
+            </div>
+
+            <div class="modal-img-wrap rounded-3 overflow-hidden bg-dark d-flex align-items-center justify-content-center p-2 mb-3">
+                <img src="@modalImageUrl" class="img-fluid rounded-2" style="max-height: 70vh; max-width: 100%; object-fit: contain;" alt="@modalTitle" />
+            </div>
+
+            <div class="d-flex justify-content-center gap-2">
+                <a href="@modalImageUrl" target="_blank" class="btn btn-outline-primary rounded-pill px-4">
+                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> فتح بحجم كامل
+                </a>
+                <button class="btn btn-light rounded-pill px-4 border" @onclick="CloseDocModal">
+                    إغلاق
+                </button>
+            </div>
         </div>
     </div>
 }
 
 <style>
-    .approval-tabs {
-        background: #ffffff;
+    .hub-icon-badge {
+        width: 48px;
+        height: 48px;
         border-radius: 14px;
-        border: 1px solid rgba(0,0,0,0.06);
-    }
-    .tab-btn {
+        background: #fff;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 10px 18px;
-        border-radius: 10px;
+        border: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .stat-card {
+        transition: all 0.25s ease;
+        border: 1px solid rgba(0,0,0,0.06);
+    }
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+    .stat-card.active-stat {
+        border-width: 2px !important;
+        background: #ffffff;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+    }
+
+    .stat-icon-wrap {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .nav-segment-wrap {
+        background: #f1f5f9;
+        gap: 4px;
+    }
+    .segment-btn {
         border: none;
         background: transparent;
-        color: var(--text-secondary);
-        font-weight: 600;
+        padding: 8px 20px;
+        border-radius: 30px;
         font-size: 0.9rem;
-        transition: all 0.2s;
-        cursor: pointer;
+        font-weight: 700;
+        color: #475569;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
         white-space: nowrap;
     }
-    .tab-btn:hover {
-        background: #f8fafc;
-        color: var(--theme-primary);
+    .segment-btn:hover {
+        color: var(--theme-primary, #0284c7);
     }
-    .tab-btn.active {
-        background: var(--theme-primary);
-        color: #ffffff;
-        box-shadow: 0 4px 12px rgba(var(--theme-primary-rgb, 99, 102, 241), 0.25);
-    }
-    .tab-badge {
-        margin-inline-start: 8px;
-        padding: 2px 8px;
-        border-radius: 10px;
-        font-size: 0.75rem;
-        font-weight: 700;
+    .segment-btn.active {
+        background: var(--theme-primary, #0284c7);
+        color: #ffffff !important;
+        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
     }
 
-    .doc-item {
-        transition: all 0.2s;
-        border: 1px solid transparent;
+    .approval-card {
+        background: #ffffff;
+        border: 1px solid rgba(0,0,0,0.06);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-    .doc-item:hover {
-        background: #fff !important;
-        border-color: var(--theme-primary);
-        color: var(--theme-primary);
+    .approval-card:hover {
         transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08) !important;
     }
 
-    .modal-overlay {
-        position: fixed; inset: 0; z-index: 2000;
-        background: rgba(0,0,0,0.6);
-        backdrop-filter: blur(8px);
-        display: flex; align-items: center; justify-content: center;
+    .service-img-preview-box {
+        width: 80px;
+        height: 80px;
     }
-    .animate-pop {
-        animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+    .doc-card {
+        transition: all 0.2s;
     }
-    @@keyframes pop {
-        from { transform: scale(0.85); opacity: 0; }
-        to { transform: scale(1); opacity: 1; }
+    .doc-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
-    .x-small { font-size: 0.75rem; }
+    .doc-thumb-wrap {
+        width: 100%;
+        height: 70px;
+        background: #e2e8f0;
+    }
+    .doc-thumb-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .doc-hover-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .doc-thumb-wrap:hover .doc-hover-overlay,
+    .service-img-preview-box:hover .doc-hover-overlay {
+        opacity: 1;
+    }
+
+    .approvals-modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 2100;
+        background: rgba(15, 23, 42, 0.7);
+        backdrop-filter: blur(6px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+    }
+    .approvals-modal-container {
+        max-width: 750px;
+        width: 100%;
+        background: #ffffff;
+    }
+
+    .btn-xs {
+        padding: 2px 7px;
+        font-size: 0.75rem;
+    }
+
+    .x-small {
+        font-size: 0.75rem;
+    }
 </style>
 
 @code {
@@ -377,14 +754,21 @@
     public string? Tab { get; set; }
 
     private string activeTab = "providers";
+    private string searchQuery = "";
     private bool isLoading = true;
 
     private List<PendingProviderDto> pendingProviders = new();
     private List<ServiceDto> pendingServices = new();
     private List<ServiceEditRequestDto> pendingEdits = new();
 
-    private PendingProviderDto? selectedDocProvider;
-    private string selectedDocType = "";
+    // Modal state
+    private bool isDocModalOpen = false;
+    private string modalImageUrl = "";
+    private string modalTitle = "";
+
+    // Status toast
+    private string? statusMessage;
+    private string statusMessageType = "success";
 
     private int TotalPendingCount => pendingProviders.Count + pendingServices.Count + pendingEdits.Count;
 
@@ -398,6 +782,14 @@
         await ReloadAllAsync();
     }
 
+    protected override void OnParametersSet()
+    {
+        if (!string.IsNullOrWhiteSpace(Tab) && Tab.ToLower() != activeTab)
+        {
+            activeTab = Tab.ToLower();
+        }
+    }
+
     private void SetTab(string tab)
     {
         activeTab = tab;
@@ -406,6 +798,7 @@
     private async Task ReloadAllAsync()
     {
         isLoading = true;
+        statusMessage = null;
         try
         {
             var pTask = AdminService.GetPendingProviders();
@@ -423,6 +816,8 @@
         catch (Exception ex)
         {
             Console.WriteLine($"[ApprovalsHub] Error loading approvals: {ex.Message}");
+            statusMessage = "حدث خطأ أثناء تحميل بيانات الطلبات: " + ex.Message;
+            statusMessageType = "danger";
         }
         finally
         {
@@ -435,85 +830,187 @@
         State.PendingApprovalsCount = TotalPendingCount;
     }
 
-    // ── مزودي الخدمات ──
+    private IEnumerable<PendingProviderDto> FilteredProviders
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(searchQuery)) return pendingProviders;
+            var q = searchQuery.Trim().ToLower();
+            return pendingProviders.Where(p =>
+                (p.Name != null && p.Name.ToLower().Contains(q)) ||
+                (p.BusinessName != null && p.BusinessName.ToLower().Contains(q)) ||
+                (p.Phone != null && p.Phone.Contains(q)) ||
+                (p.City != null && p.City.ToLower().Contains(q)) ||
+                (p.Expertise != null && p.Expertise.ToLower().Contains(q)));
+        }
+    }
+
+    private IEnumerable<ServiceDto> FilteredServices
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(searchQuery)) return pendingServices;
+            var q = searchQuery.Trim().ToLower();
+            return pendingServices.Where(s =>
+                (s.Title != null && s.Title.ToLower().Contains(q)) ||
+                (s.CategoryName != null && s.CategoryName.ToLower().Contains(q)) ||
+                (s.SubCategoryName != null && s.SubCategoryName.ToLower().Contains(q)) ||
+                (s.ProviderName != null && s.ProviderName.ToLower().Contains(q)) ||
+                (s.Phone1 != null && s.Phone1.Contains(q)) ||
+                (s.CityName != null && s.CityName.ToLower().Contains(q)));
+        }
+    }
+
+    private string GetWhatsAppLink(string? phone)
+    {
+        if (string.IsNullOrWhiteSpace(phone)) return "#";
+        var clean = new string(phone.Where(char.IsDigit).ToArray());
+        if (clean.StartsWith("0")) clean = "2" + clean;
+        return $"https://wa.me/{clean}";
+    }
+
+    // ── معاينة المستندات والصور ──
     private void ViewDoc(PendingProviderDto provider, string type)
     {
-        selectedDocProvider = provider;
-        selectedDocType = type;
+        var rawUrl = type == "ID" ? provider.IdCardImage : provider.CertificateImage;
+        if (string.IsNullOrEmpty(rawUrl)) return;
+
+        modalTitle = type == "ID" ? $"البطاقة الشخصية: {provider.Name}" : $"الشهادة المهنية: {provider.Name}";
+        modalImageUrl = Api.GetAbsoluteUrl(rawUrl);
+        isDocModalOpen = true;
     }
 
-    private string GetSelectedDocImage()
+    private void PreviewImage(string imageUrl, string title)
     {
-        if (selectedDocProvider == null) return "";
-        return selectedDocType == "ID" ? selectedDocProvider.IdCardImage : selectedDocProvider.CertificateImage;
+        modalTitle = title;
+        modalImageUrl = imageUrl;
+        isDocModalOpen = true;
     }
 
+    private void CloseDocModal()
+    {
+        isDocModalOpen = false;
+        modalImageUrl = "";
+        modalTitle = "";
+    }
+
+    // ── مزودي الخدمات: قبول ورفض ──
     private async Task ApproveProvider(PendingProviderDto provider)
     {
-        if (await JS.InvokeAsync<bool>("confirm", $"تأكيد اعتماد مقدم الخدمة {provider.Name}؟"))
+        if (await JS.InvokeAsync<bool>("confirm", $"هل أنت متأكد من اعتماد مقدم الخدمة {provider.Name} وتفعيل حسابه كصاحب خدمة معتمد؟"))
         {
-            await AdminService.ApproveProvider(provider.Id);
-            pendingProviders.Remove(provider);
-            UpdateGlobalCount();
-            StateHasChanged();
+            try
+            {
+                await AdminService.ApproveProvider(provider.Id);
+                pendingProviders.Remove(provider);
+                UpdateGlobalCount();
+                statusMessage = $"تم قبول واعتماد مزود الخدمة ({provider.Name}) بنجاح!";
+                statusMessageType = "success";
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                statusMessage = "فشل اعتماد المزود: " + ex.Message;
+                statusMessageType = "danger";
+            }
         }
     }
 
     private async Task RejectProvider(PendingProviderDto provider)
     {
-        if (await JS.InvokeAsync<bool>("confirm", $"هل تريد رفض طلب {provider.Name}؟"))
+        if (await JS.InvokeAsync<bool>("confirm", $"هل تريد بالتأكيد رفض طلب انضمام {provider.Name}؟"))
         {
-            await AdminService.RejectProvider(provider.Id);
-            pendingProviders.Remove(provider);
-            UpdateGlobalCount();
-            StateHasChanged();
+            try
+            {
+                await AdminService.RejectProvider(provider.Id);
+                pendingProviders.Remove(provider);
+                UpdateGlobalCount();
+                statusMessage = $"تم رفض طلب انضمام ({provider.Name}).";
+                statusMessageType = "warning";
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                statusMessage = "فشل رفض الطلب: " + ex.Message;
+                statusMessageType = "danger";
+            }
         }
     }
 
-    // ── الخدمات الجديدة ──
+    // ── الخدمات الجديدة: قبول ورفض ──
     private async Task ApproveService(ServiceDto service)
     {
-        if (await JS.InvokeAsync<bool>("confirm", $"تأكيد نشر واعتماد خدمة {service.Title}؟"))
+        if (await JS.InvokeAsync<bool>("confirm", $"هل أنت متأكد من اعتماد ونشر خدمة ({service.Title})؟"))
         {
-            await AdminService.ApproveService(service.Id);
-            pendingServices.Remove(service);
-            UpdateGlobalCount();
-            StateHasChanged();
+            try
+            {
+                await AdminService.ApproveService(service.Id);
+                pendingServices.Remove(service);
+                UpdateGlobalCount();
+                statusMessage = $"تم اعتماد ونشر خدمة ({service.Title}) بنجاح!";
+                statusMessageType = "success";
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                statusMessage = "فشل اعتماد الخدمة: " + ex.Message;
+                statusMessageType = "danger";
+            }
         }
     }
 
     private async Task RejectService(ServiceDto service)
     {
-        if (await JS.InvokeAsync<bool>("confirm", $"هل تريد رفض خدمة {service.Title}؟"))
+        if (await JS.InvokeAsync<bool>("confirm", $"هل تريد بالتأكيد رفض خدمة ({service.Title})؟"))
         {
-            await AdminService.RejectService(service.Id);
-            pendingServices.Remove(service);
-            UpdateGlobalCount();
-            StateHasChanged();
+            try
+            {
+                await AdminService.RejectService(service.Id);
+                pendingServices.Remove(service);
+                UpdateGlobalCount();
+                statusMessage = $"تم رفض خدمة ({service.Title}).";
+                statusMessageType = "warning";
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                statusMessage = "فشل رفض الخدمة: " + ex.Message;
+                statusMessageType = "danger";
+            }
         }
     }
 
     // ── تعديلات الخدمات ──
     private async Task ApproveEdit(ServiceEditRequestDto req)
     {
-        if (await JS.InvokeAsync<bool>("confirm", "قبول واعتماد هذه التعديلات على الخدمة؟"))
+        if (await JS.InvokeAsync<bool>("confirm", "قبول واعتماد هذه التعديلات المقترحة على الخدمة؟"))
         {
-            var cmd = new UpdateServiceEditRequestCommand
+            try
             {
-                RequestId = req.Id,
-                Status = "Approved",
-                ApproveName = true,
-                ApproveDescription = true,
-                ApprovePrice = true,
-                ApproveAddress = true,
-                ApprovePhone1 = true,
-                ApprovePhone2 = true,
-                ApproveWhatsApp = true
-            };
-            await AdminService.UpdateServiceEditRequestStatus(req.Id, cmd);
-            pendingEdits.Remove(req);
-            UpdateGlobalCount();
-            StateHasChanged();
+                var cmd = new UpdateServiceEditRequestCommand
+                {
+                    RequestId = req.Id,
+                    Status = "Approved",
+                    ApproveName = true,
+                    ApproveDescription = true,
+                    ApprovePrice = true,
+                    ApproveAddress = true,
+                    ApprovePhone1 = true,
+                    ApprovePhone2 = true,
+                    ApproveWhatsApp = true
+                };
+                await AdminService.UpdateServiceEditRequestStatus(req.Id, cmd);
+                pendingEdits.Remove(req);
+                UpdateGlobalCount();
+                statusMessage = $"تم قبول التعديلات على خدمة ({req.ServiceName}) بنجاح!";
+                statusMessageType = "success";
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                statusMessage = "فشل اعتماد التعديل: " + ex.Message;
+                statusMessageType = "danger";
+            }
         }
     }
 
@@ -521,15 +1018,25 @@
     {
         if (await JS.InvokeAsync<bool>("confirm", "رفض مقترح التعديل هذا؟"))
         {
-            var cmd = new UpdateServiceEditRequestCommand
+            try
             {
-                RequestId = req.Id,
-                Status = "Rejected"
-            };
-            await AdminService.UpdateServiceEditRequestStatus(req.Id, cmd);
-            pendingEdits.Remove(req);
-            UpdateGlobalCount();
-            StateHasChanged();
+                var cmd = new UpdateServiceEditRequestCommand
+                {
+                    RequestId = req.Id,
+                    Status = "Rejected"
+                };
+                await AdminService.UpdateServiceEditRequestStatus(req.Id, cmd);
+                pendingEdits.Remove(req);
+                UpdateGlobalCount();
+                statusMessage = $"تم رفض التعديل على خدمة ({req.ServiceName}).";
+                statusMessageType = "warning";
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                statusMessage = "فشل رفض التعديل: " + ex.Message;
+                statusMessageType = "danger";
+            }
         }
     }
 }

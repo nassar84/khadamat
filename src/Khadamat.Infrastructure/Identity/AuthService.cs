@@ -172,13 +172,6 @@ public class AuthService : IAuthService
             await _userManager.UpdateAsync(user);
         }
 
-        // Save profile image as u_{userid}.jpg after successful user creation
-        if (!string.IsNullOrEmpty(request.ProfileImageBase64))
-        {
-            user.ProfileImageUrl = await SaveUserProfileImageAsync(request.ProfileImageBase64, user.Id);
-            await _userManager.UpdateAsync(user);
-        }
-
         await _userManager.AddToRoleAsync(user, role.ToString());
 
         return await GenerateAuthResponse(user, "تم إنشاء الحساب بنجاح");

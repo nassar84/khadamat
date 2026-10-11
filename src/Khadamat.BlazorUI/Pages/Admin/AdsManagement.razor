@@ -8,27 +8,27 @@
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
 
-<div class="px-2 pb-5">
-    <div class="d-flex align-items-center justify-content-between mb-4">
+<div class="ads-management-container px-1 px-md-3 pb-5">
+    <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3 mb-4">
         <div>
             <h4 class="fw-bold mb-1"><i class="fa-solid fa-rectangle-ad text-primary me-2"></i> إدارة الإعلانات</h4>
             <p class="text-muted small mb-0">إنشاء الإعلانات وإدارة مواضعها وعرضها واستهدافها</p>
         </div>
-        <div class="d-flex gap-2">
-            <button class="btn btn-outline-secondary rounded-pill btn-sm" @onclick='() => Navigation.NavigateTo("/admin/ad-analytics")'>
+        <div class="d-flex flex-wrap gap-2 w-100 w-lg-auto align-items-center">
+            <button class="btn btn-primary-premium rounded-pill px-3 py-1.5 flex-grow-1 flex-lg-grow-0 fw-bold" @onclick="OpenAddModal">
+                <i class="fa-solid fa-plus me-1"></i> إعلان جديد
+            </button>
+            <button class="btn btn-outline-secondary rounded-pill btn-sm px-3 flex-grow-1 flex-lg-grow-0" @onclick='() => Navigation.NavigateTo("/admin/ad-analytics")'>
                 <i class="fa-solid fa-chart-line me-1"></i> الإحصائيات
             </button>
-            <button class="btn btn-outline-info rounded-pill btn-sm" @onclick='() => Navigation.NavigateTo("/admin/ad-packages")'>
+            <button class="btn btn-outline-info rounded-pill btn-sm px-3 flex-grow-1 flex-lg-grow-0" @onclick='() => Navigation.NavigateTo("/admin/ad-packages")'>
                 <i class="fa-solid fa-gem me-1"></i> الباقات
             </button>
-            <button class="btn btn-primary-premium rounded-pill px-4" @onclick="OpenAddModal">
-                <i class="fa-solid fa-plus me-2"></i> إعلان جديد
+            <button class="btn btn-outline-warning rounded-pill btn-sm px-3 flex-grow-1 flex-lg-grow-0" @onclick="() => showMap = true">
+                <i class="fa-solid fa-map me-1"></i> دليل الأماكن
             </button>
-            <button class="btn btn-outline-warning rounded-pill px-3 ms-2" @onclick="() => showMap = true">
-                <i class="fa-solid fa-map me-2"></i> دليل الأماكن
-            </button>
-            <button class="btn btn-outline-primary rounded-pill px-3 ms-2" @onclick="() => showDimensionsGuide = !showDimensionsGuide">
-                <i class="fa-solid fa-ruler-combined me-2"></i> دليل أبعاد الصور
+            <button class="btn btn-outline-primary rounded-pill btn-sm px-3 flex-grow-1 flex-lg-grow-0" @onclick="() => showDimensionsGuide = !showDimensionsGuide">
+                <i class="fa-solid fa-ruler-combined me-1"></i> أبعاد الصور
             </button>
         </div>
     </div>
@@ -90,29 +90,29 @@
     <!-- Filter & Stats Bar -->
     @if (ads != null)
     {
-        <div class="row g-3 mb-4 animate-fade-in">
-            <div class="col-md-3">
-                <div class="glass-card p-3 rounded-4 border-start border-primary border-4 shadow-sm h-100">
-                    <div class="small text-muted mb-1">إجمالي الإعلانات</div>
-                    <div class="h4 fw-bold mb-0 text-primary">@ads.Count</div>
+        <div class="row g-2 g-md-3 mb-4 animate-fade-in">
+            <div class="col-6 col-lg-3">
+                <div class="glass-card p-2.5 p-md-3 rounded-4 border-start border-primary border-4 shadow-sm h-100">
+                    <div class="extra-small text-muted mb-1">إجمالي الإعلانات</div>
+                    <div class="h5 fw-bold mb-0 text-primary">@ads.Count</div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="glass-card p-3 rounded-4 border-start border-success border-4 shadow-sm h-100">
-                    <div class="small text-muted mb-1">إجمالي المشاهدات</div>
-                    <div class="h4 fw-bold mb-0 text-success">@ads.Sum(a => a.ViewCount).ToString("N0")</div>
+            <div class="col-6 col-lg-3">
+                <div class="glass-card p-2.5 p-md-3 rounded-4 border-start border-success border-4 shadow-sm h-100">
+                    <div class="extra-small text-muted mb-1">إجمالي المشاهدات</div>
+                    <div class="h5 fw-bold mb-0 text-success">@ads.Sum(a => a.ViewCount).ToString("N0")</div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="glass-card p-3 rounded-4 border-start border-info border-4 shadow-sm h-100">
-                    <div class="small text-muted mb-1">إجمالي النقرات</div>
-                    <div class="h4 fw-bold mb-0 text-info">@ads.Sum(a => a.ClickCount).ToString("N0")</div>
+            <div class="col-6 col-lg-3">
+                <div class="glass-card p-2.5 p-md-3 rounded-4 border-start border-info border-4 shadow-sm h-100">
+                    <div class="extra-small text-muted mb-1">إجمالي النقرات</div>
+                    <div class="h5 fw-bold mb-0 text-info">@ads.Sum(a => a.ClickCount).ToString("N0")</div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="glass-card p-3 rounded-4 border-start border-warning border-4 shadow-sm h-100">
-                    <div class="small text-muted mb-1">إجمالي الإيرادات</div>
-                    <div class="h4 fw-bold mb-0 text-warning">@ads.Sum(a => a.AmountPaid).ToString("C0")</div>
+            <div class="col-6 col-lg-3">
+                <div class="glass-card p-2.5 p-md-3 rounded-4 border-start border-warning border-4 shadow-sm h-100">
+                    <div class="extra-small text-muted mb-1">إجمالي الإيرادات</div>
+                    <div class="h5 fw-bold mb-0 text-warning">@ads.Sum(a => a.AmountPaid).ToString("C0")</div>
                 </div>
             </div>
         </div>
@@ -120,14 +120,14 @@
 
     <div class="glass-card p-3 rounded-4 shadow-sm border-0 mb-4">
         <div class="row g-2 align-items-center">
-            <div class="col-md-4">
+            <div class="col-12 col-md-5">
                 <div class="input-group">
                     <span class="input-group-text bg-transparent border-0 pe-0"><i class="fa-solid fa-search text-muted"></i></span>
                     <input type="text" class="form-control border-0 shadow-none bg-transparent" placeholder="بحث بالعنوان أو المعلن..." @bind="searchText" @bind:event="oninput" @onkeyup="FilterAds">
                 </div>
             </div>
-            <div class="col-md-3">
-                <select class="form-select border-0 shadow-none bg-light rounded-pill" @bind="filterPlacement" @bind:after="FilterAds">
+            <div class="col-6 col-md-3">
+                <select class="form-select border-0 shadow-none bg-light rounded-pill form-select-sm" @bind="filterPlacement" @bind:after="FilterAds">
                     <option value="">كل الأماكن</option>
                     <option value="Slider">السلايدر</option>
                     <option value="Sidebar">الجانبي</option>
@@ -137,14 +137,14 @@
                     <option value="Popup">المنبثق</option>
                 </select>
             </div>
-            <div class="col-md-2">
-                <select class="form-select border-0 shadow-none bg-light rounded-pill" @bind="filterStatus" @bind:after="FilterAds">
+            <div class="col-6 col-md-2">
+                <select class="form-select border-0 shadow-none bg-light rounded-pill form-select-sm" @bind="filterStatus" @bind:after="FilterAds">
                     <option value="">كل الحالات</option>
                     <option value="active">نشط فقط</option>
                     <option value="inactive">موقف فقط</option>
                 </select>
             </div>
-            <div class="col-md-3 text-end ps-3 pt-1">
+            <div class="col-12 col-md-2 text-start text-md-end pt-1">
                 <span class="badge bg-primary rounded-pill px-3">@(filteredAds?.Count ?? 0) إعلان</span>
             </div>
         </div>
@@ -209,7 +209,7 @@
                             </div>
                         </div>
                         <div class="p-3">
-                            <h6 class="fw-bold mb-1 text-truncate">@ad.Title</h6>
+                            <h6 class="fw-bold mb-1 text-truncate">@(!string.IsNullOrWhiteSpace(ad.Title) ? ad.Title : "بدون عنوان")</h6>
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <span class="text-muted x-small text-truncate" title="صاحب الإعلان: @(ad.AdvertiserName ?? ad.CreatedBy ?? "إعلان للمنصة")">
                                     <i class="fa-solid fa-user-tag me-1 text-primary"></i>
@@ -251,20 +251,22 @@
 
 @if (showModal)
 {
-    <div class="modal-overlay">
-        <div class="glass-card p-0 rounded-4 w-100 mx-3 animate-pop shadow-2xl" style="max-width: 800px; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column;">
-            <div class="p-3 bg-primary text-white d-flex justify-content-between align-items-center">
+    <div class="modal-overlay" @onclick="() => showModal = false">
+        <div class="modal-dialog-content glass-card p-0 rounded-4 w-100 mx-2 mx-md-3 animate-pop shadow-2xl" 
+             style="max-width: 800px; max-height: 92vh; overflow: hidden; display: flex; flex-direction: column;"
+             @onclick:stopPropagation="true">
+            <div class="p-3 bg-primary text-white d-flex justify-content-between align-items-center flex-shrink-0">
                 <h5 class="fw-bold mb-0">@(currentAd.Id == 0 ? "إضافة إعلان جديد" : "تعديل إعلان الحملة")</h5>
                 <button class="btn-close btn-close-white" @onclick="() => showModal = false"></button>
             </div>
             
-            <div class="p-4 overflow-auto flex-grow-1">
+            <div class="p-3 p-md-4 overflow-auto flex-grow-1" style="-webkit-overflow-scrolling: touch;">
                 <div class="row g-3">
-                    <div class="col-md-8">
-                        <label class="form-label small fw-bold">العنوان</label>
-                        <input type="text" class="form-control rounded-pill" @bind="currentAd.Title">
+                    <div class="col-12 col-md-8">
+                        <label class="form-label small fw-bold">العنوان (اختياري)</label>
+                        <input type="text" class="form-control rounded-pill" @bind="currentAd.Title" placeholder="عنوان الإعلان (اختياري)...">
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-12 col-md-4">
                         <label class="form-label small fw-bold">النوع</label>
                         <select class="form-select rounded-pill" @bind="currentAd.AdType">
                             <option value="Image">صورة</option>
@@ -278,7 +280,7 @@
                         <textarea class="form-control rounded-4" @bind="currentAd.Description" rows="2"></textarea>
                     </div>
 
-                    <div class="col-md-6">
+                    <div class="col-12 col-md-6">
                         <label class="form-label small fw-bold">تحميل صورة أو رابط</label>
                         <div class="input-group">
                             <input type="text" class="form-control rounded-start-pill" @bind="currentAd.ImageUrl" placeholder="رابط خارجي...">
@@ -289,7 +291,7 @@
                         </div>
                         <div class="form-text extra-small mt-1 text-primary">
                             <i class="fa-solid fa-circle-info me-1"></i>
-                            <strong>الأبعاد الموصى بها:</strong> للسلايدر (1200×400 بكسل نسبة 3:1) | للجانبي والبطاقات (800×800 بكسل 1:1) | الهيرو (1920×1080 بكسل).
+                            <strong>الأبعاد الموصى بها:</strong> للسلايدر (1200×400 بكسل نسبة 3:1) | للجانبي (800×800 بكسل 1:1) | الهيرو (1920×1080 بكسل).
                             <span class="text-muted d-block mt-0.5">تمركز العناصر المهمة في الـ 60% الوسطى (Safe Zone) يضمن ظهورها ممتازاً على الموبايل وداخل التطبيق.</span>
                         </div>
                         @if (!string.IsNullOrEmpty(imagePreview))
@@ -313,7 +315,7 @@
                         </div>
                     </div>
 
-                    <div class="col-md-6">
+                    <div class="col-12 col-md-6">
                         <label class="form-label small fw-bold">الخدمة المرتبطة (اختياري)</label>
                         <select class="form-select rounded-pill" value="@(currentAd.ServiceId ?? 0)" @onchange="OnLinkedServiceChanged">
                             <option value="0">-- بدون ربط بخدمة --</option>
@@ -328,7 +330,7 @@
                         </div>
                     </div>
 
-                    <div class="col-md-6">
+                    <div class="col-12 col-md-6">
                         <label class="form-label small fw-bold">المعلن / صاحب الإعلان (المزود)</label>
                         <select class="form-select rounded-pill" @bind="currentAd.CreatedBy">
                             <option value="">-- إعلان المنصة / النظام --</option>
@@ -346,9 +348,9 @@
                         </div>
                     </div>
 
-                    <div class="col-md-8">
+                    <div class="col-12 col-md-8">
                         <label class="form-label small fw-bold">الرابط الموجه (URL)</label>
-                        <input type="text" class="form-control rounded-pill" @bind="currentAd.TargetUrl" placeholder="https://...‏ أو /contact">
+                        <input type="text" class="form-control rounded-pill" @bind="currentAd.TargetUrl" placeholder="https://... أو /contact">
                         <div class="d-flex gap-2 flex-wrap mt-2">
                             <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" @onclick='() => currentAd.TargetUrl = "/contact"'>
                                 <i class="fa-solid fa-phone me-1"></i>تواصل معنا
@@ -365,12 +367,12 @@
                             الصفحات الداخلية: /contact ، /services ، /about أو رابط خارجي https://...
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-12 col-md-4">
                         <label class="form-label small fw-bold">المبلغ المدفوع (جنيه)</label>
                         <input type="number" class="form-control rounded-pill" @bind="currentAd.AmountPaid">
                     </div>
 
-                    <div class="col-md-4">
+                    <div class="col-12 col-md-4">
                         <label class="form-label small fw-bold">المكان (موضع الظهور)</label>
                         <select class="form-select rounded-pill" @bind="currentAd.Placement">
                             <option value="Slider">سلايدر الرئيسي (أعلى الصفحة)</option>
@@ -385,33 +387,34 @@
                         </div>
                     </div>
 
+                    <div class="col-12 col-md-4">
+                        <label class="form-label small fw-bold">ترتيب العرض</label>
+                        <input type="number" class="form-control rounded-pill" @bind="currentAd.DisplayOrder" min="0" />
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label small fw-bold">تاريخ البدء</label>
+                        <input type="date" class="form-control rounded-pill" @bind="currentAd.StartDate" @bind:format="yyyy-MM-dd">
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label small fw-bold">تاريخ الانتهاء</label>
+                        <input type="date" class="form-control rounded-pill" @bind="currentAd.EndDate" @bind:format="yyyy-MM-dd">
+                    </div>
+
                     <!-- Visual Guide Reference -->
-                    <div class="col-12 mt-3">
-                        <div class="alert alert-info rounded-4 border-0 bg-opacity-10 d-flex align-items-center">
-                            <i class="fa-solid fa-circle-info me-3 fs-4"></i>
+                    <div class="col-12 mt-2">
+                        <div class="alert alert-info rounded-4 border-0 bg-opacity-10 d-flex align-items-center mb-0 p-2.5">
+                            <i class="fa-solid fa-circle-info me-2 fs-5"></i>
                             <div class="small">
                                 <strong>دليل الأماكن:</strong> يمكنك اختيار المكان المناسب للإعلان لضمان وصوله للجمهور المستهدف. الإعلانات الجانبية تظهر في جميع الصفحات، بينما إعلانات الفئات والبحث تظهر تلقائياً بين نتائج العرض.
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label small fw-bold">ترتيب العرض</label>
-                        <input type="number" class="form-control rounded-pill" @bind="currentAd.DisplayOrder" min="0" />
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label small fw-bold">تاريخ البدء</label>
-                        <input type="date" class="form-control rounded-pill" @bind="currentAd.StartDate" @bind:format="yyyy-MM-dd">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label small fw-bold">تاريخ الانتهاء</label>
-                        <input type="date" class="form-control rounded-pill" @bind="currentAd.EndDate" @bind:format="yyyy-MM-dd">
+
+                    <div class="col-12 mt-3 pt-2 border-top">
+                        <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-bullseye me-2"></i> الاستهداف المتقدم (Advanced Targeting)</h6>
                     </div>
 
-                    <div class="col-12 mt-4 pt-2 border-top">
-                        <h6 class="fw-bold text-primary mb-3"><i class="fa-solid fa-bullseye me-2"></i> الاستهداف المتقدم (Advanced Targeting)</h6>
-                    </div>
-
-                    <div class="col-md-6">
+                    <div class="col-12 col-md-6">
                         <label class="form-label small fw-bold">الفئة الرئيسية المستهدفة</label>
                         <select class="form-select rounded-pill form-select-sm" value="@selectedMainCategoryId" @onchange="OnMainCategoryChanged">
                             <option value="0">الكل</option>
@@ -421,7 +424,7 @@
                             }
                         </select>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-12 col-md-6">
                         <label class="form-label small fw-bold">التصنيف (L2)</label>
                         <select class="form-select rounded-pill form-select-sm" value="@selectedSubCategoryId" @onchange="OnCategoryChanged">
                             <option value="0">الكل</option>
@@ -431,7 +434,7 @@
                             }
                         </select>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-12 col-md-6">
                         <label class="form-label small fw-bold">النوع (الفئة تحت الفرعية L3)</label>
                         <select class="form-select rounded-pill form-select-sm" @bind="selectedDeepSubCategoryId">
                             <option value="0">الكل</option>
@@ -442,7 +445,7 @@
                         </select>
                     </div>
 
-                    <div class="col-md-4">
+                    <div class="col-12 col-md-6">
                         <label class="form-label small fw-bold">الجنس</label>
                         <select class="form-select rounded-pill form-select-sm" @bind="currentAd.TargetUserGender">
                             <option value="All">الجميع</option>
@@ -452,7 +455,7 @@
                     </div>
                     <div class="col-12">
                         <label class="form-label small fw-bold">أيام العرض</label>
-                        <div class="d-flex flex-wrap gap-3 bg-light p-3 rounded-4 border border-info border-opacity-10">
+                        <div class="d-flex flex-wrap gap-2 bg-light p-2.5 rounded-4 border border-info border-opacity-10">
                             @foreach (var day in allDays)
                             {
                                 <div class="form-check form-check-inline m-0">
@@ -466,14 +469,14 @@
                         <div class="form-text extra-small mt-1">سيظهر الإعلان في الأيام المختارة فقط. (الافتراضي: كل الأيام)</div>
                     </div>
 
-                    <div class="col-md-6">
+                    <div class="col-12 col-md-6">
                         <label class="form-label small fw-bold">وقت البدء</label>
                         <div class="input-group input-group-sm">
                             <span class="input-group-text rounded-start-pill bg-light border-end-0"><i class="fa-solid fa-clock-rotate-left"></i></span>
                             <input type="time" class="form-control rounded-end-pill border-start-0" @bind="currentAd.TargetTimeStart" />
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-12 col-md-6">
                         <label class="form-label small fw-bold">وقت الانتهاء</label>
                         <div class="input-group input-group-sm">
                             <span class="input-group-text rounded-start-pill bg-light border-end-0"><i class="fa-solid fa-clock"></i></span>
@@ -490,7 +493,7 @@
                 </div>
             </div>
 
-            <div class="p-3 bg-light d-flex gap-2">
+            <div class="p-3 bg-light d-flex gap-2 flex-shrink-0 border-top">
                 <button class="btn btn-primary-premium flex-grow-1 rounded-pill" @onclick="SaveAd">حفظ البيانات</button>
                 <button class="btn btn-outline-secondary flex-grow-1 rounded-pill" @onclick="() => showModal = false">إلغاء</button>
             </div>
@@ -501,38 +504,40 @@
     @if (showMap)
     {
         <div class="modal-overlay" @onclick="() => showMap = false">
-            <div class="glass-panel rounded-5 p-4 shadow-2xl animate-pop position-relative" style="max-width: 900px; width: 95%;" @onclick:stopPropagation="true">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="fw-bold mb-0 text-primary"><i class="fa-solid fa-map-location-dot me-2"></i> مخطط أماكن ظهور الإعلانات</h5>
+            <div class="glass-panel rounded-4 rounded-md-5 p-3 p-md-4 shadow-2xl animate-pop position-relative" 
+                 style="max-width: 900px; width: 95%; max-height: 92vh; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch;" 
+                 @onclick:stopPropagation="true">
+                <div class="d-flex justify-content-between align-items-center mb-3 mb-md-4">
+                    <h5 class="fw-bold mb-0 text-primary fs-6 fs-md-5"><i class="fa-solid fa-map-location-dot me-2"></i> مخطط أماكن ظهور الإعلانات</h5>
                     <button class="btn-close" @onclick="() => showMap = false"></button>
                 </div>
                 
-                <div class="mockup-browser mb-4 p-3 bg-light rounded-4 border">
+                <div class="mockup-browser mb-3 mb-md-4 p-2 p-md-3 bg-light rounded-4 border">
                     <div class="mockup-header d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
                         <span class="dot bg-danger"></span>
                         <span class="dot bg-warning"></span>
                         <span class="dot bg-success"></span>
-                        <div class="bg-white rounded-pill px-3 py-1 flex-grow-1 text-center small text-muted">
+                        <div class="bg-white rounded-pill px-3 py-1 flex-grow-1 text-center small text-muted text-truncate">
                             <i class="fa-solid fa-lock me-1 text-success"></i> khadamat-app.com
                         </div>
                     </div>
                     
                     <div class="mockup-body d-flex flex-column gap-2">
                         <!-- Top Slider Placement -->
-                        <div class="p-3 rounded-3 text-center text-white shadow-sm" style="background: linear-gradient(135deg, #4f46e5, #6366f1);">
+                        <div class="p-2.5 p-md-3 rounded-3 text-center text-white shadow-sm" style="background: linear-gradient(135deg, #4f46e5, #6366f1);">
                             <span class="badge bg-white text-primary fw-bold mb-1">1. السلايدر الرئيسي (Slider)</span>
                             <div class="extra-small opacity-90">شريط متحرك أعلى الصفحة الرئيسية وفي صفحات الاستكشاف</div>
                         </div>
 
                         <!-- Split Content: Sidebar & Native -->
                         <div class="row g-2">
-                            <div class="col-4">
-                                <div class="p-3 rounded-3 text-center text-white h-100 shadow-sm d-flex flex-column justify-content-center" style="background: linear-gradient(135deg, #0284c7, #38bdf8);">
+                            <div class="col-12 col-sm-4">
+                                <div class="p-2.5 p-md-3 rounded-3 text-center text-white h-100 shadow-sm d-flex flex-column justify-content-center" style="background: linear-gradient(135deg, #0284c7, #38bdf8);">
                                     <span class="badge bg-white text-info fw-bold mb-1">2. جانبي (Sidebar)</span>
                                     <div class="extra-small opacity-90">قائمة جانبية ثابتة للشاشات الكبيرة</div>
                                 </div>
                             </div>
-                            <div class="col-8">
+                            <div class="col-12 col-sm-8">
                                 <div class="bg-white p-2 rounded-3 border d-flex flex-column gap-2">
                                     <div class="p-2 bg-light rounded text-muted extra-small text-center"><i class="fa-solid fa-briefcase me-1"></i> بطاقات الخدمات العادية</div>
                                     <div class="p-2 rounded-3 text-center text-white shadow-sm" style="background: linear-gradient(135deg, #d97706, #f59e0b);">
@@ -558,26 +563,33 @@
                     </div>
                 </div>
 
-                <div class="row g-3">
+                <div class="row g-2 g-md-3">
                     @foreach (var entry in placementDescriptions)
                     {
-                        <div class="col-md-6">
-                            <div class="p-3 bg-light rounded-4 h-100">
-                                <span class="badge bg-primary mb-2">@entry.Key</span>
+                        <div class="col-12 col-md-6">
+                            <div class="p-2.5 p-md-3 bg-light rounded-4 h-100">
+                                <span class="badge bg-primary mb-1 mb-md-2">@entry.Key</span>
                                 <p class="small mb-0 text-muted">@entry.Value</p>
                             </div>
                         </div>
                     }
                 </div>
 
-                <div class="mt-4 text-center">
-                    <button class="btn btn-primary rounded-pill px-5" @onclick="() => showMap = false">فهمت ذلك</button>
+                <div class="mt-3 mt-md-4 text-center">
+                    <button class="btn btn-primary rounded-pill px-4 px-md-5" @onclick="() => showMap = false">فهمت ذلك</button>
                 </div>
             </div>
         </div>
     }
 
 <style>
+    .ads-management-container {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+        box-sizing: border-box;
+    }
+
     .ad-image-container { overflow: hidden; background: #f8f9fa; }
     .ad-preview-img { background-size: cover; background-position: center; transition: all 0.5s; }
     .glass-card:hover .ad-preview-img { transform: scale(1.05); }
@@ -605,6 +617,8 @@
         background: rgba(0,0,0,0.6);
         backdrop-filter: blur(8px);
         display: flex; align-items: center; justify-content: center;
+        padding: 12px;
+        box-sizing: border-box;
     }
     
     .animate-pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -616,13 +630,26 @@
     .glass-panel { background: white; }
 
     @@media (max-width: 767px) {
-        .glass-card { padding: 1rem !important; }
-        .row > .col-md-3, .row > .col-md-4, .row > .col-md-6, .row > .col-12 { margin-bottom: 0.5rem; }
-        .form-control, .form-select, .btn { font-size: 0.9rem !important; }
-        h4 { font-size: 1.2rem !important; }
-        .px-2 { padding-left: 8px !important; padding-right: 8px !important; }
+        .glass-card { padding: 0.85rem !important; }
+        .modal-overlay .glass-card { padding: 0 !important; }
+        .row > .col-md-3, .row > .col-md-4, .row > .col-md-6, .row > .col-12 { margin-bottom: 0.35rem; }
+        .form-control, .form-select, .btn { font-size: 0.875rem !important; }
+        h4 { font-size: 1.15rem !important; }
+        .px-2 { padding-left: 6px !important; padding-right: 6px !important; }
         .ad-preview-img { height: 140px !important; }
-        .modal-overlay .glass-card { width: 100% !important; border-radius: 0 !important; max-height: 100vh !important; height: 100vh !important; margin: 0 !important; }
+        .modal-overlay {
+            padding: 8px !important;
+        }
+        .modal-overlay .modal-dialog-content {
+            width: 100% !important;
+            max-width: 100% !important;
+            max-height: 94vh !important;
+            margin: 0 !important;
+            border-radius: 16px !important;
+        }
+        .gradient-swatch {
+            width: 40px; height: 30px;
+        }
     }
 </style>
 

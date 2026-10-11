@@ -64,6 +64,30 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "`n==========================================================" -ForegroundColor Cyan
+Write-Host " 4.1. Excluding heavy uploaded image directories from publish output..." -ForegroundColor Cyan
+Write-Host "==========================================================" -ForegroundColor Cyan
+
+$uploadDirsToExclude = @(
+    "ads",
+    "categories",
+    "maincategories",
+    "subcategories",
+    "Services",
+    "users",
+    "marketplace",
+    "share_cards",
+    "general"
+)
+
+foreach ($dir in $uploadDirsToExclude) {
+    $targetPath = Join-Path "D:\maged\Khadamat\wwwroot\images" $dir
+    if (Test-Path $targetPath) {
+        Remove-Item -Recurse -Force $targetPath -ErrorAction SilentlyContinue
+        Write-Host "  [Excluded from ZIP] wwwroot/images/$dir (Stored safely in KhadamawyImages)" -ForegroundColor Yellow
+    }
+}
+
+Write-Host "`n==========================================================" -ForegroundColor Cyan
 Write-Host " 5. Finalizing publish directory (Strictly ONE APK with current timestamp)..." -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 
@@ -92,7 +116,10 @@ Write-Host "`n==========================================================" -Foreg
 Write-Host " 6. Creating deployment package (D:\maged\Khadamat_publish.zip)..." -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 
-Compress-Archive -Path "D:\maged\Khadamat\*" -DestinationPath "D:\maged\Khadamat_publish.zip" -Force
+if (Test-Path "D:\maged\Khadamat_publish.zip") {
+    Remove-Item -Force "D:\maged\Khadamat_publish.zip" -ErrorAction SilentlyContinue
+}
+tar.exe -a -c -f "D:\maged\Khadamat_publish.zip" -C "D:\maged\Khadamat" .
 Write-Host "ZIP package created successfully at: D:\maged\Khadamat_publish.zip" -ForegroundColor Green
 
 Write-Host "`n==========================================================" -ForegroundColor Green

@@ -21,7 +21,7 @@
             }
             else
             {
-                <img src="images/logo.png" class="logo-img" alt="Logo" />
+                <img src="/images/logo.png" class="logo-img" alt="Logo" />
             }
             @if (!IsCollapsed)
             {
@@ -127,10 +127,6 @@
                     <NavLink class="menu-item" href="/admin/users" title="إدارة المستخدمين">
                         <i class="fa-solid fa-users text-primary"></i>
                         <span class="item-label">إدارة المستخدمين</span>
-                    </NavLink>
-                    <NavLink class="menu-item" href="/admin/approvals/providers" title="اعتماد مقدمي الخدمات">
-                        <i class="fa-solid fa-user-check text-primary"></i>
-                        <span class="item-label">اعتماد مقدمي الخدمات</span>
                     </NavLink>
                     <NavLink class="menu-item" href="/admin/services" title="إدارة الخدمات">
                         <i class="fa-solid fa-briefcase text-primary"></i>
@@ -1007,17 +1003,7 @@
 
     private async Task ShareApp()
     {
-        var appName = !string.IsNullOrEmpty(State.AppNameAr) ? State.AppNameAr : (string.IsNullOrEmpty(State.AppName) ? "خدماوي" : State.AppName);
-        var appDownloadUrl = !string.IsNullOrEmpty(State.GooglePlayUrl)
-            ? State.GooglePlayUrl
-            : (!string.IsNullOrEmpty(State.AppShareUrl) ? State.AppShareUrl : $"{Navigation.BaseUri.TrimEnd('/')}/downloads/khadamat.apk");
-        var websiteUrl = Navigation.BaseUri.TrimEnd('/');
-
-        var fullText = $"📲 منصة وتطبيق {appName} — خدماتك في مكان واحد.. لكل المصريين!\n" +
-                       "تواصل مباشرة مع أفضل الحرفيين والمهنيين ومقدمي الخدمات بكل سهولة وأمان.\n\n" +
-                       $"📱 رابط تحميل التطبيق:\n{appDownloadUrl}\n\n" +
-                       $"🌐 رابط موقع الويب:\n{websiteUrl}";
-        await ShareService.ShareTextAsync(fullText, $"مشاركة تطبيق {appName}");
+        await AppShareHelper.ShareAppAsync(ShareService, State, Navigation.BaseUri, JS);
     }
 
     public void Dispose()

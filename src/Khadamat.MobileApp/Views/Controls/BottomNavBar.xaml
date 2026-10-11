@@ -13,7 +13,7 @@
           - Provider: Dashboard | My Services | (center: Home) | Incoming Requests | Messages  
           - Admin:    App | Admin Panel | (center: Approvals) | Complaints | Account
     -->
-    <Grid VerticalOptions="End" x:Name="RootGrid" x:DataType="viewModels:ShellViewModel">
+    <Grid VerticalOptions="End" x:Name="RootGrid" BackgroundColor="White" x:DataType="viewModels:ShellViewModel">
         <Grid.RowDefinitions>
             <RowDefinition Height="30" />
             <RowDefinition Height="68" />

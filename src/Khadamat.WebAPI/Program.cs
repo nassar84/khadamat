@@ -51,10 +51,21 @@ try
     }
 
     // 2. Add Core services
-    builder.Services.AddControllers();
+    builder.Services.AddControllers()
+        .AddJsonOptions(options =>
+        {
+            // TimeSpan is not natively supported by System.Text.Json.
+            // Blazor WASM serializes it as "HH:mm:ss" string – add a converter
+            // so the API can deserialize it correctly.
+            options.JsonSerializerOptions.Converters.Add(new Khadamat.WebAPI.Infrastructure.TimeSpanJsonConverter());
+        });
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
     builder.Services.AddSignalR();
+    // Allow up to 20 MB request body to handle base64-encoded profile images (5MB raw → ~7MB base64)
+    builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(o => o.MultipartBodyLengthLimit = 20_971_520);
+    builder.WebHost.ConfigureKestrel(k => k.Limits.MaxRequestBodySize = 20_971_520);
+
     
     /*
     // Performance: Response Compression (Brotli/Gzip)
@@ -164,9 +175,21 @@ try
     {
         exceptionHandlerApp.Run(async context =>
         {
+            var exceptionHandlerPathFeature = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerPathFeature>();
+            var ex = exceptionHandlerPathFeature?.Error;
+            if (ex != null)
+            {
+                Log.Error(ex, "HTTP 500 Unhandled Exception on path: {Path}", context.Request.Path);
+            }
+
             context.Response.StatusCode = 500;
             context.Response.ContentType = "application/json";
-            await context.Response.WriteAsJsonAsync(new { Error = "An internal server error occurred.", Details = app.Environment.IsDevelopment() ? "Check logs." : null });
+            var showDetails = app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("ShowDetailedErrors", true);
+            await context.Response.WriteAsJsonAsync(new { 
+                Error = "An internal server error occurred.", 
+                Details = showDetails ? (ex?.Message ?? "No exception details") : null,
+                StackTrace = showDetails ? ex?.StackTrace : null
+            });
         });
     });
 
@@ -180,14 +203,20 @@ try
     provider.Mappings[".json"] = "application/json";
 
     // Serve .well-known/assetlinks.json for TWA (Trusted Web Activity) verification
-    app.UseStaticFiles(new StaticFileOptions
+    var wellKnownDir = !string.IsNullOrEmpty(app.Environment.WebRootPath)
+        ? System.IO.Path.Combine(app.Environment.WebRootPath, ".well-known")
+        : System.IO.Path.Combine(app.Environment.ContentRootPath, "wwwroot", ".well-known");
+
+    if (System.IO.Directory.Exists(wellKnownDir))
     {
-        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
-            System.IO.Path.Combine(app.Environment.WebRootPath, ".well-known")),
-        RequestPath = "/.well-known",
-        ContentTypeProvider = provider,
-        ServeUnknownFileTypes = true
-    });
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(wellKnownDir),
+            RequestPath = "/.well-known",
+            ContentTypeProvider = provider,
+            ServeUnknownFileTypes = true
+        });
+    }
 
     // Auto-rewrite category image requests (.png / .jpg) to .webp when the .webp file exists on disk
     app.Use(async (context, next) =>
@@ -280,6 +309,18 @@ try
         {
             FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(imageStorage.RootImagesPath),
             RequestPath = "/images",
+            ContentTypeProvider = provider,
+            OnPrepareResponse = ctx =>
+            {
+                ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
+                ctx.Context.Response.Headers.Append("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+            }
+        });
+
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(imageStorage.RootImagesPath),
+            RequestPath = "/KhadamawyImages",
             ContentTypeProvider = provider,
             OnPrepareResponse = ctx =>
             {

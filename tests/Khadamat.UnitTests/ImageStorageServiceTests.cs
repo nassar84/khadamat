@@ -54,17 +54,19 @@ public class ImageStorageServiceTests : IDisposable
     }
 
     [Fact]
-    public void When_ConfiguredPath_DoesNotExist_Throws_InvalidOperationException_WithoutSilentFallback()
+    public void When_ConfiguredPath_DoesNotExist_AutomaticallyCreatesDirectory()
     {
         // Arrange
         var nonExistentPath = Path.Combine(_tempTestDir, "NonExistentFolder_12345");
         var config = CreateConfig(nonExistentPath);
 
-        // Act & Assert: Must fail safely with a clear, actionable exception
-        var ex = Assert.Throws<InvalidOperationException>(() =>
-            new ImageStorageService(config, _mockEnv.Object, NullLogger<ImageStorageService>.Instance));
+        // Act
+        var service = new ImageStorageService(config, _mockEnv.Object, NullLogger<ImageStorageService>.Instance);
 
-        Assert.Contains("does not exist or is not accessible", ex.Message);
+        // Assert: Directory was created automatically
+        Assert.True(Directory.Exists(nonExistentPath));
+        Assert.True(service.IsExternalStorageConfigured);
+        Assert.Equal(nonExistentPath, service.RootImagesPath);
     }
 
     [Fact]

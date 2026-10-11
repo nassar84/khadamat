@@ -83,11 +83,11 @@ public class ShareController : ControllerBase
         var webRoot = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
         var cardRelativePath = $"images/share_cards/card_{id}.png";
         var cardPhysicalPath = Path.Combine(webRoot, cardRelativePath);
+        var cardStoragePath = _imageStorage.GetFilePath("share_cards", $"card_{id}.png");
 
-        if (System.IO.File.Exists(cardPhysicalPath))
+        if (System.IO.File.Exists(cardStoragePath) || System.IO.File.Exists(cardPhysicalPath))
         {
-            var lastWrite = System.IO.File.GetLastWriteTimeUtc(cardPhysicalPath).Ticks;
-            imageUrl = $"{baseUrl}/{cardRelativePath}?v={lastWrite}";
+            imageUrl = $"{baseUrl}/share/service/{id}/og-image";
         }
         else
         {
@@ -237,13 +237,13 @@ public class ShareController : ControllerBase
         var appStoreUrl = $"{baseUrl}/downloads/khadamat.apk";
 
         // OG description — Must be PROMOTIONAL with app invitation and download link
-        var inviteText = $"📲 حمّل تطبيق خدماوي مجاناً وتصفح آلاف الخدمات القريبة وتواصل مباشرة: {appStoreUrl}";
-        var combined = $"{safeTitle} • {priceText} | {location} — {inviteText}";
+        var inviteText = $"📲 حمّل تطبيق ومنصة خدماوي مجاناً وتصفح آلاف الخدمات والمهنيين وتواصل مباشرة: {appStoreUrl}";
+        var combined = $"🌟 {service.Title} | {location} — {inviteText}";
         if (combined.Length > 300) combined = combined[..297] + "...";
         var safeOgDesc = HttpUtility.HtmlEncode(combined);
 
         // Page title (also used as og:title)
-        var pageTitle = HttpUtility.HtmlEncode($"🌟 {service.Title} ({priceText}) • منصة وتطبيق خدماوي 📲 حمّل التطبيق");
+        var pageTitle = HttpUtility.HtmlEncode($"🌟 {service.Title} • منصة وتطبيق خدماوي 📲 حمّل التطبيق");
 
         var html = new StringBuilder();
         html.AppendLine("<!DOCTYPE html>");
@@ -253,8 +253,8 @@ public class ShareController : ControllerBase
         html.AppendLine("  <meta name=\"build-version\" content=\"v2.0.0-fix-20260824\" />");
         html.AppendLine($"  <title>{pageTitle}</title>");
 
-        var cardExists = System.IO.File.Exists(cardPhysicalPath);
-        var finalOgImage = cardExists ? imageUrl : $"{baseUrl}/share/service/{id}/og-image";
+        var cardExists = System.IO.File.Exists(cardStoragePath) || System.IO.File.Exists(cardPhysicalPath);
+        var finalOgImage = $"{baseUrl}/share/service/{id}/og-image";
         var ogImageType = cardExists ? "image/png" : "image/jpeg";
 
         // === Standard Open Graph tags (Facebook, LinkedIn, Discord, WhatsApp, Telegram) ===
@@ -604,7 +604,6 @@ public class ShareController : ControllerBase
             html.AppendLine($"      <img class=\"logo-fallback\" src=\"{imageUrl}\" alt=\"خدماوي\" />");
         }
         html.AppendLine("      <div class=\"banner-gradient\"></div>");
-        html.AppendLine($"      <div class=\"price-badge\">💰 {priceText}</div>");
         html.AppendLine("      <div class=\"brand-badge\">📲 خدماوي</div>");
         html.AppendLine("    </div>");
 
@@ -821,6 +820,11 @@ public class ShareController : ControllerBase
         if (System.IO.File.Exists(cardPath))
         {
             return PhysicalFile(cardPath, "image/png");
+        }
+        var fallbackCardPath = Path.Combine(webRoot, "images", "share_cards", $"card_{id}.png");
+        if (System.IO.File.Exists(fallbackCardPath))
+        {
+            return PhysicalFile(fallbackCardPath, "image/png");
         }
 
         // 2. If a cached contained OG image exists, serve it

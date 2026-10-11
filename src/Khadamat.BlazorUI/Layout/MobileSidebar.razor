@@ -74,9 +74,13 @@
                                 <i class="fa-solid fa-users text-primary"></i>
                                 <span>إدارة المستخدمين</span>
                             </div>
-                            <div class="menu-item @GetActiveClass("admin/approvals/providers")" @onclick='() => NavigateTo("/admin/approvals/providers")'>
-                                <i class="fa-solid fa-user-check text-primary"></i>
-                                <span>اعتماد مقدمي الخدمات</span>
+                            <div class="menu-item @GetActiveClass("admin/reminders")" @onclick='() => NavigateTo("/admin/reminders")'>
+                                <i class="fa-solid fa-bell text-primary"></i>
+                                <span>إدارة التذكيرات</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("admin/send-notification")" @onclick='() => NavigateTo("/admin/send-notification")'>
+                                <i class="fa-solid fa-paper-plane text-primary"></i>
+                                <span>إرسال التنبيهات</span>
                             </div>
                             <div class="menu-item @GetActiveClass("admin/services")" @onclick='() => NavigateTo("/admin/services")'>
                                 <i class="fa-solid fa-briefcase text-primary"></i>
@@ -814,16 +818,6 @@
 
     private async Task ShareApp()
     {
-        var appName = !string.IsNullOrEmpty(State.AppNameAr) ? State.AppNameAr : (string.IsNullOrEmpty(State.AppName) ? "خدماوي" : State.AppName);
-        var appDownloadUrl = !string.IsNullOrEmpty(State.GooglePlayUrl)
-            ? State.GooglePlayUrl
-            : (!string.IsNullOrEmpty(State.AppShareUrl) ? State.AppShareUrl : $"{Navigation.BaseUri.TrimEnd('/')}/downloads/khadamat.apk");
-        var websiteUrl = Navigation.BaseUri.TrimEnd('/');
-
-        var fullText = $"📲 منصة وتطبيق {appName} — خدماتك في مكان واحد.. لكل المصريين!\n" +
-                       "تواصل مباشرة مع أفضل الحرفيين والمهنيين ومقدمي الخدمات بكل سهولة وأمان.\n\n" +
-                       $"📱 رابط تحميل التطبيق:\n{appDownloadUrl}\n\n" +
-                       $"🌐 رابط موقع الويب:\n{websiteUrl}";
-        await ShareService.ShareTextAsync(fullText, $"مشاركة تطبيق {appName}");
+        await AppShareHelper.ShareAppAsync(ShareService, State, Navigation.BaseUri, JS);
     }
 }
