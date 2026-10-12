@@ -2,6 +2,8 @@
 using System;
 using Android.App;
 using Android.Content;
+using Android.Graphics;
+using Android.Media;
 using Android.OS;
 using AndroidX.Core.App;
 using Firebase.Messaging;
@@ -73,6 +75,7 @@ public class KhadamatFirebaseMessagingService : FirebaseMessagingService
                     Description = AndroidReminderScheduler.ChannelDescription
                 };
                 channel.EnableLights(true);
+                channel.LightColor = global::Android.Graphics.Color.ParseColor("#6366f1");
                 channel.EnableVibration(true);
                 channel.SetShowBadge(true);
                 notificationManager.CreateNotificationChannel(channel);
@@ -96,18 +99,58 @@ public class KhadamatFirebaseMessagingService : FirebaseMessagingService
             mainIntent,
             PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
 
-        var icon = ApplicationInfo?.Icon != 0 
-            ? ApplicationInfo!.Icon 
-            : global::Android.Resource.Drawable.SymDefAppIcon;
+        // Small Icon (white silhouette for status bar)
+        int smallIcon = Resources?.GetIdentifier("ic_notification", "drawable", PackageName) ?? 0;
+        if (smallIcon == 0)
+        {
+            smallIcon = ApplicationInfo?.Icon != 0 
+                ? ApplicationInfo!.Icon 
+                : global::Android.Resource.Drawable.SymDefAppIcon;
+        }
+
+        // Large Icon (app logo decoded into full-color Bitmap)
+        Bitmap? largeIcon = null;
+        try
+        {
+            int appIconRes = Resources?.GetIdentifier("khadamat_icon", "mipmap", PackageName) ?? 0;
+            if (appIconRes == 0)
+            {
+                appIconRes = ApplicationInfo?.Icon ?? 0;
+            }
+            if (appIconRes != 0 && Resources != null)
+            {
+                largeIcon = BitmapFactory.DecodeResource(Resources, appIconRes);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[FCM] Error decoding large icon: {ex.Message}");
+        }
+
+        var defaultSound = RingtoneManager.GetDefaultUri(RingtoneType.Notification);
 
         var builder = new NotificationCompat.Builder(this, AndroidReminderScheduler.ChannelId)
             .SetContentTitle(title)
             .SetContentText(body)
-            .SetStyle(new NotificationCompat.BigTextStyle().BigText(body))
-            .SetSmallIcon(icon)
+            .SetSubText("خدماوي")
+            .SetStyle(new NotificationCompat.BigTextStyle()
+                .SetBigContentTitle(title)
+                .BigText(body)
+                .SetSummaryText("إشعار جديد"))
+            .SetSmallIcon(smallIcon)
+            .SetColor(global::Android.Graphics.Color.ParseColor("#6366f1"))
             .SetAutoCancel(true)
             .SetPriority(NotificationCompat.PriorityHigh)
+            .SetCategory(NotificationCompat.CategoryMessage)
+            .SetSound(defaultSound)
+            .SetVibrate(new long[] { 0, 250, 150, 250 })
+            .SetLights(global::Android.Graphics.Color.ParseColor("#6366f1"), 1000, 500)
             .SetContentIntent(pendingIntent);
+
+        if (largeIcon != null)
+        {
+            builder.SetLargeIcon(largeIcon);
+        }
 
         notificationManager.Notify(notificationId, builder.Build());
     }

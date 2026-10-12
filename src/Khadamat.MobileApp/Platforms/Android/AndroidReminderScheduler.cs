@@ -33,11 +33,12 @@ public class AndroidReminderScheduler : IPlatformReminderScheduler
             var existingChannel = notificationManager.GetNotificationChannel(ChannelId);
             if (existingChannel == null)
             {
-                var channel = new NotificationChannel(ChannelId, ChannelName, NotificationImportance.Default)
+                var channel = new NotificationChannel(ChannelId, ChannelName, NotificationImportance.High)
                 {
                     Description = ChannelDescription
                 };
                 channel.EnableLights(true);
+                channel.LightColor = global::Android.Graphics.Color.ParseColor("#6366f1");
                 channel.EnableVibration(true);
                 channel.SetShowBadge(true);
                 notificationManager.CreateNotificationChannel(channel);

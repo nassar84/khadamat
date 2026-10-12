@@ -97,10 +97,38 @@
                          HeightRequest="30" WidthRequest="30" Margin="5,0"
                          Command="{Binding ShowThemePickerCommand}" />
 
-            <ImageButton Grid.Column="3" Source="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F514;', Color=White}"
-                         HeightRequest="30" WidthRequest="30" Margin="5,0"
-                         IsVisible="{Binding IsAuthenticated}"
-                         Command="{Binding NavigateCommand}" CommandParameter="notifications" />
+            <!-- Notification Bell with Red Badge -->
+            <Grid Grid.Column="3" WidthRequest="34" HeightRequest="34" Margin="4,0" VerticalOptions="Center"
+                  IsVisible="{Binding IsAuthenticated}">
+                <ImageButton Source="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F514;', Color=White}"
+                             HeightRequest="28" WidthRequest="28"
+                             HorizontalOptions="Center" VerticalOptions="Center"
+                             Command="{Binding NavigateCommand}" CommandParameter="notifications" />
+                
+                <!-- Red Badge Counter -->
+                <Border IsVisible="{Binding HasUnreadNotifications}"
+                        BackgroundColor="#ef4444"
+                        StrokeThickness="1.5"
+                        Stroke="White"
+                        HorizontalOptions="End"
+                        VerticalOptions="Start"
+                        HeightRequest="17"
+                        MinimumWidthRequest="17"
+                        Padding="3,0"
+                        TranslationX="3"
+                        TranslationY="-2"
+                        InputTransparent="True">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="8.5" />
+                    </Border.StrokeShape>
+                    <Label Text="{Binding UnreadNotificationsBadgeText}"
+                           TextColor="White"
+                           FontSize="9"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+                </Border>
+            </Grid>
             
             <ImageButton Grid.Column="4" Source="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F50D;', Color=White}"
                          HeightRequest="30" WidthRequest="30" Margin="5,0"
@@ -352,7 +380,13 @@
                             <Grid.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="notifications" />
                             </Grid.GestureRecognizers>
-                            <Label Text="الإشعارات" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                <Label Text="الإشعارات" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                                <Border IsVisible="{Binding HasUnreadNotifications}" BackgroundColor="#ef4444" StrokeThickness="0" Padding="6,1" VerticalOptions="Center">
+                                    <Border.StrokeShape><RoundRectangle CornerRadius="8" /></Border.StrokeShape>
+                                    <Label Text="{Binding UnreadNotificationsBadgeText}" TextColor="White" FontSize="10" FontAttributes="Bold" />
+                                </Border>
+                            </HorizontalStackLayout>
                             <Label Grid.Column="1" Text="🔔" FontSize="18" VerticalOptions="Center" />
                         </Grid>
                         <BoxView HeightRequest="8" Color="#f8fafc" Margin="0,8,0,8" />
@@ -524,7 +558,13 @@
                             <Grid.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="notifications" />
                             </Grid.GestureRecognizers>
-                            <Label Text="الإشعارات" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                            <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                <Label Text="الإشعارات" TextColor="#1e293b" FontSize="14" FontAttributes="Bold" VerticalOptions="Center" />
+                                <Border IsVisible="{Binding HasUnreadNotifications}" BackgroundColor="#ef4444" StrokeThickness="0" Padding="6,1" VerticalOptions="Center">
+                                    <Border.StrokeShape><RoundRectangle CornerRadius="8" /></Border.StrokeShape>
+                                    <Label Text="{Binding UnreadNotificationsBadgeText}" TextColor="White" FontSize="10" FontAttributes="Bold" />
+                                </Border>
+                            </HorizontalStackLayout>
                             <Label Grid.Column="1" Text="🔔" FontSize="18" VerticalOptions="Center" />
                         </Grid>
                         <BoxView HeightRequest="8" Color="#f8fafc" Margin="0,8,0,8" />

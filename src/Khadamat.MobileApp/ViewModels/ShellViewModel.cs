@@ -54,7 +54,17 @@ public partial class ShellViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsClient))]
     [NotifyPropertyChangedFor(nameof(IsProviderActive))]
     [NotifyPropertyChangedFor(nameof(IsAdminActive))]
+    [NotifyPropertyChangedFor(nameof(HasUnreadNotifications))]
     private bool isAuthenticated = false;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasUnreadNotifications))]
+    [NotifyPropertyChangedFor(nameof(UnreadNotificationsBadgeText))]
+    private int unreadNotificationsCount = 0;
+
+    public bool HasUnreadNotifications => IsAuthenticated && UnreadNotificationsCount > 0;
+
+    public string UnreadNotificationsBadgeText => UnreadNotificationsCount > 99 ? "+99" : UnreadNotificationsCount.ToString();
 
     public bool IsNotAuthenticated => !IsAuthenticated;
     public bool IsGuest => !IsAuthenticated;
@@ -181,11 +191,13 @@ public partial class ShellViewModel : ObservableObject
         {
             prefs.Set("UserName", UserName);
             prefs.Set("UserImage", UserImage);
+            Task.Run(async () => await RefreshNotificationCountAsync());
         }
         else
         {
             prefs.Remove("UserName");
             prefs.Remove("UserImage");
+            UnreadNotificationsCount = 0;
         }
     }
 
@@ -207,14 +219,27 @@ public partial class ShellViewModel : ObservableObject
         isAdmin = prefs.Get("IsAdmin", false);
         isProvider = prefs.Get("IsProvider", false);
         
+        // Listen to PushNotificationBridge to immediately update badge count when push arrives
+        PushNotificationBridge.OnNotificationReceived += _ =>
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                UnreadNotificationsCount++;
+            });
+        };
+
         if (isAuthenticated)
         {
             userName = prefs.Get("UserName", "مستخدم");
             userImage = ResolveFullImageUrl(prefs.Get("UserImage", "app_logo.png"));
             userTitle = (string.IsNullOrEmpty(userName) || userName.StartsWith("facebook_", StringComparison.OrdinalIgnoreCase) || userName.StartsWith("google_", StringComparison.OrdinalIgnoreCase)) ? "حسابي" : userName.Split(' ')[0];
             
-            // Refresh user profile in background to validate token & ensure latest avatar and name
-            Task.Run(async () => await RefreshUserProfileAsync());
+            // Refresh user profile and notification count in background
+            Task.Run(async () => 
+            {
+                await RefreshUserProfileAsync();
+                await RefreshNotificationCountAsync();
+            });
         }
 
         // Restore Brand Colors from Cache
@@ -366,6 +391,11 @@ public partial class ShellViewModel : ObservableObject
             else if (lowerRoute.Contains("marketplace")) CurrentTab = "marketplace";
             else if (lowerRoute.Contains("feed")) CurrentTab = "feed";
             else if (lowerRoute == "" || lowerRoute.Contains("home")) CurrentTab = "home";
+
+            if (lowerRoute.Contains("notification"))
+            {
+                UnreadNotificationsCount = 0;
+            }
 
             // Identify if we can do an inject-based navigation instead of MAUI shell push
             var currentPage = Shell.Current.CurrentPage;
@@ -723,5 +753,39 @@ public partial class ShellViewModel : ObservableObject
 
         var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         return fullUrl.Contains("?") ? $"{fullUrl}&t={timestamp}" : $"{fullUrl}?t={timestamp}";
+    }
+
+    public async Task RefreshNotificationCountAsync()
+    {
+        if (!IsAuthenticated) return;
+        try
+        {
+            var token = await Microsoft.Maui.Storage.SecureStorage.GetAsync("authToken");
+            if (string.IsNullOrEmpty(token))
+            {
+                token = Microsoft.Maui.Storage.Preferences.Default.Get("AuthToken", "");
+            }
+            if (string.IsNullOrEmpty(token)) return;
+
+            var baseUrl = _configuration["ApiSettings:BaseUrl"] ?? "http://10.0.2.2:5144";
+            var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl.TrimEnd('/')}/v1/notifications/unread-count");
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            var response = await _httpClient.SendAsync(request);
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<ApiResponse<int>>();
+                if (result?.Success == true)
+                {
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        UnreadNotificationsCount = result.Data;
+                    });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ShellViewModel] Error refreshing notification count: {ex.Message}");
+        }
     }
 }

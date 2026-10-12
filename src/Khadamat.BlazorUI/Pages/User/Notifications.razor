@@ -107,17 +107,29 @@
                              @onclick="() => HandleNotificationClick(n)"
                              style="cursor: pointer;">
                             
-                            <!-- Type Icon -->
+                            <!-- Type Icon / App Icon -->
                             <div class="notification-icon-wrap flex-shrink-0" style="background-color: @typeStyle.Bg; color: @typeStyle.Color;">
-                                <i class="@typeStyle.Icon"></i>
+                                @if ((n.Type?.ToLower() == "system" || n.Type?.ToLower() == "reminder" || string.IsNullOrEmpty(n.Type)) && !string.IsNullOrEmpty(State.AppLogo))
+                                {
+                                    <img src="@State.GetAbsoluteUrl(State.AppLogo)" alt="App Icon" style="width: 26px; height: 26px; object-fit: contain; border-radius: 6px;" />
+                                }
+                                else
+                                {
+                                    <i class="@typeStyle.Icon"></i>
+                                }
                             </div>
 
                             <!-- Content -->
                             <div class="flex-grow-1 min-w-0">
                                 <div class="d-flex justify-content-between align-items-baseline gap-2 mb-1">
-                                    <h6 class="mb-0 fw-bold @(!n.IsRead ? "text-dark" : "text-secondary") text-truncate">
-                                        @n.Title
-                                    </h6>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <h6 class="mb-0 fw-bold @(!n.IsRead ? "text-dark" : "text-secondary") text-truncate">
+                                            @n.Title
+                                        </h6>
+                                        <span class="badge rounded-pill px-2 py-0.5" style="font-size: 0.65rem; background-color: @typeStyle.Bg; color: @typeStyle.Color; font-weight: 700;">
+                                            @GetTypeLabel(n.Type)
+                                        </span>
+                                    </div>
                                     <span class="text-muted smaller flex-shrink-0">
                                         @FormatTimeAgo(n.CreatedAt)
                                     </span>
@@ -335,11 +347,22 @@
 
     private (string Icon, string Bg, string Color) GetTypeStyle(string? type) => (type?.ToLower() ?? "") switch
     {
+        "reminder" => ("fa-solid fa-clock-rotate-left", "rgba(99, 102, 241, 0.15)", "#6366f1"),
         "order" => ("fa-solid fa-clipboard-list", "rgba(59, 130, 246, 0.12)", "#2563eb"),
         "admin" => ("fa-solid fa-shield-halved", "rgba(16, 185, 129, 0.12)", "#059669"),
         "message" => ("fa-solid fa-comment-dots", "rgba(139, 92, 246, 0.12)", "#7c3aed"),
-        "system" => ("fa-solid fa-circle-exclamation", "rgba(245, 158, 11, 0.12)", "#d97706"),
+        "system" => ("fa-solid fa-bullhorn", "rgba(245, 158, 11, 0.12)", "#d97706"),
         _ => ("fa-solid fa-bell", "rgba(99, 102, 241, 0.12)", "#6366f1")
+    };
+
+    private string GetTypeLabel(string? type) => (type?.ToLower() ?? "") switch
+    {
+        "reminder" => "تذكير",
+        "order" => "طلب",
+        "admin" => "إدارة",
+        "message" => "رسالة",
+        "system" => "النظام",
+        _ => "تنبيه"
     };
 
     private string FormatTimeAgo(DateTime dateTime)

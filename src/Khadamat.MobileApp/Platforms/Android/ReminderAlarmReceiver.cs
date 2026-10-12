@@ -2,6 +2,8 @@
 using System;
 using Android.App;
 using Android.Content;
+using Android.Graphics;
+using Android.Media;
 using Android.OS;
 using AndroidX.Core.App;
 using Khadamat.Domain.Enums;
@@ -44,6 +46,27 @@ public class ReminderAlarmReceiver : BroadcastReceiver
         var notificationManager = (NotificationManager?)context.GetSystemService(global::Android.Content.Context.NotificationService);
         if (notificationManager == null) return;
 
+        // Ensure channel exists
+        if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+        {
+            var existingChannel = notificationManager.GetNotificationChannel(AndroidReminderScheduler.ChannelId);
+            if (existingChannel == null)
+            {
+                var channel = new NotificationChannel(
+                    AndroidReminderScheduler.ChannelId, 
+                    AndroidReminderScheduler.ChannelName, 
+                    NotificationImportance.High)
+                {
+                    Description = AndroidReminderScheduler.ChannelDescription
+                };
+                channel.EnableLights(true);
+                channel.LightColor = global::Android.Graphics.Color.ParseColor("#6366f1");
+                channel.EnableVibration(true);
+                channel.SetShowBadge(true);
+                notificationManager.CreateNotificationChannel(channel);
+            }
+        }
+
         // Intent to launch MainActivity with deep link route
         var mainIntent = new Intent(context, Java.Lang.Class.FromType(typeof(MainActivity)));
         mainIntent.SetFlags(ActivityFlags.ClearTop | ActivityFlags.SingleTop);
@@ -57,18 +80,58 @@ public class ReminderAlarmReceiver : BroadcastReceiver
             mainIntent,
             PendingIntentFlags.UpdateCurrent | PendingIntentFlags.Immutable);
 
-        var icon = context.ApplicationInfo?.Icon != 0 
-            ? context.ApplicationInfo!.Icon 
-            : global::Android.Resource.Drawable.SymDefAppIcon;
+        // Small Icon (white silhouette for status bar)
+        int smallIcon = context.Resources?.GetIdentifier("ic_notification", "drawable", context.PackageName) ?? 0;
+        if (smallIcon == 0)
+        {
+            smallIcon = context.ApplicationInfo?.Icon != 0 
+                ? context.ApplicationInfo!.Icon 
+                : global::Android.Resource.Drawable.SymDefAppIcon;
+        }
+
+        // Large Icon (app logo decoded into full-color Bitmap)
+        Bitmap? largeIcon = null;
+        try
+        {
+            int appIconRes = context.Resources?.GetIdentifier("khadamat_icon", "mipmap", context.PackageName) ?? 0;
+            if (appIconRes == 0)
+            {
+                appIconRes = context.ApplicationInfo?.Icon ?? 0;
+            }
+            if (appIconRes != 0 && context.Resources != null)
+            {
+                largeIcon = BitmapFactory.DecodeResource(context.Resources, appIconRes);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Reminder] Error decoding large icon: {ex.Message}");
+        }
+
+        var defaultSound = RingtoneManager.GetDefaultUri(RingtoneType.Notification);
 
         var builder = new NotificationCompat.Builder(context, AndroidReminderScheduler.ChannelId)
             .SetContentTitle(title)
             .SetContentText(message)
-            .SetStyle(new NotificationCompat.BigTextStyle().BigText(message))
-            .SetSmallIcon(icon)
+            .SetSubText("تذكير خدماوي")
+            .SetStyle(new NotificationCompat.BigTextStyle()
+                .SetBigContentTitle(title)
+                .BigText(message)
+                .SetSummaryText("تذكير مخصص"))
+            .SetSmallIcon(smallIcon)
+            .SetColor(global::Android.Graphics.Color.ParseColor("#6366f1"))
             .SetAutoCancel(true)
-            .SetPriority(NotificationCompat.PriorityDefault)
+            .SetPriority(NotificationCompat.PriorityHigh)
+            .SetCategory(NotificationCompat.CategoryReminder)
+            .SetSound(defaultSound)
+            .SetVibrate(new long[] { 0, 300, 150, 300 })
+            .SetLights(global::Android.Graphics.Color.ParseColor("#6366f1"), 1000, 500)
             .SetContentIntent(pendingIntent);
+
+        if (largeIcon != null)
+        {
+            builder.SetLargeIcon(largeIcon);
+        }
 
         notificationManager.Notify(id, builder.Build());
     }
