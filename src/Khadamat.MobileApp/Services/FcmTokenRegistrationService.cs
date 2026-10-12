@@ -38,6 +38,23 @@ public class FcmTokenRegistrationService
 
             if (string.IsNullOrEmpty(token))
             {
+#if ANDROID
+                token = await FetchFirebaseTokenDirectlyAsync();
+                if (!string.IsNullOrEmpty(token))
+                {
+                    try
+                    {
+                        await SecureStorage.Default.SetAsync("fcm_device_token", token);
+                        Preferences.Default.Set("fcm_device_token", token);
+                        _logger.LogInformation("[FCM] Successfully fetched token directly from Firebase instance.");
+                    }
+                    catch { }
+                }
+#endif
+            }
+
+            if (string.IsNullOrEmpty(token))
+            {
                 _logger.LogWarning("[FCM] No device token found to register.");
                 return;
             }
@@ -52,7 +69,10 @@ public class FcmTokenRegistrationService
                 AppVersion = AppInfo.VersionString
             };
 
-            var response = await _http.PostAsJsonAsync("v1/notifications/register-device", payload);
+            var apiBase = Preferences.Default.Get("ApiBaseUrl", "https://khadamawy.eis-dev.com/").TrimEnd('/') + "/";
+            var url = $"{apiBase}v1/notifications/register-device";
+
+            var response = await _http.PostAsJsonAsync(url, payload);
 
             if (response.IsSuccessStatusCode)
             {
@@ -66,7 +86,7 @@ public class FcmTokenRegistrationService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[FCM] Error registering device token.");
+            _logger.LogError(ex, "[FCM] Error registering device token: {Message}", ex.Message);
         }
     }
 
@@ -85,14 +105,58 @@ public class FcmTokenRegistrationService
 
             if (string.IsNullOrEmpty(token)) return;
 
-            await _http.DeleteAsync($"v1/notifications/unregister-device?token={Uri.EscapeDataString(token)}");
+            var apiBase = Preferences.Default.Get("ApiBaseUrl", "https://khadamawy.eis-dev.com/").TrimEnd('/') + "/";
+            var url = $"{apiBase}v1/notifications/unregister-device?token={Uri.EscapeDataString(token)}";
+
+            await _http.DeleteAsync(url);
             await SecureStorage.Default.SetAsync("fcm_token_registered", "false");
 
             _logger.LogInformation("[FCM] Device token unregistered.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[FCM] Error unregistering device token.");
+            _logger.LogError(ex, "[FCM] Error unregistering device token: {Message}", ex.Message);
         }
     }
+
+#if ANDROID
+    private static async Task<string?> FetchFirebaseTokenDirectlyAsync()
+    {
+        try
+        {
+            var tcs = new TaskCompletionSource<string?>();
+            Firebase.Messaging.FirebaseMessaging.Instance.GetToken()
+                .AddOnCompleteListener(new FcmDirectTokenListener(tcs));
+
+            var completedTask = await Task.WhenAny(tcs.Task, Task.Delay(6000));
+            if (completedTask == tcs.Task)
+            {
+                return await tcs.Task;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[FCM] Direct token fetch error: {ex.Message}");
+        }
+        return null;
+    }
+
+    private class FcmDirectTokenListener : Java.Lang.Object, Android.Gms.Tasks.IOnCompleteListener
+    {
+        private readonly TaskCompletionSource<string?> _tcs;
+        public FcmDirectTokenListener(TaskCompletionSource<string?> tcs) => _tcs = tcs;
+
+        public void OnComplete(Android.Gms.Tasks.Task task)
+        {
+            if (task.IsSuccessful && task.Result != null)
+            {
+                _tcs.TrySetResult(task.Result.ToString());
+            }
+            else
+            {
+                _tcs.TrySetResult(null);
+            }
+        }
+    }
+#endif
 }

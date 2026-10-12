@@ -15,7 +15,13 @@ public class SignalRNotificationNotifier : INotificationNotifier
 
     public async Task NotifyUserAsync(string userId, string title, string message)
     {
-        // "Recall: We add users to a Group named by their userId in OnConnectedAsync"
-        await _hubContext.Clients.Group(userId).SendAsync("ReceiveNotification", title, message);
+        try
+        {
+            await Task.WhenAll(
+                _hubContext.Clients.Group(userId).SendAsync("ReceiveNotification", title, message),
+                _hubContext.Clients.User(userId).SendAsync("ReceiveNotification", title, message)
+            );
+        }
+        catch { }
     }
 }

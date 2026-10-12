@@ -25,4 +25,9 @@ public interface IReminderService
     /// Seeds or activates the default Google Play 14-day tester campaign
     /// </summary>
     Task<ReminderCampaignDto> EnsureDefaultTesterCampaignExistsAsync(string? userId);
+
+    /// <summary>
+    /// Immediately triggers a reminder campaign manually for testing and instant broadcast
+    /// </summary>
+    Task<(bool Success, string Message)> TriggerReminderNowAsync(int id, string? userId);
 }

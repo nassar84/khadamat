@@ -1737,6 +1737,43 @@ public class ApiClient
         var res = await GetAsync<ApiResponse<List<ActiveClientReminderDto>>>(url);
         return res?.Data ?? new List<ActiveClientReminderDto>();
     }
+
+    public async Task<(bool Success, string Message)> TriggerReminderNowAsync(int id)
+    {
+        try
+        {
+            var res = await _http.PostAsync($"v1/reminders/{id}/test-trigger", null);
+            var content = await res.Content.ReadFromJsonAsync<ApiResponse<string>>();
+            if (res.IsSuccessStatusCode && content?.Success == true)
+            {
+                return (true, content.Data ?? "تم إرسال التذكير بنجاح!");
+            }
+            return (false, content?.Message ?? $"فشل الإرسال ({res.StatusCode})");
+        }
+        catch (Exception ex)
+        {
+            return (false, ex.Message);
+        }
+    }
+
+    public async Task<(bool Success, string Message)> TestFcmPushAsync(string? title = null, string? message = null)
+    {
+        try
+        {
+            var url = $"v1/notifications/test-fcm?title={Uri.EscapeDataString(title ?? "")}&message={Uri.EscapeDataString(message ?? "")}";
+            var res = await _http.PostAsync(url, null);
+            var content = await res.Content.ReadFromJsonAsync<ApiResponse<string>>();
+            if (res.IsSuccessStatusCode && content?.Success == true)
+            {
+                return (true, content.Data ?? "تم إرسال إشعار FCM بنجاح");
+            }
+            return (false, content?.Message ?? $"فشل الإرسال ({res.StatusCode})");
+        }
+        catch (Exception ex)
+        {
+            return (false, ex.Message);
+        }
+    }
 }
 
 

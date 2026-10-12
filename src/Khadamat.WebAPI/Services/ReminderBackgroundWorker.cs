@@ -86,12 +86,14 @@ public class ReminderBackgroundWorker : BackgroundService
             if (!campaign.IsCurrentlyActive(nowUtc))
                 continue;
 
-            // Check if scheduled time matches current hour & minute
-            if (campaign.ScheduledTime.Hours != currentHour || campaign.ScheduledTime.Minutes != currentMinute)
+            // Check if scheduled time is reached within a 2-minute grace window
+            var scheduledToday = nowLocal.Date + campaign.ScheduledTime;
+            var diffMinutes = (nowLocal - scheduledToday).TotalMinutes;
+            if (diffMinutes < 0 || diffMinutes >= 2.0)
                 continue;
 
-            // Prevent duplicate triggers within the same 5-minute window
-            if (campaign.LastTriggeredAt.HasValue && (nowUtc - campaign.LastTriggeredAt.Value).TotalMinutes < 5)
+            // Prevent duplicate triggers within the same 15-minute window
+            if (campaign.LastTriggeredAt.HasValue && (nowUtc - campaign.LastTriggeredAt.Value).TotalMinutes < 15)
                 continue;
 
             // Check recurrence rules

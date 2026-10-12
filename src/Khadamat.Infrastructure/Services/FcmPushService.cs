@@ -84,7 +84,8 @@ public class FcmPushService : IFcmPushService
 
     public async Task<bool> RegisterDeviceTokenAsync(string userId, string token, string platform, string? deviceId = null, string? appVersion = null)
     {
-        if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(token)) return false;
+        if (string.IsNullOrWhiteSpace(token)) return false;
+        userId = userId?.Trim() ?? string.Empty;
 
         try
         {
@@ -94,7 +95,10 @@ public class FcmPushService : IFcmPushService
 
             if (existing != null)
             {
-                existing.UserId = userId;
+                if (!string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(existing.UserId))
+                {
+                    existing.UserId = userId;
+                }
                 existing.Platform = platform ?? "android";
                 existing.DeviceId = deviceId ?? existing.DeviceId;
                 existing.AppVersion = appVersion ?? existing.AppVersion;
@@ -118,12 +122,12 @@ public class FcmPushService : IFcmPushService
             }
 
             await _context.SaveChangesAsync();
-            _logger.LogInformation("[FCM] Registered device token for user {UserId} (Platform: {Platform})", userId, platform);
+            _logger.LogInformation("[FCM] Registered device token successfully (User: '{UserId}', Platform: {Platform}, DeviceId: {DeviceId})", userId, platform, deviceId);
             return true;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[FCM] Error registering device token for user {UserId}", userId);
+            _logger.LogError(ex, "[FCM] Error registering device token for user '{UserId}'", userId);
             return false;
         }
     }

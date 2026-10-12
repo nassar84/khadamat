@@ -129,6 +129,17 @@ public class NotificationsController : ControllerBase
         var success = await _fcmPushService.UnregisterDeviceTokenAsync(token);
         return Ok(ApiResponse<bool>.Succeed(success));
     }
+
+    [HttpPost("test-fcm")]
+    [Authorize(Roles = "Admin,SystemAdmin,SuperAdmin")]
+    public async Task<ActionResult<ApiResponse<string>>> TestFcm([FromQuery] string? title, [FromQuery] string? message)
+    {
+        var testTitle = string.IsNullOrWhiteSpace(title) ? "إشعار تجريبي من خدماوى" : title;
+        var testMessage = string.IsNullOrWhiteSpace(message) ? "هذا إشعار تجريبي لاختبار وصول التنبيهات الفورية عبر FCM بنجاح" : message;
+
+        var count = await _fcmPushService.SendBroadcastPushAsync(testTitle, testMessage, "/");
+        return Ok(ApiResponse<string>.Succeed($"تم تشغيل إشعار FCM التجريبي! تم التسليم إلى {count} جهاز مسجل."));
+    }
 }
 
 

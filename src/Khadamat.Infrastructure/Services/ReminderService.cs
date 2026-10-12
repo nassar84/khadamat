@@ -14,10 +14,12 @@ namespace Khadamat.Infrastructure.Services;
 public class ReminderService : IReminderService
 {
     private readonly KhadamatDbContext _context;
+    private readonly INotificationService _notificationService;
 
-    public ReminderService(KhadamatDbContext context)
+    public ReminderService(KhadamatDbContext context, INotificationService notificationService)
     {
         _context = context;
+        _notificationService = notificationService;
     }
 
     public async Task<List<ReminderCampaignDto>> GetRemindersAsync(ReminderFilterDto filter)
@@ -344,6 +346,44 @@ public class ReminderService : IReminderService
         await _context.SaveChangesAsync();
 
         return MapToDto(defaultTesterCampaign);
+    }
+
+    public async Task<(bool Success, string Message)> TriggerReminderNowAsync(int id, string? userId)
+    {
+        var campaign = await _context.ReminderCampaigns.FindAsync(id);
+        if (campaign == null || campaign.IsDeleted)
+        {
+            return (false, "التذكير غير موجود");
+        }
+
+        string? roleFilter = string.IsNullOrWhiteSpace(campaign.TargetRole) ? null : campaign.TargetRole;
+        string actionRoute = string.IsNullOrWhiteSpace(campaign.ActionRoute) ? "/" : campaign.ActionRoute;
+
+        try
+        {
+            await _notificationService.SendBroadcastAsync(
+                title: campaign.Title,
+                message: campaign.Message,
+                type: "Reminder",
+                link: actionRoute,
+                role: roleFilter,
+                governorateId: null,
+                cityId: null,
+                mainCategoryId: null
+            );
+
+            campaign.LastTriggeredAt = DateTime.UtcNow;
+            campaign.ExecutionCount++;
+            campaign.UpdatedAt = DateTime.UtcNow;
+            campaign.UpdatedBy = userId;
+            await _context.SaveChangesAsync();
+
+            return (true, $"تم إرسال التذكير '{campaign.Title}' بنجاح! وصل الإشعار فوراً للمستخدمين المستهدفين (SignalR + FCM Push + صندوق الإشعارات).");
+        }
+        catch (Exception ex)
+        {
+            return (false, $"حدث خطأ أثناء إرسال التذكير: {ex.Message}");
+        }
     }
 
     private static ReminderCampaignDto MapToDto(ReminderCampaign r)

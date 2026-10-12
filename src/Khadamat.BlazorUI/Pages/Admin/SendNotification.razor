@@ -10,7 +10,10 @@
             <h2 class="fw-bold mb-0">إرسال تنبيهات النظام</h2>
             <p class="text-muted">أرسل إشعارات فورية للمستخدمين أو مجموعات مخصصة</p>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-outline-warning rounded-pill btn-sm" @onclick="TestFcmQuickly" title="إرسال إشعار فوري تجريبي لجميع الهواتف عبر Firebase">
+                <i class="fas fa-satellite-dish me-1"></i> اختبار Firebase FCM
+            </button>
             <button class="btn btn-outline-primary rounded-pill btn-sm" @onclick='() => Navigation.NavigateTo("/admin/reminders")'>
                 <i class="fas fa-bell me-1"></i> إدارة التذكيرات المجدولة
             </button>
@@ -203,6 +206,24 @@
             {
                  await JS.InvokeVoidAsync("alert", $"حدث خطأ أثناء الإرسال: {errorMsg ?? "يرجى المحاولة لاحقاً"}");
             }
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private async Task TestFcmQuickly()
+    {
+        isSubmitting = true;
+        try
+        {
+            var (success, msg) = await Api.TestFcmPushAsync("إشعار تجريبي من خدماوى", "تجربة وصول الإشعار الفوري بنجاح إلى هاتفك الآن!");
+            await JS.InvokeVoidAsync("alert", msg);
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"خطأ: {ex.Message}");
         }
         finally
         {

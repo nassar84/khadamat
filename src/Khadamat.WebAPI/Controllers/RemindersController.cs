@@ -141,6 +141,20 @@ public class RemindersController : ControllerBase
     }
 
     /// <summary>
+    /// Immediately triggers this reminder for testing and validation
+    /// </summary>
+    [HttpPost("{id:int}/test-trigger")]
+    [Authorize(Roles = "SuperAdmin,SystemAdmin")]
+    public async Task<ActionResult<ApiResponse<string>>> TestTrigger(int id)
+    {
+        var (success, message) = await _reminderService.TriggerReminderNowAsync(id, CurrentUserId);
+        if (!success)
+            return BadRequest(ApiResponse<string>.Fail(message));
+
+        return Ok(ApiResponse<string>.Succeed(message));
+    }
+
+    /// <summary>
     /// Client synchronization endpoint: returns active reminders for the mobile app
     /// </summary>
     [HttpGet("active")]

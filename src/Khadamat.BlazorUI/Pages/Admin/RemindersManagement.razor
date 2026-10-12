@@ -20,6 +20,9 @@
             <button class="btn btn-outline-info rounded-pill px-3 shadow-sm btn-sm" @onclick='() => Navigation.NavigateTo("/admin/send-notification")' title="إرسال إشعار فوري لجميع المستخدمين أو فئة معينة">
                 <i class="fa-solid fa-paper-plane me-1"></i>إرسال تنبيه فوري
             </button>
+            <button class="btn btn-outline-warning rounded-pill px-3 shadow-sm btn-sm" @onclick="TestFcmBroadcast" title="إرسال إشعار فوري لجميع الأجهزة النشطة عبر Firebase">
+                <i class="fa-solid fa-satellite-dish me-1"></i>اختبار Firebase FCM
+            </button>
             <button class="btn btn-outline-primary rounded-pill px-3 shadow-sm btn-sm" @onclick="LoadDefaultTesterTemplate" title="إنشاء أو استعادة حملة اختبار Google Play">
                 <i class="fa-brands fa-google-play me-1 text-success"></i>حملة الـ 14 يوماً للمختبرين
             </button>
@@ -206,7 +209,10 @@
                                 @(rem.EndDate.HasValue ? $"إلى: {rem.EndDate.Value:yyyy/MM/dd}" : "")
                             </span>
 
-                            <div class="d-flex gap-1">
+                            <div class="d-flex gap-1 align-items-center">
+                                <button class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1 x-small fw-bold" @onclick="() => TestTriggerReminder(rem)" title="إرسال هذا التذكير فوراً للتجربة والتأكد من وصوله للهاتف والمركز">
+                                    <i class="fa-solid fa-paper-plane me-1"></i>تجربة الآن
+                                </button>
                                 @if (rem.Status == ReminderStatus.Active)
                                 {
                                     <button class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1 x-small" @onclick="() => ToggleStatus(rem.Id, ReminderStatus.Paused)">
@@ -744,6 +750,50 @@
         {
             statusMessage = $"خطأ: {ex.Message}";
             isSuccess = false;
+        }
+    }
+
+    private async Task TestTriggerReminder(ReminderCampaignDto rem)
+    {
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"هل تريد تشغيل وإرسال تذكير '{rem.Title}' فوراً الآن لجميع الفئات المستهدفة للتأكد من وصوله؟");
+        if (!confirmed) return;
+
+        isLoading = true;
+        try
+        {
+            var (success, msg) = await Api.TriggerReminderNowAsync(rem.Id);
+            statusMessage = msg;
+            isSuccess = success;
+            await LoadReminders();
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"حدث خطأ: {ex.Message}";
+            isSuccess = false;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task TestFcmBroadcast()
+    {
+        isLoading = true;
+        try
+        {
+            var (success, msg) = await Api.TestFcmPushAsync("اختبار إشعارات خدماوى", "تم تسليم هذا الإشعار الفوري بنجاح إلى هاتفك!");
+            statusMessage = msg;
+            isSuccess = success;
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"خطأ: {ex.Message}";
+            isSuccess = false;
+        }
+        finally
+        {
+            isLoading = false;
         }
     }
 
