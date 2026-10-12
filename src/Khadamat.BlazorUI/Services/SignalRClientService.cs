@@ -52,8 +52,7 @@ public class SignalRClientService
         {
             _ = _soundService.PlayNotificationAsync();
             NotificationReceived?.Invoke(title, message);
-            _appState.HasUnreadNotifications = true; // Simple flag in AppState
-            _appState.TriggerStateChanged();
+            _appState.NotificationCount++; // Increment badge counter on new notification (setter fires NotifyStateChanged automatically)
         });
 
         _chatHub = new HubConnectionBuilder()
