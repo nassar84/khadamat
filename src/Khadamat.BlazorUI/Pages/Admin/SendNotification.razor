@@ -1,5 +1,5 @@
 @page "/admin/send-notification"
-@attribute [Authorize(Roles = "SystemAdmin,SuperAdmin")]
+@attribute [Authorize(Roles = "Admin,SystemAdmin,SuperAdmin")]
 @inject ApiClient Api
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
@@ -184,7 +184,7 @@
         isSubmitting = true;
         try
         {
-            var success = await Api.SendAdminNotificationAsync(
+            var (success, errorMsg) = await Api.SendAdminNotificationAsync(
                 request.UserId, 
                 request.Title, 
                 request.Message, 
@@ -201,7 +201,7 @@
             }
             else
             {
-                 await JS.InvokeVoidAsync("alert", "حدث خطأ أثناء الإرسال");
+                 await JS.InvokeVoidAsync("alert", $"حدث خطأ أثناء الإرسال: {errorMsg ?? "يرجى المحاولة لاحقاً"}");
             }
         }
         finally

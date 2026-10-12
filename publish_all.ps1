@@ -24,9 +24,9 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-$apkSource = "src/Khadamat.MobileApp/bin/Release/net8.0-android/android-arm64/publish/com.nassar84.khadamat-Signed.apk"
+$apkSource = "src/Khadamat.MobileApp/bin/Release/net8.0-android/android-arm64/publish/com.nassar84.khadamawy-Signed.apk"
 if (-not (Test-Path $apkSource)) {
-    $apkSource = "src/Khadamat.MobileApp/bin/Release/net8.0-android/android-arm64/com.nassar84.khadamat-Signed.apk"
+    $apkSource = "src/Khadamat.MobileApp/bin/Release/net8.0-android/android-arm64/com.nassar84.khadamawy-Signed.apk"
 }
 
 if (-not (Test-Path $apkSource)) {

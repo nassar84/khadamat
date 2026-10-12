@@ -54,6 +54,22 @@ public partial class App : MauiApp
                 await Task.Delay(1000); // Allow app bootstrap to complete first
                 await reminderScheduler.InitializeAsync();
             });
+
+            // Register FCM device token with backend API in background
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(3000);
+                try
+                {
+                    using var scope = IPlatformApplication.Current?.Services?.CreateScope();
+                    var fcmService = scope?.ServiceProvider.GetService<FcmTokenRegistrationService>();
+                    if (fcmService != null)
+                    {
+                        await fcmService.RegisterTokenAsync();
+                    }
+                }
+                catch { }
+            });
         }
         catch (Exception ex)
         {

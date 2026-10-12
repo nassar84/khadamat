@@ -4,7 +4,7 @@
     <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="34" />
 
     <application 
-        android:name="com.nassar84.khadamat.MainApplication"
+        android:name="com.nassar84.khadamawy.MainApplication"
         android:allowBackup="false" 
         android:supportsRtl="true"
         android:label="خدماوي"
@@ -16,7 +16,7 @@
         <!-- All activities and services registered for consistency and to avoid ClassNotFoundException -->
         
         <!-- Native WebAuthenticator activity for OAuth callback -->
-        <activity android:name="com.nassar84.khadamat.WebAuthenticatorActivity"
+        <activity android:name="com.nassar84.khadamawy.WebAuthenticatorActivity"
                   android:noHistory="true"
                   android:launchMode="singleTop"
                   android:exported="true">

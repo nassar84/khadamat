@@ -6,7 +6,7 @@ using Khadamat.MobileApp.Services;
 
 namespace Khadamat.MobileApp;
 
-[Register("com.nassar84.khadamat.DeepLinkActivity")]
+[Register("com.nassar84.khadamawy.DeepLinkActivity")]
 [Activity(NoHistory = true, LaunchMode = global::Android.Content.PM.LaunchMode.SingleTask, Exported = true)]
 // NOTE: We intentionally do NOT handle khadamat://callback here.
 // That is exclusively handled by WebAuthenticatorActivity for OAuth flows.

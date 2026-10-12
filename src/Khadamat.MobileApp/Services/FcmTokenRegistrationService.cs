@@ -1,19 +1,15 @@
+using System;
 using System.Net.Http.Json;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.Devices;
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Storage;
 
 namespace Khadamat.MobileApp.Services;
 
 /// <summary>
 /// Handles FCM device token registration with the Khadamat backend API.
-/// 
-/// Flow:
-///   1. Firebase SDK generates token via KhadamatFirebaseMessagingService.OnNewToken()
-///   2. Token is stored via Preferences.Default.Set("fcm_device_token", token)
-///   3. After login, call FcmTokenRegistrationService.RegisterTokenAsync()
-///   4. This sends the token to the API endpoint: POST /api/notifications/register-device
-/// 
-/// Register in MauiProgram.cs:
-///   builder.Services.AddSingleton<FcmTokenRegistrationService>();
 /// </summary>
 public class FcmTokenRegistrationService
 {
@@ -28,13 +24,17 @@ public class FcmTokenRegistrationService
 
     /// <summary>
     /// Sends the stored FCM device token to the backend API.
-    /// Call this after the user logs in successfully.
+    /// Call this after the user logs in successfully or on app startup.
     /// </summary>
     public async Task RegisterTokenAsync()
     {
         try
         {
             var token = await SecureStorage.Default.GetAsync("fcm_device_token");
+            if (string.IsNullOrEmpty(token))
+            {
+                token = Preferences.Default.Get("fcm_device_token", "");
+            }
 
             if (string.IsNullOrEmpty(token))
             {
@@ -48,15 +48,15 @@ public class FcmTokenRegistrationService
             {
                 Token = token,
                 Platform = platform,
-                DeviceId = DeviceInfo.Idiom.ToString(),
+                DeviceId = DeviceInfo.Name,
                 AppVersion = AppInfo.VersionString
             };
 
-            var response = await _http.PostAsJsonAsync("/api/notifications/register-device", payload);
+            var response = await _http.PostAsJsonAsync("v1/notifications/register-device", payload);
 
             if (response.IsSuccessStatusCode)
             {
-                _logger.LogInformation("[FCM] Device token registered successfully.");
+                _logger.LogInformation("[FCM] Device token registered successfully with backend API.");
                 await SecureStorage.Default.SetAsync("fcm_token_registered", "true");
             }
             else
@@ -78,9 +78,14 @@ public class FcmTokenRegistrationService
         try
         {
             var token = await SecureStorage.Default.GetAsync("fcm_device_token");
+            if (string.IsNullOrEmpty(token))
+            {
+                token = Preferences.Default.Get("fcm_device_token", "");
+            }
+
             if (string.IsNullOrEmpty(token)) return;
 
-            await _http.DeleteAsync($"/api/notifications/unregister-device?token={Uri.EscapeDataString(token)}");
+            await _http.DeleteAsync($"v1/notifications/unregister-device?token={Uri.EscapeDataString(token)}");
             await SecureStorage.Default.SetAsync("fcm_token_registered", "false");
 
             _logger.LogInformation("[FCM] Device token unregistered.");

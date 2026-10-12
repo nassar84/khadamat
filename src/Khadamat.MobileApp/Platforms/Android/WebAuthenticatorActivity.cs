@@ -7,7 +7,7 @@ namespace Khadamat.MobileApp;
 
 // Required by MAUI WebAuthenticator to handle the khadamat://callback redirect
 // Must match the callbackUrl used in WebAuthenticator.AuthenticateAsync()
-[Register("com.nassar84.khadamat.WebAuthenticatorActivity")]
+[Register("com.nassar84.khadamawy.WebAuthenticatorActivity")]
 [Activity(NoHistory = true, LaunchMode = LaunchMode.SingleTop, Exported = true)]
 // Handler for: khadamat://callback (host = "callback")
 [IntentFilter(new[] { Intent.ActionView },

@@ -78,7 +78,7 @@ public static class MauiProgram
                                     ?? builder.Configuration["ApiSettings:WebAppBaseUrl"]
                                     ?? "https://khadamawy.eis-dev.com/";
         var googlePlayAppUrl      = builder.Configuration["Khadamawy:GooglePlayAppUrl"]
-                                    ?? "https://play.google.com/store/apps/details?id=com.nassar84.khadamat";
+                                    ?? "https://play.google.com/store/apps/details?id=com.nassar84.khadamawy";
 
         // Back-fill ApiSettings so any code that reads ApiSettings:BaseUrl still works
         builder.Configuration["ApiSettings:BaseUrl"]      = resolvedApiBaseUrl;

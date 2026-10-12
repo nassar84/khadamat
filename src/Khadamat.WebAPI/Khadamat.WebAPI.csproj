@@ -30,6 +30,13 @@
     <ProjectReference Include="..\Khadamat.WasmHost\Khadamat.WasmHost.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="firebase-service-account.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+
   <Target Name="CopyDownloadsToPublish" AfterTargets="Publish">
     <ItemGroup>
       <DownloadFiles Include="$(MSBuildProjectDirectory)\wwwroot\downloads\**\*" />

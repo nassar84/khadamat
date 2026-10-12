@@ -1135,20 +1135,33 @@ public class ApiClient
         return response.IsSuccessStatusCode;
     }
 
-    public async Task<bool> SendAdminNotificationAsync(string? userId, string title, string message, string? link = null, string? role = null, int? govId = null, int? cityId = null, int? catId = null)
+    public async Task<(bool Success, string? Message)> SendAdminNotificationAsync(string? userId, string title, string message, string? link = null, string? role = null, int? govId = null, int? cityId = null, int? catId = null)
     {
-        var request = new { 
-            UserId = userId, 
-            Title = title, 
-            Message = message, 
-            RelatedLink = link,
-            TargetRole = role,
-            GovernorateId = govId,
-            CityId = cityId,
-            MainCategoryId = catId
-        };
-        var response = await _http.PostAsJsonAsync("v1/notifications/send", request);
-        return response.IsSuccessStatusCode;
+        try
+        {
+            var request = new { 
+                UserId = userId, 
+                Title = title, 
+                Message = message, 
+                RelatedLink = link,
+                TargetRole = role,
+                GovernorateId = govId,
+                CityId = cityId,
+                MainCategoryId = catId
+            };
+            var response = await _http.PostAsJsonAsync("v1/notifications/send", request);
+            if (response.IsSuccessStatusCode)
+            {
+                return (true, null);
+            }
+
+            var apiRes = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
+            return (false, apiRes?.Message ?? $"فشل الطلب ({response.StatusCode})");
+        }
+        catch (Exception ex)
+        {
+            return (false, ex.Message);
+        }
     }
 
     // Messages

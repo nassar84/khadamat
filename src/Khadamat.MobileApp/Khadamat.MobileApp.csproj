@@ -15,7 +15,7 @@
         <ApplicationTitle>خدماوي</ApplicationTitle>
 
         <!-- App Identifier -->
-        <ApplicationId>com.nassar84.khadamat</ApplicationId>
+        <ApplicationId>com.nassar84.khadamawy</ApplicationId>
 
         <!-- Versions -->
         <ApplicationDisplayVersion>2.5</ApplicationDisplayVersion>
@@ -27,12 +27,13 @@
         <AndroidUseFastDeployment>false</AndroidUseFastDeployment>
         <AndroidUseAssemblyStore>false</AndroidUseAssemblyStore>
         
-        <!-- Fix for JAVA0000 R8/D8 Build errors -->
+        <!-- Fix for JAVA0000 R8/D8 Build errors: duplicate ArrayMapKt from collection.jvm vs collection.ktx -->
         <AndroidDexTool>d8</AndroidDexTool>
         <AndroidEnableMultiDex>true</AndroidEnableMultiDex>
+        <!-- Disable R8 globally to avoid duplicate class errors from conflicting AndroidX packages -->
+        <UseR8>false</UseR8>
         
         <!-- Debug Configurations (No optimizations) -->
-        <UseR8 Condition="'$(Configuration)' == 'Debug'">false</UseR8>
         <AndroidLinkTool Condition="'$(Configuration)' == 'Debug'">d8</AndroidLinkTool>
         <AndroidLinkMode Condition="'$(Configuration)' == 'Debug'">None</AndroidLinkMode>
 
@@ -47,8 +48,7 @@
         <RunAOTCompilation>true</RunAOTCompilation>
         <PublishTrimmed>true</PublishTrimmed>
         <TrimMode>partial</TrimMode>
-        <!-- Keep R8 OFF to avoid XAGJS7001, but use SdkOnly linking for safe .NET AOT -->
-        <UseR8>false</UseR8>
+        <!-- R8 is OFF globally (see main PropertyGroup) to avoid duplicate AndroidX class errors -->
         <AndroidLinkMode>SdkOnly</AndroidLinkMode>
         <!-- Default package format is apk for website download, can be overridden with -p:AndroidPackageFormat=aab for Google Play -->
         <AndroidPackageFormat Condition="'$(AndroidPackageFormat)' == ''">apk</AndroidPackageFormat>
@@ -86,8 +86,14 @@
         <!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
         <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
         
-        <!-- Google Services Json for Android - Disabled since FCM is not in use -->
-        <!-- <GoogleServicesJson Condition="$(TargetFramework.Contains('-android'))" Include="Platforms\Android\google-services.json" /> -->
+        <!-- Google Services Json for Android -->
+        <GoogleServicesJson Condition="$(TargetFramework.Contains('-android'))" Include="Platforms\Android\google-services.json" />
+    </ItemGroup>
+
+    <ItemGroup Condition="$(TargetFramework.Contains('-android'))">
+        <PackageReference Include="Xamarin.Firebase.Messaging" Version="123.4.1" />
+        <!-- Pin collection.ktx to same version as collection.jvm brought by Firebase to prevent duplicate ArrayMapKt.class -->
+        <PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.3.0.2" />
     </ItemGroup>
 
     <ItemGroup>
@@ -126,8 +132,8 @@
     <Target Name="RenameAndCopyApk" AfterTargets="SignAndroidPackage;Publish" Condition="$(TargetFramework.Contains('-android'))">
         <PropertyGroup>
             <!-- Single signed APK path (arm64 build) -->
-            <_SourceSignedApk>$(OutputPath)publish\com.nassar84.khadamat-Signed.apk</_SourceSignedApk>
-            <_SourceSignedApk Condition="!Exists('$(_SourceSignedApk)')">$(OutputPath)com.nassar84.khadamat-Signed.apk</_SourceSignedApk>
+            <_SourceSignedApk>$(OutputPath)publish\com.nassar84.khadamawy-Signed.apk</_SourceSignedApk>
+            <_SourceSignedApk Condition="!Exists('$(_SourceSignedApk)')">$(OutputPath)com.nassar84.khadamawy-Signed.apk</_SourceSignedApk>
             <_DestinationFolderMaged>D:\maged\Khadamat</_DestinationFolderMaged>
         </PropertyGroup>
 
@@ -144,14 +150,17 @@
         <Copy SourceFiles="$(_SourceSignedApk)" DestinationFiles="$(MSBuildProjectDirectory)\..\..\khadamat.apk" Condition="Exists('$(_SourceSignedApk)')" ContinueOnError="true" />
 
         <!-- Clean up any extra/old APK files to guarantee only ONE APK exists -->
+        <Delete Files="$(MSBuildProjectDirectory)\..\Khadamat.WebAPI\wwwroot\downloads\com.nassar84.khadamawy-Signed.apk" ContinueOnError="true" />
         <Delete Files="$(MSBuildProjectDirectory)\..\Khadamat.WebAPI\wwwroot\downloads\com.nassar84.khadamat-Signed.apk" ContinueOnError="true" />
         <Delete Files="$(MSBuildProjectDirectory)\..\Khadamat.WebAPI\wwwroot\downloads\Khadamawy.apk" ContinueOnError="true" />
         <Delete Files="$(MSBuildProjectDirectory)\..\Khadamat.WebAPI\wwwroot\downloads\خدماوى.apk" ContinueOnError="true" />
+        <Delete Files="$(_DestinationFolderMaged)\wwwroot\downloads\com.nassar84.khadamawy-Signed.apk" Condition="Exists('$(_DestinationFolderMaged)')" ContinueOnError="true" />
         <Delete Files="$(_DestinationFolderMaged)\wwwroot\downloads\com.nassar84.khadamat-Signed.apk" Condition="Exists('$(_DestinationFolderMaged)')" ContinueOnError="true" />
         <Delete Files="$(_DestinationFolderMaged)\wwwroot\downloads\Khadamawy.apk" Condition="Exists('$(_DestinationFolderMaged)')" ContinueOnError="true" />
         <Delete Files="$(_DestinationFolderMaged)\wwwroot\downloads\خدماوى.apk" Condition="Exists('$(_DestinationFolderMaged)')" ContinueOnError="true" />
 
         <!-- Clean up stale signed artifacts from project root -->
+        <Delete Files="$(MSBuildProjectDirectory)\..\..\com.nassar84.khadamawy-Signed.apk" ContinueOnError="true" />
         <Delete Files="$(MSBuildProjectDirectory)\..\..\com.nassar84.khadamat-Signed.apk" ContinueOnError="true" />
         <Delete Files="$(MSBuildProjectDirectory)\..\..\Khadamat-Signed.apk" ContinueOnError="true" />
         <Delete Files="$(MSBuildProjectDirectory)\..\..\Khadamawy-Signed.apk" ContinueOnError="true" />

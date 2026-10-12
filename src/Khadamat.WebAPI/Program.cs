@@ -86,6 +86,7 @@ try
         typeof(Khadamat.Infrastructure.DependencyInjection).Assembly
     ));
     builder.Services.AddScoped<Khadamat.Application.Interfaces.INotificationNotifier, Khadamat.WebAPI.Services.SignalRNotificationNotifier>();
+    builder.Services.AddHostedService<Khadamat.WebAPI.Services.ReminderBackgroundWorker>();
 
     // 4. Production-Ready Authorization Policies
     builder.Services.AddAuthorization(options =>

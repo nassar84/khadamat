@@ -268,7 +268,7 @@
             addLog(`📦 حجم Blob: ${Math.round(blob.size/1024)} KB`, 'ok');
 
             const file = new File([blob], 'khadamat_service_test.png', { type: 'image/png' });
-            const shareText = 'شاهد هذه الخدمة المميزة على تطبيق وموقع خدماوي! 🌟\n\nمنصة خدماوي هي سوق الخدمات والأعمال الأول في مصر. تصفح آلاف الخدمات والوظائف المتنوعة القريبة منك، وتواصل مباشرة مع مقدميها بكل سهولة وأمان مجاناً وبدون أي عمولات!\n\n📲 حمل التطبيق الآن واستفد من خدماتنا المتنوعة:\n🔗 رابط تحميل التطبيق: https://play.google.com/store/apps/details?id=com.nassar84.khadamat\n\n🔗 رابط الخدمة: http://localhost:5144/service/details/2';
+            const shareText = 'شاهد هذه الخدمة المميزة على تطبيق وموقع خدماوي! 🌟\n\nمنصة خدماوي هي سوق الخدمات والأعمال الأول في مصر. تصفح آلاف الخدمات والوظائف المتنوعة القريبة منك، وتواصل مباشرة مع مقدميها بكل سهولة وأمان مجاناً وبدون أي عمولات!\n\n📲 حمل التطبيق الآن واستفد من خدماتنا المتنوعة:\n🔗 رابط تحميل التطبيق: https://play.google.com/store/apps/details?id=com.nassar84.khadamawy\n\n🔗 رابط الخدمة: http://localhost:5144/service/details/2';
 
             if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                 addLog('📱 Web Share API متاح مع دعم الملفات — جاري فتح نافذة المشاركة...', 'ok');

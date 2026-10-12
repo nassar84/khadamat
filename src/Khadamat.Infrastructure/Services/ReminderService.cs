@@ -256,7 +256,9 @@ public class ReminderService : IReminderService
             // Date checks
             if (nowUtc < r.StartDate) return false;
             if (r.EndDate.HasValue && nowUtc > r.EndDate.Value) return false;
-            if (r.DurationDays.HasValue && nowUtc > r.StartDate.AddDays(r.DurationDays.Value)) return false;
+            // DurationDays applies only when EndDate is NOT explicitly set
+            // (if EndDate was computed from DurationDays it's already set above)
+            if (!r.EndDate.HasValue && r.DurationDays.HasValue && nowUtc > r.StartDate.AddDays(r.DurationDays.Value)) return false;
 
             // Language check
             if (!string.Equals(r.Language, "all", StringComparison.OrdinalIgnoreCase) &&

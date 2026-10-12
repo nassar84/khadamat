@@ -8,9 +8,10 @@ using Microsoft.Maui.Storage;
 
 namespace Khadamat.MobileApp.Platforms.Android;
 
-[BroadcastReceiver(Enabled = true, Exported = true, DirectBootAware = true)]
+[BroadcastReceiver(Enabled = true, Exported = true)]
 [IntentFilter(new[] { 
     Intent.ActionBootCompleted, 
+    Intent.ActionMyPackageReplaced,
     "android.intent.action.QUICKBOOT_POWERON", 
     "com.htc.intent.action.QUICKBOOT_POWERON" 
 })]
@@ -20,11 +21,13 @@ public class ReminderBootReceiver : BroadcastReceiver
     {
         if (context == null || intent == null) return;
 
-        if (intent.Action == Intent.ActionBootCompleted ||
-            intent.Action == "android.intent.action.QUICKBOOT_POWERON" ||
-            intent.Action == "com.htc.intent.action.QUICKBOOT_POWERON")
+        var action = intent.Action;
+        if (action == Intent.ActionBootCompleted ||
+            action == Intent.ActionMyPackageReplaced ||
+            action == "android.intent.action.QUICKBOOT_POWERON" ||
+            action == "com.htc.intent.action.QUICKBOOT_POWERON")
         {
-            Console.WriteLine("[ReminderBootReceiver] Device rebooted. Re-scheduling active reminders...");
+            Console.WriteLine($"[ReminderBootReceiver] Device event received ({action}). Re-scheduling active reminders...");
 
             try
             {

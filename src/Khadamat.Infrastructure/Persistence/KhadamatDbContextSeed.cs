@@ -68,9 +68,14 @@ public static class KhadamatDbContextSeed
                     END
                 ");
 
-                // Seed default Google Play 14-day tester campaign if no reminders exist
-                if (!await context.ReminderCampaigns.AnyAsync())
+                // Seed / renew the default Google Play tester campaign
+                var existingTesterCampaign = await context.ReminderCampaigns
+                    .FirstOrDefaultAsync(r => !r.IsDeleted &&
+                        r.Title == "تذكير المختبرين بالاستخدام اليومي");
+
+                if (existingTesterCampaign == null)
                 {
+                    // First time seed
                     var defaultTesterReminder = new ReminderCampaign
                     {
                         Title = "تذكير المختبرين بالاستخدام اليومي",
@@ -79,11 +84,11 @@ public static class KhadamatDbContextSeed
                         Language = "ar",
                         Status = ReminderStatus.Active,
                         StartDate = DateTime.UtcNow,
-                        EndDate = DateTime.UtcNow.AddDays(14),
+                        EndDate = null, // No hard end date - admin controls via Status
                         RecurrenceType = ReminderRecurrenceType.Daily,
                         ScheduledTime = new TimeSpan(20, 0, 0),
                         IntervalValue = 1,
-                        DurationDays = 14,
+                        DurationDays = null, // Indefinite
                         TimeZoneId = "Local",
                         Priority = ReminderPriority.Normal,
                         TargetAudience = ReminderTargetAudience.Testers,
@@ -96,6 +101,19 @@ public static class KhadamatDbContextSeed
                     await context.ReminderCampaigns.AddAsync(defaultTesterReminder);
                     await context.SaveChangesAsync();
                 }
+                else if (existingTesterCampaign.Status == ReminderStatus.Active &&
+                         existingTesterCampaign.EndDate.HasValue &&
+                         existingTesterCampaign.EndDate.Value < DateTime.UtcNow)
+                {
+                    // Campaign is still marked Active but EndDate has passed — auto-renew it
+                    existingTesterCampaign.StartDate = DateTime.UtcNow;
+                    existingTesterCampaign.EndDate = null; // Remove expiry to keep it running
+                    existingTesterCampaign.DurationDays = null;
+                    existingTesterCampaign.UpdatedAt = DateTime.UtcNow;
+                    existingTesterCampaign.UpdatedBy = "System";
+                    await context.SaveChangesAsync();
+                }
+
             }
             catch { }
 

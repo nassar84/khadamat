@@ -86,6 +86,8 @@ appsettings.Secrets.json
 
 google-services.json
 **/google-services.json
+firebase-service-account.json
+**/firebase-service-account.json
 
 # Apple/iOS secrets
 
