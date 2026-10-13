@@ -68,9 +68,17 @@ public class ReminderAlarmReceiver : BroadcastReceiver
         }
 
         // Intent to launch MainActivity with deep link route
-        var mainIntent = new Intent(context, Java.Lang.Class.FromType(typeof(MainActivity)));
-        mainIntent.SetFlags(ActivityFlags.ClearTop | ActivityFlags.SingleTop);
-        mainIntent.PutExtra("action_route", actionRoute);
+        var mainIntent = context.PackageManager?.GetLaunchIntentForPackage(context.PackageName)
+                         ?? new Intent(context, Java.Lang.Class.FromType(typeof(MainActivity)));
+        mainIntent.SetPackage(context.PackageName);
+        mainIntent.SetAction(Intent.ActionMain);
+        mainIntent.AddCategory(Intent.CategoryLauncher);
+        mainIntent.SetFlags(ActivityFlags.NewTask | ActivityFlags.ClearTop | ActivityFlags.SingleTop);
+
+        if (!string.IsNullOrEmpty(actionRoute) && actionRoute != "/" && actionRoute != "//")
+        {
+            mainIntent.PutExtra("action_route", actionRoute);
+        }
         mainIntent.PutExtra("from_reminder", true);
         mainIntent.PutExtra("reminder_id", id);
 

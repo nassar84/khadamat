@@ -882,46 +882,114 @@
 <!-- Request Service Modal -->
 @if (showRequestModal)
 {
-    <div class="modal-overlay">
-        <div class="glass-card p-4 rounded-4 animate-pop" style="max-width: 500px; width: 90%;">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <h5 class="fw-bold mb-0">طلب الخدمة</h5>
-                <button type="button" class="btn-close" @onclick="() => showRequestModal = false"></button>
-            </div>
-            <p class="text-muted small mb-3">@service?.Title</p>
-
-            <div class="alert alert-warning border-0 rounded-4 p-3 small mb-3 d-flex align-items-start gap-2" style="background-color: #fef3c7; color: #92400e;">
-                <i class="fa-solid fa-triangle-exclamation fs-5 flex-shrink-0 mt-1" style="color: #d97706;"></i>
-                <div class="leading-relaxed">
-                    <strong class="d-block mb-1">تنبيه هام وإخلاء مسؤولية:</strong>
-                    التطبيق منصة وصل فقط وغير مسؤول عن الطلبات أو الاتفاقات والتعاملات المالية بين الطرفين. يجب عليك تأكيد طلبك بالاتصال المباشر مع مقدم الخدمة عبر وسائل الاتصال المتاحة (الهاتف أو واتساب).
-                </div>
-            </div>
-            
-            <div class="mb-3">
-                <label class="form-label fw-bold small">التاريخ المفضل (اختياري)</label>
-                <input type="date" @bind="requestPreferredDate" class="form-control rounded-3" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
-            </div>
-            
-            <div class="mb-3">
-                <label class="form-label fw-bold small">ملاحظات إضافية (اختياري)</label>
-                <textarea @bind="requestNotes" class="form-control rounded-3" rows="3" placeholder="أي تفاصيل إضافية تود إخبار مقدم الخدمة بها..."></textarea>
-            </div>
-            
-            <div class="d-flex gap-2">
-                <button class="btn btn-success flex-grow-1 rounded-pill py-2 fw-bold" @onclick="SubmitRequest" disabled="@isSubmittingRequest">
-                    @if (isSubmittingRequest)
-                    {
-                        <span class="spinner-border spinner-border-sm me-2"></span>
-                    }
-                    إرسال الطلب
-                </button>
-                <button class="btn btn-light flex-grow-1 rounded-pill py-2" @onclick="() => showRequestModal = false" disabled="@isSubmittingRequest">إلغاء</button>
-            </div>
-            
-            @if (!string.IsNullOrEmpty(requestError))
+    <div class="modal-overlay" @onclick="CloseRequestModal">
+        <div class="glass-card p-4 rounded-4 animate-pop" style="max-width: 500px; width: 90%;" @onclick:stopPropagation="true">
+            @if (requestSubmittedSuccess)
             {
-                <div class="alert alert-danger mt-3 mb-0 small">@requestError</div>
+                <div class="text-center py-2 animate-fade-in">
+                    <!-- Glowing checkmark circle -->
+                    <div class="mb-3 mx-auto d-flex align-items-center justify-content-center rounded-circle shadow-lg text-white"
+                         style="width: 76px; height: 76px; background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 10px 25px rgba(16, 185, 129, 0.35);">
+                        <i class="fa-solid fa-check fs-1"></i>
+                    </div>
+
+                    <h4 class="fw-bold text-dark mb-2">تم إرسال طلبك بنجاح! 🎉</h4>
+                    <p class="text-muted small mb-3 px-2" style="line-height: 1.65;">
+                        تم استلام تفاصيل طلبك وإرسالها لمقدم الخدمة مباشرة، ويمكنك متابعة حالة الطلب أو التواصل معه فوراً لتأكيد الموعد.
+                    </p>
+
+                    <!-- Order Summary Card -->
+                    <div class="bg-light p-3 rounded-4 mb-4 text-start border">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="fa-solid fa-briefcase text-primary"></i>
+                            <strong class="small text-dark">@service?.Title</strong>
+                        </div>
+                        @if (!string.IsNullOrEmpty(service?.ProviderName))
+                        {
+                            <div class="d-flex align-items-center gap-2 text-muted x-small mb-1">
+                                <i class="fa-solid fa-user-tie"></i>
+                                <span>مقدم الخدمة: @service.ProviderName</span>
+                            </div>
+                        }
+                        <div class="d-flex align-items-center gap-2 text-muted x-small">
+                            <i class="fa-regular fa-calendar-check text-success"></i>
+                            <span>التاريخ المفضل: @(requestPreferredDate?.ToString("yyyy/MM/dd") ?? "حسب الاتفاق مع المزود")</span>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex flex-column gap-2">
+                        <button class="btn btn-primary-premium rounded-pill py-2 fw-bold shadow-sm" @onclick='() => Navigation.NavigateTo("/user/my-requests")'>
+                            <i class="fa-solid fa-list-check me-2"></i> متابعة الطلب في صفحة "طلباتي"
+                        </button>
+
+                        @if (!string.IsNullOrWhiteSpace(service?.Phone1) || !string.IsNullOrWhiteSpace(service?.WhatsApp))
+                        {
+                            <div class="d-flex gap-2">
+                                @if (!string.IsNullOrWhiteSpace(service?.Phone1))
+                                {
+                                    <a href="tel:@service.Phone1" class="btn btn-outline-primary flex-grow-1 rounded-pill py-2 small">
+                                        <i class="fa-solid fa-phone me-1"></i> اتصال الآن
+                                    </a>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(service?.WhatsApp))
+                                {
+                                    var waNum = service.WhatsApp.Trim();
+                                    if (waNum.StartsWith("0")) waNum = "2" + waNum;
+                                    <a href="https://wa.me/@waNum" target="_blank" class="btn btn-outline-success flex-grow-1 rounded-pill py-2 small">
+                                        <i class="fa-brands fa-whatsapp me-1"></i> واتساب
+                                    </a>
+                                }
+                            </div>
+                        }
+
+                        <button class="btn btn-link text-muted small mt-1 text-decoration-none" @onclick="CloseRequestModal">
+                            إغلاق ومتابعة التصفح
+                        </button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="fw-bold mb-0">طلب الخدمة</h5>
+                    <button type="button" class="btn-close" @onclick="CloseRequestModal"></button>
+                </div>
+                <p class="text-muted small mb-3">@service?.Title</p>
+
+                <div class="alert alert-warning border-0 rounded-4 p-3 small mb-3 d-flex align-items-start gap-2" style="background-color: #fef3c7; color: #92400e;">
+                    <i class="fa-solid fa-triangle-exclamation fs-5 flex-shrink-0 mt-1" style="color: #d97706;"></i>
+                    <div class="leading-relaxed">
+                        <strong class="d-block mb-1">تنبيه هام وإخلاء مسؤولية:</strong>
+                        التطبيق منصة وصل فقط وغير مسؤول عن الطلبات أو الاتفاقات والتعاملات المالية بين الطرفين. يجب عليك تأكيد طلبك بالاتصال المباشر مع مقدم الخدمة عبر وسائل الاتصال المتاحة (الهاتف أو واتساب).
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">التاريخ المفضل (اختياري)</label>
+                    <input type="date" @bind="requestPreferredDate" class="form-control rounded-3" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">ملاحظات إضافية (اختياري)</label>
+                    <textarea @bind="requestNotes" class="form-control rounded-3" rows="3" placeholder="أي تفاصيل إضافية تود إخبار مقدم الخدمة بها..."></textarea>
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success flex-grow-1 rounded-pill py-2 fw-bold" @onclick="SubmitRequest" disabled="@isSubmittingRequest">
+                        @if (isSubmittingRequest)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        إرسال الطلب
+                    </button>
+                    <button class="btn btn-light flex-grow-1 rounded-pill py-2" @onclick="CloseRequestModal" disabled="@isSubmittingRequest">إلغاء</button>
+                </div>
+                
+                @if (!string.IsNullOrEmpty(requestError))
+                {
+                    <div class="alert alert-danger mt-3 mb-0 small">@requestError</div>
+                }
             }
         </div>
     </div>
@@ -1589,6 +1657,7 @@
 
     // Service Request
     private bool showRequestModal = false;
+    private bool requestSubmittedSuccess = false;
     private DateTime? requestPreferredDate;
     private string requestNotes = "";
     private bool isSubmittingRequest = false;
@@ -2644,7 +2713,17 @@
         requestError = null;
         requestNotes = "";
         requestPreferredDate = null;
+        requestSubmittedSuccess = false;
         showRequestModal = true;
+    }
+
+    private void CloseRequestModal()
+    {
+        showRequestModal = false;
+        requestSubmittedSuccess = false;
+        requestError = null;
+        requestNotes = "";
+        requestPreferredDate = null;
     }
 
     private async Task SubmitRequest()
@@ -2674,9 +2753,8 @@
             
             if (result.Success)
             {
-                showRequestModal = false;
-                await JS.InvokeVoidAsync("alert", "تم إرسال طلبك بنجاح! يمكنك متابعة حالة الطلب من صفحة 'طلباتي'");
-                Navigation.NavigateTo("/user/my-requests");
+                requestSubmittedSuccess = true;
+                _ = JS.InvokeVoidAsync("showAppToast", "تم إرسال طلبك بنجاح!", "success");
             }
             else
             {

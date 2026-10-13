@@ -12,10 +12,10 @@
     <div class="nearby-info">
         <h4 class="nearby-title">@Service.Title</h4>
         <div class="nearby-meta">
-            <div class="stars text-warning small">
+            <div class="stars small">
                 @for (int i = 0; i < 5; i++)
                 {
-                    <i class="fa-solid fa-star @(i < (int)Service.Rating ? "" : "opacity-25")"></i>
+                    <i class="fa-solid fa-star" style="color: #f59e0b !important; @(i < (int)Service.Rating ? "" : "opacity: 0.3;")"></i>
                 }
                 <span class="ms-1 text-muted">@Service.Rating</span>
             </div>

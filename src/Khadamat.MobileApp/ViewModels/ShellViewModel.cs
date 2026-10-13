@@ -4,6 +4,7 @@ using Khadamat.Application.DTOs;
 using System.Net.Http.Json;
 using Microsoft.Extensions.Configuration;
 using Khadamat.Application.Common.Models;
+using Khadamat.MobileApp.Services;
 
 namespace Khadamat.MobileApp.ViewModels;
 
@@ -425,6 +426,48 @@ public partial class ShellViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task ProfileTapped()
+    {
+        if (!IsAuthenticated)
+        {
+            await Navigate("login");
+            return;
+        }
+
+        try
+        {
+            var page = Microsoft.Maui.Controls.Application.Current?.MainPage ?? Shell.Current?.CurrentPage ?? Shell.Current;
+            if (page != null)
+            {
+                string action = await page.DisplayActionSheet(
+                    "حسابي",
+                    "إلغاء",
+                    "تسجيل خروج",
+                    "الملف الشخصي"
+                );
+
+                if (action == "الملف الشخصي")
+                {
+                    await Navigate("profile");
+                }
+                else if (action == "تسجيل خروج")
+                {
+                    await Navigate("logout");
+                }
+            }
+            else
+            {
+                await Navigate("profile");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ShellViewModel] ProfileTapped error: {ex.Message}");
+            await Navigate("profile");
+        }
+    }
+
+    [RelayCommand]
     private async Task ShowThemePicker()
     {
         // Require CommunityToolkit.Maui.Views
@@ -524,7 +567,7 @@ public partial class ShellViewModel : ObservableObject
             "forest" => ("#00f260", "#0575e6"),
             "lavender" => ("#bf5af2", "#5e5ce6"),
             "royal" => ("#eab308", "#ca8a04"),
-            _ => ("#6366f1", "#f43f5e") // Aurora / Default
+            _ => ("#1e40af", "#f97316") // Khadamawy / Default
         };
 
         if (Microsoft.Maui.Controls.Application.Current != null)

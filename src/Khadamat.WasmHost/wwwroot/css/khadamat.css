@@ -796,7 +796,7 @@ body::after {
 }
 
 .theme-opt-bubble[data-theme-name="default"] {
-    background: linear-gradient(135deg, #6366f1, #a855f7);
+    background: linear-gradient(135deg, #1e40af, #f97316);
 }
 
 .theme-opt-bubble[data-theme-name="sunset"] {
@@ -1049,7 +1049,7 @@ body::after {
 }
 
 .theme-dot.default {
-    background: linear-gradient(135deg, #6366f1, #a855f7);
+    background: linear-gradient(135deg, #1e40af, #f97316);
 }
 
 .theme-dot.sunset {

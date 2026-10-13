@@ -339,7 +339,7 @@
                         </div>
 
                         <!-- Display Type -->
-                        <div class="col-12 col-md-4">
+                        <div class="col-12 col-md-6">
                             <label class="form-label small fw-bold">طريقة العرض</label>
                             <select class="form-select rounded-pill" @bind="currentForm.DisplayType">
                                 <option value="@ReminderDisplayType.NotificationBar">إشعار محلي بشريط النظام</option>
@@ -349,21 +349,8 @@
                             </select>
                         </div>
 
-                        <!-- Action Route Dropdown -->
-                        <div class="col-12 col-md-4">
-                            <label class="form-label small fw-bold">وجهة الضغط (الصفحة)</label>
-                            <select class="form-select rounded-pill" @bind="currentForm.ActionRoute">
-                                <option value="/">الصفحة الرئيسية (/)</option>
-                                <option value="/search">صفحة البحث والاستكشاف (/search)</option>
-                                <option value="/services">تصفح الخدمات (/services)</option>
-                                <option value="/categories">الأقسام والتصنيفات (/categories)</option>
-                                <option value="/profile">الملف الشخصي (/profile)</option>
-                                <option value="/contact">تواصل معنا والدعم (/contact)</option>
-                            </select>
-                        </div>
-
                         <!-- Target Audience -->
-                        <div class="col-12 col-md-4">
+                        <div class="col-12 col-md-6">
                             <label class="form-label small fw-bold">الجمهور المستهدف</label>
                             <select class="form-select rounded-pill" @bind="currentForm.TargetAudience">
                                 <option value="@ReminderTargetAudience.Testers">مختبرو التطبيق (Google Play)</option>
@@ -371,6 +358,103 @@
                                 <option value="@ReminderTargetAudience.Clients">العملاء والباحثون عن خدمات</option>
                                 <option value="@ReminderTargetAudience.Providers">مقدمو الخدمات فقط</option>
                             </select>
+                        </div>
+
+                        <!-- Action Route Selection (App Screen / Service / Custom Link) -->
+                        <div class="col-12">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-label small fw-bold mb-0">
+                                        <i class="fa-solid fa-location-arrow text-primary me-1"></i>وجهة الضغط (عند النقر على التذكير)
+                                    </label>
+                                    @if (!string.IsNullOrWhiteSpace(currentForm.ActionRoute))
+                                    {
+                                        <span class="badge bg-primary-subtle text-primary border px-2 py-1 small" dir="ltr">
+                                            @currentForm.ActionRoute
+                                        </span>
+                                    }
+                                </div>
+
+                                <div class="btn-group w-100 mb-2 shadow-sm rounded-pill overflow-hidden" role="group">
+                                    <input type="radio" class="btn-check" name="reminderDestType" id="remDestScreen" @onclick='() => SetReminderDestMode("Screen")' checked="@(reminderDestMode == "Screen")">
+                                    <label class="btn btn-outline-primary btn-sm" for="remDestScreen">
+                                        <i class="fa-solid fa-mobile-screen me-1"></i>شاشة من التطبيق
+                                    </label>
+
+                                    <input type="radio" class="btn-check" name="reminderDestType" id="remDestService" @onclick='() => SetReminderDestMode("Service")' checked="@(reminderDestMode == "Service")">
+                                    <label class="btn btn-outline-primary btn-sm" for="remDestService">
+                                        <i class="fa-solid fa-briefcase me-1"></i>صفحة خدمة معينة
+                                    </label>
+
+                                    <input type="radio" class="btn-check" name="reminderDestType" id="remDestCustom" @onclick='() => SetReminderDestMode("Custom")' checked="@(reminderDestMode == "Custom")">
+                                    <label class="btn btn-outline-primary btn-sm" for="remDestCustom">
+                                        <i class="fa-solid fa-link me-1"></i>مسار مخصص
+                                    </label>
+                                </div>
+
+                                @if (reminderDestMode == "Screen")
+                                {
+                                    <div>
+                                        <select class="form-select rounded-pill small" value="@selectedReminderScreen" @onchange="OnReminderScreenChanged">
+                                            <option value="/">الصفحة الرئيسية (/)</option>
+                                            <option value="/marketplace">سوق المستعمل والمنتجات (/marketplace)</option>
+                                            <option value="/services">تصفح الخدمات (/services)</option>
+                                            <option value="/search">صفحة البحث والاستكشاف (/search)</option>
+                                            <option value="/categories">الأقسام والتصنيفات (/categories)</option>
+                                            <option value="/feed">المنشورات والتحديثات (/feed)</option>
+                                            <option value="/profile">الملف الشخصي والحساب (/profile)</option>
+                                            <option value="/user/my-requests">طلباتي (/user/my-requests)</option>
+                                            <option value="/messages">الرسائل والمحادثات (/messages)</option>
+                                            <option value="/favorites">المفضلة (/favorites)</option>
+                                            <option value="/register-provider">التسجيل كمقدم خدمة (/register-provider)</option>
+                                            <option value="/provider/dashboard">لوحة تحكم مقدم الخدمة (/provider/dashboard)</option>
+                                            <option value="/provider/create-service">إضافة خدمة جديدة (/provider/create-service)</option>
+                                            <option value="/notifications">مركز التنبيهات (/notifications)</option>
+                                            <option value="/contact">تواصل معنا والدعم (/contact)</option>
+                                            <option value="/terms">الشروط والأحكام (/terms)</option>
+                                            <option value="/privacy">سياسة الخصوصية (/privacy)</option>
+                                        </select>
+                                    </div>
+                                }
+                                else if (reminderDestMode == "Service")
+                                {
+                                    <div>
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-8">
+                                                <select class="form-select rounded-pill small" value="@selectedReminderServiceId" @onchange="OnReminderServiceChanged">
+                                                    <option value="">-- اختر الخدمة --</option>
+                                                    @foreach (var s in servicesList)
+                                                    {
+                                                        <option value="@s.Id">#@s.Id - @s.Title (@s.ProviderName)</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                            <div class="col-4">
+                                                <input type="number" class="form-control rounded-pill small" value="@selectedReminderServiceId" @oninput="OnReminderServiceIdInput" placeholder="رقم ID" />
+                                            </div>
+                                        </div>
+
+                                        @if (selectedReminderService != null)
+                                        {
+                                            <div class="p-2 rounded bg-white border small d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <strong class="text-primary">@selectedReminderService.Title</strong>
+                                                    <div class="text-muted x-small">@selectedReminderService.ProviderName • @selectedReminderService.Address</div>
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-2" @onclick="AutoFillReminderFromService" title="نسخ اسم ووصف الخدمة في عنوان ونص التذكير">
+                                                    <i class="fa-solid fa-magic me-1"></i> نسخ للبيانات
+                                                </button>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div>
+                                        <input type="text" class="form-control rounded-pill small" @bind="currentForm.ActionRoute" placeholder="اكتب المسار المطلوب، مثلاً: /service/123 أو /feed" />
+                                    </div>
+                                }
+                            </div>
                         </div>
 
                         <!-- Priority & Status -->
@@ -507,6 +591,13 @@
     private DateTime startDateVal = DateTime.UtcNow.Date;
     private DateTime? endDateVal = DateTime.UtcNow.Date.AddDays(14);
 
+    // Destination Selection
+    private string reminderDestMode = "Screen";
+    private string selectedReminderScreen = "/";
+    private string selectedReminderServiceId = "";
+    private ServiceDto? selectedReminderService;
+    private List<ServiceDto> servicesList = new();
+
     // Preview modal state
     private bool showPreviewModal = false;
     private ReminderCampaignDto? previewItem;
@@ -514,6 +605,77 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadReminders();
+        try
+        {
+            var serv = await Api.GetServicesAsync(page: 1, pageSize: 100, isApproved: true);
+            servicesList = serv?.Items?.ToList() ?? new();
+        }
+        catch { }
+    }
+
+    private void SetReminderDestMode(string mode)
+    {
+        reminderDestMode = mode;
+        if (mode == "Screen")
+        {
+            currentForm.ActionRoute = selectedReminderScreen;
+        }
+        else if (mode == "Service")
+        {
+            if (int.TryParse(selectedReminderServiceId, out int sid) && sid > 0)
+            {
+                currentForm.ActionRoute = $"/service/{sid}";
+            }
+            else
+            {
+                currentForm.ActionRoute = "";
+            }
+        }
+    }
+
+    private void OnReminderScreenChanged(ChangeEventArgs e)
+    {
+        selectedReminderScreen = e.Value?.ToString() ?? "/";
+        currentForm.ActionRoute = selectedReminderScreen;
+    }
+
+    private void OnReminderServiceChanged(ChangeEventArgs e)
+    {
+        selectedReminderServiceId = e.Value?.ToString() ?? "";
+        if (int.TryParse(selectedReminderServiceId, out int sid) && sid > 0)
+        {
+            selectedReminderService = servicesList.FirstOrDefault(s => s.Id == sid);
+            currentForm.ActionRoute = $"/service/{sid}";
+        }
+        else
+        {
+            selectedReminderService = null;
+            currentForm.ActionRoute = "";
+        }
+    }
+
+    private void OnReminderServiceIdInput(ChangeEventArgs e)
+    {
+        selectedReminderServiceId = e.Value?.ToString() ?? "";
+        if (int.TryParse(selectedReminderServiceId, out int sid) && sid > 0)
+        {
+            selectedReminderService = servicesList.FirstOrDefault(s => s.Id == sid);
+            currentForm.ActionRoute = $"/service/{sid}";
+        }
+        else
+        {
+            selectedReminderService = null;
+            currentForm.ActionRoute = "";
+        }
+    }
+
+    private void AutoFillReminderFromService()
+    {
+        if (selectedReminderService == null) return;
+        currentForm.Title = $"خدمة مميزة: {selectedReminderService.Title} ✨";
+        currentForm.Message = !string.IsNullOrWhiteSpace(selectedReminderService.Description)
+            ? (selectedReminderService.Description.Length > 150 ? selectedReminderService.Description[..150] + "..." : selectedReminderService.Description)
+            : $"تصفح تفاصيل خدمة {selectedReminderService.Title} الآن على منصة خدماوى!";
     }
 
     private async Task LoadReminders()
@@ -564,6 +726,11 @@
     {
         isEditing = false;
         currentEditingId = 0;
+        reminderDestMode = "Screen";
+        selectedReminderScreen = "/";
+        selectedReminderServiceId = "";
+        selectedReminderService = null;
+
         currentForm = new CreateReminderCampaignDto
         {
             Title = "",
@@ -592,6 +759,32 @@
     {
         isEditing = true;
         currentEditingId = rem.Id;
+
+        // Determine destination mode
+        if (!string.IsNullOrEmpty(rem.ActionRoute) && rem.ActionRoute.StartsWith("/service/"))
+        {
+            reminderDestMode = "Service";
+            var idPart = rem.ActionRoute.Replace("/service/", "").Trim();
+            selectedReminderServiceId = idPart;
+            if (int.TryParse(idPart, out int sid))
+            {
+                selectedReminderService = servicesList.FirstOrDefault(s => s.Id == sid);
+            }
+        }
+        else
+        {
+            var knownScreens = new HashSet<string> { "/", "/marketplace", "/services", "/search", "/categories", "/feed", "/profile", "/user/my-requests", "/messages", "/favorites", "/register-provider", "/provider/dashboard", "/provider/create-service", "/notifications", "/contact", "/terms", "/privacy" };
+            if (knownScreens.Contains(rem.ActionRoute))
+            {
+                reminderDestMode = "Screen";
+                selectedReminderScreen = rem.ActionRoute;
+            }
+            else
+            {
+                reminderDestMode = "Custom";
+            }
+        }
+
         currentForm = new CreateReminderCampaignDto
         {
             Title = rem.Title,

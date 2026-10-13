@@ -83,9 +83,14 @@ public class KhadamatFirebaseMessagingService : FirebaseMessagingService
         }
 
         // Tap action -> launches MainActivity with action_route
-        var mainIntent = new Intent(this, Java.Lang.Class.FromType(typeof(MainActivity)));
-        mainIntent.SetFlags(ActivityFlags.ClearTop | ActivityFlags.SingleTop);
-        if (!string.IsNullOrEmpty(actionRoute))
+        var mainIntent = PackageManager?.GetLaunchIntentForPackage(PackageName)
+                         ?? new Intent(this, Java.Lang.Class.FromType(typeof(MainActivity)));
+        mainIntent.SetPackage(PackageName);
+        mainIntent.SetAction(Intent.ActionMain);
+        mainIntent.AddCategory(Intent.CategoryLauncher);
+        mainIntent.SetFlags(ActivityFlags.NewTask | ActivityFlags.ClearTop | ActivityFlags.SingleTop);
+
+        if (!string.IsNullOrEmpty(actionRoute) && actionRoute != "/" && actionRoute != "//")
         {
             mainIntent.PutExtra("action_route", actionRoute);
         }

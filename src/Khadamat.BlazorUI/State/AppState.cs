@@ -84,8 +84,8 @@ public class AppState
     public string AppNameAr { get; set; } = "خدماوي";
     public string AppNameEn { get; set; } = "Khadamawy";
     public string AppLogo { get; set; } = "";
-    public string PrimaryColor { get; set; } = "#6366f1";
-    public string SecondaryColor { get; set; } = "#a855f7";
+    public string PrimaryColor { get; set; } = "#1e40af";
+    public string SecondaryColor { get; set; } = "#f97316";
 
     // App Sharing Settings
     public string AppShareUrl { get; set; } = "";

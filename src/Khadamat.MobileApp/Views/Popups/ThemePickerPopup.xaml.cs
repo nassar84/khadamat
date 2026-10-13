@@ -10,7 +10,7 @@ public partial class ThemePickerPopup : Popup
 {
     private readonly (string Id, string Title, string Hex)[] _themes = new[]
     {
-        ("default", "الافتراضي", "#6366f1"),
+        ("default", "الافتراضي", "#1e40af"),
         ("sunset", "الغروب", "#ea580c"),
         ("ocean", "المحيط", "#0ea5e9"),
         ("forest", "الغابة", "#10b981"),

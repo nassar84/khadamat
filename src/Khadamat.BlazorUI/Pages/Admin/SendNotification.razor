@@ -38,9 +38,104 @@
                     <textarea class="form-control premium-input" rows="5" @bind="request.Message" placeholder="اكتب تفاصيل التنبيه هنا..."></textarea>
                 </div>
 
-                <div class="mb-4">
-                    <label class="form-label fw-bold">رابط متعلق (اختياري)</label>
-                    <input type="text" class="form-control premium-input" @bind="request.RelatedLink" placeholder="الرابط الذي سيتم توجيه المستخدم إليه عند الضغط" />
+                <!-- Destination Selection (App Screen / Service / Custom Link) -->
+                <div class="mb-4 p-3 bg-light rounded-4 border">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label fw-bold mb-0">
+                            <i class="fas fa-location-arrow text-primary me-1"></i> وجهة التنبيه (عند النقر على الإشعار)
+                        </label>
+                        @if (!string.IsNullOrWhiteSpace(request.RelatedLink))
+                        {
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 small" dir="ltr">
+                                @request.RelatedLink
+                            </span>
+                        }
+                    </div>
+
+                    <!-- Destination Mode Switcher -->
+                    <div class="btn-group w-100 mb-3 shadow-sm rounded-pill overflow-hidden" role="group">
+                        <input type="radio" class="btn-check" name="destType" id="destScreen" @onclick='() => SetDestinationMode("Screen")' checked="@(destinationMode == "Screen")">
+                        <label class="btn btn-outline-primary btn-sm" for="destScreen">
+                            <i class="fas fa-mobile-alt me-1"></i> شاشة من التطبيق
+                        </label>
+
+                        <input type="radio" class="btn-check" name="destType" id="destService" @onclick='() => SetDestinationMode("Service")' checked="@(destinationMode == "Service")">
+                        <label class="btn btn-outline-primary btn-sm" for="destService">
+                            <i class="fas fa-briefcase me-1"></i> صفحة خدمة معينة
+                        </label>
+
+                        <input type="radio" class="btn-check" name="destType" id="destCustom" @onclick='() => SetDestinationMode("Custom")' checked="@(destinationMode == "Custom")">
+                        <label class="btn btn-outline-primary btn-sm" for="destCustom">
+                            <i class="fas fa-link me-1"></i> رابط مخصص
+                        </label>
+                    </div>
+
+                    @if (destinationMode == "Screen")
+                    {
+                        <div class="animate-fade-in">
+                            <label class="form-label small text-muted">اختر الشاشة المستهدفة:</label>
+                            <select class="form-select premium-input" value="@selectedAppScreen" @onchange="OnAppScreenChanged">
+                                <option value="/">الصفحة الرئيسية (/)</option>
+                                <option value="/marketplace">سوق المستعمل والمنتجات (/marketplace)</option>
+                                <option value="/services">تصفح الخدمات (/services)</option>
+                                <option value="/search">البحث والاستكشاف (/search)</option>
+                                <option value="/categories">الأقسام والتصنيفات (/categories)</option>
+                                <option value="/feed">المنشورات والتحديثات (/feed)</option>
+                                <option value="/profile">الملف الشخصي والحساب (/profile)</option>
+                                <option value="/user/my-requests">طلباتي (/user/my-requests)</option>
+                                <option value="/messages">الرسائل والمحادثات (/messages)</option>
+                                <option value="/favorites">المفضلة (/favorites)</option>
+                                <option value="/register-provider">التسجيل كمقدم خدمة (/register-provider)</option>
+                                <option value="/provider/dashboard">لوحة تحكم مقدم الخدمة (/provider/dashboard)</option>
+                                <option value="/provider/create-service">إضافة خدمة جديدة (/provider/create-service)</option>
+                                <option value="/notifications">مركز التنبيهات (/notifications)</option>
+                                <option value="/contact">تواصل معنا والدعم (/contact)</option>
+                                <option value="/terms">الشروط والأحكام (/terms)</option>
+                                <option value="/privacy">سياسة الخصوصية (/privacy)</option>
+                            </select>
+                        </div>
+                    }
+                    else if (destinationMode == "Service")
+                    {
+                        <div class="animate-fade-in">
+                            <div class="row g-2 mb-2">
+                                <div class="col-8">
+                                    <label class="form-label small text-muted">اختر خدمة من المنصة:</label>
+                                    <select class="form-select premium-input" value="@selectedServiceId" @onchange="OnServiceSelectChanged">
+                                        <option value="">-- اختر الخدمة --</option>
+                                        @foreach (var s in servicesList)
+                                        {
+                                            <option value="@s.Id">#@s.Id - @s.Title (@s.ProviderName)</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-4">
+                                    <label class="form-label small text-muted">أو رقم الخدمة:</label>
+                                    <input type="number" class="form-control premium-input" value="@selectedServiceId" @oninput="OnServiceIdInput" placeholder="ID" />
+                                </div>
+                            </div>
+
+                            @if (selectedService != null)
+                            {
+                                <div class="p-2 rounded bg-white border small d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong class="text-primary">@selectedService.Title</strong>
+                                        <div class="text-muted x-small">@selectedService.ProviderName • @selectedService.Address</div>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-2" @onclick="AutoFillFromSelectedService" title="نسخ اسم ووصف الخدمة في عنوان ونص الإشعار">
+                                        <i class="fas fa-magic me-1"></i> نسخ للبيانات
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="animate-fade-in">
+                            <label class="form-label small text-muted">اكتب الرابط أو المسار:</label>
+                            <input type="text" class="form-control premium-input" @bind="request.RelatedLink" placeholder="مثال: /service/123 أو https://example.com" />
+                        </div>
+                    }
                 </div>
 
                 <button class="btn btn-primary-premium w-100 py-3 rounded-pill shadow" @onclick="HandleSubmit" disabled="@isSubmitting">
@@ -142,14 +237,93 @@
     private string targetType = "All";
     private bool isSubmitting = false;
 
+    // Destination Selection
+    private string destinationMode = "Screen";
+    private string selectedAppScreen = "/";
+    private string selectedServiceId = "";
+    private ServiceDto? selectedService;
+    private List<ServiceDto> servicesList = new();
+
     private List<GovernorateDto>? governorates;
     private List<CityDto>? cities;
     private List<MainCategoryDto>? mainCategories;
 
     protected override async Task OnInitializedAsync()
     {
+        request.RelatedLink = "/";
         governorates = await Api.GetGovernoratesAsync();
         mainCategories = await Api.GetMainCategoriesAsync();
+        try
+        {
+            var sResult = await Api.GetServicesAsync(page: 1, pageSize: 100, isApproved: true);
+            servicesList = sResult?.Items?.ToList() ?? new();
+        }
+        catch { }
+    }
+
+    private void SetDestinationMode(string mode)
+    {
+        destinationMode = mode;
+        if (mode == "Screen")
+        {
+            request.RelatedLink = selectedAppScreen;
+        }
+        else if (mode == "Service")
+        {
+            if (int.TryParse(selectedServiceId, out int sid) && sid > 0)
+            {
+                request.RelatedLink = $"/service/{sid}";
+            }
+            else
+            {
+                request.RelatedLink = "";
+            }
+        }
+    }
+
+    private void OnAppScreenChanged(ChangeEventArgs e)
+    {
+        selectedAppScreen = e.Value?.ToString() ?? "/";
+        request.RelatedLink = selectedAppScreen;
+    }
+
+    private void OnServiceSelectChanged(ChangeEventArgs e)
+    {
+        selectedServiceId = e.Value?.ToString() ?? "";
+        if (int.TryParse(selectedServiceId, out int sid) && sid > 0)
+        {
+            selectedService = servicesList.FirstOrDefault(s => s.Id == sid);
+            request.RelatedLink = $"/service/{sid}";
+        }
+        else
+        {
+            selectedService = null;
+            request.RelatedLink = "";
+        }
+    }
+
+    private void OnServiceIdInput(ChangeEventArgs e)
+    {
+        selectedServiceId = e.Value?.ToString() ?? "";
+        if (int.TryParse(selectedServiceId, out int sid) && sid > 0)
+        {
+            selectedService = servicesList.FirstOrDefault(s => s.Id == sid);
+            request.RelatedLink = $"/service/{sid}";
+        }
+        else
+        {
+            selectedService = null;
+            request.RelatedLink = "";
+        }
+    }
+
+    private void AutoFillFromSelectedService()
+    {
+        if (selectedService == null) return;
+        request.Title = $"خدمة جديدة: {selectedService.Title} ✨";
+        request.Message = !string.IsNullOrWhiteSpace(selectedService.Description)
+            ? (selectedService.Description.Length > 150 ? selectedService.Description[..150] + "..." : selectedService.Description)
+            : $"تصفح تفاصيل خدمة {selectedService.Title} الآن على منصة خدماوى واطلبها مباشرة!";
     }
 
     private void SetTarget(string type)
@@ -200,6 +374,11 @@
             {
                  await JS.InvokeVoidAsync("alert", "تم إرسال التنبيه بنجاح!");
                  request = new();
+                 destinationMode = "Screen";
+                 selectedAppScreen = "/";
+                 request.RelatedLink = "/";
+                 selectedServiceId = "";
+                 selectedService = null;
                  targetType = "All";
             }
             else

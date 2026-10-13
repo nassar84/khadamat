@@ -12,8 +12,8 @@ public class AppSettings : BaseEntity
     public string? ApkFilename { get; set; } = "Khadamawy.apk";
     public string? ApkIconUrl { get; set; } = "";
 
-    public string PrimaryColor { get; set; } = "#6366f1";
-    public string SecondaryColor { get; set; } = "#a855f7";
+    public string PrimaryColor { get; set; } = "#1e40af";
+    public string SecondaryColor { get; set; } = "#f97316";
     public string ContactEmail { get; set; } = "khadamawy@gmail.com";
     public string ContactPhone { get; set; } = "";
     

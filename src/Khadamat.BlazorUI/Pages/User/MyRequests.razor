@@ -40,30 +40,27 @@
         </div>
     }
 
-    <!-- Filter Pills -->
+    <!-- Modern Filter Tabs -->
     @if (!isLoading && requests != null && requests.Any())
     {
-        <div class="d-flex gap-2 overflow-auto pb-2 mb-4 scrollbar-none">
-            <button class="btn btn-sm rounded-pill px-3 fw-bold @(activeFilter == "all" ? "btn-primary shadow-sm" : "btn-light border")"
-                    @onclick='() => activeFilter = "all"'>
-                الكل (@requests.Count)
-            </button>
-            <button class="btn btn-sm rounded-pill px-3 fw-bold @(activeFilter == "pending" ? "btn-primary shadow-sm" : "btn-light border")"
-                    @onclick='() => activeFilter = "pending"'>
-                قيد الانتظار (@requests.Count(r => r.Status == Khadamat.Domain.Enums.RequestStatus.Pending))
-            </button>
-            <button class="btn btn-sm rounded-pill px-3 fw-bold @(activeFilter == "in_progress" ? "btn-primary shadow-sm" : "btn-light border")"
-                    @onclick='() => activeFilter = "in_progress"'>
-                قيد التنفيذ (@requests.Count(r => r.Status == Khadamat.Domain.Enums.RequestStatus.Accepted || r.Status == Khadamat.Domain.Enums.RequestStatus.InProgress))
-            </button>
-            <button class="btn btn-sm rounded-pill px-3 fw-bold @(activeFilter == "completed" ? "btn-primary shadow-sm" : "btn-light border")"
-                    @onclick='() => activeFilter = "completed"'>
-                المكتملة (@requests.Count(r => r.Status == Khadamat.Domain.Enums.RequestStatus.Completed))
-            </button>
-            <button class="btn btn-sm rounded-pill px-3 fw-bold @(activeFilter == "cancelled" ? "btn-primary shadow-sm" : "btn-light border")"
-                    @onclick='() => activeFilter = "cancelled"'>
-                الملغاة (@requests.Count(r => r.Status == Khadamat.Domain.Enums.RequestStatus.Cancelled || r.Status == Khadamat.Domain.Enums.RequestStatus.Rejected))
-            </button>
+        <div class="requests-filter-wrap mb-4">
+            <div class="requests-filter-bar">
+                <button class="rfb-btn @(activeFilter == "all" ? "active" : "")" @onclick='() => activeFilter = "all"'>
+                    <i class="fa-solid fa-layer-group"></i>
+                    <span>الكل</span>
+                    <span class="rfb-count">@requests.Count</span>
+                </button>
+                <button class="rfb-btn @(activeFilter == "accepted" ? "active accepted" : "")" @onclick='() => activeFilter = "accepted"'>
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span>مقبولة</span>
+                    <span class="rfb-count">@requests.Count(r => r.Status == Khadamat.Domain.Enums.RequestStatus.Accepted)</span>
+                </button>
+                <button class="rfb-btn @(activeFilter == "rejected" ? "active rejected" : "")" @onclick='() => activeFilter = "rejected"'>
+                    <i class="fa-solid fa-circle-xmark"></i>
+                    <span>مرفوضة</span>
+                    <span class="rfb-count">@requests.Count(r => r.Status == Khadamat.Domain.Enums.RequestStatus.Rejected)</span>
+                </button>
+            </div>
         </div>
     }
 
@@ -103,17 +100,33 @@
         <div class="d-flex flex-column gap-3">
             @foreach (var r in FilteredRequests)
             {
-                <div class="glass-card p-3 animate-up">
+                <div class="glass-card p-3 animate-up request-card">
                     <div class="d-flex justify-content-between align-items-start">
                         <div class="d-flex gap-3 flex-grow-1">
-                            <div class="bg-light rounded p-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                                <i class="fa-solid @r.ServiceIcon text-primary fs-4"></i>
+                            <!-- Service Image or Icon -->
+                            <div class="req-thumb rounded-4 overflow-hidden flex-shrink-0" style="width: 68px; height: 68px;">
+                                @if (!string.IsNullOrEmpty(r.ServiceImage))
+                                {
+                                    <img src="@State.GetAbsoluteUrl(r.ServiceImage)"
+                                         onerror="this.onerror=null;this.src='/images/services/default_service.png';"
+                                         class="w-100 h-100" style="object-fit: cover;" alt="@r.ServiceTitle" />
+                                }
+                                else
+                                {
+                                    <div class="w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(99,102,241,0.08);">
+                                        <i class="fa-solid @r.ServiceIcon text-primary fs-3"></i>
+                                    </div>
+                                }
                             </div>
                             <div class="flex-grow-1">
                                 <h6 class="fw-bold mb-1">@r.ServiceTitle</h6>
-                                <p class="text-muted small mb-2">@r.ProviderName • @r.RequestedAt.ToShortDateString()</p>
+                                <p class="text-muted small mb-2">
+                                    <i class="fa-solid fa-user me-1"></i>@r.ProviderName
+                                    <span class="mx-1 opacity-25">•</span>
+                                    <i class="fa-regular fa-clock me-1"></i>@r.RequestedAt.ToShortDateString()
+                                </p>
                                 <div class="d-flex align-items-center gap-2 flex-wrap">
-                                    <span class="badge @GetStatusBadge(r.Status)">@r.StatusText</span>
+                                    <span class="badge rounded-pill @GetStatusBadge(r.Status)">@r.StatusText</span>
                                     @if (r.PreferredDate.HasValue)
                                     {
                                         <span class="text-muted x-small">
@@ -132,13 +145,14 @@
 
                                 @if (r.HasRated && r.RatingStars.HasValue)
                                 {
-                                    <div class="mt-2 p-2 bg-warning bg-opacity-10 rounded-3 border border-warning border-opacity-25 d-inline-flex flex-column">
+                                    <div class="mt-2 p-2 rounded-3 d-inline-flex flex-column" style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2);">
                                         <div class="d-flex align-items-center gap-1">
                                             <span class="x-small fw-bold text-dark">تقييمك:</span>
-                                            <div class="text-warning x-small">
+                                            <div class="x-small">
                                                 @for (int s = 1; s <= 5; s++)
                                                 {
-                                                    <i class="@(s <= r.RatingStars.Value ? "fa-solid" : "fa-regular") fa-star"></i>
+                                                    <i class="@(s <= r.RatingStars.Value ? "fa-solid" : "fa-regular") fa-star"
+                                                       style="color: #f59e0b !important; @(s > r.RatingStars.Value ? "opacity:0.3;" : "")"></i>
                                                 }
                                             </div>
                                         </div>
@@ -235,6 +249,62 @@
 }
 
 <style>
+    /* ── Request Card Thumb ── */
+    .req-thumb { background: #f1f5f9; }
+
+    /* ── Modern Filter Bar ── */
+    .requests-filter-wrap { overflow-x: auto; scrollbar-width: none; }
+    .requests-filter-wrap::-webkit-scrollbar { display: none; }
+    .requests-filter-bar {
+        display: inline-flex;
+        gap: 8px;
+        padding: 6px;
+        background: rgba(241,245,249,0.8);
+        border-radius: 16px;
+        border: 1px solid rgba(0,0,0,0.05);
+        backdrop-filter: blur(8px);
+        min-width: max-content;
+    }
+    .rfb-btn {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 7px 14px;
+        border: none;
+        border-radius: 12px;
+        background: transparent;
+        color: #64748b;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    .rfb-btn:hover { background: white; color: #334155; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .rfb-btn.active {
+        background: white;
+        color: #6366f1;
+        box-shadow: 0 3px 10px rgba(99,102,241,0.15);
+    }
+    .rfb-btn.active.pending { color: #d97706; }
+    .rfb-btn.active.inprogress { color: #2563eb; }
+    .rfb-btn.active.accepted { color: #059669; }
+    .rfb-btn.active.rejected { color: #dc2626; }
+    .rfb-btn.active.completed { color: #d97706; }
+    .rfb-count {
+        background: rgba(99,102,241,0.1);
+        color: #6366f1;
+        border-radius: 20px;
+        padding: 1px 7px;
+        font-size: 0.72rem;
+        font-weight: 700;
+    }
+    .rfb-btn.active.pending .rfb-count { background: rgba(217,119,6,0.12); color: #d97706; }
+    .rfb-btn.active.accepted .rfb-count { background: rgba(5,150,105,0.12); color: #059669; }
+    .rfb-btn.active.rejected .rfb-count { background: rgba(220,38,38,0.12); color: #dc2626; }
+    .rfb-btn.active.completed .rfb-count { background: rgba(217,119,6,0.12); color: #d97706; }
+
+    /* ── Modal & Animations ── */
     .modal-overlay {
         position: fixed;
         inset: 0;
@@ -246,22 +316,14 @@
         z-index: 9999;
         direction: rtl;
     }
-    .star-hover {
-        transition: transform 0.15s, color 0.15s;
-    }
-    .star-hover:hover {
-        transform: scale(1.2);
-    }
-    .animate-pop {
-        animation: popUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    }
+    .star-hover { transition: transform 0.15s, color 0.15s; }
+    .star-hover:hover { transform: scale(1.2); }
+    .animate-pop { animation: popUp 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
     @@keyframes popUp {
         0% { transform: scale(0.9); opacity: 0; }
         100% { transform: scale(1); opacity: 1; }
     }
-    .animate-pulse-subtle {
-        animation: pulseSubtle 2s infinite ease-in-out;
-    }
+    .animate-pulse-subtle { animation: pulseSubtle 2s infinite ease-in-out; }
     @@keyframes pulseSubtle {
         0%, 100% { transform: scale(1); }
         50% { transform: scale(1.03); }
@@ -280,10 +342,12 @@
             if (requests == null) return Enumerable.Empty<ServiceRequestDto>();
             return activeFilter switch
             {
-                "pending" => requests.Where(r => r.Status == Khadamat.Domain.Enums.RequestStatus.Pending),
+                "pending"     => requests.Where(r => r.Status == Khadamat.Domain.Enums.RequestStatus.Pending),
                 "in_progress" => requests.Where(r => r.Status == Khadamat.Domain.Enums.RequestStatus.Accepted || r.Status == Khadamat.Domain.Enums.RequestStatus.InProgress),
-                "completed" => requests.Where(r => r.Status == Khadamat.Domain.Enums.RequestStatus.Completed),
-                "cancelled" => requests.Where(r => r.Status == Khadamat.Domain.Enums.RequestStatus.Cancelled || r.Status == Khadamat.Domain.Enums.RequestStatus.Rejected),
+                "accepted"    => requests.Where(r => r.Status == Khadamat.Domain.Enums.RequestStatus.Accepted),
+                "rejected"    => requests.Where(r => r.Status == Khadamat.Domain.Enums.RequestStatus.Rejected),
+                "completed"   => requests.Where(r => r.Status == Khadamat.Domain.Enums.RequestStatus.Completed),
+                "cancelled"   => requests.Where(r => r.Status == Khadamat.Domain.Enums.RequestStatus.Cancelled || r.Status == Khadamat.Domain.Enums.RequestStatus.Rejected),
                 _ => requests
             };
         }

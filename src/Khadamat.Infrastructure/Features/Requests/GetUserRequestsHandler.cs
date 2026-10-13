@@ -29,24 +29,28 @@ public class GetUserRequestsHandler : IRequestHandler<GetUserRequestsQuery, List
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync(cancellationToken);
 
-        return requests.Select(r => new ServiceRequestDto
+        return requests.Select(r =>
         {
-            Id = r.Id,
-            UserId = r.UserId,
-            ServiceId = r.ServiceId,
-            ServiceTitle = r.Service.Name,
-            ServiceIcon = GetIconFromCategory(r.Service.CategoryId),
-            ProviderId = r.ProviderId,
-            ProviderName = r.Provider.BusinessName,
-            Status = r.Status,
-            StatusText = GetStatusArabic(r.Status),
-            Notes = r.Notes,
-            ProviderNotes = r.ProviderNotes,
-            RequestedAt = r.CreatedAt,
-            PreferredDate = r.PreferredDate,
-            HasRated = r.Rating != null,
-            RatingStars = r.Rating?.Stars,
-            RatingComment = r.Rating?.Comment
+            return new ServiceRequestDto
+            {
+                Id = r.Id,
+                UserId = r.UserId,
+                ServiceId = r.ServiceId,
+                ServiceTitle = r.Service.Name,
+                ServiceIcon = GetIconFromCategory(r.Service.CategoryId),
+                ServiceImage = r.Service.ImageUrl,
+                ProviderId = r.ProviderId,
+                ProviderName = r.Provider.BusinessName,
+                Status = r.Status,
+                StatusText = GetStatusArabic(r.Status),
+                Notes = r.Notes,
+                ProviderNotes = r.ProviderNotes,
+                RequestedAt = r.CreatedAt,
+                PreferredDate = r.PreferredDate,
+                HasRated = r.Rating != null,
+                RatingStars = r.Rating?.Stars,
+                RatingComment = r.Rating?.Comment
+            };
         }).ToList();
     }
 

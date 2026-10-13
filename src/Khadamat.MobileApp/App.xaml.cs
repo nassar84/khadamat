@@ -18,13 +18,10 @@ public partial class App : MauiApp
             string savedTheme = Microsoft.Maui.Storage.Preferences.Default.Get("AppTheme", "default");
             ApplyInitialTheme(savedTheme);
 
-            // Handle DeepLink
+            // Handle DeepLink safely
             DeepLinkBridge.OnDeepLinkReceived += async (url) => 
             {
-                if (Microsoft.Maui.Controls.Application.Current != null && Shell.Current != null)
-                {
-                    await Shell.Current.GoToAsync(url);
-                }
+                await NavigateDeepLinkSafelyAsync(url);
             };
 
             // In-app reminder dialog handler
@@ -40,7 +37,7 @@ public partial class App : MauiApp
                             reminderScheduler.MarkInAppReminderSeen(reminder.Id);
                             if (open && !string.IsNullOrEmpty(reminder.ActionRoute))
                             {
-                                DeepLinkBridge.Raise(reminder.ActionRoute);
+                                await NavigateDeepLinkSafelyAsync(reminder.ActionRoute);
                             }
                         }
                     }
@@ -121,5 +118,45 @@ public partial class App : MauiApp
         var window = new Window(initialPage) { Title = "Khadamat" };
         window.FlowDirection = FlowDirection.RightToLeft;
         return window;
+    }
+
+    public static async Task NavigateDeepLinkSafelyAsync(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return;
+
+        var clean = url.Trim();
+        if (clean == "/" || clean == "//") return;
+
+        // Strip scheme / host if full URI
+        clean = clean.Replace("khadamat://", "").Replace("https://khadamat.com/", "").TrimStart('/');
+        if (string.IsNullOrWhiteSpace(clean)) return;
+
+        // If Shell is not ready yet (e.g. cold start), retry up to 10 times (5 seconds total)
+        for (int i = 0; i < 10; i++)
+        {
+            if (Shell.Current is AppShell appShell)
+            {
+                await appShell.HandleDeepLink(clean);
+                return;
+            }
+            else if (Shell.Current?.BindingContext is ViewModels.ShellViewModel vm)
+            {
+                await vm.NavigateCommand.ExecuteAsync(clean);
+                return;
+            }
+            await Task.Delay(500);
+        }
+
+        try
+        {
+            if (Shell.Current != null)
+            {
+                await Shell.Current.GoToAsync($"//HomePage?route={Uri.EscapeDataString(clean)}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[App] Deep link navigation failed: {ex.Message}");
+        }
     }
 }

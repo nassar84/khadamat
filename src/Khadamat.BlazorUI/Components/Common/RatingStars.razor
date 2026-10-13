@@ -2,7 +2,8 @@
     @for (int i = 1; i <= 5; i++)
     {
         var starValue = i;
-        <i class="fa-star @(starValue <= Value ? "fas" : "far")" 
+        <i class="@(starValue <= Value ? "fa-solid" : "fa-regular") fa-star text-warning" 
+           style="color: #f59e0b !important; @(starValue > Value ? "opacity: 0.3;" : "")"
            @onclick="@(() => HandleClick(starValue))"></i>
     }
 </div>

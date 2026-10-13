@@ -162,7 +162,7 @@
             <!-- Profile / Account -->
             <VerticalStackLayout Grid.Column="4" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
                 <VerticalStackLayout.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="profile" />
+                    <TapGestureRecognizer Command="{Binding ProfileTappedCommand}" />
                 </VerticalStackLayout.GestureRecognizers>
                 <Grid WidthRequest="24" HeightRequest="24" HorizontalOptions="Center">
                     <Label x:Name="ProfileIcon" Text="&#xF007;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" VerticalOptions="Center" TextColor="{StaticResource InactiveColor}">
@@ -245,7 +245,7 @@
             <!-- Profile with Avatar -->
             <VerticalStackLayout Grid.Column="4" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
                 <VerticalStackLayout.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="profile" />
+                    <TapGestureRecognizer Command="{Binding ProfileTappedCommand}" />
                 </VerticalStackLayout.GestureRecognizers>
                 <Grid WidthRequest="26" HeightRequest="26" HorizontalOptions="Center">
                     <Border StrokeShape="RoundRectangle 13"
@@ -311,7 +311,7 @@
             <!-- Admin Profile -->
             <VerticalStackLayout Grid.Column="4" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
                 <VerticalStackLayout.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="profile" />
+                    <TapGestureRecognizer Command="{Binding ProfileTappedCommand}" />
                 </VerticalStackLayout.GestureRecognizers>
                 <Label Text="&#xF007;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}" />
                 <Label Text="الإدارة" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}" />

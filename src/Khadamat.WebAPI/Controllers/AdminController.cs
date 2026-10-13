@@ -604,6 +604,31 @@ public class AdminController : ControllerBase
             Console.WriteLine($"[AdminController] Error sending service approval notification: {ex.Message}");
         }
 
+        // Broadcast notification to ALL users announcing the new service (DB + SignalR + FCM Push)
+        try
+        {
+            var serviceRoute = $"/service/{service.Id}";
+            var broadcastTitle = $"خدمة جديدة: {service.Name} ✨";
+            var broadcastDesc = !string.IsNullOrWhiteSpace(service.Description)
+                ? (service.Description.Length > 120 ? service.Description.Substring(0, 120) + "..." : service.Description)
+                : $"تمت إضافة خدمة جديدة \"{service.Name}\" على منصة خدماوى، تصفح تفاصيل الخدمة وتواصل مع مقدم الخدمة الآن!";
+
+            await _notificationService.SendBroadcastAsync(
+                broadcastTitle,
+                broadcastDesc,
+                "NewServiceAnnouncement",
+                serviceRoute,
+                role: null,           // all users
+                governorateId: null,  // all governorates
+                cityId: null,         // all cities
+                mainCategoryId: null  // all categories
+            );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AdminController] Error broadcasting new service announcement: {ex.Message}");
+        }
+
         return Ok(ApiResponse<bool>.Succeed(true));
     }
 

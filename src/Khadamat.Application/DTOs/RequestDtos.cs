@@ -13,6 +13,7 @@ public class ServiceRequestDto
     public int ServiceId { get; set; }
     public string ServiceTitle { get; set; } = string.Empty;
     public string ServiceIcon { get; set; } = "fa-briefcase";
+    public string? ServiceImage { get; set; }
     
     public int ProviderId { get; set; }
     public string ProviderName { get; set; } = string.Empty;

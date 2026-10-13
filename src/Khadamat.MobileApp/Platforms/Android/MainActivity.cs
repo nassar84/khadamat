@@ -11,6 +11,7 @@ namespace Khadamat.MobileApp;
     Theme = "@style/Maui.SplashTheme", 
     MainLauncher = true, 
     Exported = true,
+    LaunchMode = LaunchMode.SingleTop,
     ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
 public class MainActivity : MauiAppCompatActivity
 {
@@ -42,6 +43,7 @@ public class MainActivity : MauiAppCompatActivity
     protected override void OnNewIntent(global::Android.Content.Intent? intent)
     {
         base.OnNewIntent(intent);
+        Intent = intent;
         HandleNotificationIntent(intent);
     }
 
@@ -49,12 +51,13 @@ public class MainActivity : MauiAppCompatActivity
     {
         if (intent == null) return;
         var route = intent.GetStringExtra("action_route");
-        if (!string.IsNullOrEmpty(route))
+        if (!string.IsNullOrEmpty(route) && route != "/" && route != "//")
         {
             Console.WriteLine($"[MainActivity] Notification tapped. Target route: {route}");
-            // Give the app shell/webview a moment to initialize if coming from cold start
-            Task.Delay(500).ContinueWith(_ =>
+            // Delay slightly to give the MAUI App and Shell time to mount (especially on cold boot)
+            Task.Run(async () =>
             {
+                await Task.Delay(1000);
                 Services.DeepLinkBridge.Raise(route);
             });
         }

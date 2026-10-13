@@ -84,11 +84,30 @@ namespace Khadamat.MobileApp
 
         public async Task HandleDeepLink(string url)
         {
-            // Example: khadamat://service/120 -> /service/120
-            var route = url.Replace("khadamat://", "").Replace("https://khadamat.com/", "");
-            
-            // Navigate to a generic container with this route
-            await Shell.Current.GoToAsync($"//HomePage?route={Uri.EscapeDataString(route)}");
+            try
+            {
+                if (string.IsNullOrWhiteSpace(url)) return;
+
+                var clean = url.Trim();
+                if (clean == "/" || clean == "//") return;
+
+                // Example: khadamat://service/120 -> service/120
+                var route = clean.Replace("khadamat://", "").Replace("https://khadamat.com/", "").TrimStart('/');
+                if (string.IsNullOrWhiteSpace(route)) return;
+
+                if (_viewModel?.NavigateCommand != null)
+                {
+                    await _viewModel.NavigateCommand.ExecuteAsync(route);
+                }
+                else
+                {
+                    await Shell.Current.GoToAsync($"//HomePage?route={Uri.EscapeDataString(route)}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[AppShell] HandleDeepLink error: {ex.Message}");
+            }
         }
     }
 }
