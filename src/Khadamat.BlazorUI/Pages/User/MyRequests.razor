@@ -8,6 +8,7 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 @inject AppState State
+@inject IFeedbackService FeedbackService
 
 <div class="px-3 pt-3 pb-5">
     <!-- Page Header -->
@@ -471,15 +472,20 @@
 
     private async Task CancelRequest(int requestId)
     {
-        if (!await JSRuntime.InvokeAsync<bool>("confirm", "هل أنت متأكد من إلغاء هذا الطلب؟"))
-            return;
+        bool confirmed = await FeedbackService.ConfirmDangerAsync("هل أنت متأكد من رغبتك في إلغاء هذا الطلب؟", "تأكيد إلغاء الطلب", "نعم، إلغاء الطلب", "تراجع");
+        if (!confirmed) return;
 
         var result = await Api.CancelRequestAsync(requestId);
         
         if (result.Success)
         {
+            FeedbackService.ShowSuccess("تم الإلغاء بنجاح", "تم إلغاء الطلب بنجاح.");
             await LoadRequests();
             StateHasChanged();
+        }
+        else
+        {
+            FeedbackService.ShowError("تعذر الإلغاء", result.Message ?? "حدث خطأ أثناء محاولة إلغاء الطلب.");
         }
     }
 }

@@ -113,7 +113,9 @@ public class CreateServiceHandler : IRequestHandler<Commands.CreateServiceComman
             request.Facebook,
             request.Telegram,
             request.WorkDays,
-            request.WorkHours
+            request.WorkHours,
+            request.Specialization,
+            request.SpecializationId
         );
 
         // Set main image if provided

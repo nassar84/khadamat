@@ -39,12 +39,13 @@ public class GetServiceHandler : IRequestHandler<Queries.GetServiceQuery, Pagina
 
         Expression<Func<Service, bool>> filter = s => 
             (!request.IsApproved.HasValue || s.Approved == request.IsApproved.Value) &&
-            (string.IsNullOrEmpty(search) || s.Name.ToLower().Contains(search) || s.Description.ToLower().Contains(search)) &&
+            (string.IsNullOrEmpty(search) || s.Name.ToLower().Contains(search) || s.Description.ToLower().Contains(search) || (s.Specialization != null && s.Specialization.ToLower().Contains(search))) &&
             // Fix: If categoryId is provided, also check services through their sub-categories
             (!request.CategoryId.HasValue || s.CategoryId == request.CategoryId || (s.SubCategory != null && s.SubCategory.CategoryId == request.CategoryId)) &&
             (!request.SubCategoryId.HasValue || s.SubCategoryId == request.SubCategoryId) &&
             (!request.CityId.HasValue || s.CityId == request.CityId) &&
             (!request.GovernorateId.HasValue || (s.City != null && s.City.GovernorateId == request.GovernorateId)) &&
+            (string.IsNullOrEmpty(request.Specialization) || (s.Specialization != null && s.Specialization.Contains(request.Specialization))) &&
             (string.IsNullOrEmpty(request.Location) || (s.Address != null && s.Address.Contains(request.Location)));
         
         // Includes for mapping

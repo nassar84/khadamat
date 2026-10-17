@@ -1,4 +1,6 @@
 using Khadamat.Shared.Interfaces;
+using Khadamat.MobileApp.Helpers;
+using Khadamat.MobileApp.Views.Popups;
 
 namespace Khadamat.MobileApp.Services;
 
@@ -12,9 +14,7 @@ public class PhoneService : IPhoneService
         {
             if (!CanMakePhoneCalls)
             {
-                var page = Microsoft.Maui.Controls.Application.Current?.Windows.FirstOrDefault()?.Page;
-                if (page != null)
-                    await page.DisplayAlert("خطأ", "المكالمات الهاتفية غير مدعومة على هذا الجهاز", "حسناً");
+                await KhadamatDialogHelper.ShowErrorAsync("تنبيه", "المكالمات الهاتفية غير مدعومة على هذا الجهاز");
                 return;
             }
 
@@ -23,9 +23,7 @@ public class PhoneService : IPhoneService
 
             if (string.IsNullOrEmpty(phoneNumber))
             {
-                var page = Microsoft.Maui.Controls.Application.Current?.Windows.FirstOrDefault()?.Page;
-                if (page != null)
-                    await page.DisplayAlert("خطأ", "رقم الهاتف غير صحيح", "حسناً");
+                await KhadamatDialogHelper.ShowErrorAsync("خطأ", "رقم الهاتف غير صحيح");
                 return;
             }
 
@@ -34,9 +32,7 @@ public class PhoneService : IPhoneService
         catch (Exception ex)
         {
             Console.WriteLine($"Phone call error: {ex.Message}");
-            var page = Microsoft.Maui.Controls.Application.Current?.Windows.FirstOrDefault()?.Page;
-            if (page != null)
-                await page.DisplayAlert("خطأ", "تعذر إجراء المكالمة", "حسناً");
+            await KhadamatDialogHelper.ShowErrorAsync("خطأ", "تعذر إجراء المكالمة");
         }
     }
 
@@ -46,9 +42,7 @@ public class PhoneService : IPhoneService
         {
             if (!Sms.Default.IsComposeSupported)
             {
-                var page = Microsoft.Maui.Controls.Application.Current?.Windows.FirstOrDefault()?.Page;
-                if (page != null)
-                    await page.DisplayAlert("خطأ", "الرسائل النصية غير مدعومة على هذا الجهاز", "حسناً");
+                await KhadamatDialogHelper.ShowErrorAsync("تنبيه", "الرسائل النصية غير مدعومة على هذا الجهاز");
                 return;
             }
 
@@ -58,9 +52,7 @@ public class PhoneService : IPhoneService
         catch (Exception ex)
         {
             Console.WriteLine($"SMS error: {ex.Message}");
-            var page = Microsoft.Maui.Controls.Application.Current?.Windows.FirstOrDefault()?.Page;
-            if (page != null)
-                await page.DisplayAlert("خطأ", "تعذر إرسال الرسالة", "حسناً");
+            await KhadamatDialogHelper.ShowErrorAsync("خطأ", "تعذر إرسال الرسالة");
         }
     }
 
@@ -106,17 +98,13 @@ public class PhoneService : IPhoneService
         {
             Console.WriteLine($"WhatsApp error: {ex.Message}");
             
-            bool installWhatsApp = false;
-            var page = Microsoft.Maui.Controls.Application.Current?.Windows.FirstOrDefault()?.Page;
-            if (page != null)
-            {
-                installWhatsApp = await page.DisplayAlert(
-                    "واتساب غير مثبت",
-                    "يبدو أن واتساب غير مثبت على جهازك. هل تريد تثبيته؟",
-                    "نعم",
-                    "لا"
-                );
-            }
+            bool installWhatsApp = await KhadamatDialogHelper.ShowConfirmAsync(
+                "واتساب غير مثبت",
+                "يبدو أن تطبيق واتساب غير مثبت على جهازك. هل تريد الانتقال لتثبيته الآن؟",
+                "نعم، تثبيت",
+                "إلغاء",
+                MobileDialogType.Info
+            );
 
             if (installWhatsApp)
             {

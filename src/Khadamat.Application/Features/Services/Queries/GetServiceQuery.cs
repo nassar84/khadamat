@@ -12,6 +12,7 @@ public record GetServiceQuery : IRequest<PaginatedResult<ServiceDto>>
     public int? GovernorateId { get; init; }
     public int? CityId { get; init; }
     public string? Location { get; init; }
+    public string? Specialization { get; init; }
     public bool? IsApproved { get; init; }
     public string? SortBy { get; init; }
     public int Page { get; init; } = 1;

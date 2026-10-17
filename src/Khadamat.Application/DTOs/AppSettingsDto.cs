@@ -13,6 +13,7 @@ public class AppSettingsDto
 
     public string PrimaryColor { get; set; } = string.Empty;
     public string SecondaryColor { get; set; } = string.Empty;
+    public string DefaultTheme { get; set; } = "default";
     public string ContactEmail { get; set; } = "khadamawy@gmail.com";
     public string ContactPhone { get; set; } = string.Empty;
     

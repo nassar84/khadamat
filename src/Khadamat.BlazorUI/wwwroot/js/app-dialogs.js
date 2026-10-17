@@ -87,7 +87,7 @@
             .khad-brand span {
                 font-weight: 800;
                 font-size: 13.5px;
-                color: #2a7f8f;
+                color: #2563eb;
                 letter-spacing: -0.2px;
             }
             .khad-close-btn {
@@ -188,7 +188,7 @@
             }
             .khad-btn-primary {
                 color: #ffffff;
-                box-shadow: 0 6px 16px rgba(42, 127, 143, 0.3);
+                box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
             }
             .khad-btn-primary.success {
                 background: linear-gradient(135deg, #10b981, #059669);
@@ -203,8 +203,8 @@
                 box-shadow: 0 6px 16px rgba(245, 158, 11, 0.35);
             }
             .khad-btn-primary.info {
-                background: linear-gradient(135deg, #2a7f8f, #0284c7);
-                box-shadow: 0 6px 16px rgba(42, 127, 143, 0.35);
+                background: linear-gradient(135deg, #1d4ed8, #2563eb);
+                box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
             }
             .khad-btn-primary:hover {
                 filter: brightness(1.06);

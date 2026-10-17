@@ -143,9 +143,11 @@ public class CreateUserDto
     [MinLength(6, ErrorMessage = "كلمة المرور يجب أن لا تقل عن 6 أحرف")]
     public string Password { get; set; } = string.Empty;
 
+    public string? UserName { get; set; }
     public string? PhoneNumber { get; set; }
     public int? CityId { get; set; }
     public string Role { get; set; } = "User";
+    public string? ProfileImageUrl { get; set; }
 }
 
 public class ExternalTokenLoginRequest

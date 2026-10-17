@@ -1,4 +1,5 @@
 using Khadamat.Shared.Interfaces;
+using Khadamat.MobileApp.Helpers;
 
 namespace Khadamat.MobileApp.Services;
 
@@ -11,15 +12,7 @@ public class LocationService : ILocationService
             var hasPermission = await RequestLocationPermissionAsync();
             if (!hasPermission)
             {
-                var page = Microsoft.Maui.Controls.Application.Current?.Windows.FirstOrDefault()?.Page;
-                if (page != null)
-                {
-                    await page.DisplayAlert(
-                        "تنبيه",
-                        "يرجى السماح بالوصول إلى الموقع الجغرافي",
-                        "حسناً"
-                    );
-                }
+                await KhadamatDialogHelper.ShowWarningAsync("تنبيه", "يرجى السماح بالوصول إلى الموقع الجغرافي لتقديم أفضل خدمة");
                 return null;
             }
 
@@ -39,16 +32,12 @@ public class LocationService : ILocationService
         }
         catch (FeatureNotSupportedException)
         {
-            var page = Microsoft.Maui.Controls.Application.Current?.Windows.FirstOrDefault()?.Page;
-            if (page != null)
-                await page.DisplayAlert("خطأ", "خدمة الموقع غير مدعومة على هذا الجهاز", "حسناً");
+            await KhadamatDialogHelper.ShowErrorAsync("خطأ", "خدمة الموقع غير مدعومة على هذا الجهاز");
             return null;
         }
         catch (PermissionException)
         {
-            var page = Microsoft.Maui.Controls.Application.Current?.Windows.FirstOrDefault()?.Page;
-            if (page != null)
-                await page.DisplayAlert("تنبيه", "يرجى السماح بالوصول إلى الموقع", "حسناً");
+            await KhadamatDialogHelper.ShowWarningAsync("تنبيه", "يرجى السماح بالوصول إلى الموقع");
             return null;
         }
         catch (Exception ex)
@@ -83,15 +72,7 @@ public class LocationService : ILocationService
             if (status == PermissionStatus.Denied && DeviceInfo.Platform == DevicePlatform.iOS)
             {
                 // On iOS, once denied, user must enable in settings
-                var page = Microsoft.Maui.Controls.Application.Current?.Windows.FirstOrDefault()?.Page;
-                if (page != null)
-                {
-                    await page.DisplayAlert(
-                        "إذن مطلوب",
-                        "يرجى تفعيل خدمة الموقع من إعدادات التطبيق",
-                        "حسناً"
-                    );
-                }
+                await KhadamatDialogHelper.ShowWarningAsync("إذن مطلوب", "يرجى تفعيل خدمة الموقع من إعدادات التطبيق");
                 return false;
             }
 
@@ -137,9 +118,7 @@ public class LocationService : ILocationService
         catch (Exception ex)
         {
             Console.WriteLine($"Maps error: {ex.Message}");
-            var page = Microsoft.Maui.Controls.Application.Current?.Windows.FirstOrDefault()?.Page;
-            if (page != null)
-                await page.DisplayAlert("خطأ", "تعذر فتح تطبيق الخرائط", "حسناً");
+            await KhadamatDialogHelper.ShowErrorAsync("خطأ", "تعذر فتح تطبيق الخرائط");
         }
     }
 }

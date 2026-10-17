@@ -3,6 +3,8 @@ using Microsoft.Maui.Controls;
 using System;
 using System.Threading.Tasks;
 using Khadamat.MobileApp.Security;
+using Khadamat.MobileApp.Helpers;
+using Khadamat.MobileApp.Views.Popups;
 
 namespace Khadamat.MobileApp.Views;
 
@@ -238,7 +240,7 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
     {
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
         {
-            await DisplayAlert("لا يوجد اتصال", "برجاء التأكد من اتصالك بالإنترنت والمحاولة مرة أخرى.", "حسنًا");
+            await KhadamatDialogHelper.ShowAlertAsync("لا يوجد اتصال بالإنترنت", "برجاء التأكد من اتصالك بالإنترنت والمحاولة مرة أخرى.", "حسنًا", MobileDialogType.Warning, this);
             return;
         }
         
@@ -456,11 +458,30 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
                         else if (path.Contains("favorites") || path.Contains("my-services") || path.Contains("provider/services")) vm.CurrentTab = "favorites";
                         else if (path.Contains("messages")) vm.CurrentTab = "messages";
                         else if (path.Contains("profile") || path.Contains("login") || path.Contains("register")) vm.CurrentTab = "profile";
+                        else if (path.Contains("notification")) vm.UnreadNotificationsCount = 0;
                         else if (path == "" || path.Contains("home")) vm.CurrentTab = "home";
                     });
                 }
             } catch {}
             LoadingOverlay.IsVisible = false;
+            return;
+        }
+
+        // Catch notification count sync from webview
+        if (url.StartsWith("khadamat://notifications"))
+        {
+            e.Cancel = true;
+            try {
+                var uri = new Uri(url);
+                var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+                var countStr = query["count"];
+                if (int.TryParse(countStr, out int count) && Shell.Current.BindingContext is ViewModels.ShellViewModel vm)
+                {
+                    MainThread.BeginInvokeOnMainThread(() => {
+                        vm.UnreadNotificationsCount = Math.Max(0, count);
+                    });
+                }
+            } catch {}
             return;
         }
 
@@ -653,9 +674,9 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
         {
             Console.WriteLine($"ANTIGRAVITY_LOG: WebView Navigation Failed. Result: {e.Result}, Url: {e.Url}");
             
-            bool runDiag = await DisplayAlert("خطأ في تحميل الصفحة", 
+            bool runDiag = await KhadamatDialogHelper.ShowConfirmAsync("خطأ في تحميل الصفحة", 
                 $"فشل التطبيق في تحميل واجهة الموقع ({e.Result}). هل تريد تشغيل أداة تشخيص الاتصال بالخادم لمعرفة السبب؟", 
-                "تشغيل التشخيص", "إلغاء");
+                "تشغيل التشخيص", "إلغاء", MobileDialogType.Warning, this);
                 
             if (runDiag)
             {
@@ -763,7 +784,7 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
                 report.AppendLine($"[التفاصيل]: {ex.InnerException.Message}");
         }
 
-        await DisplayAlert("تقرير التشخيص", report.ToString(), "موافق");
+        await KhadamatDialogHelper.ShowAlertAsync("تقرير التشخيص", report.ToString(), "موافق", MobileDialogType.Info, this);
     }
 
     protected override bool OnBackButtonPressed()

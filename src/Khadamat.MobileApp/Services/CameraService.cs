@@ -1,4 +1,6 @@
 using Khadamat.Shared.Interfaces;
+using Khadamat.MobileApp.Helpers;
+using Khadamat.MobileApp.Views.Popups;
 
 namespace Khadamat.MobileApp.Services;
 
@@ -10,9 +12,7 @@ public class CameraService : IDeviceCameraService
         {
             if (!MediaPicker.Default.IsCaptureSupported)
             {
-                var page = Microsoft.Maui.Controls.Application.Current?.Windows.FirstOrDefault()?.Page;
-                if (page != null)
-                    await page.DisplayAlert("خطأ", "الكاميرا غير متوفرة على هذا الجهاز", "حسناً");
+                await KhadamatDialogHelper.ShowErrorAsync("تنبيه", "الكاميرا غير متوفرة على هذا الجهاز");
                 return null;
             }
 
@@ -23,9 +23,7 @@ public class CameraService : IDeviceCameraService
         }
         catch (PermissionException)
         {
-            var page = Microsoft.Maui.Controls.Application.Current?.Windows.FirstOrDefault()?.Page;
-            if (page != null)
-                await page.DisplayAlert("تنبيه", "يرجى السماح بالوصول إلى الكاميرا", "حسناً");
+            await KhadamatDialogHelper.ShowWarningAsync("تنبيه", "يرجى السماح بالوصول إلى الكاميرا لالتقاط الصور");
             return null;
         }
         catch (Exception ex)
@@ -66,15 +64,19 @@ public class CameraService : IDeviceCameraService
             for (int i = 0; i < maxCount; i++)
             {
                 bool shouldContinue = false;
-                var page = Microsoft.Maui.Controls.Application.Current?.Windows.FirstOrDefault()?.Page;
-                if (page != null)
+                if (results.Count > 0)
                 {
-                    shouldContinue = await page.DisplayAlert(
+                    shouldContinue = await KhadamatDialogHelper.ShowConfirmAsync(
                         "اختيار صور متعددة",
-                        $"تم اختيار {results.Count} صورة. هل تريد إضافة المزيد؟",
-                        "نعم",
-                        "لا"
+                        $"تم اختيار {results.Count} صورة بنجاح. هل تريد إضافة المزيد؟",
+                        "نعم، إضافة صورة",
+                        "اكتفيت بالصور الحالية",
+                        MobileDialogType.Info
                     );
+                }
+                else
+                {
+                    shouldContinue = true;
                 }
 
                 if (!shouldContinue && results.Count > 0) break;

@@ -743,6 +743,10 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("DefaultTheme")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("datetime2");
 
@@ -2597,6 +2601,12 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.Property<int>("ProviderProfileId")
                         .HasColumnType("int");
 
+                    b.Property<string>("Specialization")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("SpecializationId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("SubCategoryId")
                         .HasColumnType("int");
 
@@ -2631,6 +2641,8 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.HasIndex("CityId");
 
                     b.HasIndex("ProviderProfileId");
+
+                    b.HasIndex("SpecializationId");
 
                     b.HasIndex("SubCategoryId");
 
@@ -2788,6 +2800,63 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.HasIndex("ServiceId");
 
                     b.ToTable("ServiceRequests");
+                });
+
+            modelBuilder.Entity("Khadamat.Domain.Entities.Specialization", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("SubCategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("SubCategoryId");
+
+                    b.ToTable("Specializations");
                 });
 
             modelBuilder.Entity("Khadamat.Domain.Entities.SubCategory", b =>
@@ -3633,6 +3702,11 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Khadamat.Domain.Entities.Specialization", "SpecializationEntity")
+                        .WithMany("Services")
+                        .HasForeignKey("SpecializationId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Khadamat.Domain.Entities.SubCategory", "SubCategory")
                         .WithMany("Services")
                         .HasForeignKey("SubCategoryId");
@@ -3642,6 +3716,8 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.Navigation("City");
 
                     b.Navigation("ProviderProfile");
+
+                    b.Navigation("SpecializationEntity");
 
                     b.Navigation("SubCategory");
                 });
@@ -3674,6 +3750,23 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.Navigation("Provider");
 
                     b.Navigation("Service");
+                });
+
+            modelBuilder.Entity("Khadamat.Domain.Entities.Specialization", b =>
+                {
+                    b.HasOne("Khadamat.Domain.Entities.Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Khadamat.Domain.Entities.SubCategory", "SubCategory")
+                        .WithMany()
+                        .HasForeignKey("SubCategoryId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Category");
+
+                    b.Navigation("SubCategory");
                 });
 
             modelBuilder.Entity("Khadamat.Domain.Entities.SubCategory", b =>
@@ -3831,6 +3924,11 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Khadamat.Domain.Entities.ServiceRequest", b =>
                 {
                     b.Navigation("Rating");
+                });
+
+            modelBuilder.Entity("Khadamat.Domain.Entities.Specialization", b =>
+                {
+                    b.Navigation("Services");
                 });
 
             modelBuilder.Entity("Khadamat.Domain.Entities.SubCategory", b =>

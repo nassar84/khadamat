@@ -91,6 +91,70 @@
                     </div>
                 </div>
 
+                <div class="mb-4">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <label class="form-label fw-bold mb-0">
+                            <i class="fa-solid fa-graduation-cap text-primary me-1"></i> التخصص / المادة الدراسية (جدول التخصصات)
+                        </label>
+                        @if (!ReadOnly)
+                        {
+                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill py-0 px-2" style="font-size: 0.78rem;" @onclick="ToggleAddSpecialization">
+                                <i class="fa-solid fa-plus me-1"></i>إضافة تخصص جديد
+                            </button>
+                        }
+                    </div>
+
+                    @if (showAddSpecialization)
+                    {
+                        <div class="p-3 mb-3 rounded-3 border bg-light-subtle animate-fade-in shadow-sm">
+                            <div class="small fw-bold text-primary mb-2">
+                                <i class="fa-solid fa-circle-plus me-1"></i> إضافة تخصص جديد إلى قاعدة البيانات:
+                            </div>
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="اكتب اسم التخصص أو المادة الجديدة..." @bind="newSpecializationName" />
+                                <button type="button" class="btn btn-primary" @onclick="AddNewSpecialization" disabled="@isAddingSpecialization">
+                                    @if (isAddingSpecialization) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                                    <span>حفظ التخصص</span>
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" @onclick="ToggleAddSpecialization">إلغاء</button>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="input-group">
+                        <input class="form-control rounded-3 border-0 bg-light"
+                               list="specialization-db-list"
+                               placeholder="اختر التخصص من القائمة أو اكتب للبحث..."
+                               value="@Model.Specialization"
+                               @onchange="OnSpecializationInputChanged"
+                               disabled="@ReadOnly" />
+                        <datalist id="specialization-db-list">
+                            @foreach (var spec in specializations)
+                            {
+                                <option value="@spec.Name" />
+                            }
+                        </datalist>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Specialization))
+                    {
+                        <div class="mt-2 d-flex align-items-center gap-2">
+                            <span class="badge rounded-pill px-3 py-2" style="background:#e0f2fe; color:#0369a1; font-size:0.82rem;">
+                                <i class="fa-solid fa-book-open me-1"></i> @Model.Specialization
+                            </span>
+                            @if (!ReadOnly)
+                            {
+                                <button type="button" class="btn btn-link btn-sm text-danger p-0 text-decoration-none" style="font-size:0.75rem;" @onclick="ClearSpecialization">
+                                    <i class="fa-solid fa-xmark"></i> إزالة
+                                </button>
+                            }
+                        </div>
+                    }
+                    <div class="form-text small text-muted mt-1">
+                        مرتبط بجدول التخصصات في قاعدة البيانات — يمكنك الاختيار من القائمة أو إضافة تخصص جديد مباشرة
+                    </div>
+                </div>
+
                 <hr class="my-4 opacity-25">
                 <h6 class="fw-bold mb-3"><i class="fa-solid fa-address-book text-primary me-2"></i> معلومات التواصل</h6>
                 
@@ -238,6 +302,8 @@
          
          public int? CategoryId { get; set; }
          public int? SubCategoryId { get; set; }
+         public string? Specialization { get; set; }
+         public int? SpecializationId { get; set; }
          
          public string? Phone1 { get; set; }
          public string? WhatsApp { get; set; }
@@ -251,8 +317,84 @@
          public List<string> Images { get; set; } = new();
     }
 
+    private List<SpecializationDto> specializations = new();
+    private bool showAddSpecialization = false;
+    private string newSpecializationName = "";
+    private bool isAddingSpecialization = false;
+
+    private async Task LoadSpecializationsAsync()
+    {
+        try
+        {
+            specializations = await Api.GetSpecializationsAsync(Model.CategoryId, Model.SubCategoryId);
+            if (!specializations.Any())
+            {
+                await Api.SeedSpecializationsAsync();
+                specializations = await Api.GetSpecializationsAsync(Model.CategoryId, Model.SubCategoryId);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[LoadSpecializationsAsync] Error: {ex.Message}");
+        }
+    }
+
+    private void ToggleAddSpecialization()
+    {
+        showAddSpecialization = !showAddSpecialization;
+        newSpecializationName = "";
+    }
+
+    private async Task AddNewSpecialization()
+    {
+        if (string.IsNullOrWhiteSpace(newSpecializationName)) return;
+        isAddingSpecialization = true;
+        try
+        {
+            var res = await Api.CreateSpecializationAsync(new CreateSpecializationDto
+            {
+                Name = newSpecializationName.Trim(),
+                CategoryId = Model.CategoryId,
+                SubCategoryId = Model.SubCategoryId
+            });
+
+            if (res != null)
+            {
+                Model.Specialization = res.Name;
+                Model.SpecializationId = res.Id;
+                await LoadSpecializationsAsync();
+                showAddSpecialization = false;
+                newSpecializationName = "";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AddNewSpecialization] Error: {ex.Message}");
+        }
+        finally
+        {
+            isAddingSpecialization = false;
+        }
+    }
+
+    private void OnSpecializationInputChanged(ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString()?.Trim();
+        Model.Specialization = val;
+        var matched = specializations.FirstOrDefault(s => s.Name.Equals(val, StringComparison.OrdinalIgnoreCase));
+        Model.SpecializationId = matched?.Id;
+    }
+
+    private void ClearSpecialization()
+    {
+        Model.Specialization = null;
+        Model.SpecializationId = null;
+    }
+
     protected override async Task OnParametersSetAsync()
     {
+        await LoadSpecializationsAsync();
+
         if (Model.CategoryId.HasValue && selectedCategoryId != Model.CategoryId.Value)
         {
              selectedCategoryId = Model.CategoryId.Value;

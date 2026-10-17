@@ -12,8 +12,11 @@ public class AppSettings : BaseEntity
     public string? ApkFilename { get; set; } = "Khadamawy.apk";
     public string? ApkIconUrl { get; set; } = "";
 
-    public string PrimaryColor { get; set; } = "#1e40af";
-    public string SecondaryColor { get; set; } = "#f97316";
+    public string PrimaryColor { get; set; } = "#2563eb";
+    public string SecondaryColor { get; set; } = "#0ea5e9";
+    
+    // Default Theme for all users (fallback before user picks their own)
+    public string DefaultTheme { get; set; } = "default";
     public string ContactEmail { get; set; } = "khadamawy@gmail.com";
     public string ContactPhone { get; set; } = "";
     

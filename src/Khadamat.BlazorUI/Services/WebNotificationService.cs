@@ -1,13 +1,20 @@
 using Khadamat.Shared.Interfaces;
+using Khadamat.BlazorUI.Models;
 
 namespace Khadamat.BlazorUI.Services;
 
 public class WebNotificationService : INotificationService
 {
+    private readonly IFeedbackService _feedbackService;
+
+    public WebNotificationService(IFeedbackService feedbackService)
+    {
+        _feedbackService = feedbackService;
+    }
+
     public Task ShowNotificationAsync(NotificationRequest notification)
     {
-        // Simple Console or Browser Alert fallback
-        Console.WriteLine($"[Web Notification] {notification.Title}: {notification.Message}");
+        _feedbackService.ShowToast(notification.Title, notification.Message, FeedbackType.Info);
         return Task.CompletedTask;
     }
 

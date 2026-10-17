@@ -21,7 +21,7 @@
     <meta name="twitter:title" content="خدماوي - Khadamawy | منصة الخدمات المتكاملة" />
     <meta name="twitter:description" content="اكتشف وطلب أفضل الخدمات في مكان واحد." />
     <meta name="twitter:image" content="/logo.png" />
-    <meta name="theme-color" content="#2a7f8f" />
+    <meta name="theme-color" content="#2563eb" />
     <meta name="apple-mobile-web-app-title" content="خدماوي" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -984,7 +984,7 @@
     <script src="lib/swiper/swiper-bundle.min.js"></script>
     <script src="lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/sounds.js"></script>
-    <script src="js/app-dialogs.js?v=2029"></script>
+    <script src="js/app-dialogs.js?v=2030"></script>
     <script src="_framework/blazor.webassembly.js"></script>
     <script>
         window.initCategoriesSlider = () => {
@@ -1146,6 +1146,16 @@
 
         window.getBodyTheme = () => {
             return document.body.getAttribute('data-theme') || 'default';
+        };
+
+        window.syncNotificationCount = (count) => {
+            try {
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = 'khadamat://notifications?count=' + encodeURIComponent(count);
+                document.body.appendChild(iframe);
+                setTimeout(() => iframe.remove(), 200);
+            } catch(e) {}
         };
 
         window.focusElement = (id) => {

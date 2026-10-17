@@ -1,4 +1,5 @@
 using Khadamat.Shared.Interfaces;
+using Khadamat.MobileApp.Helpers;
 
 namespace Khadamat.MobileApp.Services;
 
@@ -43,9 +44,7 @@ public class ShareService : IShareService
         {
             if (!File.Exists(filePath))
             {
-                var page = Microsoft.Maui.Controls.Application.Current?.Windows.FirstOrDefault()?.Page;
-                if (page != null)
-                    await page.DisplayAlert("خطأ", "الملف غير موجود", "حسناً");
+                await KhadamatDialogHelper.ShowErrorAsync("خطأ", "الملف المطلوب غير موجود");
                 return;
             }
 
@@ -58,9 +57,7 @@ public class ShareService : IShareService
         catch (Exception ex)
         {
             Console.WriteLine($"Share file error: {ex.Message}");
-            var page = Microsoft.Maui.Controls.Application.Current?.Windows.FirstOrDefault()?.Page;
-            if (page != null)
-                await page.DisplayAlert("خطأ", "تعذرت مشاركة الملف", "حسناً");
+            await KhadamatDialogHelper.ShowErrorAsync("خطأ", "تعذرت مشاركة الملف");
         }
     }
 
@@ -75,9 +72,7 @@ public class ShareService : IShareService
 
             if (!shareFiles.Any())
             {
-                var page = Microsoft.Maui.Controls.Application.Current?.Windows.FirstOrDefault()?.Page;
-                if (page != null)
-                    await page.DisplayAlert("خطأ", "لا توجد ملفات للمشاركة", "حسناً");
+                await KhadamatDialogHelper.ShowErrorAsync("خطأ", "لا توجد ملفات محددة للمشاركة");
                 return;
             }
 
@@ -90,9 +85,7 @@ public class ShareService : IShareService
         catch (Exception ex)
         {
             Console.WriteLine($"Share files error: {ex.Message}");
-            var page = Microsoft.Maui.Controls.Application.Current?.Windows.FirstOrDefault()?.Page;
-            if (page != null)
-                await page.DisplayAlert("خطأ", "تعذرت مشاركة الملفات", "حسناً");
+            await KhadamatDialogHelper.ShowErrorAsync("خطأ", "تعذرت مشاركة الملفات");
         }
     }
 

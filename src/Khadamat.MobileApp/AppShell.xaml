@@ -81,17 +81,8 @@
                 <Label Text="{Binding AppName}" FontSize="18" FontAttributes="Bold" TextColor="White" VerticalOptions="Center"/>
             </HorizontalStackLayout>
             
-            <!-- User Profile Avatar in Top Bar (Clickable) -->
-            <Border Grid.Column="1" HorizontalOptions="End" VerticalOptions="Center"
-                    HeightRequest="32" WidthRequest="32" StrokeThickness="1.5" Stroke="White"
-                    Margin="0,0,5,0"
-                    IsVisible="{Binding IsAuthenticated}">
-                <Border.StrokeShape><RoundRectangle CornerRadius="16" /></Border.StrokeShape>
-                <Border.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="profile" />
-                </Border.GestureRecognizers>
-                <Image Source="{Binding UserImage}" Aspect="AspectFill" HeightRequest="32" WidthRequest="32" />
-            </Border>
+            <!-- تمت إزالة صورة المستخدم من الشريط العلوى:
+                 تظهر فقط على الشريط السفلى (BottomNavBar) -->
 
             <ImageButton Grid.Column="2" Source="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F3A8;', Color=White}"
                          HeightRequest="30" WidthRequest="30" Margin="5,0"

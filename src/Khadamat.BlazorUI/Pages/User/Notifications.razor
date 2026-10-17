@@ -3,6 +3,7 @@
 @inject ApiClient Api
 @inject AppState State
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 <div class="container py-4 py-md-5" style="max-width: 860px;" dir="rtl">
     <!-- Header Section -->
@@ -158,6 +159,30 @@
     }
 </div>
 
+@if (selectedNotification != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); z-index: 1055;" dir="rtl">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow-lg p-3">
+                <div class="modal-header border-0 pb-0 d-flex justify-content-between align-items-center">
+                    <h5 class="modal-title fw-bold text-dark mb-0">@selectedNotification.Title</h5>
+                    <button type="button" class="btn-close m-0" @onclick="() => selectedNotification = null"></button>
+                </div>
+                <div class="modal-body py-3">
+                    <p class="text-secondary" style="line-height: 1.6; font-size: 0.95rem;">@selectedNotification.Message</p>
+                    <div class="small text-muted mt-2 d-flex align-items-center gap-1">
+                        <i class="fa-regular fa-clock"></i> <span>@FormatTimeAgo(selectedNotification.CreatedAt)</span>
+                        <span class="badge bg-success-subtle text-success ms-auto rounded-pill px-2 py-1">مقروء</span>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold" @onclick="() => selectedNotification = null">إغلاق</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 <style>
     .header-icon-badge {
         width: 46px;
@@ -239,6 +264,7 @@
     private bool isLoading = true;
     private bool isMarkingAll = false;
     private string activeFilter = "all";
+    private NotificationDto? selectedNotification;
 
     private int unreadCount => notifications?.Count(n => !n.IsRead) ?? 0;
 
@@ -272,6 +298,7 @@
             notifications = await Api.GetMyNotificationsAsync();
             State.NotificationCount = unreadCount;
             State.TriggerStateChanged();
+            try { await JS.InvokeVoidAsync("syncNotificationCount", unreadCount); } catch {}
         }
         catch (Exception ex)
         {
@@ -300,6 +327,7 @@
                 }
                 State.NotificationCount = 0;
                 State.TriggerStateChanged();
+                try { await JS.InvokeVoidAsync("syncNotificationCount", 0); } catch {}
             }
         }
         catch (Exception ex)
@@ -321,7 +349,8 @@
                 n.IsRead = true;
                 State.NotificationCount = Math.Max(0, State.NotificationCount - 1);
                 State.TriggerStateChanged();
-                _ = Api.MarkNotificationAsReadAsync(n.Id);
+                await Api.MarkNotificationAsReadAsync(n.Id);
+                try { await JS.InvokeVoidAsync("syncNotificationCount", State.NotificationCount); } catch {}
             }
 
             if (!string.IsNullOrEmpty(n.RelatedLink))
@@ -337,6 +366,10 @@
                 {
                     Navigation.NavigateTo(target);
                 }
+            }
+            else
+            {
+                selectedNotification = n;
             }
         }
         catch (Exception ex)

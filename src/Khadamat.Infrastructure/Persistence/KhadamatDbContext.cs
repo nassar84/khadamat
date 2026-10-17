@@ -60,6 +60,7 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ContentReport>  ContentReports   { get; set; }
     public DbSet<ReminderCampaign> ReminderCampaigns { get; set; }
     public DbSet<UserDevice> UserDevices { get; set; }
+    public DbSet<Specialization> Specializations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -86,6 +87,7 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<MarketplaceImage>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<MarketplaceCategory>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<MarketplaceSubCategory>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<Specialization>().HasQueryFilter(e => !e.IsDeleted);
 
         // Configure relationships and constraints
         builder.Entity<Governorate>().HasMany(g => g.Cities).WithOne(c => c.Governorate).HasForeignKey(c => c.GovernorateId);
@@ -97,6 +99,25 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<Category>().HasMany(c => c.SubCategories).WithOne(s => s.Category).HasForeignKey(s => s.CategoryId);
         builder.Entity<Category>().HasMany(c => c.Services).WithOne(s => s.Category).HasForeignKey(s => s.CategoryId);
         builder.Entity<SubCategory>().HasMany(s => s.Services).WithOne(se => se.SubCategory).HasForeignKey(se => se.SubCategoryId);
+
+        // Specialization Relationships
+        builder.Entity<Specialization>()
+            .HasOne(sp => sp.Category)
+            .WithMany()
+            .HasForeignKey(sp => sp.CategoryId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        builder.Entity<Specialization>()
+            .HasOne(sp => sp.SubCategory)
+            .WithMany()
+            .HasForeignKey(sp => sp.SubCategoryId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        builder.Entity<Service>()
+            .HasOne(s => s.SpecializationEntity)
+            .WithMany(sp => sp.Services)
+            .HasForeignKey(s => s.SpecializationId)
+            .OnDelete(DeleteBehavior.NoAction);
 
         // Unified Account: ProviderProfile <-> ApplicationUser
         builder.Entity<ApplicationUser>()

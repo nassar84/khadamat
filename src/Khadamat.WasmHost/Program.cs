@@ -82,6 +82,7 @@ builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().Cre
 // 3. Application Services
 builder.Services.AddScoped<Khadamat.BlazorUI.Services.ApiClient>();
 builder.Services.AddSingleton<Khadamat.BlazorUI.State.AppState>();
+builder.Services.AddSingleton<Khadamat.BlazorUI.Services.IFeedbackService, Khadamat.BlazorUI.Services.KhadamatFeedbackService>();
 
 // Auth Services
 builder.Services.AddAuthorizationCore();

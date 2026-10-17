@@ -22,17 +22,55 @@
         <SearchBar OnSearch="HandleSearch" />
     </div>
 
-    <div class="d-flex gap-2 mb-4 overflow-auto py-1 no-scrollbar">
+    <div class="d-flex gap-2 mb-3 overflow-auto py-1 no-scrollbar">
         <button class="btn btn-filter @(currentFilter == "" ? "active" : "")" @onclick='() => ApplyFilter("")'>الكل</button>
         <button class="btn btn-filter @(currentFilter == "rating" ? "active" : "")" @onclick='() => ApplyFilter("rating")'>الأعلى تقييماً</button>
         <button class="btn btn-filter @(currentFilter == "latest" ? "active" : "")" @onclick='() => ApplyFilter("latest")'>الأحدث</button>
         <button class="btn btn-filter @(currentFilter == "price-asc" ? "active" : "")" @onclick='() => ApplyFilter("price-asc")'>الأقل سعراً</button>
     </div>
 
+    <!-- تبويبات المواد الدراسية / التخصصات للفلترة والتصنيف السريع -->
+    @if (availableSpecializations.Any() || !string.IsNullOrEmpty(selectedSpecialization))
+    {
+        <div class="mb-4 p-2 rounded-4 bg-light border border-light-subtle animate-fade-in">
+            <div class="d-flex align-items-center justify-content-between px-2 mb-2">
+                <span class="small fw-bold text-dark">
+                    <i class="fa-solid fa-graduation-cap text-primary me-1"></i> تصفية حسب المادة الدراسية:
+                </span>
+                @if (!string.IsNullOrEmpty(selectedSpecialization))
+                {
+                    <button class="btn btn-link btn-sm text-muted p-0 text-decoration-none" @onclick='() => SelectSpecialization(null)'>
+                        <i class="fa-solid fa-xmark me-1"></i>إلغاء تصفية المادة
+                    </button>
+                }
+            </div>
+            <div class="d-flex gap-2 overflow-auto py-1 no-scrollbar">
+                <button class="btn btn-filter @(string.IsNullOrEmpty(selectedSpecialization) ? "active" : "")" 
+                        @onclick='() => SelectSpecialization(null)'>
+                    <i class="fa-solid fa-layer-group me-1 small"></i>كل المواد
+                </button>
+                @foreach (var spec in availableSpecializations)
+                {
+                    <button class="btn btn-filter @(selectedSpecialization == spec ? "active" : "")" 
+                            @onclick='() => SelectSpecialization(spec)'>
+                        <i class="fa-solid fa-book-open me-1 small"></i>@spec
+                    </button>
+                }
+            </div>
+        </div>
+    }
+
     <!-- Active Filters Display -->
-    @if (selectedCategoryId.HasValue || selectedGovId.HasValue || selectedCityId.HasValue)
+    @if (selectedCategoryId.HasValue || selectedGovId.HasValue || selectedCityId.HasValue || !string.IsNullOrEmpty(selectedSpecialization))
     {
         <div class="mb-3 d-flex flex-wrap gap-2 animate-fade-in">
+            @if (!string.IsNullOrEmpty(selectedSpecialization))
+            {
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2">
+                    <i class="fa-solid fa-book-bookmark me-1"></i>المادة: @selectedSpecialization 
+                    <i class="fa-solid fa-xmark ms-2 cursor-pointer" @onclick="async () => { selectedSpecialization = null; await LoadServices(); }"></i>
+                </span>
+            }
             @if (selectedCategoryName != null)
             {
                 <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2">
@@ -126,6 +164,15 @@
                         }
                     }
                 </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold">
+                    <i class="fa-solid fa-graduation-cap text-primary me-1"></i> المادة / التخصص
+                </label>
+                <input type="text" class="form-control rounded-3 border bg-light py-2" 
+                       placeholder="مثال: لغة عربية، رياضيات، فيزياء..." 
+                       @bind="selectedSpecialization" />
             </div>
 
             <div class="mb-4">
@@ -312,6 +359,8 @@
     private string? selectedGovName;
     private int? selectedCityId;
     private string? selectedCityName;
+    private string? selectedSpecialization;
+    private List<string> availableSpecializations = new();
 
     // فلترة تلقائية بالموقع
     private bool   _autoFilteredByLocation = false;
@@ -435,13 +484,15 @@
                         search: currentSearch,
                         categoryId: selectedCategoryId,
                         cityId: selectedCityId,
-                        sortBy: currentFilter == "" ? "latest" : currentFilter
+                        sortBy: currentFilter == "" ? "latest" : currentFilter,
+                        specialization: selectedSpecialization
                     );
 
                     if (cityResult?.Items != null && cityResult.Items.Any())
                     {
                         services = cityResult.Items;
                         _autoFilterLabel = cityResult.Items.FirstOrDefault()?.CityName ?? selectedCityName;
+                        UpdateAvailableSpecializations();
                         StateHasChanged();
                         return;
                     }
@@ -454,13 +505,15 @@
                         search: currentSearch,
                         categoryId: selectedCategoryId,
                         governorateId: selectedGovId,
-                        sortBy: currentFilter == "" ? "latest" : currentFilter
+                        sortBy: currentFilter == "" ? "latest" : currentFilter,
+                        specialization: selectedSpecialization
                     );
 
                     if (govResult?.Items != null && govResult.Items.Any())
                     {
                         services = govResult.Items;
                         _autoFilterLabel = govResult.Items.FirstOrDefault()?.GovernorateName ?? selectedGovName;
+                        UpdateAvailableSpecializations();
                         StateHasChanged();
                         return;
                     }
@@ -470,10 +523,12 @@
                 var allResult = await Api.GetServicesAsync(
                     search: currentSearch,
                     categoryId: selectedCategoryId,
-                    sortBy: currentFilter == "" ? "latest" : currentFilter
+                    sortBy: currentFilter == "" ? "latest" : currentFilter,
+                    specialization: selectedSpecialization
                 );
                 services = allResult?.Items ?? new List<ServiceDto>();
                 _autoFilterLabel = null;
+                UpdateAvailableSpecializations();
             }
             else
             {
@@ -483,9 +538,11 @@
                     categoryId: selectedCategoryId,
                     governorateId: selectedGovId,
                     cityId: selectedCityId,
-                    sortBy: currentFilter == "" ? "latest" : currentFilter
+                    sortBy: currentFilter == "" ? "latest" : currentFilter,
+                    specialization: selectedSpecialization
                 );
                 services = result?.Items ?? new List<ServiceDto>();
+                UpdateAvailableSpecializations();
             }
         }
         catch (Exception ex)
@@ -599,6 +656,7 @@
         selectedGovName         = null;
         selectedCityId          = null;
         selectedCityName        = null;
+        selectedSpecialization  = null;
         currentSearch           = null;
         currentFilter           = "";
         cities                  = null;
@@ -606,6 +664,32 @@
         _autoFilterLabel        = null;
         await LoadServices();
         if (showFilters) await ToggleFilters();
+    }
+
+    private async Task SelectSpecialization(string? spec)
+    {
+        selectedSpecialization = spec;
+        await LoadServices();
+    }
+
+    private void UpdateAvailableSpecializations()
+    {
+        if (services != null)
+        {
+            var specs = services
+                .Where(s => !string.IsNullOrWhiteSpace(s.Specialization))
+                .Select(s => s.Specialization!.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            if (!specs.Any() && selectedCategoryName != null && 
+                (selectedCategoryName.Contains("مدرس") || selectedCategoryName.Contains("تعليم") || selectedCategoryName.Contains("دروس")))
+            {
+                specs = new List<string> { "لغة عربية", "رياضيات", "لغة إنجليزية", "علوم", "فيزياء", "كيمياء", "أحياء", "فرنساوي", "تاريخ", "جغرافيا" };
+            }
+
+            availableSpecializations = specs;
+        }
     }
 
     // عرض جميع الخدمات بإلغاء الفلترة التلقائية بالموقع

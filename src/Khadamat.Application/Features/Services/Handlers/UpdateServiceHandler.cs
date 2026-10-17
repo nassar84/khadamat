@@ -49,7 +49,9 @@ public class UpdateServiceHandler : IRequestHandler<Commands.UpdateServiceComman
             request.Facebook,
             request.Telegram,
             request.WorkDays,
-            request.WorkHours
+            request.WorkHours,
+            request.Specialization,
+            request.SpecializationId
         );
 
         // Update hierarchy using Domain methods

@@ -1,0 +1,102 @@
+@using Khadamat.BlazorUI.Models
+@using Khadamat.BlazorUI.Services
+@inject IFeedbackService FeedbackService
+@implements IDisposable
+
+@if (isOpen && currentOptions != null)
+{
+    <div class="khadamat-dialog-backdrop animate-fade" dir="rtl" @onclick="HandleBackdropClick">
+        <div class="khadamat-dialog-card animate-scale-up" @onclick:stopPropagation="true" role="dialog" aria-modal="true">
+            <!-- Top Status Icon -->
+            <div class="dialog-icon-circle @GetIconThemeClass()">
+                <div class="dialog-icon-glow"></div>
+                <i class="@currentOptions.IconClass"></i>
+            </div>
+
+            <!-- Content -->
+            <div class="dialog-body-content text-center">
+                <h4 class="dialog-title">@currentOptions.Title</h4>
+                <p class="dialog-message">@currentOptions.Message</p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="dialog-actions-row">
+                <button type="button" class="dialog-btn dialog-btn-confirm @GetConfirmBtnClass()" @onclick="() => Close(true)">
+                    <span>@currentOptions.ConfirmText</span>
+                </button>
+                <button type="button" class="dialog-btn dialog-btn-cancel" @onclick="() => Close(false)">
+                    <span>@currentOptions.CancelText</span>
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool isOpen = false;
+    private ConfirmDialogOptions? currentOptions;
+    private TaskCompletionSource<bool>? tcs;
+
+    protected override void OnInitialized()
+    {
+        FeedbackService.OnConfirmRequested += HandleConfirmRequested;
+    }
+
+    private Task<bool> HandleConfirmRequested(ConfirmDialogOptions options)
+    {
+        // Cancel any pending dialog
+        tcs?.TrySetResult(false);
+
+        tcs = new TaskCompletionSource<bool>();
+        currentOptions = options;
+        isOpen = true;
+        StateHasChanged();
+
+        return tcs.Task;
+    }
+
+    private void Close(bool confirmed)
+    {
+        isOpen = false;
+        var pending = tcs;
+        tcs = null;
+        pending?.TrySetResult(confirmed);
+        currentOptions = null;
+        StateHasChanged();
+    }
+
+    private void HandleBackdropClick()
+    {
+        Close(false);
+    }
+
+    private string GetIconThemeClass() => currentOptions?.Type switch
+    {
+        FeedbackType.Success => "icon-theme-success",
+        FeedbackType.Error => "icon-theme-danger",
+        FeedbackType.Warning => "icon-theme-warning",
+        FeedbackType.Info => "icon-theme-info",
+        _ => "icon-theme-info"
+    };
+
+    private string GetConfirmBtnClass()
+    {
+        if (!string.IsNullOrEmpty(currentOptions?.ConfirmButtonClass))
+            return currentOptions.ConfirmButtonClass;
+
+        return currentOptions?.Type switch
+        {
+            FeedbackType.Success => "btn-success-gradient",
+            FeedbackType.Error => "btn-danger-gradient",
+            FeedbackType.Warning => "btn-warning-gradient",
+            FeedbackType.Info => "btn-primary-gradient",
+            _ => "btn-primary-gradient"
+        };
+    }
+
+    public void Dispose()
+    {
+        FeedbackService.OnConfirmRequested -= HandleConfirmRequested;
+        tcs?.TrySetResult(false);
+    }
+}

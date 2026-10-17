@@ -3,6 +3,10 @@
 # Enforces strictly ONE single fresh APK with current timestamp
 # ==============================================================================
 
+param(
+    [switch]$Deploy = $false
+)
+
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host " 1. Cleaning old APKs and preparing for fresh build..." -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
@@ -128,3 +132,10 @@ Write-Host "==========================================================" -Foregro
 
 $publishedApks | Select-Object Name, Length, LastWriteTime, CreationTime | Format-Table -AutoSize
 Get-Item "src/Khadamat.WebAPI/wwwroot/downloads/khadamat.apk" | Select-Object Name, Length, LastWriteTime, CreationTime | Format-Table -AutoSize
+
+if ($Deploy) {
+    Write-Host "`n==========================================================" -ForegroundColor Cyan
+    Write-Host " 7. Triggering automatic deployment to SmarterASP..." -ForegroundColor Cyan
+    Write-Host "==========================================================" -ForegroundColor Cyan
+    & .\deploy_to_server.ps1 -SkipApk
+}

@@ -160,9 +160,9 @@
             </VerticalStackLayout>
 
             <!-- Profile / Account -->
-            <VerticalStackLayout Grid.Column="4" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
+            <VerticalStackLayout x:Name="ClientProfileContainer" Grid.Column="4" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
                 <VerticalStackLayout.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding ProfileTappedCommand}" />
+                    <TapGestureRecognizer Command="{Binding ProfileTappedCommand}" CommandParameter="{Binding Source={x:Reference ClientProfileContainer}}" />
                 </VerticalStackLayout.GestureRecognizers>
                 <Grid WidthRequest="24" HeightRequest="24" HorizontalOptions="Center">
                     <Label x:Name="ProfileIcon" Text="&#xF007;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" VerticalOptions="Center" TextColor="{StaticResource InactiveColor}">
@@ -243,9 +243,9 @@
             </VerticalStackLayout>
 
             <!-- Profile with Avatar -->
-            <VerticalStackLayout Grid.Column="4" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
+            <VerticalStackLayout x:Name="ProviderProfileContainer" Grid.Column="4" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
                 <VerticalStackLayout.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding ProfileTappedCommand}" />
+                    <TapGestureRecognizer Command="{Binding ProfileTappedCommand}" CommandParameter="{Binding Source={x:Reference ProviderProfileContainer}}" />
                 </VerticalStackLayout.GestureRecognizers>
                 <Grid WidthRequest="26" HeightRequest="26" HorizontalOptions="Center">
                     <Border StrokeShape="RoundRectangle 13"
@@ -309,9 +309,9 @@
             </VerticalStackLayout>
 
             <!-- Admin Profile -->
-            <VerticalStackLayout Grid.Column="4" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
+            <VerticalStackLayout x:Name="AdminProfileContainer" Grid.Column="4" HorizontalOptions="Center" VerticalOptions="Center" Spacing="3">
                 <VerticalStackLayout.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding ProfileTappedCommand}" />
+                    <TapGestureRecognizer Command="{Binding ProfileTappedCommand}" CommandParameter="{Binding Source={x:Reference AdminProfileContainer}}" />
                 </VerticalStackLayout.GestureRecognizers>
                 <Label Text="&#xF007;" FontFamily="FA6Solid" FontSize="19" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}" />
                 <Label Text="الإدارة" FontSize="10" FontAttributes="Bold" HorizontalOptions="Center" TextColor="{StaticResource InactiveColor}" />
@@ -337,12 +337,13 @@
             <Border.StrokeShape><Ellipse /></Border.StrokeShape>
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="{DynamicResource Primary}" Offset="0.0" />
-                    <GradientStop Color="{DynamicResource Secondary}" Offset="1.0" />
+                    <GradientStop Color="#1d4ed8" Offset="0.0" />
+                    <GradientStop Color="#2563eb" Offset="0.5" />
+                    <GradientStop Color="#38bdf8" Offset="1.0" />
                 </LinearGradientBrush>
             </Border.Background>
             <Border.Shadow>
-                <Shadow Brush="{DynamicResource Primary}" Offset="0,8" Radius="15" Opacity="0.3" />
+                <Shadow Brush="#2563eb" Offset="0,8" Radius="15" Opacity="0.35" />
             </Border.Shadow>
             <Border.GestureRecognizers>
                 <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="my-requests" />
@@ -365,12 +366,13 @@
             <Border.StrokeShape><Ellipse /></Border.StrokeShape>
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#f59e0b" Offset="0.0" />
-                    <GradientStop Color="#d97706" Offset="1.0" />
+                    <GradientStop Color="#1d4ed8" Offset="0.0" />
+                    <GradientStop Color="#2563eb" Offset="0.5" />
+                    <GradientStop Color="#38bdf8" Offset="1.0" />
                 </LinearGradientBrush>
             </Border.Background>
             <Border.Shadow>
-                <Shadow Brush="#f59e0b" Offset="0,8" Radius="15" Opacity="0.3" />
+                <Shadow Brush="#2563eb" Offset="0,8" Radius="15" Opacity="0.35" />
             </Border.Shadow>
             <Border.GestureRecognizers>
                 <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="home" />
@@ -421,12 +423,13 @@
             <Border.StrokeShape><Ellipse /></Border.StrokeShape>
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="{DynamicResource Primary}" Offset="0.0" />
-                    <GradientStop Color="{DynamicResource Secondary}" Offset="1.0" />
+                    <GradientStop Color="#1d4ed8" Offset="0.0" />
+                    <GradientStop Color="#2563eb" Offset="0.5" />
+                    <GradientStop Color="#38bdf8" Offset="1.0" />
                 </LinearGradientBrush>
             </Border.Background>
             <Border.Shadow>
-                <Shadow Brush="{DynamicResource Primary}" Offset="0,8" Radius="15" Opacity="0.3" />
+                <Shadow Brush="#2563eb" Offset="0,8" Radius="15" Opacity="0.35" />
             </Border.Shadow>
             <Border.GestureRecognizers>
                 <TapGestureRecognizer Tapped="OnHomeTapped" />

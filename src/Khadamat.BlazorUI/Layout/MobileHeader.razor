@@ -9,23 +9,11 @@
 
         <!-- Right Side (RTL): Hamburger menu FIRST, then Logo -->
         <div class="header-right">
-            <!-- Hamburger / Avatar toggle -->
-            <AuthorizeView>
-                <Authorized>
-                    <div class="user-profile-header-premium" @onclick="ToggleSidebar">
-                        <div class="avatar-header-wrapper">
-                            <img src="@State.UserImageUrl" alt="Profile" class="user-header-avatar-premium" />
-                            <div class="online-dot-small"></div>
-                        </div>
-                    </div>
-                </Authorized>
-                <NotAuthorized>
-                    <!-- Show hamburger for guests too - login is in bottom nav -->
-                    <button class="menu-toggle-btn-glass" @onclick="ToggleSidebar">
-                        <i class="fa-solid fa-bars-staggered"></i>
-                    </button>
-                </NotAuthorized>
-            </AuthorizeView>
+            <!-- زر القائمة الجانبية فقط
+                 (تمت إزالة صورة المستخدم من الشريط العلوى - تظهر فقط على الشريط السفلى) -->
+            <button class="menu-toggle-btn-glass" @onclick="ToggleSidebar">
+                <i class="fa-solid fa-bars-staggered"></i>
+            </button>
 
             <!-- Logo immediately after hamburger -->
             <div class="header-logo-area" @onclick='() => NavigateTo("/")'>
@@ -53,7 +41,7 @@
                 {
                     <div class="theme-popover-mobile animate-up" @onclick:stopPropagation="true" dir="rtl">
                         <div class="theme-grid-mobile">
-                            <div class="theme-dot-mobile default @(State.CurrentTheme == "default" ? "active" : "")" @onclick='() => HandleSetTheme("default")'></div>
+                            <div class="theme-dot-mobile default @(State.CurrentTheme == "default" ? "active" : "")" @onclick='() => HandleSetTheme("default")' title="أزرق ملكي (الافتراضي)"></div>
                             <div class="theme-dot-mobile sunset @(State.CurrentTheme == "sunset" ? "active" : "")" @onclick='() => HandleSetTheme("sunset")'></div>
                             <div class="theme-dot-mobile ocean @(State.CurrentTheme == "ocean" ? "active" : "")" @onclick='() => HandleSetTheme("ocean")'></div>
                             <div class="theme-dot-mobile forest @(State.CurrentTheme == "forest" ? "active" : "")" @onclick='() => HandleSetTheme("forest")'></div>
@@ -454,7 +442,7 @@
     .theme-dot-mobile:active { transform: scale(0.9); }
     .theme-dot-mobile.active { border-color: var(--theme-primary); transform: scale(1.1); }
 
-    .theme-dot-mobile.default { background: linear-gradient(135deg, #1e40af, #f97316); }
+    .theme-dot-mobile.default { background: linear-gradient(135deg, #2563eb, #0ea5e9); }
     .theme-dot-mobile.sunset { background: linear-gradient(135deg, #ff4e50, #f9d423); }
     .theme-dot-mobile.ocean { background: linear-gradient(135deg, #00c6ff, #0072ff); }
     .theme-dot-mobile.forest { background: linear-gradient(135deg, #00f260, #0575e6); }

@@ -11,18 +11,16 @@
 
 <PageTitle>مركز الموافقات والاعتمادات - الإدارة</PageTitle>
 
-<div class="approvals-hub-container px-2 px-md-3 pb-5">
+<div class="approvals-hub-container" dir="rtl">
     <!-- Top Header -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 mt-2">
-        <div>
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-                <div class="hub-icon-badge shadow-sm">
-                    <i class="fa-solid fa-stamp text-warning fs-4"></i>
-                </div>
-                <div>
-                    <h3 class="fw-bold mb-0 text-dark">مركز الموافقات والاعتمادات</h3>
-                    <p class="text-muted small mb-0 mt-1">المركز الموحد لمراجعة واعتماد طلبات أصحاب الخدمات والخدمات المعلقة</p>
-                </div>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3 mt-2">
+        <div class="d-flex align-items-center gap-2 flex-wrap min-w-0">
+            <div class="hub-icon-badge shadow-sm">
+                <i class="fa-solid fa-stamp text-warning fs-4"></i>
+            </div>
+            <div class="min-w-0">
+                <h3 class="fw-bold mb-0 text-dark">مركز الموافقات والاعتمادات</h3>
+                <p class="text-muted small mb-0 mt-1">اختر نوع الطلبات لعرضها بالأسفل، مع الترتيب والفلترة</p>
             </div>
         </div>
 
@@ -36,126 +34,173 @@
     <!-- Alert Message / Toast -->
     @if (!string.IsNullOrEmpty(statusMessage))
     {
-        <div class="alert alert-@statusMessageType alert-dismissible fade show rounded-4 shadow-sm mb-4 d-flex align-items-center gap-2 animate-fade-in" role="alert">
+        <div class="alert alert-@statusMessageType alert-dismissible fade show rounded-4 shadow-sm mb-3 d-flex align-items-center gap-2" role="alert">
             <i class="fa-solid @(statusMessageType == "success" ? "fa-circle-check text-success" : "fa-triangle-exclamation text-danger") fs-5"></i>
             <span class="fw-bold small">@statusMessage</span>
             <button type="button" class="btn-close ms-auto" @onclick="() => statusMessage = null"></button>
         </div>
     }
 
-    <!-- Stat Summary Cards Row -->
-    <div class="row g-3 mb-4">
+    <!-- ═══ Type Selector Buttons (لا يوجد Tab Controller - أزرار فقط) ═══ -->
+    <div class="row g-2 g-sm-3 mb-3">
         <div class="col-12 col-sm-4">
-            <div class="stat-card glass-card p-3 rounded-4 d-flex align-items-center gap-3 cursor-pointer @(activeTab == "providers" ? "active-stat border-primary" : "")"
-                 @onclick='() => SetTab("providers")'>
-                <div class="stat-icon-wrap bg-danger-subtle text-danger">
-                    <i class="fa-solid fa-user-shield fs-4"></i>
-                </div>
-                <div class="flex-grow-1">
-                    <div class="text-muted x-small fw-bold">أصحاب الخدمات (المزودين)</div>
-                    <div class="d-flex align-items-baseline gap-2">
-                        <span class="fs-4 fw-bold text-dark">@pendingProviders.Count</span>
-                        <span class="x-small text-muted">بانتظار الاعتماد</span>
-                    </div>
-                </div>
-                @if (pendingProviders.Count > 0)
-                {
-                    <span class="badge bg-danger rounded-pill px-2 py-1">@pendingProviders.Count</span>
-                }
-            </div>
+            <button type="button" class="type-btn @(activeTab == "providers" ? "active" : "")" @onclick='() => SetTab("providers")'>
+                <span class="t-icon"><i class="fa-solid fa-user-shield"></i></span>
+                <span class="t-label">أصحاب الخدمات</span>
+                <span class="t-count">@pendingProviders.Count</span>
+            </button>
         </div>
-
         <div class="col-12 col-sm-4">
-            <div class="stat-card glass-card p-3 rounded-4 d-flex align-items-center gap-3 cursor-pointer @(activeTab == "services" ? "active-stat border-warning" : "")"
-                 @onclick='() => SetTab("services")'>
-                <div class="stat-icon-wrap bg-warning-subtle text-warning">
-                    <i class="fa-solid fa-briefcase fs-4"></i>
-                </div>
-                <div class="flex-grow-1">
-                    <div class="text-muted x-small fw-bold">الخدمات الجديدة</div>
-                    <div class="d-flex align-items-baseline gap-2">
-                        <span class="fs-4 fw-bold text-dark">@pendingServices.Count</span>
-                        <span class="x-small text-muted">بانتظار المراجعة</span>
-                    </div>
-                </div>
-                @if (pendingServices.Count > 0)
-                {
-                    <span class="badge bg-warning text-dark rounded-pill px-2 py-1">@pendingServices.Count</span>
-                }
-            </div>
+            <button type="button" class="type-btn @(activeTab == "services" ? "active" : "")" @onclick='() => SetTab("services")'>
+                <span class="t-icon"><i class="fa-solid fa-briefcase"></i></span>
+                <span class="t-label">الخدمات الجديدة</span>
+                <span class="t-count">@pendingServices.Count</span>
+            </button>
         </div>
-
         <div class="col-12 col-sm-4">
-            <div class="stat-card glass-card p-3 rounded-4 d-flex align-items-center gap-3 cursor-pointer @(activeTab == "edits" ? "active-stat border-info" : "")"
-                 @onclick='() => SetTab("edits")'>
-                <div class="stat-icon-wrap bg-info-subtle text-info">
-                    <i class="fa-solid fa-pen-to-square fs-4"></i>
+            <button type="button" class="type-btn @(activeTab == "edits" ? "active" : "")" @onclick='() => SetTab("edits")'>
+                <span class="t-icon"><i class="fa-solid fa-pen-to-square"></i></span>
+                <span class="t-label">طلبات التعديل</span>
+                <span class="t-count">@pendingEdits.Count</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ═══ Filters ═══ -->
+    <div class="filters-card mb-3">
+        <div class="row g-2 g-md-3 align-items-end">
+            <!-- Search -->
+            <div class="col-12 col-md-6 col-lg-4">
+                <label>بحث سريع</label>
+                <div class="position-relative">
+                    <i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                    <input type="text"
+                           class="form-control rounded-pill ps-5 pe-3 bg-light border-0 py-2 small"
+                           placeholder="الاسم، الهاتف، التصنيف، المدينة..."
+                           @bind="searchQuery"
+                           @bind:event="oninput" />
                 </div>
-                <div class="flex-grow-1">
-                    <div class="text-muted x-small fw-bold">تعديلات الخدمات المقترحة</div>
-                    <div class="d-flex align-items-baseline gap-2">
-                        <span class="fs-4 fw-bold text-dark">@pendingEdits.Count</span>
-                        <span class="x-small text-muted">بانتظار التدقيق</span>
-                    </div>
+            </div>
+
+            @if (activeTab == "services")
+            {
+                <div class="col-6 col-md-3 col-lg-2">
+                    <label>فئة الخدمة</label>
+                    <select class="form-select rounded-pill small" @bind="filterCategory">
+                        <option value="">كل الفئات</option>
+                        @foreach (var c in CategoryOptions)
+                        {
+                            <option value="@c">@c</option>
+                        }
+                    </select>
                 </div>
-                @if (pendingEdits.Count > 0)
-                {
-                    <span class="badge bg-info text-dark rounded-pill px-2 py-1">@pendingEdits.Count</span>
-                }
+                <div class="col-6 col-md-3 col-lg-2">
+                    <label>صاحب الخدمة</label>
+                    <select class="form-select rounded-pill small" @bind="filterProvider">
+                        <option value="">الكل</option>
+                        @foreach (var p in ServiceProviderOptions)
+                        {
+                            <option value="@p">@p</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-6 col-md-3 col-lg-2">
+                    <label>المدينة</label>
+                    <select class="form-select rounded-pill small" @bind="filterCity">
+                        <option value="">الكل</option>
+                        @foreach (var c in ServiceCityOptions)
+                        {
+                            <option value="@c">@c</option>
+                        }
+                    </select>
+                </div>
+            }
+            else if (activeTab == "providers")
+            {
+                <div class="col-6 col-md-3 col-lg-2">
+                    <label>المدينة / المنطقة</label>
+                    <select class="form-select rounded-pill small" @bind="filterCity">
+                        <option value="">الكل</option>
+                        @foreach (var c in ProviderCityOptions)
+                        {
+                            <option value="@c">@c</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-6 col-md-3 col-lg-2">
+                    <label>صاحب الخدمة</label>
+                    <select class="form-select rounded-pill small" @bind="filterProvider">
+                        <option value="">الكل</option>
+                        @foreach (var p in ProviderNameOptions)
+                        {
+                            <option value="@p">@p</option>
+                        }
+                    </select>
+                </div>
+            }
+            else
+            {
+                <div class="col-6 col-md-3 col-lg-2">
+                    <label>مقدم الطلب</label>
+                    <select class="form-select rounded-pill small" @bind="filterProvider">
+                        <option value="">الكل</option>
+                        @foreach (var p in RequesterOptions)
+                        {
+                            <option value="@p">@p</option>
+                        }
+                    </select>
+                </div>
+            }
+
+            <!-- Date range -->
+            <div class="col-6 col-md-3 col-lg-2">
+                <label>من تاريخ</label>
+                <input type="date" class="form-control rounded-pill small" @bind="dateFrom" />
+            </div>
+            <div class="col-6 col-md-3 col-lg-2">
+                <label>إلى تاريخ</label>
+                <input type="date" class="form-control rounded-pill small" @bind="dateTo" />
+            </div>
+
+            <!-- Sort -->
+            <div class="col-12 col-md-6 col-lg-3">
+                <label>الترتيب</label>
+                <select class="form-select rounded-pill small" @bind="sortMode">
+                    <option value="default">الفئة ثم التاريخ ثم صاحب الخدمة</option>
+                    <option value="date_desc">التاريخ (الأحدث أولاً)</option>
+                    <option value="date_asc">التاريخ (الأقدم أولاً)</option>
+                </select>
+            </div>
+
+            <!-- Reset -->
+            <div class="col-12 col-md-6 col-lg-auto">
+                <button type="button" class="btn btn-outline-secondary rounded-pill w-100 py-2 small" @onclick="ClearFilters">
+                    <i class="fa-solid fa-filter-circle-xmark me-1"></i> مسح الفلاتر
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Navigation Tabs & Search Controls -->
-    <div class="glass-card p-3 rounded-4 mb-4 shadow-sm">
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-            <!-- Segmented Tabs -->
-            <div class="nav-segment-wrap d-flex p-1 rounded-pill bg-light border">
-                <button type="button" class="segment-btn @(activeTab == "providers" ? "active" : "")" @onclick='() => SetTab("providers")'>
-                    <i class="fa-solid fa-user-check me-2"></i>
-                    <span>موافقة أصحاب الخدمات</span>
-                    @if (pendingProviders.Count > 0)
-                    {
-                        <span class="badge bg-danger rounded-pill ms-2">@pendingProviders.Count</span>
-                    }
-                </button>
+    @{
+        var filteredProviders = FilteredProviders;
+        var filteredServices = FilteredServices;
+        var filteredEdits = FilteredEdits;
+        var shownCount = activeTab == "services" ? filteredServices.Count : (activeTab == "edits" ? filteredEdits.Count : filteredProviders.Count);
+        var totalCount = activeTab == "services" ? pendingServices.Count : (activeTab == "edits" ? pendingEdits.Count : pendingProviders.Count);
+    }
 
-                <button type="button" class="segment-btn @(activeTab == "services" ? "active" : "")" @onclick='() => SetTab("services")'>
-                    <i class="fa-solid fa-briefcase me-2"></i>
-                    <span>موافقة الخدمات</span>
-                    @if (pendingServices.Count > 0)
-                    {
-                        <span class="badge bg-warning text-dark rounded-pill ms-2">@pendingServices.Count</span>
-                    }
-                </button>
-
-                @if (pendingEdits.Count > 0)
-                {
-                    <button type="button" class="segment-btn @(activeTab == "edits" ? "active" : "")" @onclick='() => SetTab("edits")'>
-                        <i class="fa-solid fa-pen-to-square me-2"></i>
-                        <span>تعديلات الخدمات</span>
-                        <span class="badge bg-info text-dark rounded-pill ms-2">@pendingEdits.Count</span>
-                    </button>
-                }
-            </div>
-
-            <!-- Instant Search Input -->
-            <div class="search-input-wrap position-relative flex-grow-1" style="max-width: 380px;">
-                <i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-                <input type="text"
-                       class="form-control rounded-pill ps-5 pe-3 bg-light border-0 py-2 small"
-                       placeholder="بحث سريع بالاسم، الهاتف، التصنيف، المدينة..."
-                       @bind="searchQuery"
-                       @bind:event="oninput" />
-                @if (!string.IsNullOrEmpty(searchQuery))
-                {
-                    <button class="btn btn-sm position-absolute top-50 end-0 translate-middle-y me-2 text-muted border-0 bg-transparent"
-                            @onclick="() => searchQuery = string.Empty">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                }
-            </div>
+    <!-- Results summary -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <div class="small text-muted">
+            <i class="fa-solid fa-list-check me-1"></i>
+            عرض <strong class="text-dark">@shownCount</strong> من <strong class="text-dark">@totalCount</strong> طلب
         </div>
+        @if (HasActiveFilters)
+        {
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1">
+                <i class="fa-solid fa-filter me-1"></i>فلاتر مُطبَّقة
+            </span>
+        }
     </div>
 
     <!-- Main Content Area -->
@@ -170,33 +215,36 @@
     else
     {
         @* ══════════════════════════════════════════════════════════════════════
-           TAB 1: موافقة على صاحب خدمة (Provider Approval)
+           النوع 1: أصحاب الخدمات (Provider Approval)
            ══════════════════════════════════════════════════════════════════════ *@
         @if (activeTab == "providers")
         {
-            var filteredProviders = FilteredProviders;
             @if (!filteredProviders.Any())
             {
                 <div class="glass-card p-5 text-center rounded-4 shadow-sm">
-                    <i class="fa-solid fa-circle-check text-success display-1 mb-3 opacity-25"></i>
-                    <h4 class="fw-bold text-dark">لا توجد طلبات انضمام معلقة</h4>
-                    <p class="text-muted mb-0">تمت مراجعة واعتماد جميع طلبات مقدمي الخدمات بنجاح.</p>
+                    <i class="fa-solid @(HasActiveFilters ? "fa-magnifying-glass text-primary" : "fa-circle-check text-success") display-1 mb-3 opacity-25"></i>
+                    <h4 class="fw-bold text-dark">@(HasActiveFilters ? "لا توجد نتائج مطابقة للفلاتر" : "لا توجد طلبات انضمام معلقة")</h4>
+                    <p class="text-muted mb-0">@(HasActiveFilters ? "جرّب تعديل الفلاتر أو مسحها لعرض جميع الطلبات." : "تمت مراجعة واعتماد جميع طلبات مقدمي الخدمات بنجاح.")</p>
+                    @if (HasActiveFilters)
+                    {
+                        <button class="btn btn-outline-primary rounded-pill px-4 mt-3" @onclick="ClearFilters">مسح الفلاتر</button>
+                    }
                 </div>
             }
             else
             {
-                <div class="row g-4">
+                <div class="row g-3 g-lg-4">
                     @foreach (var provider in filteredProviders)
                     {
                         <div class="col-12 col-lg-6">
-                            <div class="approval-card glass-card p-0 rounded-4 overflow-hidden shadow-sm h-100 d-flex flex-column animate-up border">
+                            <div class="approval-card glass-card p-0 rounded-4 overflow-hidden shadow-sm h-100 d-flex flex-column border">
                                 <!-- Card Header -->
                                 <div class="p-3 bg-light border-bottom d-flex align-items-center gap-3">
                                     <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(provider.Name)"
                                          class="rounded-circle shadow-sm border border-2 border-white flex-shrink-0"
                                          width="56" height="56" alt="@provider.Name" />
                                     <div class="flex-grow-1 min-w-0">
-                                        <div class="d-flex align-items-center justify-content-between gap-2">
+                                        <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
                                             <h6 class="fw-bold mb-0 text-dark text-truncate">@provider.Name</h6>
                                             <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-1 x-small">
                                                 طلب انضمام جديد
@@ -317,8 +365,8 @@
                                     </div>
                                 </div>
 
-                                <!-- Card Footer: Full Actions (قبول، رفض، تواصل) -->
-                                <div class="p-3 bg-light border-top mt-auto d-flex gap-2">
+                                <!-- Card Footer: Full Actions (قبول، رفض) -->
+                                <div class="p-3 bg-light border-top mt-auto d-flex flex-wrap gap-2">
                                     <button class="btn btn-success flex-grow-1 rounded-pill py-2 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2"
                                             @onclick="() => ApproveProvider(provider)">
                                         <i class="fa-solid fa-check fs-6"></i>
@@ -338,32 +386,35 @@
         }
 
         @* ══════════════════════════════════════════════════════════════════════
-           TAB 2: موافقة على خدمة (Service Approval)
+           النوع 2: الخدمات الجديدة (Service Approval)
            ══════════════════════════════════════════════════════════════════════ *@
         @if (activeTab == "services")
         {
-            var filteredServices = FilteredServices;
             @if (!filteredServices.Any())
             {
                 <div class="glass-card p-5 text-center rounded-4 shadow-sm">
-                    <i class="fa-solid fa-circle-check text-success display-1 mb-3 opacity-25"></i>
-                    <h4 class="fw-bold text-dark">لا توجد خدمات بانتظار المراجعة</h4>
-                    <p class="text-muted mb-0">تمت مراجعة واعتماد ونشر جميع الخدمات بنجاح.</p>
+                    <i class="fa-solid @(HasActiveFilters ? "fa-magnifying-glass text-primary" : "fa-circle-check text-success") display-1 mb-3 opacity-25"></i>
+                    <h4 class="fw-bold text-dark">@(HasActiveFilters ? "لا توجد نتائج مطابقة للفلاتر" : "لا توجد خدمات بانتظار المراجعة")</h4>
+                    <p class="text-muted mb-0">@(HasActiveFilters ? "جرّب تعديل الفلاتر أو مسحها لعرض جميع الطلبات." : "تمت مراجعة واعتماد ونشر جميع الخدمات بنجاح.")</p>
+                    @if (HasActiveFilters)
+                    {
+                        <button class="btn btn-outline-primary rounded-pill px-4 mt-3" @onclick="ClearFilters">مسح الفلاتر</button>
+                    }
                 </div>
             }
             else
             {
-                <div class="row g-4">
+                <div class="row g-3 g-lg-4">
                     @foreach (var service in filteredServices)
                     {
                         var mainImg = service.Images?.FirstOrDefault();
                         var serviceImgUrl = Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(mainImg, service.SubCategoryName, service.CategoryName, service.MainCategoryName));
 
                         <div class="col-12 col-lg-6">
-                            <div class="approval-card glass-card p-0 rounded-4 overflow-hidden shadow-sm h-100 d-flex flex-column animate-up border">
+                            <div class="approval-card glass-card p-0 rounded-4 overflow-hidden shadow-sm h-100 d-flex flex-column border">
                                 <!-- Top Bar -->
                                 <div class="p-3 bg-light border-bottom d-flex align-items-center justify-content-between gap-2">
-                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <div class="d-flex align-items-center gap-2 flex-wrap min-w-0">
                                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fw-bold">
                                             @service.CategoryName
                                         </span>
@@ -374,7 +425,7 @@
                                             </span>
                                         }
                                     </div>
-                                    <span class="x-small text-muted">
+                                    <span class="x-small text-muted text-nowrap">
                                         <i class="fa-solid fa-clock me-1"></i>@service.CreatedAt.ToString("yyyy/MM/dd")
                                     </span>
                                 </div>
@@ -495,31 +546,35 @@
         }
 
         @* ══════════════════════════════════════════════════════════════════════
-           TAB 3: تعديلات الخدمات المقترحة (Service Edits)
+           النوع 3: طلبات التعديل (Service Edits)
            ══════════════════════════════════════════════════════════════════════ *@
         @if (activeTab == "edits")
         {
-            @if (!pendingEdits.Any())
+            @if (!filteredEdits.Any())
             {
                 <div class="glass-card p-5 text-center rounded-4 shadow-sm">
-                    <i class="fa-solid fa-circle-check text-success display-1 mb-3 opacity-25"></i>
-                    <h4 class="fw-bold text-dark">لا توجد طلبات تعديل معلقة</h4>
-                    <p class="text-muted mb-0">تمت معالجة جميع اقتراحات التعديل المقدمة.</p>
+                    <i class="fa-solid @(HasActiveFilters ? "fa-magnifying-glass text-primary" : "fa-circle-check text-success") display-1 mb-3 opacity-25"></i>
+                    <h4 class="fw-bold text-dark">@(HasActiveFilters ? "لا توجد نتائج مطابقة للفلاتر" : "لا توجد طلبات تعديل معلقة")</h4>
+                    <p class="text-muted mb-0">@(HasActiveFilters ? "جرّب تعديل الفلاتر أو مسحها لعرض جميع الطلبات." : "تمت معالجة جميع اقتراحات التعديل المقدمة.")</p>
+                    @if (HasActiveFilters)
+                    {
+                        <button class="btn btn-outline-primary rounded-pill px-4 mt-3" @onclick="ClearFilters">مسح الفلاتر</button>
+                    }
                 </div>
             }
             else
             {
                 <div class="d-flex flex-column gap-3">
-                    @foreach (var req in pendingEdits)
+                    @foreach (var req in filteredEdits)
                     {
                         <div class="card border-0 shadow-sm rounded-4 overflow-hidden border">
-                            <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="bg-primary-subtle p-2 rounded-3 text-primary">
+                            <div class="card-header bg-white border-bottom py-3 px-4 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                                <div class="d-flex align-items-center gap-3 min-w-0">
+                                    <div class="bg-primary-subtle p-2 rounded-3 text-primary flex-shrink-0">
                                         <i class="fa-solid fa-pen-to-square fs-5"></i>
                                     </div>
-                                    <div>
-                                        <h6 class="mb-0 fw-bold">@req.ServiceName</h6>
+                                    <div class="min-w-0">
+                                        <h6 class="mb-0 fw-bold text-truncate">@req.ServiceName</h6>
                                         <small class="text-muted">مقدم الطلب: @req.RequesterName | @req.CreatedAt.ToString("yyyy/MM/dd HH:mm")</small>
                                     </div>
                                 </div>
@@ -565,7 +620,7 @@
                                     }
                                 </div>
 
-                                <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
+                                <div class="d-flex flex-wrap justify-content-end gap-2 mt-3 pt-3 border-top">
                                     <button class="btn btn-sm btn-outline-primary rounded-pill px-4" @onclick="@(() => Navigation.NavigateTo($"/service/{req.ServiceId}"))">
                                         <i class="fa-solid fa-eye me-1"></i> معاينة الخدمة
                                     </button>
@@ -589,7 +644,7 @@
 @if (isDocModalOpen)
 {
     <div class="approvals-modal-overlay" @onclick="CloseDocModal">
-        <div class="glass-card p-4 rounded-4 animate-pop approvals-modal-container text-center shadow-lg" @onclick:stopPropagation="true">
+        <div class="glass-card p-4 rounded-4 approvals-modal-container text-center shadow-lg" @onclick:stopPropagation="true">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="fw-bold mb-0 text-dark">
                     <i class="fa-solid fa-file-image text-primary me-2"></i>@modalTitle
@@ -601,7 +656,7 @@
                 <img src="@modalImageUrl" class="img-fluid rounded-2" style="max-height: 70vh; max-width: 100%; object-fit: contain;" alt="@modalTitle" />
             </div>
 
-            <div class="d-flex justify-content-center gap-2">
+            <div class="d-flex justify-content-center flex-wrap gap-2">
                 <a href="@modalImageUrl" target="_blank" class="btn btn-outline-primary rounded-pill px-4">
                     <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> فتح بحجم كامل
                 </a>
@@ -614,6 +669,18 @@
 }
 
 <style>
+    /* Container must never clip its own content horizontally */
+    .approvals-hub-container {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+        padding-bottom: 90px; /* مساحة أسفل الصفحة حتى لا يغطى شريط التنقل أى محتوى */
+    }
+
+    .min-w-0 {
+        min-width: 0 !important;
+    }
+
     .hub-icon-badge {
         width: 48px;
         height: 48px;
@@ -622,67 +689,103 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 1px solid rgba(0,0,0,0.06);
-    }
-
-    .stat-card {
-        transition: all 0.25s ease;
-        border: 1px solid rgba(0,0,0,0.06);
-    }
-    .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-    }
-    .stat-card.active-stat {
-        border-width: 2px !important;
-        background: #ffffff;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.06);
-    }
-
-    .stat-icon-wrap {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        border: 1px solid rgba(0, 0, 0, 0.06);
         flex-shrink: 0;
     }
 
-    .nav-segment-wrap {
-        background: #f1f5f9;
-        gap: 4px;
-    }
-    .segment-btn {
-        border: none;
-        background: transparent;
-        padding: 8px 20px;
-        border-radius: 30px;
-        font-size: 0.9rem;
-        font-weight: 700;
-        color: #475569;
-        transition: all 0.2s ease;
-        display: inline-flex;
+    /* ═══ Type selector: plain buttons (NOT tabs), always wrap, never clipped ═══ */
+    .type-btn {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;          /* never push content outside the screen */
         align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        border-radius: 16px;
+        border: 1.5px solid #e5e7eb;
+        background: #fff;
+        color: #334155;
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-align: right;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        min-width: 0;
+    }
+    .type-btn:hover {
+        border-color: var(--theme-primary, #0284c7);
+        transform: translateY(-1px);
+    }
+    .type-btn.active {
+        background: var(--theme-primary, #0284c7);
+        border-color: var(--theme-primary, #0284c7);
+        color: #fff;
+        box-shadow: 0 8px 20px rgba(2, 132, 199, 0.28);
+    }
+    .type-btn .t-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f1f5f9;
+        color: #0f172a;
+        flex-shrink: 0;
+    }
+    .type-btn.active .t-icon {
+        background: rgba(255, 255, 255, 0.22);
+        color: #fff;
+    }
+    .type-btn .t-label {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
         white-space: nowrap;
     }
-    .segment-btn:hover {
-        color: var(--theme-primary, #0284c7);
+    .type-btn .t-count {
+        flex-shrink: 0;
+        min-width: 28px;
+        height: 26px;
+        padding: 0 9px;
+        border-radius: 999px;
+        background: #f1f5f9;
+        color: #0f172a;
+        font-size: 0.8rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
-    .segment-btn.active {
-        background: var(--theme-primary, #0284c7);
-        color: #ffffff !important;
-        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+    .type-btn.active .t-count {
+        background: rgba(255, 255, 255, 0.25);
+        color: #fff;
+    }
+
+    /* ═══ Filters: no overflow:hidden here, so nothing can ever be clipped ═══ */
+    .filters-card {
+        background: #fff;
+        border: 1px solid #e9eef5;
+        border-radius: 16px;
+        padding: 14px;
+        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
+    }
+    .filters-card label {
+        display: block;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #64748b;
+        margin-bottom: 4px;
+    }
+    .filters-card .form-control,
+    .filters-card .form-select {
+        font-size: 0.82rem;
+        min-width: 0;
     }
 
     .approval-card {
         background: #ffffff;
-        border: 1px solid rgba(0,0,0,0.06);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .approval-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.08) !important;
     }
 
     .service-img-preview-box {
@@ -695,7 +798,7 @@
     }
     .doc-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
     .doc-thumb-wrap {
         width: 100%;
@@ -710,7 +813,7 @@
     .doc-hover-overlay {
         position: absolute;
         inset: 0;
-        background: rgba(0,0,0,0.45);
+        background: rgba(0, 0, 0, 0.45);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -732,11 +835,13 @@
         align-items: center;
         justify-content: center;
         padding: 16px;
+        overflow-y: auto; /* لا يختفى الجزء السفلى من النافذة على الشاشات القصيرة */
     }
     .approvals-modal-container {
         max-width: 750px;
         width: 100%;
         background: #ffffff;
+        margin: auto;
     }
 
     .btn-xs {
@@ -746,6 +851,15 @@
 
     .x-small {
         font-size: 0.75rem;
+    }
+
+    @@media (max-width: 575.98px) {
+        .type-btn {
+            padding: 10px 12px;
+        }
+        .approvals-hub-container {
+            padding-bottom: 100px;
+        }
     }
 </style>
 
@@ -761,6 +875,16 @@
     private List<ServiceDto> pendingServices = new();
     private List<ServiceEditRequestDto> pendingEdits = new();
 
+    // ── Filters ──
+    private string? filterCategory;
+    private string? filterProvider;
+    private string? filterCity;
+    private DateTime? dateFrom;
+    private DateTime? dateTo;
+
+    /// <summary>default = فئة الخدمة ← التاريخ ← صاحب الخدمة ← أبجدى، أو الترتيب بالتاريخ فقط.</summary>
+    private string sortMode = "default";
+
     // Modal state
     private bool isDocModalOpen = false;
     private string modalImageUrl = "";
@@ -772,27 +896,52 @@
 
     private int TotalPendingCount => pendingProviders.Count + pendingServices.Count + pendingEdits.Count;
 
+    private bool HasActiveFilters =>
+        !string.IsNullOrWhiteSpace(searchQuery) ||
+        !string.IsNullOrWhiteSpace(filterCategory) ||
+        !string.IsNullOrWhiteSpace(filterProvider) ||
+        !string.IsNullOrWhiteSpace(filterCity) ||
+        dateFrom.HasValue || dateTo.HasValue;
+
     protected override async Task OnInitializedAsync()
     {
-        if (!string.IsNullOrWhiteSpace(Tab))
-        {
-            activeTab = Tab.ToLower();
-        }
-
+        ApplyTabFromQuery();
         await ReloadAllAsync();
     }
 
     protected override void OnParametersSet()
     {
-        if (!string.IsNullOrWhiteSpace(Tab) && Tab.ToLower() != activeTab)
-        {
-            activeTab = Tab.ToLower();
-        }
+        ApplyTabFromQuery();
     }
 
+    private void ApplyTabFromQuery()
+    {
+        if (string.IsNullOrWhiteSpace(Tab)) return;
+        var t = Tab.Trim().ToLowerInvariant();
+        if (t is "providers" or "services" or "edits") activeTab = t;
+    }
+
+    // ── أزرار اختيار النوع (ليست Tab Controller) ──
     private void SetTab(string tab)
     {
+        if (activeTab == tab) return;
         activeTab = tab;
+        // مسح الفلاتر الخاصة بالنوع السابق حتى لا تُفلتر القائمة الجديدة بشكل غير مقصود
+        filterCategory = null;
+        filterProvider = null;
+        filterCity = null;
+        dateFrom = null;
+        dateTo = null;
+    }
+
+    private void ClearFilters()
+    {
+        searchQuery = "";
+        filterCategory = null;
+        filterProvider = null;
+        filterCity = null;
+        dateFrom = null;
+        dateTo = null;
     }
 
     private async Task ReloadAllAsync()
@@ -802,7 +951,8 @@
         try
         {
             var pTask = AdminService.GetPendingProviders();
-            var sTask = Api.GetServicesAsync(page: 1, isApproved: false);
+            // لاحظ: يجب تمرير pageSize كبير وإلا لن تُجلب إلا أول 10 خدمات
+            var sTask = Api.GetServicesAsync(page: 1, pageSize: 200, isApproved: false);
             var eTask = AdminService.GetServiceEditRequests("Pending");
 
             await Task.WhenAll(pTask, sTask, eTask);
@@ -830,34 +980,142 @@
         State.PendingApprovalsCount = TotalPendingCount;
     }
 
-    private IEnumerable<PendingProviderDto> FilteredProviders
+    // ── قوائم الفلترة (من البيانات المتاحة فعلياً) ──
+    private IEnumerable<string> CategoryOptions =>
+        pendingServices.Select(s => s.CategoryName)
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Distinct()
+            .OrderBy(v => v, StringComparer.CurrentCulture);
+
+    private IEnumerable<string> ServiceProviderOptions =>
+        pendingServices.Select(s => s.ProviderName)
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Distinct()
+            .OrderBy(v => v, StringComparer.CurrentCulture);
+
+    private IEnumerable<string> ServiceCityOptions =>
+        pendingServices.Select(s => s.CityName)
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Select(v => v!)
+            .Distinct()
+            .OrderBy(v => v, StringComparer.CurrentCulture);
+
+    private IEnumerable<string> ProviderCityOptions =>
+        pendingProviders.Select(p => p.City)
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Distinct()
+            .OrderBy(v => v, StringComparer.CurrentCulture);
+
+    private IEnumerable<string> ProviderNameOptions =>
+        pendingProviders.Select(DisplayProviderName)
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Distinct()
+            .OrderBy(v => v, StringComparer.CurrentCulture);
+
+    private IEnumerable<string> RequesterOptions =>
+        pendingEdits.Select(e => e.RequesterName)
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Distinct()
+            .OrderBy(v => v, StringComparer.CurrentCulture);
+
+    private static string DisplayProviderName(PendingProviderDto p) =>
+        string.IsNullOrWhiteSpace(p.BusinessName) ? (p.Name ?? "") : p.BusinessName;
+
+    private static bool Has(string? haystack, string needle) =>
+        !string.IsNullOrEmpty(haystack) && haystack.ToLowerInvariant().Contains(needle);
+
+    private bool InDateRange(DateTime dt)
+    {
+        if (dateFrom.HasValue && dt.Date < dateFrom.Value.Date) return false;
+        if (dateTo.HasValue && dt.Date > dateTo.Value.Date) return false;
+        return true;
+    }
+
+    // ── القوائم المفلترة والمرتبة ──
+    // الترتيب المطلوب: فئة الخدمة ثم التاريخ ثم صاحب الخدمة ثم أبجدي
+    private List<PendingProviderDto> FilteredProviders
     {
         get
         {
-            if (string.IsNullOrWhiteSpace(searchQuery)) return pendingProviders;
-            var q = searchQuery.Trim().ToLower();
-            return pendingProviders.Where(p =>
-                (p.Name != null && p.Name.ToLower().Contains(q)) ||
-                (p.BusinessName != null && p.BusinessName.ToLower().Contains(q)) ||
-                (p.Phone != null && p.Phone.Contains(q)) ||
-                (p.City != null && p.City.ToLower().Contains(q)) ||
-                (p.Expertise != null && p.Expertise.ToLower().Contains(q)));
+            IEnumerable<PendingProviderDto> q = pendingProviders;
+
+            if (!string.IsNullOrWhiteSpace(searchQuery))
+            {
+                var t = searchQuery.Trim().ToLowerInvariant();
+                q = q.Where(p =>
+                    Has(p.Name, t) || Has(p.BusinessName, t) || Has(p.Phone, t) ||
+                    Has(p.City, t) || Has(p.Expertise, t) || Has(p.Email, t));
+            }
+            if (!string.IsNullOrWhiteSpace(filterCity)) q = q.Where(p => p.City == filterCity);
+            if (!string.IsNullOrWhiteSpace(filterProvider)) q = q.Where(p => DisplayProviderName(p) == filterProvider);
+            q = q.Where(p => InDateRange(p.JoinedAt));
+
+            return (sortMode switch
+            {
+                "date_asc" => q.OrderBy(p => p.JoinedAt),
+                "date_desc" => q.OrderByDescending(p => p.JoinedAt),
+                _ => q.OrderBy(p => p.City, StringComparer.CurrentCulture)
+                      .ThenByDescending(p => p.JoinedAt)
+                      .ThenBy(p => DisplayProviderName(p), StringComparer.CurrentCulture)
+                      .ThenBy(p => p.Name, StringComparer.CurrentCulture)
+            }).ToList();
         }
     }
 
-    private IEnumerable<ServiceDto> FilteredServices
+    private List<ServiceDto> FilteredServices
     {
         get
         {
-            if (string.IsNullOrWhiteSpace(searchQuery)) return pendingServices;
-            var q = searchQuery.Trim().ToLower();
-            return pendingServices.Where(s =>
-                (s.Title != null && s.Title.ToLower().Contains(q)) ||
-                (s.CategoryName != null && s.CategoryName.ToLower().Contains(q)) ||
-                (s.SubCategoryName != null && s.SubCategoryName.ToLower().Contains(q)) ||
-                (s.ProviderName != null && s.ProviderName.ToLower().Contains(q)) ||
-                (s.Phone1 != null && s.Phone1.Contains(q)) ||
-                (s.CityName != null && s.CityName.ToLower().Contains(q)));
+            IEnumerable<ServiceDto> q = pendingServices;
+
+            if (!string.IsNullOrWhiteSpace(searchQuery))
+            {
+                var t = searchQuery.Trim().ToLowerInvariant();
+                q = q.Where(s =>
+                    Has(s.Title, t) || Has(s.CategoryName, t) || Has(s.SubCategoryName, t) ||
+                    Has(s.ProviderName, t) || Has(s.Phone1, t) || Has(s.CityName, t));
+            }
+            if (!string.IsNullOrWhiteSpace(filterCategory)) q = q.Where(s => s.CategoryName == filterCategory);
+            if (!string.IsNullOrWhiteSpace(filterProvider)) q = q.Where(s => s.ProviderName == filterProvider);
+            if (!string.IsNullOrWhiteSpace(filterCity)) q = q.Where(s => s.CityName == filterCity);
+            q = q.Where(s => InDateRange(s.CreatedAt));
+
+            return (sortMode switch
+            {
+                "date_asc" => q.OrderBy(s => s.CreatedAt),
+                "date_desc" => q.OrderByDescending(s => s.CreatedAt),
+                _ => q.OrderBy(s => s.CategoryName, StringComparer.CurrentCulture)
+                      .ThenByDescending(s => s.CreatedAt)
+                      .ThenBy(s => s.ProviderName, StringComparer.CurrentCulture)
+                      .ThenBy(s => s.Title, StringComparer.CurrentCulture)
+            }).ToList();
+        }
+    }
+
+    private List<ServiceEditRequestDto> FilteredEdits
+    {
+        get
+        {
+            IEnumerable<ServiceEditRequestDto> q = pendingEdits;
+
+            if (!string.IsNullOrWhiteSpace(searchQuery))
+            {
+                var t = searchQuery.Trim().ToLowerInvariant();
+                q = q.Where(e =>
+                    Has(e.ServiceName, t) || Has(e.RequesterName, t) ||
+                    Has(e.ProposedName, t) || Has(e.ProposedPhone1, t) || Has(e.ProposedAddress, t));
+            }
+            if (!string.IsNullOrWhiteSpace(filterProvider)) q = q.Where(e => e.RequesterName == filterProvider);
+            q = q.Where(e => InDateRange(e.CreatedAt));
+
+            return (sortMode switch
+            {
+                "date_asc" => q.OrderBy(e => e.CreatedAt),
+                "date_desc" => q.OrderByDescending(e => e.CreatedAt),
+                _ => q.OrderByDescending(e => e.CreatedAt)
+                      .ThenBy(e => e.RequesterName, StringComparer.CurrentCulture)
+                      .ThenBy(e => e.ServiceName, StringComparer.CurrentCulture)
+            }).ToList();
         }
     }
 

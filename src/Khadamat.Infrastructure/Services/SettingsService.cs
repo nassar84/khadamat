@@ -18,63 +18,71 @@ public class SettingsService : ISettingsService
 
     public async Task<ApiResponse<AppSettingsDto>> GetSettingsAsync()
     {
-        var settings = await _context.AppSettings.FirstOrDefaultAsync();
-        
-        if (settings == null)
+        try
         {
-            // Seed default settings if not exists
-            settings = new AppSettings { ContactEmail = "khadamawy@gmail.com" };
-            _context.AppSettings.Add(settings);
-            await _context.SaveChangesAsync();
-        }
-        else if (string.IsNullOrWhiteSpace(settings.ContactEmail))
-        {
-            settings.ContactEmail = "khadamawy@gmail.com";
-            await _context.SaveChangesAsync();
-        }
+            var settings = await _context.AppSettings.FirstOrDefaultAsync();
+            
+            if (settings == null)
+            {
+                // Seed default settings if not exists
+                settings = new AppSettings { ContactEmail = "khadamawy@gmail.com" };
+                _context.AppSettings.Add(settings);
+                await _context.SaveChangesAsync();
+            }
+            else if (string.IsNullOrWhiteSpace(settings.ContactEmail))
+            {
+                settings.ContactEmail = "khadamawy@gmail.com";
+                await _context.SaveChangesAsync();
+            }
 
-        return ApiResponse<AppSettingsDto>.Succeed(new AppSettingsDto
+            return ApiResponse<AppSettingsDto>.Succeed(new AppSettingsDto
+            {
+                ApplicationName = settings.ApplicationName,
+                ApplicationNameAr = settings.ApplicationNameAr,
+                ApplicationNameEn = settings.ApplicationNameEn,
+                LogoUrl = settings.LogoUrl,
+                ApkFilename = settings.ApkFilename,
+                ApkIconUrl = settings.ApkIconUrl,
+                PrimaryColor = settings.PrimaryColor,
+                SecondaryColor = settings.SecondaryColor,
+                ContactEmail = settings.ContactEmail,
+                ContactPhone = settings.ContactPhone,
+                ContactWhatsApp = settings.ContactWhatsApp,
+                InstaPayNumber = settings.InstaPayNumber,
+                VodafoneCashNumber = settings.VodafoneCashNumber,
+                OtherWalletNumber = settings.OtherWalletNumber,
+                PaymentInstructions = settings.PaymentInstructions,
+                IsMaintenanceMode = settings.IsMaintenanceMode,
+                WelcomeMessage = settings.WelcomeMessage,
+                OpenAppSound = settings.OpenAppSound,
+                FindServiceSound = settings.FindServiceSound,
+                OpenDetailsSound = settings.OpenDetailsSound,
+                MessageReceivedSound = settings.MessageReceivedSound,
+                NotificationReceivedSound = settings.NotificationReceivedSound,
+                AllowUserRegistration = settings.AllowUserRegistration,
+                RequireEmailVerification = settings.RequireEmailVerification,
+                MaxServicesPerProvider = settings.MaxServicesPerProvider,
+                EnableReviewAutoApproval = settings.EnableReviewAutoApproval,
+                MarketplaceDefaultListingDays = settings.MarketplaceDefaultListingDays,
+                MarketplaceMaxListingsPerUser = settings.MarketplaceMaxListingsPerUser,
+                MarketplaceRequireApproval = settings.MarketplaceRequireApproval,
+                MarketplaceAutoExpire = settings.MarketplaceAutoExpire,
+                FacebookUrl = settings.FacebookUrl,
+                TwitterUrl = settings.TwitterUrl,
+                InstagramUrl = settings.InstagramUrl,
+                TermsAndConditions = settings.TermsAndConditions,
+                PrivacyPolicy = settings.PrivacyPolicy,
+                AppShareUrl = settings.AppShareUrl,
+                AppShareText = settings.AppShareText,
+                AppStoreUrl = settings.AppStoreUrl,
+                GooglePlayUrl = settings.GooglePlayUrl,
+                DefaultTheme = settings.DefaultTheme
+            });
+        }
+        catch (Exception ex)
         {
-            ApplicationName = settings.ApplicationName,
-            ApplicationNameAr = settings.ApplicationNameAr,
-            ApplicationNameEn = settings.ApplicationNameEn,
-            LogoUrl = settings.LogoUrl,
-            ApkFilename = settings.ApkFilename,
-            ApkIconUrl = settings.ApkIconUrl,
-            PrimaryColor = settings.PrimaryColor,
-            SecondaryColor = settings.SecondaryColor,
-            ContactEmail = settings.ContactEmail,
-            ContactPhone = settings.ContactPhone,
-            ContactWhatsApp = settings.ContactWhatsApp,
-            InstaPayNumber = settings.InstaPayNumber,
-            VodafoneCashNumber = settings.VodafoneCashNumber,
-            OtherWalletNumber = settings.OtherWalletNumber,
-            PaymentInstructions = settings.PaymentInstructions,
-            IsMaintenanceMode = settings.IsMaintenanceMode,
-            WelcomeMessage = settings.WelcomeMessage,
-            OpenAppSound = settings.OpenAppSound,
-            FindServiceSound = settings.FindServiceSound,
-            OpenDetailsSound = settings.OpenDetailsSound,
-            MessageReceivedSound = settings.MessageReceivedSound,
-            NotificationReceivedSound = settings.NotificationReceivedSound,
-            AllowUserRegistration = settings.AllowUserRegistration,
-            RequireEmailVerification = settings.RequireEmailVerification,
-            MaxServicesPerProvider = settings.MaxServicesPerProvider,
-            EnableReviewAutoApproval = settings.EnableReviewAutoApproval,
-            MarketplaceDefaultListingDays = settings.MarketplaceDefaultListingDays,
-            MarketplaceMaxListingsPerUser = settings.MarketplaceMaxListingsPerUser,
-            MarketplaceRequireApproval = settings.MarketplaceRequireApproval,
-            MarketplaceAutoExpire = settings.MarketplaceAutoExpire,
-            FacebookUrl = settings.FacebookUrl,
-            TwitterUrl = settings.TwitterUrl,
-            InstagramUrl = settings.InstagramUrl,
-            TermsAndConditions = settings.TermsAndConditions,
-            PrivacyPolicy = settings.PrivacyPolicy,
-            AppShareUrl = settings.AppShareUrl,
-            AppShareText = settings.AppShareText,
-            AppStoreUrl = settings.AppStoreUrl,
-            GooglePlayUrl = settings.GooglePlayUrl
-        });
+            return ApiResponse<AppSettingsDto>.Fail($"خطأ أثناء جلب الإعدادات: {ex.Message}");
+        }
     }
 
     public async Task<ApiResponse<bool>> UpdateSettingsAsync(UpdateAppSettingsRequest request)
@@ -128,6 +136,7 @@ public class SettingsService : ISettingsService
             if (request.AppShareText != null) settings.AppShareText = request.AppShareText;
             if (request.AppStoreUrl != null) settings.AppStoreUrl = request.AppStoreUrl;
             if (request.GooglePlayUrl != null) settings.GooglePlayUrl = request.GooglePlayUrl;
+            if (!string.IsNullOrEmpty(request.DefaultTheme)) settings.DefaultTheme = request.DefaultTheme;
             settings.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();

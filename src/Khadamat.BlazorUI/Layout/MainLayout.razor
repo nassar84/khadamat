@@ -169,7 +169,7 @@
         position: sticky;
         top: 72px; /* Set for desktop/shrunk view by default */
         z-index: 998;
-        background: rgba(255, 255, 255, 0.98);
+        background: rgba(255, 255, 255, 0.85);
         backdrop-filter: blur(15px);
         -webkit-backdrop-filter: blur(15px);
         border-bottom: 1px solid rgba(0,0,0,0.05);
@@ -180,7 +180,6 @@
     /* Adjust for mobile header which is slightly taller in total sticky space */
     .mobile-mode:not(.native-mode) .sticky-categories-bar {
         top: 76px; /* Sits right under floating mobile glass header */
-        background: white; 
     }
 
     /* Small screens resizing on desktop */
@@ -192,7 +191,6 @@
 
     .native-mode .sticky-categories-bar {
         top: 0 !important; /* In native app, it sits right under the native header */
-        background: white;
     }
 
     .native-mode .app-main-view {
@@ -451,6 +449,22 @@
                     AppState.ContactPhone = settingsResult.Data.ContactPhone;
                 if (!string.IsNullOrEmpty(settingsResult.Data.ContactWhatsApp))
                     AppState.ContactWhatsApp = settingsResult.Data.ContactWhatsApp;
+
+                // Apply theme from URL param (e.g. mobile app) or fallback to server default theme
+                var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+                var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+                string activeTheme = "default";
+                if (query.TryGetValue("theme", out var themeParam) && !string.IsNullOrEmpty(themeParam))
+                {
+                    activeTheme = themeParam.ToString();
+                }
+                else if (!string.IsNullOrEmpty(settingsResult.Data.DefaultTheme))
+                {
+                    activeTheme = settingsResult.Data.DefaultTheme;
+                }
+                AppState.DefaultTheme = activeTheme;
+                AppState.SetTheme(activeTheme);
+                try { await JS.InvokeVoidAsync("setBodyTheme", activeTheme); } catch { }
 
                 AppState.TriggerStateChanged();
                 

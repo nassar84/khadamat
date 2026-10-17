@@ -28,10 +28,10 @@
         <span>الطلبات</span>
     </button>
     
-    <button class="nav-item @GetActiveClass("/profile")" @onclick='() => Navigate("/profile")'>
+    <button class="nav-item @GetActiveClass("/profile")" @onclick='ToggleUserMenu'>
         @if (!string.IsNullOrEmpty(State.UserImageUrl))
         {
-            <img src="@State.GetAbsoluteUrl(State.UserImageUrl)" class="rounded-circle" style="width: 22px; height: 22px; object-fit: cover; border: 1.5px solid var(--primary-color, #6366f1);" />
+            <img src="@State.GetAbsoluteUrl(State.UserImageUrl)" class="rounded-circle" style="width: 22px; height: 22px; object-fit: cover; border: 1.5px solid var(--theme-primary, #2563eb);" />
         }
         else
         {
@@ -76,7 +76,7 @@ else
     
     <AuthorizeView>
         <Authorized>
-            <button class="nav-item @GetActiveClass("/profile")" @onclick='() => Navigate("/profile")'>
+            <button class="nav-item @GetActiveClass("/profile")" @onclick='ToggleUserMenu'>
                 <div class="nav-avatar-wrapper">
                     <img src="@State.UserImageUrl" class="nav-user-avatar" alt="User" />
                     <div class="online-dot-mini"></div>
@@ -93,6 +93,57 @@ else
     </AuthorizeView>
 }
 </nav>
+
+@if (isUserMenuOpen)
+{
+    <div class="user-menu-backdrop" @onclick="CloseUserMenu"></div>
+    <div class="user-dropdown-popover animate-popover-in" dir="rtl">
+        <!-- Header -->
+        <div class="popover-header">
+            @if (!string.IsNullOrEmpty(State.UserImageUrl))
+            {
+                <img src="@State.GetAbsoluteUrl(State.UserImageUrl)" class="popover-avatar" alt="Avatar" />
+            }
+            else
+            {
+                <div class="popover-avatar-placeholder">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+            }
+            <div class="popover-user-info">
+                <span class="popover-name">@(string.IsNullOrWhiteSpace(State.UserName) ? "مستخدم" : State.UserName)</span>
+                <span class="popover-badge">@(State.IsProviderMode ? "مقدم خدمة" : "حساب نشط")</span>
+            </div>
+        </div>
+
+        <div class="popover-divider"></div>
+
+        <!-- Links -->
+        <div class="popover-body">
+            <button class="popover-item" @onclick="HandleProfileClick">
+                <div class="popover-icon-box profile-icon">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <div class="popover-text">
+                    <span class="title">الملف الشخصي</span>
+                    <span class="sub">عرض وتعديل بياناتك</span>
+                </div>
+                <i class="fa-solid fa-chevron-left arrow"></i>
+            </button>
+
+            <button class="popover-item logout" @onclick="HandleLogoutClick">
+                <div class="popover-icon-box logout-icon">
+                    <i class="fa-solid fa-power-off"></i>
+                </div>
+                <div class="popover-text">
+                    <span class="title">تسجيل الخروج</span>
+                    <span class="sub">الخروج من الحساب بأمان</span>
+                </div>
+                <i class="fa-solid fa-chevron-left arrow"></i>
+            </button>
+        </div>
+    </div>
+}
 
 <style>
     .bottom-nav {
@@ -207,19 +258,19 @@ else
     .home-icon-container {
         width: 54px;
         height: 54px;
-        background: linear-gradient(135deg, var(--theme-primary, #3b82f6), var(--theme-secondary, #2563eb));
+        background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #3b82f6 100%);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 8px 20px var(--theme-glow, rgba(59, 130, 246, 0.4));
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
         border: 4px solid white;
         transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
     .home-nav-btn.active .home-icon-container {
         transform: scale(1.1) translateY(-5px);
-        box-shadow: 0 12px 25px var(--theme-glow);
+        box-shadow: 0 12px 25px rgba(37, 99, 235, 0.55);
     }
 
     .home-icon-container i {
@@ -231,7 +282,7 @@ else
     .home-nav-btn span {
         margin-top: 2px;
         font-weight: 800 !important;
-        color: var(--theme-primary, #3b82f6) !important;
+        color: #2563eb !important;
     }
 
     /* Safe area for notched devices */
@@ -279,6 +330,191 @@ else
 
     .logout-btn-mini i {
         font-size: 1.1rem !important;
+    }
+
+    /* ═══ User Dropdown Popover ═══ */
+    .user-menu-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.25);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        z-index: 1050;
+    }
+
+    .user-dropdown-popover {
+        position: fixed;
+        left: 14px;
+        bottom: calc(var(--bottom-nav-height, 65px) + 12px);
+        width: 250px;
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1.5px solid rgba(226, 232, 240, 0.9);
+        border-radius: 20px;
+        box-shadow: 0 16px 36px -4px rgba(15, 23, 42, 0.16), 0 0 0 1px rgba(0, 0, 0, 0.04);
+        z-index: 1051;
+        overflow: hidden;
+        transform-origin: bottom left;
+    }
+
+    .animate-popover-in {
+        animation: popoverIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @@keyframes popoverIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .popover-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        background: #f8fafc;
+    }
+
+    .popover-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--theme-primary, #2563eb);
+        flex-shrink: 0;
+    }
+
+    .popover-avatar-placeholder {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #eff6ff;
+        color: var(--theme-primary, #2563eb);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+    .popover-user-info {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        text-align: right;
+    }
+
+    .popover-name {
+        font-size: 13px;
+        font-weight: 700;
+        color: #0f172a;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .popover-badge {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--theme-primary, #2563eb);
+        background: #eff6ff;
+        padding: 1px 8px;
+        border-radius: 6px;
+        width: fit-content;
+        margin-top: 2px;
+    }
+
+    .popover-divider {
+        height: 1px;
+        background: #f1f5f9;
+    }
+
+    .popover-body {
+        padding: 6px;
+    }
+
+    .popover-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 10px 12px;
+        background: transparent;
+        border: none;
+        border-radius: 14px;
+        cursor: pointer;
+        transition: background 0.15s ease;
+        text-align: right;
+    }
+
+    .popover-item:hover, .popover-item:active {
+        background: #f8fafc;
+    }
+
+    .popover-item.logout:hover, .popover-item.logout:active {
+        background: #fff5f5;
+    }
+
+    .popover-icon-box {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+
+    .popover-icon-box.profile-icon {
+        background: #eff6ff;
+        color: var(--theme-primary, #2563eb);
+    }
+
+    .popover-icon-box.logout-icon {
+        background: #fef2f2;
+        color: #ef4444;
+    }
+
+    .popover-text {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        text-align: right;
+    }
+
+    .popover-text .title {
+        font-size: 13px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .popover-item.logout .popover-text .title {
+        color: #ef4444;
+    }
+
+    .popover-text .sub {
+        font-size: 10px;
+        color: #64748b;
+    }
+
+    .popover-item.logout .popover-text .sub {
+        color: #f87171;
+    }
+
+    .popover-item .arrow {
+        font-size: 11px;
+        color: #cbd5e1;
+    }
+
+    .popover-item.logout .arrow {
+        color: #fca5a5;
     }
 </style>
 @inject AuthenticationStateProvider AuthStateProvider
@@ -366,6 +602,30 @@ else
     {
         if (string.IsNullOrEmpty(fullName)) return "حسابي";
         return fullName.Split(' ')[0];
+    }
+
+    private bool isUserMenuOpen = false;
+
+    private void ToggleUserMenu()
+    {
+        isUserMenuOpen = !isUserMenuOpen;
+    }
+
+    private void CloseUserMenu()
+    {
+        isUserMenuOpen = false;
+    }
+
+    private void HandleProfileClick()
+    {
+        isUserMenuOpen = false;
+        Navigate("/profile");
+    }
+
+    private async Task HandleLogoutClick()
+    {
+        isUserMenuOpen = false;
+        await HandleLogout();
     }
 
     private async Task HandleLogout()

@@ -39,12 +39,17 @@ public class Service : BaseEntity
     public int DisplayOrder { get; private set; }
     public bool Approved { get; private set; }
     public string? Notes { get; private set; }
+    
+    // التخصص / المادة الدراسية (مثل: لغة عربية، رياضيات، فيزياء)
+    public string? Specialization { get; private set; }
+    public int? SpecializationId { get; private set; }
     public string? UserCreated { get; private set; }
     public int ViewsCount { get; private set; }
     
     // Navigation Properties
     public virtual Category? Category { get; private set; }
     public virtual SubCategory? SubCategory { get; private set; }
+    public virtual Specialization? SpecializationEntity { get; private set; }
     public virtual City? City { get; private set; }
     public virtual ProviderProfile? ProviderProfile { get; private set; }
     public virtual ICollection<Rating> Ratings { get; private set; } = new List<Rating>();
@@ -93,7 +98,9 @@ public class Service : BaseEntity
         string? facebook = null,
         string? telegram = null,
         string? workDays = null,
-        string? workHours = null)
+        string? workHours = null,
+        string? specialization = null,
+        int? specializationId = null)
     {
         if (!string.IsNullOrWhiteSpace(name) && name.Length < 3)
             throw new BusinessRuleException("Service name must be at least 3 characters long.");
@@ -109,6 +116,18 @@ public class Service : BaseEntity
         Telegram = telegram;
         Work_Days = workDays;
         Work_Houers = workHours;
+        Specialization = specialization;
+        if (specializationId.HasValue)
+        {
+            SpecializationId = specializationId.Value > 0 ? specializationId.Value : null;
+        }
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void SetSpecialization(string? specialization, int? specializationId = null)
+    {
+        Specialization = specialization;
+        SpecializationId = specializationId;
         UpdatedAt = DateTime.UtcNow;
     }
 

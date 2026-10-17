@@ -13,6 +13,8 @@ public record UpdateServiceCommand : IRequest<bool>
     public string Description { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
     public decimal? Price { get; set; }
+    public string? Specialization { get; set; }
+    public int? SpecializationId { get; set; }
     public string Location { get; set; } = string.Empty;
     public List<string> Images { get; set; } = new List<string>();
     

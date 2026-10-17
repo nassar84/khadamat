@@ -139,19 +139,31 @@ public class AdminController : ControllerBase
             return BadRequest(ApiResponse<bool>.Fail("البريد الإلكتروني مستخدم بالفعل"));
         }
 
+        // Check if username already exists
+        var finalUserName = !string.IsNullOrWhiteSpace(dto.UserName) ? dto.UserName.Trim() : dto.Email.Trim();
+        var existingUserByName = await _userManager.FindByNameAsync(finalUserName);
+        if (existingUserByName != null)
+        {
+            return BadRequest(ApiResponse<bool>.Fail("اسم المستخدم مستخدم بالفعل، يرجى اختيار اسم آخر"));
+        }
+
         if (!User.IsInRole("SuperAdmin") && (dto.Role == "SuperAdmin" || dto.Role == "SystemAdmin"))
         {
             return Forbid("لا يمكنك إنشاء مستخدمين بصلاحيات إدارية.");
         }
 
+        var isProvider = string.Equals(dto.Role, "Provider", StringComparison.OrdinalIgnoreCase);
+
         // Create new user
         var newUser = new ApplicationUser
         {
-            UserName = dto.Email,
-            Email = dto.Email,
-            FullName = dto.FullName,
-            PhoneNumber = dto.PhoneNumber,
+            UserName = finalUserName,
+            Email = dto.Email.Trim(),
+            FullName = dto.FullName?.Trim() ?? string.Empty,
+            PhoneNumber = dto.PhoneNumber?.Trim(),
             CityId = dto.CityId,
+            IsProvider = isProvider,
+            ProfileImageUrl = dto.ProfileImageUrl,
             IsActive = true,
             IsVerified = true,
             CreatedAt = DateTime.UtcNow
@@ -171,9 +183,11 @@ public class AdminController : ControllerBase
         {
             Id = newUser.Id,
             FullName = newUser.FullName,
+            UserName = newUser.UserName,
             Email = newUser.Email ?? "",
             PhoneNumber = newUser.PhoneNumber,
             Role = roleToAssign,
+            IsProvider = isProvider,
             IsActive = newUser.IsActive,
             IsVerified = newUser.IsVerified,
             ProfileImageUrl = newUser.ProfileImageUrl,
@@ -778,7 +792,9 @@ public class AdminController : ControllerBase
             dto.Facebook,
             dto.Telegram,
             dto.WorkDays,
-            dto.WorkHours
+            dto.WorkHours,
+            dto.Specialization,
+            dto.SpecializationId
         );
 
         if (dto.CategoryId.HasValue || dto.SubCategoryId.HasValue)

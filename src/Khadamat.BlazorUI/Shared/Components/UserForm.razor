@@ -79,6 +79,7 @@
                         <label class="form-label small fw-bold">الدور الوظيفي</label>
                         <InputSelect class="form-select rounded-pill px-4" @bind-Value="Model.Role" disabled="@IsReadOnly">
                             <option value="User">مستخدم</option>
+                            <option value="Provider">مقدم خدمة</option>
                             @if (CurrentUserRole == "SuperAdmin")
                             {
                                 <option value="SystemAdmin">مدير نظام</option>

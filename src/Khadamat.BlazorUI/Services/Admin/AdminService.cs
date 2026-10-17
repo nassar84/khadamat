@@ -28,7 +28,28 @@ public class AdminService : IAdminService
     public async Task<UserDto?> CreateUser(CreateUserDto dto)
     {
         var response = await _http.PostAsJsonAsync("v1/admin/users", dto);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                throw new Exception("انتهت صلاحية جلسة تسجيل الدخول. يرجى تسجيل الخروج ثم تسجيل الدخول مرة أخرى كمدير.");
+            }
+            if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                throw new Exception("ليس لديك صلاحية لإجراء هذه العملية.");
+            }
+
+            var errorBody = await response.Content.ReadAsStringAsync();
+            try
+            {
+                var apiError = System.Text.Json.JsonSerializer.Deserialize<ApiResponse<object>>(errorBody, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                if (!string.IsNullOrEmpty(apiError?.Message))
+                    throw new Exception(apiError.Message);
+            }
+            catch when (!errorBody.Contains("{")) { }
+
+            response.EnsureSuccessStatusCode();
+        }
         var result = await response.Content.ReadFromJsonAsync<ApiResponse<UserDto>>();
         return result?.Data;
     }

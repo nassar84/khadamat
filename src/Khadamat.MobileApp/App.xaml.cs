@@ -33,7 +33,14 @@ public partial class App : MauiApp
                     {
                         if (Current?.MainPage != null)
                         {
-                            bool open = await Current.MainPage.DisplayAlert(reminder.Title, reminder.Message, "انتقال الآن", "لاحقاً");
+                            bool open = await Khadamat.MobileApp.Helpers.KhadamatDialogHelper.ShowConfirmAsync(
+                                reminder.Title,
+                                reminder.Message,
+                                "انتقال الآن",
+                                "لاحقاً",
+                                Khadamat.MobileApp.Views.Popups.MobileDialogType.Info,
+                                Current.MainPage
+                            );
                             reminderScheduler.MarkInAppReminderSeen(reminder.Id);
                             if (open && !string.IsNullOrEmpty(reminder.ActionRoute))
                             {

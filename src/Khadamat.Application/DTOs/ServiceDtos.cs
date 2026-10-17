@@ -38,6 +38,8 @@ public class ServiceDto
     public bool IsActive { get; set; }
     public int ViewsCount { get; set; }
     public string? Notes { get; set; }
+    public string? Specialization { get; set; }
+    public int? SpecializationId { get; set; }
     public bool IsProviderSubscriptionActive { get; set; } = true;
     public string? ProviderSubscriptionMessage { get; set; }
 
@@ -76,6 +78,8 @@ public class ServiceCreateDto
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public decimal? Price { get; set; }
+    public string? Specialization { get; set; }
+    public int? SpecializationId { get; set; }
     public string Location { get; set; } = string.Empty;
     public List<string> Images { get; set; } = new List<string>();
     public string? YouTubeUrl { get; set; }

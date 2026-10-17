@@ -450,17 +450,30 @@
         {
             var authState = await authStateTask;
             CurrentUserRole = authState.User.FindFirst(c => c.Type == System.Security.Claims.ClaimTypes.Role || c.Type == "role")?.Value ?? "";
-            
-            // Parallel loading
-            var govTask = Api.GetGovernoratesAsync();
-            var cityTask = Api.GetCitiesAsync();
-            var userTask = AdminService.GetAllUsers();
+        }
+        catch { }
 
-            await Task.WhenAll(govTask, cityTask, userTask);
+        try
+        {
+            governorates = await Api.GetGovernoratesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading governorates: {ex.Message}");
+        }
 
-            governorates = govTask.Result;
-            cities = cityTask.Result;
-            users = userTask.Result;
+        try
+        {
+            cities = await Api.GetCitiesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading cities: {ex.Message}");
+        }
+
+        try
+        {
+            users = await AdminService.GetAllUsers();
         }
         catch (Exception ex)
         {
@@ -546,11 +559,13 @@
                 var createDto = new CreateUserDto
                 {
                     FullName = model.FullName,
+                    UserName = model.UserName,
                     Email = model.Email,
                     Password = model.Password,
                     Role = model.Role,
                     PhoneNumber = model.PhoneNumber,
-                    CityId = model.CityId
+                    CityId = model.CityId,
+                    ProfileImageUrl = model.ProfileImageUrl
                 };
 
                 var createdUser = await AdminService.CreateUser(createDto);

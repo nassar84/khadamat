@@ -204,11 +204,35 @@
                         </div>
                     </div>
 
-                    <div class="mb-0">
+                    <div class="mb-3">
                         <label class="form-label small fw-bold">اللون الثانوي (Secondary)</label>
                         <div class="color-row">
                             <input type="color" @bind="settings.SecondaryColor" class="form-control form-control-color rounded-pill flex-shrink-0" style="width: 50px; height: 38px;">
                             <input type="text" value="@settings.SecondaryColor" @oninput="e => settings.SecondaryColor = e.Value?.ToString()" class="form-control rounded-pill px-3 small" placeholder="#a29bfe">
+                        </div>
+                    </div>
+
+                    <div class="mb-0">
+                        <label class="form-label small fw-bold"><i class="fa-solid fa-palette me-1 text-primary"></i>السمة الافتراضية للتطبيق</label>
+                        <p class="text-muted x-small mb-2">السمة التي تُطبَّق تلقائياً على جميع المستخدمين عند أول فتح</p>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var t in new[] {
+                                ("default","أزرق","#2563eb"),("sunset","غروب","#ff4e50"),("ocean","محيط","#0ea5e9"),
+                                ("forest","غابة","#10b981"),("lavender","لافندر","#8b5cf6"),("royal","ملكي","#eab308"),
+                                ("glass","زجاج","#94a3b8"),("crystal","كريستال","#f472b6"),("candy","حلوى","#a855f7"),("fluffy","ناعم","#ec4899")
+                            })
+                            {
+                                var tid = t.Item1; var tlabel = t.Item2; var tcolor = t.Item3;
+                                <div @onclick="() => settings.DefaultTheme = tid"
+                                     class="d-flex flex-column align-items-center cursor-pointer"
+                                     style="gap:3px; opacity: @(settings.DefaultTheme == tid ? "1" : "0.6"); transition: opacity 0.2s;">
+                                    <div style="width:34px;height:34px;border-radius:50%;background:@tcolor;border: @(settings.DefaultTheme == tid ? "3px solid #0f172a" : "2px solid #e2e8f0");transition:all 0.2s;box-shadow: @(settings.DefaultTheme == tid ? "0 0 0 3px rgba(0,0,0,0.15)" : "none");"></div>
+                                    <span class="x-small fw-bold" style="font-size:9px;color:#475569;">@tlabel</span>
+                                </div>
+                            }
+                        </div>
+                        <div class="mt-2">
+                            <input type="text" @bind="settings.DefaultTheme" class="form-control form-control-sm rounded-pill px-3" placeholder="default" style="font-size:0.78rem; direction:ltr;">
                         </div>
                     </div>
                 </div>
@@ -713,7 +737,8 @@
             AppShareUrl = settings.AppShareUrl ?? string.Empty,
             AppShareText = settings.AppShareText ?? string.Empty,
             AppStoreUrl = settings.AppStoreUrl ?? string.Empty,
-            GooglePlayUrl = settings.GooglePlayUrl ?? string.Empty
+            GooglePlayUrl = settings.GooglePlayUrl ?? string.Empty,
+            DefaultTheme = settings.DefaultTheme ?? "default"
         };
 
         try
@@ -734,6 +759,7 @@
                 AppState.AppShareText = settings.AppShareText ?? string.Empty;
                 AppState.AppStoreUrl = settings.AppStoreUrl ?? string.Empty;
                 AppState.GooglePlayUrl = settings.GooglePlayUrl ?? string.Empty;
+                AppState.DefaultTheme = settings.DefaultTheme ?? "default";
                 AppState.ContactEmail = settings.ContactEmail ?? string.Empty;
                 AppState.ContactPhone = settings.ContactPhone ?? string.Empty;
                 AppState.ContactWhatsApp = settings.ContactWhatsApp ?? string.Empty;

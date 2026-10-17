@@ -250,7 +250,7 @@ public class ApiClient
     }
  
     // Services
-    public async Task<PaginatedResult<ServiceDto>> GetServicesAsync(string? search = null, int? categoryId = null, int? subCategoryId = null, int? governorateId = null, int? cityId = null, string? userId = null, bool? isApproved = true, string? sortBy = "latest", int page = 1, int pageSize = 10)
+    public async Task<PaginatedResult<ServiceDto>> GetServicesAsync(string? search = null, int? categoryId = null, int? subCategoryId = null, int? governorateId = null, int? cityId = null, string? userId = null, bool? isApproved = true, string? sortBy = "latest", int page = 1, int pageSize = 10, string? specialization = null)
     {
         var url = $"v1/services?page={page}&pageSize={pageSize}";
         if (!string.IsNullOrEmpty(search)) url += $"&search={Uri.EscapeDataString(search)}";
@@ -261,6 +261,7 @@ public class ApiClient
         if (!string.IsNullOrEmpty(userId)) url += $"&userId={Uri.EscapeDataString(userId)}";
         if (isApproved.HasValue) url += $"&isApproved={isApproved.Value.ToString().ToLower()}";
         if (!string.IsNullOrEmpty(sortBy)) url += $"&sortBy={sortBy}";
+        if (!string.IsNullOrEmpty(specialization)) url += $"&specialization={Uri.EscapeDataString(specialization)}";
         
         try
         {
@@ -1772,6 +1773,92 @@ public class ApiClient
         catch (Exception ex)
         {
             return (false, ex.Message);
+        }
+    }
+
+    // ── Specializations API ──────────────────────────────────────────
+    public async Task<List<SpecializationDto>> GetSpecializationsAsync(int? categoryId = null, int? subCategoryId = null, string? search = null)
+    {
+        try
+        {
+            var url = "v1/specializations?";
+            if (categoryId.HasValue) url += $"categoryId={categoryId.Value}&";
+            if (subCategoryId.HasValue) url += $"subCategoryId={subCategoryId.Value}&";
+            if (!string.IsNullOrEmpty(search)) url += $"search={Uri.EscapeDataString(search)}&";
+
+            var res = await _http.GetFromJsonAsync<ApiResponse<List<SpecializationDto>>>(url.TrimEnd('&', '?'));
+            return res?.Data ?? new List<SpecializationDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GetSpecializationsAsync] Error: {ex.Message}");
+            return new List<SpecializationDto>();
+        }
+    }
+
+    public async Task<SpecializationDto?> CreateSpecializationAsync(CreateSpecializationDto dto)
+    {
+        try
+        {
+            var res = await _http.PostAsJsonAsync("v1/specializations", dto);
+            if (res.IsSuccessStatusCode)
+            {
+                var body = await res.Content.ReadFromJsonAsync<ApiResponse<SpecializationDto>>();
+                return body?.Data;
+            }
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[CreateSpecializationAsync] Error: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<bool> UpdateSpecializationAsync(int id, UpdateSpecializationDto dto)
+    {
+        try
+        {
+            var res = await _http.PutAsJsonAsync($"v1/specializations/{id}", dto);
+            return res.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[UpdateSpecializationAsync] Error: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<bool> DeleteSpecializationAsync(int id)
+    {
+        try
+        {
+            var res = await _http.DeleteAsync($"v1/specializations/{id}");
+            return res.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[DeleteSpecializationAsync] Error: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<int> SeedSpecializationsAsync()
+    {
+        try
+        {
+            var res = await _http.PostAsync("v1/specializations/seed", null);
+            if (res.IsSuccessStatusCode)
+            {
+                var body = await res.Content.ReadFromJsonAsync<ApiResponse<int>>();
+                return body?.Data ?? 0;
+            }
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[SeedSpecializationsAsync] Error: {ex.Message}");
+            return 0;
         }
     }
 }

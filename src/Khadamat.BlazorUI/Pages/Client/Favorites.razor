@@ -8,6 +8,7 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 @inject AuthenticationStateProvider AuthStateProvider
+@inject IFeedbackService FeedbackService
 
 <div class="px-3 pt-3 pb-5">
     <div class="d-flex align-items-center mb-4">
@@ -115,13 +116,16 @@
 
     private async Task RemoveFavorite(ServiceDto service)
     {
-        if (await JS.InvokeAsync<bool>("confirm", "إزالة من المفضلة؟"))
+        bool confirmed = await FeedbackService.ConfirmDangerAsync($"هل أنت متأكد من رغبتك في إزالة \"{service.Title}\" من قائمة المفضلة؟", "إزالة من المفضلة", "نعم، إزالة", "إلغاء");
+        if (confirmed)
         {
             var res = await Api.ToggleFavoriteAsync(service.Id);
             // IsFavorite=false means it was removed
             if (res.Success && !res.Data!.IsFavorite)
             {
                 favoriteServices?.Remove(service);
+                FeedbackService.ShowSuccess("تمت الإزالة", "تمت إزالة الخدمة من المفضلة بنجاح.");
+                StateHasChanged();
             }
         }
     }

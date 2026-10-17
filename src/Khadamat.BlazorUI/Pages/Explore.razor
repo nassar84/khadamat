@@ -32,20 +32,19 @@
                 else { <span>الخدمات في @Name</span> }
             </h3>
 
-            <div class="row g-3 row-cols-2 row-cols-md-3 row-cols-lg-4">
-                @if (Level == "main" || Level == "main_all")
-                {
+            @if (Level == "main" || Level == "main_all")
+            {
+                <div class="row g-3 row-cols-2 row-cols-md-3 row-cols-lg-4">
                     @if (categories != null)
                     {
                         @if (categories.Any())
                         {
                             @foreach (var cat in categories)
                             {
-                                <div class="col-6 col-md-4 col-lg-3">
+                                <div class="col">
                                     <div class="category-card p-3 rounded-4 shadow-sm border text-center h-100 animate-up" @onclick="() => ExploreCategory(cat)">
                                         <div class="mb-3 mx-auto">
                                             @{
-                                                // main_all = MainCategoryDto mapped to CategoryDto → must use maincategories folder
                                                 var catImgSrc = (Level == "main_all" || string.IsNullOrEmpty(Level))
                                                     ? Api.GetAbsoluteUrl(CategoryIconResolver.GetIconUrl(cat.Name, cat.ImageUrl, "images/maincategories"))
                                                     : Api.GetAbsoluteUrl(CategoryIconResolver.GetIconUrl(cat.Name, cat.ImageUrl, "images/categories", cat.MainCategoryName, cat.MainCategoryImageUrl, "images/maincategories"));
@@ -71,21 +70,23 @@
                     { 
                         @for (int i = 0; i < 8; i++)
                         {
-                            <div class="col-6 col-md-4 col-lg-3">
+                            <div class="col">
                                 <Khadamat.BlazorUI.Shared.SkeletonLoader Type="card" Count="1" />
                             </div>
                         }
                     }
-                }
-                else if (Level == "category")
+                </div>
+            }
+            else if (Level == "category")
+            {
+                @if (subCategories != null)
                 {
-                    @if (subCategories != null)
+                    @if (subCategories.Any())
                     {
-                        @if (subCategories.Any())
-                        {
+                        <div class="row g-3 row-cols-2 row-cols-md-3 row-cols-lg-4 mb-4">
                             @foreach (var sub in subCategories)
                             {
-                                <div class="col-6 col-md-4 col-lg-3">
+                                <div class="col">
                                     <div class="category-card p-3 rounded-4 shadow-sm border text-center h-100 animate-up" @onclick="() => ExploreSubCategory(sub)">
                                         <div class="mb-3 mx-auto">
                                             <img src="@Api.GetAbsoluteUrl(CategoryIconResolver.GetIconUrl(sub.Name, sub.ImageUrl, "images/subcategories", sub.CategoryName, sub.CategoryImageUrl, "images/categories", sub.MainCategoryImageUrl, "images/maincategories"))" 
@@ -96,91 +97,220 @@
                                     </div>
                                 </div>
                             }
-                        }
-                    }
-                    else 
-                    { 
-                        @for (int i = 0; i < 8; i++)
-                        {
-                            <div class="col-6 col-md-4 col-lg-3">
-                                <Khadamat.BlazorUI.Shared.SkeletonLoader Type="card" Count="1" />
-                            </div>
-                        }
-                    }
-                    @* عرض الخدمات المباشرة في هذا التصنيف *@
-                    @if (services != null && services.Any())
-                    {
-                        <div class="col-12 mt-2">
-                            <h6 class="fw-bold text-muted mb-3 border-bottom pb-2">
-                                <i class="fa-solid fa-briefcase me-2 text-primary"></i>خدمات متوفرة
-                            </h6>
-                        </div>
-                        @for (int i = 0; i < services.Count; i++)
-                        {
-                            var service = services[i];
-                            <div class="col-12 col-md-6 mb-3">
-                                <ServiceCard Service="service" OnClick='(s) => Navigation.NavigateTo($"/service/{s.Id}")' />
-                            </div>
-                            @if ((i + 1) % 3 == 0 && categoryAds != null && categoryAds.Any())
-                            {
-                                var adIndex = ((i + 1) / 3 - 1) % categoryAds.Count;
-                                var ad = categoryAds[adIndex];
-                                <div class="col-12 col-md-6 mb-3">
-                                    <NativeAdCard Ad="ad" />
-                                </div>
-                            }
-                        }
-                    }
-                    else if (subCategories != null && !subCategories.Any() && services != null && !services.Any())
-                    {
-                        <div class="col-12 text-center py-5">
-                            <i class="fa-solid fa-layer-group fs-1 text-muted mb-3 opacity-50"></i>
-                            <p class="text-muted fw-bold">لا توجد خدمات مسجلة في هذا التصنيف حالياً</p>
                         </div>
                     }
                 }
-                else if (Level == "subcategory")
-                {
-                    @if (services != null)
-                    {
-                        @if (services.Any())
+                else 
+                { 
+                    <div class="row g-3 row-cols-2 row-cols-md-3 row-cols-lg-4 mb-4">
+                        @for (int i = 0; i < 8; i++)
                         {
-                            for (int i = 0; i < services.Count; i++)
+                            <div class="col">
+                                <Khadamat.BlazorUI.Shared.SkeletonLoader Type="card" Count="1" />
+                            </div>
+                        }
+                    </div>
+                }
+
+                @* عرض الخدمات المباشرة في هذا التصنيف *@
+                @if (services != null && services.Any())
+                {
+                    <div class="mt-4">
+                        <h6 class="fw-bold text-muted mb-3 border-bottom pb-2">
+                            <i class="fa-solid fa-briefcase me-2 text-primary"></i>خدمات متوفرة
+                        </h6>
+                        <div class="row g-3">
+                            @for (int i = 0; i < services.Count; i++)
                             {
                                 var service = services[i];
-                                <div class="col-12 col-md-6 mb-3">
+                                <div class="col-12 col-md-6 col-lg-4">
                                     <ServiceCard Service="service" OnClick='(s) => Navigation.NavigateTo($"/service/{s.Id}")' />
                                 </div>
-                                
                                 @if ((i + 1) % 3 == 0 && categoryAds != null && categoryAds.Any())
                                 {
                                     var adIndex = ((i + 1) / 3 - 1) % categoryAds.Count;
                                     var ad = categoryAds[adIndex];
-                                    <div class="col-12 col-md-6 mb-3">
+                                    <div class="col-12 col-md-6 col-lg-4">
                                         <NativeAdCard Ad="ad" />
                                     </div>
                                 }
                             }
-                        }
-                        else
+                        </div>
+                    </div>
+                }
+                else if (subCategories != null && !subCategories.Any() && services != null && !services.Any())
+                {
+                    <div class="text-center py-5">
+                        <i class="fa-solid fa-layer-group fs-1 text-muted mb-3 opacity-50"></i>
+                        <p class="text-muted fw-bold">لا توجد خدمات مسجلة في هذا التصنيف حالياً</p>
+                    </div>
+                }
+            }
+            else if (Level == "subcategory")
+            {
+                @if (services != null)
+                {
+                    var displayedServices = string.IsNullOrEmpty(selectedSpecialization) 
+                        ? services 
+                        : services.Where(s => s.Specialization != null && s.Specialization.Contains(selectedSpecialization, StringComparison.OrdinalIgnoreCase)).ToList();
+
+                    @if (availableSpecializations.Any())
+                    {
+                        <!-- Professional Specialization Filter Bar -->
+                        <div class="pro-filter-container p-3 p-md-4 mb-4 animate-fade-in">
+                            <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="filter-header-icon shadow-sm">
+                                        <i class="fa-solid fa-graduation-cap"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold mb-0 text-dark" style="font-size: 1.05rem;">
+                                            تصفية حسب التخصص / المادة الدراسية
+                                        </h6>
+                                        <small class="text-muted">اختر المادة لتصفية مقدمي الخدمات بسرعة</small>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    @if (!string.IsNullOrEmpty(selectedSpecialization))
+                                    {
+                                        <button class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 fw-bold" @onclick='() => FilterBySpecialization(null)'>
+                                            <i class="fa-solid fa-xmark me-1"></i>إلغاء التصفية
+                                        </button>
+                                    }
+                                    <span class="badge bg-light text-muted border rounded-pill px-3 py-2 fw-semibold">
+                                        إجمالي: @services.Count خدمة
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Specialization Chips -->
+                            <div class="d-flex gap-2 overflow-auto py-1 pro-chips-scroll">
+                                <button type="button" 
+                                        class="pro-filter-chip @(string.IsNullOrEmpty(selectedSpecialization) ? "active" : "")" 
+                                        @onclick='() => FilterBySpecialization(null)'>
+                                    <i class="fa-solid fa-layer-group me-1.5 opacity-75"></i>
+                                    <span>كل المواد</span>
+                                    <span class="chip-count ms-2">@services.Count</span>
+                                </button>
+                                @foreach (var spec in availableSpecializations)
+                                {
+                                    var count = services.Count(s => s.Specialization != null && s.Specialization.Contains(spec, StringComparison.OrdinalIgnoreCase));
+                                    var isActive = selectedSpecialization == spec;
+                                    var chipIcon = GetSpecializationIcon(spec);
+                                    <button type="button" 
+                                            class="pro-filter-chip @(isActive ? "active" : "")" 
+                                            @onclick='() => FilterBySpecialization(spec)'>
+                                        <i class="@chipIcon me-1.5 opacity-75"></i>
+                                        <span>@spec</span>
+                                        <span class="chip-count ms-2">@count</span>
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    @if (displayedServices.Any())
+                    {
+                        var groupedServices = displayedServices
+                            .GroupBy(s => string.IsNullOrWhiteSpace(s.Specialization) ? "خدمات متنوعة" : s.Specialization.Trim())
+                            .OrderBy(g => g.Key == "خدمات متنوعة" ? 1 : 0)
+                            .ToList();
+
+                        for (int gIdx = 0; gIdx < groupedServices.Count; gIdx++)
                         {
-                            <div class="col-12 text-center py-5 opacity-50">
-                                <i class="fa-solid fa-magnifying-glass fs-1 mb-3"></i>
-                                <p>لا يوجد خدمات متاحة حالياً في هذا التصنيف</p>
+                            var group = groupedServices[gIdx];
+                            var theme = GetThemeForSpecialization(group.Key, gIdx);
+                            var specIcon = GetSpecializationIcon(group.Key);
+                            var groupList = group.ToList();
+
+                            <div class="specialization-row-container rounded-4 p-3 p-md-4 mb-4 shadow-sm animate-up"
+                                 style="background: @theme.BgGradient; border: 1.5px solid @theme.BorderColor;">
+                                
+                                <!-- Specialization Row Header -->
+                                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom flex-wrap gap-2"
+                                     style="border-color: @theme.BorderColor !important;">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="spec-icon-box shadow-sm" style="background: @theme.AccentColor; color: white;">
+                                            <i class="@specIcon"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="fw-bold mb-0 text-dark" style="font-size: 1.15rem;">
+                                                @group.Key
+                                            </h5>
+                                            <span class="text-muted small">مدرسون وخدمات متوفرة في @group.Key</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge @theme.BadgeClass rounded-pill px-3 py-2 fw-bold" style="font-size: 0.82rem;">
+                                            <i class="fa-solid fa-user-tie me-1"></i>
+                                            @groupList.Count @(groupList.Count == 1 ? "خدمة متاحة" : "خدمات متاحة")
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Cards Grid for this Specialization -->
+                                <div class="row g-3">
+                                    @for (int sIdx = 0; sIdx < groupList.Count; sIdx++)
+                                    {
+                                        var service = groupList[sIdx];
+                                        <div class="col-12 col-md-6 col-lg-4">
+                                            <ServiceCard Service="service" OnClick='(s) => Navigation.NavigateTo($"/service/{s.Id}")' />
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            @* فاصلة خفيفة بين التخصصات *@
+                            @if (gIdx < groupedServices.Count - 1)
+                            {
+                                <div class="spec-divider-wrap my-4 d-flex align-items-center justify-content-center">
+                                    <div class="spec-divider-line flex-grow-1"></div>
+                                    <div class="spec-divider-icon px-3 text-muted">
+                                        <i class="fa-solid fa-graduation-cap opacity-25"></i>
+                                    </div>
+                                    <div class="spec-divider-line flex-grow-1"></div>
+                                </div>
+                            }
+                        }
+
+                        @if (categoryAds != null && categoryAds.Any())
+                        {
+                            <div class="mt-4">
+                                <NativeAdCard Ad="categoryAds[0]" />
                             </div>
                         }
                     }
-                    else 
-                    { 
+                    else
+                    {
+                        <div class="text-center py-5 bg-white rounded-4 shadow-sm border p-4">
+                            <div class="mb-3">
+                                <i class="fa-solid fa-magnifying-glass fs-1 text-primary opacity-50"></i>
+                            </div>
+                            <h6 class="fw-bold text-dark mb-2">
+                                @(string.IsNullOrEmpty(selectedSpecialization) ? "لا توجد خدمات متاحة حالياً في هذا القسم" : $"لا توجد خدمات متاحة لمادة '{selectedSpecialization}' حالياً")
+                            </h6>
+                            @if (!string.IsNullOrEmpty(selectedSpecialization))
+                            {
+                                <button class="btn btn-outline-primary rounded-pill px-4 py-2 mt-2" @onclick='() => FilterBySpecialization(null)'>
+                                    <i class="fa-solid fa-arrow-rotate-right me-1"></i>عرض كل المواد
+                                </button>
+                            }
+                        </div>
+                    }
+                }
+                else 
+                { 
+                    <div class="row g-3">
                         @for (int i = 0; i < 6; i++)
                         {
-                            <div class="col-12 col-md-6 mb-3">
+                            <div class="col-12 col-md-6 col-lg-4">
                                 <Khadamat.BlazorUI.Shared.SkeletonLoader Type="card" Count="1" />
                             </div>
                         }
-                    }
+                    </div>
                 }
-            </div>
+            }
         </div>
     </div>
 </div>
@@ -203,6 +333,106 @@
     .category-card:hover {
         border-color: var(--primary) !important;
         background: rgba(99, 102, 241, 0.02);
+        transform: translateY(-3px);
+    }
+
+    /* Professional Filter Styles */
+    .pro-filter-container {
+        background: #ffffff;
+        border-radius: 1.25rem;
+        box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
+        border: 1px solid rgba(226, 232, 240, 0.9);
+    }
+    .filter-header-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+    }
+    .pro-chips-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+    }
+    .pro-chips-scroll::-webkit-scrollbar {
+        height: 5px;
+    }
+    .pro-chips-scroll::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+    .pro-filter-chip {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1.15rem;
+        border-radius: 9999px;
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        color: #475569;
+        font-weight: 600;
+        font-size: 0.86rem;
+        white-space: nowrap;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+    }
+    .pro-filter-chip:hover {
+        background: #f1f5f9;
+        color: #1e293b;
+        border-color: #cbd5e1;
+        transform: translateY(-2px);
+    }
+    .pro-filter-chip.active {
+        background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%) !important;
+        color: #ffffff !important;
+        border-color: transparent !important;
+        box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35) !important;
+        font-weight: 700;
+    }
+    .chip-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.1rem 0.5rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        background: rgba(0, 0, 0, 0.07);
+        color: inherit;
+    }
+    .pro-filter-chip.active .chip-count {
+        background: rgba(255, 255, 255, 0.25);
+        color: #ffffff;
+    }
+
+    /* Specialization Group Card Styles */
+    .specialization-row-container {
+        border-radius: 1.25rem;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .spec-icon-box {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    /* Subtle Divider between specialization rows */
+    .spec-divider-wrap {
+        position: relative;
+    }
+    .spec-divider-line {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.45), transparent);
+    }
+    .spec-divider-icon {
+        background: transparent;
+        font-size: 0.95rem;
     }
 </style>
 
@@ -217,6 +447,8 @@
     private List<EnhancedAdDto>? categoryAds;
     private List<BreadcrumbItem> breadcrumbItems = new();
     private string? errorMessage;
+    private string? selectedSpecialization;
+    private List<string> availableSpecializations = new();
 
     protected override void OnParametersSet()
     {
@@ -302,6 +534,7 @@
                 
                 services = servicesTask.Result.Items;
                 categoryAds = categoryAdsTask.Result;
+                UpdateAvailableSpecializations();
             }
         }
         catch (Exception ex)
@@ -338,5 +571,135 @@
     private void ExploreSubCategory(SubCategoryDto sub)
     {
         Navigation.NavigateTo($"/explore/subcategory/{sub.Id}/{Uri.EscapeDataString(sub.Name)}");
+    }
+
+    private void FilterBySpecialization(string? spec)
+    {
+        selectedSpecialization = spec;
+        StateHasChanged();
+    }
+
+    private void UpdateAvailableSpecializations()
+    {
+        selectedSpecialization = null;
+        if (services != null)
+        {
+            var specs = services
+                .Where(s => !string.IsNullOrWhiteSpace(s.Specialization))
+                .Select(s => s.Specialization!.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            if (!specs.Any() && !string.IsNullOrEmpty(Name) && 
+                (Name.Contains("مدرس") || Name.Contains("تعليم") || Name.Contains("دروس") || Name.Contains("ابتدائي") || Name.Contains("اعدادي") || Name.Contains("ثانوي")))
+            {
+                specs = new List<string> { "لغة عربية", "رياضيات", "لغة إنجليزية", "علوم", "فيزياء", "كيمياء", "أحياء", "فرنساوي", "تاريخ", "جغرافيا" };
+            }
+
+            availableSpecializations = specs;
+        }
+    }
+
+    public class SpecializationTheme
+    {
+        public string BgGradient { get; set; } = "";
+        public string BorderColor { get; set; } = "";
+        public string AccentColor { get; set; } = "";
+        public string BadgeClass { get; set; } = "";
+    }
+
+    private SpecializationTheme GetThemeForSpecialization(string name, int index)
+    {
+        var lower = name.ToLowerInvariant();
+        if (lower.Contains("عرب") || lower.Contains("شعر") || lower.Contains("لغة عربية"))
+        {
+            return new SpecializationTheme {
+                BgGradient = "linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(99, 102, 241, 0.02) 100%)",
+                BorderColor = "rgba(99, 102, 241, 0.22)",
+                AccentColor = "#4f46e5",
+                BadgeClass = "bg-primary-subtle text-primary border border-primary-subtle"
+            };
+        }
+        if (lower.Contains("علوم") || lower.Contains("كيمياء") || lower.Contains("فيزياء") || lower.Contains("أحياء") || lower.Contains("science"))
+        {
+            return new SpecializationTheme {
+                BgGradient = "linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(5, 150, 105, 0.02) 100%)",
+                BorderColor = "rgba(16, 185, 129, 0.22)",
+                AccentColor = "#059669",
+                BadgeClass = "bg-success-subtle text-success border border-success-subtle"
+            };
+        }
+        if (lower.Contains("رياض") || lower.Contains("حساب") || lower.Contains("هندسة") || lower.Contains("جبر") || lower.Contains("math"))
+        {
+            return new SpecializationTheme {
+                BgGradient = "linear-gradient(135deg, rgba(234, 88, 12, 0.05) 0%, rgba(249, 115, 22, 0.02) 100%)",
+                BorderColor = "rgba(234, 88, 12, 0.22)",
+                AccentColor = "#ea580c",
+                BadgeClass = "bg-warning-subtle text-warning-emphasis border border-warning-subtle"
+            };
+        }
+        if (lower.Contains("إنجليز") || lower.Contains("انجليز") || lower.Contains("english") || lower.Contains("لغات") || lower.Contains("فرنس") || lower.Contains("ألمان"))
+        {
+            return new SpecializationTheme {
+                BgGradient = "linear-gradient(135deg, rgba(14, 165, 233, 0.05) 0%, rgba(2, 132, 199, 0.02) 100%)",
+                BorderColor = "rgba(14, 165, 233, 0.22)",
+                AccentColor = "#0284c7",
+                BadgeClass = "bg-info-subtle text-info-emphasis border border-info-subtle"
+            };
+        }
+        if (lower.Contains("دراسات") || lower.Contains("تاريخ") || lower.Contains("جغراف"))
+        {
+            return new SpecializationTheme {
+                BgGradient = "linear-gradient(135deg, rgba(225, 29, 72, 0.05) 0%, rgba(244, 63, 94, 0.02) 100%)",
+                BorderColor = "rgba(225, 29, 72, 0.22)",
+                AccentColor = "#e11d48",
+                BadgeClass = "bg-danger-subtle text-danger border border-danger-subtle"
+            };
+        }
+
+        // Distinct themes palette based on index
+        var palette = new[]
+        {
+            new SpecializationTheme {
+                BgGradient = "linear-gradient(135deg, rgba(147, 51, 234, 0.05) 0%, rgba(168, 85, 247, 0.02) 100%)",
+                BorderColor = "rgba(147, 51, 234, 0.22)",
+                AccentColor = "#9333ea",
+                BadgeClass = "bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle"
+            },
+            new SpecializationTheme {
+                BgGradient = "linear-gradient(135deg, rgba(13, 148, 136, 0.05) 0%, rgba(20, 184, 166, 0.02) 100%)",
+                BorderColor = "rgba(13, 148, 136, 0.22)",
+                AccentColor = "#0d9488",
+                BadgeClass = "bg-success-subtle text-success border border-success-subtle"
+            },
+            new SpecializationTheme {
+                BgGradient = "linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(251, 146, 60, 0.02) 100%)",
+                BorderColor = "rgba(245, 158, 11, 0.22)",
+                AccentColor = "#d97706",
+                BadgeClass = "bg-warning-subtle text-warning-emphasis border border-warning-subtle"
+            },
+            new SpecializationTheme {
+                BgGradient = "linear-gradient(135deg, rgba(71, 85, 105, 0.05) 0%, rgba(100, 116, 139, 0.02) 100%)",
+                BorderColor = "rgba(100, 116, 139, 0.22)",
+                AccentColor = "#475569",
+                BadgeClass = "bg-light text-dark border border-secondary-subtle"
+            }
+        };
+
+        return palette[index % palette.Length];
+    }
+
+    private string GetSpecializationIcon(string name)
+    {
+        var lower = name.ToLowerInvariant();
+        if (lower.Contains("عرب") || lower.Contains("لغة عربية") || lower.Contains("شعر")) return "fa-solid fa-feather-pointed";
+        if (lower.Contains("علوم") || lower.Contains("كيمياء") || lower.Contains("فيزياء") || lower.Contains("أحياء") || lower.Contains("science")) return "fa-solid fa-atom";
+        if (lower.Contains("رياض") || lower.Contains("حساب") || lower.Contains("هندسة") || lower.Contains("جبر") || lower.Contains("math")) return "fa-solid fa-square-root-variable";
+        if (lower.Contains("إنجليز") || lower.Contains("انجليز") || lower.Contains("english") || lower.Contains("لغات") || lower.Contains("فرنس")) return "fa-solid fa-globe";
+        if (lower.Contains("تاريخ") || lower.Contains("دراسات") || lower.Contains("جغراف")) return "fa-solid fa-earth-africa";
+        if (lower.Contains("حاسب") || lower.Contains("تكنولوج") || lower.Contains("كمبيوتر") || lower.Contains("برمج")) return "fa-solid fa-laptop-code";
+        if (lower.Contains("دين") || lower.Contains("قرآن") || lower.Contains("إسلام")) return "fa-solid fa-book-quran";
+        if (lower.Contains("رسم") || lower.Contains("فنون") || lower.Contains("موسيقى")) return "fa-solid fa-palette";
+        return "fa-solid fa-graduation-cap";
     }
 }

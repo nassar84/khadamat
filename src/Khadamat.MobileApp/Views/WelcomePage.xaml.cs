@@ -6,6 +6,8 @@ using Khadamat.Shared.Interfaces;
 using Microsoft.Extensions.Configuration;
 using System.Threading.Tasks;
 using Microsoft.Maui.Storage;
+using Khadamat.MobileApp.Helpers;
+using Khadamat.MobileApp.Views.Popups;
 
 namespace Khadamat.MobileApp.Views
 {
@@ -53,7 +55,7 @@ namespace Khadamat.MobileApp.Views
                 if (!string.IsNullOrEmpty(result.Error))
                 {
                     Console.WriteLine($"ANTIGRAVITY_LOG: Social Login Error from provider: {result.Error}");
-                    await DisplayAlert("خطأ في تسجيل الدخول", $"فشل تسجيل الدخول: {result.Error}", "تم");
+                    await KhadamatDialogHelper.ShowErrorAsync("خطأ في تسجيل الدخول", $"فشل تسجيل الدخول: {result.Error}", this);
                     return;
                 }
 
@@ -80,7 +82,7 @@ namespace Khadamat.MobileApp.Views
                 }
                 else
                 {
-                    await DisplayAlert("خطأ", "لم يتم استلام بيانات تسجيل الدخول. يرجى المحاولة مرة أخرى.", "تم");
+                    await KhadamatDialogHelper.ShowErrorAsync("خطأ", "لم يتم استلام بيانات تسجيل الدخول. يرجى المحاولة مرة أخرى.", this);
                 }
             }
             catch (TaskCanceledException)
@@ -90,7 +92,7 @@ namespace Khadamat.MobileApp.Views
             catch (Exception ex)
             {
                  Console.WriteLine($"ANTIGRAVITY_LOG: Social Login Error: {ex.Message}");
-                 await DisplayAlert("خطأ", $"فشل تسجيل الدخول: {ex.Message}", "تم");
+                 await KhadamatDialogHelper.ShowErrorAsync("خطأ", $"فشل تسجيل الدخول: {ex.Message}", this);
             }
         }
 
@@ -178,9 +180,9 @@ namespace Khadamat.MobileApp.Views
                     Preferences.Default.Set("WebAppBaseUrl", webUrl);
                     Preferences.Default.Set("ApiBaseUrl", apiUrl);
 
-                    await DisplayAlert("نجاح", "تم حفظ الإعدادات. سيتم استخدام العناوين الجديدة عند إعادة تحميل الصفحة.", "تم");
+                    await KhadamatDialogHelper.ShowSuccessAsync("نجاح الحفظ", "تم حفظ الإعدادات بنجاح. سيتم استخدام العناوين الجديدة عند إعادة تحميل الصفحة.", this);
                     
-                    bool test = await DisplayAlert("اختبار الاتصال", "هل تريد اختبار الاتصال بالعناوين الجديدة الآن؟", "نعم", "لا");
+                    bool test = await KhadamatDialogHelper.ShowConfirmAsync("اختبار الاتصال", "هل تريد اختبار الاتصال بالعناوين الجديدة الآن للتأكد من استجابة السيرفر؟", "نعم، اختبار الآن", "لا، لاحقاً", MobileDialogType.Info, this);
                     if (test)
                     {
                         await RunDiagnosticsAsync(webUrl, apiUrl);
@@ -248,7 +250,7 @@ namespace Khadamat.MobileApp.Views
                 }
             }
 
-            await DisplayAlert("نتائج اختبار التحميل", report.ToString(), "موافق");
+            await KhadamatDialogHelper.ShowAlertAsync("نتائج اختبار التحميل", report.ToString(), "موافق", MobileDialogType.Info, this);
         }
 
 

@@ -211,8 +211,14 @@ public partial class ShellViewModel : ObservableObject
         _configuration = configuration;
         
         // Apply saved theme at startup
+        // Use "default" as local fallback; LoadSettingsAsync will override with server DefaultTheme if user hasn't picked one
         var prefs = Microsoft.Maui.Storage.Preferences.Default;
-        string savedTheme = prefs.Get("AppTheme", "default");
+        string savedTheme = prefs.Get("AppTheme", "");
+        if (string.IsNullOrEmpty(savedTheme))
+        {
+            // Try cached server default theme, fallback to "default"
+            savedTheme = prefs.Get("ServerDefaultTheme", "default");
+        }
         ApplyThemeResources(savedTheme);
 
         // Restore auth state from preferences
@@ -426,7 +432,7 @@ public partial class ShellViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task ProfileTapped()
+    private async Task ProfileTapped(object? parameter = null)
     {
         if (!IsAuthenticated)
         {
@@ -436,21 +442,19 @@ public partial class ShellViewModel : ObservableObject
 
         try
         {
-            var page = Microsoft.Maui.Controls.Application.Current?.MainPage ?? Shell.Current?.CurrentPage ?? Shell.Current;
+            var page = Shell.Current?.CurrentPage ?? Microsoft.Maui.Controls.Application.Current?.MainPage ?? Shell.Current;
             if (page != null)
             {
-                string action = await page.DisplayActionSheet(
-                    "حسابي",
-                    "إلغاء",
-                    "تسجيل خروج",
-                    "الملف الشخصي"
-                );
+                var anchor = parameter as VisualElement;
+                string roleText = IsAdminActive ? "مدير النظام" : (IsProviderActive ? "مقدم خدمة" : "عميل");
+                var popup = new Views.Popups.ProfileMenuPopup(UserName, roleText, UserImage, anchor);
+                var result = await CommunityToolkit.Maui.Views.PopupExtensions.ShowPopupAsync(page, popup) as string;
 
-                if (action == "الملف الشخصي")
+                if (result == "profile")
                 {
                     await Navigate("profile");
                 }
-                else if (action == "تسجيل خروج")
+                else if (result == "logout")
                 {
                     await Navigate("logout");
                 }
@@ -688,6 +692,31 @@ public partial class ShellViewModel : ObservableObject
                 if (!string.IsNullOrEmpty(response.Data.AppShareText))
                 {
                     prefStorage.Set("AppShareText", response.Data.AppShareText);
+                }
+
+                // Cache and apply DefaultTheme from server (only if user hasn't saved their own preference)
+                if (!string.IsNullOrEmpty(response.Data.DefaultTheme))
+                {
+                    prefStorage.Set("ServerDefaultTheme", response.Data.DefaultTheme);
+                    string userSavedTheme = prefStorage.Get("AppTheme", "");
+                    if (string.IsNullOrEmpty(userSavedTheme))
+                    {
+                        // User hasn't picked a theme yet — apply server default
+                        ApplyThemeResources(response.Data.DefaultTheme);
+
+                        // Also push it to the web view if active
+                        MainThread.BeginInvokeOnMainThread(async () =>
+                        {
+                            try
+                            {
+                                var currentPage = Shell.Current?.CurrentPage;
+                                if (currentPage is NavigationPage navPage) currentPage = navPage.CurrentPage;
+                                if (currentPage is Views.WebContainerPage webPage)
+                                    await webPage.ApplyThemeToWebView(response.Data.DefaultTheme);
+                            }
+                            catch { }
+                        });
+                    }
                 }
             }
         }

@@ -46,8 +46,32 @@
     private List<CityDto> filteredCities = new();
     private bool isLoadingCities = false;
 
+    protected override async Task OnInitializedAsync()
+    {
+        if (Governorates == null || !Governorates.Any())
+        {
+            try
+            {
+                Governorates = await Api.GetGovernoratesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[LocationSelector] Error loading governorates: {ex.Message}");
+            }
+        }
+    }
+
     protected override async Task OnParametersSetAsync()
     {
+        if (Governorates == null || !Governorates.Any())
+        {
+            try
+            {
+                Governorates = await Api.GetGovernoratesAsync();
+            }
+            catch { }
+        }
+
         // When CityId changes (e.g. initial load), we need to set the governorate
         if (CityId.HasValue)
         {

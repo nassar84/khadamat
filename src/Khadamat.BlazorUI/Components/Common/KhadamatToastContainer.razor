@@ -1,0 +1,105 @@
+@using Khadamat.BlazorUI.Models
+@using Khadamat.BlazorUI.Services
+@inject IFeedbackService FeedbackService
+@implements IDisposable
+
+<div class="khadamat-toast-wrapper" dir="rtl" aria-live="polite" aria-atomic="true">
+    @foreach (var toast in toasts)
+    {
+        <div class="khadamat-toast-item @toast.CssClass" @key="toast.Id" role="alert">
+            <div class="toast-card-body">
+                <!-- Glowing Icon Wrap -->
+                <div class="toast-status-icon">
+                    <i class="@toast.IconClass"></i>
+                </div>
+
+                <!-- Text Content -->
+                <div class="toast-text-wrap">
+                    <div class="toast-header-row">
+                        <span class="toast-badge-pill">@toast.BadgeText</span>
+                        <button type="button" class="toast-btn-close" @onclick="() => Dismiss(toast.Id)" title="إغلاق">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(toast.Title))
+                    {
+                        <h6 class="toast-card-title">@toast.Title</h6>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(toast.Message))
+                    {
+                        <p class="toast-card-desc">@toast.Message</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Animated Progress Bar -->
+            <div class="toast-progress-track">
+                <div class="toast-progress-bar" style="animation-duration: @(toast.DurationMs)ms;"></div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private readonly List<ToastItem> toasts = new();
+    private readonly Dictionary<string, System.Threading.Timer> timers = new();
+
+    protected override void OnInitialized()
+    {
+        FeedbackService.OnToastAdded += HandleToastAdded;
+        FeedbackService.OnToastRemoved += HandleToastRemoved;
+    }
+
+    private void HandleToastAdded(ToastItem item)
+    {
+        InvokeAsync(() =>
+        {
+            toasts.Insert(0, item);
+            if (toasts.Count > 5)
+            {
+                var oldest = toasts.Last();
+                Dismiss(oldest.Id);
+            }
+
+            var timer = new System.Threading.Timer(_ =>
+            {
+                InvokeAsync(() => Dismiss(item.Id));
+            }, null, item.DurationMs, System.Threading.Timeout.Infinite);
+
+            timers[item.Id] = timer;
+            StateHasChanged();
+        });
+    }
+
+    private void HandleToastRemoved(string id)
+    {
+        InvokeAsync(() => Dismiss(id));
+    }
+
+    private void Dismiss(string id)
+    {
+        if (timers.TryGetValue(id, out var timer))
+        {
+            timer.Dispose();
+            timers.Remove(id);
+        }
+
+        var item = toasts.FirstOrDefault(t => t.Id == id);
+        if (item != null)
+        {
+            toasts.Remove(item);
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        FeedbackService.OnToastAdded -= HandleToastAdded;
+        FeedbackService.OnToastRemoved -= HandleToastRemoved;
+        foreach (var timer in timers.Values)
+        {
+            timer.Dispose();
+        }
+        timers.Clear();
+    }
+}

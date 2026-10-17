@@ -87,6 +87,72 @@
         </div>
     }
 
+    <!-- Hero Banner Section -->
+    <div class="card border-0 rounded-4 shadow-sm mb-4 overflow-hidden animate-up" style="background: linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(168,85,247,0.06) 100%); border-right: 4px solid #6366f1 !important;">
+        <div class="card-body p-3 p-md-4">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div>
+                    <h5 class="fw-bold mb-1">
+                        <i class="fa-solid fa-image me-2 text-primary"></i> صور الهيرو بانر
+                        <span class="badge bg-primary-subtle text-primary ms-2 fw-normal" style="font-size:0.7rem;">Hero Slider</span>
+                    </h5>
+                    <p class="text-muted small mb-0">صور الشريحة الرئيسية التي تظهر في أعلى الصفحة الرئيسية — تُحدَّث فوراً بعد الرفع</p>
+                </div>
+                <span class="badge bg-light text-muted border" style="font-size:0.72rem;">1920 × 1080 px</span>
+            </div>
+
+            @if (!string.IsNullOrEmpty(heroUploadMsg))
+            {
+                <div class="alert @(heroUploadSuccess ? "alert-success" : "alert-danger") rounded-3 py-2 px-3 small mb-3 animate-pop">
+                    @heroUploadMsg
+                </div>
+            }
+
+            <div class="row g-3">
+                @for (int s = 1; s <= 2; s++)
+                {
+                    var slot = s;
+                    var imgPath = slot == 1 ? "images/hero_banner.png" : $"images/hero_banner{slot}.png";
+                    <div class="col-12 col-md-6">
+                        <div class="p-3 border rounded-4 bg-white shadow-sm h-100">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="fw-bold small">
+                                    <i class="fa-solid fa-image text-primary me-1"></i>
+                                    صورة Hero #@slot
+                                </span>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size:0.68rem;">نشطة</span>
+                            </div>
+                            <div class="rounded-3 overflow-hidden mb-3 border" style="height:130px; background:#f1f5f9;">
+                                <img src="@(Api.GetAbsoluteUrl(imgPath))?v=@heroTs"
+                                     alt="Hero @slot"
+                                     class="w-100 h-100"
+                                     style="object-fit:cover;"
+                                     onerror="this.parentElement.innerHTML='<div class=\'d-flex align-items-center justify-content-center h-100 text-muted small\'><i class=\'fa-solid fa-image me-2\'></i>لا توجد صورة</div>'" />
+                            </div>
+                            <label class="btn btn-sm @(heroUploading == slot ? "btn-primary" : "btn-outline-primary") rounded-pill w-100" style="cursor:pointer;">
+                                @if (heroUploading == slot)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-1"></span>
+                                    <span>جاري الرفع...</span>
+                                }
+                                else
+                                {
+                                    <i class="fa-solid fa-upload me-1"></i>
+                                    <span>رفع صورة جديدة</span>
+                                }
+                                <InputFile style="display:none;" OnChange="e => UploadHeroBanner(e, slot)" accept="image/*" disabled="@(heroUploading > 0)" />
+                            </label>
+                            <div class="mt-2 text-muted" style="font-size:0.7rem;">
+                                <i class="fa-solid fa-circle-info me-1 text-info"></i>
+                                يُفضل: 1920×1080 أو 1920×640 — WebP أو JPG أقل من 300KB
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
     <!-- Filter & Stats Bar -->
     @if (ads != null)
     {
@@ -675,6 +741,45 @@
     private bool showMap = false;
     private bool showDimensionsGuide = false;
     private List<string> selectedDays = new();
+
+    // Hero banner upload state
+    private int heroUploading = 0;
+    private long heroTs = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+    private string heroUploadMsg = "";
+    private bool heroUploadSuccess = false;
+
+    private async Task UploadHeroBanner(InputFileChangeEventArgs e, int slot)
+    {
+        if (heroUploading > 0) return;
+        heroUploading = slot;
+        heroUploadMsg = "";
+        StateHasChanged();
+        try
+        {
+            var ok = await Api.UploadHeroImageAsync(e.File, slot);
+            if (ok)
+            {
+                heroTs = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                heroUploadMsg = $"✅ تم رفع صورة Hero #{slot} بنجاح! ستظهر على الصفحة الرئيسية فوراً.";
+                heroUploadSuccess = true;
+            }
+            else
+            {
+                heroUploadMsg = $"❌ فشل رفع الصورة #{slot}. تأكد من صلاحيتك (SuperAdmin) وحاول مرة أخرى.";
+                heroUploadSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            heroUploadMsg = $"❌ خطأ أثناء الرفع: {ex.Message}";
+            heroUploadSuccess = false;
+        }
+        finally
+        {
+            heroUploading = 0;
+            StateHasChanged();
+        }
+    }
 
     private Dictionary<string, string> allDays = new()
     {

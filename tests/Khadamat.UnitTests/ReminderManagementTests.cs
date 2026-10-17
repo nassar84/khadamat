@@ -7,6 +7,8 @@ using Khadamat.Domain.Entities;
 using Khadamat.Domain.Enums;
 using Khadamat.Infrastructure.Persistence;
 using Khadamat.Infrastructure.Services;
+using Khadamat.Application.Interfaces;
+using Moq;
 using Xunit;
 
 namespace Khadamat.UnitTests;
@@ -23,7 +25,8 @@ public class ReminderManagementTests : IDisposable
             .Options;
 
         _context = new KhadamatDbContext(options);
-        _reminderService = new ReminderService(_context);
+        var mockNotificationService = new Mock<INotificationService>();
+        _reminderService = new ReminderService(_context, mockNotificationService.Object);
     }
 
     public void Dispose()

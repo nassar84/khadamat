@@ -21,9 +21,14 @@
             <h4 class="fw-bold mb-0">إدارة الخدمات</h4>
             <p class="text-muted small mb-0">تصفح الخدمات حسب الفئات — التحميل عند الحاجة</p>
         </div>
-        <button class="btn btn-primary-premium rounded-pill px-4" @onclick="NavigateToCreateService">
-            <i class="fa-solid fa-plus me-2"></i>إضافة خدمة
-        </button>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary rounded-pill px-3 shadow-sm" @onclick="OpenSpecializationsModal">
+                <i class="fa-solid fa-graduation-cap me-1"></i>إدارة جدول التخصصات
+            </button>
+            <button class="btn btn-primary-premium rounded-pill px-4" @onclick="NavigateToCreateService">
+                <i class="fa-solid fa-plus me-2"></i>إضافة خدمة
+            </button>
+        </div>
     </div>
 
     <div class="glass-card p-3">
@@ -429,6 +434,133 @@
               OnCancel="() => showUserEditModal = false" />
 }
 
+<!-- ── مودال إدارة جدول التخصصات ── -->
+@if (showSpecializationsModal)
+{
+    <div class="modal-overlay" @onclick="() => showSpecializationsModal = false">
+        <div class="glass-card p-4 rounded-4 w-100 mx-3 animate-pop d-flex flex-column"
+             style="max-width:760px; max-height:90vh;"
+             @onclick:stopPropagation="true">
+            
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                <div>
+                    <h5 class="fw-bold mb-1 d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-graduation-cap text-primary"></i>
+                        <span>إدارة جدول التخصصات والمواد الدراسية</span>
+                    </h5>
+                    <div class="text-muted small">جدول مركزي يربط التخصصات بالخدمات في قاعدة البيانات</div>
+                </div>
+                <button class="btn-close" @onclick="() => showSpecializationsModal = false"></button>
+            </div>
+
+            <!-- نموذج إضافة تخصص جديد -->
+            <div class="p-3 mb-3 rounded-4 bg-light border border-primary-subtle">
+                <h6 class="fw-bold small text-primary mb-2">
+                    <i class="fa-solid fa-plus-circle me-1"></i> إضافة تخصص / مادة جديدة:
+                </h6>
+                <div class="row g-2 align-items-center">
+                    <div class="col-12 col-md-5">
+                        <input type="text" class="form-control rounded-3" placeholder="اسم التخصص أو المادة..." @bind="newSpecName" />
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <select class="form-select rounded-3" @bind="newSpecSubCatId">
+                            <option value="">عام (لكل المراحل)</option>
+                            @foreach (var sub in allSubCategoriesForSpecs)
+                            {
+                                <option value="@sub.Id">@sub.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <button class="btn btn-primary w-100 rounded-3" @onclick="SaveNewSpecialization" disabled="@isSavingSpec">
+                            @if (isSavingSpec) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                            <span>حفظ التخصص</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- شريط البحث وعدد التخصصات -->
+            <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+                <div class="position-relative flex-grow-1 me-2" style="max-width: 320px;">
+                    <i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                    <input type="text" class="form-control form-control-sm rounded-pill ps-5 bg-light border-0" 
+                           placeholder="ابحث في التخصصات..." @bind="specSearchTerm" @bind:event="oninput" />
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                    <span class="small text-muted fw-bold">العدد: @FilteredSpecializations.Count()</span>
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill" @onclick="SeedDefaultSpecs" title="إعادة زراعة التخصصات الافتراضية">
+                        <i class="fa-solid fa-rotate me-1"></i>زراعة الافتراضية
+                    </button>
+                </div>
+            </div>
+
+            <!-- قائمة التخصصات -->
+            <div class="flex-grow-1 overflow-auto border rounded-4 p-2 bg-light-subtle" style="min-height: 250px; max-height: 380px;">
+                @if (isLoadingSpecs)
+                {
+                    <div class="text-center p-4">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                        <div class="small text-muted mt-2">جاري تحميل جدول التخصصات...</div>
+                    </div>
+                }
+                else if (!FilteredSpecializations.Any())
+                {
+                    <div class="text-center p-4 text-muted small">
+                        <i class="fa-solid fa-folder-open fs-2 mb-2 opacity-50"></i>
+                        <div>لا توجد تخصصات مطابقة للبحث</div>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle mb-0">
+                            <thead class="table-light small">
+                                <tr>
+                                    <th>#</th>
+                                    <th>اسم التخصص</th>
+                                    <th>القسم المرتبط</th>
+                                    <th>الخدمات المسجلة</th>
+                                    <th class="text-end">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var spec in FilteredSpecializations)
+                                {
+                                    <tr>
+                                        <td class="text-muted small">@spec.Id</td>
+                                        <td class="fw-bold">@spec.Name</td>
+                                        <td>
+                                            <span class="badge bg-light text-dark border">
+                                                @(string.IsNullOrEmpty(spec.SubCategoryName) ? "عام" : spec.SubCategoryName)
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary-subtle text-primary rounded-pill px-2">
+                                                @spec.ServicesCount خدمة
+                                            </span>
+                                        </td>
+                                        <td class="text-end">
+                                            <button class="btn btn-sm btn-link text-danger p-0 text-decoration-none" 
+                                                    @onclick="() => DeleteSpecialization(spec.Id)" title="حذف">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+
+            <div class="pt-3 border-top text-end mt-2">
+                <button class="btn btn-light rounded-pill px-4" @onclick="() => showSpecializationsModal = false">إغلاق</button>
+            </div>
+        </div>
+    </div>
+}
+
 <style>
     /* ── شجرة Lazy ── */
     .lazy-tree { max-width: 900px; }
@@ -769,6 +901,8 @@
                     Location       = service.Location,
                     CategoryId     = service.CategoryId,
                     SubCategoryId  = service.SubCategoryId,
+                    Specialization = service.Specialization,
+                    SpecializationId = service.SpecializationId,
                     Phone1         = service.Phone1,
                     WhatsApp       = service.WhatsApp,
                     Facebook       = service.Facebook,
@@ -803,6 +937,8 @@
                 Location      = model.Location,
                 CategoryId    = model.CategoryId,
                 SubCategoryId = model.SubCategoryId,
+                Specialization = model.Specialization,
+                SpecializationId = model.SpecializationId,
                 Phone1        = model.Phone1,
                 WhatsApp      = model.WhatsApp,
                 Facebook      = model.Facebook,
@@ -1032,5 +1168,139 @@
             await JS.InvokeVoidAsync("alert", "خطأ في ربط المستخدم: " + ex.Message);
         }
         finally { isSavingOwner = false; }
+    }
+
+    // ── إدارة جدول التخصصات ──
+    private bool showSpecializationsModal = false;
+    private bool isLoadingSpecs = false;
+    private bool isSavingSpec = false;
+    private List<SpecializationDto> adminSpecs = new();
+    private List<SubCategoryDto> allSubCategoriesForSpecs = new();
+    private string newSpecName = "";
+    private string newSpecSubCatId = "";
+    private string specSearchTerm = "";
+
+    private IEnumerable<SpecializationDto> FilteredSpecializations
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(specSearchTerm)) return adminSpecs;
+            var term = specSearchTerm.Trim().ToLower();
+            return adminSpecs.Where(s =>
+                (s.Name?.ToLower().Contains(term) ?? false) ||
+                (s.SubCategoryName?.ToLower().Contains(term) ?? false));
+        }
+    }
+
+    private async Task OpenSpecializationsModal()
+    {
+        showSpecializationsModal = true;
+        await LoadAdminSpecializations();
+    }
+
+    private async Task LoadAdminSpecializations()
+    {
+        isLoadingSpecs = true;
+        try
+        {
+            adminSpecs = await Api.GetSpecializationsAsync();
+            if (!adminSpecs.Any())
+            {
+                await Api.SeedSpecializationsAsync();
+                adminSpecs = await Api.GetSpecializationsAsync();
+            }
+
+            if (!allSubCategoriesForSpecs.Any())
+            {
+                foreach (var mc in mainCategories)
+                {
+                    var cats = await Api.GetCategoriesByMainIdAsync(mc.Id);
+                    var teacherCat = cats.FirstOrDefault(c => c.Name.Contains("مدرس") || c.Name.Contains("تعليم"));
+                    if (teacherCat != null)
+                    {
+                        allSubCategoriesForSpecs = await Api.GetSubCategoriesByCategoryIdAsync(teacherCat.Id);
+                        break;
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[LoadAdminSpecializations] Error: {ex.Message}");
+        }
+        finally
+        {
+            isLoadingSpecs = false;
+        }
+    }
+
+    private async Task SaveNewSpecialization()
+    {
+        if (string.IsNullOrWhiteSpace(newSpecName))
+        {
+            await JS.InvokeVoidAsync("alert", "يرجى كتابة اسم التخصص أو المادة");
+            return;
+        }
+
+        isSavingSpec = true;
+        try
+        {
+            int? subId = int.TryParse(newSpecSubCatId, out int sId) ? sId : null;
+            var res = await Api.CreateSpecializationAsync(new CreateSpecializationDto
+            {
+                Name = newSpecName.Trim(),
+                SubCategoryId = subId
+            });
+
+            if (res != null)
+            {
+                newSpecName = "";
+                await LoadAdminSpecializations();
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "خطأ في إضافة التخصص: " + ex.Message);
+        }
+        finally
+        {
+            isSavingSpec = false;
+        }
+    }
+
+    private async Task DeleteSpecialization(int id)
+    {
+        if (!await JS.InvokeAsync<bool>("confirm", "هل أنت متأكد من حذف هذا التخصص من الجدول؟")) return;
+        try
+        {
+            var res = await Api.DeleteSpecializationAsync(id);
+            if (res)
+            {
+                adminSpecs.RemoveAll(s => s.Id == id);
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "خطأ في حذف التخصص: " + ex.Message);
+        }
+    }
+
+    private async Task SeedDefaultSpecs()
+    {
+        isLoadingSpecs = true;
+        try
+        {
+            await Api.SeedSpecializationsAsync();
+            await LoadAdminSpecializations();
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "خطأ في الزراعة: " + ex.Message);
+        }
+        finally
+        {
+            isLoadingSpecs = false;
+        }
     }
 }
