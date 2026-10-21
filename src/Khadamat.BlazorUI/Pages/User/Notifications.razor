@@ -138,6 +138,12 @@
                                 <p class="mb-0 text-muted small text-break">
                                     @n.Message
                                 </p>
+                                @if (!string.IsNullOrWhiteSpace(n.ImageUrl))
+                                {
+                                    <div class="mt-2 rounded-3 overflow-hidden border" style="max-height: 140px; max-width: 280px;">
+                                        <img src="@n.ImageUrl" alt="صورة التنبيه" style="width: 100%; max-height: 140px; object-fit: cover;" />
+                                    </div>
+                                }
                             </div>
 
                             <!-- Unread Indicator & Link Arrow -->
@@ -169,6 +175,12 @@
                     <button type="button" class="btn-close m-0" @onclick="() => selectedNotification = null"></button>
                 </div>
                 <div class="modal-body py-3">
+                    @if (!string.IsNullOrWhiteSpace(selectedNotification.ImageUrl))
+                    {
+                        <div class="mb-3 rounded-3 overflow-hidden border text-center">
+                            <img src="@selectedNotification.ImageUrl" alt="صورة التنبيه" class="img-fluid" style="max-height: 220px; width: 100%; object-fit: cover;" />
+                        </div>
+                    }
                     <p class="text-secondary" style="line-height: 1.6; font-size: 0.95rem;">@selectedNotification.Message</p>
                     <div class="small text-muted mt-2 d-flex align-items-center gap-1">
                         <i class="fa-regular fa-clock"></i> <span>@FormatTimeAgo(selectedNotification.CreatedAt)</span>

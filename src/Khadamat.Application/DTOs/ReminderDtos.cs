@@ -79,6 +79,7 @@ public class ReminderCampaignDto
     };
 
     public string ActionRoute { get; set; } = "/";
+    public string? ImageUrl { get; set; }
     public bool IsActive { get; set; }
     public int ExecutionCount { get; set; }
     public DateTime? LastTriggeredAt { get; set; }
@@ -111,6 +112,7 @@ public class CreateReminderCampaignDto
     
     public ReminderDisplayType DisplayType { get; set; } = ReminderDisplayType.NotificationBar;
     public string ActionRoute { get; set; } = "/";
+    public string? ImageUrl { get; set; }
     public bool IsActive { get; set; } = true;
 }
 
@@ -147,6 +149,7 @@ public class ActiveClientReminderDto
     public int? DurationDays { get; set; }
     public ReminderDisplayType DisplayType { get; set; }
     public string ActionRoute { get; set; } = "/";
+    public string? ImageUrl { get; set; }
     public ReminderPriority Priority { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

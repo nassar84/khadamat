@@ -47,16 +47,20 @@ public class KhadamatFirebaseMessagingService : FirebaseMessagingService
         var actionRoute = message.Data.ContainsKey("action_route") ? message.Data["action_route"] 
                          : (message.Data.ContainsKey("navigate_to") ? message.Data["navigate_to"] : "/");
 
-        Console.WriteLine($"[FCM] Push received: '{title}' - '{body}' (Route: {actionRoute})");
+        var imageUrl = message.GetNotification()?.ImageUrl?.ToString()
+                       ?? (message.Data.ContainsKey("image_url") ? message.Data["image_url"] 
+                       : (message.Data.ContainsKey("image") ? message.Data["image"] : null));
+
+        Console.WriteLine($"[FCM] Push received: '{title}' - '{body}' (Image: {imageUrl}, Route: {actionRoute})");
 
         // Display standard system notification in notification tray
-        ShowLocalNotification(title, body, actionRoute);
+        ShowLocalNotification(title, body, actionRoute, imageUrl);
 
         // Broadcast to Blazor UI components if app is currently visible
         PushNotificationBridge.Raise(title, body, actionRoute);
     }
 
-    private void ShowLocalNotification(string title, string body, string? actionRoute)
+    private void ShowLocalNotification(string title, string body, string? actionRoute, string? imageUrl = null)
     {
         var notificationManager = (NotificationManager?)GetSystemService(NotificationService);
         if (notificationManager == null) return;
@@ -132,16 +136,31 @@ public class KhadamatFirebaseMessagingService : FirebaseMessagingService
             Console.WriteLine($"[FCM] Error decoding large icon: {ex.Message}");
         }
 
+        // Download rich notification image if provided
+        Bitmap? bigPictureBitmap = null;
+        if (!string.IsNullOrWhiteSpace(imageUrl))
+        {
+            try
+            {
+                using var url = new Java.Net.URL(imageUrl);
+                using var connection = url.OpenConnection();
+                connection.ConnectTimeout = 4000;
+                connection.ReadTimeout = 4000;
+                using var input = connection.InputStream;
+                bigPictureBitmap = BitmapFactory.DecodeStream(input);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[FCM] Error downloading notification image: {ex.Message}");
+            }
+        }
+
         var defaultSound = RingtoneManager.GetDefaultUri(RingtoneType.Notification);
 
         var builder = new NotificationCompat.Builder(this, AndroidReminderScheduler.ChannelId)
             .SetContentTitle(title)
             .SetContentText(body)
             .SetSubText("خدماوي")
-            .SetStyle(new NotificationCompat.BigTextStyle()
-                .SetBigContentTitle(title)
-                .BigText(body)
-                .SetSummaryText("إشعار جديد"))
             .SetSmallIcon(smallIcon)
             .SetColor(global::Android.Graphics.Color.ParseColor("#6366f1"))
             .SetAutoCancel(true)
@@ -151,6 +170,21 @@ public class KhadamatFirebaseMessagingService : FirebaseMessagingService
             .SetVibrate(new long[] { 0, 250, 150, 250 })
             .SetLights(global::Android.Graphics.Color.ParseColor("#6366f1"), 1000, 500)
             .SetContentIntent(pendingIntent);
+
+        if (bigPictureBitmap != null)
+        {
+            builder.SetStyle(new NotificationCompat.BigPictureStyle()
+                .BigPicture(bigPictureBitmap)
+                .SetBigContentTitle(title)
+                .SetSummaryText(body));
+        }
+        else
+        {
+            builder.SetStyle(new NotificationCompat.BigTextStyle()
+                .SetBigContentTitle(title)
+                .BigText(body)
+                .SetSummaryText("إشعار جديد"));
+        }
 
         if (largeIcon != null)
         {

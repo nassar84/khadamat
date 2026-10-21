@@ -77,7 +77,7 @@ public class NotificationsController : ControllerBase
             if (!string.IsNullOrEmpty(request.UserId))
             {
                 await _notificationService.SendNotificationAsync(
-                    request.UserId, request.Title, request.Message, "Admin", request.RelatedLink);
+                    request.UserId, request.Title, request.Message, "Admin", request.RelatedLink, request.ImageUrl);
             }
             else
             {
@@ -89,7 +89,8 @@ public class NotificationsController : ControllerBase
                     request.TargetRole,
                     request.GovernorateId,
                     request.CityId,
-                    request.MainCategoryId);
+                    request.MainCategoryId,
+                    request.ImageUrl);
             }
 
             return Ok(ApiResponse<bool>.Succeed(true));
@@ -132,12 +133,12 @@ public class NotificationsController : ControllerBase
 
     [HttpPost("test-fcm")]
     [Authorize(Roles = "Admin,SystemAdmin,SuperAdmin")]
-    public async Task<ActionResult<ApiResponse<string>>> TestFcm([FromQuery] string? title, [FromQuery] string? message)
+    public async Task<ActionResult<ApiResponse<string>>> TestFcm([FromQuery] string? title, [FromQuery] string? message, [FromQuery] string? imageUrl)
     {
         var testTitle = string.IsNullOrWhiteSpace(title) ? "إشعار تجريبي من خدماوى" : title;
         var testMessage = string.IsNullOrWhiteSpace(message) ? "هذا إشعار تجريبي لاختبار وصول التنبيهات الفورية عبر FCM بنجاح" : message;
 
-        var count = await _fcmPushService.SendBroadcastPushAsync(testTitle, testMessage, "/");
+        var count = await _fcmPushService.SendBroadcastPushAsync(testTitle, testMessage, "/", imageUrl);
         return Ok(ApiResponse<string>.Succeed($"تم تشغيل إشعار FCM التجريبي! تم التسليم إلى {count} جهاز مسجل."));
     }
 }

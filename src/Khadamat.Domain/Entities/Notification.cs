@@ -19,6 +19,8 @@ public class Notification : BaseEntity
 
     public string? RelatedLink { get; set; } // e.g., "/service/1"
 
+    public string? ImageUrl { get; set; } // Banner image for rich push notification and notifications center
+
     public bool IsRead { get; set; } = false;
 
     public string Type { get; set; } = "System"; // System, Message, Order, etc.
@@ -26,13 +28,14 @@ public class Notification : BaseEntity
     // Constructor
     public Notification() {}
 
-    public Notification(string userId, string title, string message, string type = "System", string? link = null)
+    public Notification(string userId, string title, string message, string type = "System", string? link = null, string? imageUrl = null)
     {
         UserId = userId;
         Title = title;
         Message = message;
         Type = type;
         RelatedLink = link;
+        ImageUrl = imageUrl;
         CreatedAt = DateTime.UtcNow;
     }
 }

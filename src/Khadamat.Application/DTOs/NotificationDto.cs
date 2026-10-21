@@ -9,6 +9,7 @@ public class NotificationDto
     public string Message { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
     public string? RelatedLink { get; set; }
+    public string? ImageUrl { get; set; }
     public bool IsRead { get; set; }
     public DateTime CreatedAt { get; set; }
 }
@@ -19,6 +20,7 @@ public class SendNotificationRequest
     public string Title { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
     public string? RelatedLink { get; set; }
+    public string? ImageUrl { get; set; }
     
     // Broadcast filters
     public string? TargetRole { get; set; }

@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Khadamat.Domain.Entities;
 using Khadamat.Application.Interfaces;
+using Khadamat.Application.Common.Helpers;
 using System;
 using System.Linq;
 
@@ -15,23 +16,32 @@ public class CreateServiceHandler : IRequestHandler<Commands.CreateServiceComman
     private readonly IAuthService _authService;
     private readonly IGenericRepository<SubscriptionPlan> _planRepository;
     private readonly IGenericRepository<ProviderSubscription> _subRepository;
+    private readonly IGenericRepository<Category> _categoryRepository;
+    private readonly IGenericRepository<SubCategory> _subCategoryRepository;
 
     public CreateServiceHandler(
         IGenericRepository<Service> serviceRepository,
         IGenericRepository<ProviderProfile> providerRepository,
         IAuthService authService,
         IGenericRepository<SubscriptionPlan> planRepository,
-        IGenericRepository<ProviderSubscription> subRepository)
+        IGenericRepository<ProviderSubscription> subRepository,
+        IGenericRepository<Category> categoryRepository,
+        IGenericRepository<SubCategory> subCategoryRepository)
     {
         _serviceRepository = serviceRepository;
         _providerRepository = providerRepository;
         _authService = authService;
         _planRepository = planRepository;
         _subRepository = subRepository;
+        _categoryRepository = categoryRepository;
+        _subCategoryRepository = subCategoryRepository;
     }
 
     public async Task<int> Handle(Commands.CreateServiceCommand request, CancellationToken cancellationToken)
     {
+        bool isClinic = await IsClinicCategoryAsync(request.CategoryId, request.SubCategoryId);
+        string formattedTitle = ClinicServiceHelper.FormatDoctorNameIfNeeded(request.Title, isClinic);
+
         // 1. Ensure Provider Profile exists (Required by FK)
         var provider = await _providerRepository.GetAsync(p => p.UserId == request.UserId);
         
@@ -41,7 +51,7 @@ public class CreateServiceHandler : IRequestHandler<Commands.CreateServiceComman
             provider = new ProviderProfile 
             {
                 UserId = request.UserId,
-                BusinessName = request.Title,
+                BusinessName = formattedTitle,
                 Bio = !string.IsNullOrEmpty(request.Description) && request.Description.Length > 200 
                       ? request.Description.Substring(0, 200) 
                       : request.Description,
@@ -94,7 +104,7 @@ public class CreateServiceHandler : IRequestHandler<Commands.CreateServiceComman
             request.SubCategoryId,
             request.CategoryId,
             request.CityId,
-            request.Title,
+            formattedTitle,
             request.Description,
             request.Location ?? string.Empty,
             provider.Id, // ProviderProfileId
@@ -103,7 +113,7 @@ public class CreateServiceHandler : IRequestHandler<Commands.CreateServiceComman
 
         // Update additional details
         service.UpdateDetails(
-            request.Title,
+            formattedTitle,
             request.Description,
             request.Address ?? string.Empty,
             request.Price,
@@ -128,5 +138,41 @@ public class CreateServiceHandler : IRequestHandler<Commands.CreateServiceComman
         await _serviceRepository.AddAsync(service);
         
         return service.Id;
+    }
+
+    private async Task<bool> IsClinicCategoryAsync(int? categoryId, int? subCategoryId)
+    {
+        try
+        {
+            if (categoryId.HasValue)
+            {
+                var category = await _categoryRepository.GetByIdAsync(categoryId.Value);
+                if (category != null && category.Name.Trim().Contains("عيادات"))
+                    return true;
+            }
+
+            if (subCategoryId.HasValue)
+            {
+                var subCat = await _subCategoryRepository.GetByIdAsync(subCategoryId.Value, includeProperties: "Category");
+                if (subCat != null)
+                {
+                    if (subCat.Category != null && subCat.Category.Name.Trim().Contains("عيادات"))
+                        return true;
+
+                    if (subCat.CategoryId > 0)
+                    {
+                        var parentCat = await _categoryRepository.GetByIdAsync(subCat.CategoryId);
+                        if (parentCat != null && parentCat.Name.Trim().Contains("عيادات"))
+                            return true;
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[CreateServiceHandler] IsClinicCategoryAsync check failed: {ex.Message}");
+        }
+
+        return false;
     }
 }

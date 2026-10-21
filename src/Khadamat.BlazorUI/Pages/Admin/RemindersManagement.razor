@@ -175,6 +175,13 @@
                             </div>
                         </div>
 
+                        @if (!string.IsNullOrEmpty(rem.ImageUrl))
+                        {
+                            <div class="mb-2 rounded-3 overflow-hidden border shadow-xs" style="max-height: 140px;">
+                                <img src="@rem.ImageUrl" alt="" style="width: 100%; height: 140px; object-fit: cover;" />
+                            </div>
+                        }
+
                         <!-- Message Body Preview -->
                         <div class="bg-light p-2 rounded-3 mb-3 border-start border-3 border-primary text-secondary small flex-grow-1">
                             @rem.Message
@@ -284,6 +291,58 @@
                             <label class="form-label small fw-bold">نص الرسالة للمستخدم <span class="text-danger">*</span></label>
                             <textarea class="form-control rounded-3" rows="4" @bind="currentForm.Message" placeholder="اكتب النص الذي سيظهر في الإشعار أو داخل التطبيق..."></textarea>
                             <span class="x-small text-muted">احرص على كتابة نص جذاب وواضح يشجع المستخدم على التفاعل دون إزعاج.</span>
+                        </div>
+
+                        <!-- Reminder Image (Optional) -->
+                        <div class="col-12">
+                            <div class="p-3 rounded-3 border bg-white shadow-xs">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-label small fw-bold mb-0">
+                                        <i class="fa-solid fa-image text-primary me-1"></i>صورة التذكير (اختياري - تظهر كصورة بارزة في الإشعار)
+                                    </label>
+                                    @if (!string.IsNullOrWhiteSpace(currentForm.ImageUrl))
+                                    {
+                                        <button type="button" class="btn btn-link text-danger p-0 small text-decoration-none" @onclick="ClearReminderImage">
+                                            <i class="fa-solid fa-trash me-1"></i>حذف الصورة
+                                        </button>
+                                    }
+                                </div>
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-sm-8">
+                                        <input type="text" class="form-control form-control-sm rounded-pill" 
+                                               @bind="currentForm.ImageUrl" 
+                                               @bind:event="oninput"
+                                               placeholder="رابط الصورة المباشر https://..." />
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <label class="btn btn-outline-primary btn-sm w-100 rounded-pill mb-0 @(isUploadingReminderImage ? "disabled" : "")" style="cursor: pointer;">
+                                            @if (isUploadingReminderImage)
+                                            {
+                                                <span class="spinner-border spinner-border-sm me-1"></span>
+                                                <span>جاري الرفع...</span>
+                                            }
+                                            else
+                                            {
+                                                <i class="fa-solid fa-cloud-arrow-up me-1"></i>
+                                                <span>رفع صورة</span>
+                                            }
+                                            <InputFile OnChange="HandleReminderImageUpload" accept="image/*" class="d-none" disabled="@isUploadingReminderImage" />
+                                        </label>
+                                    </div>
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(currentForm.ImageUrl))
+                                {
+                                    <div class="position-relative mt-2 rounded-3 overflow-hidden border bg-light text-center p-2">
+                                        <img src="@currentForm.ImageUrl" alt="معاينة الصورة" class="img-fluid rounded-2 shadow-xs" style="max-height: 150px; width: 100%; object-fit: cover;" @onerror="OnReminderImageLoadError" />
+                                        @if (reminderImageLoadFailed)
+                                        {
+                                            <div class="text-danger small mt-2">
+                                                <i class="fa-solid fa-triangle-exclamation me-1"></i>تعذر تحميل الصورة. تأكد من أن الرابط مباشر ويبدأ بـ https://
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
                         </div>
 
                         <!-- Schedule & Recurrence -->
@@ -529,7 +588,13 @@
                                     <span class="text-muted x-small ms-auto">الآن</span>
                                 </div>
                                 <h6 class="fw-bold mb-1 fs-6">@previewItem.Title</h6>
-                                <p class="text-secondary small mb-0">@previewItem.Message</p>
+                                <p class="text-secondary small mb-1">@previewItem.Message</p>
+                                @if (!string.IsNullOrWhiteSpace(previewItem.ImageUrl))
+                                {
+                                    <div class="mt-2 rounded-2 overflow-hidden border">
+                                        <img src="@previewItem.ImageUrl" alt="صورة الإشعار" style="width: 100%; max-height: 140px; object-fit: cover;" />
+                                    </div>
+                                }
                             </div>
                             <span class="text-muted x-small text-center d-block">عند الضغط، سيتم فتح: <strong>@previewItem.ActionRoute</strong></span>
                         }
@@ -540,6 +605,12 @@
                                 <div class="text-center mb-2">
                                     <i class="fa-solid fa-bell text-warning fs-3"></i>
                                 </div>
+                                @if (!string.IsNullOrWhiteSpace(previewItem.ImageUrl))
+                                {
+                                    <div class="mb-2 rounded-2 overflow-hidden border">
+                                        <img src="@previewItem.ImageUrl" alt="صورة الإشعار" style="width: 100%; max-height: 140px; object-fit: cover;" />
+                                    </div>
+                                }
                                 <h6 class="fw-bold text-center mb-1">@previewItem.Title</h6>
                                 <p class="text-muted small text-center mb-3">@previewItem.Message</p>
                                 <button class="btn btn-primary-premium w-100 rounded-pill btn-sm">تصفح الآن</button>
@@ -601,6 +672,53 @@
     // Preview modal state
     private bool showPreviewModal = false;
     private ReminderCampaignDto? previewItem;
+
+    // Image upload state
+    private bool isUploadingReminderImage = false;
+    private bool reminderImageLoadFailed = false;
+
+    private void ClearReminderImage()
+    {
+        currentForm.ImageUrl = null;
+        reminderImageLoadFailed = false;
+    }
+
+    private void OnReminderImageLoadError()
+    {
+        reminderImageLoadFailed = true;
+    }
+
+    private async Task HandleReminderImageUpload(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null) return;
+
+        reminderImageLoadFailed = false;
+        isUploadingReminderImage = true;
+        try
+        {
+            var res = await Api.UploadImageAsync(file, Khadamat.BlazorUI.Helpers.EntityImageType.Ad);
+            if (res != null && !string.IsNullOrWhiteSpace(res.Url))
+            {
+                var fullUrl = res.Url.StartsWith("http", StringComparison.OrdinalIgnoreCase) 
+                    ? res.Url 
+                    : Navigation.ToAbsoluteUri(res.Url).ToString();
+                currentForm.ImageUrl = fullUrl;
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", "فشل رفع الصورة، يرجى التأكد من صيغة الملف وحجمه.");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"خطأ أثناء الرفع: {ex.Message}");
+        }
+        finally
+        {
+            isUploadingReminderImage = false;
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -676,6 +794,14 @@
         currentForm.Message = !string.IsNullOrWhiteSpace(selectedReminderService.Description)
             ? (selectedReminderService.Description.Length > 150 ? selectedReminderService.Description[..150] + "..." : selectedReminderService.Description)
             : $"تصفح تفاصيل خدمة {selectedReminderService.Title} الآن على منصة خدماوى!";
+
+        if (selectedReminderService.Images != null && selectedReminderService.Images.Count > 0)
+        {
+            var firstImg = selectedReminderService.Images.First();
+            var imgRel = Khadamat.BlazorUI.Helpers.ImagePathResolver.Service(firstImg);
+            currentForm.ImageUrl = Navigation.ToAbsoluteUri(imgRel).ToString();
+            reminderImageLoadFailed = false;
+        }
     }
 
     private async Task LoadReminders()
@@ -747,8 +873,10 @@
             TargetAudience = ReminderTargetAudience.Testers,
             DisplayType = ReminderDisplayType.NotificationBar,
             ActionRoute = "/",
+            ImageUrl = null,
             IsActive = true
         };
+        reminderImageLoadFailed = false;
         scheduledTimeVal = new(20, 0);
         startDateVal = DateTime.UtcNow.Date;
         endDateVal = DateTime.UtcNow.Date.AddDays(14);
@@ -804,10 +932,12 @@
             TargetRole = rem.TargetRole,
             DisplayType = rem.DisplayType,
             ActionRoute = rem.ActionRoute,
+            ImageUrl = rem.ImageUrl,
             IsActive = rem.IsActive,
             StartDate = rem.StartDate,
             EndDate = rem.EndDate
         };
+        reminderImageLoadFailed = false;
         scheduledTimeVal = TimeOnly.FromTimeSpan(rem.ScheduledTime);
         startDateVal = rem.StartDate.Date;
         endDateVal = rem.EndDate?.Date;
@@ -858,6 +988,7 @@
                     TargetRole = currentForm.TargetRole,
                     DisplayType = currentForm.DisplayType,
                     ActionRoute = currentForm.ActionRoute,
+                    ImageUrl = currentForm.ImageUrl,
                     IsActive = (currentForm.Status == ReminderStatus.Active)
                 };
                 var result = await Api.UpdateReminderAsync(currentEditingId, updateDto);

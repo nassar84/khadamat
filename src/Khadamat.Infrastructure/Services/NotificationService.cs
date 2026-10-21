@@ -20,7 +20,7 @@ public class NotificationService : INotificationService
         _scopeFactory = scopeFactory;
     }
 
-    public async Task SendNotificationAsync(string userId, string title, string message, string type = "System", string? link = null)
+    public async Task SendNotificationAsync(string userId, string title, string message, string type = "System", string? link = null, string? imageUrl = null)
     {
         var notification = new Notification
         {
@@ -29,6 +29,7 @@ public class NotificationService : INotificationService
             Message = message,
             Type = type,
             RelatedLink = link,
+            ImageUrl = imageUrl,
             IsRead = false,
             CreatedAt = DateTime.UtcNow
         };
@@ -46,7 +47,7 @@ public class NotificationService : INotificationService
             {
                 using var scope = _scopeFactory.CreateScope();
                 var fcm = scope.ServiceProvider.GetRequiredService<IFcmPushService>();
-                await fcm.SendPushToUserAsync(userId, title, message, link);
+                await fcm.SendPushToUserAsync(userId, title, message, link, imageUrl);
             }
             catch (Exception ex)
             {
@@ -67,6 +68,7 @@ public class NotificationService : INotificationService
                 Message = n.Message,
                 Type = n.Type,
                 RelatedLink = n.RelatedLink,
+                ImageUrl = n.ImageUrl,
                 IsRead = n.IsRead,
                 CreatedAt = n.CreatedAt
             })
@@ -100,7 +102,7 @@ public class NotificationService : INotificationService
             await _context.SaveChangesAsync();
         }
     }
-    public async Task SendBroadcastAsync(string title, string message, string type, string? link, string? role, int? governorateId, int? cityId, int? mainCategoryId)
+    public async Task SendBroadcastAsync(string title, string message, string type, string? link, string? role, int? governorateId, int? cityId, int? mainCategoryId, string? imageUrl = null)
     {
         try
         {
@@ -157,6 +159,7 @@ public class NotificationService : INotificationService
                 Message = message,
                 Type = type,
                 RelatedLink = link,
+                ImageUrl = imageUrl,
                 IsRead = false,
                 CreatedAt = DateTime.UtcNow
             }).ToList();
@@ -180,11 +183,11 @@ public class NotificationService : INotificationService
                     var fcm = scope.ServiceProvider.GetRequiredService<IFcmPushService>();
                     if (!isFilterApplied)
                     {
-                        await fcm.SendBroadcastPushAsync(title, message, link);
+                        await fcm.SendBroadcastPushAsync(title, message, link, imageUrl);
                     }
                     else
                     {
-                        await fcm.SendPushToUsersAsync(targetUserIds, title, message, link);
+                        await fcm.SendPushToUsersAsync(targetUserIds, title, message, link, imageUrl);
                     }
                 }
                 catch (Exception ex)

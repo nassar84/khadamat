@@ -1136,7 +1136,7 @@ public class ApiClient
         return response.IsSuccessStatusCode;
     }
 
-    public async Task<(bool Success, string? Message)> SendAdminNotificationAsync(string? userId, string title, string message, string? link = null, string? role = null, int? govId = null, int? cityId = null, int? catId = null)
+    public async Task<(bool Success, string? Message)> SendAdminNotificationAsync(string? userId, string title, string message, string? link = null, string? role = null, int? govId = null, int? cityId = null, int? catId = null, string? imageUrl = null)
     {
         try
         {
@@ -1145,6 +1145,7 @@ public class ApiClient
                 Title = title, 
                 Message = message, 
                 RelatedLink = link,
+                ImageUrl = imageUrl,
                 TargetRole = role,
                 GovernorateId = govId,
                 CityId = cityId,
@@ -1757,11 +1758,15 @@ public class ApiClient
         }
     }
 
-    public async Task<(bool Success, string Message)> TestFcmPushAsync(string? title = null, string? message = null)
+    public async Task<(bool Success, string Message)> TestFcmPushAsync(string? title = null, string? message = null, string? imageUrl = null)
     {
         try
         {
             var url = $"v1/notifications/test-fcm?title={Uri.EscapeDataString(title ?? "")}&message={Uri.EscapeDataString(message ?? "")}";
+            if (!string.IsNullOrWhiteSpace(imageUrl))
+            {
+                url += $"&imageUrl={Uri.EscapeDataString(imageUrl)}";
+            }
             var res = await _http.PostAsync(url, null);
             var content = await res.Content.ReadFromJsonAsync<ApiResponse<string>>();
             if (res.IsSuccessStatusCode && content?.Success == true)

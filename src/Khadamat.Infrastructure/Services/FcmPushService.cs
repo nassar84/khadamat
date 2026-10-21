@@ -156,7 +156,7 @@ public class FcmPushService : IFcmPushService
         }
     }
 
-    public async Task<bool> SendPushToUserAsync(string userId, string title, string body, string? actionRoute = null, Dictionary<string, string>? data = null)
+    public async Task<bool> SendPushToUserAsync(string userId, string title, string body, string? actionRoute = null, string? imageUrl = null, Dictionary<string, string>? data = null)
     {
         if (FirebaseApp.DefaultInstance == null)
         {
@@ -178,7 +178,7 @@ public class FcmPushService : IFcmPushService
                 return false;
             }
 
-            var sentCount = await SendBatchToTokensAsync(tokens, title, body, actionRoute, data);
+            var sentCount = await SendBatchToTokensAsync(tokens, title, body, actionRoute, imageUrl, data);
             return sentCount > 0;
         }
         catch (Exception ex)
@@ -188,7 +188,7 @@ public class FcmPushService : IFcmPushService
         }
     }
 
-    public async Task<int> SendPushToUsersAsync(IEnumerable<string> userIds, string title, string body, string? actionRoute = null, Dictionary<string, string>? data = null)
+    public async Task<int> SendPushToUsersAsync(IEnumerable<string> userIds, string title, string body, string? actionRoute = null, string? imageUrl = null, Dictionary<string, string>? data = null)
     {
         if (FirebaseApp.DefaultInstance == null)
         {
@@ -211,7 +211,7 @@ public class FcmPushService : IFcmPushService
                 return 0;
             }
 
-            return await SendBatchToTokensAsync(tokens, title, body, actionRoute, data);
+            return await SendBatchToTokensAsync(tokens, title, body, actionRoute, imageUrl, data);
         }
         catch (Exception ex)
         {
@@ -220,7 +220,7 @@ public class FcmPushService : IFcmPushService
         }
     }
 
-    public async Task<int> SendBroadcastPushAsync(string title, string body, string? actionRoute = null, Dictionary<string, string>? data = null)
+    public async Task<int> SendBroadcastPushAsync(string title, string body, string? actionRoute = null, string? imageUrl = null, Dictionary<string, string>? data = null)
     {
         if (FirebaseApp.DefaultInstance == null)
         {
@@ -242,7 +242,7 @@ public class FcmPushService : IFcmPushService
                 return 0;
             }
 
-            return await SendBatchToTokensAsync(tokens, title, body, actionRoute, data);
+            return await SendBatchToTokensAsync(tokens, title, body, actionRoute, imageUrl, data);
         }
         catch (Exception ex)
         {
@@ -251,7 +251,7 @@ public class FcmPushService : IFcmPushService
         }
     }
 
-    private async Task<int> SendBatchToTokensAsync(List<string> tokens, string title, string body, string? actionRoute, Dictionary<string, string>? customData)
+    private async Task<int> SendBatchToTokensAsync(List<string> tokens, string title, string body, string? actionRoute, string? imageUrl, Dictionary<string, string>? customData)
     {
         int successfulTotal = 0;
         var staleTokens = new List<string>();
@@ -263,6 +263,12 @@ public class FcmPushService : IFcmPushService
             ["action_route"] = actionRoute ?? "/",
             ["navigate_to"] = actionRoute ?? "/"
         };
+
+        if (!string.IsNullOrWhiteSpace(imageUrl))
+        {
+            dataPayload["image"] = imageUrl.Trim();
+            dataPayload["image_url"] = imageUrl.Trim();
+        }
 
         // Firebase multicast accepts max 500 tokens per call
         const int batchSize = 500;
@@ -276,7 +282,8 @@ public class FcmPushService : IFcmPushService
                 Notification = new FcmNotification
                 {
                     Title = title,
-                    Body = body
+                    Body = body,
+                    ImageUrl = !string.IsNullOrWhiteSpace(imageUrl) ? imageUrl.Trim() : null
                 },
                 Data = dataPayload,
                 Android = new AndroidConfig
@@ -286,8 +293,17 @@ public class FcmPushService : IFcmPushService
                     {
                         ChannelId = "khadamawy_reminders_channel",
                         Sound = "default",
-                        ClickAction = "OPEN_APP"
+                        ClickAction = "OPEN_APP",
+                        ImageUrl = !string.IsNullOrWhiteSpace(imageUrl) ? imageUrl.Trim() : null
                     }
+                },
+                Apns = new ApnsConfig
+                {
+                    Aps = new Aps
+                    {
+                        Sound = "default"
+                    },
+                    FcmOptions = !string.IsNullOrWhiteSpace(imageUrl) ? new ApnsFcmOptions { ImageUrl = imageUrl.Trim() } : null
                 }
             };
 

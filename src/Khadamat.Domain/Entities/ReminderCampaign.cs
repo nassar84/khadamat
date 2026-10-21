@@ -28,6 +28,7 @@ public class ReminderCampaign : BaseEntity
     
     public ReminderDisplayType DisplayType { get; set; } = ReminderDisplayType.NotificationBar;
     public string ActionRoute { get; set; } = "/"; // Target internal page e.g. "/", "/profile", "/search"
+    public string? ImageUrl { get; set; } // Rich image banner for notifications
     
     public bool IsActive { get; set; } = true;
     public int ExecutionCount { get; set; } = 0;

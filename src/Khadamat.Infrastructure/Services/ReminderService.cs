@@ -121,6 +121,7 @@ public class ReminderService : IReminderService
             TargetRole = dto.TargetRole,
             DisplayType = dto.DisplayType,
             ActionRoute = string.IsNullOrWhiteSpace(dto.ActionRoute) ? "/" : dto.ActionRoute.Trim(),
+            ImageUrl = dto.ImageUrl?.Trim(),
             IsActive = dto.IsActive,
             CreatedAt = DateTime.UtcNow,
             CreatedBy = userId
@@ -162,6 +163,7 @@ public class ReminderService : IReminderService
         entity.TargetRole = dto.TargetRole;
         entity.DisplayType = dto.DisplayType;
         entity.ActionRoute = string.IsNullOrWhiteSpace(dto.ActionRoute) ? "/" : dto.ActionRoute.Trim();
+        entity.ImageUrl = dto.ImageUrl?.Trim();
         entity.IsActive = dto.IsActive;
         entity.UpdatedAt = DateTime.UtcNow;
         entity.UpdatedBy = userId;
@@ -232,6 +234,7 @@ public class ReminderService : IReminderService
             TargetRole = original.TargetRole,
             DisplayType = original.DisplayType,
             ActionRoute = original.ActionRoute,
+            ImageUrl = original.ImageUrl,
             IsActive = false,
             CreatedAt = DateTime.UtcNow,
             CreatedBy = userId
@@ -302,6 +305,7 @@ public class ReminderService : IReminderService
             DurationDays = r.DurationDays,
             DisplayType = r.DisplayType,
             ActionRoute = r.ActionRoute,
+            ImageUrl = r.ImageUrl,
             Priority = r.Priority,
             UpdatedAt = r.UpdatedAt ?? r.CreatedAt
         }).ToList();
@@ -369,7 +373,8 @@ public class ReminderService : IReminderService
                 role: roleFilter,
                 governorateId: null,
                 cityId: null,
-                mainCategoryId: null
+                mainCategoryId: null,
+                imageUrl: campaign.ImageUrl
             );
 
             campaign.LastTriggeredAt = DateTime.UtcNow;
@@ -410,6 +415,7 @@ public class ReminderService : IReminderService
             TargetRole = r.TargetRole,
             DisplayType = r.DisplayType,
             ActionRoute = r.ActionRoute,
+            ImageUrl = r.ImageUrl,
             IsActive = r.IsActive,
             ExecutionCount = r.ExecutionCount,
             LastTriggeredAt = r.LastTriggeredAt,
