@@ -21,6 +21,7 @@ public class SendNotificationRequest
     public string Message { get; set; } = string.Empty;
     public string? RelatedLink { get; set; }
     public string? ImageUrl { get; set; }
+    public string DeliveryChannel { get; set; } = "Both"; // Both, PushOnly, InAppOnly
     
     // Broadcast filters
     public string? TargetRole { get; set; }

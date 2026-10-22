@@ -122,6 +122,11 @@ public class ReminderService : IReminderService
             DisplayType = dto.DisplayType,
             ActionRoute = string.IsNullOrWhiteSpace(dto.ActionRoute) ? "/" : dto.ActionRoute.Trim(),
             ImageUrl = dto.ImageUrl?.Trim(),
+            DeliveryChannel = string.IsNullOrWhiteSpace(dto.DeliveryChannel) ? "Both" : dto.DeliveryChannel,
+            MessageSelectionMode = string.IsNullOrWhiteSpace(dto.MessageSelectionMode) ? "Single" : dto.MessageSelectionMode,
+            MessageBankJson = dto.MessageBankItems != null && dto.MessageBankItems.Any()
+                ? System.Text.Json.JsonSerializer.Serialize(dto.MessageBankItems)
+                : dto.MessageBankJson,
             IsActive = dto.IsActive,
             CreatedAt = DateTime.UtcNow,
             CreatedBy = userId
@@ -164,6 +169,16 @@ public class ReminderService : IReminderService
         entity.DisplayType = dto.DisplayType;
         entity.ActionRoute = string.IsNullOrWhiteSpace(dto.ActionRoute) ? "/" : dto.ActionRoute.Trim();
         entity.ImageUrl = dto.ImageUrl?.Trim();
+        entity.DeliveryChannel = string.IsNullOrWhiteSpace(dto.DeliveryChannel) ? "Both" : dto.DeliveryChannel;
+        entity.MessageSelectionMode = string.IsNullOrWhiteSpace(dto.MessageSelectionMode) ? "Single" : dto.MessageSelectionMode;
+        if (dto.MessageBankItems != null && dto.MessageBankItems.Any())
+        {
+            entity.MessageBankJson = System.Text.Json.JsonSerializer.Serialize(dto.MessageBankItems);
+        }
+        else if (dto.MessageBankJson != null)
+        {
+            entity.MessageBankJson = dto.MessageBankJson;
+        }
         entity.IsActive = dto.IsActive;
         entity.UpdatedAt = DateTime.UtcNow;
         entity.UpdatedBy = userId;
@@ -235,6 +250,9 @@ public class ReminderService : IReminderService
             DisplayType = original.DisplayType,
             ActionRoute = original.ActionRoute,
             ImageUrl = original.ImageUrl,
+            DeliveryChannel = original.DeliveryChannel ?? "Both",
+            MessageSelectionMode = original.MessageSelectionMode ?? "Single",
+            MessageBankJson = original.MessageBankJson,
             IsActive = false,
             CreatedAt = DateTime.UtcNow,
             CreatedBy = userId
@@ -261,8 +279,6 @@ public class ReminderService : IReminderService
             // Date checks
             if (nowUtc < r.StartDate) return false;
             if (r.EndDate.HasValue && nowUtc > r.EndDate.Value) return false;
-            // DurationDays applies only when EndDate is NOT explicitly set
-            // (if EndDate was computed from DurationDays it's already set above)
             if (!r.EndDate.HasValue && r.DurationDays.HasValue && nowUtc > r.StartDate.AddDays(r.DurationDays.Value)) return false;
 
             // Language check
@@ -341,6 +357,8 @@ public class ReminderService : IReminderService
             TargetAudience = ReminderTargetAudience.Testers,
             DisplayType = ReminderDisplayType.NotificationBar,
             ActionRoute = "/",
+            DeliveryChannel = "Both",
+            MessageSelectionMode = "Single",
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             CreatedBy = userId ?? "System"
@@ -362,19 +380,64 @@ public class ReminderService : IReminderService
 
         string? roleFilter = string.IsNullOrWhiteSpace(campaign.TargetRole) ? null : campaign.TargetRole;
         string actionRoute = string.IsNullOrWhiteSpace(campaign.ActionRoute) ? "/" : campaign.ActionRoute;
+        string titleToSend = campaign.Title;
+        string messageToSend = campaign.Message;
+        string? imageToSend = campaign.ImageUrl;
+
+        // Message Bank selection
+        if ((campaign.MessageSelectionMode == "RandomBank" || campaign.MessageSelectionMode == "Random" || 
+             campaign.MessageSelectionMode == "ScheduledBank" || campaign.MessageSelectionMode == "Scheduled") 
+            && !string.IsNullOrWhiteSpace(campaign.MessageBankJson))
+        {
+            try
+            {
+                var bankItems = System.Text.Json.JsonSerializer.Deserialize<List<ReminderMessageBankItemDto>>(campaign.MessageBankJson);
+                if (bankItems != null && bankItems.Count > 0)
+                {
+                    ReminderMessageBankItemDto? chosenItem = null;
+                    if (campaign.MessageSelectionMode.StartsWith("Random", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var rand = new Random();
+                        chosenItem = bankItems[rand.Next(bankItems.Count)];
+                    }
+                    else
+                    {
+                        chosenItem = bankItems.FirstOrDefault(b => !b.IsSent) ?? bankItems.FirstOrDefault();
+                    }
+
+                    if (chosenItem != null)
+                    {
+                        if (!string.IsNullOrWhiteSpace(chosenItem.Title)) titleToSend = chosenItem.Title;
+                        if (!string.IsNullOrWhiteSpace(chosenItem.Message)) messageToSend = chosenItem.Message;
+                        if (!string.IsNullOrWhiteSpace(chosenItem.ImageUrl)) imageToSend = chosenItem.ImageUrl;
+                        if (!string.IsNullOrWhiteSpace(chosenItem.ActionRoute)) actionRoute = chosenItem.ActionRoute;
+
+                        chosenItem.IsSent = true;
+                        chosenItem.SentAt = DateTime.UtcNow;
+                        chosenItem.SendCount++;
+                        campaign.MessageBankJson = System.Text.Json.JsonSerializer.Serialize(bankItems);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ReminderService] Error selecting bank item: {ex.Message}");
+            }
+        }
 
         try
         {
             await _notificationService.SendBroadcastAsync(
-                title: campaign.Title,
-                message: campaign.Message,
+                title: titleToSend,
+                message: messageToSend,
                 type: "Reminder",
                 link: actionRoute,
                 role: roleFilter,
                 governorateId: null,
                 cityId: null,
                 mainCategoryId: null,
-                imageUrl: campaign.ImageUrl
+                imageUrl: imageToSend,
+                deliveryChannel: campaign.DeliveryChannel ?? "Both"
             );
 
             campaign.LastTriggeredAt = DateTime.UtcNow;
@@ -383,7 +446,7 @@ public class ReminderService : IReminderService
             campaign.UpdatedBy = userId;
             await _context.SaveChangesAsync();
 
-            return (true, $"تم إرسال التذكير '{campaign.Title}' بنجاح! وصل الإشعار فوراً للمستخدمين المستهدفين (SignalR + FCM Push + صندوق الإشعارات).");
+            return (true, $"تم إرسال التذكير '{titleToSend}' بنجاح عبر قناة ({campaign.DeliveryChannel})!");
         }
         catch (Exception ex)
         {
@@ -393,6 +456,16 @@ public class ReminderService : IReminderService
 
     private static ReminderCampaignDto MapToDto(ReminderCampaign r)
     {
+        List<ReminderMessageBankItemDto> parsedBank = new();
+        if (!string.IsNullOrWhiteSpace(r.MessageBankJson))
+        {
+            try 
+            { 
+                parsedBank = System.Text.Json.JsonSerializer.Deserialize<List<ReminderMessageBankItemDto>>(r.MessageBankJson) ?? new(); 
+            } 
+            catch {}
+        }
+
         return new ReminderCampaignDto
         {
             Id = r.Id,
@@ -416,6 +489,10 @@ public class ReminderService : IReminderService
             DisplayType = r.DisplayType,
             ActionRoute = r.ActionRoute,
             ImageUrl = r.ImageUrl,
+            DeliveryChannel = r.DeliveryChannel ?? "Both",
+            MessageSelectionMode = r.MessageSelectionMode ?? "Single",
+            MessageBankJson = r.MessageBankJson,
+            MessageBankItems = parsedBank,
             IsActive = r.IsActive,
             ExecutionCount = r.ExecutionCount,
             LastTriggeredAt = r.LastTriggeredAt,

@@ -264,10 +264,25 @@ public class FcmPushService : IFcmPushService
             ["navigate_to"] = actionRoute ?? "/"
         };
 
+        string? resolvedImageUrl = null;
         if (!string.IsNullOrWhiteSpace(imageUrl))
         {
-            dataPayload["image"] = imageUrl.Trim();
-            dataPayload["image_url"] = imageUrl.Trim();
+            var trimmed = imageUrl.Trim();
+            if (trimmed.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+            {
+                resolvedImageUrl = "https://" + trimmed.Substring(7);
+            }
+            else if (trimmed.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                resolvedImageUrl = trimmed;
+            }
+            else
+            {
+                resolvedImageUrl = "https://khadamawy.eis-dev.com/" + trimmed.TrimStart('/');
+            }
+
+            dataPayload["image"] = resolvedImageUrl;
+            dataPayload["image_url"] = resolvedImageUrl;
         }
 
         // Firebase multicast accepts max 500 tokens per call
@@ -283,7 +298,7 @@ public class FcmPushService : IFcmPushService
                 {
                     Title = title,
                     Body = body,
-                    ImageUrl = !string.IsNullOrWhiteSpace(imageUrl) ? imageUrl.Trim() : null
+                    ImageUrl = resolvedImageUrl
                 },
                 Data = dataPayload,
                 Android = new AndroidConfig
@@ -293,8 +308,7 @@ public class FcmPushService : IFcmPushService
                     {
                         ChannelId = "khadamawy_reminders_channel",
                         Sound = "default",
-                        ClickAction = "OPEN_APP",
-                        ImageUrl = !string.IsNullOrWhiteSpace(imageUrl) ? imageUrl.Trim() : null
+                                                ImageUrl = resolvedImageUrl
                     }
                 },
                 Apns = new ApnsConfig

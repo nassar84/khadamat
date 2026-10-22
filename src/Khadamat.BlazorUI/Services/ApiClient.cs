@@ -1136,7 +1136,59 @@ public class ApiClient
         return response.IsSuccessStatusCode;
     }
 
-    public async Task<(bool Success, string? Message)> SendAdminNotificationAsync(string? userId, string title, string message, string? link = null, string? role = null, int? govId = null, int? cityId = null, int? catId = null, string? imageUrl = null)
+    public async Task<bool> MarkMultipleNotificationsAsReadAsync(List<int> ids)
+    {
+        try
+        {
+            var response = await _http.PostAsJsonAsync("v1/notifications/batch-read", ids);
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> DeleteNotificationAsync(int id)
+    {
+        try
+        {
+            var response = await _http.DeleteAsync($"v1/notifications/{id}");
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> DeleteNotificationsAsync(List<int> ids)
+    {
+        try
+        {
+            var response = await _http.PostAsJsonAsync("v1/notifications/batch-delete", ids);
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> DeleteAllNotificationsAsync()
+    {
+        try
+        {
+            var response = await _http.DeleteAsync("v1/notifications/all");
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<(bool Success, string? Message)> SendAdminNotificationAsync(string? userId, string title, string message, string? link = null, string? role = null, int? govId = null, int? cityId = null, int? catId = null, string? imageUrl = null, string deliveryChannel = "Both")
     {
         try
         {
@@ -1146,6 +1198,7 @@ public class ApiClient
                 Message = message, 
                 RelatedLink = link,
                 ImageUrl = imageUrl,
+                DeliveryChannel = deliveryChannel,
                 TargetRole = role,
                 GovernorateId = govId,
                 CityId = cityId,

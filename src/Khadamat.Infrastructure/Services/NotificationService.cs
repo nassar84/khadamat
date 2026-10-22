@@ -20,40 +20,49 @@ public class NotificationService : INotificationService
         _scopeFactory = scopeFactory;
     }
 
-    public async Task SendNotificationAsync(string userId, string title, string message, string type = "System", string? link = null, string? imageUrl = null)
+    public async Task SendNotificationAsync(string userId, string title, string message, string type = "System", string? link = null, string? imageUrl = null, string deliveryChannel = "Both")
     {
-        var notification = new Notification
+        bool shouldSendInApp = !string.Equals(deliveryChannel, "PushOnly", StringComparison.OrdinalIgnoreCase);
+        bool shouldSendPush = !string.Equals(deliveryChannel, "InAppOnly", StringComparison.OrdinalIgnoreCase);
+
+        if (shouldSendInApp)
         {
-            UserId = userId,
-            Title = title,
-            Message = message,
-            Type = type,
-            RelatedLink = link,
-            ImageUrl = imageUrl,
-            IsRead = false,
-            CreatedAt = DateTime.UtcNow
-        };
+            var notification = new Notification
+            {
+                UserId = userId,
+                Title = title,
+                Message = message,
+                Type = type,
+                RelatedLink = link,
+                ImageUrl = imageUrl,
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            };
 
-        _context.Notifications.Add(notification);
-        await _context.SaveChangesAsync();
+            _context.Notifications.Add(notification);
+            await _context.SaveChangesAsync();
 
-        // Push real-time via SignalR
-        await _notifier.NotifyUserAsync(userId, title, message);
+            // Push real-time via SignalR
+            await _notifier.NotifyUserAsync(userId, title, message);
+        }
 
-        // Push to mobile devices via FCM in background (safe scoped execution)
-        _ = Task.Run(async () =>
+        if (shouldSendPush)
         {
-            try
+            // Push to mobile devices via FCM in background (safe scoped execution)
+            _ = Task.Run(async () =>
             {
-                using var scope = _scopeFactory.CreateScope();
-                var fcm = scope.ServiceProvider.GetRequiredService<IFcmPushService>();
-                await fcm.SendPushToUserAsync(userId, title, message, link, imageUrl);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[NotificationService] FCM push error: {ex.Message}");
-            }
-        });
+                try
+                {
+                    using var scope = _scopeFactory.CreateScope();
+                    var fcm = scope.ServiceProvider.GetRequiredService<IFcmPushService>();
+                    await fcm.SendPushToUserAsync(userId, title, message, link, imageUrl);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[NotificationService] FCM push error: {ex.Message}");
+                }
+            });
+        }
     }
 
     public async Task<List<NotificationDto>> GetUserNotificationsAsync(string userId)
@@ -90,6 +99,20 @@ public class NotificationService : INotificationService
         }
     }
 
+    public async Task MarkMultipleAsReadAsync(string userId, List<int> notificationIds)
+    {
+        if (notificationIds == null || notificationIds.Count == 0) return;
+        var items = await _context.Notifications
+            .Where(n => n.UserId == userId && notificationIds.Contains(n.Id) && !n.IsRead)
+            .ToListAsync();
+
+        if (items.Any())
+        {
+            foreach (var n in items) n.IsRead = true;
+            await _context.SaveChangesAsync();
+        }
+    }
+
     public async Task MarkAllAsReadAsync(string userId)
     {
         var unread = await _context.Notifications
@@ -102,7 +125,45 @@ public class NotificationService : INotificationService
             await _context.SaveChangesAsync();
         }
     }
-    public async Task SendBroadcastAsync(string title, string message, string type, string? link, string? role, int? governorateId, int? cityId, int? mainCategoryId, string? imageUrl = null)
+
+    public async Task DeleteNotificationAsync(string userId, int notificationId)
+    {
+        var item = await _context.Notifications.FirstOrDefaultAsync(n => n.Id == notificationId && n.UserId == userId);
+        if (item != null)
+        {
+            _context.Notifications.Remove(item);
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task DeleteNotificationsAsync(string userId, List<int> notificationIds)
+    {
+        if (notificationIds == null || notificationIds.Count == 0) return;
+        var items = await _context.Notifications
+            .Where(n => n.UserId == userId && notificationIds.Contains(n.Id))
+            .ToListAsync();
+
+        if (items.Any())
+        {
+            _context.Notifications.RemoveRange(items);
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task DeleteAllNotificationsAsync(string userId)
+    {
+        var items = await _context.Notifications
+            .Where(n => n.UserId == userId)
+            .ToListAsync();
+
+        if (items.Any())
+        {
+            _context.Notifications.RemoveRange(items);
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task SendBroadcastAsync(string title, string message, string type, string? link, string? role, int? governorateId, int? cityId, int? mainCategoryId, string? imageUrl = null, string deliveryChannel = "Both")
     {
         try
         {
@@ -144,7 +205,7 @@ public class NotificationService : INotificationService
 
             var targetUserIds = await usersQuery.Select(u => u.Id).ToListAsync();
 
-            Console.WriteLine($"[NotificationService] Broadcasting '{title}' to {targetUserIds.Count} users");
+            Console.WriteLine($"[NotificationService] Broadcasting '{title}' (Channel: {deliveryChannel}) to {targetUserIds.Count} users");
 
             if (targetUserIds.Count == 0)
             {
@@ -152,49 +213,58 @@ public class NotificationService : INotificationService
                 return;
             }
 
-            var notifications = targetUserIds.Select(userId => new Notification
-            {
-                UserId = userId,
-                Title = title,
-                Message = message,
-                Type = type,
-                RelatedLink = link,
-                ImageUrl = imageUrl,
-                IsRead = false,
-                CreatedAt = DateTime.UtcNow
-            }).ToList();
+            bool shouldSendInApp = !string.Equals(deliveryChannel, "PushOnly", StringComparison.OrdinalIgnoreCase);
+            bool shouldSendPush = !string.Equals(deliveryChannel, "InAppOnly", StringComparison.OrdinalIgnoreCase);
 
-            _context.Notifications.AddRange(notifications);
-            await _context.SaveChangesAsync();
-
-            // Push real-time via SignalR to each user
-            foreach (var userId in targetUserIds)
+            if (shouldSendInApp)
             {
-                await _notifier.NotifyUserAsync(userId, title, message);
+                var notifications = targetUserIds.Select(userId => new Notification
+                {
+                    UserId = userId,
+                    Title = title,
+                    Message = message,
+                    Type = type,
+                    RelatedLink = link,
+                    ImageUrl = imageUrl,
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                }).ToList();
+
+                _context.Notifications.AddRange(notifications);
+                await _context.SaveChangesAsync();
+
+                // Push real-time via SignalR to each user
+                foreach (var userId in targetUserIds)
+                {
+                    await _notifier.NotifyUserAsync(userId, title, message);
+                }
             }
 
-            // Push to mobile devices via FCM in background (safe scoped execution)
-            bool isFilterApplied = !string.IsNullOrEmpty(role) || governorateId.HasValue || cityId.HasValue || mainCategoryId.HasValue;
-            _ = Task.Run(async () =>
+            if (shouldSendPush)
             {
-                try
+                // Push to mobile devices via FCM in background (safe scoped execution)
+                bool isFilterApplied = !string.IsNullOrEmpty(role) || governorateId.HasValue || cityId.HasValue || mainCategoryId.HasValue;
+                _ = Task.Run(async () =>
                 {
-                    using var scope = _scopeFactory.CreateScope();
-                    var fcm = scope.ServiceProvider.GetRequiredService<IFcmPushService>();
-                    if (!isFilterApplied)
+                    try
                     {
-                        await fcm.SendBroadcastPushAsync(title, message, link, imageUrl);
+                        using var scope = _scopeFactory.CreateScope();
+                        var fcm = scope.ServiceProvider.GetRequiredService<IFcmPushService>();
+                        if (!isFilterApplied)
+                        {
+                            await fcm.SendBroadcastPushAsync(title, message, link, imageUrl);
+                        }
+                        else
+                        {
+                            await fcm.SendPushToUsersAsync(targetUserIds, title, message, link, imageUrl);
+                        }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        await fcm.SendPushToUsersAsync(targetUserIds, title, message, link, imageUrl);
+                        Console.WriteLine($"[NotificationService] FCM broadcast push error: {ex.Message}");
                     }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[NotificationService] FCM broadcast push error: {ex.Message}");
-                }
-            });
+                });
+            }
         }
         catch (Exception ex)
         {
@@ -203,4 +273,3 @@ public class NotificationService : INotificationService
         }
     }
 }
-

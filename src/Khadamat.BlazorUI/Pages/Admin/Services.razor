@@ -103,21 +103,34 @@
                                             <span class="tree-label">@cat.Name</span>
                                             @if (subsOf.ContainsKey(cat.Id))
                                             {
-                                                <span class="badge bg-light text-dark border rounded-pill ms-2 x-small">
-                                                    @subsOf[cat.Id].Count
-                                                </span>
+                                                @if (subsOf[cat.Id].Any())
+                                                {
+                                                    <span class="badge bg-light text-dark border rounded-pill ms-2 x-small">
+                                                        @subsOf[cat.Id].Count فئة فرعية
+                                                    </span>
+                                                }
+                                                @if (directServicesOfCat.TryGetValue(cat.Id, out var dList) && dList.Any())
+                                                {
+                                                    <span class="badge bg-primary-subtle text-primary border rounded-pill ms-2 x-small">
+                                                        @dList.Count خدمة
+                                                    </span>
+                                                }
                                             }
                                         </div>
 
-                                        <!-- ── مستوى 2: الفئات الفرعية (SubCategories) ── -->
-                                        @if (expandedCat == cat.Id && subsOf.TryGetValue(cat.Id, out var subs))
+                                        <!-- ── مستوى 2: الفئات الفرعية والخدمات المباشرة ── -->
+                                        @if (expandedCat == cat.Id)
                                         {
-                                            @if (!subs.Any())
+                                            var subs = subsOf.TryGetValue(cat.Id, out var sList) ? sList : new();
+                                            var dirSvcs = directServicesOfCat.TryGetValue(cat.Id, out var dList) ? dList : new();
+
+                                            @if (!subs.Any() && !dirSvcs.Any())
                                             {
-                                                <div class="tree-empty ms-4">لا توجد فئات فرعية</div>
+                                                <div class="tree-empty ms-4">لا توجد خدمات أو فئات فرعية في هذا القسم</div>
                                             }
                                             else
                                             {
+                                                @* 1. الفئات الفرعية إن وجدت *@
                                                 @foreach (var sub in subs)
                                                 {
                                                     <div class="tree-node level-2 ms-3">
@@ -143,7 +156,7 @@
                                                             }
                                                         </div>
 
-                                                        <!-- ── مستوى 3: الخدمات ── -->
+                                                        <!-- ── مستوى 3: الخدمات تحت الفئة الفرعية ── -->
                                                         @if (expandedSub == sub.Id && servicesOf.TryGetValue(sub.Id, out var svcs))
                                                         {
                                                             @if (!svcs.Any())
@@ -155,56 +168,30 @@
                                                                 @foreach (var svc in svcs)
                                                                 {
                                                                     <div class="tree-node level-3 ms-3">
-                                                                        <div class="tree-row service-row">
-                                                                            <span class="toggle-icon invisible"><i class="fa-solid fa-chevron-left x-small"></i></span>
-                                                                            <i class="fa-solid fa-briefcase text-success ms-1"></i>
-                                                                            <span class="tree-label flex-grow-1">@svc.Name</span>
-
-                                                                            @if (!svc.IsApproved)
-                                                                            {
-                                                                                <span class="badge bg-warning text-dark rounded-pill x-small me-2">قيد الانتظار</span>
-                                                                            }
-
-                                                                            <!-- أزرار الخدمة -->
-                                                                            <div class="svc-actions d-flex gap-1">
-                                                                                <button class="btn btn-sm btn-light border text-primary" title="تعديل"
-                                                                                        @onclick:stopPropagation="true"
-                                                                                        @onclick="() => OpenEditService(svc)">
-                                                                                    <i class="fa-solid fa-pen x-small"></i>
-                                                                                </button>
-                                                                                <button class="btn btn-sm btn-light border text-secondary" title="ربط بمستخدم"
-                                                                                        @onclick:stopPropagation="true"
-                                                                                        @onclick="() => OpenChangeOwner(svc)">
-                                                                                    <i class="fa-solid fa-user-gear x-small"></i>
-                                                                                </button>
-                                                                                @if (!svc.IsApproved)
-                                                                                {
-                                                                                    <button class="btn btn-sm btn-light border text-success" title="اعتماد"
-                                                                                            @onclick:stopPropagation="true"
-                                                                                            @onclick="() => Approve(svc, sub.Id)">
-                                                                                        <i class="fa-solid fa-check x-small"></i>
-                                                                                    </button>
-                                                                                }
-                                                                                @if (svc.IsApproved)
-                                                                                {
-                                                                                    <button class="btn btn-sm btn-light border text-warning" title="إلغاء اعتماد"
-                                                                                            @onclick:stopPropagation="true"
-                                                                                            @onclick="() => Reject(svc, sub.Id)">
-                                                                                        <i class="fa-solid fa-xmark x-small"></i>
-                                                                                    </button>
-                                                                                }
-                                                                                <button class="btn btn-sm btn-light border text-danger" title="حذف"
-                                                                                        @onclick:stopPropagation="true"
-                                                                                        @onclick="() => DeleteService(svc, sub.Id)">
-                                                                                    <i class="fa-solid fa-trash x-small"></i>
-                                                                                </button>
-                                                                            </div>
-                                                                        </div>
+                                                                        @RenderServiceNode(svc, sub.Id, false)
                                                                     </div>
                                                                 }
                                                             }
                                                         }
                                                     </div>
+                                                }
+
+                                                @* 2. الخدمات المسجلة على القسم مباشرة (بدون فئة فرعية أو للأقسام التي ليس بها فئات فرعية مثل حدادة) *@
+                                                @if (dirSvcs.Any())
+                                                {
+                                                    @if (subs.Any())
+                                                    {
+                                                        <div class="ms-4 my-2 text-muted x-small fw-bold">
+                                                            <i class="fa-solid fa-briefcase text-secondary me-1"></i>خدمات مسجلة على القسم مباشرة:
+                                                        </div>
+                                                    }
+
+                                                    @foreach (var svc in dirSvcs)
+                                                    {
+                                                        <div class="tree-node @(subs.Any() ? "level-3 ms-4" : "level-2 ms-3")">
+                                                            @RenderServiceNode(svc, cat.Id, true)
+                                                        </div>
+                                                    }
                                                 }
                                             }
                                         }
@@ -666,7 +653,8 @@
     // ── بيانات محمّلة حسب الحاجة ──
     private readonly Dictionary<int, List<CategoryDto>>    categoriesOf = new();
     private readonly Dictionary<int, List<SubCategoryDto>> subsOf       = new();
-    private readonly Dictionary<int, List<ServiceNode>>    servicesOf   = new();
+        private readonly Dictionary<int, List<ServiceNode>>    servicesOf   = new();
+    private readonly Dictionary<int, List<ServiceNode>>    directServicesOfCat = new();
 
     // ── نموذج الخدمة مبسّط للعرض في الشجرة ──
     public class ServiceNode
@@ -775,19 +763,36 @@
         expandedCat = catId;
         expandedSub = null;
 
-        if (!subsOf.ContainsKey(catId))
+        if (!subsOf.ContainsKey(catId) || !directServicesOfCat.ContainsKey(catId))
         {
             loadingNodeId = $"c{catId}";
             StateHasChanged();
             try
             {
-                var subs = await Api.GetSubCategoriesByCategoryIdAsync(catId);
+                var subsTask = Api.GetSubCategoriesByCategoryIdAsync(catId);
+                var svcsTask = Api.GetServicesAsync(categoryId: catId, isApproved: null, pageSize: 200);
+                await Task.WhenAll(subsTask, svcsTask);
+
+                var subs = subsTask.Result ?? new();
                 subsOf[catId] = subs;
+
+                var allCatSvcs = svcsTask.Result?.Items ?? new List<ServiceDto>();
+                var directSvcs = subs.Any()
+                    ? allCatSvcs.Where(s => s.SubCategoryId == null).ToList()
+                    : allCatSvcs;
+
+                directServicesOfCat[catId] = directSvcs.Select(s => new ServiceNode
+                {
+                    Id         = s.Id,
+                    Name       = s.Title,
+                    IsApproved = s.IsApproved
+                }).ToList();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[AdminServices] Load subs error: {ex.Message}");
+                Console.WriteLine($"[AdminServices] Load cat data error: {ex.Message}");
                 subsOf[catId] = new();
+                directServicesOfCat[catId] = new();
             }
             finally
             {
@@ -840,8 +845,58 @@
         await ToggleSub(subId);
     }
 
+    // ── قالب عرض صف الخدمة (مشترك للخدمات المباشرة والفرعية) ──
+    private RenderFragment RenderServiceNode(ServiceNode svc, int parentId, bool isDirect) => __builder =>
+    {
+        <div class="tree-row service-row">
+            <span class="toggle-icon invisible"><i class="fa-solid fa-chevron-left x-small"></i></span>
+            <i class="fa-solid fa-briefcase text-success ms-1"></i>
+            <span class="tree-label flex-grow-1">@svc.Name</span>
+
+            @if (!svc.IsApproved)
+            {
+                <span class="badge bg-warning text-dark rounded-pill x-small me-2">قيد الانتظار</span>
+            }
+
+            <!-- أزرار الخدمة -->
+            <div class="svc-actions d-flex gap-1">
+                <button class="btn btn-sm btn-light border text-primary" title="تعديل"
+                        @onclick:stopPropagation="true"
+                        @onclick="() => OpenEditService(svc)">
+                    <i class="fa-solid fa-pen x-small"></i>
+                </button>
+                <button class="btn btn-sm btn-light border text-secondary" title="ربط بمستخدم"
+                        @onclick:stopPropagation="true"
+                        @onclick="() => OpenChangeOwner(svc)">
+                    <i class="fa-solid fa-user-gear x-small"></i>
+                </button>
+                @if (!svc.IsApproved)
+                {
+                    <button class="btn btn-sm btn-light border text-success" title="اعتماد"
+                            @onclick:stopPropagation="true"
+                            @onclick="() => Approve(svc)">
+                        <i class="fa-solid fa-check x-small"></i>
+                    </button>
+                }
+                @if (svc.IsApproved)
+                {
+                    <button class="btn btn-sm btn-light border text-warning" title="إلغاء اعتماد"
+                            @onclick:stopPropagation="true"
+                            @onclick="() => Reject(svc)">
+                        <i class="fa-solid fa-xmark x-small"></i>
+                    </button>
+                }
+                <button class="btn btn-sm btn-light border text-danger" title="حذف"
+                        @onclick:stopPropagation="true"
+                        @onclick="() => DeleteService(svc, parentId, isDirect)">
+                    <i class="fa-solid fa-trash x-small"></i>
+                </button>
+            </div>
+        </div>
+    };
+
     // ── إجراءات الخدمة ──
-    private async Task Approve(ServiceNode node, int subId)
+    private async Task Approve(ServiceNode node)
     {
         try
         {
@@ -852,7 +907,7 @@
         catch (Exception ex) { Console.WriteLine($"Approve error: {ex.Message}"); }
     }
 
-    private async Task Reject(ServiceNode node, int subId)
+    private async Task Reject(ServiceNode node)
     {
         try
         {
@@ -863,17 +918,27 @@
         catch (Exception ex) { Console.WriteLine($"Reject error: {ex.Message}"); }
     }
 
-    private async Task DeleteService(ServiceNode node, int subId)
+    private async Task DeleteService(ServiceNode node, int parentId, bool isDirect = false)
     {
         if (!await JS.InvokeAsync<bool>("confirm", $"هل أنت متأكد من حذف الخدمة: {node.Name}؟")) return;
         try
         {
             await Api.DeleteServiceAsync(node.Id);
-            if (servicesOf.TryGetValue(subId, out var list))
+            if (isDirect)
             {
-                list.RemoveAll(s => s.Id == node.Id);
-                StateHasChanged();
+                if (directServicesOfCat.TryGetValue(parentId, out var dList))
+                {
+                    dList.RemoveAll(s => s.Id == node.Id);
+                }
             }
+            else
+            {
+                if (servicesOf.TryGetValue(parentId, out var list))
+                {
+                    list.RemoveAll(s => s.Id == node.Id);
+                }
+            }
+            StateHasChanged();
         }
         catch (Exception ex)
         {
@@ -954,6 +1019,11 @@
 
             // تحديث اسم الخدمة في الشجرة مباشرة بدون إعادة تحميل كاملة
             foreach (var kvp in servicesOf)
+            {
+                var svc = kvp.Value.FirstOrDefault(s => s.Id == editServiceId);
+                if (svc != null) { svc.Name = model.Title; break; }
+            }
+            foreach (var kvp in directServicesOfCat)
             {
                 var svc = kvp.Value.FirstOrDefault(s => s.Id == editServiceId);
                 if (svc != null) { svc.Name = model.Title; break; }

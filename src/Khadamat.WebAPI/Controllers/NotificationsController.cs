@@ -53,6 +53,18 @@ public class NotificationsController : ControllerBase
         return Ok(ApiResponse<bool>.Succeed(true));
     }
 
+    [HttpPost("batch-read")]
+    public async Task<ActionResult<ApiResponse<bool>>> MarkMultipleAsRead([FromBody] List<int> ids)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) 
+                     ?? User.FindFirst("sub")?.Value 
+                     ?? User.FindFirst("nameid")?.Value;
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        await _notificationService.MarkMultipleAsReadAsync(userId, ids);
+        return Ok(ApiResponse<bool>.Succeed(true));
+    }
+
     [HttpPost("read-all")]
     public async Task<ActionResult<ApiResponse<bool>>> MarkAllAsRead()
     {
@@ -65,6 +77,42 @@ public class NotificationsController : ControllerBase
         return Ok(ApiResponse<bool>.Succeed(true));
     }
 
+    [HttpDelete("{id}")]
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteNotification(int id)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) 
+                     ?? User.FindFirst("sub")?.Value 
+                     ?? User.FindFirst("nameid")?.Value;
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        await _notificationService.DeleteNotificationAsync(userId, id);
+        return Ok(ApiResponse<bool>.Succeed(true));
+    }
+
+    [HttpPost("batch-delete")]
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteMultiple([FromBody] List<int> ids)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) 
+                     ?? User.FindFirst("sub")?.Value 
+                     ?? User.FindFirst("nameid")?.Value;
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        await _notificationService.DeleteNotificationsAsync(userId, ids);
+        return Ok(ApiResponse<bool>.Succeed(true));
+    }
+
+    [HttpDelete("all")]
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteAll()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) 
+                     ?? User.FindFirst("sub")?.Value 
+                     ?? User.FindFirst("nameid")?.Value;
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        await _notificationService.DeleteAllNotificationsAsync(userId);
+        return Ok(ApiResponse<bool>.Succeed(true));
+    }
+
     [HttpPost("send")]
     [Authorize(Roles = "Admin,SystemAdmin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> SendNotification([FromBody] SendNotificationRequest request)
@@ -74,10 +122,11 @@ public class NotificationsController : ControllerBase
 
         try
         {
+            var channel = string.IsNullOrWhiteSpace(request.DeliveryChannel) ? "Both" : request.DeliveryChannel;
             if (!string.IsNullOrEmpty(request.UserId))
             {
                 await _notificationService.SendNotificationAsync(
-                    request.UserId, request.Title, request.Message, "Admin", request.RelatedLink, request.ImageUrl);
+                    request.UserId, request.Title, request.Message, "Admin", request.RelatedLink, request.ImageUrl, deliveryChannel: channel);
             }
             else
             {
@@ -90,7 +139,8 @@ public class NotificationsController : ControllerBase
                     request.GovernorateId,
                     request.CityId,
                     request.MainCategoryId,
-                    request.ImageUrl);
+                    request.ImageUrl,
+                    deliveryChannel: channel);
             }
 
             return Ok(ApiResponse<bool>.Succeed(true));
@@ -142,5 +192,3 @@ public class NotificationsController : ControllerBase
         return Ok(ApiResponse<string>.Succeed($"تم تشغيل إشعار FCM التجريبي! تم التسليم إلى {count} جهاز مسجل."));
     }
 }
-
-

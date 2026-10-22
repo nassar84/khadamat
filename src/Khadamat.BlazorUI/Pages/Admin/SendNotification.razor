@@ -193,6 +193,52 @@
                     }
                 </div>
 
+                <!-- Delivery Channel Selection -->
+                <div class="mb-4 p-3 bg-light rounded-4 border">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label fw-bold mb-0">
+                            <i class="fas fa-tower-broadcast text-primary me-1"></i> قناة الإرسال ومكان الظهور
+                        </label>
+                        <span class="badge bg-primary-subtle text-primary border small">
+                            @(request.DeliveryChannel switch {
+                                "PushOnly" => "شاشة الموبايل فقط",
+                                "InAppOnly" => "داخلي فقط",
+                                _ => "كلاهما (موبايل + داخلي)"
+                            })
+                        </span>
+                    </div>
+                    <div class="btn-group w-100 shadow-sm rounded-pill overflow-hidden" role="group">
+                        <input type="radio" class="btn-check" name="deliveryChannel" id="channelBoth" @onclick='() => request.DeliveryChannel = "Both"' checked="@(request.DeliveryChannel == "Both" || string.IsNullOrEmpty(request.DeliveryChannel))">
+                        <label class="btn btn-outline-primary btn-sm py-2" for="channelBoth" title="يصل على شاشة الهاتف كـ Push Notification ويظهر أيضاً داخل التطبيق">
+                            <i class="fas fa-layer-group me-1"></i> كلاهما (شاشة الهاتف + داخلي)
+                        </label>
+
+                        <input type="radio" class="btn-check" name="deliveryChannel" id="channelPushOnly" @onclick='() => request.DeliveryChannel = "PushOnly"' checked="@(request.DeliveryChannel == "PushOnly")">
+                        <label class="btn btn-outline-primary btn-sm py-2" for="channelPushOnly" title="يصل كإشعار خارجي فقط على شاشة الموبايل دون حفظه داخل صندوق الإشعارات">
+                            <i class="fas fa-mobile-screen me-1"></i> شاشة الموبايل فقط
+                        </label>
+
+                        <input type="radio" class="btn-check" name="deliveryChannel" id="channelInAppOnly" @onclick='() => request.DeliveryChannel = "InAppOnly"' checked="@(request.DeliveryChannel == "InAppOnly")">
+                        <label class="btn btn-outline-primary btn-sm py-2" for="channelInAppOnly" title="يظهر فقط داخل التطبيق في الجرس وشريط التنبيهات دون إرسال push notification خارجي">
+                            <i class="fas fa-inbox me-1"></i> داخلي فقط
+                        </label>
+                    </div>
+                    <div class="text-muted smaller mt-2">
+                        @if (request.DeliveryChannel == "PushOnly")
+                        {
+                            <span><i class="fas fa-info-circle me-1 text-warning"></i> سيصل التنبيه على شاشة قفل الموبايل وشريط النظام ولن يُحفظ في مركز التنبيهات الداخلي.</span>
+                        }
+                        else if (request.DeliveryChannel == "InAppOnly")
+                        {
+                            <span><i class="fas fa-info-circle me-1 text-info"></i> سيظهر التنبيه داخل التطبيق فقط عند فتح المستخدم للتطبيق (في الجرس والشريط).</span>
+                        }
+                        else
+                        {
+                            <span><i class="fas fa-check-circle me-1 text-success"></i> الخيار القياسي الموصى به: يظهر على شاشة الهاتف ويُحفظ داخل مركز التنبيهات.</span>
+                        }
+                    </div>
+                </div>
+
                 <button class="btn btn-primary-premium w-100 py-3 rounded-pill shadow" @onclick="HandleSubmit" disabled="@isSubmitting">
                     @if (isSubmitting)
                     {
@@ -529,7 +575,8 @@
                 request.GovernorateId,
                 request.CityId,
                 request.MainCategoryId,
-                request.ImageUrl);
+                request.ImageUrl,
+                request.DeliveryChannel ?? "Both");
             if (success)
             {
                  await JS.InvokeVoidAsync("alert", "تم إرسال التنبيه بنجاح مع الصورة إلى هواتف المستخدمين!");

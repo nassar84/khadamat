@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Khadamat.Application.DTOs;
 using Khadamat.Application.Interfaces;
 using Khadamat.Domain.Entities;
 using Khadamat.Domain.Enums;
@@ -103,21 +105,70 @@ public class ReminderBackgroundWorker : BackgroundService
             _logger.LogInformation("[ReminderWorker] Triggering reminder '{Title}' (ID: {Id}) at {Time:HH:mm}", 
                 campaign.Title, campaign.Id, nowLocal);
 
-            // 2. Dispatch broadcast notification (persists to DB + SignalR + FCM Push)
+            // 2. Dispatch broadcast notification (persists to DB + SignalR + FCM Push depending on DeliveryChannel)
             string? roleFilter = string.IsNullOrWhiteSpace(campaign.TargetRole) ? null : campaign.TargetRole;
             string actionRoute = string.IsNullOrWhiteSpace(campaign.ActionRoute) ? "/" : campaign.ActionRoute;
+            string titleToSend = campaign.Title;
+            string messageToSend = campaign.Message;
+            string? imageToSend = campaign.ImageUrl;
+
+            // Handle Message Bank if configured
+            if ((campaign.MessageSelectionMode == "RandomBank" || campaign.MessageSelectionMode == "Random" || 
+                 campaign.MessageSelectionMode == "ScheduledBank" || campaign.MessageSelectionMode == "Scheduled") 
+                && !string.IsNullOrWhiteSpace(campaign.MessageBankJson))
+            {
+                try
+                {
+                    var bankItems = System.Text.Json.JsonSerializer.Deserialize<List<ReminderMessageBankItemDto>>(campaign.MessageBankJson);
+                    if (bankItems != null && bankItems.Count > 0)
+                    {
+                        ReminderMessageBankItemDto? chosenItem = null;
+                        if (campaign.MessageSelectionMode.StartsWith("Random", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var rand = new Random();
+                            chosenItem = bankItems[rand.Next(bankItems.Count)];
+                        }
+                        else
+                        {
+                            // Scheduled mode: prioritize items scheduled for today or un-sent items
+                            chosenItem = bankItems.FirstOrDefault(b => !b.IsSent && b.ScheduledDateTime.HasValue && b.ScheduledDateTime.Value.Date == nowLocal.Date)
+                                         ?? bankItems.FirstOrDefault(b => !b.IsSent)
+                                         ?? bankItems.FirstOrDefault();
+                        }
+
+                        if (chosenItem != null)
+                        {
+                            if (!string.IsNullOrWhiteSpace(chosenItem.Title)) titleToSend = chosenItem.Title;
+                            if (!string.IsNullOrWhiteSpace(chosenItem.Message)) messageToSend = chosenItem.Message;
+                            if (!string.IsNullOrWhiteSpace(chosenItem.ImageUrl)) imageToSend = chosenItem.ImageUrl;
+                            if (!string.IsNullOrWhiteSpace(chosenItem.ActionRoute)) actionRoute = chosenItem.ActionRoute;
+
+                            chosenItem.IsSent = true;
+                            chosenItem.SentAt = nowUtc;
+                            chosenItem.SendCount++;
+                            campaign.MessageBankJson = System.Text.Json.JsonSerializer.Serialize(bankItems);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "[ReminderWorker] Error selecting from MessageBank for campaign {Id}", campaign.Id);
+                }
+            }
 
             try
             {
                 await notificationService.SendBroadcastAsync(
-                    title: campaign.Title,
-                    message: campaign.Message,
+                    title: titleToSend,
+                    message: messageToSend,
                     type: "Reminder",
                     link: actionRoute,
                     role: roleFilter,
                     governorateId: null,
                     cityId: null,
-                    mainCategoryId: null
+                    mainCategoryId: null,
+                    imageUrl: imageToSend,
+                    deliveryChannel: campaign.DeliveryChannel ?? "Both"
                 );
 
                 // 3. Update campaign execution tracking

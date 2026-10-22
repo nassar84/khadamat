@@ -80,11 +80,29 @@ public class ReminderCampaignDto
 
     public string ActionRoute { get; set; } = "/";
     public string? ImageUrl { get; set; }
+    public string DeliveryChannel { get; set; } = "Both"; // Both, PushOnly, InAppOnly
+    public string MessageSelectionMode { get; set; } = "Single"; // Single, ScheduledBank, RandomBank
+    public string? MessageBankJson { get; set; }
+    public List<ReminderMessageBankItemDto> MessageBankItems { get; set; } = new();
+
     public bool IsActive { get; set; }
     public int ExecutionCount { get; set; }
     public DateTime? LastTriggeredAt { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+}
+
+public class ReminderMessageBankItemDto
+{
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    public string Title { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+    public string? ImageUrl { get; set; }
+    public string? ActionRoute { get; set; } = "/";
+    public DateTime? ScheduledDateTime { get; set; }
+    public bool IsSent { get; set; }
+    public DateTime? SentAt { get; set; }
+    public int SendCount { get; set; }
 }
 
 public class CreateReminderCampaignDto
@@ -113,6 +131,11 @@ public class CreateReminderCampaignDto
     public ReminderDisplayType DisplayType { get; set; } = ReminderDisplayType.NotificationBar;
     public string ActionRoute { get; set; } = "/";
     public string? ImageUrl { get; set; }
+    public string DeliveryChannel { get; set; } = "Both"; // Both, PushOnly, InAppOnly
+    public string MessageSelectionMode { get; set; } = "Single"; // Single, ScheduledBank, RandomBank
+    public string? MessageBankJson { get; set; }
+    public List<ReminderMessageBankItemDto> MessageBankItems { get; set; } = new();
+
     public bool IsActive { get; set; } = true;
 }
 
@@ -127,6 +150,8 @@ public class ReminderFilterDto
     public ReminderStatus? Status { get; set; }
     public ReminderTargetAudience? TargetAudience { get; set; }
     public ReminderDisplayType? DisplayType { get; set; }
+    public string? Role { get; set; }
+    public bool? IsActive { get; set; }
     public int Page { get; set; } = 1;
     public int PageSize { get; set; } = 20;
 }

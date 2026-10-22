@@ -29,6 +29,9 @@ public class ReminderCampaign : BaseEntity
     public ReminderDisplayType DisplayType { get; set; } = ReminderDisplayType.NotificationBar;
     public string ActionRoute { get; set; } = "/"; // Target internal page e.g. "/", "/profile", "/search"
     public string? ImageUrl { get; set; } // Rich image banner for notifications
+    public string DeliveryChannel { get; set; } = "Both"; // Both, PushOnly, InAppOnly
+    public string MessageSelectionMode { get; set; } = "Single"; // Single, ScheduledBank, RandomBank
+    public string? MessageBankJson { get; set; }
     
     public bool IsActive { get; set; } = true;
     public int ExecutionCount { get; set; } = 0;

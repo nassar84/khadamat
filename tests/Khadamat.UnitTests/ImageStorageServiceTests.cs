@@ -70,7 +70,7 @@ public class ImageStorageServiceTests : IDisposable
     }
 
     [Fact]
-    public void When_ConfiguredPath_IsEmpty_UsesLocalWwwrootImages()
+    public void When_ConfiguredPath_IsEmpty_UsesDefaultKhadamawyImages()
     {
         // Arrange
         var config = CreateConfig("");
@@ -79,8 +79,8 @@ public class ImageStorageServiceTests : IDisposable
         var service = new ImageStorageService(config, _mockEnv.Object, NullLogger<ImageStorageService>.Instance);
 
         // Assert
-        Assert.False(service.IsExternalStorageConfigured);
-        Assert.Equal(Path.Combine(_tempWwwrootDir, "images"), service.RootImagesPath);
+        Assert.True(service.IsExternalStorageConfigured);
+        Assert.Contains("KhadamawyImages", service.RootImagesPath);
     }
 
     [Fact]

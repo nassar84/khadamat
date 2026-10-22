@@ -15,7 +15,7 @@
                 </div>
                 <div>
                     <h2 class="fw-bold mb-0 text-dark">مركز التنبيهات</h2>
-                    <p class="text-muted mb-0 small">تابع آخر التحديثات والطلبات الخاصة بحسابك</p>
+                    <p class="text-muted mb-0 small">تابع آخر التحديثات والطلبات وتنبيهات الحساب</p>
                 </div>
                 @if (unreadCount > 0)
                 {
@@ -26,13 +26,31 @@
             </div>
         </div>
 
-        @if (State.IsLoggedIn && unreadCount > 0)
+        @if (State.IsLoggedIn && notifications != null && notifications.Any())
         {
-            <button class="btn btn-outline-primary rounded-pill px-3 py-2 btn-sm fw-bold shadow-sm d-flex align-items-center gap-2"
-                    @onclick="MarkAllAsRead" disabled="@isMarkingAll">
-                <i class="fa-solid fa-check-double"></i>
-                <span>@(isMarkingAll ? "جاري التحديد..." : "تحديد الكل كمقروء")</span>
-            </button>
+            <div class="d-flex gap-2 flex-wrap align-items-center">
+                @if (!isSelectionMode)
+                {
+                    <button class="btn btn-outline-secondary rounded-pill px-3 py-1.5 btn-sm fw-bold shadow-xs d-flex align-items-center gap-1.5"
+                            @onclick="EnterSelectionMode" title="تحديد عدة تنبيهات لتطبيق إجراء عليها">
+                        <i class="fa-solid fa-check-square"></i>
+                        <span>تحديد</span>
+                    </button>
+                    @if (unreadCount > 0)
+                    {
+                        <button class="btn btn-outline-primary rounded-pill px-3 py-1.5 btn-sm fw-bold shadow-xs d-flex align-items-center gap-1.5"
+                                @onclick="MarkAllAsRead" disabled="@isActionBusy">
+                            <i class="fa-solid fa-check-double"></i>
+                            <span>تحديد الكل كمقروء</span>
+                        </button>
+                    }
+                    <button class="btn btn-outline-danger rounded-pill px-3 py-1.5 btn-sm fw-bold shadow-xs d-flex align-items-center gap-1.5"
+                            @onclick="() => showDeleteAllConfirm = true" disabled="@isActionBusy" title="حذف جميع التنبيهات">
+                        <i class="fa-solid fa-trash-can"></i>
+                        <span>حذف الكل</span>
+                    </button>
+                }
+            </div>
         }
     </div>
 
@@ -61,18 +79,60 @@
     }
     else
     {
-        <!-- Filter Tabs -->
+        <!-- Selection Mode Toolbar (Sticky Floating) -->
+        @if (isSelectionMode)
+        {
+            <div class="card border-0 shadow-md rounded-4 p-3 mb-3 bg-primary text-white animate-fade-in sticky-top" style="top: 70px; z-index: 1020;">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-sm btn-light rounded-circle p-1" style="width: 32px; height: 32px;" @onclick="ExitSelectionMode" title="إلغاء وضع التحديد">
+                            <i class="fa-solid fa-times text-primary"></i>
+                        </button>
+                        <span class="fw-bold">
+                            تم تحديد @selectedIds.Count من @(filteredNotifications?.Count() ?? 0)
+                        </span>
+                    </div>
+
+                    <div class="d-flex gap-2 align-items-center flex-wrap">
+                        <button class="btn btn-light btn-sm rounded-pill px-3 fw-bold text-primary shadow-xs" @onclick="ToggleSelectAll">
+                            <i class="fa-solid @(selectedIds.Count == (filteredNotifications?.Count() ?? 0) && selectedIds.Count > 0 ? "fa-square-minus" : "fa-square-check") me-1"></i>
+                            @(selectedIds.Count == (filteredNotifications?.Count() ?? 0) && selectedIds.Count > 0 ? "إلغاء تحديد الكل" : "تحديد الكل")
+                        </button>
+
+                        <button class="btn btn-success btn-sm rounded-pill px-3 fw-bold text-white shadow-xs" 
+                                @onclick="MarkSelectedAsRead" disabled="@(!selectedIds.Any() || isActionBusy)">
+                            <i class="fa-solid fa-envelope-open me-1"></i>
+                            <span>كمقروء</span>
+                        </button>
+
+                        <button class="btn btn-danger btn-sm rounded-pill px-3 fw-bold text-white shadow-xs" 
+                                @onclick="DeleteSelected" disabled="@(!selectedIds.Any() || isActionBusy)">
+                            <i class="fa-solid fa-trash me-1"></i>
+                            <span>حذف (@selectedIds.Count)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Filter Tabs & Swipe Hint -->
         @if (notifications != null && notifications.Any())
         {
-            <div class="d-flex gap-2 mb-3">
-                <button class="btn btn-sm rounded-pill px-3 @(activeFilter == "all" ? "btn-primary text-white" : "btn-light text-secondary")"
-                        @onclick='() => SetFilter("all")'>
-                    الكل (@(notifications.Count))
-                </button>
-                <button class="btn btn-sm rounded-pill px-3 @(activeFilter == "unread" ? "btn-primary text-white" : "btn-light text-secondary")"
-                        @onclick='() => SetFilter("unread")'>
-                    غير المقروءة (@unreadCount)
-                </button>
+            <div class="d-flex justify-content-between align-items-center gap-2 mb-3 flex-wrap">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm rounded-pill px-3 @(activeFilter == "all" ? "btn-primary text-white" : "btn-light text-secondary")"
+                            @onclick='() => SetFilter("all")'>
+                        الكل (@(notifications.Count))
+                    </button>
+                    <button class="btn btn-sm rounded-pill px-3 @(activeFilter == "unread" ? "btn-primary text-white" : "btn-light text-secondary")"
+                            @onclick='() => SetFilter("unread")'>
+                        غير المقروءة (@unreadCount)
+                    </button>
+                </div>
+                <div class="text-muted smaller d-none d-md-flex align-items-center gap-1">
+                    <i class="fa-solid fa-hand-pointer text-primary"></i>
+                    <span>اسحب التنبيه يميناً أو يساراً لحذفه، أو اضغط مطولاً لتحديد عدة عناصر</span>
+                </div>
             </div>
         }
 
@@ -104,58 +164,103 @@
                     @foreach (var n in filteredNotifications)
                     {
                         var typeStyle = GetTypeStyle(n.Type);
-                        <div class="notification-row p-3 p-md-3.5 d-flex align-items-start gap-3 border-bottom @(!n.IsRead ? "unread-bg" : "")"
-                             @onclick="() => HandleNotificationClick(n)"
-                             style="cursor: pointer;">
-                            
-                            <!-- Type Icon / App Icon -->
-                            <div class="notification-icon-wrap flex-shrink-0" style="background-color: @typeStyle.Bg; color: @typeStyle.Color;">
-                                @if ((n.Type?.ToLower() == "system" || n.Type?.ToLower() == "reminder" || string.IsNullOrEmpty(n.Type)) && !string.IsNullOrEmpty(State.AppLogo))
-                                {
-                                    <img src="@State.GetAbsoluteUrl(State.AppLogo)" alt="App Icon" style="width: 26px; height: 26px; object-fit: contain; border-radius: 6px;" />
-                                }
-                                else
-                                {
-                                    <i class="@typeStyle.Icon"></i>
-                                }
+                        var isSelected = selectedIds.Contains(n.Id);
+                        var isSwiping = swipingNotificationId == n.Id;
+                        var currentOffset = isSwiping ? swipeOffset : 0;
+
+                        <div class="swipe-container position-relative overflow-hidden border-bottom @(isSelected ? "selected-row-border" : "")">
+                            <!-- Background Underlayer for Swipe (Delete Action on Left and Right) -->
+                            <div class="swipe-action-background d-flex justify-content-between align-items-center px-4 bg-danger text-white position-absolute top-0 bottom-0 start-0 end-0">
+                                <div class="d-flex align-items-center gap-1 fs-6 fw-bold">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                    <span class="small">حذف</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-1 fs-6 fw-bold">
+                                    <span class="small">حذف</span>
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </div>
                             </div>
 
-                            <!-- Content -->
-                            <div class="flex-grow-1 min-w-0">
-                                <div class="d-flex justify-content-between align-items-start gap-2 mb-1 flex-wrap">
-                                    <div class="d-flex align-items-center gap-2 min-w-0 flex-shrink-1">
-                                        <h6 class="mb-0 fw-bold @(!n.IsRead ? "text-dark" : "text-secondary") text-truncate" style="max-width: 200px;">
-                                            @n.Title
-                                        </h6>
-                                        <span class="badge rounded-pill flex-shrink-0 px-2" style="font-size: 0.65rem; background-color: @typeStyle.Bg; color: @typeStyle.Color; font-weight: 700;">
-                                            @GetTypeLabel(n.Type)
+                            <!-- Notification Foreground Row -->
+                            <div class="notification-row p-3 p-md-3.5 d-flex align-items-start gap-3 bg-white position-relative @(!n.IsRead ? "unread-bg" : "") @(isSelected ? "selected-bg" : "")"
+                                 style="transform: translateX(@(currentOffset)px); transition: @(isSwiping ? "none" : "transform 0.25s ease"); touch-action: pan-y;"
+                                 @ontouchstart="(e) => HandleTouchStart(e, n)"
+                                 @ontouchmove="(e) => HandleTouchMove(e, n)"
+                                 @ontouchend="(e) => HandleTouchEnd(e, n)"
+                                 @onpointerdown="() => StartPointerDown(n)"
+                                 @onpointerup="() => FinishPointerUp(n)"
+                                 @onpointerleave="CancelPointer"
+                                 @onpointercancel="CancelPointer">
+                                
+                                <!-- Selection Checkbox (In selection mode) -->
+                                @if (isSelectionMode)
+                                {
+                                    <div class="form-check p-0 me-1 pt-1 flex-shrink-0">
+                                        <div class="custom-checkbox @(isSelected ? "checked" : "")">
+                                            @if (isSelected)
+                                            {
+                                                <i class="fa-solid fa-check text-white" style="font-size: 11px;"></i>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+
+                                <!-- Type Icon / App Icon -->
+                                <div class="notification-icon-wrap flex-shrink-0" style="background-color: @typeStyle.Bg; color: @typeStyle.Color;">
+                                    @if ((n.Type?.ToLower() == "system" || n.Type?.ToLower() == "reminder" || string.IsNullOrEmpty(n.Type)) && !string.IsNullOrEmpty(State.AppLogo))
+                                    {
+                                        <img src="@State.GetAbsoluteUrl(State.AppLogo)" alt="App Icon" style="width: 26px; height: 26px; object-fit: contain; border-radius: 6px;" />
+                                    }
+                                    else
+                                    {
+                                        <i class="@typeStyle.Icon"></i>
+                                    }
+                                </div>
+
+                                <!-- Content -->
+                                <div class="flex-grow-1 min-w-0">
+                                    <div class="d-flex justify-content-between align-items-start gap-2 mb-1 flex-wrap">
+                                        <div class="d-flex align-items-center gap-2 min-w-0 flex-shrink-1">
+                                            <h6 class="mb-0 fw-bold @(!n.IsRead ? "text-dark" : "text-secondary") text-truncate" style="max-width: 220px;">
+                                                @n.Title
+                                            </h6>
+                                            <span class="badge rounded-pill flex-shrink-0 px-2" style="font-size: 0.65rem; background-color: @typeStyle.Bg; color: @typeStyle.Color; font-weight: 700;">
+                                                @GetTypeLabel(n.Type)
+                                            </span>
+                                        </div>
+                                        <span class="text-muted smaller flex-shrink-0 ms-auto">
+                                            @FormatTimeAgo(n.CreatedAt)
                                         </span>
                                     </div>
-                                    <span class="text-muted smaller flex-shrink-0 ms-auto">
-                                        @FormatTimeAgo(n.CreatedAt)
-                                    </span>
+                                    <p class="mb-0 text-muted small text-break">
+                                        @n.Message
+                                    </p>
+                                    @if (!string.IsNullOrWhiteSpace(n.ImageUrl))
+                                    {
+                                        <div class="mt-2 rounded-3 overflow-hidden border" style="max-height: 140px; max-width: 280px;">
+                                            <img src="@n.ImageUrl" alt="صورة التنبيه" style="width: 100%; max-height: 140px; object-fit: cover;" />
+                                        </div>
+                                    }
                                 </div>
-                                <p class="mb-0 text-muted small text-break">
-                                    @n.Message
-                                </p>
-                                @if (!string.IsNullOrWhiteSpace(n.ImageUrl))
-                                {
-                                    <div class="mt-2 rounded-3 overflow-hidden border" style="max-height: 140px; max-width: 280px;">
-                                        <img src="@n.ImageUrl" alt="صورة التنبيه" style="width: 100%; max-height: 140px; object-fit: cover;" />
-                                    </div>
-                                }
-                            </div>
 
-                            <!-- Unread Indicator & Link Arrow -->
-                            <div class="d-flex align-items-center gap-2 flex-shrink-0 pt-1">
-                                @if (!n.IsRead)
-                                {
-                                    <span class="unread-dot-badge" title="غير مقروء"></span>
-                                }
-                                @if (!string.IsNullOrEmpty(n.RelatedLink))
-                                {
-                                    <i class="fa-solid fa-chevron-left text-muted opacity-40 fs-7"></i>
-                                }
+                                <!-- Unread Dot, Arrow & Single Delete -->
+                                <div class="d-flex align-items-center gap-2 flex-shrink-0 pt-1">
+                                    @if (!n.IsRead)
+                                    {
+                                        <span class="unread-dot-badge" title="غير مقروء"></span>
+                                    }
+                                    @if (!isSelectionMode)
+                                    {
+                                        <button type="button" class="btn btn-link text-muted p-0 opacity-40 hover-opacity-100 delete-btn-hover" 
+                                                @onclick:stopPropagation="true" @onclick="() => DeleteSingleNotification(n.Id)" title="حذف هذا التنبيه">
+                                            <i class="fa-solid fa-trash-can fs-7 text-danger"></i>
+                                        </button>
+                                    }
+                                    @if (!string.IsNullOrEmpty(n.RelatedLink))
+                                    {
+                                        <i class="fa-solid fa-chevron-left text-muted opacity-40 fs-7"></i>
+                                    }
+                                </div>
                             </div>
                         </div>
                     }
@@ -165,6 +270,7 @@
     }
 </div>
 
+<!-- Modal: View Single Notification -->
 @if (selectedNotification != null)
 {
     <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); z-index: 1055;" dir="rtl">
@@ -187,8 +293,37 @@
                         <span class="badge bg-success-subtle text-success ms-auto rounded-pill px-2 py-1">مقروء</span>
                     </div>
                 </div>
-                <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold" @onclick="() => selectedNotification = null">إغلاق</button>
+                <div class="modal-footer border-0 pt-0 d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-danger rounded-pill px-3 btn-sm" @onclick="() => { DeleteSingleNotification(selectedNotification.Id); selectedNotification = null; }">
+                        <i class="fa-solid fa-trash-can me-1"></i> حذف التنبيه
+                    </button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold btn-sm" @onclick="() => selectedNotification = null">إغلاق</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Modal: Confirm Delete All -->
+@if (showDeleteAllConfirm)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.55); z-index: 1060;" dir="rtl">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content rounded-4 border-0 shadow-lg p-3 text-center">
+                <div class="my-2">
+                    <div class="delete-icon-wrap mx-auto mb-3 bg-danger-subtle text-danger">
+                        <i class="fa-solid fa-trash-can fs-2"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">حذف جميع التنبيهات؟</h5>
+                    <p class="text-muted small mb-4">
+                        هل أنت متأكد من رغبتك في حذف كافة التنبيهات؟ لن تتمكن من استعادتها بعد الحذف.
+                    </p>
+                    <div class="d-flex justify-content-center gap-2">
+                        <button type="button" class="btn btn-light rounded-pill px-3 btn-sm fw-bold" @onclick="() => showDeleteAllConfirm = false">إلغاء</button>
+                        <button type="button" class="btn btn-danger rounded-pill px-4 btn-sm fw-bold shadow-sm" @onclick="ConfirmDeleteAll" disabled="@isActionBusy">
+                            @(isActionBusy ? "جاري الحذف..." : "نعم، حذف الكل")
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -206,11 +341,10 @@
         justify-content: center;
     }
 
-    .lock-icon-wrap {
-        width: 68px;
-        height: 68px;
+    .lock-icon-wrap, .delete-icon-wrap {
+        width: 64px;
+        height: 64px;
         border-radius: 20px;
-        background: rgba(99, 102, 241, 0.1);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -226,9 +360,20 @@
         justify-content: center;
     }
 
-    .notification-row {
-        transition: background-color 0.2s ease, transform 0.15s ease;
+    .swipe-container {
         position: relative;
+        user-select: none;
+    }
+
+    .swipe-action-background {
+        z-index: 1;
+    }
+
+    .notification-row {
+        position: relative;
+        z-index: 2;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
     }
 
     .notification-row:hover {
@@ -241,6 +386,31 @@
 
     .notification-row.unread-bg:hover {
         background-color: #e0e7ff;
+    }
+
+    .notification-row.selected-bg {
+        background-color: #f0fdf4 !important;
+    }
+
+    .selected-row-border {
+        border-right: 4px solid #10b981 !important;
+    }
+
+    .custom-checkbox {
+        width: 20px;
+        height: 20px;
+        border-radius: 6px;
+        border: 2px solid #cbd5e1;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+    }
+
+    .custom-checkbox.checked {
+        background: #10b981;
+        border-color: #10b981;
     }
 
     .notification-icon-wrap {
@@ -269,14 +439,35 @@
     .fs-7 {
         font-size: 0.8rem;
     }
+
+    .delete-btn-hover:hover {
+        opacity: 1 !important;
+        transform: scale(1.1);
+    }
 </style>
 
 @code {
     private List<NotificationDto>? notifications;
     private bool isLoading = true;
-    private bool isMarkingAll = false;
+    private bool isActionBusy = false;
     private string activeFilter = "all";
     private NotificationDto? selectedNotification;
+    private bool showDeleteAllConfirm = false;
+
+    // Multi-Select Mode
+    private bool isSelectionMode = false;
+    private HashSet<int> selectedIds = new();
+
+    // Long Press Handling
+    private System.Threading.CancellationTokenSource? longPressCts;
+    private bool wasLongPressTriggered = false;
+
+    // Swipe Handling
+    private int swipingNotificationId = 0;
+    private double touchStartX = 0;
+    private double touchStartY = 0;
+    private double swipeOffset = 0;
+    private bool isHorizontalSwipe = false;
 
     private int unreadCount => notifications?.Count(n => !n.IsRead) ?? 0;
 
@@ -323,10 +514,100 @@
         }
     }
 
+    // ==========================================
+    // Selection Mode
+    // ==========================================
+    private void EnterSelectionMode()
+    {
+        isSelectionMode = true;
+        selectedIds.Clear();
+    }
+
+    private void ExitSelectionMode()
+    {
+        isSelectionMode = false;
+        selectedIds.Clear();
+    }
+
+    private void ToggleSelectAll()
+    {
+        var currentItems = filteredNotifications?.Select(n => n.Id).ToList() ?? new();
+        if (selectedIds.Count == currentItems.Count && currentItems.Count > 0)
+        {
+            selectedIds.Clear();
+        }
+        else
+        {
+            selectedIds = new HashSet<int>(currentItems);
+        }
+    }
+
+    private async Task MarkSelectedAsRead()
+    {
+        if (!selectedIds.Any() || isActionBusy || notifications == null) return;
+        isActionBusy = true;
+
+        try
+        {
+            var idsList = selectedIds.ToList();
+            var success = await Api.MarkMultipleNotificationsAsReadAsync(idsList);
+            if (success)
+            {
+                foreach (var n in notifications.Where(x => selectedIds.Contains(x.Id)))
+                {
+                    n.IsRead = true;
+                }
+                State.NotificationCount = unreadCount;
+                State.TriggerStateChanged();
+                try { await JS.InvokeVoidAsync("syncNotificationCount", unreadCount); } catch {}
+                ExitSelectionMode();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Notifications] MarkSelected error: {ex.Message}");
+        }
+        finally
+        {
+            isActionBusy = false;
+        }
+    }
+
+    private async Task DeleteSelected()
+    {
+        if (!selectedIds.Any() || isActionBusy || notifications == null) return;
+        isActionBusy = true;
+
+        try
+        {
+            var idsList = selectedIds.ToList();
+            var success = await Api.DeleteNotificationsAsync(idsList);
+            if (success)
+            {
+                notifications.RemoveAll(n => selectedIds.Contains(n.Id));
+                State.NotificationCount = unreadCount;
+                State.TriggerStateChanged();
+                try { await JS.InvokeVoidAsync("syncNotificationCount", unreadCount); } catch {}
+                ExitSelectionMode();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Notifications] DeleteSelected error: {ex.Message}");
+        }
+        finally
+        {
+            isActionBusy = false;
+        }
+    }
+
+    // ==========================================
+    // Global Actions: Mark All / Delete All
+    // ==========================================
     private async Task MarkAllAsRead()
     {
-        if (isMarkingAll || notifications == null || !notifications.Any(n => !n.IsRead)) return;
-        isMarkingAll = true;
+        if (isActionBusy || notifications == null || !notifications.Any(n => !n.IsRead)) return;
+        isActionBusy = true;
 
         try
         {
@@ -348,10 +629,182 @@
         }
         finally
         {
-            isMarkingAll = false;
+            isActionBusy = false;
         }
     }
 
+    private async Task ConfirmDeleteAll()
+    {
+        if (isActionBusy || notifications == null) return;
+        isActionBusy = true;
+
+        try
+        {
+            var success = await Api.DeleteAllNotificationsAsync();
+            if (success)
+            {
+                notifications.Clear();
+                selectedIds.Clear();
+                isSelectionMode = false;
+                State.NotificationCount = 0;
+                State.TriggerStateChanged();
+                try { await JS.InvokeVoidAsync("syncNotificationCount", 0); } catch {}
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Notifications] DeleteAll error: {ex.Message}");
+        }
+        finally
+        {
+            isActionBusy = false;
+            showDeleteAllConfirm = false;
+        }
+    }
+
+    private async Task DeleteSingleNotification(int id)
+    {
+        try
+        {
+            var success = await Api.DeleteNotificationAsync(id);
+            if (success && notifications != null)
+            {
+                notifications.RemoveAll(n => n.Id == id);
+                selectedIds.Remove(id);
+                State.NotificationCount = unreadCount;
+                State.TriggerStateChanged();
+                try { await JS.InvokeVoidAsync("syncNotificationCount", unreadCount); } catch {}
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Notifications] DeleteSingle error: {ex.Message}");
+        }
+    }
+
+    // ==========================================
+    // Long Press Handling
+    // ==========================================
+    private void StartPointerDown(NotificationDto n)
+    {
+        wasLongPressTriggered = false;
+        longPressCts?.Cancel();
+        longPressCts = new System.Threading.CancellationTokenSource();
+        var token = longPressCts.Token;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(450, token);
+                if (!token.IsCancellationRequested)
+                {
+                    wasLongPressTriggered = true;
+                    await InvokeAsync(async () =>
+                    {
+                        isSelectionMode = true;
+                        if (!selectedIds.Contains(n.Id))
+                        {
+                            selectedIds.Add(n.Id);
+                        }
+                        try { await JS.InvokeVoidAsync("navigator.vibrate", 40); } catch {}
+                        StateHasChanged();
+                    });
+                }
+            }
+            catch {}
+        });
+    }
+
+    private async Task FinishPointerUp(NotificationDto n)
+    {
+        longPressCts?.Cancel();
+        longPressCts = null;
+
+        if (wasLongPressTriggered)
+        {
+            // Already handled by long press
+            wasLongPressTriggered = false;
+            return;
+        }
+
+        if (isSelectionMode)
+        {
+            if (selectedIds.Contains(n.Id))
+                selectedIds.Remove(n.Id);
+            else
+                selectedIds.Add(n.Id);
+            StateHasChanged();
+            return;
+        }
+
+        // Normal tap click
+        await HandleNotificationClick(n);
+    }
+
+    private void CancelPointer()
+    {
+        longPressCts?.Cancel();
+        longPressCts = null;
+    }
+
+    // ==========================================
+    // Swipe to Delete Handling
+    // ==========================================
+    private void HandleTouchStart(TouchEventArgs e, NotificationDto n)
+    {
+        if (isSelectionMode) return;
+        if (e.Touches.Length > 0)
+        {
+            touchStartX = e.Touches[0].ClientX;
+            touchStartY = e.Touches[0].ClientY;
+            swipingNotificationId = n.Id;
+            swipeOffset = 0;
+            isHorizontalSwipe = false;
+        }
+    }
+
+    private void HandleTouchMove(TouchEventArgs e, NotificationDto n)
+    {
+        if (isSelectionMode || swipingNotificationId != n.Id || e.Touches.Length == 0) return;
+
+        var deltaX = e.Touches[0].ClientX - touchStartX;
+        var deltaY = e.Touches[0].ClientY - touchStartY;
+
+        if (!isHorizontalSwipe)
+        {
+            if (Math.Abs(deltaX) > 10 && Math.Abs(deltaX) > Math.Abs(deltaY))
+            {
+                isHorizontalSwipe = true;
+                longPressCts?.Cancel(); // Cancel long press if swiping
+            }
+        }
+
+        if (isHorizontalSwipe)
+        {
+            // Limit swipe visual bounds
+            swipeOffset = Math.Clamp(deltaX, -160, 160);
+        }
+    }
+
+    private async Task HandleTouchEnd(TouchEventArgs e, NotificationDto n)
+    {
+        if (swipingNotificationId != n.Id) return;
+
+        var finalOffset = swipeOffset;
+        swipingNotificationId = 0;
+        swipeOffset = 0;
+
+        if (Math.Abs(finalOffset) >= 80)
+        {
+            // Delete threshold exceeded!
+            await DeleteSingleNotification(n.Id);
+        }
+    }
+
+    // ==========================================
+    // Notification Click & Navigation
+    // ==========================================
     private async Task HandleNotificationClick(NotificationDto n)
     {
         try
