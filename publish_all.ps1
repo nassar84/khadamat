@@ -4,71 +4,85 @@
 # ==============================================================================
 
 param(
-    [switch]$Deploy = $false
+    [switch]$Deploy = $false,
+    [switch]$SkipApk = $false
 )
 
-Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host " 1. Cleaning old APKs and preparing for fresh build..." -ForegroundColor Cyan
-Write-Host "==========================================================" -ForegroundColor Cyan
-
-# Remove any old APK files first to guarantee fresh build and single APK output
-Get-ChildItem -Path "src/Khadamat.MobileApp/bin/Release/net8.0-android" -Recurse -Filter "*.apk" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
-Get-ChildItem -Path "src/Khadamat.WebAPI/wwwroot/downloads" -Filter "*.apk" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
-if (Test-Path "D:\maged\Khadamat\wwwroot\downloads") {
-    Get-ChildItem -Path "D:\maged\Khadamat\wwwroot\downloads" -Filter "*.apk" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+$publishDir = "D:\maged\Khadamat"
+if (!(Test-Path $publishDir)) {
+    New-Item -ItemType Directory -Path $publishDir -Force | Out-Null
 }
 
-Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host " 2. Building Android APK (Release - Single APK)..." -ForegroundColor Cyan
-Write-Host "==========================================================" -ForegroundColor Cyan
-
-dotnet publish src/Khadamat.MobileApp/Khadamat.MobileApp.csproj -f net8.0-android -c Release
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "Android APK build failed!"
-    exit $LASTEXITCODE
-}
-
-$apkSource = "src/Khadamat.MobileApp/bin/Release/net8.0-android/android-arm64/publish/com.nassar84.khadamawy-Signed.apk"
-if (-not (Test-Path $apkSource)) {
-    $apkSource = "src/Khadamat.MobileApp/bin/Release/net8.0-android/android-arm64/com.nassar84.khadamawy-Signed.apk"
-}
-
-if (-not (Test-Path $apkSource)) {
-    Write-Error "Could not find generated APK at: $apkSource"
-    exit 1
-}
-
-Write-Host "APK Built successfully: $apkSource" -ForegroundColor Green
-
-# Current build timestamp
 $now = Get-Date
 
+# ==============================================================================
+# 1. Build Android APK (unless -SkipApk is specified)
+# ==============================================================================
+if (-not $SkipApk) {
+    Write-Host "==========================================================" -ForegroundColor Cyan
+    Write-Host " 1. Cleaning old APKs and preparing for fresh build..." -ForegroundColor Cyan
+    Write-Host "==========================================================" -ForegroundColor Cyan
+
+    Get-ChildItem -Path "src/Khadamat.MobileApp/bin/Release/net9.0-android36.0" -Recurse -Filter "*.apk" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+    Get-ChildItem -Path "src/Khadamat.WebAPI/wwwroot/downloads" -Filter "*.apk" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+    if (Test-Path "$publishDir\wwwroot\downloads") {
+        Get-ChildItem -Path "$publishDir\wwwroot\downloads" -Filter "*.apk" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+    }
+
+    Write-Host "`n==========================================================" -ForegroundColor Cyan
+    Write-Host " 2. Building Android APK (Release - Single APK)..." -ForegroundColor Cyan
+    Write-Host "==========================================================" -ForegroundColor Cyan
+
+    dotnet publish src/Khadamat.MobileApp/Khadamat.MobileApp.csproj -f net9.0-android36.0 -c Release
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Android APK build failed!"
+        exit $LASTEXITCODE
+    }
+
+    $apkSource = "src/Khadamat.MobileApp/bin/Release/net9.0-android36.0/android-arm64/publish/com.nassar84.khadamawy-Signed.apk"
+    if (-not (Test-Path $apkSource)) {
+        $apkSource = "src/Khadamat.MobileApp/bin/Release/net9.0-android36.0/android-arm64/com.nassar84.khadamawy-Signed.apk"
+    }
+
+    if (-not (Test-Path $apkSource)) {
+        Write-Error "Could not find generated APK at: $apkSource"
+        exit 1
+    }
+
+    Write-Host "APK Built successfully: $apkSource" -ForegroundColor Green
+
+    # Copy to WebAPI downloads with fresh timestamp
+    New-Item -ItemType Directory -Force -Path "src/Khadamat.WebAPI/wwwroot/downloads" | Out-Null
+    Copy-Item -Force $apkSource -Destination "src/Khadamat.WebAPI/wwwroot/downloads/khadamat.apk"
+    (Get-Item "src/Khadamat.WebAPI/wwwroot/downloads/khadamat.apk").CreationTime = $now
+    (Get-Item "src/Khadamat.WebAPI/wwwroot/downloads/khadamat.apk").LastWriteTime = $now
+} else {
+    Write-Host "Skipping APK build (-SkipApk was specified or using existing APK)." -ForegroundColor Yellow
+}
+
+# ==============================================================================
+# 2. Publish WebAPI + Blazor WASM
+# ==============================================================================
 Write-Host "`n==========================================================" -ForegroundColor Cyan
-Write-Host " 3. Placing single APK in WebAPI downloads with fresh timestamp..." -ForegroundColor Cyan
+Write-Host " 3. Publishing WebAPI & Blazor WASM to $publishDir (Self-Contained win-x64)..." -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 
-New-Item -ItemType Directory -Force -Path "src/Khadamat.WebAPI/wwwroot/downloads" | Out-Null
-# Ensure any other APK is removed so only ONE APK exists
-Get-ChildItem -Path "src/Khadamat.WebAPI/wwwroot/downloads" -Filter "*.apk" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+dotnet publish src/Khadamat.WebAPI/Khadamat.WebAPI.csproj `
+    -c Release `
+    -r win-x64 `
+    --self-contained true `
+    -o $publishDir
 
-Copy-Item -Force $apkSource -Destination "src/Khadamat.WebAPI/wwwroot/downloads/khadamat.apk"
-(Get-Item "src/Khadamat.WebAPI/wwwroot/downloads/khadamat.apk").CreationTime = $now
-(Get-Item "src/Khadamat.WebAPI/wwwroot/downloads/khadamat.apk").LastWriteTime = $now
-
-Write-Host "`n==========================================================" -ForegroundColor Cyan
-Write-Host " 4. Publishing WebAPI & Blazor WASM to D:\maged\Khadamat (Self-Contained win-x64)..." -ForegroundColor Cyan
-Write-Host "==========================================================" -ForegroundColor Cyan
-
-# Self-contained: bundles .NET 8 runtime so the host server does NOT need it pre-installed.
-# This fixes HTTP Error 500.31 (Failed to load ASP.NET Core runtime).
-dotnet publish src/Khadamat.WebAPI/Khadamat.WebAPI.csproj -c Release -r win-x64 --self-contained true -o D:\maged\Khadamat
 if ($LASTEXITCODE -ne 0) {
     Write-Error "WebAPI publish failed!"
     exit $LASTEXITCODE
 }
 
+# ==============================================================================
+# 3. Exclude heavy uploaded image directories from publish output
+# ==============================================================================
 Write-Host "`n==========================================================" -ForegroundColor Cyan
-Write-Host " 4.1. Excluding heavy uploaded image directories from publish output..." -ForegroundColor Cyan
+Write-Host " 4. Excluding heavy uploaded image directories from publish output..." -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 
 $uploadDirsToExclude = @(
@@ -84,38 +98,47 @@ $uploadDirsToExclude = @(
 )
 
 foreach ($dir in $uploadDirsToExclude) {
-    $targetPath = Join-Path "D:\maged\Khadamat\wwwroot\images" $dir
+    $targetPath = Join-Path "$publishDir\wwwroot\images" $dir
     if (Test-Path $targetPath) {
         Remove-Item -Recurse -Force $targetPath -ErrorAction SilentlyContinue
         Write-Host "  [Excluded from ZIP] wwwroot/images/$dir (Stored safely in KhadamawyImages)" -ForegroundColor Yellow
     }
 }
 
+# ==============================================================================
+# 4. Finalize APK in publish directory
+# ==============================================================================
 Write-Host "`n==========================================================" -ForegroundColor Cyan
 Write-Host " 5. Finalizing publish directory (Strictly ONE APK with current timestamp)..." -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 
-New-Item -ItemType Directory -Force -Path "D:\maged\Khadamat\wwwroot\downloads" | Out-Null
-
-# Purge any duplicate or extra APKs (e.g. com.nassar84.khadamat-Signed.apk, Khadamawy.apk)
-Get-ChildItem -Path "D:\maged\Khadamat\wwwroot\downloads" -Filter "*.apk" -ErrorAction SilentlyContinue | Where-Object { $_.Name -ne "khadamat.apk" } | Remove-Item -Force -ErrorAction SilentlyContinue
-
-Copy-Item -Force $apkSource -Destination "D:\maged\Khadamat\wwwroot\downloads\khadamat.apk"
-(Get-Item "D:\maged\Khadamat\wwwroot\downloads\khadamat.apk").CreationTime = $now
-(Get-Item "D:\maged\Khadamat\wwwroot\downloads\khadamat.apk").LastWriteTime = $now
-
-# Also update root convenience copy
-Copy-Item -Force $apkSource -Destination "khadamat.apk"
-(Get-Item "khadamat.apk").CreationTime = $now
-(Get-Item "khadamat.apk").LastWriteTime = $now
-
-# Verify that strictly ONE APK exists in destination
-$publishedApks = Get-ChildItem -Path "D:\maged\Khadamat\wwwroot\downloads" -Filter "*.apk"
-if ($publishedApks.Count -ne 1) {
-    Write-Error "Error: Expected exactly 1 APK file in publish directory, but found $($publishedApks.Count)!"
-    exit 1
+$webApiApk = "src/Khadamat.WebAPI/wwwroot/downloads/khadamat.apk"
+if (-not (Test-Path $webApiApk) -and (Test-Path "khadamat.apk")) {
+    $webApiApk = "khadamat.apk"
 }
 
+New-Item -ItemType Directory -Force -Path "$publishDir\wwwroot\downloads" | Out-Null
+Get-ChildItem -Path "$publishDir\wwwroot\downloads" -Filter "*.apk" -ErrorAction SilentlyContinue | Where-Object { $_.Name -ne "khadamat.apk" } | Remove-Item -Force -ErrorAction SilentlyContinue
+
+if (Test-Path $webApiApk) {
+    Copy-Item -Path $webApiApk -Destination "$publishDir\wwwroot\downloads\khadamat.apk" -Force
+    (Get-Item "$publishDir\wwwroot\downloads\khadamat.apk").CreationTime = $now
+    (Get-Item "$publishDir\wwwroot\downloads\khadamat.apk").LastWriteTime = $now
+
+    # Update root convenience copy
+    Copy-Item -Force $webApiApk -Destination "khadamat.apk"
+    (Get-Item "khadamat.apk").CreationTime = $now
+    (Get-Item "khadamat.apk").LastWriteTime = $now
+}
+
+$publishedApks = Get-ChildItem -Path "$publishDir\wwwroot\downloads" -Filter "*.apk"
+if ($publishedApks.Count -ne 1) {
+    Write-Warning "Warning: Expected 1 APK in downloads, found $($publishedApks.Count)."
+}
+
+# ==============================================================================
+# 5. Create deployment package (ZIP)
+# ==============================================================================
 Write-Host "`n==========================================================" -ForegroundColor Cyan
 Write-Host " 6. Creating deployment package (D:\maged\Khadamat_publish.zip)..." -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
@@ -123,15 +146,16 @@ Write-Host "==========================================================" -Foregro
 if (Test-Path "D:\maged\Khadamat_publish.zip") {
     Remove-Item -Force "D:\maged\Khadamat_publish.zip" -ErrorAction SilentlyContinue
 }
-tar.exe -a -c -f "D:\maged\Khadamat_publish.zip" -C "D:\maged\Khadamat" .
+tar.exe -a -c -f "D:\maged\Khadamat_publish.zip" -C "$publishDir" .
 Write-Host "ZIP package created successfully at: D:\maged\Khadamat_publish.zip" -ForegroundColor Green
 
 Write-Host "`n==========================================================" -ForegroundColor Green
-Write-Host " PUBLISH COMPLETE! Exactly ONE APK published with current timestamp:" -ForegroundColor Green
+Write-Host " PUBLISH COMPLETE! Directory: $publishDir" -ForegroundColor Green
 Write-Host "==========================================================" -ForegroundColor Green
 
-$publishedApks | Select-Object Name, Length, LastWriteTime, CreationTime | Format-Table -AutoSize
-Get-Item "src/Khadamat.WebAPI/wwwroot/downloads/khadamat.apk" | Select-Object Name, Length, LastWriteTime, CreationTime | Format-Table -AutoSize
+if ($publishedApks.Count -gt 0) {
+    $publishedApks | Select-Object Name, Length, LastWriteTime, CreationTime | Format-Table -AutoSize
+}
 
 if ($Deploy) {
     Write-Host "`n==========================================================" -ForegroundColor Cyan
