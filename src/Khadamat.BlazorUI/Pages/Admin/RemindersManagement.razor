@@ -447,6 +447,22 @@
                                     <label class="form-label small fw-bold mb-0">
                                         <i class="fa-solid fa-image text-primary me-1"></i>صورة التذكير (اختياري - تظهر كصورة بارزة في الإشعار)
                                     </label>
+                                </div>
+
+                                <!-- Image Guidelines & Conditions -->
+                                <div class="p-2.5 mb-2.5 rounded-3 border bg-light small text-muted" style="border-right: 4px solid #0d6efd !important;">
+                                    <div class="d-flex align-items-center gap-1.5 fw-bold text-dark mb-1">
+                                        <i class="fa-solid fa-circle-info text-primary"></i>
+                                        <span>تعليمات الصورة للظهور على شاشة الموبايل وقفل الشاشة:</span>
+                                    </div>
+                                    <ul class="mb-0 ps-3 x-small" style="line-height: 1.6;">
+                                        <li><strong>الأبعاد والنسبة:</strong> يفضل أن تكون الصورة بالعرض <strong>(Landscape بنسبة 2:1)</strong> مثل <code>1024 × 512</code> بكسل لتملأ شريط إشعارات أندرويد.</li>
+                                        <li><strong>حجم الملف:</strong> يفضل ألا يتجاوز <strong>1 ميجابايت</strong> (المثالي بين 100 و 400 كيلوبايت) لسرعة تنزيلها على الهاتف فوراً.</li>
+                                        <li><strong>الصيغ المدعومة:</strong> JPG, PNG, WebP.</li>
+                                        <li><strong>طريقة الظهور:</strong> تظهر كبانر عريض (BigPicture) عند سحب الإشعار لأسفل على هاتف أندرويد.</li>
+                                    </ul>
+                                </div>
+                                <div>
                                     @if (!string.IsNullOrWhiteSpace(currentForm.ImageUrl))
                                     {
                                         <button type="button" class="btn btn-link text-danger p-0 small text-decoration-none" @onclick="ClearReminderImage">
@@ -804,7 +820,13 @@
                         </div>
                     }
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">صورة الرسالة (اختياري)</label>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label small fw-bold mb-0">صورة الرسالة (اختياري)</label>
+                        </div>
+                        <div class="p-2 mb-2 rounded-2 border bg-light x-small text-muted" style="border-right: 3px solid #0d6efd !important;">
+                            <i class="fa-solid fa-circle-info text-primary me-1"></i>
+                            <strong>شروط الصورة:</strong> يفضل أن تكون بالعرض (نسبة 2:1 مثل 1024×512) وحجمها أقل من 1 ميجابايت لتظهر كبانر عريض على شاشة الهاتف.
+                        </div>
                         <div class="row g-2 align-items-center">
                             <div class="col-8">
                                 <input type="text" class="form-control form-control-sm rounded-pill" @bind="editingBankItem.ImageUrl" placeholder="رابط الصورة https://..." />
@@ -934,6 +956,12 @@
     {
         var file = e.File;
         if (file == null || editingBankItem == null) return;
+
+        if (file.Size > 1.5 * 1024 * 1024)
+        {
+            var proceed = await JS.InvokeAsync<bool>("confirm", "حجم الصورة المحددة أكبر من 1.5 ميجابايت، ويشترط أندرويد أن يكون حجم الصورة خفيفاً (أقل من 1 ميجابايت) ليتم عرضها فوراً على شاشات هواتف المستخدمين. هل تريد المتابعة برفعها؟");
+            if (!proceed) return;
+        }
         try
         {
             var res = await Api.UploadImageAsync(file, Khadamat.BlazorUI.Helpers.EntityImageType.Ad);
@@ -990,6 +1018,12 @@
     {
         var file = e.File;
         if (file == null) return;
+
+        if (file.Size > 1.5 * 1024 * 1024)
+        {
+            var proceed = await JS.InvokeAsync<bool>("confirm", "حجم الصورة المحددة أكبر من 1.5 ميجابايت، ويشترط أندرويد أن يكون حجم الصورة خفيفاً (أقل من 1 ميجابايت) ليتم عرضها فوراً على شاشات هواتف المستخدمين. هل تريد المتابعة برفعها؟");
+            if (!proceed) return;
+        }
 
         reminderImageLoadFailed = false;
         isUploadingReminderImage = true;

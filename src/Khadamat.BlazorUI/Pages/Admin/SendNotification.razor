@@ -51,9 +51,19 @@
                             </button>
                         }
                     </div>
-                    <p class="text-muted small mb-2">
-                        تظهر الصورة كبانر عريض (BigPicture) في شريط إشعارات أندرويد لشد انتباه المستخدم حتى والتطبيق مغلق.
-                    </p>
+                    <!-- Image Guidelines & Conditions -->
+                    <div class="p-2.5 mb-2.5 rounded-3 border bg-white small text-muted" style="border-right: 4px solid #0d6efd !important;">
+                        <div class="d-flex align-items-center gap-1.5 fw-bold text-dark mb-1">
+                            <i class="fas fa-circle-info text-primary"></i>
+                            <span>شروط وتعليمات الصورة لتظهر بشكل مثالي على شاشة هاتف المستخدم:</span>
+                        </div>
+                        <ul class="mb-0 ps-3 small" style="line-height: 1.6;">
+                            <li><strong>أبعاد الصورة:</strong> يفضل أن تكون الصورة بالعرض <strong>(Landscape بنسبة 2:1)</strong> مثل <code>1024 × 512</code> أو <code>800 × 400</code> بكسل لتناسب شريط إشعارات أندرويد بالكامل دون قص.</li>
+                            <li><strong>حجم الملف:</strong> يفضل ألا يتجاوز <strong>1 ميجابايت</strong> (المثالي بين 100 و 400 كيلوبايت) لضمان سرعة تحميل الإشعار فوراً على شاشة قفل الهاتف وتوفير باقة الإنترنت.</li>
+                            <li><strong>الصيغ المدعومة:</strong> JPG, PNG, WebP.</li>
+                            <li><strong>طريقة الظهور:</strong> تظهر الصورة كبانر عريض (BigPicture) ممتد في شريط الإشعارات عند سحب الإشعار لأسفل أو تلقائياً في قفل الشاشة.</li>
+                        </ul>
+                    </div>
 
                     <div class="row g-2 align-items-center mb-2">
                         <div class="col-sm-8">
@@ -430,6 +440,12 @@
     {
         var file = e.File;
         if (file == null) return;
+
+        if (file.Size > 1.5 * 1024 * 1024)
+        {
+            var proceed = await JS.InvokeAsync<bool>("confirm", "حجم الصورة المحددة أكبر من 1.5 ميجابايت، ويشترط أندرويد أن يكون حجم الصورة خفيفاً (أقل من 1 ميجابايت) ليتم عرضها فوراً على شاشات هواتف المستخدمين. هل تريد المتابعة برفعها؟");
+            if (!proceed) return;
+        }
 
         imageLoadFailed = false;
         isUploadingImage = true;
