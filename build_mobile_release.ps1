@@ -29,7 +29,7 @@ $keystore  = Join-Path $repoRoot "khadamawy_release.keystore"
 $keyAlias  = "khadamawy"
 $keyPass   = "khadamawy2026"
 $storePass = "khadamawy2026"
-$androidOut = Join-Path $repoRoot "src\Khadamat.MobileApp\bin\Release\net9.0-android36.0"
+$androidOut = Join-Path $repoRoot "src\Khadamat.MobileApp\bin\Release\net9.0-android"
 
 if (-not (Test-Path $keystore)) {
     Write-Error "Release keystore not found at: $keystore"
@@ -63,7 +63,7 @@ function Invoke-Publish([string]$packageFormat) {
         Remove-Item -Force -ErrorAction SilentlyContinue
 
     dotnet publish $project `
-        -f net9.0-android36.0 `
+        -f net9.0-android `
         -c Release `
         -p:AndroidPackageFormat=$packageFormat `
         @signingArgs

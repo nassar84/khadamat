@@ -26,7 +26,7 @@ if (-not $SkipApk) {
     Write-Host " 1. Cleaning old APKs and preparing for fresh build..." -ForegroundColor Cyan
     Write-Host "==========================================================" -ForegroundColor Cyan
 
-    Get-ChildItem -Path "src/Khadamat.MobileApp/bin/Release/net9.0-android36.0" -Recurse -Filter "*.apk" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+    Get-ChildItem -Path "src/Khadamat.MobileApp/bin/Release/net9.0-android" -Recurse -Filter "*.apk" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
     Get-ChildItem -Path "src/Khadamat.WebAPI/wwwroot/downloads" -Filter "*.apk" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
     if (Test-Path "$publishDir\wwwroot\downloads") {
         Get-ChildItem -Path "$publishDir\wwwroot\downloads" -Filter "*.apk" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
@@ -36,15 +36,15 @@ if (-not $SkipApk) {
     Write-Host " 2. Building Android APK (Release - Single APK)..." -ForegroundColor Cyan
     Write-Host "==========================================================" -ForegroundColor Cyan
 
-    dotnet publish src/Khadamat.MobileApp/Khadamat.MobileApp.csproj -f net9.0-android36.0 -c Release
+    dotnet publish src/Khadamat.MobileApp/Khadamat.MobileApp.csproj -f net9.0-android -c Release
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Android APK build failed!"
         exit $LASTEXITCODE
     }
 
-    $apkSource = "src/Khadamat.MobileApp/bin/Release/net9.0-android36.0/android-arm64/publish/com.nassar84.khadamawy-Signed.apk"
+    $apkSource = "src/Khadamat.MobileApp/bin/Release/net9.0-android/android-arm64/publish/com.nassar84.khadamawy-Signed.apk"
     if (-not (Test-Path $apkSource)) {
-        $apkSource = "src/Khadamat.MobileApp/bin/Release/net9.0-android36.0/android-arm64/com.nassar84.khadamawy-Signed.apk"
+        $apkSource = "src/Khadamat.MobileApp/bin/Release/net9.0-android/android-arm64/com.nassar84.khadamawy-Signed.apk"
     }
 
     if (-not (Test-Path $apkSource)) {

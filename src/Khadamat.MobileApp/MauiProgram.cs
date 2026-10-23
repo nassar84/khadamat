@@ -65,6 +65,22 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
 
+#if ANDROID
+        Microsoft.Maui.Handlers.WebViewHandler.Mapper.AppendToMapping("CustomAndroidSettings", (handler, view) =>
+        {
+            var webView = handler.PlatformView;
+            webView.Settings.JavaScriptEnabled = true;
+            webView.Settings.DomStorageEnabled = true;
+            webView.Settings.DatabaseEnabled = true;
+            webView.Settings.AllowFileAccess = true;
+            webView.Settings.AllowContentAccess = true;
+            webView.Settings.SetSupportMultipleWindows(false);
+            webView.Settings.MixedContentMode = global::Android.Webkit.MixedContentHandling.AlwaysAllow;
+            
+            webView.SetWebViewClient(new Khadamat.MobileApp.Platforms.Android.CustomMauiWebViewClient((Microsoft.Maui.Handlers.WebViewHandler)handler));
+        });
+#endif
+
         // ── Khadamawy Dual-Domain Environment Resolution ─────────────────────────
         // Reads Khadamawy:ActiveEnvironment (e.g. "Current" or "Production") and
         // resolves ApiSettings:BaseUrl / ApiSettings:WebAppBaseUrl from the matching
@@ -114,8 +130,17 @@ public static class MauiProgram
         builder.Services.AddSingleton<IExternalAuthService, MauiExternalAuthService>();
         builder.Services.AddSingleton<Khadamat.Application.Interfaces.IOfflineDataService, LocalDataService>();
         builder.Services.AddScoped<IBiometricService, MauiBiometricService>();
-        // Register HttpClient as a singleton for simple injection
-        builder.Services.AddSingleton(sp => new HttpClient { Timeout = TimeSpan.FromSeconds(20) });
+        
+        // Register HttpClient with resilient SSL handler for private CA / dev domain support
+        builder.Services.AddSingleton(sp =>
+        {
+            var handler = new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true
+            };
+            return new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(20) };
+        });
+
         builder.Services.AddSingleton<IAudioService, AudioService>();
         builder.Services.AddSingleton<ViewModels.ShellViewModel>();
         builder.Services.AddSingleton<AppShell>();
@@ -164,7 +189,6 @@ public static class MauiProgram
             Preferences.Default.Set("LastTaskError", errorMsg);
             e.SetObserved(); 
         };
-
 
         try 
         {

@@ -145,9 +145,14 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
 
     private void LoadContent(bool force = false)
     {
-        // 1. Resolve base url from preferences or configuration
-        string baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "");
-        string apiBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("ApiBaseUrl", "");
+        // 1. Resolve base url from preferences or configuration with solid fallback
+        string baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "https://khadamawy.eis-dev.com/");
+        if (string.IsNullOrWhiteSpace(baseUrl)) baseUrl = "https://khadamawy.eis-dev.com/";
+        if (!baseUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)) baseUrl = "https://" + baseUrl.TrimStart('/');
+
+        string apiBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("ApiBaseUrl", "https://khadamawy.eis-dev.com/");
+        if (string.IsNullOrWhiteSpace(apiBaseUrl)) apiBaseUrl = "https://khadamawy.eis-dev.com/";
+        if (!apiBaseUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)) apiBaseUrl = "https://" + apiBaseUrl.TrimStart('/');
         
         string routePart = !string.IsNullOrEmpty(DeepLinkRoute) ? DeepLinkRoute : (_route ?? "").TrimStart('/');
 
@@ -211,6 +216,19 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
         Console.WriteLine($"ANTIGRAVITY_LOG: WebView loading URL: {url}");
         LoadingOverlay.IsVisible = true;
         MainWebView.Source = new UrlWebViewSource { Url = url };
+
+        // Safeguard: auto-hide loading overlay after 10 seconds if navigation finishes silently
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(10000);
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                if (LoadingOverlay != null && LoadingOverlay.IsVisible)
+                {
+                    LoadingOverlay.IsVisible = false;
+                }
+            });
+        });
     }
 
     public async Task ApplyThemeToWebView(string theme)

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Google Play requirement: Min SDK 24 (Android 7.0), Target SDK 36 (Android 16) -->
-    <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="36" />
+    <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="35" />
 
     <application 
         android:name="com.nassar84.khadamawy.MainApplication"

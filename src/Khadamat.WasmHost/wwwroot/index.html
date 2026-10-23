@@ -6,6 +6,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>خدماوي | Khadamawy</title>
     <base href="/" />
+
+    <!-- Antigravity: Auto-Heal & Cache-Purge for Mobile App WebViews -->
+    <script>
+        (function() {
+            var CURRENT_BUILD = '20261023_04';
+            try {
+                var cached = localStorage.getItem('khadamawy_build_id');
+                if (cached !== CURRENT_BUILD) {
+                    if ('serviceWorker' in navigator) {
+                        navigator.serviceWorker.getRegistrations().then(function(regs) {
+                            for (var i = 0; i < regs.length; i++) regs[i].unregister();
+                        });
+                    }
+                    if ('caches' in window) {
+                        caches.keys().then(function(keys) {
+                            for (var j = 0; j < keys.length; j++) caches.delete(keys[j]);
+                        });
+                    }
+                    localStorage.setItem('khadamawy_build_id', CURRENT_BUILD);
+                    if (cached !== null) {
+                        window.location.reload(true);
+                    }
+                }
+            } catch(e) { }
+        })();
+
+        window.forceHardPurgeReload = function(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            try {
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then(function(regs) {
+                        for (var i = 0; i < regs.length; i++) regs[i].unregister();
+                    });
+                }
+                if ('caches' in window) {
+                    caches.keys().then(function(keys) {
+                        for (var j = 0; j < keys.length; j++) caches.delete(keys[j]);
+                    });
+                }
+                localStorage.removeItem('khadamawy_build_id');
+                sessionStorage.clear();
+            } catch(err) { }
+            setTimeout(function() {
+                window.location.href = window.location.origin + '/?_t=' + Date.now();
+            }, 100);
+        };
+    </script>
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
@@ -395,11 +442,11 @@
 
                 <!-- Action buttons -->
                 <div class="err-actions">
-                    <a href="." class="err-btn-primary">
+                    <a href="." class="err-btn-primary" onclick="forceHardPurgeReload(event)">
                         <span class="err-icon-spin">↻</span>
                         إعادة تحميل الصفحة
                     </a>
-                    <a href="/" class="err-btn-secondary">
+                    <a href="/" class="err-btn-secondary" onclick="forceHardPurgeReload(event)">
                         🏠 العودة للرئيسية
                     </a>
                 </div>
@@ -1458,9 +1505,6 @@
     <script src="js/app-dialogs.js?v=2030"></script>
     <script src="_framework/blazor.webassembly.js"></script>
     <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js');
-        }
         window.shareApp = async (title, text, url, imageUrl) => {
             try {
                 const isNative = (navigator.userAgent && navigator.userAgent.indexOf('KhadamatNativeApp') !== -1) ||
@@ -1560,7 +1604,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
-                navigator.serviceWorker.register('/service-worker.js')
+                navigator.serviceWorker.register('/service-worker.js?v=4')
                     .then(function (reg) {
                         console.log('[SW] Registered successfully. Scope:', reg.scope);
                     })
