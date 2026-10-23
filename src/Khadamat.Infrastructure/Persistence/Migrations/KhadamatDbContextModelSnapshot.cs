@@ -1757,6 +1757,9 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.Property<string>("DeletedBy")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -2400,6 +2403,10 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.Property<string>("DeletedBy")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("DeliveryChannel")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("DisplayType")
                         .HasColumnType("int");
 
@@ -2411,6 +2418,9 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("ExecutionCount")
                         .HasColumnType("int");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("InternalDescription")
                         .HasColumnType("nvarchar(max)");
@@ -2435,6 +2445,13 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MessageBankJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MessageSelectionMode")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -2957,6 +2974,143 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("SubscriptionPlans");
+                });
+
+            modelBuilder.Entity("Khadamat.Domain.Entities.TesterActivityLog", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("DeviceIdentifier")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("DeviceModel")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IpAddress")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsNativeApp")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("OpenedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("OperatingSystem")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TesterDeviceId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TesterEmail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("VisitDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeviceIdentifier");
+
+                    b.HasIndex("TesterDeviceId");
+
+                    b.HasIndex("VisitDate");
+
+                    b.ToTable("TesterActivityLogs");
+                });
+
+            modelBuilder.Entity("Khadamat.Domain.Entities.TesterDevice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ConsecutiveDaysStreak")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DeviceIdentifier")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("DeviceModel")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("FirstSeenAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("HasMissedStreak")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("IpAddress")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("LastSeenAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastStreakDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OperatingSystem")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TargetDays")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TesterEmail")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("TesterName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TotalActiveDays")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeviceIdentifier");
+
+                    b.HasIndex("TesterEmail");
+
+                    b.ToTable("TesterDevices");
                 });
 
             modelBuilder.Entity("Khadamat.Domain.Entities.TrialAdvertisement", b =>
@@ -3705,7 +3859,7 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.HasOne("Khadamat.Domain.Entities.Specialization", "SpecializationEntity")
                         .WithMany("Services")
                         .HasForeignKey("SpecializationId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Khadamat.Domain.Entities.SubCategory", "SubCategory")
                         .WithMany("Services")
@@ -3757,12 +3911,12 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                     b.HasOne("Khadamat.Domain.Entities.Category", "Category")
                         .WithMany()
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Khadamat.Domain.Entities.SubCategory", "SubCategory")
                         .WithMany()
                         .HasForeignKey("SubCategoryId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Category");
 
@@ -3778,6 +3932,17 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("Khadamat.Domain.Entities.TesterActivityLog", b =>
+                {
+                    b.HasOne("Khadamat.Domain.Entities.TesterDevice", "TesterDevice")
+                        .WithMany("ActivityLogs")
+                        .HasForeignKey("TesterDeviceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TesterDevice");
                 });
 
             modelBuilder.Entity("Khadamat.Infrastructure.Identity.ApplicationUser", b =>
@@ -3934,6 +4099,11 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Khadamat.Domain.Entities.SubCategory", b =>
                 {
                     b.Navigation("Services");
+                });
+
+            modelBuilder.Entity("Khadamat.Domain.Entities.TesterDevice", b =>
+                {
+                    b.Navigation("ActivityLogs");
                 });
 
             modelBuilder.Entity("Khadamat.Infrastructure.Identity.ApplicationUser", b =>

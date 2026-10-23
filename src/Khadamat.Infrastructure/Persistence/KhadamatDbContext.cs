@@ -61,10 +61,23 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ReminderCampaign> ReminderCampaigns { get; set; }
     public DbSet<UserDevice> UserDevices { get; set; }
     public DbSet<Specialization> Specializations { get; set; }
+    public DbSet<TesterDevice> TesterDevices { get; set; }
+    public DbSet<TesterActivityLog> TesterActivityLogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        builder.Entity<TesterDevice>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<TesterDevice>().HasIndex(e => e.DeviceIdentifier);
+        builder.Entity<TesterDevice>().HasIndex(e => e.TesterEmail);
+        builder.Entity<TesterActivityLog>().HasIndex(e => e.DeviceIdentifier);
+        builder.Entity<TesterActivityLog>().HasIndex(e => e.VisitDate);
+        builder.Entity<TesterActivityLog>()
+            .HasOne(e => e.TesterDevice)
+            .WithMany(e => e.ActivityLogs)
+            .HasForeignKey(e => e.TesterDeviceId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // Global Filter for Soft Delete
         builder.Entity<UserDevice>().HasQueryFilter(e => !e.IsDeleted);

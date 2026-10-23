@@ -46,6 +46,7 @@ public static class DependencyInjection
         // Advertisement & Growth System
         services.AddScoped<Khadamat.Application.Interfaces.IAdvertisementService, AdvertisementService>();
         services.AddScoped<Khadamat.Application.Interfaces.IReferralService, ReferralService>();
+        services.AddScoped<Khadamat.Application.Interfaces.ITesterTrackingService, Khadamat.Infrastructure.Services.TesterTrackingService>();
 
         services.AddAuthentication(options =>
         {

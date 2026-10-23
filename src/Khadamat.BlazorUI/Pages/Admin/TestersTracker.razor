@@ -1,0 +1,661 @@
+@page "/admin/testers"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@inject Khadamat.BlazorUI.State.AppState State
+
+<PageTitle>متابعة مختبري Google Play - الإدارة</PageTitle>
+
+<div class="testers-hub-container" dir="rtl">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 mt-2">
+        <div class="d-flex align-items-center gap-3">
+            <div class="tracker-icon-badge shadow-sm">
+                <i class="fa-brands fa-google-play text-primary fs-3"></i>
+            </div>
+            <div>
+                <h3 class="fw-bold mb-1 text-dark">متابعة مختبري Google Play</h3>
+                <p class="text-muted small mb-0">مراقبة الالتزام بفتح التطبيق لمدة 14 يوماً متتالية وتنبيه المتأخرين</p>
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-outline-primary rounded-pill px-3 shadow-2xs" @onclick="LoadDataAsync" disabled="@isLoading">
+                <i class="fa-solid fa-rotate @(isLoading ? "fa-spin" : "") me-1"></i> تحديث البيانات
+            </button>
+        </div>
+    </div>
+
+    <!-- Alert / Toast -->
+    @if (!string.IsNullOrEmpty(statusMessage))
+    {
+        <div class="alert alert-@statusMessageType alert-dismissible fade show rounded-4 shadow-sm mb-3 d-flex align-items-center gap-2" role="alert">
+            <i class="fa-solid @(statusMessageType == "success" ? "fa-circle-check text-success" : "fa-triangle-exclamation text-danger") fs-5"></i>
+            <span class="fw-bold small">@statusMessage</span>
+            <button type="button" class="btn-close ms-auto" @onclick="() => statusMessage = null"></button>
+        </div>
+    }
+
+    <!-- KPI Summary Cards -->
+    <div class="row g-3 mb-4">
+        <!-- Total Testers -->
+        <div class="col-6 col-md-4 col-lg">
+            <div class="kpi-card glass-card p-3 rounded-4 shadow-sm h-100">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="kpi-label text-muted small fw-bold">إجمالي المختبرين</span>
+                    <span class="kpi-badge bg-primary-subtle text-primary"><i class="fa-solid fa-users"></i></span>
+                </div>
+                <div class="h3 fw-bold mb-1 text-dark">@(summary?.TotalTesters ?? 0)</div>
+                <div class="x-small text-muted">المستهدف: 12 مختبراً على الأقل</div>
+            </div>
+        </div>
+
+        <!-- Active Today -->
+        <div class="col-6 col-md-4 col-lg">
+            <div class="kpi-card glass-card p-3 rounded-4 shadow-sm h-100 border-start border-success border-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="kpi-label text-success small fw-bold">فتحوا التطبيق اليوم</span>
+                    <span class="kpi-badge bg-success-subtle text-success"><i class="fa-solid fa-circle-check"></i></span>
+                </div>
+                <div class="h3 fw-bold mb-1 text-success">@(summary?.ActiveTodayCount ?? 0)</div>
+                <div class="x-small text-muted">سجلوا حضور اليوم بنجاح</div>
+            </div>
+        </div>
+
+        <!-- Inactive Today -->
+        <div class="col-6 col-md-4 col-lg">
+            <div class="kpi-card glass-card p-3 rounded-4 shadow-sm h-100 border-start border-danger border-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="kpi-label text-danger small fw-bold">لم يفتحوا اليوم بعد</span>
+                    <span class="kpi-badge bg-danger-subtle text-danger"><i class="fa-solid fa-triangle-exclamation"></i></span>
+                </div>
+                <div class="h3 fw-bold mb-1 text-danger">@(summary?.InactiveTodayCount ?? 0)</div>
+                <div class="x-small text-danger fw-bold">بحاجة لتذكير قبل نهاية اليوم!</div>
+            </div>
+        </div>
+
+        <!-- Completed 14 Days -->
+        <div class="col-6 col-md-6 col-lg">
+            <div class="kpi-card glass-card p-3 rounded-4 shadow-sm h-100 border-start border-warning border-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="kpi-label text-warning-emphasis small fw-bold">أتموا الـ 14 يوماً</span>
+                    <span class="kpi-badge bg-warning-subtle text-warning-emphasis"><i class="fa-solid fa-award"></i></span>
+                </div>
+                <div class="h3 fw-bold mb-1 text-warning-emphasis">@(summary?.CompletedTestersCount ?? 0)</div>
+                <div class="x-small text-muted">جاهزون لاعتماد المتجر</div>
+            </div>
+        </div>
+
+        <!-- Streak Broken -->
+        <div class="col-12 col-md-6 col-lg">
+            <div class="kpi-card glass-card p-3 rounded-4 shadow-sm h-100 border-start border-secondary border-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="kpi-label text-muted small fw-bold">تصفر عدادهم لغياب</span>
+                    <span class="kpi-badge bg-secondary-subtle text-secondary"><i class="fa-solid fa-rotate-left"></i></span>
+                </div>
+                <div class="h3 fw-bold mb-1 text-secondary">@(summary?.StreakBrokenCount ?? 0)</div>
+                <div class="x-small text-muted">انقطعوا وبدأوا العد من جديد</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters & Search -->
+    <div class="filters-card glass-card p-3 rounded-4 shadow-sm mb-4">
+        <div class="row g-2 align-items-center">
+            <div class="col-12 col-md-5">
+                <div class="position-relative">
+                    <i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                    <input type="text"
+                           class="form-control rounded-pill ps-5 pe-3 bg-light border-0 py-2 small"
+                           placeholder="بحث بالاسم، الإيميل، الهاتف، نوع الجهاز..."
+                           @bind="searchQuery"
+                           @bind:event="oninput" />
+                </div>
+            </div>
+
+            <div class="col-12 col-md-7 d-flex flex-wrap gap-2 justify-content-md-end">
+                <button class="btn btn-sm rounded-pill px-3 @(filterTab == "all" ? "btn-primary" : "btn-light border")"
+                        @onclick='() => filterTab = "all"'>
+                    الكل (@(summary?.TotalTesters ?? 0))
+                </button>
+                <button class="btn btn-sm rounded-pill px-3 @(filterTab == "inactive" ? "btn-danger" : "btn-light border text-danger")"
+                        @onclick='() => filterTab = "inactive"'>
+                    لم يفتحوا اليوم (@(summary?.InactiveTodayCount ?? 0))
+                </button>
+                <button class="btn btn-sm rounded-pill px-3 @(filterTab == "active" ? "btn-success" : "btn-light border text-success")"
+                        @onclick='() => filterTab = "active"'>
+                    نشط اليوم (@(summary?.ActiveTodayCount ?? 0))
+                </button>
+                <button class="btn btn-sm rounded-pill px-3 @(filterTab == "completed" ? "btn-warning" : "btn-light border text-warning-emphasis")"
+                        @onclick='() => filterTab = "completed"'>
+                    أتموا 14 يوماً (@(summary?.CompletedTestersCount ?? 0))
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Testers List / Table -->
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="text-muted small mt-2">جاري تحميل بيانات المختبرين...</p>
+        </div>
+    }
+    else if (!FilteredTesters.Any())
+    {
+        <div class="glass-card p-5 text-center rounded-4 shadow-sm">
+            <i class="fa-solid fa-mobile-screen-button display-3 text-muted mb-3 opacity-25"></i>
+            <h5 class="fw-bold text-dark">لا توجد بيانات مسجلة حالياً</h5>
+            <p class="text-muted small mb-0">بمجرد أن يفتح أي مختبر التطبيق على هاتفه، سيظهر جهازه ونشاطه هنا تلقائياً.</p>
+        </div>
+    }
+    else
+    {
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 text-nowrap">
+                    <thead class="table-light text-muted small">
+                        <tr>
+                            <th class="ps-4">المختبر / الجهاز</th>
+                            <th>حالة اليوم</th>
+                            <th>سلسلة الـ 14 يوماً</th>
+                            <th>إجمالي الأيام السابقة</th>
+                            <th>آخر ظهور</th>
+                            <th class="text-center pe-4">إجراءات المتابعة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var tester in FilteredTesters)
+                        {
+                            <tr>
+                                <!-- Tester & Device Info -->
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="tester-avatar-circle @(tester.IsOpenToday ? "border-success text-success bg-success-subtle" : "border-danger text-danger bg-danger-subtle")">
+                                            <i class="fa-solid fa-mobile-screen"></i>
+                                        </div>
+                                        <div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="fw-bold text-dark">
+                                                    @(string.IsNullOrEmpty(tester.TesterName) ? "مختبر غير مسمى" : tester.TesterName)
+                                                </span>
+                                                @if (tester.IsCompleted)
+                                                {
+                                                    <span class="badge bg-warning text-dark rounded-pill x-small">
+                                                        <i class="fa-solid fa-medal me-1"></i>مكتمل
+                                                    </span>
+                                                }
+                                            </div>
+                                            <div class="x-small text-muted mt-0.5">
+                                                <i class="fa-solid fa-envelope me-1"></i>@(string.IsNullOrEmpty(tester.TesterEmail) ? "لم يُسجل إيميل" : tester.TesterEmail)
+                                            </div>
+                                            <div class="x-small text-secondary mt-0.5">
+                                                <i class="fa-solid fa-robot me-1"></i>@(tester.DeviceModel ?? "جهاز غير محدد") | @(tester.OperatingSystem ?? "Android")
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!-- Status Today -->
+                                <td>
+                                    @if (tester.IsOpenToday)
+                                    {
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1.5 fw-bold">
+                                            <i class="fa-solid fa-circle-check me-1"></i>فتح اليوم (@tester.LastSeenAt.AddHours(2).ToString("hh:mm tt"))
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1.5 fw-bold">
+                                            <i class="fa-solid fa-circle-xmark me-1"></i>لم يفتح اليوم بعد
+                                        </span>
+                                    }
+                                </td>
+
+                                <!-- Streak Progress (14 Days) -->
+                                <td style="min-width: 170px;">
+                                    <div class="d-flex justify-content-between align-items-center x-small mb-1">
+                                        <span class="fw-bold text-dark">
+                                            @tester.ConsecutiveDaysStreak من @tester.TargetDays يوم
+                                        </span>
+                                        <span class="fw-bold @(tester.ConsecutiveDaysStreak > 0 ? "text-primary" : "text-muted")">
+                                            @(Math.Min(100, (tester.ConsecutiveDaysStreak * 100) / tester.TargetDays))%
+                                        </span>
+                                    </div>
+                                    <div class="progress rounded-pill" style="height: 8px;">
+                                        <div class="progress-bar @(tester.IsCompleted ? "bg-warning" : (tester.IsOpenToday ? "bg-success" : "bg-primary"))"
+                                             role="progressbar"
+                                             style="width: @(Math.Min(100, (tester.ConsecutiveDaysStreak * 100) / tester.TargetDays))%;">
+                                        </div>
+                                    </div>
+                                    @if (tester.HasMissedStreak)
+                                    {
+                                        <div class="x-small text-danger mt-1">
+                                            <i class="fa-solid fa-rotate-left me-1"></i>انقطع وتصفر العداد سابقاً
+                                        </div>
+                                    }
+                                </td>
+
+                                <!-- Total Days Active (Never Cleared) -->
+                                <td>
+                                    <div class="fw-bold text-dark">@tester.TotalActiveDays يوم</div>
+                                    <div class="x-small text-muted">إجمالي السجل الدائم</div>
+                                </td>
+
+                                <!-- Last Seen -->
+                                <td>
+                                    <div class="small text-dark">@tester.LastSeenAt.AddHours(2).ToString("yyyy/MM/dd")</div>
+                                    <div class="x-small text-muted">@tester.LastSeenAt.AddHours(2).ToString("hh:mm tt")</div>
+                                </td>
+
+                                <!-- Actions -->
+                                <td class="text-center pe-4">
+                                    <div class="d-flex justify-content-center align-items-center gap-1">
+                                        <!-- WhatsApp Direct Reminder Button -->
+                                        @if (!string.IsNullOrEmpty(tester.PhoneNumber) || !string.IsNullOrEmpty(tester.TesterEmail))
+                                        {
+                                            <a href="@GetWhatsAppReminderLink(tester)"
+                                               target="_blank"
+                                               class="btn btn-sm btn-outline-success rounded-circle shadow-2xs action-circle-btn"
+                                               title="إرسال تذكير واتساب للمختبر">
+                                                <i class="fa-brands fa-whatsapp"></i>
+                                            </a>
+                                        }
+
+                                        <!-- View Detailed Visit History -->
+                                        <button class="btn btn-sm btn-outline-primary rounded-circle shadow-2xs action-circle-btn"
+                                                @onclick="() => ViewLogsAsync(tester)"
+                                                title="عرض سجل الزيارات بالكامل">
+                                            <i class="fa-solid fa-clock-rotate-left"></i>
+                                        </button>
+
+                                        <!-- Edit / Assign Tester Info -->
+                                        <button class="btn btn-sm btn-outline-secondary rounded-circle shadow-2xs action-circle-btn"
+                                                @onclick="() => OpenEditModal(tester)"
+                                                title="تعديل بيانات المختبر">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </button>
+
+                                        <!-- Delete Tester Record -->
+                                        <button class="btn btn-sm btn-outline-danger rounded-circle shadow-2xs action-circle-btn"
+                                                @onclick="() => DeleteTesterAsync(tester)"
+                                                title="حذف هذا الجهاز">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Modal 1: Edit / Assign Tester Info -->
+@if (isEditModalOpen && selectedTester != null)
+{
+    <div class="modal-backdrop-custom" @onclick="() => isEditModalOpen = false">
+        <div class="modal-dialog-custom glass-card p-4 rounded-4 shadow-lg" @onclick:stopPropagation="true">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0 text-dark">
+                    <i class="fa-solid fa-user-pen text-primary me-2"></i>بيانات المختبر
+                </h5>
+                <button type="button" class="btn-close" @onclick="() => isEditModalOpen = false"></button>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-muted">اسم المختبر</label>
+                <input type="text" class="form-control rounded-3" placeholder="مثال: أحمد محمد (مختبر 1)" @bind="editRequest.TesterName" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-muted">البريد الإلكتروني (المسجل في Google Play)</label>
+                <input type="email" class="form-control rounded-3" placeholder="tester@gmail.com" @bind="editRequest.TesterEmail" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-muted">رقم الهاتف / الواتساب (لإرسال التذكيرات)</label>
+                <input type="tel" class="form-control rounded-3" placeholder="010xxxxxxxx أو 2010xxxxxxxx" @bind="editRequest.PhoneNumber" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-muted">ملاحظات إضافية</label>
+                <textarea class="form-control rounded-3" rows="2" placeholder="ملاحظات حول المختبر أو نوع هاتفه..." @bind="editRequest.Notes"></textarea>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <button type="button" class="btn btn-light rounded-pill px-4" @onclick="() => isEditModalOpen = false">إلغاء</button>
+                <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold" @onclick="SaveTesterAsync" disabled="@isSaving">
+                    <i class="fa-solid fa-floppy-disk me-1"></i>حفظ البيانات
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Modal 2: View Detailed Visit History (Never Deleted) -->
+@if (isLogsModalOpen && selectedTester != null)
+{
+    <div class="modal-backdrop-custom" @onclick="() => isLogsModalOpen = false">
+        <div class="modal-dialog-custom glass-card p-4 rounded-4 shadow-lg" style="max-width: 650px;" @onclick:stopPropagation="true">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="fa-solid fa-clock-rotate-left text-primary me-2"></i>سجل زيارات المختبر
+                    </h5>
+                    <p class="text-muted small mb-0 mt-1">
+                        @(string.IsNullOrEmpty(selectedTester.TesterName) ? "جهاز المختبر" : selectedTester.TesterName)
+                        (@(selectedTester.DeviceModel ?? "جهاز"))
+                    </p>
+                </div>
+                <button type="button" class="btn-close" @onclick="() => isLogsModalOpen = false"></button>
+            </div>
+
+            <div class="alert alert-light border rounded-3 p-2 d-flex justify-content-between align-items-center small mb-3">
+                <span>إجمالي أيام الفتح: <strong>@selectedTester.TotalActiveDays يوم</strong></span>
+                <span>السلسلة الحالية: <strong>@selectedTester.ConsecutiveDaysStreak يوم</strong></span>
+            </div>
+
+            @if (isLoadingLogs)
+            {
+                <div class="text-center py-4">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                    <span class="small text-muted ms-2">جاري تحميل السجل...</span>
+                </div>
+            }
+            else if (!testerLogs.Any())
+            {
+                <div class="text-center py-4 text-muted small">لا توجد زيارات مسجلة لهذا الجهاز.</div>
+            }
+            else
+            {
+                <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                    <table class="table table-sm table-striped align-middle small mb-0">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th>#</th>
+                                <th>تاريخ الزيارة</th>
+                                <th>الوقت بالساعة والدقيقة</th>
+                                <th>عنوان الـ IP</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int i = 0; i < testerLogs.Count; i++)
+                            {
+                                var log = testerLogs[i];
+                                <tr>
+                                    <td>@(i + 1)</td>
+                                    <td class="fw-bold text-dark">@log.OpenedAt.AddHours(2).ToString("yyyy/MM/dd")</td>
+                                    <td>@log.OpenedAt.AddHours(2).ToString("hh:mm:ss tt")</td>
+                                    <td class="text-muted font-monospace x-small">@(log.IpAddress ?? "-")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+            <div class="d-flex justify-content-end mt-3">
+                <button type="button" class="btn btn-light rounded-pill px-4" @onclick="() => isLogsModalOpen = false">إغلاق</button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .testers-hub-container {
+        width: 100%;
+        max-width: 100%;
+        padding-bottom: 80px;
+    }
+    .tracker-icon-badge {
+        width: 50px;
+        height: 50px;
+        border-radius: 16px;
+        background: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+    }
+    .kpi-badge {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+    }
+    .tester-avatar-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1.5px solid;
+        flex-shrink: 0;
+        font-size: 1.1rem;
+    }
+    .action-circle-btn {
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .x-small {
+        font-size: 0.75rem;
+    }
+    .modal-backdrop-custom {
+        position: fixed;
+        inset: 0;
+        z-index: 2050;
+        background: rgba(15, 23, 42, 0.65);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+    }
+    .modal-dialog-custom {
+        max-width: 500px;
+        width: 100%;
+        background: #ffffff;
+    }
+</style>
+
+@code {
+    private TestersDashboardSummaryDto? summary;
+    private bool isLoading = true;
+    private string searchQuery = "";
+    private string filterTab = "all";
+    private string? statusMessage;
+    private string statusMessageType = "success";
+
+    // Modals state
+    private bool isEditModalOpen = false;
+    private bool isLogsModalOpen = false;
+    private bool isSaving = false;
+    private bool isLoadingLogs = false;
+    private TesterDeviceDto? selectedTester;
+    private AssignTesterRequest editRequest = new();
+    private List<TesterActivityLogDto> testerLogs = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        isLoading = true;
+        statusMessage = null;
+        try
+        {
+            summary = await Api.GetTestersDashboardAsync();
+        }
+        catch (Exception ex)
+        {
+            statusMessage = "حدث خطأ أثناء تحميل البيانات: " + ex.Message;
+            statusMessageType = "danger";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private IEnumerable<TesterDeviceDto> FilteredTesters
+    {
+        get
+        {
+            if (summary?.Testers == null) return Enumerable.Empty<TesterDeviceDto>();
+
+            var list = summary.Testers.AsEnumerable();
+
+            // Filter Tab
+            if (filterTab == "active")
+            {
+                list = list.Where(t => t.IsOpenToday);
+            }
+            else if (filterTab == "inactive")
+            {
+                list = list.Where(t => !t.IsOpenToday);
+            }
+            else if (filterTab == "completed")
+            {
+                list = list.Where(t => t.IsCompleted);
+            }
+
+            // Search query
+            if (!string.IsNullOrWhiteSpace(searchQuery))
+            {
+                var q = searchQuery.Trim().ToLower();
+                list = list.Where(t =>
+                    (!string.IsNullOrEmpty(t.TesterName) && t.TesterName.ToLower().Contains(q)) ||
+                    (!string.IsNullOrEmpty(t.TesterEmail) && t.TesterEmail.ToLower().Contains(q)) ||
+                    (!string.IsNullOrEmpty(t.PhoneNumber) && t.PhoneNumber.Contains(q)) ||
+                    (!string.IsNullOrEmpty(t.DeviceModel) && t.DeviceModel.ToLower().Contains(q)) ||
+                    (!string.IsNullOrEmpty(t.DeviceIdentifier) && t.DeviceIdentifier.ToLower().Contains(q))
+                );
+            }
+
+            return list;
+        }
+    }
+
+    private void OpenEditModal(TesterDeviceDto tester)
+    {
+        selectedTester = tester;
+        editRequest = new AssignTesterRequest
+        {
+            TesterName = tester.TesterName,
+            TesterEmail = tester.TesterEmail,
+            PhoneNumber = tester.PhoneNumber,
+            Notes = tester.Notes
+        };
+        isEditModalOpen = true;
+    }
+
+    private async Task SaveTesterAsync()
+    {
+        if (selectedTester == null) return;
+        isSaving = true;
+        try
+        {
+            var success = await Api.AssignTesterAsync(selectedTester.Id, editRequest);
+            if (success)
+            {
+                statusMessage = "تم تحديث بيانات المختبر بنجاح.";
+                statusMessageType = "success";
+                isEditModalOpen = false;
+                await LoadDataAsync();
+            }
+            else
+            {
+                statusMessage = "فشل تحديث البيانات، يرجى المحاولة لاحقاً.";
+                statusMessageType = "danger";
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = "خطأ: " + ex.Message;
+            statusMessageType = "danger";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task ViewLogsAsync(TesterDeviceDto tester)
+    {
+        selectedTester = tester;
+        isLogsModalOpen = true;
+        isLoadingLogs = true;
+        testerLogs.Clear();
+        try
+        {
+            testerLogs = await Api.GetTesterLogsAsync(tester.Id);
+        }
+        catch (Exception ex)
+        {
+            statusMessage = "حدث خطأ أثناء جلب سجل الزيارات: " + ex.Message;
+            statusMessageType = "danger";
+        }
+        finally
+        {
+            isLoadingLogs = false;
+        }
+    }
+
+    private async Task DeleteTesterAsync(TesterDeviceDto tester)
+    {
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"هل أنت متأكد من حذف هذا الجهاز ({tester.TesterName ?? tester.DeviceModel})؟");
+        if (!confirmed) return;
+
+        try
+        {
+            var success = await Api.DeleteTesterDeviceAsync(tester.Id);
+            if (success)
+            {
+                statusMessage = "تم حذف الجهاز بنجاح.";
+                statusMessageType = "success";
+                await LoadDataAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = "حدث خطأ أثناء الحذف: " + ex.Message;
+            statusMessageType = "danger";
+        }
+    }
+
+    private string GetWhatsAppReminderLink(TesterDeviceDto tester)
+    {
+        var rawPhone = tester.PhoneNumber ?? "";
+        // Clean phone number: remove spaces and non-digits
+        var digits = new string(rawPhone.Where(char.IsDigit).ToArray());
+        if (digits.StartsWith("01")) digits = "2" + digits; // Format Egypt 01xxxx to 201xxxx
+
+        var name = !string.IsNullOrEmpty(tester.TesterName) ? tester.TesterName : "عزيزي المختبر";
+        var streak = tester.ConsecutiveDaysStreak;
+        var remaining = tester.DaysRemaining;
+
+        var message = $"مرحباً {name}، تذكير ودي من فريق خدماوي 🌟\n" +
+                      $"يرجى التكرم بفتح تطبيق خدماوي الآن للحفاظ على سلسلة اختبار الـ 14 يوماً الخاصة بمتجر Google Play.\n" +
+                      $"سلسلتك الحالية: {streak} يوم (المتبقي: {remaining} يوم).\n" +
+                      $"شكراً جزيلاً لتعاونك ودعمك! 🚀";
+
+        var url = $"https://wa.me/{digits}?text={Uri.EscapeDataString(message)}";
+        return url;
+    }
+}

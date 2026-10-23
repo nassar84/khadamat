@@ -851,6 +851,74 @@ public class ApiClient
         return response?.Data ?? new List<ServiceEditRequestDto>();
     }
 
+    // ══════════════════════════════════════════════════════════════════════
+    // Google Play Testers Tracking
+    // ══════════════════════════════════════════════════════════════════════
+    public async Task<TesterDeviceDto?> PingTesterAsync(TesterPingRequest request)
+    {
+        try
+        {
+            var response = await _http.PostAsJsonAsync("v1/testers/ping", request);
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<ApiResponse<TesterDeviceDto>>();
+                return result?.Data;
+            }
+        }
+        catch { }
+        return null;
+    }
+
+    public async Task<bool> IdentifyTesterAsync(TesterIdentifyRequest request)
+    {
+        try
+        {
+            var response = await _http.PostAsJsonAsync("v1/testers/identify", request);
+            return response.IsSuccessStatusCode;
+        }
+        catch { return false; }
+    }
+
+    public async Task<TestersDashboardSummaryDto?> GetTestersDashboardAsync()
+    {
+        try
+        {
+            var response = await _http.GetFromJsonAsync<ApiResponse<TestersDashboardSummaryDto>>("v1/testers/dashboard");
+            return response?.Data;
+        }
+        catch { return null; }
+    }
+
+    public async Task<bool> AssignTesterAsync(int id, AssignTesterRequest request)
+    {
+        try
+        {
+            var response = await _http.PutAsJsonAsync($"v1/testers/{id}/assign", request);
+            return response.IsSuccessStatusCode;
+        }
+        catch { return false; }
+    }
+
+    public async Task<List<TesterActivityLogDto>> GetTesterLogsAsync(int id)
+    {
+        try
+        {
+            var response = await _http.GetFromJsonAsync<ApiResponse<List<TesterActivityLogDto>>>($"v1/testers/{id}/logs");
+            return response?.Data ?? new();
+        }
+        catch { return new(); }
+    }
+
+    public async Task<bool> DeleteTesterDeviceAsync(int id)
+    {
+        try
+        {
+            var response = await _http.DeleteAsync($"v1/testers/{id}");
+            return response.IsSuccessStatusCode;
+        }
+        catch { return false; }
+    }
+
     public async Task<bool> UpdateServiceEditRequestStatusAsync(int id, Khadamat.Application.Features.Services.Commands.UpdateServiceEditRequestCommand command)
     {
         var response = await _http.PostAsJsonAsync($"v1/admin/services/edit-requests/{id}/status", command);
