@@ -11,17 +11,14 @@ namespace Khadamat.Infrastructure.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Services_Specializations_SpecializationId",
-                table: "Services");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_Specializations_Categories_CategoryId",
-                table: "Specializations");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_Specializations_SubCategories_SubCategoryId",
-                table: "Specializations");
+            migrationBuilder.Sql(@"
+                IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_Services_Specializations_SpecializationId')
+                    ALTER TABLE Services DROP CONSTRAINT FK_Services_Specializations_SpecializationId;
+                IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_Specializations_Categories_CategoryId')
+                    ALTER TABLE Specializations DROP CONSTRAINT FK_Specializations_Categories_CategoryId;
+                IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_Specializations_SubCategories_SubCategoryId')
+                    ALTER TABLE Specializations DROP CONSTRAINT FK_Specializations_SubCategories_SubCategoryId;
+            ");
 
             migrationBuilder.AddColumn<string>(
                 name: "DeliveryChannel",

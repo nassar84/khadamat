@@ -68,7 +68,7 @@ public class TestersController : ControllerBase
     /// Full dashboard for Google Play testers with attendance streak and status
     /// </summary>
     [HttpGet("dashboard")]
-    [Authorize(Roles = "SuperAdmin,SystemAdmin")]
+    [Authorize(Policy = "RequireAdmin")]
     public async Task<ActionResult<ApiResponse<TestersDashboardSummaryDto>>> GetDashboard()
     {
         var result = await _trackingService.GetDashboardAsync();
@@ -79,7 +79,7 @@ public class TestersController : ControllerBase
     /// Admin assigns tester name, email, phone number, and notes to a device
     /// </summary>
     [HttpPut("{id:int}/assign")]
-    [Authorize(Roles = "SuperAdmin,SystemAdmin")]
+    [Authorize(Policy = "RequireAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> AssignTester(int id, [FromBody] AssignTesterRequest request)
     {
         var result = await _trackingService.AssignTesterAsync(id, request);
@@ -90,7 +90,7 @@ public class TestersController : ControllerBase
     /// Detailed history of all visits for a specific tester device
     /// </summary>
     [HttpGet("{id:int}/logs")]
-    [Authorize(Roles = "SuperAdmin,SystemAdmin")]
+    [Authorize(Policy = "RequireAdmin")]
     public async Task<ActionResult<ApiResponse<List<TesterActivityLogDto>>>> GetLogs(int id)
     {
         var result = await _trackingService.GetDeviceLogsAsync(id);
@@ -101,7 +101,7 @@ public class TestersController : ControllerBase
     /// Delete/archive a tester device record
     /// </summary>
     [HttpDelete("{id:int}")]
-    [Authorize(Roles = "SuperAdmin,SystemAdmin")]
+    [Authorize(Policy = "RequireAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(int id)
     {
         var result = await _trackingService.DeleteTesterDeviceAsync(id);

@@ -139,20 +139,98 @@ try
     using (var scope = app.Services.CreateScope())
     {
         var services = scope.ServiceProvider;
+        var context = services.GetRequiredService<KhadamatDbContext>();
+        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+
+        // 1. Ensure Tester Tracking tables exist independently of EF migration state
         try
         {
-            var context = services.GetRequiredService<KhadamatDbContext>();
-            var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-            var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+            await context.Database.ExecuteSqlRawAsync(@"
+                IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'TesterDevices')
+                BEGIN
+                    CREATE TABLE [dbo].[TesterDevices] (
+                        [Id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                        [DeviceIdentifier] NVARCHAR(450) NOT NULL,
+                        [UserId] NVARCHAR(MAX) NULL,
+                        [TesterEmail] NVARCHAR(450) NULL,
+                        [TesterName] NVARCHAR(MAX) NULL,
+                        [PhoneNumber] NVARCHAR(MAX) NULL,
+                        [DeviceModel] NVARCHAR(MAX) NULL,
+                        [OperatingSystem] NVARCHAR(MAX) NULL,
+                        [IpAddress] NVARCHAR(MAX) NULL,
+                        [FirstSeenAt] DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+                        [LastSeenAt] DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+                        [LastStreakDate] DATETIME2 NULL,
+                        [ConsecutiveDaysStreak] INT NOT NULL DEFAULT 1,
+                        [TotalActiveDays] INT NOT NULL DEFAULT 1,
+                        [TargetDays] INT NOT NULL DEFAULT 14,
+                        [HasMissedStreak] BIT NOT NULL DEFAULT 0,
+                        [Notes] NVARCHAR(MAX) NULL,
+                        [CreatedAt] DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+                        [CreatedBy] NVARCHAR(MAX) NULL,
+                        [UpdatedAt] DATETIME2 NULL,
+                        [UpdatedBy] NVARCHAR(MAX) NULL,
+                        [IsDeleted] BIT NOT NULL DEFAULT 0,
+                        [DeletedAt] DATETIME2 NULL,
+                        [DeletedBy] NVARCHAR(MAX) NULL
+                    );
+                    CREATE UNIQUE INDEX [IX_TesterDevices_DeviceIdentifier] ON [dbo].[TesterDevices]([DeviceIdentifier]);
+                    CREATE INDEX [IX_TesterDevices_TesterEmail] ON [dbo].[TesterDevices]([TesterEmail]);
+                END
 
-            // In production, you might want to run migrations manually via CI/CD, 
-            // but for this hosting environment, auto-apply is safer for updates.
+                IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'TesterActivityLogs')
+                BEGIN
+                    CREATE TABLE [dbo].[TesterActivityLogs] (
+                        [Id] BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                        [TesterDeviceId] INT NOT NULL,
+                        [DeviceIdentifier] NVARCHAR(450) NOT NULL,
+                        [UserId] NVARCHAR(MAX) NULL,
+                        [TesterEmail] NVARCHAR(MAX) NULL,
+                        [OpenedAt] DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+                        [VisitDate] DATETIME2 NOT NULL,
+                        [IpAddress] NVARCHAR(MAX) NULL,
+                        [DeviceModel] NVARCHAR(MAX) NULL,
+                        [OperatingSystem] NVARCHAR(MAX) NULL,
+                        [IsNativeApp] BIT NOT NULL DEFAULT 0,
+                        [CreatedAt] DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+                        [CreatedBy] NVARCHAR(MAX) NULL,
+                        [UpdatedAt] DATETIME2 NULL,
+                        [UpdatedBy] NVARCHAR(MAX) NULL,
+                        [IsDeleted] BIT NOT NULL DEFAULT 0,
+                        [DeletedAt] DATETIME2 NULL,
+                        [DeletedBy] NVARCHAR(MAX) NULL,
+                        CONSTRAINT [FK_TesterActivityLogs_TesterDevices_TesterDeviceId] FOREIGN KEY ([TesterDeviceId]) REFERENCES [dbo].[TesterDevices] ([Id]) ON DELETE CASCADE
+                    );
+                    CREATE INDEX [IX_TesterActivityLogs_DeviceIdentifier] ON [dbo].[TesterActivityLogs]([DeviceIdentifier]);
+                    CREATE INDEX [IX_TesterActivityLogs_VisitDate] ON [dbo].[TesterActivityLogs]([VisitDate]);
+                    CREATE INDEX [IX_TesterActivityLogs_TesterDeviceId] ON [dbo].[TesterActivityLogs]([TesterDeviceId]);
+                END
+            ");
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Could not ensure tester tables via raw SQL.");
+        }
+
+        // 2. Run migrations
+        try
+        {
             await context.Database.MigrateAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "An error occurred during database migration.");
+        }
+
+        // 3. Run seeding
+        try
+        {
             await KhadamatDbContextSeed.SeedAsync(context, userManager, roleManager);
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "An error occurred during database migration/seeding.");
+            Log.Error(ex, "An error occurred during database seeding.");
         }
     }
 
