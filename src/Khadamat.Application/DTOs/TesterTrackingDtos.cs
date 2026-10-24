@@ -51,6 +51,7 @@ public class TesterDeviceDto
 
     // Calculated fields
     public bool IsOpenToday { get; set; }
+    public bool IsTrackingEnabled { get; set; } = true;
     public int DaysRemaining => Math.Max(0, TargetDays - ConsecutiveDaysStreak);
     public bool IsCompleted => ConsecutiveDaysStreak >= TargetDays;
 }
@@ -68,6 +69,7 @@ public class TesterActivityLogDto
 
 public class TestersDashboardSummaryDto
 {
+    public bool IsTrackingEnabled { get; set; } = true;
     public int TotalTesters { get; set; }
     public int ActiveTodayCount { get; set; }
     public int InactiveTodayCount { get; set; }

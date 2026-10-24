@@ -909,6 +909,26 @@ public class ApiClient
         catch { return new(); }
     }
 
+    public async Task<bool> GetTesterTrackingStatusAsync()
+    {
+        try
+        {
+            var response = await _http.GetFromJsonAsync<ApiResponse<bool>>("v1/testers/status");
+            return response?.Data ?? true;
+        }
+        catch { return true; }
+    }
+
+    public async Task<bool> ToggleTesterTrackingAsync(bool enabled)
+    {
+        try
+        {
+            var response = await _http.PutAsync($"v1/testers/toggle?enabled={enabled}", null);
+            return response.IsSuccessStatusCode;
+        }
+        catch { return false; }
+    }
+
     public async Task<bool> DeleteTesterDeviceAsync(int id)
     {
         try

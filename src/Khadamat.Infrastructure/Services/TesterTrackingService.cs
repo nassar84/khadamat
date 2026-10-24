@@ -36,8 +36,45 @@ public class TesterTrackingService : ITesterTrackingService
         }
     }
 
+    public async Task<bool> IsTrackingEnabledAsync()
+    {
+        var settings = await _context.AppSettings
+            .AsNoTracking()
+            .Select(s => s.EnableTesterTracking)
+            .FirstOrDefaultAsync();
+        return settings;
+    }
+
+    public async Task<bool> SetTrackingEnabledAsync(bool enabled)
+    {
+        var settings = await _context.AppSettings.FirstOrDefaultAsync();
+        if (settings == null)
+        {
+            settings = new AppSettings { EnableTesterTracking = enabled };
+            _context.AppSettings.Add(settings);
+        }
+        else
+        {
+            settings.EnableTesterTracking = enabled;
+            settings.UpdatedAt = DateTime.UtcNow;
+        }
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
     public async Task<TesterDeviceDto> RecordPingAsync(TesterPingRequest request, string? currentUserId, string? clientIp)
     {
+        var isEnabled = await IsTrackingEnabledAsync();
+        if (!isEnabled)
+        {
+            return new TesterDeviceDto
+            {
+                DeviceIdentifier = request.DeviceIdentifier ?? string.Empty,
+                IsTrackingEnabled = false
+            };
+        }
+
         if (string.IsNullOrWhiteSpace(request.DeviceIdentifier))
         {
             request.DeviceIdentifier = Guid.NewGuid().ToString("N");
@@ -154,6 +191,12 @@ public class TesterTrackingService : ITesterTrackingService
 
     public async Task<bool> IdentifyTesterAsync(TesterIdentifyRequest request, string? currentUserId)
     {
+        var isEnabled = await IsTrackingEnabledAsync();
+        if (!isEnabled)
+        {
+            return false;
+        }
+
         if (string.IsNullOrWhiteSpace(request.DeviceIdentifier)) return false;
 
         var device = await _context.TesterDevices
@@ -192,15 +235,17 @@ public class TesterTrackingService : ITesterTrackingService
     public async Task<TestersDashboardSummaryDto> GetDashboardAsync()
     {
         var cairoToday = GetCairoToday();
+        var isEnabled = await IsTrackingEnabledAsync();
 
         var devices = await _context.TesterDevices
             .OrderByDescending(d => d.LastSeenAt)
             .ToListAsync();
 
-        var dtoList = devices.Select(d => MapToDto(d, cairoToday)).ToList();
+        var dtoList = devices.Select(d => MapToDto(d, cairoToday, isEnabled)).ToList();
 
         var summary = new TestersDashboardSummaryDto
         {
+            IsTrackingEnabled = isEnabled,
             TotalTesters = dtoList.Count,
             ActiveTodayCount = dtoList.Count(d => d.IsOpenToday),
             InactiveTodayCount = dtoList.Count(d => !d.IsOpenToday),
@@ -256,7 +301,7 @@ public class TesterTrackingService : ITesterTrackingService
         return true;
     }
 
-    private static TesterDeviceDto MapToDto(TesterDevice d, DateTime cairoToday)
+    private static TesterDeviceDto MapToDto(TesterDevice d, DateTime cairoToday, bool isTrackingEnabled = true)
     {
         var isOpenToday = d.LastStreakDate.HasValue && d.LastStreakDate.Value.Date == cairoToday;
 
@@ -279,7 +324,8 @@ public class TesterTrackingService : ITesterTrackingService
             TargetDays = d.TargetDays,
             HasMissedStreak = d.HasMissedStreak,
             Notes = d.Notes,
-            IsOpenToday = isOpenToday
+            IsOpenToday = isOpenToday,
+            IsTrackingEnabled = isTrackingEnabled
         };
     }
 }

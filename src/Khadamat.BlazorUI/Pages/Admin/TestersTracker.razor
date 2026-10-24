@@ -22,6 +22,36 @@
         </div>
 
         <div class="d-flex align-items-center gap-2">
+            @if (summary != null)
+            {
+                @if (summary.IsTrackingEnabled)
+                {
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 d-inline-flex align-items-center gap-1 small">
+                        <i class="fa-solid fa-circle-dot text-success"></i>
+                        <span>التتبع والرسالة: نشط</span>
+                    </span>
+                    <button class="btn btn-outline-danger rounded-pill px-3 shadow-2xs btn-sm d-flex align-items-center gap-1"
+                            @onclick="() => ToggleTrackingAsync(false)"
+                            disabled="@isTogglingTracking">
+                        <i class="fa-solid fa-pause"></i>
+                        <span>إيقاف تسجيل الحركات والرسالة</span>
+                    </button>
+                }
+                else
+                {
+                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-3 py-2 d-inline-flex align-items-center gap-1 small">
+                        <i class="fa-solid fa-circle-pause text-secondary"></i>
+                        <span>التتبع والرسالة: متوقف</span>
+                    </span>
+                    <button class="btn btn-success rounded-pill px-3 shadow-2xs btn-sm d-flex align-items-center gap-1"
+                            @onclick="() => ToggleTrackingAsync(true)"
+                            disabled="@isTogglingTracking">
+                        <i class="fa-solid fa-play"></i>
+                        <span>تفعيل تسجيل الحركات</span>
+                    </button>
+                }
+            }
+
             <button class="btn btn-outline-primary rounded-pill px-3 shadow-2xs" @onclick="LoadDataAsync" disabled="@isLoading">
                 <i class="fa-solid fa-rotate @(isLoading ? "fa-spin" : "") me-1"></i> تحديث البيانات
             </button>
@@ -35,6 +65,24 @@
             <i class="fa-solid @(statusMessageType == "success" ? "fa-circle-check text-success" : "fa-triangle-exclamation text-danger") fs-5"></i>
             <span class="fw-bold small">@statusMessage</span>
             <button type="button" class="btn-close ms-auto" @onclick="() => statusMessage = null"></button>
+        </div>
+    }
+
+    @if (summary != null && !summary.IsTrackingEnabled)
+    {
+        <div class="alert alert-warning rounded-4 shadow-sm mb-4 d-flex flex-wrap align-items-center justify-content-between p-3 border-2 border-warning gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="p-2 bg-warning bg-opacity-25 rounded-circle text-warning-emphasis">
+                    <i class="fa-solid fa-bell-slash fs-4"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-1 text-dark">ØªØ³Ø¬ÙŠÙ„ Ø­Ø±ÙƒØ§Øª Ø§Ù„Ù…Ø®ØªØ¨Ø±ÙŠÙ† ÙˆØ±Ø³Ø§Ù„Ø© Ø§Ù„Ø¥ÙŠÙ…ÙŠÙ„ Ù…ØªÙˆÙ‚ÙØ© Ø­Ø§Ù„ÙŠØ§Ù‹</h6>
+                    <p class="mb-0 text-muted small">Ù„Ù† ØªØ¸Ù‡Ø± Ø±Ø³Ø§Ù„Ø© Ø¥Ø¯Ø®Ø§Ù„ Ø§Ù„Ø¥ÙŠÙ…ÙŠÙ„ Ù„Ù„Ù…Ø³ØªØ®Ø¯Ù…ÙŠÙ† ÙÙŠ Ø§Ù„ØªØ·Ø¨ÙŠÙ‚ ÙˆÙ„Ù† ÙŠØªÙ… Ø§Ø­ØªØ³Ø§Ø¨ Ø£ÙŠ Ø²ÙŠØ§Ø±Ø§Øª Ø¬Ø¯ÙŠØ¯Ø© Ø­ØªÙ‰ ØªÙ‚ÙˆÙ… Ø¨Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„ØªÙØ¹ÙŠÙ„.</p>
+                </div>
+            </div>
+            <button class="btn btn-warning rounded-pill px-3 text-dark fw-bold btn-sm shadow-sm" @onclick="() => ToggleTrackingAsync(true)" disabled="@isTogglingTracking">
+                <i class="fa-solid fa-play me-1"></i> Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„ØªÙØ¹ÙŠÙ„ Ø§Ù„Ø¢Ù†
+            </button>
         </div>
     }
 
@@ -485,6 +533,7 @@
     private bool isLogsModalOpen = false;
     private bool isSaving = false;
     private bool isLoadingLogs = false;
+    private bool isTogglingTracking = false;
     private TesterDeviceDto? selectedTester;
     private AssignTesterRequest editRequest = new();
     private List<TesterActivityLogDto> testerLogs = new();
@@ -563,6 +612,41 @@
             Notes = tester.Notes
         };
         isEditModalOpen = true;
+    }
+
+    private async Task ToggleTrackingAsync(bool enable)
+    {
+        if (!enable)
+        {
+            bool confirm = await JS.InvokeAsync<bool>("confirm", "Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ù…Ù† Ø¥ÙŠÙ‚Ø§Ù ØªØ³Ø¬ÙŠÙ„ Ø­Ø±ÙƒØ§Øª Ø§Ù„Ù…Ø®ØªØ¨Ø±ÙŠÙ†ØŸ\n\nÙ„Ù† ØªØ¸Ù‡Ø± Ø±Ø³Ø§Ù„Ø© Ø¥Ø¯Ø®Ø§Ù„ Ø§Ù„Ø¥ÙŠÙ…ÙŠÙ„ ÙÙŠ Ø§Ù„ØªØ·Ø¨ÙŠÙ‚ØŒ ÙˆÙ„Ù† ÙŠØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø²ÙŠØ§Ø±Ø§Øª Ø§Ù„Ù…Ø®ØªØ¨Ø±ÙŠÙ† Ø­ØªÙ‰ ØªÙ‚ÙˆÙ… Ø¨Ø¥Ø¹Ø§Ø¯Ø© ØªÙØ¹ÙŠÙ„Ù‡Ø§.");
+            if (!confirm) return;
+        }
+
+        isTogglingTracking = true;
+        try
+        {
+            var success = await Api.ToggleTesterTrackingAsync(enable);
+            if (success)
+            {
+                statusMessage = enable ? "ØªÙ… ØªÙØ¹ÙŠÙ„ ØªØ³Ø¬ÙŠÙ„ Ø­Ø±ÙƒØ§Øª Ø§Ù„Ù…Ø®ØªØ¨Ø±ÙŠÙ† ÙˆØ±Ø³Ø§Ù„Ø© Ø§Ù„ØªØ·Ø¨ÙŠÙ‚ Ø¨Ù†Ø¬Ø§Ø­." : "ØªÙ… Ø¥ÙŠÙ‚Ø§Ù ØªØ³Ø¬ÙŠÙ„ Ø­Ø±ÙƒØ§Øª Ø§Ù„Ù…Ø®ØªØ¨Ø±ÙŠÙ† ÙˆØ¥Ø®ÙØ§Ø¡ Ø±Ø³Ø§Ù„Ø© Ø§Ù„ØªØ·Ø¨ÙŠÙ‚ Ø¨Ù†Ø¬Ø§Ø­.";
+                statusMessageType = "success";
+                await LoadDataAsync();
+            }
+            else
+            {
+                statusMessage = "Ø­Ø¯Ø« Ø®Ø·Ø£ Ø£Ø«Ù†Ø§Ø¡ ØªØ¹Ø¯ÙŠÙ„ Ø­Ø§Ù„Ø© Ø§Ù„ØªØªØ¨Ø¹.";
+                statusMessageType = "danger";
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = "Ø®Ø·Ø£: " + ex.Message;
+            statusMessageType = "danger";
+        }
+        finally
+        {
+            isTogglingTracking = false;
+        }
     }
 
     private async Task SaveTesterAsync()

@@ -12,4 +12,6 @@ public interface ITesterTrackingService
     Task<bool> AssignTesterAsync(int id, AssignTesterRequest request);
     Task<List<TesterActivityLogDto>> GetDeviceLogsAsync(int id);
     Task<bool> DeleteTesterDeviceAsync(int id);
+    Task<bool> IsTrackingEnabledAsync();
+    Task<bool> SetTrackingEnabledAsync(bool enabled);
 }

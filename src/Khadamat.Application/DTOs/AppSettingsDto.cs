@@ -39,6 +39,7 @@ public class AppSettingsDto
     public bool RequireEmailVerification { get; set; }
     public int MaxServicesPerProvider { get; set; }
     public bool EnableReviewAutoApproval { get; set; }
+    public bool EnableTesterTracking { get; set; } = true;
 
     // Marketplace Settings (Adding these as they probably exist in entity but missed in DTO)
     public int MarketplaceDefaultListingDays { get; set; } = 30;

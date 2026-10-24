@@ -107,4 +107,26 @@ public class TestersController : ControllerBase
         var result = await _trackingService.DeleteTesterDeviceAsync(id);
         return Ok(ApiResponse<bool>.Succeed(result));
     }
+
+    /// <summary>
+    /// Check whether tester tracking and prompt banner are currently enabled
+    /// </summary>
+    [HttpGet("status")]
+    [AllowAnonymous]
+    public async Task<ActionResult<ApiResponse<bool>>> GetStatus()
+    {
+        var isEnabled = await _trackingService.IsTrackingEnabledAsync();
+        return Ok(ApiResponse<bool>.Succeed(isEnabled));
+    }
+
+    /// <summary>
+    /// Enable or disable tester tracking and identification banner
+    /// </summary>
+    [HttpPut("toggle")]
+    [Authorize(Policy = "RequireAdmin")]
+    public async Task<ActionResult<ApiResponse<bool>>> ToggleTracking([FromQuery] bool enabled)
+    {
+        var result = await _trackingService.SetTrackingEnabledAsync(enabled);
+        return Ok(ApiResponse<bool>.Succeed(result, enabled ? "تم تفعيل تسجيل حركات المختبرين بنجاح" : "تم إيقاف تسجيل حركات المختبرين وإخفاء الرسالة"));
+    }
 }

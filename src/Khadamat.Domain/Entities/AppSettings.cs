@@ -42,6 +42,7 @@ public class AppSettings : BaseEntity
     public bool RequireEmailVerification { get; set; } = false;
     public int MaxServicesPerProvider { get; set; } = 10;
     public bool EnableReviewAutoApproval { get; set; } = true;
+    public bool EnableTesterTracking { get; set; } = true;
 
     // Marketplace Settings
     public int MarketplaceDefaultListingDays { get; set; } = 30;  // مدة عرض الإعلان الافتراضية بالأيام

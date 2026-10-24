@@ -76,6 +76,7 @@ public class SettingsService : ISettingsService
                 AppShareText = settings.AppShareText,
                 AppStoreUrl = settings.AppStoreUrl,
                 GooglePlayUrl = settings.GooglePlayUrl,
+                EnableTesterTracking = settings.EnableTesterTracking,
                 DefaultTheme = settings.DefaultTheme
             });
         }
@@ -137,6 +138,7 @@ public class SettingsService : ISettingsService
             if (request.AppStoreUrl != null) settings.AppStoreUrl = request.AppStoreUrl;
             if (request.GooglePlayUrl != null) settings.GooglePlayUrl = request.GooglePlayUrl;
             if (!string.IsNullOrEmpty(request.DefaultTheme)) settings.DefaultTheme = request.DefaultTheme;
+            settings.EnableTesterTracking = request.EnableTesterTracking;
             settings.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
