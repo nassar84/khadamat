@@ -1,6 +1,8 @@
 /**
  * Google Play Tester Tracking & Auto-Presence Ping
- * Runs on every app open to record attendance, streak, and device identification
+ * Rules:
+ *  1. Only appears/runs for mobile devices (KhadamatNativeApp or Mobile Browser)
+ *  2. Only appears/runs for users with a valid Gmail address (@gmail.com / @googlemail.com)
  */
 (function () {
     function getOrCreateDeviceId() {
@@ -22,6 +24,29 @@
         return id;
     }
 
+    function isMobileDevice() {
+        const ua = navigator.userAgent || '';
+        // 1. Android/MAUI native app
+        if (ua.indexOf('KhadamatNativeApp') !== -1 ||
+            window.location.search.indexOf('nativeapp=1') !== -1 ||
+            sessionStorage.getItem('nativeapp') === '1') {
+            return true;
+        }
+
+        // 2. Mobile User Agents
+        const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(ua);
+        if (isMobileUA) {
+            return true;
+        }
+
+        // 3. Touch viewport fallback for mobile
+        if (window.matchMedia && window.matchMedia('(max-width: 820px)').matches && ('ontouchstart' in window || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0))) {
+            return true;
+        }
+
+        return false;
+    }
+
     function getDeviceInfo() {
         const ua = navigator.userAgent || '';
         let os = 'Android';
@@ -31,7 +56,6 @@
             const osMatch = ua.match(/Android\s+([0-9.]+)/i);
             os = osMatch ? 'Android ' + osMatch[1] : 'Android';
 
-            // Extract hardware model: e.g. "; SM-S918B Build/"
             const modelMatch = ua.match(/;\s*([^;)]+?)\s*Build\//i);
             if (modelMatch && modelMatch[1]) {
                 model = modelMatch[1].trim();
@@ -52,8 +76,67 @@
         return { os, model };
     }
 
+    function isGmail(email) {
+        if (!email || typeof email !== 'string') return false;
+        const clean = email.trim().toLowerCase();
+        return clean.endsWith('@gmail.com') || clean.endsWith('@googlemail.com');
+    }
+
+    function getAuthInfo() {
+        let email = null;
+        let name = null;
+        try {
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                const cleanToken = token.replace(/^"(.*)"$/, '$1');
+                const parts = cleanToken.split('.');
+                if (parts.length >= 2) {
+                    const base64Url = parts[1];
+                    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+                        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                    }).join(''));
+                    const payload = JSON.parse(jsonPayload);
+                    email = payload.email ||
+                        payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] ||
+                        payload['emailaddress'] || null;
+                    name = payload.unique_name ||
+                        payload.name ||
+                        payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || null;
+                }
+            }
+        } catch (e) { }
+
+        if (!email) {
+            try {
+                const saved = localStorage.getItem('khadamawy_tester_email');
+                if (saved) email = saved;
+            } catch (e) { }
+        }
+
+        if (!name) {
+            try {
+                const savedName = localStorage.getItem('khadamawy_tester_name');
+                if (savedName) name = savedName;
+            } catch (e) { }
+        }
+
+        return { email: email ? email.trim() : null, name: name ? name.trim() : null };
+    }
+
     async function pingTesterActivity() {
         try {
+            // Rule 1: Must be opened on a mobile device
+            if (!isMobileDevice()) {
+                return;
+            }
+
+            // Rule 2: Must be a user with a valid Gmail address
+            const auth = getAuthInfo();
+            if (!auth.email || !isGmail(auth.email)) {
+                return;
+            }
+
             const isNative = (navigator.userAgent && navigator.userAgent.indexOf('KhadamatNativeApp') !== -1) ||
                 window.location.search.indexOf('nativeapp=1') !== -1 ||
                 sessionStorage.getItem('nativeapp') === '1';
@@ -61,12 +144,8 @@
             const deviceId = getOrCreateDeviceId();
             const info = getDeviceInfo();
 
-            let savedEmail = null;
-            let savedName = null;
             let savedPhone = null;
             try {
-                savedEmail = localStorage.getItem('khadamawy_tester_email') || null;
-                savedName = localStorage.getItem('khadamawy_tester_name') || null;
                 savedPhone = localStorage.getItem('khadamawy_tester_phone') || null;
             } catch (e) { }
 
@@ -86,8 +165,8 @@
 
             const payload = {
                 deviceIdentifier: deviceId,
-                testerEmail: savedEmail,
-                testerName: savedName,
+                testerEmail: auth.email,
+                testerName: auth.name,
                 deviceModel: info.model,
                 operatingSystem: info.os,
                 isNativeApp: isNative
@@ -112,9 +191,10 @@
                     }
                 }
 
-                // If native app, tester email is unknown, and tracking is enabled: show friendly popup modal
-                if (isNative && !savedEmail && localStorage.getItem('khadamawy_tester_tracking_disabled') !== '1') {
-                    setTimeout(maybeShowTesterModal, 1500);
+                // If mobile user with Gmail and not confirmed yet, show friendly prompt
+                if (localStorage.getItem('khadamawy_tester_confirmed') !== '1' &&
+                    localStorage.getItem('khadamawy_tester_tracking_disabled') !== '1') {
+                    setTimeout(maybeShowTesterModal, 1200);
                 }
             })
             .catch(function () { });
@@ -123,11 +203,30 @@
 
     function maybeShowTesterModal() {
         try {
+            // Rule 1: Must be opened on a mobile device
+            if (!isMobileDevice()) {
+                return;
+            }
+
+            // Rule 2: Must be a user with a valid Gmail address
+            const auth = getAuthInfo();
+            if (!auth.email || !isGmail(auth.email)) {
+                return;
+            }
+
             // Check suppression flags
             if (localStorage.getItem('khadamawy_tester_tracking_disabled') === '1') return;
             if (sessionStorage.getItem('khadamawy_tester_prompt_dismissed_session') === '1') return;
-            if (localStorage.getItem('khadamawy_tester_email')) return;
+            if (localStorage.getItem('khadamawy_tester_confirmed') === '1') return;
             if (document.getElementById('tester-identify-backdrop')) return;
+
+            let savedPhone = '';
+            try {
+                savedPhone = localStorage.getItem('khadamawy_tester_phone') || '';
+            } catch (e) { }
+
+            const initialEmail = auth.email || '';
+            const initialName = auth.name || '';
 
             const backdrop = document.createElement('div');
             backdrop.id = 'tester-identify-backdrop';
@@ -220,7 +319,7 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                         <div style="display:flex; align-items:center; gap:8px;">
                             <h3 style="margin:0; font-size:1.15rem; font-weight:800; color:#0f172a;">
-                                مختبرو Google Play (تحدي الـ 14 يوماً)
+                                متابعة مختبري Google Play (تحدي الـ 14 يوماً)
                             </h3>
                             <!-- Verified Check Shield Icon -->
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;">
@@ -233,16 +332,16 @@
 
                     <!-- Description -->
                     <p style="font-size:0.875rem; color:#334155; line-height:1.6; margin:0 0 18px 0;">
-                        أهلاً بك في النسخة التجريبية! يُرجى إدخال بريدك المسجل في Google Play لاحتساب حضورك اليومي وضمان إتمام فترة الـ 14 يوماً بنجاح 🌿
+                        أهلاً بك في النسخة التجريبية! بصفتك مختبراً مسجلاً في متجر Google Play، يُرجى تأكيد بريدك لاحتساب حضورك اليومي وضمان إتمام فترة الـ 14 يوماً بنجاح 🌿
                     </p>
 
                     <!-- Form Body -->
                     <div id="gp-form-body">
-                        <!-- Mandatory Field: Email -->
+                        <!-- Mandatory Field: Gmail Email -->
                         <fieldset class="gp-field" id="gp-email-field">
-                            <legend>بريد Google Play الخاص بك **</legend>
+                            <legend>بريد Google Play الخاص بك (Gmail) **</legend>
                             <div class="gp-input-row">
-                                <input type="email" id="gp-email-input" placeholder="tester@gmail.com" dir="ltr" style="text-align:right;" />
+                                <input type="email" id="gp-email-input" value="${initialEmail}" placeholder="tester@gmail.com" dir="ltr" style="text-align:right;" />
                                 <div class="gp-icon-box">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                                         <path d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM20 8L12 13L4 8V6L12 11L20 6V8Z"/>
@@ -255,7 +354,7 @@
                         <fieldset class="gp-field">
                             <legend>الاسم الكريم (اختياري)</legend>
                             <div class="gp-input-row">
-                                <input type="text" id="gp-name-input" placeholder="اسمك الكريم" />
+                                <input type="text" id="gp-name-input" value="${initialName}" placeholder="اسمك الكريم" />
                                 <div class="gp-icon-box">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                                         <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z"/>
@@ -268,7 +367,7 @@
                         <fieldset class="gp-field">
                             <legend>رقم الواتساب للتذكير (اختياري)</legend>
                             <div class="gp-input-row">
-                                <input type="tel" id="gp-phone-input" placeholder="01xxxxxxxxx" dir="ltr" style="text-align:right;" />
+                                <input type="tel" id="gp-phone-input" value="${savedPhone}" placeholder="01xxxxxxxxx" dir="ltr" style="text-align:right;" />
                                 <div class="gp-icon-box">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                                         <path d="M6.62 10.79C8.06 13.62 10.38 15.93 13.21 17.38L15.41 15.18C15.69 14.9 16.08 14.82 16.43 14.93C17.55 15.3 18.75 15.5 20 15.5C20.55 15.5 21 15.95 21 16.5V20C21 20.55 20.55 21 20 21C10.61 21 3 13.39 3 4C3 3.45 3.45 3 4 3H7.5C8.05 3 8.5 3.45 8.5 4C8.5 5.25 8.7 6.45 9.07 7.57C9.18 7.92 9.1 8.31 8.82 8.59L6.62 10.79Z"/>
@@ -318,11 +417,11 @@
                 const name = (nameInput && nameInput.value ? nameInput.value : '').trim();
                 const phone = (phoneInput && phoneInput.value ? phoneInput.value : '').trim();
 
-                // Validate email
-                if (!email || email.indexOf('@') === -1 || email.indexOf('.') === -1) {
+                // Validate Gmail strictly
+                if (!isGmail(email)) {
                     if (emailField) emailField.classList.add('gp-error');
                     if (errorMsg) {
-                        errorMsg.textContent = 'يرجى إدخال بريد إلكتروني صحيح لتسجيل حضورك.';
+                        errorMsg.textContent = 'يجب إدخال بريد Gmail صالح (@gmail.com) لأن اختبار Google Play متاح فقط لحسابات Google.';
                         errorMsg.style.display = 'block';
                     }
                     if (emailInput) emailInput.focus();
@@ -355,6 +454,7 @@
                     if (resJson && resJson.success) {
                         try {
                             localStorage.setItem('khadamawy_tester_email', email);
+                            localStorage.setItem('khadamawy_tester_confirmed', '1');
                             if (name) localStorage.setItem('khadamawy_tester_name', name);
                             if (phone) localStorage.setItem('khadamawy_tester_phone', phone);
                         } catch (e) { }
@@ -395,7 +495,21 @@
         } catch (e) { }
     }
 
-    // Trigger ping on load
+    // Expose prompt check function globally
+    window.checkTesterPrompt = function () {
+        setTimeout(function () {
+            pingTesterActivity();
+        }, 500);
+    };
+
+    // Listen to storage events (e.g. login)
+    window.addEventListener('storage', function (e) {
+        if (e.key === 'authToken') {
+            if (window.checkTesterPrompt) window.checkTesterPrompt();
+        }
+    });
+
+    // Trigger on load
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', pingTesterActivity);
     } else {

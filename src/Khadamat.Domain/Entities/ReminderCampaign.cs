@@ -30,8 +30,14 @@ public class ReminderCampaign : BaseEntity
     public string ActionRoute { get; set; } = "/"; // Target internal page e.g. "/", "/profile", "/search"
     public string? ImageUrl { get; set; } // Rich image banner for notifications
     public string DeliveryChannel { get; set; } = "Both"; // Both, PushOnly, InAppOnly
-    public string MessageSelectionMode { get; set; } = "Single"; // Single, ScheduledBank, RandomBank
+    public string MessageSelectionMode { get; set; } = "Single"; // Single, ScheduledBank, RandomBank, SequentialBank
     public string? MessageBankJson { get; set; }
+    public string? BankCategory { get; set; } // Category filter for bank items (e.g. "Morning", "Evening", "Midday", or null for All)
+    public int LastSequentialIndex { get; set; } = 0; // Tracks which bank message index was sent last
+    
+    public string CampaignType { get; set; } = "Regular"; // Regular, Occasion
+    public bool OverridesRegularReminders { get; set; } = false; // When true, replaces regular daily reminders on active occasion days
+    public string? OccasionName { get; set; } // e.g. "شم النسيم", "شهر رمضان", "يوم الجمعة", "العشر الأوائل"
     
     public bool IsActive { get; set; } = true;
     public int ExecutionCount { get; set; } = 0;

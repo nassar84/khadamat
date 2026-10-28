@@ -32,7 +32,7 @@ public class GetServiceByIdHandler : IRequestHandler<GetServiceByIdQuery, Servic
 
     public async Task<ServiceDto?> Handle(GetServiceByIdQuery request, CancellationToken cancellationToken)
     {
-        string includes = "Category,Category.MainCategory,SubCategory,Ratings,Likes,SubCategory.Category,SubCategory.Category.MainCategory,City,City.Governorate";
+        string includes = "Category,Category.MainCategory,SubCategory,Ratings,Likes,SubCategory.Category,SubCategory.Category.MainCategory,City,City.Governorate,Images";
         
         var services = await _serviceRepo.GetPagedAsync(1, 1, 
             filter: s => s.Id == request.Id, 

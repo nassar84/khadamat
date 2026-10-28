@@ -35,14 +35,27 @@
     else
     {
         <!-- Image Gallery -->
-        <div class="service-gallery">
+        <div class="service-gallery position-relative overflow-hidden" style="height: 250px;">
             @if (service.Images?.Any() == true)
             {
-                <img src="@service.Images.First()" alt="@service.Title" class="service-image" />
+                var activeImg = service.Images[mobileImageIndex % service.Images.Count];
+                <img src="@Api.GetAbsoluteUrl(activeImg)" alt="@service.Title" class="service-image w-100 h-100" style="object-fit: cover; transition: opacity 0.3s ease;" />
+                @if (service.Images.Count > 1)
+                {
+                    <div class="position-absolute bottom-0 start-0 end-0 d-flex justify-content-center align-items-center gap-2 p-2" style="background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);">
+                        @for (int i = 0; i < service.Images.Count; i++)
+                        {
+                            int idx = i;
+                            <span class="rounded-pill @(idx == mobileImageIndex ? "bg-white" : "bg-white bg-opacity-50")" 
+                                  style="width: @(idx == mobileImageIndex ? "20px" : "8px"); height: 8px; cursor: pointer; transition: all 0.3s;"
+                                  @onclick="() => mobileImageIndex = idx"></span>
+                        }
+                    </div>
+                }
             }
             else
             {
-                <div class="no-image">
+                <div class="no-image d-flex align-items-center justify-content-center h-100 bg-light">
                     <i class="fa-solid fa-image fa-3x text-muted"></i>
                 </div>
             }
@@ -212,6 +225,7 @@
     [Parameter] public int Id { get; set; }
     
     private ServiceDto? service;
+    private int mobileImageIndex = 0;
 
     protected override async Task OnInitializedAsync()
     {

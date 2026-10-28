@@ -51,16 +51,28 @@ public class MainActivity : MauiAppCompatActivity
     private void HandleNotificationIntent(global::Android.Content.Intent? intent)
     {
         if (intent == null) return;
+
+        var fromReminder = intent.GetBooleanExtra("from_reminder", false);
+        var fromPush = intent.GetBooleanExtra("from_push", false);
         var route = intent.GetStringExtra("action_route");
-        if (!string.IsNullOrEmpty(route) && route != "/" && route != "//")
+        var title = intent.GetStringExtra("notification_title") ?? "";
+        var message = intent.GetStringExtra("notification_message") ?? "";
+        var reminderId = intent.GetIntExtra("reminder_id", 0);
+
+        if (fromReminder || fromPush || !string.IsNullOrEmpty(route) || !string.IsNullOrEmpty(title))
         {
-            Console.WriteLine($"[MainActivity] Notification tapped. Target route: {route}");
-            // Delay slightly to give the MAUI App and Shell time to mount (especially on cold boot)
-            Task.Run(async () =>
+            var tapData = new Services.NotificationTapData
             {
-                await Task.Delay(1000);
-                Services.DeepLinkBridge.Raise(route);
-            });
+                Title = title,
+                Message = message,
+                Route = route ?? "",
+                ReminderId = reminderId,
+                FromReminder = fromReminder,
+                FromPush = fromPush
+            };
+
+            Console.WriteLine($"[MainActivity] Notification tapped: '{title}' (Route: '{route}', FromReminder: {fromReminder}, FromPush: {fromPush})");
+            Services.DeepLinkBridge.RaiseNotificationTapped(tapData);
         }
     }
 }

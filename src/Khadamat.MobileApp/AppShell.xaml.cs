@@ -97,6 +97,12 @@ namespace Khadamat.MobileApp
 
                 if (_viewModel?.NavigateCommand != null)
                 {
+                    int wait = 0;
+                    while (_viewModel.IsBusy && wait < 20)
+                    {
+                        await Task.Delay(250);
+                        wait++;
+                    }
                     await _viewModel.NavigateCommand.ExecuteAsync(route);
                 }
                 else

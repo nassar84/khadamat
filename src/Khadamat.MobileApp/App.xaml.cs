@@ -24,6 +24,12 @@ public partial class App : MauiApp
                 await NavigateDeepLinkSafelyAsync(url);
             };
 
+            // Handle Notification Tap safely (Push & Scheduled Reminders)
+            DeepLinkBridge.OnNotificationTapped += async (tapData) =>
+            {
+                await HandleNotificationTapSafelyAsync(tapData);
+            };
+
             // In-app reminder dialog handler
             reminderScheduler.OnInAppReminderDue += (reminder) =>
             {
@@ -127,6 +133,45 @@ public partial class App : MauiApp
         return window;
     }
 
+    public static async Task HandleNotificationTapSafelyAsync(NotificationTapData tapData)
+    {
+        if (tapData == null) return;
+
+        // 1. Navigate to specific route if available; otherwise go to notifications list
+        if (!string.IsNullOrWhiteSpace(tapData.Route) && tapData.Route != "/" && tapData.Route != "//")
+        {
+            await NavigateDeepLinkSafelyAsync(tapData.Route);
+        }
+        else
+        {
+            await NavigateDeepLinkSafelyAsync("notifications");
+        }
+
+        // 2. Display the notification text in an in-app dialog so the user can easily read it
+        if (!string.IsNullOrWhiteSpace(tapData.Message) && !string.IsNullOrWhiteSpace(tapData.Title))
+        {
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                try
+                {
+                    // Delay slightly to give page time to mount
+                    await Task.Delay(800);
+                    if (Current?.MainPage != null)
+                    {
+                        await Khadamat.MobileApp.Helpers.KhadamatDialogHelper.ShowAlertAsync(
+                            tapData.Title,
+                            tapData.Message,
+                            "حسناً",
+                            Khadamat.MobileApp.Views.Popups.MobileDialogType.Info,
+                            Current.MainPage
+                        );
+                    }
+                }
+                catch { }
+            });
+        }
+    }
+
     public static async Task NavigateDeepLinkSafelyAsync(string? url)
     {
         if (string.IsNullOrWhiteSpace(url)) return;
@@ -138,8 +183,8 @@ public partial class App : MauiApp
         clean = clean.Replace("khadamat://", "").Replace("https://khadamat.com/", "").TrimStart('/');
         if (string.IsNullOrWhiteSpace(clean)) return;
 
-        // If Shell is not ready yet (e.g. cold start), retry up to 10 times (5 seconds total)
-        for (int i = 0; i < 10; i++)
+        // If Shell is not ready yet (e.g. cold start), retry up to 20 times (10 seconds total)
+        for (int i = 0; i < 20; i++)
         {
             if (Shell.Current is AppShell appShell)
             {
@@ -148,6 +193,12 @@ public partial class App : MauiApp
             }
             else if (Shell.Current?.BindingContext is ViewModels.ShellViewModel vm)
             {
+                int wait = 0;
+                while (vm.IsBusy && wait < 20)
+                {
+                    await Task.Delay(250);
+                    wait++;
+                }
                 await vm.NavigateCommand.ExecuteAsync(clean);
                 return;
             }

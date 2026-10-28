@@ -52,8 +52,8 @@ public class AndroidReminderScheduler : IPlatformReminderScheduler
         var alarmManager = (AlarmManager?)context.GetSystemService(global::Android.Content.Context.AlarmService);
         if (alarmManager == null) return;
 
-        // Cancel previous alarm if any exists with this ID to prevent duplicate alarms
-        CancelNotification(reminder.Id);
+        // Cancel previous alarm if any exists with this ID to prevent duplicate alarms (do NOT dismiss active drawer notification)
+        CancelAlarmOnly(reminder.Id);
 
         // Calculate trigger time
         var now = DateTime.Now;
@@ -103,7 +103,7 @@ public class AndroidReminderScheduler : IPlatformReminderScheduler
         Console.WriteLine($"[AndroidReminderScheduler] Scheduled reminder '{reminder.Title}' (ID: {reminder.Id}) for {trigger:yyyy-MM-dd HH:mm:ss}");
     }
 
-    public void CancelNotification(int reminderId)
+    public void CancelAlarmOnly(int reminderId)
     {
         var context = global::Android.App.Application.Context;
         var alarmManager = (AlarmManager?)context.GetSystemService(global::Android.Content.Context.AlarmService);
@@ -120,7 +120,14 @@ public class AndroidReminderScheduler : IPlatformReminderScheduler
             alarmManager.Cancel(pendingIntent);
             pendingIntent.Cancel();
         }
+    }
 
+    public void CancelNotification(int reminderId)
+    {
+        CancelAlarmOnly(reminderId);
+
+        // Explicitly dismiss active notification banner only when full cancellation is requested
+        var context = global::Android.App.Application.Context;
         var notificationManager = (NotificationManager?)context.GetSystemService(global::Android.Content.Context.NotificationService);
         notificationManager?.Cancel(reminderId);
 
@@ -129,18 +136,14 @@ public class AndroidReminderScheduler : IPlatformReminderScheduler
 
     public void CancelAllNotifications()
     {
-        var context = global::Android.App.Application.Context;
-        var notificationManager = (NotificationManager?)context.GetSystemService(global::Android.Content.Context.NotificationService);
-        notificationManager?.CancelAll();
-
-        // Also cancel alarms for cached reminders
+        // Cancel alarms only; do NOT nuke active notifications that user hasn't seen yet!
         var cached = LocalReminderScheduler.GetCachedReminders();
         foreach (var rem in cached)
         {
-            CancelNotification(rem.Id);
+            CancelAlarmOnly(rem.Id);
         }
 
-        Console.WriteLine("[AndroidReminderScheduler] Cancelled all reminders");
+        Console.WriteLine("[AndroidReminderScheduler] Cancelled all scheduled alarms (preserved active drawer notifications)");
     }
 
     public Task<bool> RequestPermissionAsync()

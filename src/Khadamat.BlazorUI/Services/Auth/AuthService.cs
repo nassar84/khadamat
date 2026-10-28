@@ -93,6 +93,8 @@ public class AuthService : IAuthService
                 {
                     await NotifyNativeApp("auth_success");
                 } 
+
+                try { _ = _js.InvokeVoidAsync("eval", "if (window.checkTesterPrompt) window.checkTesterPrompt();"); } catch { }
                 
                 return result.Data;
             }
@@ -206,6 +208,8 @@ public class AuthService : IAuthService
         {
             await NotifyNativeApp("auth_success");
         }
+
+        try { _ = _js.InvokeVoidAsync("eval", "if (window.checkTesterPrompt) window.checkTesterPrompt();"); } catch { }
 
         return true;
     }

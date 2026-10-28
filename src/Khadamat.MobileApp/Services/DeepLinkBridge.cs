@@ -1,33 +1,50 @@
+using System;
+using Microsoft.Maui.ApplicationModel;
+
 namespace Khadamat.MobileApp.Services;
 
+public class NotificationTapData
+{
+    public string Title { get; set; } = "";
+    public string Message { get; set; } = "";
+    public string Route { get; set; } = "";
+    public int ReminderId { get; set; }
+    public bool FromReminder { get; set; }
+    public bool FromPush { get; set; }
+    public DateTime TappedAt { get; set; } = DateTime.Now;
+}
+
 /// <summary>
-/// Static bridge between native Android deep link handling and Blazor navigation.
-/// 
-/// Flow:
-///   Android URL → DeepLinkActivity → DeepLinkBridge.Raise() → Blazor NavigationManager
-/// 
-/// Usage in Routes.razor or App.razor:
-///   protected override void OnInitialized()
-///   {
-///       DeepLinkBridge.OnDeepLinkReceived += HandleDeepLink;
-///   }
-///   
-///   private void HandleDeepLink(string uri)
-///   {
-///       // "khadamat://service/120" → "/service/120"
-///       var path = ParseDeepLinkPath(uri);
-///       Navigation.NavigateTo(path);
-///   }
+/// Static bridge between native Android deep link / notification handling and Blazor navigation.
 /// </summary>
 public static class DeepLinkBridge
 {
     public static event Action<string>? OnDeepLinkReceived;
+    public static event Action<NotificationTapData>? OnNotificationTapped;
+
+    public static string? PendingRoute { get; set; }
+    public static NotificationTapData? PendingNotification { get; set; }
 
     public static void Raise(string uri)
     {
+        PendingRoute = uri;
         MainThread.BeginInvokeOnMainThread(() =>
         {
             OnDeepLinkReceived?.Invoke(uri);
+        });
+    }
+
+    public static void RaiseNotificationTapped(NotificationTapData data)
+    {
+        PendingNotification = data;
+        if (!string.IsNullOrWhiteSpace(data.Route) && data.Route != "/" && data.Route != "//")
+        {
+            PendingRoute = data.Route;
+        }
+
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            OnNotificationTapped?.Invoke(data);
         });
     }
 
@@ -39,7 +56,7 @@ public static class DeepLinkBridge
     /// </summary>
     public static string ConvertToBlazorPath(string uri)
     {
-        uri = uri.Trim();
+        uri = (uri ?? "").Trim();
 
         if (uri.StartsWith("khadamat://"))
         {

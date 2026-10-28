@@ -114,12 +114,13 @@ public class UploadController : ControllerBase
         {
             var folderPath = _imageStorage.GetFolderPath(folder);
 
-            var (maxWidth, maxHeight, targetQuality) = folder switch
+            var (maxWidth, maxHeight, targetQuality, maxOutputBytes) = folder switch
             {
-                "users" => (400, 400, 80),                                             // صور المستخدمين (15-35 KB)
-                "maincategories" or "categories" or "subcategories" => (512, 512, 85), // أيقونات الفئات (25-50 KB)
-                "hero" => (1920, 1080, 82),                                            // بنرات الصفحة الرئيسية
-                _ => (1200, 1200, 80)                                                  // الخدمات والمتجر والإعلانات (70-180 KB)
+                "users" => (400, 400, 80, 80 * 1024L),                                // صور المستخدمين (15-35 KB)
+                "maincategories" or "categories" or "subcategories" => (512, 512, 85, 100 * 1024L), // أيقونات الفئات (25-50 KB)
+                "hero" => (1920, 1080, 82, 350 * 1024L),                               // بنرات الصفحة الرئيسية
+                "services" => (1080, 1080, 78, 150 * 1024L),                            // صور الخدمات (بحد أقصى صارم 150 KB)
+                _ => (1200, 1200, 80, 250 * 1024L)                                      // المتجر والإعلانات
             };
 
             var webpName = $"{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}_{Guid.NewGuid():N}.webp";
@@ -152,16 +153,15 @@ public class UploadController : ControllerBase
                 await img.SaveAsync(outStream, webpEncoder);
             }
 
-            // ضمان ألا يتعدى حجم الصورة النهائي 300 كيلوبايت (307,200 بايت)
-            const long MaxOutputSizeBytes = 300 * 1024;
+            // ضمان ألا يتعدى حجم الصورة النهائي الحد المسموح (150KB للخدمات)
             var fileInfo = new FileInfo(webpPath);
-            if (fileInfo.Exists && fileInfo.Length > MaxOutputSizeBytes)
+            if (fileInfo.Exists && fileInfo.Length > maxOutputBytes)
             {
-                // إعادة ضغط بجودة أقل لضمان عدم تجاوز 300KB
+                // إعادة ضغط بجودة أقل لضمان عدم تجاوز الحد المطلوب
                 var compressedEncoder = new WebpEncoder
                 {
                     FileFormat = WebpFileFormatType.Lossy,
-                    Quality = 65,
+                    Quality = 60,
                     TransparentColorMode = WebpTransparentColorMode.Preserve,
                     Method = WebpEncodingMethod.BestQuality
                 };

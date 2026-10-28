@@ -1,3 +1,4 @@
+@implements IDisposable
 @page "/service/{Id:int}"
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
@@ -129,33 +130,60 @@
             <div class="row g-4 mb-5">
                 <!-- Physycal Right (Start in RTL): Image & Stats -->
                 <div class="col-12 col-md-5">
-                    <div class="main-image-v3 rounded-5 overflow-hidden shadow-lg position-relative mb-4">
-                        <!-- Blurred Background Image to fill the space beautifully without cropping -->
-                        <img src="@mainImage" 
-                             class="position-absolute w-100 h-100" 
-                             style="top: 0; left: 0; object-fit: cover; filter: blur(20px); opacity: 0.35; z-index: 1; transform: scale(1.15);" />
+                    <div class="main-image-v3 rounded-5 overflow-hidden shadow-lg position-relative mb-4 service-carousel-container"
+                         @onmouseenter="PauseCarousel" @onmouseleave="ResumeCarousel"
+                         @ontouchstart="PauseCarousel" @ontouchend="ResumeCarousel">
+                        
+                        <!-- Blurred Background Image to fill space beautifully without cropping -->
+                        <img src="@activeCarouselImageUrl" 
+                             class="position-absolute w-100 h-100 carousel-bg-blur" 
+                             style="top: 0; left: 0; object-fit: cover; filter: blur(22px); opacity: 0.35; z-index: 1; transform: scale(1.15); transition: all 0.4s ease;" />
+                        
                         <!-- Semi-transparent overlay to enhance contrast -->
                         <div class="position-absolute top-0 start-0 w-100 h-100" style="background: rgba(255, 255, 255, 0.15); z-index: 2;"></div>
-                        <!-- Sharp Foreground Image -->
-                        <img src="@mainImage" class="w-100 h-100 position-relative z-3" style="object-fit: contain;" alt="@service.Title" />
+                        
+                        <!-- Sharp Foreground Image (Clickable for Fullscreen Lightbox) -->
+                        <img src="@activeCarouselImageUrl" 
+                             class="w-100 h-100 position-relative z-3 carousel-active-img" 
+                             style="object-fit: contain; cursor: zoom-in;" 
+                             alt="@service.Title" 
+                             @onclick="() => selectedImage = activeCarouselImageUrl"
+                             title="انقر لتكبير ومعاينة الصورة" />
                         
                         <!-- Favorite Button Overlay -->
                         <div class="position-absolute top-0 start-0 m-3 z-3">
-                            <button class="btn btn-glass-dark @(service.IsFavorite ? "text-danger" : "") shadow" @onclick="ToggleFavorite">
+                            <button class="btn btn-glass-dark @(service.IsFavorite ? "text-danger" : "") shadow" @onclick="ToggleFavorite" title="إضافة للمفضلة">
                                 <i class="@(service.IsFavorite ? "fa-solid" : "fa-regular") fa-heart"></i>
                             </button>
                         </div>
 
                         @if (service.Images != null && service.Images.Count > 1)
                         {
-                            <div class="gallery-preview-mini">
-                                @foreach (var img in service.Images.Take(3))
+                            <!-- Image Counter Badge -->
+                            <div class="position-absolute top-0 end-0 m-3 z-3">
+                                <span class="badge bg-dark bg-opacity-75 text-white rounded-pill px-3 py-1 small shadow-sm">
+                                    <i class="fa-solid fa-camera me-1"></i> @(currentCarouselIndex + 1) / @service.Images.Count
+                                </span>
+                            </div>
+
+                            <!-- Carousel Navigation Arrows -->
+                            <button type="button" class="carousel-nav-btn carousel-prev z-3" @onclick="PrevCarouselImage" @onclick:stopPropagation="true" title="الصورة السابقة">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                            <button type="button" class="carousel-nav-btn carousel-next z-3" @onclick="NextCarouselImage" @onclick:stopPropagation="true" title="الصورة التالية">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+
+                            <!-- Mini Carousel Dots / Indicators -->
+                            <div class="carousel-indicators-strip z-3">
+                                @for (int i = 0; i < service.Images.Count; i++)
                                 {
-                                    <img src="@img" class="mini-img @(img == selectedImage ? "active" : "")" @onclick="() => selectedImage = img" />
-                                }
-                                @if (service.Images.Count > 3)
-                                {
-                                    <div class="more-imgs" @onclick='() => selectedImage = service.Images.Skip(3).FirstOrDefault()'>+@(service.Images.Count - 3)</div>
+                                    int imgIndex = i;
+                                    <button type="button" class="carousel-dot @(imgIndex == currentCarouselIndex ? "active" : "")" 
+                                            @onclick="() => SelectCarouselImage(imgIndex)" 
+                                            @onclick:stopPropagation="true"
+                                            title="صورة @(imgIndex + 1)">
+                                    </button>
                                 }
                             </div>
                         }
@@ -806,7 +834,7 @@
                         <div class="fw-800 mb-1" style="font-size: 0.95rem;">📲 تطبيق ومنصة خدماوي</div>
                         <div class="mb-2" style="font-size: 0.8rem; opacity: 0.92; line-height: 1.5;">سوق الخدمات والأعمال الأول في مصر – تصفح آلاف الخدمات القريبة منك وتواصل مباشرة مع مقدميها مجاناً!</div>
                         <a href="@AppDownloadUrl"
-                           download="خدماوي.apk"
+                           download="خدماوى | Khadamawy.apk"
                            class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill fw-bold"
                            style="background: white; color: #1d6070; font-size: 0.78rem; text-decoration: none; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
                             <i class="fa-brands fa-android text-success" style="font-size: 1rem;"></i>
@@ -1665,6 +1693,74 @@
     private string userComment = "";
     private string mainImage => Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(service?.Images?.FirstOrDefault(), service?.SubCategoryName, service?.CategoryName, service?.MainCategoryName, service?.SubCategoryImageUrl, service?.CategoryImageUrl, service?.MainCategoryImageUrl);
 
+    // Auto-Playing Carousel State & Methods
+    private int currentCarouselIndex = 0;
+    private System.Threading.Timer? carouselTimer;
+    private bool isCarouselPaused = false;
+
+    private string activeCarouselImageUrl
+    {
+        get
+        {
+            if (service?.Images != null && service.Images.Count > 0)
+            {
+                var idx = currentCarouselIndex % service.Images.Count;
+                var raw = service.Images[idx];
+                return Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(raw, service.SubCategoryName, service.CategoryName, service.MainCategoryName, service.SubCategoryImageUrl, service.CategoryImageUrl, service.MainCategoryImageUrl));
+            }
+            return Api.GetAbsoluteUrl(mainImage);
+        }
+    }
+
+    private void StartCarousel()
+    {
+        carouselTimer?.Dispose();
+        currentCarouselIndex = 0;
+        if (service?.Images != null && service.Images.Count > 1)
+        {
+            carouselTimer = new System.Threading.Timer(async _ =>
+            {
+                if (!isCarouselPaused && service?.Images != null && service.Images.Count > 1)
+                {
+                    currentCarouselIndex = (currentCarouselIndex + 1) % service.Images.Count;
+                    await InvokeAsync(StateHasChanged);
+                }
+            }, null, 4000, 4000);
+        }
+    }
+
+    private void NextCarouselImage()
+    {
+        if (service?.Images != null && service.Images.Count > 1)
+        {
+            currentCarouselIndex = (currentCarouselIndex + 1) % service.Images.Count;
+        }
+    }
+
+    private void PrevCarouselImage()
+    {
+        if (service?.Images != null && service.Images.Count > 1)
+        {
+            currentCarouselIndex = (currentCarouselIndex - 1 + service.Images.Count) % service.Images.Count;
+        }
+    }
+
+    private void SelectCarouselImage(int index)
+    {
+        if (service?.Images != null && index >= 0 && index < service.Images.Count)
+        {
+            currentCarouselIndex = index;
+        }
+    }
+
+    private void PauseCarousel() => isCarouselPaused = true;
+    private void ResumeCarousel() => isCarouselPaused = false;
+
+    public void Dispose()
+    {
+        carouselTimer?.Dispose();
+    }
+
     private string? selectedImage;
     private bool CanEdit = false;
     
@@ -1770,6 +1866,7 @@
 
         // Only fill truly missing fields — never overwrite real API data
         EnsureRequiredFields();
+        StartCarousel();
         await InvokeAsync(StateHasChanged);
 
         // Auth check — non-blocking
@@ -2903,3 +3000,67 @@
         }
     }
 }
+
+
+<style>
+    .service-carousel-container {
+        position: relative;
+        user-select: none;
+    }
+    .carousel-active-img {
+        transition: opacity 0.35s ease-in-out;
+    }
+    .carousel-nav-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(15, 23, 42, 0.55);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(8px);
+        transition: all 0.25s ease;
+        opacity: 0.8;
+        cursor: pointer;
+    }
+    .carousel-nav-btn:hover {
+        background: rgba(15, 23, 42, 0.9);
+        transform: translateY(-50%) scale(1.1);
+        opacity: 1;
+    }
+    .carousel-prev { right: 12px; }
+    .carousel-next { left: 12px; }
+
+    .carousel-indicators-strip {
+        position: absolute;
+        bottom: 12px;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+    }
+    .carousel-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        border: 2px solid #ffffff;
+        background: rgba(255, 255, 255, 0.45);
+        padding: 0;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .carousel-dot.active {
+        width: 22px;
+        border-radius: 11px;
+        background: var(--primary, #2563eb);
+        border-color: #ffffff;
+        box-shadow: 0 0 8px rgba(37, 99, 235, 0.7);
+    }
+</style>

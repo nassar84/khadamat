@@ -170,8 +170,13 @@
     <link rel="stylesheet" href="_content/Khadamat.BlazorUI/css/app.css" />
     <link rel="stylesheet" href="_content/Khadamat.BlazorUI/lib/fontawesome/css/all.min.css" />
     <link rel="stylesheet" href="_content/Khadamat.BlazorUI/lib/swiper/swiper-bundle.min.css" />
-    <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=4" />
-    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=4" />
+    <!-- Favicon & Touch Icons -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico?v=5" />
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=5" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=5" />
+    <link rel="icon" type="image/png" href="/favicon.png?v=5" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=5" />
     <link rel="manifest" href="manifest.json" />
     <!-- Antigravity Update: 2026-09-14 (Mobile UI Fix & Cache Purge) -->
     <meta name="version" content="1.2.0-20260914" />
@@ -1345,7 +1350,8 @@
 
         window.updateWebDetails = (title, logoUrl) => {
             if (title) document.title = title;
-            if (logoUrl) {
+            // Only update favicon if a dedicated favicon/icon URL is provided
+            if (logoUrl && (logoUrl.indexOf('favicon') !== -1 || logoUrl.indexOf('app-icon') !== -1)) {
                 let link = document.querySelector("link[rel*='icon']") || document.createElement('link');
                 link.type = 'image/png';
                 link.rel = 'icon';

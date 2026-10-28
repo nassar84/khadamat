@@ -81,9 +81,15 @@ public class ReminderCampaignDto
     public string ActionRoute { get; set; } = "/";
     public string? ImageUrl { get; set; }
     public string DeliveryChannel { get; set; } = "Both"; // Both, PushOnly, InAppOnly
-    public string MessageSelectionMode { get; set; } = "Single"; // Single, ScheduledBank, RandomBank
+    public string MessageSelectionMode { get; set; } = "Single"; // Single, ScheduledBank, RandomBank, SequentialBank
     public string? MessageBankJson { get; set; }
+    public string? BankCategory { get; set; }
+    public int LastSequentialIndex { get; set; }
     public List<ReminderMessageBankItemDto> MessageBankItems { get; set; } = new();
+    
+    public string CampaignType { get; set; } = "Regular";
+    public bool OverridesRegularReminders { get; set; } = false;
+    public string? OccasionName { get; set; }
 
     public bool IsActive { get; set; }
     public int ExecutionCount { get; set; }
@@ -103,6 +109,39 @@ public class ReminderMessageBankItemDto
     public bool IsSent { get; set; }
     public DateTime? SentAt { get; set; }
     public int SendCount { get; set; }
+}
+
+public class ReminderBankItemDto
+{
+    public int Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+    public string Category { get; set; } = "General";
+    public int OrderIndex { get; set; } = 1;
+    public TimeSpan? SuggestedTime { get; set; }
+    public string? ImageUrl { get; set; }
+    public string ActionRoute { get; set; } = "/";
+    public bool IsActive { get; set; } = true;
+    public int UsageCount { get; set; } = 0;
+    public DateTime? LastUsedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
+public class CreateReminderBankItemDto
+{
+    public string Title { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+    public string Category { get; set; } = "General";
+    public int OrderIndex { get; set; } = 1;
+    public TimeSpan? SuggestedTime { get; set; }
+    public string? ImageUrl { get; set; }
+    public string ActionRoute { get; set; } = "/";
+    public bool IsActive { get; set; } = true;
+}
+
+public class UpdateReminderBankItemDto : CreateReminderBankItemDto
+{
+    public int Id { get; set; }
 }
 
 public class CreateReminderCampaignDto
@@ -132,9 +171,15 @@ public class CreateReminderCampaignDto
     public string ActionRoute { get; set; } = "/";
     public string? ImageUrl { get; set; }
     public string DeliveryChannel { get; set; } = "Both"; // Both, PushOnly, InAppOnly
-    public string MessageSelectionMode { get; set; } = "Single"; // Single, ScheduledBank, RandomBank
+    public string MessageSelectionMode { get; set; } = "Single"; // Single, ScheduledBank, RandomBank, SequentialBank
     public string? MessageBankJson { get; set; }
+    public string? BankCategory { get; set; }
+    public int LastSequentialIndex { get; set; }
     public List<ReminderMessageBankItemDto> MessageBankItems { get; set; } = new();
+    
+    public string CampaignType { get; set; } = "Regular";
+    public bool OverridesRegularReminders { get; set; } = false;
+    public string? OccasionName { get; set; }
 
     public bool IsActive { get; set; } = true;
 }

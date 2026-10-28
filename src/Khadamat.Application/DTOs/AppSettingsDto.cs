@@ -38,6 +38,7 @@ public class AppSettingsDto
     public bool AllowUserRegistration { get; set; }
     public bool RequireEmailVerification { get; set; }
     public int MaxServicesPerProvider { get; set; }
+    public int MaxServiceImages { get; set; } = 3; // الحد الأقصى لصور الخدمة
     public bool EnableReviewAutoApproval { get; set; }
     public bool EnableTesterTracking { get; set; } = true;
 

@@ -17,6 +17,7 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<SubCategory> SubCategories { get; set; }
     public DbSet<Service> Services { get; set; }
     public DbSet<ServiceEditRequest> ServiceEditRequests { get; set; }
+    public DbSet<ServiceImage> ServiceImages { get; set; }
     public DbSet<Rating> Ratings { get; set; }
     public DbSet<Like> Likes { get; set; }
     public DbSet<Post> Posts { get; set; }
@@ -59,6 +60,7 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<PointRewardRule> PointRewardRules { get; set; }
     public DbSet<ContentReport>  ContentReports   { get; set; }
     public DbSet<ReminderCampaign> ReminderCampaigns { get; set; }
+    public DbSet<ReminderBankItem> ReminderBankItems { get; set; }
     public DbSet<UserDevice> UserDevices { get; set; }
     public DbSet<Specialization> Specializations { get; set; }
     public DbSet<TesterDevice> TesterDevices { get; set; }
@@ -84,6 +86,7 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<UserDevice>().HasIndex(e => e.DeviceToken);
         builder.Entity<UserDevice>().HasIndex(e => e.UserId);
         builder.Entity<ReminderCampaign>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<ReminderBankItem>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<Service>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<ServiceRequest>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<ProviderProfile>().HasQueryFilter(e => !e.IsDeleted);
@@ -98,6 +101,7 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<ApplicationUser>().HasQueryFilter(u => !u.IsDeleted);
         builder.Entity<MarketplaceItem>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<MarketplaceImage>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<ServiceImage>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<MarketplaceCategory>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<MarketplaceSubCategory>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<Specialization>().HasQueryFilter(e => !e.IsDeleted);
@@ -155,6 +159,7 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
         
         // Ad Relationships
         builder.Entity<Ad>().HasMany(a => a.AdImages).WithOne(ai => ai.Ad).HasForeignKey(ai => ai.AdId);
+        builder.Entity<Service>().HasMany(s => s.Images).WithOne(si => si.Service).HasForeignKey(si => si.ServiceId);
         builder.Entity<Category>().HasMany<Ad>().WithOne(a => a.Category).HasForeignKey(a => a.CategoryID);
 
         builder.Entity<SubCategory>().HasMany<Ad>().WithOne(a => a.SubCategory).HasForeignKey(a => a.SubCategoryID);

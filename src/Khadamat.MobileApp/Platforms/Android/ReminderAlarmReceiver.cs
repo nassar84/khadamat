@@ -73,14 +73,17 @@ public class ReminderAlarmReceiver : BroadcastReceiver
         mainIntent.SetPackage(context.PackageName);
         mainIntent.SetAction(Intent.ActionMain);
         mainIntent.AddCategory(Intent.CategoryLauncher);
-        mainIntent.SetFlags(ActivityFlags.NewTask | ActivityFlags.ClearTop | ActivityFlags.SingleTop);
+        mainIntent.SetFlags(ActivityFlags.NewTask | ActivityFlags.SingleTop);
 
-        if (!string.IsNullOrEmpty(actionRoute) && actionRoute != "/" && actionRoute != "//")
-        {
-            mainIntent.PutExtra("action_route", actionRoute);
-        }
         mainIntent.PutExtra("from_reminder", true);
         mainIntent.PutExtra("reminder_id", id);
+        mainIntent.PutExtra("notification_title", title);
+        mainIntent.PutExtra("notification_message", message);
+
+        string effectiveRoute = !string.IsNullOrWhiteSpace(actionRoute) && actionRoute != "/" && actionRoute != "//"
+            ? actionRoute
+            : "notifications";
+        mainIntent.PutExtra("action_route", effectiveRoute);
 
         var pendingIntent = PendingIntent.GetActivity(
             context,

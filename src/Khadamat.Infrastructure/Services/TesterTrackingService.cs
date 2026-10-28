@@ -75,6 +75,44 @@ public class TesterTrackingService : ITesterTrackingService
             };
         }
 
+        // Google Play Closed Testing: Strictly Mobile + Gmail accounts only
+        var isWindowsOrPc = (request.OperatingSystem != null && request.OperatingSystem.IndexOf("Windows", StringComparison.OrdinalIgnoreCase) >= 0) ||
+                            (request.DeviceModel != null && request.DeviceModel.IndexOf("PC", StringComparison.OrdinalIgnoreCase) >= 0);
+
+        if (isWindowsOrPc)
+        {
+            return new TesterDeviceDto
+            {
+                DeviceIdentifier = request.DeviceIdentifier ?? string.Empty,
+                IsTrackingEnabled = false
+            };
+        }
+
+        string? effectiveEmail = request.TesterEmail?.Trim();
+        if (string.IsNullOrEmpty(effectiveEmail) && !string.IsNullOrEmpty(currentUserId))
+        {
+            var user = await _userManager.FindByIdAsync(currentUserId);
+            if (user != null && !string.IsNullOrEmpty(user.Email))
+            {
+                effectiveEmail = user.Email.Trim();
+            }
+        }
+
+        var isGmail = !string.IsNullOrEmpty(effectiveEmail) &&
+                      (effectiveEmail.EndsWith("@gmail.com", StringComparison.OrdinalIgnoreCase) ||
+                       effectiveEmail.EndsWith("@googlemail.com", StringComparison.OrdinalIgnoreCase));
+
+        if (!isGmail)
+        {
+            return new TesterDeviceDto
+            {
+                DeviceIdentifier = request.DeviceIdentifier ?? string.Empty,
+                IsTrackingEnabled = false
+            };
+        }
+
+        request.TesterEmail = effectiveEmail;
+
         if (string.IsNullOrWhiteSpace(request.DeviceIdentifier))
         {
             request.DeviceIdentifier = Guid.NewGuid().ToString("N");
@@ -199,6 +237,14 @@ public class TesterTrackingService : ITesterTrackingService
 
         if (string.IsNullOrWhiteSpace(request.DeviceIdentifier)) return false;
 
+        // Google Play closed testing strictly requires a Gmail account (@gmail.com / @googlemail.com)
+        if (string.IsNullOrWhiteSpace(request.TesterEmail) ||
+            (!request.TesterEmail.Trim().EndsWith("@gmail.com", StringComparison.OrdinalIgnoreCase) &&
+             !request.TesterEmail.Trim().EndsWith("@googlemail.com", StringComparison.OrdinalIgnoreCase)))
+        {
+            return false;
+        }
+
         var device = await _context.TesterDevices
             .FirstOrDefaultAsync(d => d.DeviceIdentifier == request.DeviceIdentifier);
 
@@ -238,6 +284,11 @@ public class TesterTrackingService : ITesterTrackingService
         var isEnabled = await IsTrackingEnabledAsync();
 
         var devices = await _context.TesterDevices
+            .Where(d => !d.IsDeleted &&
+                        (d.OperatingSystem == null || !d.OperatingSystem.Contains("Windows")) &&
+                        (d.DeviceModel == null || !d.DeviceModel.Contains("PC")) &&
+                        d.TesterEmail != null &&
+                        (d.TesterEmail.EndsWith("@gmail.com") || d.TesterEmail.EndsWith("@googlemail.com")))
             .OrderByDescending(d => d.LastSeenAt)
             .ToListAsync();
 
@@ -261,6 +312,13 @@ public class TesterTrackingService : ITesterTrackingService
     {
         var device = await _context.TesterDevices.FindAsync(id);
         if (device == null) return false;
+
+        if (!string.IsNullOrWhiteSpace(request.TesterEmail) &&
+            !request.TesterEmail.Trim().EndsWith("@gmail.com", StringComparison.OrdinalIgnoreCase) &&
+            !request.TesterEmail.Trim().EndsWith("@googlemail.com", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
 
         if (request.TesterName != null) device.TesterName = request.TesterName.Trim();
         if (request.TesterEmail != null) device.TesterEmail = request.TesterEmail.Trim();

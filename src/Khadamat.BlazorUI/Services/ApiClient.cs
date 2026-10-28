@@ -1307,6 +1307,63 @@ public class ApiClient
         }
     }
 
+    // ── Reminder Bank Methods ──────────────────────────────────────────────────
+    public async Task<List<ReminderBankItemDto>> GetReminderBankItemsAsync(string? category = null, bool? isActive = null)
+    {
+        var query = new List<string>();
+        if (!string.IsNullOrWhiteSpace(category) && category != "All" && category != "الكل")
+            query.Add($"category={Uri.EscapeDataString(category.Trim())}");
+        if (isActive.HasValue)
+            query.Add($"isActive={isActive.Value}");
+
+        var url = "v1/reminders/bank" + (query.Count > 0 ? "?" + string.Join("&", query) : "");
+        var res = await GetAsync<ApiResponse<List<ReminderBankItemDto>>>(url);
+        return res?.Data ?? new List<ReminderBankItemDto>();
+    }
+
+    public async Task<List<string>> GetReminderBankCategoriesAsync()
+    {
+        var res = await GetAsync<ApiResponse<List<string>>>("v1/reminders/bank/categories");
+        return res?.Data ?? new List<string>();
+    }
+
+    public async Task<ReminderBankItemDto?> GetReminderBankItemByIdAsync(int id)
+    {
+        var res = await GetAsync<ApiResponse<ReminderBankItemDto>>($"v1/reminders/bank/{id}");
+        return res?.Data;
+    }
+
+    public async Task<ReminderBankItemDto?> CreateReminderBankItemAsync(CreateReminderBankItemDto dto)
+    {
+        var res = await PostAsync<ApiResponse<ReminderBankItemDto>>("v1/reminders/bank", dto);
+        return res?.Data;
+    }
+
+    public async Task<ReminderBankItemDto?> UpdateReminderBankItemAsync(int id, UpdateReminderBankItemDto dto)
+    {
+        var res = await PutAsync<ApiResponse<ReminderBankItemDto>>($"v1/reminders/bank/{id}", dto);
+        return res?.Data;
+    }
+
+    public async Task<bool> DeleteReminderBankItemAsync(int id)
+    {
+        try
+        {
+            var res = await _http.DeleteAsync($"v1/reminders/bank/{id}");
+            return res.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<ReminderBankItemDto?> GetNextReminderBankItemAsync(int campaignId)
+    {
+        var res = await GetAsync<ApiResponse<ReminderBankItemDto>>($"v1/reminders/{campaignId}/next-bank-item");
+        return res?.Data;
+    }
+
     // Messages
     public async Task<List<ConversationDto>> GetConversationsAsync()
     {

@@ -62,6 +62,7 @@ public class SettingsService : ISettingsService
                 AllowUserRegistration = settings.AllowUserRegistration,
                 RequireEmailVerification = settings.RequireEmailVerification,
                 MaxServicesPerProvider = settings.MaxServicesPerProvider,
+                MaxServiceImages = settings.MaxServiceImages > 0 ? settings.MaxServiceImages : 3,
                 EnableReviewAutoApproval = settings.EnableReviewAutoApproval,
                 MarketplaceDefaultListingDays = settings.MarketplaceDefaultListingDays,
                 MarketplaceMaxListingsPerUser = settings.MarketplaceMaxListingsPerUser,
@@ -123,6 +124,7 @@ public class SettingsService : ISettingsService
             settings.AllowUserRegistration = request.AllowUserRegistration;
             settings.RequireEmailVerification = request.RequireEmailVerification;
             if (request.MaxServicesPerProvider > 0) settings.MaxServicesPerProvider = request.MaxServicesPerProvider;
+            if (request.MaxServiceImages > 0) settings.MaxServiceImages = request.MaxServiceImages;
             settings.EnableReviewAutoApproval = request.EnableReviewAutoApproval;
             if (request.MarketplaceDefaultListingDays > 0) settings.MarketplaceDefaultListingDays = request.MarketplaceDefaultListingDays;
             if (request.MarketplaceMaxListingsPerUser > 0) settings.MarketplaceMaxListingsPerUser = request.MarketplaceMaxListingsPerUser;

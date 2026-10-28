@@ -124,6 +124,11 @@ public class ReminderService : IReminderService
             ImageUrl = dto.ImageUrl?.Trim(),
             DeliveryChannel = string.IsNullOrWhiteSpace(dto.DeliveryChannel) ? "Both" : dto.DeliveryChannel,
             MessageSelectionMode = string.IsNullOrWhiteSpace(dto.MessageSelectionMode) ? "Single" : dto.MessageSelectionMode,
+            BankCategory = dto.BankCategory?.Trim(),
+            LastSequentialIndex = dto.LastSequentialIndex,
+            CampaignType = string.IsNullOrWhiteSpace(dto.CampaignType) ? "Regular" : dto.CampaignType.Trim(),
+            OverridesRegularReminders = dto.OverridesRegularReminders,
+            OccasionName = dto.OccasionName?.Trim(),
             MessageBankJson = dto.MessageBankItems != null && dto.MessageBankItems.Any()
                 ? System.Text.Json.JsonSerializer.Serialize(dto.MessageBankItems)
                 : dto.MessageBankJson,
@@ -171,6 +176,11 @@ public class ReminderService : IReminderService
         entity.ImageUrl = dto.ImageUrl?.Trim();
         entity.DeliveryChannel = string.IsNullOrWhiteSpace(dto.DeliveryChannel) ? "Both" : dto.DeliveryChannel;
         entity.MessageSelectionMode = string.IsNullOrWhiteSpace(dto.MessageSelectionMode) ? "Single" : dto.MessageSelectionMode;
+        entity.BankCategory = dto.BankCategory?.Trim();
+        entity.LastSequentialIndex = dto.LastSequentialIndex;
+        entity.CampaignType = string.IsNullOrWhiteSpace(dto.CampaignType) ? "Regular" : dto.CampaignType.Trim();
+        entity.OverridesRegularReminders = dto.OverridesRegularReminders;
+        entity.OccasionName = dto.OccasionName?.Trim();
         if (dto.MessageBankItems != null && dto.MessageBankItems.Any())
         {
             entity.MessageBankJson = System.Text.Json.JsonSerializer.Serialize(dto.MessageBankItems);
@@ -248,6 +258,11 @@ public class ReminderService : IReminderService
             TargetAudience = original.TargetAudience,
             TargetRole = original.TargetRole,
             DisplayType = original.DisplayType,
+            BankCategory = original.BankCategory,
+            LastSequentialIndex = 0,
+            CampaignType = original.CampaignType,
+            OverridesRegularReminders = original.OverridesRegularReminders,
+            OccasionName = original.OccasionName,
             ActionRoute = original.ActionRoute,
             ImageUrl = original.ImageUrl,
             DeliveryChannel = original.DeliveryChannel ?? "Both",
@@ -384,10 +399,51 @@ public class ReminderService : IReminderService
         string messageToSend = campaign.Message;
         string? imageToSend = campaign.ImageUrl;
 
-        // Message Bank selection
-        if ((campaign.MessageSelectionMode == "RandomBank" || campaign.MessageSelectionMode == "Random" || 
-             campaign.MessageSelectionMode == "ScheduledBank" || campaign.MessageSelectionMode == "Scheduled") 
-            && !string.IsNullOrWhiteSpace(campaign.MessageBankJson))
+        // Check Master Reminder Bank first for RandomBank and SequentialBank
+        if (campaign.MessageSelectionMode == "RandomBank" || campaign.MessageSelectionMode == "SequentialBank")
+        {
+            try
+            {
+                var bankQuery = _context.ReminderBankItems.Where(b => b.IsActive && !b.IsDeleted);
+                if (!string.IsNullOrWhiteSpace(campaign.BankCategory) && campaign.BankCategory != "All" && campaign.BankCategory != "الكل")
+                {
+                    bankQuery = bankQuery.Where(b => b.Category == campaign.BankCategory);
+                }
+
+                var masterItems = await bankQuery.OrderBy(b => b.OrderIndex).ThenBy(b => b.Id).ToListAsync();
+                if (masterItems.Count > 0)
+                {
+                    ReminderBankItem? chosen = null;
+                    if (campaign.MessageSelectionMode == "RandomBank")
+                    {
+                        var rand = new Random();
+                        chosen = masterItems[rand.Next(masterItems.Count)];
+                    }
+                    else // SequentialBank
+                    {
+                        chosen = masterItems.FirstOrDefault(b => b.OrderIndex > campaign.LastSequentialIndex) ?? masterItems[0];
+                        campaign.LastSequentialIndex = chosen.OrderIndex;
+                    }
+
+                    if (chosen != null)
+                    {
+                        if (!string.IsNullOrWhiteSpace(chosen.Title)) titleToSend = chosen.Title;
+                        if (!string.IsNullOrWhiteSpace(chosen.Message)) messageToSend = chosen.Message;
+                        if (!string.IsNullOrWhiteSpace(chosen.ImageUrl)) imageToSend = chosen.ImageUrl;
+                        if (!string.IsNullOrWhiteSpace(chosen.ActionRoute)) actionRoute = chosen.ActionRoute;
+
+                        chosen.UsageCount++;
+                        chosen.LastUsedAt = DateTime.UtcNow;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ReminderService] Error selecting master bank item: {ex.Message}");
+            }
+        }
+        else if ((campaign.MessageSelectionMode == "ScheduledBank" || campaign.MessageSelectionMode == "Scheduled" ||
+                  campaign.MessageSelectionMode == "Random") && !string.IsNullOrWhiteSpace(campaign.MessageBankJson))
         {
             try
             {
@@ -492,12 +548,161 @@ public class ReminderService : IReminderService
             DeliveryChannel = r.DeliveryChannel ?? "Both",
             MessageSelectionMode = r.MessageSelectionMode ?? "Single",
             MessageBankJson = r.MessageBankJson,
+            BankCategory = r.BankCategory,
+            LastSequentialIndex = r.LastSequentialIndex,
+            CampaignType = r.CampaignType ?? "Regular",
+            OverridesRegularReminders = r.OverridesRegularReminders,
+            OccasionName = r.OccasionName,
             MessageBankItems = parsedBank,
             IsActive = r.IsActive,
             ExecutionCount = r.ExecutionCount,
             LastTriggeredAt = r.LastTriggeredAt,
             CreatedAt = r.CreatedAt,
             UpdatedAt = r.UpdatedAt
+        };
+    }
+
+    // Reminder Bank Management
+    public async Task<List<ReminderBankItemDto>> GetBankItemsAsync(string? category = null, bool? isActive = null)
+    {
+        var query = _context.ReminderBankItems.AsNoTracking().Where(b => !b.IsDeleted);
+
+        if (!string.IsNullOrWhiteSpace(category) && category != "All" && category != "الكل")
+        {
+            var cat = category.Trim();
+            query = query.Where(b => b.Category == cat);
+        }
+
+        if (isActive.HasValue)
+        {
+            query = query.Where(b => b.IsActive == isActive.Value);
+        }
+
+        var items = await query.OrderBy(b => b.OrderIndex).ThenBy(b => b.Id).ToListAsync();
+        return items.Select(MapBankItemToDto).ToList();
+    }
+
+    public async Task<ReminderBankItemDto?> GetBankItemByIdAsync(int id)
+    {
+        var item = await _context.ReminderBankItems.AsNoTracking()
+            .FirstOrDefaultAsync(b => b.Id == id && !b.IsDeleted);
+        return item != null ? MapBankItemToDto(item) : null;
+    }
+
+    public async Task<ReminderBankItemDto> CreateBankItemAsync(CreateReminderBankItemDto dto, string? userId)
+    {
+        var item = new ReminderBankItem
+        {
+            Title = dto.Title.Trim(),
+            Message = dto.Message.Trim(),
+            Category = string.IsNullOrWhiteSpace(dto.Category) ? "General" : dto.Category.Trim(),
+            OrderIndex = dto.OrderIndex > 0 ? dto.OrderIndex : 1,
+            SuggestedTime = dto.SuggestedTime,
+            ImageUrl = dto.ImageUrl?.Trim(),
+            ActionRoute = string.IsNullOrWhiteSpace(dto.ActionRoute) ? "/" : dto.ActionRoute.Trim(),
+            IsActive = dto.IsActive,
+            CreatedAt = DateTime.UtcNow,
+            CreatedBy = userId
+        };
+
+        _context.ReminderBankItems.Add(item);
+        await _context.SaveChangesAsync();
+        return MapBankItemToDto(item);
+    }
+
+    public async Task<ReminderBankItemDto?> UpdateBankItemAsync(int id, UpdateReminderBankItemDto dto, string? userId)
+    {
+        var item = await _context.ReminderBankItems.FirstOrDefaultAsync(b => b.Id == id && !b.IsDeleted);
+        if (item == null) return null;
+
+        item.Title = dto.Title.Trim();
+        item.Message = dto.Message.Trim();
+        item.Category = string.IsNullOrWhiteSpace(dto.Category) ? "General" : dto.Category.Trim();
+        item.OrderIndex = dto.OrderIndex > 0 ? dto.OrderIndex : 1;
+        item.SuggestedTime = dto.SuggestedTime;
+        item.ImageUrl = dto.ImageUrl?.Trim();
+        item.ActionRoute = string.IsNullOrWhiteSpace(dto.ActionRoute) ? "/" : dto.ActionRoute.Trim();
+        item.IsActive = dto.IsActive;
+        item.UpdatedAt = DateTime.UtcNow;
+        item.UpdatedBy = userId;
+
+        await _context.SaveChangesAsync();
+        return MapBankItemToDto(item);
+    }
+
+    public async Task<bool> DeleteBankItemAsync(int id, string? userId)
+    {
+        var item = await _context.ReminderBankItems.FirstOrDefaultAsync(b => b.Id == id && !b.IsDeleted);
+        if (item == null) return false;
+
+        item.IsDeleted = true;
+        item.DeletedAt = DateTime.UtcNow;
+        item.DeletedBy = userId;
+        item.IsActive = false;
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<List<string>> GetBankCategoriesAsync()
+    {
+        var categories = await _context.ReminderBankItems
+            .AsNoTracking()
+            .Where(b => !b.IsDeleted && !string.IsNullOrWhiteSpace(b.Category))
+            .Select(b => b.Category.Trim())
+            .Distinct()
+            .OrderBy(c => c)
+            .ToListAsync();
+
+        return categories;
+    }
+
+    public async Task<ReminderBankItemDto?> ResolveNextBankItemAsync(int campaignId)
+    {
+        var campaign = await _context.ReminderCampaigns.FirstOrDefaultAsync(c => c.Id == campaignId && !c.IsDeleted);
+        if (campaign == null) return null;
+
+        var query = _context.ReminderBankItems.Where(b => b.IsActive && !b.IsDeleted);
+        if (!string.IsNullOrWhiteSpace(campaign.BankCategory) && campaign.BankCategory != "All" && campaign.BankCategory != "الكل")
+        {
+            query = query.Where(b => b.Category == campaign.BankCategory);
+        }
+
+        var items = await query.OrderBy(b => b.OrderIndex).ThenBy(b => b.Id).ToListAsync();
+        if (items.Count == 0) return null;
+
+        ReminderBankItem chosen;
+        if (campaign.MessageSelectionMode == "RandomBank")
+        {
+            var rand = new Random();
+            chosen = items[rand.Next(items.Count)];
+        }
+        else // SequentialBank or default
+        {
+            chosen = items.FirstOrDefault(b => b.OrderIndex > campaign.LastSequentialIndex) ?? items[0];
+            campaign.LastSequentialIndex = chosen.OrderIndex;
+            await _context.SaveChangesAsync();
+        }
+
+        return MapBankItemToDto(chosen);
+    }
+
+    private static ReminderBankItemDto MapBankItemToDto(ReminderBankItem item)
+    {
+        return new ReminderBankItemDto
+        {
+            Id = item.Id,
+            Title = item.Title,
+            Message = item.Message,
+            Category = item.Category,
+            OrderIndex = item.OrderIndex,
+            SuggestedTime = item.SuggestedTime,
+            ImageUrl = item.ImageUrl,
+            ActionRoute = item.ActionRoute,
+            IsActive = item.IsActive,
+            UsageCount = item.UsageCount,
+            LastUsedAt = item.LastUsedAt,
+            CreatedAt = item.CreatedAt
         };
     }
 }

@@ -278,6 +278,7 @@ try
     var provider = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
     provider.Mappings[".apk"] = "application/vnd.android.package-archive";
     provider.Mappings[".webp"] = "image/webp";
+    provider.Mappings[".ico"] = "image/x-icon";
     // Required for Digital Asset Links (TWA / Google Play Store)
     provider.Mappings[".json"] = "application/json";
 

@@ -30,4 +30,13 @@ public interface IReminderService
     /// Immediately triggers a reminder campaign manually for testing and instant broadcast
     /// </summary>
     Task<(bool Success, string Message)> TriggerReminderNowAsync(int id, string? userId);
+
+    // Reminder Bank Management
+    Task<List<ReminderBankItemDto>> GetBankItemsAsync(string? category = null, bool? isActive = null);
+    Task<ReminderBankItemDto?> GetBankItemByIdAsync(int id);
+    Task<ReminderBankItemDto> CreateBankItemAsync(CreateReminderBankItemDto dto, string? userId);
+    Task<ReminderBankItemDto?> UpdateBankItemAsync(int id, UpdateReminderBankItemDto dto, string? userId);
+    Task<bool> DeleteBankItemAsync(int id, string? userId);
+    Task<List<string>> GetBankCategoriesAsync();
+    Task<ReminderBankItemDto?> ResolveNextBankItemAsync(int campaignId);
 }

@@ -206,15 +206,69 @@
     <!-- Sidebar / Media -->
     <div class="col-12 col-lg-4">
         <div class="glass-card p-4 rounded-4 shadow-sm mb-4 animate-up" style="animation-delay: 0.1s;">
-            <h6 class="fw-bold mb-3">الصورة الأساسية</h6>
-            <ImageUploader ImageUrl="@(Model.Images.FirstOrDefault())" 
-                           ImageUrlChanged="OnMainImageChanged"
-                           ReadOnly="@ReadOnly"
-                           Height="200px"
-                           PickerLabel="رفع صورة الخدمة"
-                           ShowUrlInput="@(!ReadOnly)"
-                           Class="rounded-4 border-light shadow-sm" />
-            <div class="form-text x-small mt-2 text-center">يفضل استخدام صور عالية الجودة بحجم 800x600 بكسل</div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0">صور الخدمة</h6>
+                <span class="badge @(Model.Images.Count >= maxImages ? "bg-warning-subtle text-warning-emphasis" : "bg-primary-subtle text-primary") rounded-pill small">
+                    @(Model.Images.Count) من @maxImages صور
+                </span>
+            </div>
+
+            @if (Model.Images.Any())
+            {
+                <div class="d-flex flex-column gap-2 mb-3">
+                    @for (int i = 0; i < Model.Images.Count; i++)
+                    {
+                        var imgUrl = Model.Images[i];
+                        var isMain = i == 0;
+                        <div class="d-flex align-items-center justify-content-between p-2 bg-light rounded-3 border">
+                            <div class="d-flex align-items-center gap-2 overflow-hidden">
+                                <img src="@Api.GetAbsoluteUrl(imgUrl)" class="rounded-2 shadow-2xs flex-shrink-0" style="width: 48px; height: 48px; object-fit: cover;" onerror="this.onerror=null;this.src='/images/logo.png';" />
+                                <div>
+                                    @if (isMain)
+                                    {
+                                        <span class="badge bg-success-subtle text-success small rounded-pill px-2 py-1"><i class="fa-solid fa-star me-1"></i>الصورة الرئيسية</span>
+                                    }
+                                    else if (!ReadOnly)
+                                    {
+                                        <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none x-small text-primary fw-bold" @onclick="() => SetAsMainImage(imgUrl)">
+                                            تعيين كرئيسية
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                            @if (!ReadOnly)
+                            {
+                                <button type="button" class="btn btn-outline-danger btn-sm rounded-circle p-1 flex-shrink-0" style="width: 30px; height: 30px;" title="حذف الصورة" @onclick="() => RemoveImage(imgUrl)">
+                                    <i class="fa-solid fa-trash-can small"></i>
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
+            @if (!ReadOnly && Model.Images.Count < maxImages)
+            {
+                <div class="mt-2">
+                    <label class="form-label x-small text-muted mb-1">
+                        @(Model.Images.Count == 0 ? "رفع الصورة الرئيسية للخدمة" : "رفع صورة إضافية")
+                    </label>
+                    <ImageUploader ImageUrl="@newImageUrl"
+                                   ImageUrlChanged="OnNewImageUploaded"
+                                   ReadOnly="@ReadOnly"
+                                   Height="130px"
+                                   PickerLabel="@(Model.Images.Count == 0 ? "رفع صورة رئيسية" : "إضافة صورة أخرى")"
+                                   ShowUrlInput="@(!ReadOnly)"
+                                   Class="rounded-4 border-light shadow-sm" />
+                </div>
+            }
+            else if (Model.Images.Count >= maxImages)
+            {
+                <div class="alert alert-info py-2 px-3 rounded-3 small mb-0 mt-2 text-center">
+                    <i class="fa-solid fa-circle-check text-info me-1"></i> تم الوصول للحد الأقصى المسموح به (@maxImages صور).
+                </div>
+            }
+            <div class="form-text x-small mt-2 text-center text-muted">يتم ضغط الصور وتحويلها لـ WebP تلقائياً بحجم أقل من 150KB</div>
         </div>
 
         @if (!ReadOnly)
@@ -437,10 +491,54 @@
     // Instead of internal simulation, we can expose an event or just do the simulation here if allowed.
     // The previous page did simulation internally.
    
-    private void OnMainImageChanged(string? url)
+    private int maxImages = 3;
+    private string? newImageUrl;
+
+    protected override async Task OnInitializedAsync()
     {
-        Model.Images.Clear();
-        if (!string.IsNullOrEmpty(url)) Model.Images.Add(url);
+        try
+        {
+            var settings = await Api.GetSettingsAsync();
+            if (settings?.Data != null && settings.Data.MaxServiceImages > 0)
+            {
+                maxImages = settings.Data.MaxServiceImages;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ServiceForm] Failed to load MaxServiceImages: {ex.Message}");
+        }
+    }
+
+    private void OnNewImageUploaded(string? url)
+    {
+        if (!string.IsNullOrWhiteSpace(url))
+        {
+            AddImage(url);
+            newImageUrl = null;
+        }
+    }
+
+    private void AddImage(string url)
+    {
+        if (Model.Images.Count < maxImages && !Model.Images.Contains(url))
+        {
+            Model.Images.Add(url);
+        }
+    }
+
+    private void RemoveImage(string url)
+    {
+        Model.Images.Remove(url);
+    }
+
+    private void SetAsMainImage(string url)
+    {
+        if (Model.Images.Contains(url))
+        {
+            Model.Images.Remove(url);
+            Model.Images.Insert(0, url);
+        }
     }
 
     private async Task SubmitForm() => await HandleSubmit(); // Triggered by button

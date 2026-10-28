@@ -9,33 +9,42 @@
 
 <div class="px-2 pb-5 reminders-page-wrapper" dir="rtl">
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-start align-items-md-center mb-4 flex-wrap gap-2 mt-2">
+    <div class="d-flex justify-content-between align-items-start align-items-md-center mb-3 flex-wrap gap-2 mt-2">
         <div>
             <h1 class="fw-bold mb-1 text-primary fs-4">
-                <i class="fa-solid fa-bell me-2"></i>إدارة التذكيرات والإشعارات المحلية
+                <i class="fa-solid fa-bell me-2"></i>إدارة التذكيرات وبنك الإشعارات
             </h1>
-            <p class="text-muted small mb-0">تحكم كامل في مواعيد ونصوص وطرق عرض التذكيرات لحملات الاختبار والمستخدمين</p>
+            <p class="text-muted small mb-0">تحكم كامل في مواعيد ونصوص وبنك التذكيرات المخزنة وحملات الاختبار للمستخدمين</p>
         </div>
         <div class="d-flex gap-2 flex-wrap">
-            <button class="btn btn-outline-info rounded-pill px-3 shadow-sm btn-sm" @onclick='() => Navigation.NavigateTo("/admin/send-notification")' title="إرسال إشعار فوري لجميع المستخدمين أو فئة معينة">
-                <i class="fa-solid fa-paper-plane me-1"></i>إرسال تنبيه فوري
-            </button>
-            <button class="btn btn-outline-warning rounded-pill px-3 shadow-sm btn-sm" @onclick="TestFcmBroadcast" title="إرسال إشعار فوري لجميع الأجهزة النشطة عبر Firebase">
-                <i class="fa-solid fa-satellite-dish me-1"></i>اختبار Firebase FCM
-            </button>
-            <button class="btn btn-outline-primary rounded-pill px-3 shadow-sm btn-sm" @onclick="LoadDefaultTesterTemplate" title="إنشاء أو استعادة حملة اختبار Google Play">
-                <i class="fa-brands fa-google-play me-1 text-success"></i>حملة الـ 14 يوماً للمختبرين
-            </button>
-            <button class="btn btn-primary-premium rounded-pill px-4 shadow-sm btn-sm" @onclick="OpenCreateModal">
-                <i class="fa-solid fa-plus me-1"></i>تذكير جديد
-            </button>
+            @if (activeTab == "campaigns")
+            {
+                <button class="btn btn-outline-info rounded-pill px-3 shadow-sm btn-sm" @onclick='() => Navigation.NavigateTo("/admin/send-notification")' title="إرسال إشعار فوري لجميع المستخدمين أو فئة معينة">
+                    <i class="fa-solid fa-paper-plane me-1"></i>إرسال تنبيه فوري
+                </button>
+                <button class="btn btn-outline-warning rounded-pill px-3 shadow-sm btn-sm" @onclick="TestFcmBroadcast" title="إرسال إشعار فوري لجميع الأجهزة النشطة عبر Firebase">
+                    <i class="fa-solid fa-satellite-dish me-1"></i>اختبار Firebase FCM
+                </button>
+                <button class="btn btn-outline-primary rounded-pill px-3 shadow-sm btn-sm" @onclick="LoadDefaultTesterTemplate" title="إنشاء أو استعادة حملة اختبار Google Play">
+                    <i class="fa-brands fa-google-play me-1 text-success"></i>حملة الـ 14 يوماً للمختبرين
+                </button>
+                <button class="btn btn-primary-premium rounded-pill px-4 shadow-sm btn-sm" @onclick="OpenCreateModal">
+                    <i class="fa-solid fa-plus me-1"></i>تذكير مجدول جديد
+                </button>
+            }
+            else
+            {
+                <button class="btn btn-primary-premium rounded-pill px-4 shadow-sm btn-sm" @onclick="OpenCreateMasterBankModal">
+                    <i class="fa-solid fa-plus me-1"></i>إضافة رسالة لبنك التذكيرات
+                </button>
+            }
         </div>
     </div>
 
     <!-- Alert / Status Message -->
     @if (!string.IsNullOrEmpty(statusMessage))
     {
-        <div class="alert @(isSuccess ? "alert-success" : "alert-danger") rounded-4 shadow-sm mb-4 d-flex align-items-center justify-content-between animate-fade-in" role="alert">
+        <div class="alert @(isSuccess ? "alert-success" : "alert-danger") rounded-4 shadow-sm mb-3 d-flex align-items-center justify-content-between animate-fade-in" role="alert">
             <div class="d-flex align-items-center gap-2">
                 <i class="fa-solid @(isSuccess ? "fa-circle-check text-success" : "fa-circle-exclamation text-danger") fs-5"></i>
                 <span class="fw-bold">@statusMessage</span>
@@ -44,227 +53,460 @@
         </div>
     }
 
-    <!-- Quick Stats Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
-            <div class="glass-card p-3 text-center border-start border-primary border-4">
-                <span class="text-muted small d-block mb-1">إجمالي التذكيرات</span>
-                <h3 class="fw-bold mb-0 text-primary">@reminders.Count</h3>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="glass-card p-3 text-center border-start border-success border-4">
-                <span class="text-muted small d-block mb-1">المفعلة حالياً</span>
-                <h3 class="fw-bold mb-0 text-success">@reminders.Count(r => r.Status == ReminderStatus.Active)</h3>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="glass-card p-3 text-center border-start border-warning border-4">
-                <span class="text-muted small d-block mb-1">متوقفة مؤقتاً</span>
-                <h3 class="fw-bold mb-0 text-warning">@reminders.Count(r => r.Status == ReminderStatus.Paused)</h3>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="glass-card p-3 text-center border-start border-secondary border-4">
-                <span class="text-muted small d-block mb-1">المسودات والمنتهية</span>
-                <h3 class="fw-bold mb-0 text-muted">@reminders.Count(r => r.Status == ReminderStatus.Draft || r.Status == ReminderStatus.Expired)</h3>
-            </div>
-        </div>
-    </div>
+    <!-- Tabs: Campaigns vs Bank -->
+    <ul class="nav nav-pills gap-2 mb-4 bg-light p-1.5 rounded-pill shadow-xs border" style="width: fit-content;">
+        <li class="nav-item">
+            <button class="nav-link rounded-pill px-4 py-2 fw-bold @(activeTab == "campaigns" ? "active shadow-sm" : "text-secondary")" @onclick='() => SwitchTab("campaigns")'>
+                <i class="fa-solid fa-clock-rotate-left me-2"></i>الحملات والتذكيرات المجدولة
+                <span class="badge @(activeTab == "campaigns" ? "bg-white text-primary" : "bg-secondary text-white") rounded-pill ms-2">@reminders.Count</span>
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link rounded-pill px-4 py-2 fw-bold @(activeTab == "bank" ? "active shadow-sm" : "text-secondary")" @onclick='() => SwitchTab("bank")'>
+                <i class="fa-solid fa-vault me-2"></i>بنك التنبيهات والتذكيرات المخزنة
+                <span class="badge @(activeTab == "bank" ? "bg-white text-primary" : "bg-primary text-white") rounded-pill ms-2">@bankItems.Count</span>
+            </button>
+        </li>
+    </ul>
 
-    <!-- Filters Bar -->
-    <div class="glass-card p-3 mb-4">
-        <div class="row g-2 align-items-center">
-            <div class="col-12 col-md-4">
-                <div class="input-group">
-                    <span class="input-group-text bg-transparent border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
-                    <input type="text" class="form-control border-start-0 ps-0" placeholder="بحث بالاسم أو نص الرسالة..." 
-                           @bind="filter.SearchTerm" @bind:event="oninput" @onkeyup="HandleSearch" />
+    <!-- ======================================================== -->
+    <!-- TAB 1: CAMPAIGNS                                          -->
+    <!-- ======================================================== -->
+    @if (activeTab == "campaigns")
+    {
+        <!-- Quick Stats Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="glass-card p-3 text-center border-start border-primary border-4">
+                    <span class="text-muted small d-block mb-1">إجمالي التذكيرات</span>
+                    <h3 class="fw-bold mb-0 text-primary">@reminders.Count</h3>
                 </div>
             </div>
-            <div class="col-6 col-md-2">
-                <select class="form-select" @bind="selectedStatusString" @bind:after="ApplyFilter">
-                    <option value="">جميع الحالات</option>
-                    <option value="Active">مفعّل</option>
-                    <option value="Paused">متوقف مؤقتاً</option>
-                    <option value="Draft">مسودة</option>
-                    <option value="Expired">منتهي</option>
-                </select>
+            <div class="col-6 col-md-3">
+                <div class="glass-card p-3 text-center border-start border-success border-4">
+                    <span class="text-muted small d-block mb-1">المفعلة حالياً</span>
+                    <h3 class="fw-bold mb-0 text-success">@reminders.Count(r => r.Status == ReminderStatus.Active)</h3>
+                </div>
             </div>
             <div class="col-6 col-md-3">
-                <select class="form-select" @bind="selectedAudienceString" @bind:after="ApplyFilter">
-                    <option value="">جميع الفئات</option>
-                    <option value="Testers">مختبرو التطبيق</option>
-                    <option value="AllUsers">جميع المستخدمين</option>
-                    <option value="Clients">العملاء</option>
-                    <option value="Providers">مقدمو الخدمات</option>
-                </select>
+                <div class="glass-card p-3 text-center border-start border-warning border-4">
+                    <span class="text-muted small d-block mb-1">متوقفة مؤقتاً</span>
+                    <h3 class="fw-bold mb-0 text-warning">@reminders.Count(r => r.Status == ReminderStatus.Paused)</h3>
+                </div>
             </div>
-            <div class="col-12 col-md-3 text-md-start">
-                <button class="btn btn-outline-secondary w-100 rounded-pill" @onclick="ResetFilters">
-                    <i class="fa-solid fa-rotate-left me-1"></i>إعادة تعيين
-                </button>
+            <div class="col-6 col-md-3">
+                <div class="glass-card p-3 text-center border-start border-secondary border-4">
+                    <span class="text-muted small d-block mb-1">المسودات والمنتهية</span>
+                    <h3 class="fw-bold mb-0 text-muted">@reminders.Count(r => r.Status == ReminderStatus.Draft || r.Status == ReminderStatus.Expired)</h3>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- List of Reminders -->
-    @if (isLoading)
-    {
-        <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status"></div>
-            <p class="mt-2 text-muted">جاري تحميل التذكيرات...</p>
-        </div>
-    }
-    else if (!reminders.Any())
-    {
-        <div class="glass-card p-5 text-center">
-            <div class="mb-3">
-                <i class="fa-regular fa-bell-slash fs-1 text-muted"></i>
+        <!-- Filters Bar -->
+        <div class="glass-card p-3 mb-4">
+            <div class="row g-2 align-items-center">
+                <div class="col-12 col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
+                        <input type="text" class="form-control border-start-0 ps-0" placeholder="بحث بالاسم أو نص الرسالة..." 
+                               @bind="filter.SearchTerm" @bind:event="oninput" @onkeyup="HandleSearch" />
+                    </div>
+                </div>
+                <div class="col-6 col-md-2">
+                    <select class="form-select" @bind="selectedStatusString" @bind:after="ApplyFilter">
+                        <option value="">جميع الحالات</option>
+                        <option value="Active">مفعّل</option>
+                        <option value="Paused">متوقف مؤقتاً</option>
+                        <option value="Draft">مسودة</option>
+                        <option value="Expired">منتهي</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-3">
+                    <select class="form-select" @bind="selectedAudienceString" @bind:after="ApplyFilter">
+                        <option value="">جميع الفئات</option>
+                        <option value="Testers">مختبرو التطبيق</option>
+                        <option value="AllUsers">جميع المستخدمين</option>
+                        <option value="Clients">العملاء</option>
+                        <option value="Providers">مقدمو الخدمات</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-3 text-md-start">
+                    <button class="btn btn-outline-secondary w-100 rounded-pill" @onclick="ResetFilters">
+                        <i class="fa-solid fa-rotate-left me-1"></i>إعادة تعيين
+                    </button>
+                </div>
             </div>
-            <h5 class="fw-bold">لا توجد تذكيرات مطابقة</h5>
-            <p class="text-muted small">يمكنك إضافة تذكير جديد أو تفعيل نموذج حملة مختبري Google Play بنقرة واحدة.</p>
-            <div class="d-flex justify-content-center gap-2 mt-3">
-                <button class="btn btn-primary-premium rounded-pill px-4 btn-sm" @onclick="LoadDefaultTesterTemplate">
-                    <i class="fa-brands fa-google-play me-1"></i>تفعيل حملة المختبرين الافتراضية
-                </button>
-                <button class="btn btn-outline-primary rounded-pill px-4 btn-sm" @onclick="OpenCreateModal">
-                    <i class="fa-solid fa-plus me-1"></i>إنشاء تذكير جديد
-                </button>
-            </div>
         </div>
-    }
-    else
-    {
-        <div class="row g-3">
-            @foreach (var rem in reminders)
-            {
-                <div class="col-12 col-lg-6" key="@rem.Id">
-                    <div class="glass-card p-3 h-100 d-flex flex-column border @(rem.Status == ReminderStatus.Active ? "border-success-subtle" : "border-light") shadow-sm">
-                        <!-- Top Row: Title, Badges, Dropdown -->
-                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-                            <div>
-                                <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
-                                    <h5 class="fw-bold mb-0 fs-6 text-dark">@rem.Title</h5>
-                                    <span class="badge @GetStatusBadgeClass(rem.Status) rounded-pill px-2 py-1 small">
-                                        @rem.StatusText
-                                    </span>
-                                    <span class="badge bg-light text-dark border rounded-pill px-2 py-1 small">
-                                        <i class="fa-solid fa-clock me-1 text-primary"></i>@rem.ScheduledTimeString
-                                    </span>
+
+        <!-- List of Reminders -->
+        @if (isLoading)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2 text-muted">جاري تحميل التذكيرات...</p>
+            </div>
+        }
+        else if (!reminders.Any())
+        {
+            <div class="glass-card p-5 text-center">
+                <div class="mb-3">
+                    <i class="fa-regular fa-bell-slash fs-1 text-muted"></i>
+                </div>
+                <h5 class="fw-bold">لا توجد تذكيرات مطابقة</h5>
+                <p class="text-muted small">يمكنك إضافة تذكير جديد أو تفعيل نموذج حملة مختبري Google Play بنقرة واحدة.</p>
+                <div class="d-flex justify-content-center gap-2 mt-3">
+                    <button class="btn btn-primary-premium rounded-pill px-4 btn-sm" @onclick="LoadDefaultTesterTemplate">
+                        <i class="fa-brands fa-google-play me-1"></i>تفعيل حملة المختبرين الافتراضية
+                    </button>
+                    <button class="btn btn-outline-primary rounded-pill px-4 btn-sm" @onclick="OpenCreateModal">
+                        <i class="fa-solid fa-plus me-1"></i>إنشاء تذكير جديد
+                    </button>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="row g-3">
+                @foreach (var rem in reminders)
+                {
+                    <div class="col-12 col-lg-6" key="@rem.Id">
+                        <div class="glass-card p-3 h-100 d-flex flex-column border @(rem.Status == ReminderStatus.Active ? "border-success-subtle" : "border-light") shadow-sm">
+                            <!-- Top Row: Title, Badges, Dropdown -->
+                            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                        <h5 class="fw-bold mb-0 fs-6 text-dark">@rem.Title</h5>
+                                        <span class="badge @GetStatusBadgeClass(rem.Status) rounded-pill px-2 py-1 small">
+                                            @rem.StatusText
+                                        </span>
+                                        <span class="badge bg-light text-dark border rounded-pill px-2 py-1 small">
+                                            <i class="fa-solid fa-clock me-1 text-primary"></i>@rem.ScheduledTimeString
+                                        </span>
+                                        @if (rem.CampaignType == "Occasion" || rem.OverridesRegularReminders)
+                                        {
+                                            <span class="badge border rounded-pill px-2 py-1 small" style="background-color: #f3e8ff; color: #7e22ce;">
+                                                <i class="fa-solid fa-wand-magic-sparkles me-1"></i>مناسبة: @(string.IsNullOrWhiteSpace(rem.OccasionName) ? "خاصة" : rem.OccasionName)
+                                            </span>
+                                            @if (rem.OverridesRegularReminders)
+                                            {
+                                                <span class="badge bg-warning-subtle text-warning-emphasis border rounded-pill px-2 py-1 small" title="تتجاوز الرسائل المعتادة أثناء المناسبة">
+                                                    <i class="fa-solid fa-bolt me-1"></i>تتجاوز المعتادة
+                                                </span>
+                                            }
+                                        }
+                                    </div>
+                                    @if (!string.IsNullOrWhiteSpace(rem.InternalDescription))
+                                    {
+                                        <span class="text-muted x-small d-block"><i class="fa-solid fa-tag me-1"></i>@rem.InternalDescription</span>
+                                    }
                                 </div>
-                                @if (!string.IsNullOrWhiteSpace(rem.InternalDescription))
-                                {
-                                    <span class="text-muted x-small d-block"><i class="fa-solid fa-tag me-1"></i>@rem.InternalDescription</span>
-                                }
+
+                                <div class="d-flex gap-1">
+                                    <button class="btn btn-sm btn-outline-secondary rounded-circle" title="معاينة التذكير" @onclick="() => OpenPreviewModal(rem)">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary rounded-circle" title="تعديل" @onclick="() => OpenEditModal(rem)">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-info rounded-circle" title="نسخ لإنشاء تذكير مشابه" @onclick="() => DuplicateReminder(rem.Id)">
+                                        <i class="fa-solid fa-clone"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger rounded-circle" title="حذف" @onclick="() => DeleteReminder(rem.Id)">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
                             </div>
 
-                            <div class="d-flex gap-1">
-                                <button class="btn btn-sm btn-outline-secondary rounded-circle" title="معاينة التذكير" @onclick="() => OpenPreviewModal(rem)">
-                                    <i class="fa-solid fa-eye"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-primary rounded-circle" title="تعديل" @onclick="() => OpenEditModal(rem)">
-                                    <i class="fa-solid fa-pen"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-info rounded-circle" title="نسخ لإنشاء تذكير مشابه" @onclick="() => DuplicateReminder(rem.Id)">
-                                    <i class="fa-solid fa-clone"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger rounded-circle" title="حذف" @onclick="() => DeleteReminder(rem.Id)">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        @if (!string.IsNullOrEmpty(rem.ImageUrl))
-                        {
-                            <div class="mb-2 rounded-3 overflow-hidden border shadow-xs" style="max-height: 140px;">
-                                <img src="@rem.ImageUrl" alt="" style="width: 100%; height: 140px; object-fit: cover;" />
-                            </div>
-                        }
-
-                        <!-- Message Body Preview -->
-                        <div class="bg-light p-2 rounded-3 mb-3 border-start border-3 border-primary text-secondary small flex-grow-1">
-                            @rem.Message
-                        </div>
-
-                        <!-- Meta details badges -->
-                        <div class="d-flex flex-wrap gap-2 text-muted x-small mb-3">
-                            <span class="badge bg-light text-secondary border">
-                                <i class="fa-solid fa-repeat me-1 text-info"></i>@rem.RecurrenceTypeText
-                            </span>
-                            <span class="badge bg-light text-secondary border">
-                                <i class="fa-solid fa-users me-1 text-primary"></i>@rem.TargetAudienceText
-                            </span>
-                            <span class="badge bg-light text-secondary border">
-                                <i class="fa-solid fa-tv me-1 text-warning"></i>@rem.DisplayTypeText
-                            </span>
-                            <span class="badge bg-light text-secondary border">
-                                <i class="fa-solid fa-tower-broadcast me-1 text-info"></i>
-                                @(rem.DeliveryChannel switch {
-                                    "PushOnly" => "شاشة الموبايل فقط",
-                                    "InAppOnly" => "داخلي فقط",
-                                    _ => "كلاهما (موبايل + داخلي)"
-                                })
-                            </span>
-                            @if (rem.MessageSelectionMode != "Single" && !string.IsNullOrEmpty(rem.MessageSelectionMode))
+                            @if (!string.IsNullOrEmpty(rem.ImageUrl))
                             {
-                                <span class="badge bg-warning-subtle text-warning-emphasis border">
-                                    <i class="fa-solid fa-vault me-1"></i>
-                                    @(rem.MessageSelectionMode.StartsWith("Random") ? "بنك عشوائي" : "بنك مجدول")
-                                    (@rem.MessageBankItems.Count)
-                                </span>
+                                <div class="mb-2 rounded-3 overflow-hidden border shadow-xs" style="max-height: 140px;">
+                                    <img src="@rem.ImageUrl" alt="" style="width: 100%; height: 140px; object-fit: cover;" />
+                                </div>
                             }
-                            <span class="badge bg-light text-secondary border">
-                                <i class="fa-solid fa-location-arrow me-1 text-danger"></i>الوجهة: @rem.ActionRoute
-                            </span>
-                            @if (rem.DurationDays.HasValue)
-                            {
+
+                            <!-- Message Body Preview -->
+                            <div class="bg-light p-2 rounded-3 mb-3 border-start border-3 border-primary text-secondary small flex-grow-1">
+                                @if (rem.MessageSelectionMode == "RandomBank")
+                                {
+                                    <span class="text-primary fw-bold d-block mb-1">
+                                        <i class="fa-solid fa-shuffle me-1"></i>اختيار عشوائي من بنك التذكيرات @(!string.IsNullOrEmpty(rem.BankCategory) ? $"({rem.BankCategory})" : "")
+                                    </span>
+                                }
+                                else if (rem.MessageSelectionMode == "SequentialBank")
+                                {
+                                    <span class="text-success fw-bold d-block mb-1">
+                                        <i class="fa-solid fa-arrow-down-1-9 me-1"></i>تسلسلي بالترتيب من بنك التذكيرات @(!string.IsNullOrEmpty(rem.BankCategory) ? $"({rem.BankCategory})" : "")
+                                    </span>
+                                }
+                                @rem.Message
+                            </div>
+
+                            <!-- Meta details badges -->
+                            <div class="d-flex flex-wrap gap-2 text-muted x-small mb-3">
                                 <span class="badge bg-light text-secondary border">
-                                    <i class="fa-solid fa-hourglass-half me-1 text-success"></i>المدة: @rem.DurationDays يوم
+                                    <i class="fa-solid fa-repeat me-1 text-info"></i>@rem.RecurrenceTypeText
                                 </span>
-                            }
-                        </div>
+                                <span class="badge bg-light text-secondary border">
+                                    <i class="fa-solid fa-users me-1 text-primary"></i>@rem.TargetAudienceText
+                                </span>
+                                <span class="badge bg-light text-secondary border">
+                                    <i class="fa-solid fa-tv me-1 text-warning"></i>@rem.DisplayTypeText
+                                </span>
+                                <span class="badge bg-light text-secondary border">
+                                    <i class="fa-solid fa-tower-broadcast me-1 text-info"></i>
+                                    @(rem.DeliveryChannel switch {
+                                        "PushOnly" => "شاشة الموبايل فقط",
+                                        "InAppOnly" => "داخلي فقط",
+                                        _ => "كلاهما (موبايل + داخلي)"
+                                    })
+                                </span>
+                                @if (rem.MessageSelectionMode == "RandomBank")
+                                {
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border">
+                                        <i class="fa-solid fa-vault me-1"></i>بنك عشوائي: @(rem.BankCategory ?? "الكل")
+                                    </span>
+                                }
+                                else if (rem.MessageSelectionMode == "SequentialBank")
+                                {
+                                    <span class="badge bg-success-subtle text-success border">
+                                        <i class="fa-solid fa-list-ol me-1"></i>بنك تسلسلي: @(rem.BankCategory ?? "الكل") (آخر ترتيب: #@rem.LastSequentialIndex)
+                                    </span>
+                                }
+                                else if (rem.MessageSelectionMode == "ScheduledBank" || rem.MessageSelectionMode == "Scheduled")
+                                {
+                                    <span class="badge bg-info-subtle text-info border">
+                                        <i class="fa-solid fa-calendar-check me-1"></i>بنك مجدول (@rem.MessageBankItems.Count)
+                                    </span>
+                                }
+                                <span class="badge bg-light text-secondary border">
+                                    <i class="fa-solid fa-location-arrow me-1 text-danger"></i>الوجهة: @rem.ActionRoute
+                                </span>
+                                @if (rem.DurationDays.HasValue)
+                                {
+                                    <span class="badge bg-light text-secondary border">
+                                        <i class="fa-solid fa-hourglass-half me-1 text-success"></i>المدة: @rem.DurationDays يوم
+                                    </span>
+                                }
+                            </div>
 
-                        <!-- Footer: Dates & Quick Action buttons -->
-                        <div class="d-flex justify-content-between align-items-center pt-2 border-top x-small mt-auto">
-                            <span class="text-muted">
-                                <i class="fa-regular fa-calendar me-1"></i>من: @rem.StartDate.ToString("yyyy/MM/dd") 
-                                @(rem.EndDate.HasValue ? $"إلى: {rem.EndDate.Value:yyyy/MM/dd}" : "")
-                            </span>
+                            <!-- Footer: Dates & Quick Action buttons -->
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top x-small mt-auto">
+                                <span class="text-muted">
+                                    <i class="fa-regular fa-calendar me-1"></i>من: @rem.StartDate.ToString("yyyy/MM/dd") 
+                                    @(rem.EndDate.HasValue ? $"إلى: {rem.EndDate.Value:yyyy/MM/dd}" : "")
+                                </span>
 
-                            <div class="d-flex gap-1 align-items-center">
-                                <button class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1 x-small fw-bold" @onclick="() => TestTriggerReminder(rem)" title="إرسال هذا التذكير فوراً للتجربة والتأكد من وصوله للهاتف والمركز">
-                                    <i class="fa-solid fa-paper-plane me-1"></i>تجربة الآن
-                                </button>
-                                @if (rem.Status == ReminderStatus.Active)
-                                {
-                                    <button class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1 x-small" @onclick="() => ToggleStatus(rem.Id, ReminderStatus.Paused)">
-                                        <i class="fa-solid fa-pause me-1"></i>إيقاف مؤقت
+                                <div class="d-flex gap-1 align-items-center">
+                                    <button class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1 x-small fw-bold" @onclick="() => TestTriggerReminder(rem)" title="إرسال هذا التذكير فوراً للتجربة والتأكد من وصوله للهاتف والمركز">
+                                        <i class="fa-solid fa-paper-plane me-1"></i>تجربة الآن
                                     </button>
-                                }
-                                else if (rem.Status == ReminderStatus.Paused || rem.Status == ReminderStatus.Draft)
-                                {
-                                    <button class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 x-small" @onclick="() => ToggleStatus(rem.Id, ReminderStatus.Active)">
-                                        <i class="fa-solid fa-play me-1"></i>تفعيل
-                                    </button>
-                                }
-                                @if (rem.Status != ReminderStatus.Expired)
-                                {
-                                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1 x-small" @onclick="() => ToggleStatus(rem.Id, ReminderStatus.Expired)" title="إنهاء الحملة">
-                                        <i class="fa-solid fa-stop me-1"></i>إنهاء
-                                    </button>
-                                }
+                                    @if (rem.Status == ReminderStatus.Active)
+                                    {
+                                        <button class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1 x-small" @onclick="() => ToggleStatus(rem.Id, ReminderStatus.Paused)">
+                                            <i class="fa-solid fa-pause me-1"></i>إيقاف مؤقت
+                                        </button>
+                                    }
+                                    else if (rem.Status == ReminderStatus.Paused || rem.Status == ReminderStatus.Draft)
+                                    {
+                                        <button class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 x-small" @onclick="() => ToggleStatus(rem.Id, ReminderStatus.Active)">
+                                            <i class="fa-solid fa-play me-1"></i>تفعيل
+                                        </button>
+                                    }
+                                    @if (rem.Status != ReminderStatus.Expired)
+                                    {
+                                        <button class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1 x-small" @onclick="() => ToggleStatus(rem.Id, ReminderStatus.Expired)" title="إنهاء الحملة">
+                                            <i class="fa-solid fa-stop me-1"></i>إنهاء
+                                        </button>
+                                    }
+                                </div>
                             </div>
                         </div>
                     </div>
+                }
+            </div>
+        }
+    }
+    <!-- ======================================================== -->
+    <!-- TAB 2: REMINDER BANK (بنك التنبيهات والتذكيرات المخزنة)  -->
+    <!-- ======================================================== -->
+    else if (activeTab == "bank")
+    {
+        <!-- Bank Stats Row -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="glass-card p-3 text-center border-start border-primary border-4">
+                    <span class="text-muted small d-block mb-1">إجمالي رسائل البنك</span>
+                    <h3 class="fw-bold mb-0 text-primary">@bankItems.Count</h3>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="glass-card p-3 text-center border-start border-info border-4">
+                    <span class="text-muted small d-block mb-1">التصنيفات المتاحة</span>
+                    <h3 class="fw-bold mb-0 text-info">@bankCategories.Count</h3>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="glass-card p-3 text-center border-start border-success border-4">
+                    <span class="text-muted small d-block mb-1">الرسائل المفعلة</span>
+                    <h3 class="fw-bold mb-0 text-success">@bankItems.Count(b => b.IsActive)</h3>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="glass-card p-3 text-center border-start border-warning border-4">
+                    <span class="text-muted small d-block mb-1">إجمالي مرات الإرسال</span>
+                    <h3 class="fw-bold mb-0 text-warning">@bankItems.Sum(b => b.UsageCount)</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Pills Bar & Search -->
+        <div class="glass-card p-3 mb-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <!-- Category Pills -->
+                <div class="d-flex gap-1.5 flex-wrap">
+                    <button class="btn btn-sm rounded-pill px-3 @(selectedBankCategory == "All" ? "btn-primary shadow-sm" : "btn-outline-secondary")" @onclick='() => SelectBankCategoryFilter("All")'>
+                        الكل (@bankItems.Count)
+                    </button>
+                    @foreach (var cat in bankCategories)
+                    {
+                        var catCount = bankItems.Count(b => b.Category == cat);
+                        <button class="btn btn-sm rounded-pill px-3 @(selectedBankCategory == cat ? "btn-primary shadow-sm" : "btn-outline-secondary")" @onclick="() => SelectBankCategoryFilter(cat)">
+                            @cat (@catCount)
+                        </button>
+                    }
+                </div>
+
+                <button class="btn btn-primary-premium btn-sm rounded-pill px-3 shadow-sm" @onclick="OpenCreateMasterBankModal">
+                    <i class="fa-solid fa-plus me-1"></i>إضافة رسالة جديدة للبنك
+                </button>
+            </div>
+
+            <!-- Search input -->
+            <div class="input-group">
+                <span class="input-group-text bg-transparent border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
+                <input type="text" class="form-control border-start-0 ps-0" placeholder="بحث في رسائل البنك بالعنوان أو النص..." 
+                       @bind="bankSearchTerm" @bind:event="oninput" />
+                @if (!string.IsNullOrEmpty(bankSearchTerm))
+                {
+                    <button class="btn btn-outline-secondary border-start-0" @onclick='() => bankSearchTerm = ""'>
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                }
+            </div>
+        </div>
+
+        <!-- Bank Items Grid -->
+        @if (isBankLoading)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2 text-muted">جاري تحميل رسائل بنك التذكيرات...</p>
+            </div>
+        }
+        else
+        {
+            var filteredBankItems = GetFilteredBankItems();
+            @if (!filteredBankItems.Any())
+            {
+                <div class="glass-card p-5 text-center">
+                    <div class="mb-3">
+                        <i class="fa-solid fa-box-open fs-1 text-muted"></i>
+                    </div>
+                    <h5 class="fw-bold">لا توجد رسائل في هذا التصنيف</h5>
+                    <p class="text-muted small">يمكنك إضافة رسائل جديدة إلى بنك التذكيرات لتستخدمها في الحملات المجدولة لاحقاً.</p>
+                    <button class="btn btn-primary-premium rounded-pill px-4 btn-sm" @onclick="OpenCreateMasterBankModal">
+                        <i class="fa-solid fa-plus me-1"></i>إضافة أول رسالة للبنك
+                    </button>
                 </div>
             }
-        </div>
+            else
+            {
+                <div class="row g-3">
+                    @foreach (var item in filteredBankItems)
+                    {
+                        <div class="col-12 col-md-6 col-xl-4" key="@item.Id">
+                            <div class="glass-card p-3 h-100 d-flex flex-column border shadow-sm position-relative @(item.IsActive ? "" : "opacity-75 bg-light")">
+                                <!-- Top Bar: Category & Order Badges -->
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                        <span class="badge @GetCategoryBadgeClass(item.Category) rounded-pill px-2.5 py-1 small">
+                                            <i class="@GetCategoryIcon(item.Category) me-1"></i>@item.Category
+                                        </span>
+                                        <span class="badge bg-light text-dark border rounded-pill px-2 py-1 small" title="رقم الترتيب في السلسلة">
+                                            ترتيب #@item.OrderIndex
+                                        </span>
+                                        @if (item.SuggestedTime.HasValue)
+                                        {
+                                            <span class="badge bg-light text-primary border rounded-pill px-2 py-1 small" title="الوقت المقترح">
+                                                <i class="fa-regular fa-clock me-1"></i>@FormatTimeSpan(item.SuggestedTime.Value)
+                                            </span>
+                                        }
+                                    </div>
+
+                                    <div class="d-flex gap-1">
+                                        <button class="btn btn-sm btn-outline-secondary rounded-circle" title="معاينة شكل التذكير على الهاتف" @onclick="() => OpenBankPreviewModal(item)">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-primary rounded-circle" title="تعديل" @onclick="() => OpenEditMasterBankModal(item)">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger rounded-circle" title="حذف" @onclick="() => DeleteMasterBankItem(item.Id)">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Image if present -->
+                                @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                {
+                                    <div class="mb-2 rounded-3 overflow-hidden border shadow-xs" style="max-height: 120px;">
+                                        <img src="@item.ImageUrl" alt="" style="width: 100%; height: 120px; object-fit: cover;" />
+                                    </div>
+                                }
+
+                                <!-- Title & Message -->
+                                <h6 class="fw-bold text-dark mb-1 fs-6">@item.Title</h6>
+                                <p class="text-secondary small mb-3 flex-grow-1" style="line-height: 1.6; white-space: pre-line;">
+                                    @item.Message
+                                </p>
+
+                                <!-- Destination & Usage meta -->
+                                <div class="d-flex flex-wrap gap-2 text-muted x-small mb-2 pt-2 border-top">
+                                    <span class="badge bg-light text-secondary border">
+                                        <i class="fa-solid fa-location-arrow me-1 text-danger"></i>الوجهة: @item.ActionRoute
+                                    </span>
+                                    <span class="badge bg-light text-secondary border">
+                                        <i class="fa-solid fa-paper-plane me-1 text-primary"></i>أُرسلت @item.UsageCount مرة
+                                    </span>
+                                    @if (item.LastUsedAt.HasValue)
+                                    {
+                                        <span class="badge bg-light text-secondary border">
+                                            <i class="fa-solid fa-calendar me-1 text-success"></i>آخر استخدام: @item.LastUsedAt.Value.ToString("yyyy/MM/dd")
+                                        </span>
+                                    }
+                                </div>
+
+                                <!-- Active toggle / Status indicator -->
+                                <div class="d-flex justify-content-between align-items-center pt-2 border-top x-small mt-auto">
+                                    <span class="@(item.IsActive ? "text-success fw-bold" : "text-muted")">
+                                        <i class="fa-solid @(item.IsActive ? "fa-circle-check" : "fa-circle-pause") me-1"></i>
+                                        @(item.IsActive ? "مفعّلة وجاهزة للحملات" : "معطلة مؤقتاً")
+                                    </span>
+                                    <button class="btn btn-sm btn-link text-primary p-0 text-decoration-none x-small" @onclick="() => OpenEditMasterBankModal(item)">
+                                        تعديل البيانات <i class="fa-solid fa-chevron-left ms-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        }
     }
 </div>
 
 <!-- ========================================== -->
-<!-- Modal: Create / Edit Reminder              -->
+<!-- Modal: Create / Edit Campaign               -->
 <!-- ========================================== -->
 @if (showEditModal)
 {
@@ -280,9 +522,77 @@
                 </div>
                 <div class="modal-body p-4">
                     <div class="row g-3">
+                        <!-- Campaign Type: Regular vs Occasion -->
+                        <div class="col-12">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-label small fw-bold mb-0">
+                                        <i class="fa-solid fa-calendar-check text-primary me-1"></i>طبيعة التذكير (روتيني معتاد أم مناسبة خاصة وموسمية)
+                                    </label>
+                                    <span class="badge small rounded-pill px-2 py-1 text-white" style="background-color: @(currentForm.CampaignType == "Occasion" ? "#8b5cf6" : "#64748b");">
+                                        @(currentForm.CampaignType == "Occasion" ? "مناسبة خاصة / موسمية" : "تذكير روتيني مستمر")
+                                    </span>
+                                </div>
+                                
+                                <div class="btn-group w-100 shadow-sm rounded-pill overflow-hidden mb-2" role="group">
+                                    <input type="radio" class="btn-check" name="remCampaignType" id="campTypeRegular" @onclick='() => SetCampaignType("Regular")' checked="@(currentForm.CampaignType != "Occasion")">
+                                    <label class="btn btn-outline-primary btn-sm py-1.5" for="campTypeRegular">
+                                        <i class="fa-solid fa-arrows-rotate me-1"></i>تذكير روتيني معتاد (يومي/أسبوعي مستمر)
+                                    </label>
+
+                                    <input type="radio" class="btn-check" name="remCampaignType" id="campTypeOccasion" @onclick='() => SetCampaignType("Occasion")' checked="@(currentForm.CampaignType == "Occasion")">
+                                    <label class="btn btn-outline-primary btn-sm py-1.5" for="campTypeOccasion">
+                                        <i class="fa-solid fa-wand-magic-sparkles me-1"></i>مناسبة خاصة / موسمية (تتجاوز المعتادة)
+                                    </label>
+                                </div>
+
+                                @if (currentForm.CampaignType == "Occasion")
+                                {
+                                    <div class="mt-3 p-3 bg-white rounded-3 border">
+                                        <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                                            <span class="fw-bold small text-dark"><i class="fa-solid fa-sparkles text-warning me-1"></i>قوالب مناسبات سريعة:</span>
+                                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill py-0.5 px-2.5 small" @onclick='() => ApplyOccasionPreset("Friday")'>
+                                                🕊️ يوم الجمعة
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill py-0.5 px-2.5 small" @onclick='() => ApplyOccasionPreset("Ramadan")'>
+                                                🌙 شهر رمضان
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-info rounded-pill py-0.5 px-2.5 small" @onclick='() => ApplyOccasionPreset("ShamElNessim")'>
+                                                🌸 شم النسيم
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-warning rounded-pill py-0.5 px-2.5 small" @onclick='() => ApplyOccasionPreset("DhulHijjah")'>
+                                                🕋 العشر من ذي الحجة
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger rounded-pill py-0.5 px-2.5 small" @onclick='() => ApplyOccasionPreset("Eid")'>
+                                                🎉 الأعياد الرسمية
+                                            </button>
+                                        </div>
+
+                                        <div class="row g-2 mb-2 align-items-center">
+                                            <div class="col-md-6">
+                                                <label class="form-label x-small fw-bold">اسم المناسبة</label>
+                                                <input type="text" class="form-control form-control-sm rounded-pill" @bind="currentForm.OccasionName" placeholder="مثلاً: يوم شم النسيم، عيد الفطر، شهر رمضان" />
+                                            </div>
+                                            <div class="col-md-6 pt-md-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" id="overrideSwitch" @bind="currentForm.OverridesRegularReminders">
+                                                    <label class="form-check-label small fw-bold text-dark" for="overrideSwitch">
+                                                        إيقاف التذكيرات المعتادة في يوم المناسبة تلقائياً
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="text-muted x-small">
+                                            <i class="fa-solid fa-circle-info text-info me-1"></i>عند تفعيل التجاوز، تظهر رسائل هذه المناسبة فقط وتتوقف الرسائل اليومية المعتادة مؤقتاً، على أن تستأنف المعتادة تلقائياً في الأيام التالية!
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
                         <!-- Title -->
                         <div class="col-12 col-md-8">
-                            <label class="form-label small fw-bold">عنوان التذكير <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold">عنوان التذكير / الحملة <span class="text-danger">*</span></label>
                             <input type="text" class="form-control rounded-pill" @bind="currentForm.Title" placeholder="مثلاً: تذكير المختبرين بالاستخدام اليومي" />
                         </div>
 
@@ -336,42 +646,86 @@
                             </div>
                         </div>
 
-                        <!-- Message Selection Mode & Message Bank -->
+                        <!-- Message Selection Mode: Static Text vs Bank -->
                         <div class="col-12">
                             <div class="p-3 bg-light rounded-3 border">
                                 <label class="form-label small fw-bold mb-2">
-                                    <i class="fa-solid fa-envelope-open-text text-primary me-1"></i>طريقة اختيار الرسائل (بنك التنبيهات)
+                                    <i class="fa-solid fa-vault text-primary me-1"></i>مصدر نص التذكير (نص ثابت أو بنك التذكيرات المخزنة)
                                 </label>
                                 <div class="btn-group w-100 shadow-sm rounded-pill overflow-hidden mb-2" role="group">
-                                    <input type="radio" class="btn-check" name="remMsgMode" id="msgModeSingle" @onclick='() => currentForm.MessageSelectionMode = "Single"' checked="@(currentForm.MessageSelectionMode == "Single" || string.IsNullOrEmpty(currentForm.MessageSelectionMode))">
+                                    <input type="radio" class="btn-check" name="remMsgMode" id="msgModeSingle" @onclick='() => SetMessageMode("Single")' checked="@(currentForm.MessageSelectionMode == "Single" || string.IsNullOrEmpty(currentForm.MessageSelectionMode))">
                                     <label class="btn btn-outline-primary btn-sm py-1.5" for="msgModeSingle">
-                                        <i class="fa-solid fa-message me-1"></i>رسالة واحدة ثابتة
+                                        <i class="fa-solid fa-message me-1"></i>نص ثابت
                                     </label>
 
-                                    <input type="radio" class="btn-check" name="remMsgMode" id="msgModeRandom" @onclick='() => currentForm.MessageSelectionMode = "RandomBank"' checked="@(currentForm.MessageSelectionMode == "RandomBank" || currentForm.MessageSelectionMode == "Random")">
+                                    <input type="radio" class="btn-check" name="remMsgMode" id="msgModeRandom" @onclick='() => SetMessageMode("RandomBank")' checked="@(currentForm.MessageSelectionMode == "RandomBank")">
                                     <label class="btn btn-outline-primary btn-sm py-1.5" for="msgModeRandom">
-                                        <i class="fa-solid fa-shuffle me-1"></i>بنك رسائل - اختيار عشوائي
+                                        <i class="fa-solid fa-shuffle me-1"></i>بنك التذكيرات - عشوائي
                                     </label>
 
-                                    <input type="radio" class="btn-check" name="remMsgMode" id="msgModeScheduled" @onclick='() => currentForm.MessageSelectionMode = "ScheduledBank"' checked="@(currentForm.MessageSelectionMode == "ScheduledBank" || currentForm.MessageSelectionMode == "Scheduled")">
+                                    <input type="radio" class="btn-check" name="remMsgMode" id="msgModeSequential" @onclick='() => SetMessageMode("SequentialBank")' checked="@(currentForm.MessageSelectionMode == "SequentialBank")">
+                                    <label class="btn btn-outline-primary btn-sm py-1.5" for="msgModeSequential">
+                                        <i class="fa-solid fa-arrow-down-1-9 me-1"></i>بنك التذكيرات - تسلسلي بالترتيب
+                                    </label>
+
+                                    <input type="radio" class="btn-check" name="remMsgMode" id="msgModeScheduled" @onclick='() => SetMessageMode("ScheduledBank")' checked="@(currentForm.MessageSelectionMode == "ScheduledBank")">
                                     <label class="btn btn-outline-primary btn-sm py-1.5" for="msgModeScheduled">
-                                        <i class="fa-solid fa-calendar-days me-1"></i>بنك رسائل - مجدول بتاريخ ووقت
+                                        <i class="fa-solid fa-calendar-days me-1"></i>بنك مجدول بتواريخ
                                     </label>
                                 </div>
-                                <div class="text-muted x-small">
-                                    @(currentForm.MessageSelectionMode switch {
-                                        "RandomBank" or "Random" => "سيتم اختيار رسالة مختلفة عشوائياً من بنك التنبيهات عند كل تذكير.",
-                                        "ScheduledBank" or "Scheduled" => "سيتم إرسال كل رسالة مسجلة في بنك التنبيهات في التاريخ والوقت المحدد لها بدقة.",
-                                        _ => "سيتم إرسال نفس الرسالة الثابتة المحددة أدناه في كل مرة."
-                                    })
-                                </div>
 
-                                @if (currentForm.MessageSelectionMode != "Single" && !string.IsNullOrEmpty(currentForm.MessageSelectionMode))
+                                <!-- Info banner & Category Selector for Master Bank -->
+                                @if (currentForm.MessageSelectionMode == "RandomBank" || currentForm.MessageSelectionMode == "SequentialBank")
+                                {
+                                    <div class="mt-3 p-3 bg-white rounded-3 border">
+                                        <div class="row g-2 align-items-center mb-2">
+                                            <div class="col-12 col-md-6">
+                                                <label class="form-label small fw-bold mb-1">
+                                                    <i class="fa-solid fa-tags text-primary me-1"></i>تصنيف رسائل البنك المطلوب
+                                                </label>
+                                                <select class="form-select rounded-pill small" @bind="currentForm.BankCategory">
+                                                    <option value="All">جميع التصنيفات المخزنة في البنك</option>
+                                                    @foreach (var cat in bankCategories)
+                                                    {
+                                                        <option value="@cat">@cat</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                            <div class="col-12 col-md-6">
+                                                <div class="text-muted small">
+                                                    @if (currentForm.MessageSelectionMode == "RandomBank")
+                                                    {
+                                                        <span class="text-primary"><i class="fa-solid fa-circle-info me-1"></i>سيتم في كل موعد تذكير اختيار رسالة عشوائية تلقائياً من البنك.</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-success"><i class="fa-solid fa-circle-info me-1"></i>سيتم إرسال الرسائل بالترتيب (1 ثم 2 ثم 3...) وتكرار الدورة تلقائياً.</span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        @{
+                                            var matchCount = string.IsNullOrEmpty(currentForm.BankCategory) || currentForm.BankCategory == "All"
+                                                ? bankItems.Count(b => b.IsActive)
+                                                : bankItems.Count(b => b.IsActive && b.Category == currentForm.BankCategory);
+                                        }
+                                        <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top x-small">
+                                            <span class="badge bg-primary-subtle text-primary border">
+                                                <i class="fa-solid fa-vault me-1"></i>الرسائل المتاحة حالياً في البنك: <strong>@matchCount</strong> رسالة
+                                            </span>
+                                            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" @onclick='() => SwitchTab("bank")'>
+                                                <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>إدارة رسائل البنك
+                                            </button>
+                                        </div>
+                                    </div>
+                                }
+                                else if (currentForm.MessageSelectionMode == "ScheduledBank")
                                 {
                                     <div class="mt-3 pt-3 border-top">
                                         <div class="d-flex justify-content-between align-items-center mb-2">
                                             <span class="fw-bold small text-dark">
-                                                <i class="fa-solid fa-vault text-warning me-1"></i>قائمة رسائل البنك (@currentForm.MessageBankItems.Count رسالة)
+                                                <i class="fa-solid fa-vault text-warning me-1"></i>قائمة رسائل الحملة المجدولة (@currentForm.MessageBankItems.Count رسالة)
                                             </span>
                                             <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 py-1" @onclick="OpenAddBankItemModal">
                                                 <i class="fa-solid fa-plus me-1"></i>إضافة رسالة للبنك
@@ -381,12 +735,12 @@
                                         @if (currentForm.MessageBankItems.Count == 0)
                                         {
                                             <div class="alert alert-warning py-2 small mb-2 text-center">
-                                                <i class="fa-solid fa-triangle-exclamation me-1"></i>لم تتم إضافة أي رسائل إلى بنك التنبيهات بعد. اضغط "إضافة رسالة للبنك" لإضافة رسائل غير محدودة.
+                                                <i class="fa-solid fa-triangle-exclamation me-1"></i>لم تتم إضافة أي رسائل بعد. اضغط "إضافة رسالة للبنك" لإضافة رسائل غير محدودة.
                                             </div>
                                         }
                                         else
                                         {
-                                            <div class="d-flex flex-column gap-2 mb-2" style="max-height: 280px; overflow-y: auto;">
+                                            <div class="d-flex flex-column gap-2 mb-2" style="max-height: 220px; overflow-y: auto;">
                                                 @foreach (var item in currentForm.MessageBankItems)
                                                 {
                                                     <div class="p-2.5 rounded-3 border bg-white shadow-xs d-flex justify-content-between align-items-center gap-2">
@@ -399,18 +753,6 @@
                                                                 {
                                                                     <span class="badge bg-primary-subtle text-primary x-small">
                                                                         <i class="fa-regular fa-clock me-1"></i>@item.ScheduledDateTime.Value.ToString("yyyy/MM/dd HH:mm")
-                                                                    </span>
-                                                                }
-                                                                @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
-                                                                {
-                                                                    <span class="badge bg-light text-secondary border x-small">
-                                                                        <i class="fa-solid fa-image text-info me-1"></i>صورة
-                                                                    </span>
-                                                                }
-                                                                @if (item.IsSent)
-                                                                {
-                                                                    <span class="badge bg-success-subtle text-success x-small">
-                                                                        <i class="fa-solid fa-check me-1"></i>أُرسلت (@item.SendCount مرة)
                                                                     </span>
                                                                 }
                                                             </div>
@@ -433,10 +775,16 @@
                             </div>
                         </div>
 
-                        <!-- Message Body -->
+                        <!-- Message Body (Fallback / Static) -->
                         <div class="col-12">
-                            <label class="form-label small fw-bold">نص الرسالة للمستخدم <span class="text-danger">*</span></label>
-                            <textarea class="form-control rounded-3" rows="4" @bind="currentForm.Message" placeholder="اكتب النص الذي سيظهر في الإشعار أو داخل التطبيق..."></textarea>
+                            <label class="form-label small fw-bold">
+                                نص الرسالة للمستخدم @(currentForm.MessageSelectionMode == "Single" ? "(مطلوب)" : "(النص الاحتياطي في حال تعذر السحب من البنك)")
+                                @if (currentForm.MessageSelectionMode == "Single")
+                                {
+                                    <span class="text-danger">*</span>
+                                }
+                            </label>
+                            <textarea class="form-control rounded-3" rows="3" @bind="currentForm.Message" placeholder="اكتب النص الذي سيظهر في الإشعار أو داخل التطبيق..."></textarea>
                             <span class="x-small text-muted">احرص على كتابة نص جذاب وواضح يشجع المستخدم على التفاعل دون إزعاج.</span>
                         </div>
 
@@ -447,22 +795,6 @@
                                     <label class="form-label small fw-bold mb-0">
                                         <i class="fa-solid fa-image text-primary me-1"></i>صورة التذكير (اختياري - تظهر كصورة بارزة في الإشعار)
                                     </label>
-                                </div>
-
-                                <!-- Image Guidelines & Conditions -->
-                                <div class="p-2.5 mb-2.5 rounded-3 border bg-light small text-muted" style="border-right: 4px solid #0d6efd !important;">
-                                    <div class="d-flex align-items-center gap-1.5 fw-bold text-dark mb-1">
-                                        <i class="fa-solid fa-circle-info text-primary"></i>
-                                        <span>تعليمات الصورة للظهور على شاشة الموبايل وقفل الشاشة:</span>
-                                    </div>
-                                    <ul class="mb-0 ps-3 x-small" style="line-height: 1.6;">
-                                        <li><strong>الأبعاد والنسبة:</strong> يفضل أن تكون الصورة بالعرض <strong>(Landscape بنسبة 2:1)</strong> مثل <code>1024 × 512</code> بكسل لتملأ شريط إشعارات أندرويد.</li>
-                                        <li><strong>حجم الملف:</strong> يفضل ألا يتجاوز <strong>1 ميجابايت</strong> (المثالي بين 100 و 400 كيلوبايت) لسرعة تنزيلها على الهاتف فوراً.</li>
-                                        <li><strong>الصيغ المدعومة:</strong> JPG, PNG, WebP.</li>
-                                        <li><strong>طريقة الظهور:</strong> تظهر كبانر عريض (BigPicture) عند سحب الإشعار لأسفل على هاتف أندرويد.</li>
-                                    </ul>
-                                </div>
-                                <div>
                                     @if (!string.IsNullOrWhiteSpace(currentForm.ImageUrl))
                                     {
                                         <button type="button" class="btn btn-link text-danger p-0 small text-decoration-none" @onclick="ClearReminderImage">
@@ -489,20 +821,14 @@
                                                 <i class="fa-solid fa-cloud-arrow-up me-1"></i>
                                                 <span>رفع صورة</span>
                                             }
-                                            <InputFile OnChange="HandleReminderImageUpload" accept="image/*" class="d-none" disabled="@isUploadingReminderImage" />
+                                            <InputFile OnChange="HandleReminderImageUpload" class="d-none" accept="image/*" />
                                         </label>
                                     </div>
                                 </div>
                                 @if (!string.IsNullOrWhiteSpace(currentForm.ImageUrl))
                                 {
-                                    <div class="position-relative mt-2 rounded-3 overflow-hidden border bg-light text-center p-2">
-                                        <img src="@currentForm.ImageUrl" alt="معاينة الصورة" class="img-fluid rounded-2 shadow-xs" style="max-height: 150px; width: 100%; object-fit: cover;" @onerror="OnReminderImageLoadError" />
-                                        @if (reminderImageLoadFailed)
-                                        {
-                                            <div class="text-danger small mt-2">
-                                                <i class="fa-solid fa-triangle-exclamation me-1"></i>تعذر تحميل الصورة. تأكد من أن الرابط مباشر ويبدأ بـ https://
-                                            </div>
-                                        }
+                                    <div class="mt-2 text-center p-2 rounded bg-light border">
+                                        <img src="@currentForm.ImageUrl" alt="Preview" style="max-height: 100px; max-width: 100%; object-fit: contain;" @onerror="OnReminderImageLoadError" />
                                     </div>
                                 }
                             </div>
@@ -582,7 +908,7 @@
                             </select>
                         </div>
 
-                        <!-- Action Route Selection (App Screen / Service / Custom Link) -->
+                        <!-- Action Route Selection -->
                         <div class="col-12">
                             <div class="p-3 bg-light rounded-3 border">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -655,19 +981,6 @@
                                                 <input type="number" class="form-control rounded-pill small" value="@selectedReminderServiceId" @oninput="OnReminderServiceIdInput" placeholder="رقم ID" />
                                             </div>
                                         </div>
-
-                                        @if (selectedReminderService != null)
-                                        {
-                                            <div class="p-2 rounded bg-white border small d-flex justify-content-between align-items-center">
-                                                <div>
-                                                    <strong class="text-primary">@selectedReminderService.Title</strong>
-                                                    <div class="text-muted x-small">@selectedReminderService.ProviderName • @selectedReminderService.Address</div>
-                                                </div>
-                                                <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-2" @onclick="AutoFillReminderFromService" title="نسخ اسم ووصف الخدمة في عنوان ونص التذكير">
-                                                    <i class="fa-solid fa-magic me-1"></i> نسخ للبيانات
-                                                </button>
-                                            </div>
-                                        }
                                     </div>
                                 }
                                 else
@@ -714,7 +1027,137 @@
 }
 
 <!-- ========================================== -->
-<!-- Modal: Preview Reminder                    -->
+<!-- Modal: Create / Edit Master Bank Item      -->
+<!-- ========================================== -->
+@if (showMasterBankModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);" dir="rtl">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content glass-card border-0 shadow-lg rounded-4">
+                <div class="modal-header border-bottom pb-3">
+                    <h5 class="modal-title fw-bold text-primary">
+                        <i class="fa-solid @(isEditingMasterBank ? "fa-pen" : "fa-plus") me-2"></i>
+                        @(isEditingMasterBank ? "تعديل رسالة في بنك التذكيرات" : "إضافة رسالة جديدة إلى بنك التذكيرات")
+                    </h5>
+                    <button type="button" class="btn-close ms-0 me-auto" @onclick="() => showMasterBankModal = false"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <!-- Title -->
+                        <div class="col-12 col-md-8">
+                            <label class="form-label small fw-bold">عنوان الرسالة <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control rounded-pill" @bind="masterBankForm.Title" placeholder="مثلاً: صباح الخير والإنتاجية ☀️" />
+                        </div>
+
+                        <!-- Category -->
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small fw-bold">التصنيف / النوع <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="text" class="form-control rounded-pill" list="bankCategoryList" @bind="masterBankForm.Category" placeholder="اختر أو اكتب تصنيفاً..." />
+                                <datalist id="bankCategoryList">
+                                    <option value="صباحية" />
+                                    <option value="وسط اليوم" />
+                                    <option value="مسائية" />
+                                    <option value="يوم الجمعة" />
+                                    <option value="عامة" />
+                                    <option value="المختبرين" />
+                                    @foreach (var c in bankCategories)
+                                    {
+                                        <option value="@c" />
+                                    }
+                                </datalist>
+                            </div>
+                            <span class="x-small text-muted">مثل: صباحية، وسط اليوم، مسائية، يوم الجمعة...</span>
+                        </div>
+
+                        <!-- Message Body -->
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">نص الرسالة للمستخدم <span class="text-danger">*</span></label>
+                            <textarea class="form-control rounded-3" rows="3" @bind="masterBankForm.Message" placeholder="اكتب محتوى الرسالة الذي سيصل للمستخدم..."></textarea>
+                        </div>
+
+                        <!-- Order & Suggested Time -->
+                        <div class="col-6 col-md-4">
+                            <label class="form-label small fw-bold">رقم الترتيب في السلسلة</label>
+                            <input type="number" class="form-control rounded-pill" @bind="masterBankForm.OrderIndex" min="1" max="9999" />
+                            <span class="x-small text-muted">يحدد الأولوية عند الإرسال التسلسلي</span>
+                        </div>
+
+                        <div class="col-6 col-md-4">
+                            <label class="form-label small fw-bold">الوقت المقترح (اختياري)</label>
+                            <input type="time" class="form-control rounded-pill" @bind="masterBankSuggestedTimeVal" />
+                            <span class="x-small text-muted">وقت مناسب لطبيعة الرسالة</span>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small fw-bold">وجهة الضغط في التطبيق</label>
+                            <input type="text" class="form-control rounded-pill" @bind="masterBankForm.ActionRoute" placeholder="مثال: / أو /services أو /feed" />
+                            <span class="x-small text-muted">المسار الذي يفتح عند نقر الإشعار</span>
+                        </div>
+
+                        <!-- Image URL / Upload -->
+                        <div class="col-12">
+                            <div class="p-3 rounded-3 border bg-light shadow-xs">
+                                <label class="form-label small fw-bold mb-1">
+                                    <i class="fa-solid fa-image text-primary me-1"></i>صورة التذكير المرافقة (اختياري)
+                                </label>
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-sm-8">
+                                        <input type="text" class="form-control form-control-sm rounded-pill" 
+                                               @bind="masterBankForm.ImageUrl" 
+                                               @bind:event="oninput"
+                                               placeholder="رابط الصورة المباشر https://..." />
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <label class="btn btn-outline-primary btn-sm w-100 rounded-pill mb-0 @(isUploadingMasterBankImage ? "disabled" : "")" style="cursor: pointer;">
+                                            @if (isUploadingMasterBankImage)
+                                            {
+                                                <span class="spinner-border spinner-border-sm me-1"></span>
+                                                <span>جاري الرفع...</span>
+                                            }
+                                            else
+                                            {
+                                                <i class="fa-solid fa-cloud-arrow-up me-1"></i>
+                                                <span>رفع صورة</span>
+                                            }
+                                            <InputFile OnChange="HandleMasterBankImageUpload" class="d-none" accept="image/*" />
+                                        </label>
+                                    </div>
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(masterBankForm.ImageUrl))
+                                {
+                                    <div class="mt-2 text-center p-2 rounded bg-white border">
+                                        <img src="@masterBankForm.ImageUrl" alt="Bank Preview" style="max-height: 90px; max-width: 100%; object-fit: contain;" />
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- IsActive switch -->
+                        <div class="col-12">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="bankIsActive" @bind="masterBankForm.IsActive">
+                                <label class="form-check-label fw-bold small" for="bankIsActive">
+                                    رسالة مفعلة وجاهزة للاستخدام في الحملات المجدولة
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-top pt-3 d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" @onclick="() => showMasterBankModal = false">إلغاء</button>
+                    <button type="button" class="btn btn-primary-premium rounded-pill px-4 shadow-sm fw-bold" @onclick="SaveMasterBankItem">
+                        <i class="fa-solid fa-check me-1"></i>حفظ في البنك
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ========================================== -->
+<!-- Modal: Preview Reminder (Mobile View)      -->
 <!-- ========================================== -->
 @if (showPreviewModal && previewItem != null)
 {
@@ -728,7 +1171,6 @@
                     <button type="button" class="btn-close ms-0 me-auto" @onclick='() => showPreviewModal = false'></button>
                 </div>
                 <div class="modal-body p-4 bg-dark bg-opacity-10 text-center">
-                    <!-- Phone Frame Mockup -->
                     <div class="phone-mockup mx-auto p-3 rounded-4 shadow bg-white text-start text-rtl" style="max-width: 320px;">
                         <!-- Status Bar -->
                         <div class="d-flex justify-content-between align-items-center mb-3 text-muted x-small">
@@ -739,120 +1181,32 @@
                             </div>
                         </div>
 
-                        @if (previewItem.DisplayType == ReminderDisplayType.NotificationBar)
-                        {
-                            <!-- Android Notification Shade Card -->
-                            <div class="p-3 rounded-3 shadow-sm border bg-light text-dark mb-2">
-                                <div class="d-flex align-items-center gap-2 mb-1">
-                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 22px; height: 22px; font-size: 11px;">
-                                        <i class="fa-solid fa-handshake-angle"></i>
-                                    </div>
-                                    <span class="fw-bold small">خدماوى</span>
-                                    <span class="text-muted x-small ms-auto">الآن</span>
+                        <!-- Android Notification Banner Mockup -->
+                        <div class="p-3 rounded-3 shadow-sm border bg-light text-dark mb-2">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 22px; height: 22px; font-size: 11px;">
+                                    <i class="fa-solid fa-handshake-angle"></i>
                                 </div>
-                                <h6 class="fw-bold mb-1 fs-6">@previewItem.Title</h6>
-                                <p class="text-secondary small mb-1">@previewItem.Message</p>
-                                @if (!string.IsNullOrWhiteSpace(previewItem.ImageUrl))
-                                {
-                                    <div class="mt-2 rounded-2 overflow-hidden border">
-                                        <img src="@previewItem.ImageUrl" alt="صورة الإشعار" style="width: 100%; max-height: 140px; object-fit: cover;" />
-                                    </div>
-                                }
+                                <span class="fw-bold small">خدماوى</span>
+                                <span class="text-muted x-small me-auto">الآن</span>
                             </div>
-                            <span class="text-muted x-small text-center d-block">عند الضغط، سيتم فتح: <strong>@previewItem.ActionRoute</strong></span>
-                        }
-                        else
-                        {
-                            <!-- In-App Dialog / Banner Mockup -->
-                            <div class="p-3 rounded-3 shadow-sm border bg-white text-dark mb-2">
-                                <div class="text-center mb-2">
-                                    <i class="fa-solid fa-bell text-warning fs-3"></i>
+                            <h6 class="fw-bold mb-1 fs-6 text-dark">@previewItem.Title</h6>
+                            <p class="mb-2 text-secondary x-small" style="line-height: 1.5;">@previewItem.Message</p>
+                            @if (!string.IsNullOrEmpty(previewItem.ImageUrl))
+                            {
+                                <div class="rounded-2 overflow-hidden border shadow-xs mb-2" style="max-height: 120px;">
+                                    <img src="@previewItem.ImageUrl" alt="" style="width: 100%; height: 120px; object-fit: cover;" />
                                 </div>
-                                @if (!string.IsNullOrWhiteSpace(previewItem.ImageUrl))
-                                {
-                                    <div class="mb-2 rounded-2 overflow-hidden border">
-                                        <img src="@previewItem.ImageUrl" alt="صورة الإشعار" style="width: 100%; max-height: 140px; object-fit: cover;" />
-                                    </div>
-                                }
-                                <h6 class="fw-bold text-center mb-1">@previewItem.Title</h6>
-                                <p class="text-muted small text-center mb-3">@previewItem.Message</p>
-                                <button class="btn btn-primary-premium w-100 rounded-pill btn-sm">تصفح الآن</button>
+                            }
+                            <div class="d-flex justify-content-between align-items-center pt-1 border-top x-small text-muted">
+                                <span><i class="fa-solid fa-location-arrow text-primary me-1"></i>@previewItem.ActionRoute</span>
+                                <span class="text-primary fw-bold">فتح التطبيق</span>
                             </div>
-                        }
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer border-top pt-2">
+                <div class="modal-footer border-0 p-2 justify-content-center">
                     <button type="button" class="btn btn-secondary rounded-pill px-4 btn-sm" @onclick='() => showPreviewModal = false'>إغلاق</button>
-                </div>
-            </div>
-        </div>
-    </div>
-}
-
-<!-- Modal: Add/Edit Message Bank Item -->
-@if (showBankItemModal && editingBankItem != null)
-{
-    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.6); z-index: 1060;" dir="rtl">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content glass-card border-0 shadow-lg rounded-4 p-3">
-                <div class="modal-header border-bottom pb-2">
-                    <h6 class="modal-title fw-bold text-primary">
-                        <i class="fa-solid @(isEditingBankItem ? "fa-pen" : "fa-plus") me-2"></i>
-                        @(isEditingBankItem ? "تعديل رسالة من بنك التنبيهات" : "إضافة رسالة جديدة لبنك التنبيهات")
-                    </h6>
-                    <button type="button" class="btn-close ms-0 me-auto" @onclick="() => showBankItemModal = false"></button>
-                </div>
-                <div class="modal-body py-3">
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">عنوان الرسالة (اختياري)</label>
-                        <input type="text" class="form-control form-control-sm rounded-pill" @bind="editingBankItem.Title" placeholder="اتركه فارغاً لاستخدام عنوان التذكير الرئيسي" />
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">نص الرسالة <span class="text-danger">*</span></label>
-                        <textarea class="form-control rounded-3" rows="3" @bind="editingBankItem.Message" placeholder="اكتب نص هذه الرسالة..."></textarea>
-                    </div>
-                    @if (currentForm.MessageSelectionMode == "ScheduledBank" || currentForm.MessageSelectionMode == "Scheduled")
-                    {
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">تاريخ ووقت الإرسال المحدد</label>
-                            <input type="datetime-local" class="form-control form-control-sm rounded-pill" @bind="bankItemDateTimeVal" />
-                            <span class="x-small text-muted">سيتم إرسال هذه الرسالة عندما يحين هذا الموعد.</span>
-                        </div>
-                    }
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <label class="form-label small fw-bold mb-0">صورة الرسالة (اختياري)</label>
-                        </div>
-                        <div class="p-2 mb-2 rounded-2 border bg-light x-small text-muted" style="border-right: 3px solid #0d6efd !important;">
-                            <i class="fa-solid fa-circle-info text-primary me-1"></i>
-                            <strong>شروط الصورة:</strong> يفضل أن تكون بالعرض (نسبة 2:1 مثل 1024×512) وحجمها أقل من 1 ميجابايت لتظهر كبانر عريض على شاشة الهاتف.
-                        </div>
-                        <div class="row g-2 align-items-center">
-                            <div class="col-8">
-                                <input type="text" class="form-control form-control-sm rounded-pill" @bind="editingBankItem.ImageUrl" placeholder="رابط الصورة https://..." />
-                            </div>
-                            <div class="col-4">
-                                <label class="btn btn-outline-primary btn-sm w-100 rounded-pill mb-0" style="cursor: pointer;">
-                                    <i class="fa-solid fa-cloud-arrow-up me-1"></i>رفع صورة
-                                    <InputFile OnChange="HandleBankItemImageUpload" accept="image/*" class="d-none" />
-                                </label>
-                            </div>
-                        </div>
-                        @if (!string.IsNullOrWhiteSpace(editingBankItem.ImageUrl))
-                        {
-                            <div class="mt-2 rounded-3 overflow-hidden border text-center p-1 bg-light">
-                                <img src="@editingBankItem.ImageUrl" alt="" style="max-height: 100px; max-width: 100%; object-fit: contain;" />
-                            </div>
-                        }
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label small fw-bold">وجهة النقر (اختياري)</label>
-                        <input type="text" class="form-control form-control-sm rounded-pill" @bind="editingBankItem.ActionRoute" placeholder="مثال: / أو /services أو /service/123" />
-                    </div>
-                </div>
-                <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-light rounded-pill px-3 btn-sm" @onclick="() => showBankItemModal = false">إلغاء</button>
-                    <button type="button" class="btn btn-primary rounded-pill px-4 btn-sm fw-bold" @onclick="SaveBankItem">حفظ في البنك</button>
                 </div>
             </div>
         </div>
@@ -876,6 +1230,8 @@
 </style>
 
 @code {
+    private string activeTab = "campaigns"; // "campaigns" or "bank"
+
     private List<ReminderCampaignDto> reminders = new();
     private ReminderFilterDto filter = new();
     private bool isLoading = true;
@@ -883,103 +1239,22 @@
     private string statusMessage = "";
     private bool isSuccess = true;
 
-    // Message Bank State
-    private bool showBankItemModal = false;
-    private bool isEditingBankItem = false;
-    private ReminderMessageBankItemDto? editingBankItem;
-    private DateTime bankItemDateTimeVal = DateTime.Now;
+    // Bank State
+    private List<ReminderBankItemDto> bankItems = new();
+    private List<string> bankCategories = new();
+    private string selectedBankCategory = "All";
+    private string bankSearchTerm = "";
+    private bool isBankLoading = false;
 
-    private void OpenAddBankItemModal()
-    {
-        isEditingBankItem = false;
-        editingBankItem = new ReminderMessageBankItemDto
-        {
-            Id = Guid.NewGuid().ToString("N"),
-            Title = currentForm.Title,
-            ActionRoute = currentForm.ActionRoute,
-            ScheduledDateTime = DateTime.Now.AddDays(1)
-        };
-        bankItemDateTimeVal = DateTime.Now.AddDays(1);
-        showBankItemModal = true;
-    }
+    // Master Bank Modal
+    private bool showMasterBankModal = false;
+    private bool isEditingMasterBank = false;
+    private CreateReminderBankItemDto masterBankForm = new();
+    private int currentMasterBankId = 0;
+    private TimeOnly masterBankSuggestedTimeVal = new(9, 0);
+    private bool isUploadingMasterBankImage = false;
 
-    private void OpenEditBankItemModal(ReminderMessageBankItemDto item)
-    {
-        isEditingBankItem = true;
-        editingBankItem = new ReminderMessageBankItemDto
-        {
-            Id = item.Id,
-            Title = item.Title,
-            Message = item.Message,
-            ImageUrl = item.ImageUrl,
-            ActionRoute = item.ActionRoute,
-            ScheduledDateTime = item.ScheduledDateTime,
-            IsSent = item.IsSent,
-            SentAt = item.SentAt,
-            SendCount = item.SendCount
-        };
-        bankItemDateTimeVal = item.ScheduledDateTime ?? DateTime.Now;
-        showBankItemModal = true;
-    }
-
-    private void SaveBankItem()
-    {
-        if (editingBankItem == null || string.IsNullOrWhiteSpace(editingBankItem.Message)) return;
-
-        if (currentForm.MessageSelectionMode == "ScheduledBank" || currentForm.MessageSelectionMode == "Scheduled")
-        {
-            editingBankItem.ScheduledDateTime = bankItemDateTimeVal;
-        }
-
-        if (isEditingBankItem)
-        {
-            var idx = currentForm.MessageBankItems.FindIndex(b => b.Id == editingBankItem.Id);
-            if (idx >= 0)
-            {
-                currentForm.MessageBankItems[idx] = editingBankItem;
-            }
-        }
-        else
-        {
-            currentForm.MessageBankItems.Add(editingBankItem);
-        }
-
-        showBankItemModal = false;
-    }
-
-    private void DeleteBankItem(string id)
-    {
-        currentForm.MessageBankItems.RemoveAll(b => b.Id == id);
-    }
-
-    private async Task HandleBankItemImageUpload(InputFileChangeEventArgs e)
-    {
-        var file = e.File;
-        if (file == null || editingBankItem == null) return;
-
-        if (file.Size > 1.5 * 1024 * 1024)
-        {
-            var proceed = await JS.InvokeAsync<bool>("confirm", "حجم الصورة المحددة أكبر من 1.5 ميجابايت، ويشترط أندرويد أن يكون حجم الصورة خفيفاً (أقل من 1 ميجابايت) ليتم عرضها فوراً على شاشات هواتف المستخدمين. هل تريد المتابعة برفعها؟");
-            if (!proceed) return;
-        }
-        try
-        {
-            var res = await Api.UploadImageAsync(file, Khadamat.BlazorUI.Helpers.EntityImageType.Ad);
-            if (res != null && !string.IsNullOrWhiteSpace(res.Url))
-            {
-                var fullUrl = res.Url.StartsWith("http", StringComparison.OrdinalIgnoreCase) 
-                    ? res.Url 
-                    : Navigation.ToAbsoluteUri(res.Url).ToString();
-                editingBankItem.ImageUrl = fullUrl;
-            }
-        }
-        catch {}
-    }
-
-    private string selectedStatusString = "";
-    private string selectedAudienceString = "";
-
-    // Edit modal state
+    // Campaign Edit modal state
     private bool showEditModal = false;
     private bool isEditing = false;
     private int currentEditingId = 0;
@@ -987,6 +1262,14 @@
     private TimeOnly scheduledTimeVal = new(20, 0);
     private DateTime startDateVal = DateTime.UtcNow.Date;
     private DateTime? endDateVal = DateTime.UtcNow.Date.AddDays(14);
+    private string selectedStatusString = "";
+    private string selectedAudienceString = "";
+
+    // Campaign Bank item modal state (local items)
+    private bool showBankItemModal = false;
+    private bool isEditingBankItem = false;
+    private ReminderMessageBankItemDto? editingBankItem;
+    private DateTime bankItemDateTimeVal = DateTime.Now;
 
     // Destination Selection
     private string reminderDestMode = "Screen";
@@ -1003,58 +1286,10 @@
     private bool isUploadingReminderImage = false;
     private bool reminderImageLoadFailed = false;
 
-    private void ClearReminderImage()
-    {
-        currentForm.ImageUrl = null;
-        reminderImageLoadFailed = false;
-    }
-
-    private void OnReminderImageLoadError()
-    {
-        reminderImageLoadFailed = true;
-    }
-
-    private async Task HandleReminderImageUpload(InputFileChangeEventArgs e)
-    {
-        var file = e.File;
-        if (file == null) return;
-
-        if (file.Size > 1.5 * 1024 * 1024)
-        {
-            var proceed = await JS.InvokeAsync<bool>("confirm", "حجم الصورة المحددة أكبر من 1.5 ميجابايت، ويشترط أندرويد أن يكون حجم الصورة خفيفاً (أقل من 1 ميجابايت) ليتم عرضها فوراً على شاشات هواتف المستخدمين. هل تريد المتابعة برفعها؟");
-            if (!proceed) return;
-        }
-
-        reminderImageLoadFailed = false;
-        isUploadingReminderImage = true;
-        try
-        {
-            var res = await Api.UploadImageAsync(file, Khadamat.BlazorUI.Helpers.EntityImageType.Ad);
-            if (res != null && !string.IsNullOrWhiteSpace(res.Url))
-            {
-                var fullUrl = res.Url.StartsWith("http", StringComparison.OrdinalIgnoreCase) 
-                    ? res.Url 
-                    : Navigation.ToAbsoluteUri(res.Url).ToString();
-                currentForm.ImageUrl = fullUrl;
-            }
-            else
-            {
-                await JS.InvokeVoidAsync("alert", "فشل رفع الصورة، يرجى التأكد من صيغة الملف وحجمه.");
-            }
-        }
-        catch (Exception ex)
-        {
-            await JS.InvokeVoidAsync("alert", $"خطأ أثناء الرفع: {ex.Message}");
-        }
-        finally
-        {
-            isUploadingReminderImage = false;
-        }
-    }
-
     protected override async Task OnInitializedAsync()
     {
         await LoadReminders();
+        await LoadBankItems();
         try
         {
             var serv = await Api.GetServicesAsync(page: 1, pageSize: 100, isApproved: true);
@@ -1063,76 +1298,314 @@
         catch { }
     }
 
-    private void SetReminderDestMode(string mode)
+    private async Task SwitchTab(string tab)
     {
-        reminderDestMode = mode;
-        if (mode == "Screen")
+        activeTab = tab;
+        if (tab == "bank")
         {
-            currentForm.ActionRoute = selectedReminderScreen;
+            await LoadBankItems();
         }
-        else if (mode == "Service")
+        else
         {
-            if (int.TryParse(selectedReminderServiceId, out int sid) && sid > 0)
+            await LoadReminders();
+        }
+    }
+
+    private async Task LoadBankItems()
+    {
+        isBankLoading = true;
+        try
+        {
+            bankItems = await Api.GetReminderBankItemsAsync();
+            bankCategories = await Api.GetReminderBankCategoriesAsync();
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"خطأ في تحميل بنك التذكيرات: {ex.Message}";
+            isSuccess = false;
+        }
+        finally
+        {
+            isBankLoading = false;
+        }
+    }
+
+    private void SelectBankCategoryFilter(string cat)
+    {
+        selectedBankCategory = cat;
+    }
+
+    private List<ReminderBankItemDto> GetFilteredBankItems()
+    {
+        var query = bankItems.AsEnumerable();
+        if (selectedBankCategory != "All")
+        {
+            query = query.Where(b => b.Category == selectedBankCategory);
+        }
+        if (!string.IsNullOrWhiteSpace(bankSearchTerm))
+        {
+            var term = bankSearchTerm.Trim().ToLowerInvariant();
+            query = query.Where(b => b.Title.ToLowerInvariant().Contains(term) || b.Message.ToLowerInvariant().Contains(term));
+        }
+        return query.OrderBy(b => b.OrderIndex).ThenBy(b => b.Id).ToList();
+    }
+
+    private void OpenCreateMasterBankModal()
+    {
+        isEditingMasterBank = false;
+        currentMasterBankId = 0;
+        masterBankForm = new CreateReminderBankItemDto
+        {
+            Title = "",
+            Message = "",
+            Category = selectedBankCategory != "All" ? selectedBankCategory : "صباحية",
+            OrderIndex = bankItems.Count > 0 ? bankItems.Max(b => b.OrderIndex) + 1 : 1,
+            ActionRoute = "/",
+            IsActive = true
+        };
+        masterBankSuggestedTimeVal = new TimeOnly(9, 0);
+        showMasterBankModal = true;
+    }
+
+    private void OpenEditMasterBankModal(ReminderBankItemDto item)
+    {
+        isEditingMasterBank = true;
+        currentMasterBankId = item.Id;
+        masterBankForm = new CreateReminderBankItemDto
+        {
+            Title = item.Title,
+            Message = item.Message,
+            Category = item.Category,
+            OrderIndex = item.OrderIndex,
+            SuggestedTime = item.SuggestedTime,
+            ImageUrl = item.ImageUrl,
+            ActionRoute = item.ActionRoute,
+            IsActive = item.IsActive
+        };
+        masterBankSuggestedTimeVal = item.SuggestedTime.HasValue 
+            ? TimeOnly.FromTimeSpan(item.SuggestedTime.Value) 
+            : new TimeOnly(9, 0);
+        showMasterBankModal = true;
+    }
+
+    private async Task SaveMasterBankItem()
+    {
+        if (string.IsNullOrWhiteSpace(masterBankForm.Title) || string.IsNullOrWhiteSpace(masterBankForm.Message))
+        {
+            await JS.InvokeVoidAsync("alert", "يرجى كتابة عنوان التذكير ونصه");
+            return;
+        }
+
+        masterBankForm.SuggestedTime = masterBankSuggestedTimeVal.ToTimeSpan();
+
+        try
+        {
+            if (isEditingMasterBank)
             {
-                currentForm.ActionRoute = $"/service/{sid}";
+                var updateDto = new UpdateReminderBankItemDto
+                {
+                    Id = currentMasterBankId,
+                    Title = masterBankForm.Title,
+                    Message = masterBankForm.Message,
+                    Category = masterBankForm.Category,
+                    OrderIndex = masterBankForm.OrderIndex,
+                    SuggestedTime = masterBankForm.SuggestedTime,
+                    ImageUrl = masterBankForm.ImageUrl,
+                    ActionRoute = masterBankForm.ActionRoute,
+                    IsActive = masterBankForm.IsActive
+                };
+                var updated = await Api.UpdateReminderBankItemAsync(currentMasterBankId, updateDto);
+                if (updated != null)
+                {
+                    statusMessage = "تم تحديث رسالة البنك بنجاح!";
+                    isSuccess = true;
+                }
             }
             else
             {
-                currentForm.ActionRoute = "";
+                var created = await Api.CreateReminderBankItemAsync(masterBankForm);
+                if (created != null)
+                {
+                    statusMessage = "تمت إضافة الرسالة إلى بنك التذكيرات بنجاح!";
+                    isSuccess = true;
+                }
+            }
+
+            showMasterBankModal = false;
+            await LoadBankItems();
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"خطأ: {ex.Message}";
+            isSuccess = false;
+        }
+    }
+
+    private async Task DeleteMasterBankItem(int id)
+    {
+        var confirmed = await JS.InvokeAsync<bool>("confirm", "هل أنت متأكد من حذف هذه الرسالة من بنك التذكيرات؟");
+        if (!confirmed) return;
+
+        try
+        {
+            var ok = await Api.DeleteReminderBankItemAsync(id);
+            if (ok)
+            {
+                statusMessage = "تم حذف رسالة التذكير من البنك بنجاح";
+                isSuccess = true;
+                await LoadBankItems();
             }
         }
-    }
-
-    private void OnReminderScreenChanged(ChangeEventArgs e)
-    {
-        selectedReminderScreen = e.Value?.ToString() ?? "/";
-        currentForm.ActionRoute = selectedReminderScreen;
-    }
-
-    private void OnReminderServiceChanged(ChangeEventArgs e)
-    {
-        selectedReminderServiceId = e.Value?.ToString() ?? "";
-        if (int.TryParse(selectedReminderServiceId, out int sid) && sid > 0)
+        catch (Exception ex)
         {
-            selectedReminderService = servicesList.FirstOrDefault(s => s.Id == sid);
-            currentForm.ActionRoute = $"/service/{sid}";
+            statusMessage = $"خطأ أثناء الحذف: {ex.Message}";
+            isSuccess = false;
+        }
+    }
+
+    private async Task HandleMasterBankImageUpload(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null) return;
+
+        isUploadingMasterBankImage = true;
+        try
+        {
+            var res = await Api.UploadImageAsync(file, Khadamat.BlazorUI.Helpers.EntityImageType.Ad);
+            if (res != null && !string.IsNullOrWhiteSpace(res.Url))
+            {
+                var fullUrl = res.Url.StartsWith("http", StringComparison.OrdinalIgnoreCase) 
+                    ? res.Url 
+                    : Navigation.ToAbsoluteUri(res.Url).ToString();
+                masterBankForm.ImageUrl = fullUrl;
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"خطأ أثناء رفع الصورة: {ex.Message}");
+        }
+        finally
+        {
+            isUploadingMasterBankImage = false;
+        }
+    }
+
+    private void OpenBankPreviewModal(ReminderBankItemDto item)
+    {
+        previewItem = new ReminderCampaignDto
+        {
+            Title = item.Title,
+            Message = item.Message,
+            ImageUrl = item.ImageUrl,
+            ActionRoute = item.ActionRoute,
+            ScheduledTime = item.SuggestedTime ?? new TimeSpan(9, 0, 0),
+            DisplayType = ReminderDisplayType.NotificationBar
+        };
+        showPreviewModal = true;
+    }
+
+    private static string GetCategoryBadgeClass(string category) => category switch
+    {
+        "صباحية" => "bg-warning-subtle text-warning-emphasis border",
+        "وسط اليوم" => "bg-primary-subtle text-primary border",
+        "مسائية" => "bg-indigo-subtle text-indigo border",
+        "يوم الجمعة" => "bg-success-subtle text-success border",
+        _ => "bg-secondary-subtle text-secondary border"
+    };
+
+    private static string GetCategoryIcon(string category) => category switch
+    {
+        "صباحية" => "fa-solid fa-sun",
+        "وسط اليوم" => "fa-solid fa-cloud-sun",
+        "مسائية" => "fa-solid fa-moon",
+        "يوم الجمعة" => "fa-solid fa-mosque",
+        _ => "fa-solid fa-tag"
+    };
+
+    private static string FormatTimeSpan(TimeSpan ts)
+    {
+        var dt = DateTime.Today.Add(ts);
+        return dt.ToString("hh:mm tt");
+    }
+
+    // Campaign Methods
+    private void SetCampaignType(string type)
+    {
+        currentForm.CampaignType = type;
+        if (type == "Occasion")
+        {
+            currentForm.OverridesRegularReminders = true;
         }
         else
         {
-            selectedReminderService = null;
-            currentForm.ActionRoute = "";
+            currentForm.OverridesRegularReminders = false;
         }
     }
 
-    private void OnReminderServiceIdInput(ChangeEventArgs e)
+    private void ApplyOccasionPreset(string preset)
     {
-        selectedReminderServiceId = e.Value?.ToString() ?? "";
-        if (int.TryParse(selectedReminderServiceId, out int sid) && sid > 0)
+        currentForm.CampaignType = "Occasion";
+        currentForm.OverridesRegularReminders = true;
+
+        switch (preset)
         {
-            selectedReminderService = servicesList.FirstOrDefault(s => s.Id == sid);
-            currentForm.ActionRoute = $"/service/{sid}";
-        }
-        else
-        {
-            selectedReminderService = null;
-            currentForm.ActionRoute = "";
+            case "Friday":
+                currentForm.Title = "تذكير يوم الجمعة المباركة 🕊️";
+                currentForm.OccasionName = "يوم الجمعة";
+                currentForm.RecurrenceType = ReminderRecurrenceType.SpecificDaysOfWeek;
+                currentForm.DaysOfWeek = "Friday";
+                currentForm.MessageSelectionMode = "RandomBank";
+                currentForm.BankCategory = "يوم الجمعة";
+                scheduledTimeVal = new TimeOnly(10, 0);
+                break;
+            case "Ramadan":
+                currentForm.Title = "نفحات شهر رمضان المبارك 🌙";
+                currentForm.OccasionName = "شهر رمضان";
+                currentForm.RecurrenceType = ReminderRecurrenceType.Daily;
+                currentForm.MessageSelectionMode = "RandomBank";
+                currentForm.BankCategory = "شهر رمضان";
+                currentForm.DurationDays = 30;
+                scheduledTimeVal = new TimeOnly(17, 30);
+                break;
+            case "ShamElNessim":
+                currentForm.Title = "تهنئة يوم شم النسيم 🌸🥚";
+                currentForm.OccasionName = "شم النسيم";
+                currentForm.RecurrenceType = ReminderRecurrenceType.Once;
+                currentForm.MessageSelectionMode = "RandomBank";
+                currentForm.BankCategory = "مناسبات وأعياد";
+                scheduledTimeVal = new TimeOnly(9, 30);
+                break;
+            case "DhulHijjah":
+                currentForm.Title = "أيام العشر الفضيلة من ذي الحجة 🕋";
+                currentForm.OccasionName = "العشر من ذي الحجة";
+                currentForm.RecurrenceType = ReminderRecurrenceType.Daily;
+                currentForm.MessageSelectionMode = "RandomBank";
+                currentForm.BankCategory = "العشر من ذي الحجة";
+                currentForm.DurationDays = 10;
+                scheduledTimeVal = new TimeOnly(9, 0);
+                break;
+            case "Eid":
+                currentForm.Title = "تهنئة العيد المبارك 🎉🎈";
+                currentForm.OccasionName = "الأعياد الرسمية";
+                currentForm.RecurrenceType = ReminderRecurrenceType.Daily;
+                currentForm.MessageSelectionMode = "RandomBank";
+                currentForm.BankCategory = "مناسبات وأعياد";
+                currentForm.DurationDays = 4;
+                scheduledTimeVal = new TimeOnly(8, 30);
+                break;
         }
     }
 
-    private void AutoFillReminderFromService()
+    private void SetMessageMode(string mode)
     {
-        if (selectedReminderService == null) return;
-        currentForm.Title = $"خدمة مميزة: {selectedReminderService.Title} ✨";
-        currentForm.Message = !string.IsNullOrWhiteSpace(selectedReminderService.Description)
-            ? (selectedReminderService.Description.Length > 150 ? selectedReminderService.Description[..150] + "..." : selectedReminderService.Description)
-            : $"تصفح تفاصيل خدمة {selectedReminderService.Title} الآن على منصة خدماوى!";
-
-        if (selectedReminderService.Images != null && selectedReminderService.Images.Count > 0)
+        currentForm.MessageSelectionMode = mode;
+        if ((mode == "RandomBank" || mode == "SequentialBank") && string.IsNullOrEmpty(currentForm.BankCategory))
         {
-            var firstImg = selectedReminderService.Images.First();
-            var imgRel = Khadamat.BlazorUI.Helpers.ImagePathResolver.Service(firstImg);
-            currentForm.ImageUrl = Navigation.ToAbsoluteUri(imgRel).ToString();
-            reminderImageLoadFailed = false;
+            currentForm.BankCategory = "All";
+        }
+        if (mode != "Single" && string.IsNullOrWhiteSpace(currentForm.Message))
+        {
+            currentForm.Message = "تذكير تلقائي مستمر من منصة خدماوى";
         }
     }
 
@@ -1208,7 +1681,12 @@
             ImageUrl = null,
             DeliveryChannel = "Both",
             MessageSelectionMode = "Single",
+            BankCategory = "All",
+            LastSequentialIndex = 0,
             MessageBankItems = new(),
+            CampaignType = "Regular",
+            OverridesRegularReminders = false,
+            OccasionName = null,
             IsActive = true
         };
         reminderImageLoadFailed = false;
@@ -1270,7 +1748,12 @@
             ImageUrl = rem.ImageUrl,
             DeliveryChannel = rem.DeliveryChannel ?? "Both",
             MessageSelectionMode = rem.MessageSelectionMode ?? "Single",
+            BankCategory = rem.BankCategory ?? "All",
+            LastSequentialIndex = rem.LastSequentialIndex,
             MessageBankItems = rem.MessageBankItems != null ? new List<ReminderMessageBankItemDto>(rem.MessageBankItems) : new(),
+            CampaignType = rem.CampaignType ?? "Regular",
+            OverridesRegularReminders = rem.OverridesRegularReminders,
+            OccasionName = rem.OccasionName,
             IsActive = rem.IsActive,
             StartDate = rem.StartDate,
             EndDate = rem.EndDate
@@ -1289,10 +1772,21 @@
 
     private async Task SaveReminder()
     {
-        if (string.IsNullOrWhiteSpace(currentForm.Title) || string.IsNullOrWhiteSpace(currentForm.Message))
+        if (string.IsNullOrWhiteSpace(currentForm.Title))
         {
-            await JS.InvokeVoidAsync("alert", "يرجى ملء عنوان التذكير ونص الرسالة");
+            await JS.InvokeVoidAsync("alert", "يرجى إدخال عنوان التذكير");
             return;
+        }
+
+        if (currentForm.MessageSelectionMode == "Single" && string.IsNullOrWhiteSpace(currentForm.Message))
+        {
+            await JS.InvokeVoidAsync("alert", "يرجى كتابة نص الرسالة للتذكير الثابت");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(currentForm.Message))
+        {
+            currentForm.Message = "تذكير تلقائي مستمر من منصة خدماوى";
         }
 
         currentForm.ScheduledTime = scheduledTimeVal.ToTimeSpan();
@@ -1329,6 +1823,8 @@
                     ImageUrl = currentForm.ImageUrl,
                     DeliveryChannel = currentForm.DeliveryChannel,
                     MessageSelectionMode = currentForm.MessageSelectionMode,
+                    BankCategory = currentForm.BankCategory,
+                    LastSequentialIndex = currentForm.LastSequentialIndex,
                     MessageBankItems = currentForm.MessageBankItems,
                     IsActive = (currentForm.Status == ReminderStatus.Active)
                 };
@@ -1354,7 +1850,7 @@
         }
         catch (Exception ex)
         {
-            statusMessage = $"حدث خطأ أثناء الحفظ: {ex.Message}";
+            statusMessage = $"خطأ أثناء حفظ التذكير: {ex.Message}";
             isSuccess = false;
         }
         finally
@@ -1365,48 +1861,85 @@
 
     private async Task ToggleStatus(int id, ReminderStatus newStatus)
     {
-        var ok = await Api.UpdateReminderStatusAsync(id, newStatus);
-        if (ok)
+        try
         {
-            statusMessage = $"تم تغيير حالة التذكير بنجاح.";
-            isSuccess = true;
-            await LoadReminders();
+            var ok = await Api.UpdateReminderStatusAsync(id, newStatus);
+            if (ok)
+            {
+                statusMessage = $"تم تغيير حالة التذكير بنجاح إلى: {GetStatusName(newStatus)}";
+                isSuccess = true;
+                await LoadReminders();
+            }
+            else
+            {
+                statusMessage = "فشل تحديث حالة التذكير.";
+                isSuccess = false;
+            }
         }
-    }
-
-    private async Task DuplicateReminder(int id)
-    {
-        var clone = await Api.DuplicateReminderAsync(id);
-        if (clone != null)
+        catch (Exception ex)
         {
-            statusMessage = $"تم إنشاء نسخة مسودة من التذكير بنجاح.";
-            isSuccess = true;
-            await LoadReminders();
+            statusMessage = $"خطأ: {ex.Message}";
+            isSuccess = false;
         }
     }
 
     private async Task DeleteReminder(int id)
     {
-        bool confirmed = await JS.InvokeAsync<bool>("confirm", "هل أنت متأكد من حذف هذا التذكير؟");
+        var confirmed = await JS.InvokeAsync<bool>("confirm", "هل أنت متأكد من رغبتك في حذف هذا التذكير نهائياً؟");
         if (!confirmed) return;
 
-        var ok = await Api.DeleteReminderAsync(id);
-        if (ok)
+        try
         {
-            statusMessage = "تم حذف التذكير بنجاح.";
-            isSuccess = true;
-            await LoadReminders();
+            var ok = await Api.DeleteReminderAsync(id);
+            if (ok)
+            {
+                statusMessage = "تم حذف التذكير بنجاح.";
+                isSuccess = true;
+                await LoadReminders();
+            }
+            else
+            {
+                statusMessage = "فشل حذف التذكير.";
+                isSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"خطأ: {ex.Message}";
+            isSuccess = false;
+        }
+    }
+
+    private async Task DuplicateReminder(int id)
+    {
+        try
+        {
+            var dup = await Api.DuplicateReminderAsync(id);
+            if (dup != null)
+            {
+                statusMessage = "تم إنشاء نسخة من التذكير كمسودة جديدة.";
+                isSuccess = true;
+                await LoadReminders();
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"خطأ أثناء النسخ: {ex.Message}";
+            isSuccess = false;
         }
     }
 
     private async Task LoadDefaultTesterTemplate()
     {
+        var proceed = await JS.InvokeAsync<bool>("confirm", "هل تريد تفعيل نموذج حملة الـ 14 يوماً لمختبري Google Play؟ سيتم إنشاء الحملة وإلزامها بالعمل يومياً الساعة 8:00 مساءً.");
+        if (!proceed) return;
+
         try
         {
-            var res = await Api.SeedDefaultTesterReminderAsync();
-            if (res != null)
+            var result = await Api.SeedDefaultTesterReminderAsync();
+            if (result != null)
             {
-                statusMessage = "تم تفعيل / التأكد من جاهزية حملة تذكير المختبرين بالاستخدام اليومي (14 يوماً).";
+                statusMessage = "تم تفعيل حملة الـ 14 يوماً لمختبري Google Play بنجاح!";
                 isSuccess = true;
                 await LoadReminders();
             }
@@ -1420,34 +1953,39 @@
 
     private async Task TestTriggerReminder(ReminderCampaignDto rem)
     {
-        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"هل تريد تشغيل وإرسال تذكير '{rem.Title}' فوراً الآن لجميع الفئات المستهدفة للتأكد من وصوله؟");
-        if (!confirmed) return;
+        var proceed = await JS.InvokeAsync<bool>("confirm", $"هل تريد إرسال التذكير '{rem.Title}' فوراً للتجربة؟\nسيصل الإشعار إلى جميع الأجهزة المشتركة في القناة المحددة ({rem.DeliveryChannel}).");
+        if (!proceed) return;
 
-        isLoading = true;
         try
         {
-            var (success, msg) = await Api.TriggerReminderNowAsync(rem.Id);
-            statusMessage = msg;
+            var (success, message) = await Api.TriggerReminderNowAsync(rem.Id);
+            statusMessage = message;
             isSuccess = success;
-            await LoadReminders();
+            if (success)
+            {
+                await LoadReminders();
+                if (activeTab == "bank") await LoadBankItems();
+            }
         }
         catch (Exception ex)
         {
-            statusMessage = $"حدث خطأ: {ex.Message}";
+            statusMessage = $"خطأ أثناء التجربة: {ex.Message}";
             isSuccess = false;
-        }
-        finally
-        {
-            isLoading = false;
         }
     }
 
     private async Task TestFcmBroadcast()
     {
-        isLoading = true;
+        var proceed = await JS.InvokeAsync<bool>("confirm", "هل تريد إرسال إشعار تجريبي فوري لجميع الأجهزة النشطة عبر Firebase؟");
+        if (!proceed) return;
+
         try
         {
-            var (success, msg) = await Api.TestFcmPushAsync("اختبار إشعارات خدماوى", "تم تسليم هذا الإشعار الفوري بنجاح إلى هاتفك!");
+            var (success, msg) = await Api.TestFcmPushAsync(
+                "اختبار إشعار Firebase من لوحة التحكم",
+                "هذا إشعار تجريبي للتأكد من وصول إشعارات Push على هواتف المستخدمين بشكل صحيح.",
+                null);
+
             statusMessage = msg;
             isSuccess = success;
         }
@@ -1455,10 +1993,6 @@
         {
             statusMessage = $"خطأ: {ex.Message}";
             isSuccess = false;
-        }
-        finally
-        {
-            isLoading = false;
         }
     }
 
@@ -1468,12 +2002,159 @@
         showPreviewModal = true;
     }
 
-    private string GetStatusBadgeClass(ReminderStatus status) => status switch
+    private void SetReminderDestMode(string mode)
+    {
+        reminderDestMode = mode;
+        if (mode == "Screen")
+        {
+            currentForm.ActionRoute = selectedReminderScreen;
+        }
+        else if (mode == "Service")
+        {
+            if (int.TryParse(selectedReminderServiceId, out int sid) && sid > 0)
+            {
+                currentForm.ActionRoute = $"/service/{sid}";
+            }
+            else
+            {
+                currentForm.ActionRoute = "";
+            }
+        }
+    }
+
+    private void OnReminderScreenChanged(ChangeEventArgs e)
+    {
+        selectedReminderScreen = e.Value?.ToString() ?? "/";
+        currentForm.ActionRoute = selectedReminderScreen;
+    }
+
+    private void OnReminderServiceChanged(ChangeEventArgs e)
+    {
+        selectedReminderServiceId = e.Value?.ToString() ?? "";
+        if (int.TryParse(selectedReminderServiceId, out int sid) && sid > 0)
+        {
+            selectedReminderService = servicesList.FirstOrDefault(s => s.Id == sid);
+            currentForm.ActionRoute = $"/service/{sid}";
+        }
+        else
+        {
+            selectedReminderService = null;
+            currentForm.ActionRoute = "";
+        }
+    }
+
+    private void OnReminderServiceIdInput(ChangeEventArgs e)
+    {
+        selectedReminderServiceId = e.Value?.ToString() ?? "";
+        if (int.TryParse(selectedReminderServiceId, out int sid) && sid > 0)
+        {
+            selectedReminderService = servicesList.FirstOrDefault(s => s.Id == sid);
+            currentForm.ActionRoute = $"/service/{sid}";
+        }
+        else
+        {
+            selectedReminderService = null;
+            currentForm.ActionRoute = "";
+        }
+    }
+
+    private void ClearReminderImage()
+    {
+        currentForm.ImageUrl = null;
+        reminderImageLoadFailed = false;
+    }
+
+    private void OnReminderImageLoadError()
+    {
+        reminderImageLoadFailed = true;
+    }
+
+    private async Task HandleReminderImageUpload(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null) return;
+
+        reminderImageLoadFailed = false;
+        isUploadingReminderImage = true;
+        try
+        {
+            var res = await Api.UploadImageAsync(file, Khadamat.BlazorUI.Helpers.EntityImageType.Ad);
+            if (res != null && !string.IsNullOrWhiteSpace(res.Url))
+            {
+                var fullUrl = res.Url.StartsWith("http", StringComparison.OrdinalIgnoreCase) 
+                    ? res.Url 
+                    : Navigation.ToAbsoluteUri(res.Url).ToString();
+                currentForm.ImageUrl = fullUrl;
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", "فشل رفع الصورة، يرجى التأكد من صيغة الملف وحجمه.");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"خطأ أثناء الرفع: {ex.Message}");
+        }
+        finally
+        {
+            isUploadingReminderImage = false;
+        }
+    }
+
+    // Local Campaign Bank Item methods
+    private void OpenAddBankItemModal()
+    {
+        isEditingBankItem = false;
+        editingBankItem = new ReminderMessageBankItemDto
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            Title = currentForm.Title,
+            ActionRoute = currentForm.ActionRoute,
+            ScheduledDateTime = DateTime.Now.AddDays(1)
+        };
+        bankItemDateTimeVal = DateTime.Now.AddDays(1);
+        showBankItemModal = true;
+    }
+
+    private void OpenEditBankItemModal(ReminderMessageBankItemDto item)
+    {
+        isEditingBankItem = true;
+        editingBankItem = new ReminderMessageBankItemDto
+        {
+            Id = item.Id,
+            Title = item.Title,
+            Message = item.Message,
+            ImageUrl = item.ImageUrl,
+            ActionRoute = item.ActionRoute,
+            ScheduledDateTime = item.ScheduledDateTime,
+            IsSent = item.IsSent,
+            SentAt = item.SentAt,
+            SendCount = item.SendCount
+        };
+        bankItemDateTimeVal = item.ScheduledDateTime ?? DateTime.Now;
+        showBankItemModal = true;
+    }
+
+    private void DeleteBankItem(string id)
+    {
+        currentForm.MessageBankItems.RemoveAll(b => b.Id == id);
+    }
+
+    private static string GetStatusBadgeClass(ReminderStatus status) => status switch
     {
         ReminderStatus.Active => "bg-success text-white",
         ReminderStatus.Paused => "bg-warning text-dark",
         ReminderStatus.Draft => "bg-secondary text-white",
         ReminderStatus.Expired => "bg-dark text-white",
         _ => "bg-light text-dark"
+    };
+
+    private static string GetStatusName(ReminderStatus status) => status switch
+    {
+        ReminderStatus.Active => "مفعّل",
+        ReminderStatus.Paused => "متوقف مؤقتاً",
+        ReminderStatus.Draft => "مسودة",
+        ReminderStatus.Expired => "منتهي",
+        _ => "غير معروف"
     };
 }

@@ -69,6 +69,44 @@ public static class KhadamatDbContextSeed
                         );
                     END
 
+                    IF OBJECT_ID('ReminderCampaigns', 'U') IS NOT NULL
+                    BEGIN
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('ReminderCampaigns') AND name = 'BankCategory')
+                            ALTER TABLE ReminderCampaigns ADD BankCategory NVARCHAR(100) NULL;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('ReminderCampaigns') AND name = 'LastSequentialIndex')
+                            ALTER TABLE ReminderCampaigns ADD LastSequentialIndex INT NOT NULL DEFAULT 0;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('ReminderCampaigns') AND name = 'CampaignType')
+                            ALTER TABLE ReminderCampaigns ADD CampaignType NVARCHAR(50) NOT NULL DEFAULT 'Regular';
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('ReminderCampaigns') AND name = 'OverridesRegularReminders')
+                            ALTER TABLE ReminderCampaigns ADD OverridesRegularReminders BIT NOT NULL DEFAULT 0;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('ReminderCampaigns') AND name = 'OccasionName')
+                            ALTER TABLE ReminderCampaigns ADD OccasionName NVARCHAR(150) NULL;
+                    END
+
+                    IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'ReminderBankItems')
+                    BEGIN
+                        CREATE TABLE [dbo].[ReminderBankItems] (
+                            [Id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                            [Title] NVARCHAR(250) NOT NULL,
+                            [Message] NVARCHAR(MAX) NOT NULL,
+                            [Category] NVARCHAR(100) NOT NULL DEFAULT 'General',
+                            [OrderIndex] INT NOT NULL DEFAULT 1,
+                            [SuggestedTime] TIME NULL,
+                            [ImageUrl] NVARCHAR(MAX) NULL,
+                            [ActionRoute] NVARCHAR(300) NOT NULL DEFAULT '/',
+                            [IsActive] BIT NOT NULL DEFAULT 1,
+                            [UsageCount] INT NOT NULL DEFAULT 0,
+                            [LastUsedAt] DATETIME2 NULL,
+                            [CreatedAt] DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+                            [CreatedBy] NVARCHAR(100) NULL,
+                            [UpdatedAt] DATETIME2 NULL,
+                            [UpdatedBy] NVARCHAR(100) NULL,
+                            [IsDeleted] BIT NOT NULL DEFAULT 0,
+                            [DeletedAt] DATETIME2 NULL,
+                            [DeletedBy] NVARCHAR(100) NULL
+                        );
+                    END
+
                     IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'TesterDevices')
                     BEGIN
                         CREATE TABLE [dbo].[TesterDevices] (
@@ -173,6 +211,441 @@ public static class KhadamatDbContextSeed
                     existingTesterCampaign.DurationDays = null;
                     existingTesterCampaign.UpdatedAt = DateTime.UtcNow;
                     existingTesterCampaign.UpdatedBy = "System";
+                    await context.SaveChangesAsync();
+                }
+
+                // Seed Default Reminder Bank Items if empty
+                if (!await context.ReminderBankItems.AnyAsync())
+                {
+                    var defaultBank = new List<ReminderBankItem>
+                    {
+                        new ReminderBankItem
+                        {
+                            Title = "☀️ صباح الفل يا بطل!",
+                            Message = "افتح عينك على الدنيا بابتسامة 😄 ولو عندك حاجة محتاجة تتظبط، خدماوي يساعدك تلاقي الخدمة المناسبة.",
+                            Category = "صباحية",
+                            OrderIndex = 1,
+                            SuggestedTime = new TimeSpan(8, 0, 0),
+                            ActionRoute = "/services",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "☕ القهوة بتقولك صباح الخير!",
+                            Message = "خد رشفة قهوة، وافتح خدماوي… يمكن تلاقي الحل قبل ما القهوة تبرد! 😂",
+                            Category = "صباحية",
+                            OrderIndex = 2,
+                            SuggestedTime = new TimeSpan(8, 30, 0),
+                            ActionRoute = "/",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "🚀 يلا نطير بالإنجازات!",
+                            Message = "سيب الكسل ياخد أجازة النهارده 😎 وابحث على خدماوي عن حد يساعدك تخلّص اللي وراك.",
+                            Category = "صباحية",
+                            OrderIndex = 3,
+                            SuggestedTime = new TimeSpan(9, 0, 0),
+                            ActionRoute = "/search",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "🔧 الحنفية عاملة فيها دي جي؟",
+                            Message = "لو البيت قرر يعمل حفلة أصوات غريبة، متقلقش! دور على فني مناسب في خدماوي. 😅",
+                            Category = "صباحية",
+                            OrderIndex = 4,
+                            SuggestedTime = new TimeSpan(9, 15, 0),
+                            ActionRoute = "/services",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "🌞 الشمس طلعت.. قوم يا أسطورة!",
+                            Message = "نهار جديد وفرصة جديدة! خد لفة على خدماوي وشوف إيه اللي ممكن يسهّل يومك.",
+                            Category = "صباحية",
+                            OrderIndex = 5,
+                            SuggestedTime = new TimeSpan(9, 30, 0),
+                            ActionRoute = "/",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "🦸‍♂️ البطل مش لازم يعمل كل حاجة!",
+                            Message = "حتى الأبطال بيستعينوا بالمحترفين 😄 اكتشف الحرفيين ومقدمي الخدمات على خدماوي.",
+                            Category = "صباحية",
+                            OrderIndex = 6,
+                            SuggestedTime = new TimeSpan(9, 45, 0),
+                            ActionRoute = "/services",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "🛍️ صباحك فرص يا كينج!",
+                            Message = "قبل ما تشتري، بص على إعلانات خدماوي… يمكن تلاقي اختيار مناسب يخلّي يومك أحلى.",
+                            Category = "صباحية",
+                            OrderIndex = 7,
+                            SuggestedTime = new TimeSpan(10, 0, 0),
+                            ActionRoute = "/ads",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "😂 المهمة المستحيلة؟ سهلة!",
+                            Message = "في حاجة مأجلها من الأسبوع اللي فات؟ ابدأ بالبحث عن حد متخصص يساعدك تخلصها.",
+                            Category = "صباحية",
+                            OrderIndex = 8,
+                            SuggestedTime = new TimeSpan(10, 15, 0),
+                            ActionRoute = "/search",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "🎯 صباحك فل وإنجازك عال!",
+                            Message = "حط هدف صغير لنهارده وابدأ بيه. خدماوي يسهّل عليك اكتشاف الخدمات اللي تحتاجها.",
+                            Category = "صباحية",
+                            OrderIndex = 9,
+                            SuggestedTime = new TimeSpan(10, 30, 0),
+                            ActionRoute = "/services",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "🐴 الحمار الشاطر بدأ يومه!",
+                            Message = "ما تسيبش المهام تركب فوق دماغك 😂 افتح خدماوي ودوّر على اللي يساعدك تنجزها.",
+                            Category = "صباحية",
+                            OrderIndex = 10,
+                            SuggestedTime = new TimeSpan(10, 45, 0),
+                            ActionRoute = "/",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "🥪 الساندوتش خلص.. والمهام لأ!",
+                            Message = "استراحتك تستاهل ابتسامة 😄 وبعدها خد دقيقة وشوف على خدماوي مين يقدر يساعدك في اللي وراك.",
+                            Category = "وسط اليوم",
+                            OrderIndex = 1,
+                            SuggestedTime = new TimeSpan(12, 0, 0),
+                            ActionRoute = "/services",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "😎 الظهر جه.. ولسه الحماس!",
+                            Message = "اشحن طاقتك بحاجة بتحبها، وبعدها ابحث على خدماوي عن الخدمة اللي هتوفر عليك وقت ومجهود.",
+                            Category = "وسط اليوم",
+                            OrderIndex = 2,
+                            SuggestedTime = new TimeSpan(12, 30, 0),
+                            ActionRoute = "/search",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "🔍 المحقق كرومبو في الخدمة!",
+                            Message = "عندك طلب محيّرك؟ شغّل حسّك البوليسي وابحث على خدماوي عن الخدمة أو المنتج اللي محتاجه. 🕵️",
+                            Category = "وسط اليوم",
+                            OrderIndex = 3,
+                            SuggestedTime = new TimeSpan(13, 0, 0),
+                            ActionRoute = "/search",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "⚡ الأسلاك عاملة حفلة؟",
+                            Message = "لو الأجهزة بتطلع أصوات كأنها فرقة موسيقية 😂 دور على فني مناسب من دليل خدمات خدماوي.",
+                            Category = "وسط اليوم",
+                            OrderIndex = 4,
+                            SuggestedTime = new TimeSpan(13, 30, 0),
+                            ActionRoute = "/services",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "💸 المحفظة بتقول: بالراحة!",
+                            Message = "قبل ما تدفع، خد جولة في الإعلانات وقارن الخيارات المتاحة. المحفظة هتشكرك! 😄",
+                            Category = "وسط اليوم",
+                            OrderIndex = 5,
+                            SuggestedTime = new TimeSpan(14, 0, 0),
+                            ActionRoute = "/ads",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "🛒 جولة تسوّق من غير زحمة!",
+                            Message = "اتفرج على المنتجات المتاحة في سوق خدماوي وإنت مرتاح؛ الشوبينج مش لازم يبقى ماراثون. 😂",
+                            Category = "وسط اليوم",
+                            OrderIndex = 6,
+                            SuggestedTime = new TimeSpan(14, 30, 0),
+                            ActionRoute = "/marketplace",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "🥱 ممنوع الاستسلام للنعاس!",
+                            Message = "خد نفس وافرد ضهرك يا بطل! ولو فيه مهمة معطلاك، ابحث على خدماوي عن حد يساعدك.",
+                            Category = "وسط اليوم",
+                            OrderIndex = 7,
+                            SuggestedTime = new TimeSpan(15, 0, 0),
+                            ActionRoute = "/services",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "💡 لمبة الأفكار نورت!",
+                            Message = "افتكرت حاجة محتاجها؟ قبل ما تطير من دماغك تاني، دوّر عليها في خدماوي. 😄",
+                            Category = "وسط اليوم",
+                            OrderIndex = 8,
+                            SuggestedTime = new TimeSpan(15, 30, 0),
+                            ActionRoute = "/search",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "🎁 الفضول مش عيب يا نجم!",
+                            Message = "خد لفة سريعة على عروض وإعلانات خدماوي؛ يمكن تكتشف حاجة مفيدة ما كانتش في بالك.",
+                            Category = "وسط اليوم",
+                            OrderIndex = 9,
+                            SuggestedTime = new TimeSpan(16, 0, 0),
+                            ActionRoute = "/ads",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "😂 فاصل ضحك وإنجاز!",
+                            Message = "افصل دقيقة عن الزحمة، وارجع بطاقة جديدة. خدماوي هنا لو محتاج تلاقي خدمة أو منتج.",
+                            Category = "وسط اليوم",
+                            OrderIndex = 10,
+                            SuggestedTime = new TimeSpan(16, 30, 0),
+                            ActionRoute = "/",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "🌙 مساء العسل يا جميل!",
+                            Message = "اقفل وضع الجري وافتح وضع الروقان 😌 ولو فيه حاجة محتاجة تتعمل، اكتشف الخدمات على خدماوي.",
+                            Category = "مسائية",
+                            OrderIndex = 1,
+                            SuggestedTime = new TimeSpan(18, 0, 0),
+                            ActionRoute = "/services",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "🛋️ الكنبة نادت عليك؟",
+                            Message = "استريح براحتك، ومن مكانك تقدر تتصفح إعلانات خدماوي وتشوف الخيارات اللي تهمك. 😎",
+                            Category = "مسائية",
+                            OrderIndex = 2,
+                            SuggestedTime = new TimeSpan(18, 30, 0),
+                            ActionRoute = "/ads",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "📝 لسه في مهام بتبصلك؟",
+                            Message = "متخليهاش تكسب الجولة 😂 ابدأ بخطوة بسيطة وابحث على خدماوي عن الخدمة المناسبة.",
+                            Category = "مسائية",
+                            OrderIndex = 3,
+                            SuggestedTime = new TimeSpan(19, 0, 0),
+                            ActionRoute = "/search",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "🕵️ مهمة سرية قبل العشا!",
+                            Message = "المطلوب: خدمة أو منتج. المحقق: إنت. ومكان البحث: خدماوي! يلا يا أسطورة. 😄",
+                            Category = "مسائية",
+                            OrderIndex = 4,
+                            SuggestedTime = new TimeSpan(19, 30, 0),
+                            ActionRoute = "/search",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "🛍️ الشوبينج بيقولك تعالى!",
+                            Message = "خد جولة في سوق المنتجات على خدماوي وإنت مرتاح؛ لا زحمة ولا جري ورا المواصلات. 😄",
+                            Category = "مسائية",
+                            OrderIndex = 5,
+                            SuggestedTime = new TimeSpan(20, 0, 0),
+                            ActionRoute = "/marketplace",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "✨ بكرة مش محتاج مفاجآت!",
+                            Message = "جهّز احتياجاتك من الليلة، وابحث عن الخدمات اللي ممكن تخلّي بكرة أهدى وأسهل.",
+                            Category = "مسائية",
+                            OrderIndex = 6,
+                            SuggestedTime = new TimeSpan(20, 30, 0),
+                            ActionRoute = "/services",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "😂 آخر لفة يا معلم!",
+                            Message = "قبل ما تقول تصبحوا على خير، خد جولة خفيفة في خدماوي… يمكن تلاقي اللي كنت بتدور عليه.",
+                            Category = "مسائية",
+                            OrderIndex = 7,
+                            SuggestedTime = new TimeSpan(21, 0, 0),
+                            ActionRoute = "/",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "💡 أهي نورت في دماغك!",
+                            Message = "افتكرت حاجة ناقصاك؟ اكتبها في البحث قبل ما تنساها تاني… الذاكرة مش دفتر ملاحظات! 😂",
+                            Category = "مسائية",
+                            OrderIndex = 8,
+                            SuggestedTime = new TimeSpan(21, 15, 0),
+                            ActionRoute = "/search",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "🔧 الصنايعي مش بيظهر بالسحر!",
+                            Message = "لو محتاج فني أو حرفي، ابدأ البحث على خدماوي وخلي أول خطوة سهلة وواضحة.",
+                            Category = "مسائية",
+                            OrderIndex = 9,
+                            SuggestedTime = new TimeSpan(21, 30, 0),
+                            ActionRoute = "/services",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "🌛 تصبح على خير يا نجم!",
+                            Message = "نام على ابتسامة وخلي بكرة مليان أمل 😄 وخدماوي موجود لما تحتاج تكتشف خدمة أو منتج جديد.",
+                            Category = "مسائية",
+                            OrderIndex = 10,
+                            SuggestedTime = new TimeSpan(21, 45, 0),
+                            ActionRoute = "/",
+                            IsActive = true
+                        },
+                        // يوم الجمعة
+                        new ReminderBankItem
+                        {
+                            Title = "جمعة مباركة وطيبة 🕊️",
+                            Message = "تقبل الله طاعاتكم وبارك في أوقاتكم. نتمنى لكم يوماً سعيداً ومباركاً برفقة الأهل والأحباب.",
+                            Category = "يوم الجمعة",
+                            OrderIndex = 1,
+                            SuggestedTime = new TimeSpan(10, 0, 0),
+                            ActionRoute = "/",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "نور ما بين الجمعتين ✨",
+                            Message = "لا تنس قراءة سورة الكهف والإكثار من الصلاة على النبي ﷺ. جمعة مباركة وطيبة عليكم جميعاً.",
+                            Category = "يوم الجمعة",
+                            OrderIndex = 2,
+                            SuggestedTime = new TimeSpan(10, 30, 0),
+                            ActionRoute = "/",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "ساعة استجابة 🤲",
+                            Message = "في يوم الجمعة ساعة لا يوافقها عبد مسلم يسأل الله خيراً إلا أعطاه إياه. اذكروا من تحبون بدعوة صادقة.",
+                            Category = "يوم الجمعة",
+                            OrderIndex = 3,
+                            SuggestedTime = new TimeSpan(16, 30, 0),
+                            ActionRoute = "/",
+                            IsActive = true
+                        },
+                        // مناسبات وأعياد
+                        new ReminderBankItem
+                        {
+                            Title = "شم نسيم مبهج وسعيد! 🌸🥚",
+                            Message = "كل سنة وأنتم طيبين! يومكم مليان بهجة وفرحة ولمّة عيلة وأوقات حلوة في أجواء الربيع.",
+                            Category = "مناسبات وأعياد",
+                            OrderIndex = 1,
+                            SuggestedTime = new TimeSpan(9, 30, 0),
+                            ActionRoute = "/",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "فسحة وراحة في شم النسيم 🌿☀️",
+                            Message = "استمتع بيوم شم النسيم مع الحبايب والفسحة الحلوة، وخدماوي معاك دائماً في كل وقت.",
+                            Category = "مناسبات وأعياد",
+                            OrderIndex = 2,
+                            SuggestedTime = new TimeSpan(12, 0, 0),
+                            ActionRoute = "/",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "عيد فطر سعيد ومبارك! 🎉🍬",
+                            Message = "كل عام وأنتم بألف خير وسعادة! تقبل الله طاعاتكم وأعاده عليكم بالخير واليمن والبركات.",
+                            Category = "مناسبات وأعياد",
+                            OrderIndex = 3,
+                            SuggestedTime = new TimeSpan(8, 0, 0),
+                            ActionRoute = "/",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "عيد أضحى مبارك 🐑🎈",
+                            Message = "أضحى مبارك وكل عام وأنتم بخير! أيام فرحة وبركة وطاعات ولمة عيلة لا تُعوض.",
+                            Category = "مناسبات وأعياد",
+                            OrderIndex = 4,
+                            SuggestedTime = new TimeSpan(8, 30, 0),
+                            ActionRoute = "/",
+                            IsActive = true
+                        },
+                        // شهر رمضان
+                        new ReminderBankItem
+                        {
+                            Title = "رمضان كريم ومبارك! 🌙✨",
+                            Message = "أهلاً بشهر الخير والبركات! نسأل الله أن يتقبل صيامكم وقيامكم وصالح أعمالكم.",
+                            Category = "شهر رمضان",
+                            OrderIndex = 1,
+                            SuggestedTime = new TimeSpan(15, 0, 0),
+                            ActionRoute = "/",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "صوماً مقبولاً وإفطاراً شهياً 🥣🌴",
+                            Message = "تقبل الله طاعتكم وبلل عروقكم، إفطار هنيء وصحة وعافية لجميع أفراد الأسرة.",
+                            Category = "شهر رمضان",
+                            OrderIndex = 2,
+                            SuggestedTime = new TimeSpan(18, 15, 0),
+                            ActionRoute = "/",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "بركة السحور 🥛🫓",
+                            Message = "تسحروا فإن في السحور بركة. تقبل الله قيامكم وطاعاتكم وأعانكم على صيام الغد.",
+                            Category = "شهر رمضان",
+                            OrderIndex = 3,
+                            SuggestedTime = new TimeSpan(3, 0, 0),
+                            ActionRoute = "/",
+                            IsActive = true
+                        },
+                        // العشر من ذي الحجة
+                        new ReminderBankItem
+                        {
+                            Title = "أيام العشر الفضيلة 🕋🌿",
+                            Message = "ما من أيام العمل الصالح فيها أحب إلى الله من هذه الأيام! اغتنموا أوقاتكم بالذكر والتكبير والطاعات.",
+                            Category = "العشر من ذي الحجة",
+                            OrderIndex = 1,
+                            SuggestedTime = new TimeSpan(9, 0, 0),
+                            ActionRoute = "/",
+                            IsActive = true
+                        },
+                        new ReminderBankItem
+                        {
+                            Title = "فضل صيام يوم عرفة 🤲🕊️",
+                            Message = "خير الدعاء دعاء يوم عرفة. نسأل الله أن يتقبل دعواتكم ويغفر ذنوبكم ويبلغكم العيد مسرورين.",
+                            Category = "العشر من ذي الحجة",
+                            OrderIndex = 2,
+                            SuggestedTime = new TimeSpan(14, 0, 0),
+                            ActionRoute = "/",
+                            IsActive = true
+                        }
+                    };
+
+                    await context.ReminderBankItems.AddRangeAsync(defaultBank);
                     await context.SaveChangesAsync();
                 }
 

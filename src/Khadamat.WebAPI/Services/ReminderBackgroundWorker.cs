@@ -82,11 +82,23 @@ public class ReminderBackgroundWorker : BackgroundService
 
         if (activeCampaigns.Count == 0) return;
 
+        // Check if there is an active special occasion campaign that overrides regular daily reminders today
+        var isOccasionActiveToday = activeCampaigns.Any(c => 
+            c.OverridesRegularReminders && 
+            c.IsCurrentlyActive(nowUtc) && 
+            IsRecurrenceDue(c, nowLocal, currentDayOfWeek));
+
         foreach (var campaign in activeCampaigns)
         {
             // Verify date window
             if (!campaign.IsCurrentlyActive(nowUtc))
                 continue;
+
+            // If an Occasion override is active today, suppress regular routine campaigns so occasion messages show instead
+            if (isOccasionActiveToday && !campaign.OverridesRegularReminders && campaign.CampaignType == "Regular")
+            {
+                continue;
+            }
 
             // Check if scheduled time is reached within a 2-minute grace window
             var scheduledToday = nowLocal.Date + campaign.ScheduledTime;
@@ -112,10 +124,51 @@ public class ReminderBackgroundWorker : BackgroundService
             string messageToSend = campaign.Message;
             string? imageToSend = campaign.ImageUrl;
 
-            // Handle Message Bank if configured
-            if ((campaign.MessageSelectionMode == "RandomBank" || campaign.MessageSelectionMode == "Random" || 
-                 campaign.MessageSelectionMode == "ScheduledBank" || campaign.MessageSelectionMode == "Scheduled") 
-                && !string.IsNullOrWhiteSpace(campaign.MessageBankJson))
+            // Handle Message Bank: check master ReminderBankItems first for RandomBank / SequentialBank
+            if (campaign.MessageSelectionMode == "RandomBank" || campaign.MessageSelectionMode == "SequentialBank")
+            {
+                try
+                {
+                    var bankQuery = db.ReminderBankItems.Where(b => b.IsActive && !b.IsDeleted);
+                    if (!string.IsNullOrWhiteSpace(campaign.BankCategory) && campaign.BankCategory != "All" && campaign.BankCategory != "الكل")
+                    {
+                        bankQuery = bankQuery.Where(b => b.Category == campaign.BankCategory);
+                    }
+
+                    var masterItems = await bankQuery.OrderBy(b => b.OrderIndex).ThenBy(b => b.Id).ToListAsync(cancellationToken);
+                    if (masterItems.Count > 0)
+                    {
+                        ReminderBankItem? chosen = null;
+                        if (campaign.MessageSelectionMode == "RandomBank")
+                        {
+                            var rand = new Random();
+                            chosen = masterItems[rand.Next(masterItems.Count)];
+                        }
+                        else // SequentialBank
+                        {
+                            chosen = masterItems.FirstOrDefault(b => b.OrderIndex > campaign.LastSequentialIndex) ?? masterItems[0];
+                            campaign.LastSequentialIndex = chosen.OrderIndex;
+                        }
+
+                        if (chosen != null)
+                        {
+                            if (!string.IsNullOrWhiteSpace(chosen.Title)) titleToSend = chosen.Title;
+                            if (!string.IsNullOrWhiteSpace(chosen.Message)) messageToSend = chosen.Message;
+                            if (!string.IsNullOrWhiteSpace(chosen.ImageUrl)) imageToSend = chosen.ImageUrl;
+                            if (!string.IsNullOrWhiteSpace(chosen.ActionRoute)) actionRoute = chosen.ActionRoute;
+
+                            chosen.UsageCount++;
+                            chosen.LastUsedAt = nowUtc;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "[ReminderWorker] Error selecting from Master ReminderBank for campaign {Id}", campaign.Id);
+                }
+            }
+            else if ((campaign.MessageSelectionMode == "ScheduledBank" || campaign.MessageSelectionMode == "Scheduled" || 
+                      campaign.MessageSelectionMode == "Random") && !string.IsNullOrWhiteSpace(campaign.MessageBankJson))
             {
                 try
                 {

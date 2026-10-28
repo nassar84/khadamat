@@ -105,6 +105,12 @@ foreach ($dir in $uploadDirsToExclude) {
     }
 }
 
+$uploadsFolder = Join-Path "$publishDir\wwwroot" "uploads"
+if (Test-Path $uploadsFolder) {
+    Remove-Item -Recurse -Force $uploadsFolder -ErrorAction SilentlyContinue
+    Write-Host "  [Excluded from ZIP] wwwroot/uploads (Stored safely in KhadamawyImages)" -ForegroundColor Yellow
+}
+
 # ==============================================================================
 # 4. Finalize APK in publish directory
 # ==============================================================================

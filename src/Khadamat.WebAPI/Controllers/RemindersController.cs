@@ -173,4 +173,105 @@ public class RemindersController : ControllerBase
         var activeReminders = await _reminderService.GetActiveRemindersForClientAsync(role, isTester, lang);
         return Ok(ApiResponse<List<ActiveClientReminderDto>>.Succeed(activeReminders));
     }
+
+    #region Reminder Bank Endpoints
+
+    /// <summary>
+    /// Gets all reminder bank items with optional category and isActive filters
+    /// </summary>
+    [HttpGet("bank")]
+    [Authorize(Roles = "SuperAdmin,SystemAdmin")]
+    public async Task<ActionResult<ApiResponse<List<ReminderBankItemDto>>>> GetBankItems(
+        [FromQuery] string? category = null, 
+        [FromQuery] bool? isActive = null)
+    {
+        var items = await _reminderService.GetBankItemsAsync(category, isActive);
+        return Ok(ApiResponse<List<ReminderBankItemDto>>.Succeed(items));
+    }
+
+    /// <summary>
+    /// Gets all unique bank categories
+    /// </summary>
+    [HttpGet("bank/categories")]
+    [Authorize(Roles = "SuperAdmin,SystemAdmin")]
+    public async Task<ActionResult<ApiResponse<List<string>>>> GetBankCategories()
+    {
+        var categories = await _reminderService.GetBankCategoriesAsync();
+        return Ok(ApiResponse<List<string>>.Succeed(categories));
+    }
+
+    /// <summary>
+    /// Gets a single bank item by id
+    /// </summary>
+    [HttpGet("bank/{id:int}")]
+    [Authorize(Roles = "SuperAdmin,SystemAdmin")]
+    public async Task<ActionResult<ApiResponse<ReminderBankItemDto>>> GetBankItemById(int id)
+    {
+        var item = await _reminderService.GetBankItemByIdAsync(id);
+        if (item == null)
+            return NotFound(ApiResponse<ReminderBankItemDto>.Fail("عنصر بنك التذكيرات غير موجود"));
+
+        return Ok(ApiResponse<ReminderBankItemDto>.Succeed(item));
+    }
+
+    /// <summary>
+    /// Creates a new bank item
+    /// </summary>
+    [HttpPost("bank")]
+    [Authorize(Roles = "SuperAdmin,SystemAdmin")]
+    public async Task<ActionResult<ApiResponse<ReminderBankItemDto>>> CreateBankItem([FromBody] CreateReminderBankItemDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Title) || string.IsNullOrWhiteSpace(dto.Message))
+            return BadRequest(ApiResponse<ReminderBankItemDto>.Fail("العنوان ونص التذكير مطلوبان"));
+
+        var created = await _reminderService.CreateBankItemAsync(dto, CurrentUserId);
+        return Ok(ApiResponse<ReminderBankItemDto>.Succeed(created, "تم إضافة التذكير إلى البنك بنجاح"));
+    }
+
+    /// <summary>
+    /// Updates an existing bank item
+    /// </summary>
+    [HttpPut("bank/{id:int}")]
+    [Authorize(Roles = "SuperAdmin,SystemAdmin")]
+    public async Task<ActionResult<ApiResponse<ReminderBankItemDto>>> UpdateBankItem(int id, [FromBody] UpdateReminderBankItemDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Title) || string.IsNullOrWhiteSpace(dto.Message))
+            return BadRequest(ApiResponse<ReminderBankItemDto>.Fail("العنوان ونص التذكير مطلوبان"));
+
+        var updated = await _reminderService.UpdateBankItemAsync(id, dto, CurrentUserId);
+        if (updated == null)
+            return NotFound(ApiResponse<ReminderBankItemDto>.Fail("عنصر بنك التذكيرات غير موجود"));
+
+        return Ok(ApiResponse<ReminderBankItemDto>.Succeed(updated, "تم تحديث عنصر بنك التذكيرات بنجاح"));
+    }
+
+    /// <summary>
+    /// Deletes a bank item
+    /// </summary>
+    [HttpDelete("bank/{id:int}")]
+    [Authorize(Roles = "SuperAdmin,SystemAdmin")]
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteBankItem(int id)
+    {
+        var deleted = await _reminderService.DeleteBankItemAsync(id, CurrentUserId);
+        if (!deleted)
+            return NotFound(ApiResponse<bool>.Fail("عنصر بنك التذكيرات غير موجود"));
+
+        return Ok(ApiResponse<bool>.Succeed(true, "تم حذف التذكير من البنك بنجاح"));
+    }
+
+    /// <summary>
+    /// Resolves the next bank item for a campaign
+    /// </summary>
+    [HttpGet("{id:int}/next-bank-item")]
+    [Authorize(Roles = "SuperAdmin,SystemAdmin")]
+    public async Task<ActionResult<ApiResponse<ReminderBankItemDto>>> GetNextBankItem(int id)
+    {
+        var nextItem = await _reminderService.ResolveNextBankItemAsync(id);
+        if (nextItem == null)
+            return NotFound(ApiResponse<ReminderBankItemDto>.Fail("لا توجد رسائل متاحة في البنك لهذه الحملة"));
+
+        return Ok(ApiResponse<ReminderBankItemDto>.Succeed(nextItem));
+    }
+
+    #endregion
 }

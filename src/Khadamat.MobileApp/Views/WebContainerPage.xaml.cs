@@ -713,6 +713,24 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
         // Update current URL for refresh functionality
         _currentUrl = e.Url;
 
+        // Execute any deferred deep link / notification navigation that was waiting for WebView to load
+        if (!string.IsNullOrEmpty(Khadamat.MobileApp.Services.DeepLinkBridge.PendingRoute))
+        {
+            var pendingTarget = Khadamat.MobileApp.Services.DeepLinkBridge.PendingRoute;
+            Khadamat.MobileApp.Services.DeepLinkBridge.PendingRoute = null;
+            if (pendingTarget != "/" && pendingTarget != "//")
+            {
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay(500);
+                    await MainThread.InvokeOnMainThreadAsync(async () =>
+                    {
+                        await NavigateToInternalRoute(pendingTarget);
+                    });
+                });
+            }
+        }
+
         // Inject JS to persist nativeapp=1 across session and sync routing
         try
         {

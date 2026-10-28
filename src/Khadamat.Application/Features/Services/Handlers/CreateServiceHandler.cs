@@ -18,6 +18,7 @@ public class CreateServiceHandler : IRequestHandler<Commands.CreateServiceComman
     private readonly IGenericRepository<ProviderSubscription> _subRepository;
     private readonly IGenericRepository<Category> _categoryRepository;
     private readonly IGenericRepository<SubCategory> _subCategoryRepository;
+    private readonly IGenericRepository<ServiceImage> _imageRepository;
 
     public CreateServiceHandler(
         IGenericRepository<Service> serviceRepository,
@@ -26,7 +27,8 @@ public class CreateServiceHandler : IRequestHandler<Commands.CreateServiceComman
         IGenericRepository<SubscriptionPlan> planRepository,
         IGenericRepository<ProviderSubscription> subRepository,
         IGenericRepository<Category> categoryRepository,
-        IGenericRepository<SubCategory> subCategoryRepository)
+        IGenericRepository<SubCategory> subCategoryRepository,
+        IGenericRepository<ServiceImage> imageRepository)
     {
         _serviceRepository = serviceRepository;
         _providerRepository = providerRepository;
@@ -35,6 +37,7 @@ public class CreateServiceHandler : IRequestHandler<Commands.CreateServiceComman
         _subRepository = subRepository;
         _categoryRepository = categoryRepository;
         _subCategoryRepository = subCategoryRepository;
+        _imageRepository = imageRepository;
     }
 
     public async Task<int> Handle(Commands.CreateServiceCommand request, CancellationToken cancellationToken)
@@ -136,6 +139,20 @@ public class CreateServiceHandler : IRequestHandler<Commands.CreateServiceComman
 
         // Persist
         await _serviceRepository.AddAsync(service);
+
+        // Save multiple images
+        if (request.Images != null && request.Images.Any())
+        {
+            int order = 0;
+            foreach (var imgUrl in request.Images.Distinct())
+            {
+                if (!string.IsNullOrWhiteSpace(imgUrl))
+                {
+                    await _imageRepository.AddAsync(new ServiceImage(service.Id, imgUrl, order, order == 0));
+                    order++;
+                }
+            }
+        }
         
         return service.Id;
     }

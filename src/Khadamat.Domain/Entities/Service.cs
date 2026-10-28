@@ -54,6 +54,7 @@ public class Service : BaseEntity
     public virtual ProviderProfile? ProviderProfile { get; private set; }
     public virtual ICollection<Rating> Ratings { get; private set; } = new List<Rating>();
     public virtual ICollection<Like> Likes { get; private set; } = new List<Like>();
+    public virtual ICollection<ServiceImage> Images { get; private set; } = new List<ServiceImage>();
 
     // Constructor for EF Core
     protected Service() { }

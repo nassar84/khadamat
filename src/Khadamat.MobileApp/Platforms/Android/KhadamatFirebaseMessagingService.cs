@@ -92,13 +92,16 @@ public class KhadamatFirebaseMessagingService : FirebaseMessagingService
         mainIntent.SetPackage(PackageName);
         mainIntent.SetAction(Intent.ActionMain);
         mainIntent.AddCategory(Intent.CategoryLauncher);
-        mainIntent.SetFlags(ActivityFlags.NewTask | ActivityFlags.ClearTop | ActivityFlags.SingleTop);
+        mainIntent.SetFlags(ActivityFlags.NewTask | ActivityFlags.SingleTop);
 
-        if (!string.IsNullOrEmpty(actionRoute) && actionRoute != "/" && actionRoute != "//")
-        {
-            mainIntent.PutExtra("action_route", actionRoute);
-        }
         mainIntent.PutExtra("from_push", true);
+        mainIntent.PutExtra("notification_title", title);
+        mainIntent.PutExtra("notification_message", body);
+
+        string effectiveRoute = !string.IsNullOrWhiteSpace(actionRoute) && actionRoute != "/" && actionRoute != "//"
+            ? actionRoute
+            : "notifications";
+        mainIntent.PutExtra("action_route", effectiveRoute);
 
         var notificationId = (int)(DateTime.UtcNow.Ticks & 0x7FFFFFFF);
 

@@ -15,17 +15,20 @@ public class UpdateServiceHandler : IRequestHandler<Commands.UpdateServiceComman
     private readonly IGenericRepository<ProviderProfile> _providerRepository;
     private readonly IGenericRepository<Category> _categoryRepository;
     private readonly IGenericRepository<SubCategory> _subCategoryRepository;
+    private readonly IGenericRepository<ServiceImage> _imageRepository;
 
     public UpdateServiceHandler(
         IGenericRepository<Service> serviceRepository,
         IGenericRepository<ProviderProfile> providerRepository,
         IGenericRepository<Category> categoryRepository,
-        IGenericRepository<SubCategory> subCategoryRepository)
+        IGenericRepository<SubCategory> subCategoryRepository,
+        IGenericRepository<ServiceImage> imageRepository)
     {
         _serviceRepository = serviceRepository;
         _providerRepository = providerRepository;
         _categoryRepository = categoryRepository;
         _subCategoryRepository = subCategoryRepository;
+        _imageRepository = imageRepository;
     }
 
     public async Task<bool> Handle(Commands.UpdateServiceCommand request, CancellationToken cancellationToken)
@@ -72,10 +75,41 @@ public class UpdateServiceHandler : IRequestHandler<Commands.UpdateServiceComman
         // Update location
         service.UpdateLocation(request.CityId);
         
-        // Update images (simplified: replace with new list)
-        if (request.Images != null && request.Images.Any())
+        // Update images
+        if (request.Images != null)
         {
-            service.SetImage(request.Images.First());
+            if (request.Images.Any())
+            {
+                service.SetImage(request.Images.First());
+            }
+            else
+            {
+                service.SetImage(null);
+            }
+
+            // Sync ServiceImage collection
+            try
+            {
+                var existingImages = await _imageRepository.GetPagedAsync(1, 100, filter: img => img.ServiceId == service.Id);
+                foreach (var img in existingImages)
+                {
+                    await _imageRepository.DeleteAsync(img);
+                }
+
+                int order = 0;
+                foreach (var imgUrl in request.Images.Distinct())
+                {
+                    if (!string.IsNullOrWhiteSpace(imgUrl))
+                    {
+                        await _imageRepository.AddAsync(new ServiceImage(service.Id, imgUrl, order, order == 0));
+                        order++;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[UpdateServiceHandler] Error syncing service images: {ex.Message}");
+            }
         }
 
         await _serviceRepository.UpdateAsync(service);

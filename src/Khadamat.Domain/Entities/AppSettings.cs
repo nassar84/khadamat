@@ -9,7 +9,7 @@ public class AppSettings : BaseEntity
     public string? LogoUrl { get; set; } = "";
     
     // APK Settings
-    public string? ApkFilename { get; set; } = "Khadamawy.apk";
+    public string? ApkFilename { get; set; } = "خدماوى | Khadamawy.apk";
     public string? ApkIconUrl { get; set; } = "";
 
     public string PrimaryColor { get; set; } = "#2563eb";
@@ -41,6 +41,7 @@ public class AppSettings : BaseEntity
     public bool AllowUserRegistration { get; set; } = true;
     public bool RequireEmailVerification { get; set; } = false;
     public int MaxServicesPerProvider { get; set; } = 10;
+    public int MaxServiceImages { get; set; } = 3; // الحد الأقصى لصور الخدمة
     public bool EnableReviewAutoApproval { get; set; } = true;
     public bool EnableTesterTracking { get; set; } = true;
 
