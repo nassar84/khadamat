@@ -33,6 +33,37 @@ public static class KhadamatDbContextSeed
                     IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('AppSettings') AND name = 'EnableTesterTracking')
                         ALTER TABLE AppSettings ADD EnableTesterTracking BIT NOT NULL CONSTRAINT DF_AppSettings_EnableTesterTracking DEFAULT 1;
 
+                    IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'ServiceImages')
+                    BEGIN
+                        CREATE TABLE ServiceImages (
+                            Id INT IDENTITY(1,1) PRIMARY KEY,
+                            ServiceId INT NOT NULL,
+                            ImageUrl NVARCHAR(MAX) NOT NULL,
+                            DisplayOrder INT NOT NULL DEFAULT 0,
+                            IsMain BIT NOT NULL DEFAULT 0,
+                            CreatedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+                            CreatedBy NVARCHAR(MAX) NULL,
+                            UpdatedAt DATETIME2 NULL,
+                            UpdatedBy NVARCHAR(MAX) NULL,
+                            IsDeleted BIT NOT NULL DEFAULT 0,
+                            DeletedAt DATETIME2 NULL,
+                            DeletedBy NVARCHAR(MAX) NULL,
+                            CONSTRAINT FK_ServiceImages_Services_ServiceId FOREIGN KEY (ServiceId) REFERENCES Services(Id) ON DELETE CASCADE
+                        );
+                        CREATE INDEX IX_ServiceImages_ServiceId ON ServiceImages(ServiceId);
+                    END
+                    ELSE
+                    BEGIN
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('ServiceImages') AND name = 'CreatedBy')
+                            ALTER TABLE ServiceImages ADD CreatedBy NVARCHAR(MAX) NULL;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('ServiceImages') AND name = 'UpdatedBy')
+                            ALTER TABLE ServiceImages ADD UpdatedBy NVARCHAR(MAX) NULL;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('ServiceImages') AND name = 'DeletedAt')
+                            ALTER TABLE ServiceImages ADD DeletedAt DATETIME2 NULL;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('ServiceImages') AND name = 'DeletedBy')
+                            ALTER TABLE ServiceImages ADD DeletedBy NVARCHAR(MAX) NULL;
+                    END
+
                     IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'ReminderCampaigns')
                     BEGIN
                         CREATE TABLE ReminderCampaigns (

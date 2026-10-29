@@ -22,6 +22,21 @@
             <Khadamat.BlazorUI.Shared.SkeletonLoader Type="service-details" Count="1" />
         </div>
     }
+    else if (service == null)
+    {
+        <div class="container py-5 text-center">
+            <div class="glass-card p-5 mx-auto rounded-4 shadow-sm animate-pop" style="max-width: 550px;">
+                <i class="fa-solid fa-circle-exclamation fa-4x text-danger mb-3 opacity-75"></i>
+                <h3 class="fw-bold mb-3 text-dark">الخدمة غير متوفرة</h3>
+                <p class="text-muted mb-4 lead fs-6">
+                    عذراً، لم نتمكن من العثور على بيانات هذه الخدمة أو قد تكون محذوفة.
+                </p>
+                <button class="btn btn-primary-premium rounded-pill px-4" @onclick="GoBack">
+                    <i class="fa-solid fa-arrow-right me-2"></i> العودة للخدمات
+                </button>
+            </div>
+        </div>
+    }
     else if (!service.IsProviderSubscriptionActive && !CanEdit)
     {
         <div class="container py-5 text-center">
