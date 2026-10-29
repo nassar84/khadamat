@@ -145,10 +145,11 @@
                 </AuthorizeView>
                 
                 <div class="mt-auto"></div>
-                 <NavLink class="nav-link text-primary" href="/" @onclick="CloseSidebar">
-                    <i class="fas fa-home"></i> 
-                    <span class="nav-text">العودة للموقع</span>
-                </NavLink>
+                <div class="sidebar-footer-divider"></div>
+                <a class="nav-link nav-home-link" href="/">
+                    <i class="fas fa-globe"></i> 
+                    <span class="nav-text">الموقع الرئيسي</span>
+                </a>
                  <button class="nav-link btn-logout" @onclick="HandleLogout">
                     <i class="fas fa-sign-out-alt"></i> 
                     <span class="nav-text">تسجيل الخروج</span>
@@ -351,12 +352,46 @@
         transform: scale(1.1);
     }
 
+    /* Nav Group Labels */
+    .nav-group-label {
+        font-size: 0.7rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        opacity: 0.55;
+        padding: 6px 14px 2px 14px !important;
+        border-top: 1px solid rgba(0,0,0,0.06);
+        margin-top: 8px !important;
+    }
+
+    /* Footer divider */
+    .sidebar-footer-divider {
+        border-top: 1px solid rgba(0,0,0,0.08);
+        margin: 10px 0 6px 0;
+    }
+
+    /* Home link - always visible, never white on hover */
+    .nav-home-link {
+        color: #4f46e5 !important;
+        background: rgba(79, 70, 229, 0.07) !important;
+        border: 1px solid rgba(79, 70, 229, 0.15) !important;
+    }
+    .nav-home-link:hover, .nav-home-link:focus {
+        color: #fff !important;
+        background: #4f46e5 !important;
+        border-color: #4f46e5 !important;
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3) !important;
+        transform: translateX(-5px) !important;
+    }
+    .nav-home-link i {
+        color: inherit !important;
+    }
+
     .btn-logout {
         background: none;
         border: none;
         width: 100%;
         cursor: pointer;
-        margin-top: 15px;
+        margin-top: 4px;
         color: #ef4444;
     }
     
