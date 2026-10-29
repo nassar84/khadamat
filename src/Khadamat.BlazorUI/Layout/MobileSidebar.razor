@@ -74,6 +74,10 @@
                                 <i class="fa-solid fa-users text-primary"></i>
                                 <span>إدارة المستخدمين</span>
                             </div>
+                            <div class="menu-item @GetActiveClass("admin/subscriptions")" @onclick='() => NavigateTo("/admin/subscriptions")'>
+                                <i class="fa-solid fa-crown text-warning"></i>
+                                <span>إدارة الاشتراكات والباقات</span>
+                            </div>
                             <div class="menu-item @GetActiveClass("admin/reminders")" @onclick='() => NavigateTo("/admin/reminders")'>
                                 <i class="fa-solid fa-bell text-primary"></i>
                                 <span>إدارة التذكيرات</span>
