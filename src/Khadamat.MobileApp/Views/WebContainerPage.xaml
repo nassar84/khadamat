@@ -27,25 +27,91 @@
             </VerticalStackLayout>
         </Grid>
 
-        <!-- ═══ Offline Overlay (spans both rows) ═══ -->
+        <!-- ═══ Offline Overlay (مهندمة وعملية) ═══ -->
         <Grid Grid.RowSpan="2"
               x:Name="OfflineOverlay"
-              BackgroundColor="White"
-              IsVisible="False">
-            <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="20">
-                <Label Text="📶" FontSize="60" HorizontalOptions="Center">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="ChangeUrl_Tapped" />
-                    </Label.GestureRecognizers>
-                </Label>
-                <Label Text="No Internet Connection" FontSize="20" FontAttributes="Bold"
-                       HorizontalOptions="Center" TextColor="Black" />
-                <Label Text="Please check your connection and try again."
-                       FontSize="14" HorizontalOptions="Center" TextColor="Gray" />
-                <Button Text="Retry" Clicked="RetryButton_Clicked"
-                        BackgroundColor="#0f172a" TextColor="White"
-                        CornerRadius="8" WidthRequest="200" />
-            </VerticalStackLayout>
+              BackgroundColor="#F8FAFC"
+              IsVisible="False"
+              Padding="24">
+            <Border BackgroundColor="White"
+                    Stroke="#E2E8F0"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 24"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center"
+                    MaximumWidthRequest="380"
+                    Padding="24">
+                <Border.Shadow>
+                    <Shadow Brush="#64748B" Offset="0,6" Radius="16" Opacity="0.08" />
+                </Border.Shadow>
+
+                <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="16">
+                    <!-- Icon Container -->
+                    <Border BackgroundColor="#EEF2FF"
+                            Stroke="#E0E7FF"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 35"
+                            HeightRequest="70"
+                            WidthRequest="70"
+                            HorizontalOptions="Center">
+                        <Label Text="📡"
+                               FontSize="32"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="ChangeUrl_Tapped" />
+                            </Label.GestureRecognizers>
+                        </Label>
+                    </Border>
+
+                    <!-- Title -->
+                    <Label Text="لا يوجد اتصال بالإنترنت"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center"
+                           TextColor="#1E293B" />
+
+                    <!-- Subtitle -->
+                    <Label Text="تعذر الاتصال بخدمات التطبيق. يرجى تفقد اتصال هاتفك بشبكة الإنترنت وتفعيل الواي فاي أو بيانات الهاتف."
+                           FontSize="13"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center"
+                           TextColor="#64748B"
+                           LineHeight="1.4" />
+
+                    <!-- Practical Tips Box -->
+                    <Border BackgroundColor="#F8FAFC"
+                            Stroke="#E2E8F0"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 12"
+                            Padding="12,10"
+                            HorizontalOptions="Fill">
+                        <VerticalStackLayout Spacing="6">
+                            <HorizontalStackLayout Spacing="8">
+                                <Label Text="✔" TextColor="#10B981" FontSize="11" VerticalOptions="Center" />
+                                <Label Text="تأكد من تفعيل الواي فاي (Wi-Fi) أو بيانات الجوال" FontSize="12" TextColor="#475569" VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                            <HorizontalStackLayout Spacing="8">
+                                <Label Text="✔" TextColor="#10B981" FontSize="11" VerticalOptions="Center" />
+                                <Label Text="تأكد من إيقاف تشغيل وضع الطيران" FontSize="12" TextColor="#475569" VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Retry Button -->
+                    <Button x:Name="RetryBtn"
+                            Text="إعادة المحاولة ↻"
+                            Clicked="RetryButton_Clicked"
+                            BackgroundColor="#4F46E5"
+                            TextColor="White"
+                            FontAttributes="Bold"
+                            FontSize="14"
+                            CornerRadius="24"
+                            HeightRequest="46"
+                            HorizontalOptions="Fill" />
+                </VerticalStackLayout>
+            </Border>
         </Grid>
 
         <!-- ═══ Custom Bottom Nav Bar ═══ -->

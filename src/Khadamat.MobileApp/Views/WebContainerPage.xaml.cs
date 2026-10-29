@@ -52,8 +52,24 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
         try
         {
             MainWebView.UserAgent = (MainWebView.UserAgent ?? "") + " KhadamatNativeApp/1.2";
+            Connectivity.Current.ConnectivityChanged += Current_ConnectivityChanged;
         }
         catch { }
+    }
+
+    private void Current_ConnectivityChanged(object? sender, ConnectivityChangedEventArgs e)
+    {
+        if (e.NetworkAccess == NetworkAccess.Internet)
+        {
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                if (OfflineOverlay != null && OfflineOverlay.IsVisible)
+                {
+                    ShowOfflineState(false);
+                    LoadContent(true);
+                }
+            });
+        }
     }
 
     private string? _currentUrl;
@@ -256,13 +272,39 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
 
     private async void RetryButton_Clicked(object sender, EventArgs e)
     {
+        if (RetryBtn != null)
+        {
+            RetryBtn.IsEnabled = false;
+            RetryBtn.Text = "جاري التحقق من الاتصال...";
+        }
+
+        await Task.Delay(400);
+
         if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
         {
-            await KhadamatDialogHelper.ShowAlertAsync("لا يوجد اتصال بالإنترنت", "برجاء التأكد من اتصالك بالإنترنت والمحاولة مرة أخرى.", "حسنًا", MobileDialogType.Warning, this);
+            if (RetryBtn != null)
+            {
+                RetryBtn.IsEnabled = true;
+                RetryBtn.Text = "إعادة المحاولة ↻";
+            }
+
+            await KhadamatDialogHelper.ShowAlertAsync(
+                "لا يوجد اتصال بالإنترنت",
+                "تعذر الاتصال بالخادم. يرجى تفعيل الواي فاي أو بيانات الهاتف والتأكد من توفر الإنترنت ثم المحاولة مجدداً.",
+                "حسنًا",
+                MobileDialogType.Warning,
+                this);
             return;
         }
-        
+
+        ShowOfflineState(false);
         LoadContent(true);
+
+        if (RetryBtn != null)
+        {
+            RetryBtn.IsEnabled = true;
+            RetryBtn.Text = "إعادة المحاولة ↻";
+        }
     }
 
     private async void ChangeUrl_Tapped(object sender, EventArgs e)
@@ -691,22 +733,7 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
         if (e.Result != WebNavigationResult.Success)
         {
             Console.WriteLine($"ANTIGRAVITY_LOG: WebView Navigation Failed. Result: {e.Result}, Url: {e.Url}");
-            
-            bool runDiag = await KhadamatDialogHelper.ShowConfirmAsync("خطأ في تحميل الصفحة", 
-                $"فشل التطبيق في تحميل واجهة الموقع ({e.Result}). هل تريد تشغيل أداة تشخيص الاتصال بالخادم لمعرفة السبب؟", 
-                "تشغيل التشخيص", "إلغاء", MobileDialogType.Warning, this);
-                
-            if (runDiag)
-            {
-                string baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "");
-                string apiBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("ApiBaseUrl", "");
-                await RunWebViewDiagnosticsAsync(baseUrl, apiBaseUrl);
-            }
-
-            if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
-            {
-                ShowOfflineState(true);
-            }
+            ShowOfflineState(true);
             return;
         }
 
