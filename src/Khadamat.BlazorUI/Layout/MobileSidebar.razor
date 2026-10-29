@@ -59,36 +59,56 @@
                                 <span class="fw-bold">لوحة المدير</span>
                             </div>
                             <div class="menu-item @GetActiveClass("admin/approvals")" style="background: rgba(245, 158, 11, 0.1);" @onclick='() => NavigateTo("/admin/approvals")'>
-                                <i class="fa-solid fa-shield-halved text-warning"></i>
+                                <i class="fa-solid fa-stamp text-warning"></i>
                                 <span class="fw-bold">مركز الموافقات ⚡</span>
                                 @if (State.PendingApprovalsCount > 0)
                                 {
                                     <span class="badge rounded-pill bg-danger ms-auto px-2 py-1">@State.PendingApprovalsCount</span>
                                 }
                             </div>
-                            <div class="menu-item @GetActiveClass("admin/ads")" @onclick='() => NavigateTo("/admin/ads")'>
-                                <i class="fa-solid fa-rectangle-ad text-primary"></i>
-                                <span>إدارة الإعلانات</span>
+                            <div class="menu-item @GetActiveClass("admin/services")" @onclick='() => NavigateTo("/admin/services")'>
+                                <i class="fa-solid fa-briefcase text-primary"></i>
+                                <span>إدارة الخدمات</span>
                             </div>
                             <div class="menu-item @GetActiveClass("admin/users")" @onclick='() => NavigateTo("/admin/users")'>
                                 <i class="fa-solid fa-users text-primary"></i>
-                                <span>إدارة المستخدمين</span>
+                                <span>إدارة المستخدمين والمزودين</span>
                             </div>
                             <div class="menu-item @GetActiveClass("admin/subscriptions")" @onclick='() => NavigateTo("/admin/subscriptions")'>
                                 <i class="fa-solid fa-crown text-warning"></i>
                                 <span>إدارة الاشتراكات والباقات</span>
                             </div>
+                            <div class="menu-item @GetActiveClass("admin/send-notification")" @onclick='() => NavigateTo("/admin/send-notification")'>
+                                <i class="fa-solid fa-paper-plane text-success"></i>
+                                <span>إرسال التنبيهات</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("admin/complaints")" @onclick='() => NavigateTo("/admin/complaints")'>
+                                <i class="fa-solid fa-headset text-danger"></i>
+                                <span>الشكاوى والبلاغات</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("admin/moderation")" @onclick='() => NavigateTo("/admin/moderation")'>
+                                <i class="fa-solid fa-shield-halved text-primary"></i>
+                                <span>مراقبة المحتوى</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("admin/marketplace")" @onclick='() => NavigateTo("/admin/marketplace")'>
+                                <i class="fa-solid fa-store text-info"></i>
+                                <span>سوق الحراج والمستلزمات</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("admin/ads")" @onclick='() => NavigateTo("/admin/ads")'>
+                                <i class="fa-solid fa-rectangle-ad text-primary"></i>
+                                <span>إدارة الإعلانات</span>
+                            </div>
+                            <div class="menu-item @GetActiveClass("admin/ad-packages")" @onclick='() => NavigateTo("/admin/ad-packages")'>
+                                <i class="fa-solid fa-box-open text-warning"></i>
+                                <span>باقات الإعلانات</span>
+                            </div>
                             <div class="menu-item @GetActiveClass("admin/reminders")" @onclick='() => NavigateTo("/admin/reminders")'>
                                 <i class="fa-solid fa-bell text-primary"></i>
                                 <span>إدارة التذكيرات</span>
                             </div>
-                            <div class="menu-item @GetActiveClass("admin/send-notification")" @onclick='() => NavigateTo("/admin/send-notification")'>
-                                <i class="fa-solid fa-paper-plane text-primary"></i>
-                                <span>إرسال التنبيهات</span>
-                            </div>
-                            <div class="menu-item @GetActiveClass("admin/services")" @onclick='() => NavigateTo("/admin/services")'>
-                                <i class="fa-solid fa-briefcase text-primary"></i>
-                                <span>إدارة الخدمات</span>
+                            <div class="menu-item @GetActiveClass("admin/testers")" @onclick='() => NavigateTo("/admin/testers")'>
+                                <i class="fab fa-google-play text-primary"></i>
+                                <span>مختبرو Google Play</span>
                             </div>
                             <div class="menu-item @GetActiveClass("admin/categories")" @onclick='() => NavigateTo("/admin/categories")'>
                                 <i class="fa-solid fa-th-large text-primary"></i>
@@ -98,27 +118,23 @@
                                 <i class="fa-solid fa-map-marker-alt text-primary"></i>
                                 <span>المناطق والمحافظات</span>
                             </div>
-                            <div class="menu-item @GetActiveClass("admin/complaints")" @onclick='() => NavigateTo("/admin/complaints")'>
-                                <i class="fa-solid fa-headset text-danger"></i>
-                                <span>الشكاوى والبلاغات</span>
-                            </div>
                             <div class="menu-item @GetActiveClass("admin/reports")" @onclick='() => NavigateTo("/admin/reports")'>
                                 <i class="fa-solid fa-file-alt text-primary"></i>
                                 <span>التقارير والإحصائيات</span>
                             </div>
-                            <div class="menu-item @GetActiveClass("admin/settings")" @onclick='() => NavigateTo("/admin/settings")'>
-                                <i class="fa-solid fa-cogs text-primary"></i>
-                                <span>إعدادات لوحة التحكم</span>
-                            </div>
                             @if (_isSuperAdmin)
                             {
+                                <div class="menu-item @GetActiveClass("admin/logs")" style="background: rgba(var(--theme-primary-rgb), 0.08);" @onclick='() => NavigateTo("/admin/logs")'>
+                                    <i class="fa-solid fa-clock-rotate-left text-primary"></i>
+                                    <span>سجلات النشاط والأمان</span>
+                                </div>
+                                <div class="menu-item @GetActiveClass("admin/branding")" style="background: rgba(var(--theme-primary-rgb), 0.08);" @onclick='() => NavigateTo("/admin/branding")'>
+                                    <i class="fa-solid fa-palette text-primary"></i>
+                                    <span>الهوية والمظهر</span>
+                                </div>
                                 <div class="menu-item @GetActiveClass("admin/systemsettings")" style="background: rgba(var(--theme-primary-rgb), 0.08);" @onclick='() => NavigateTo("/admin/systemsettings")'>
                                     <i class="fa-solid fa-gears text-primary"></i>
                                     <span>إعدادات الموقع والتطبيق</span>
-                                </div>
-                                <div class="menu-item @GetActiveClass("admin/auditlogs")" style="background: rgba(var(--theme-primary-rgb), 0.08);" @onclick='() => NavigateTo("/admin/auditlogs")'>
-                                    <i class="fa-solid fa-shield-halved text-primary"></i>
-                                    <span>سجلات النشاط والأمان</span>
                                 </div>
                             }
                         </div>

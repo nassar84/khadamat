@@ -55,19 +55,51 @@
                 </NavLink>
 
                 <!-- Management Group -->
-                <div class="nav-group-label text-muted x-small fw-bold mt-3 mb-2 px-3">الإدارة</div>
+                <div class="nav-group-label text-muted x-small fw-bold mt-3 mb-2 px-3">الإدارة اليومية</div>
                 
+                <NavLink class="nav-link" href="/admin/approvals" @onclick="CloseSidebar">
+                    <i class="fas fa-stamp text-warning"></i> 
+                    <span class="nav-text">مركز الموافقات</span>
+                    @if (State.PendingApprovalsCount > 0)
+                    {
+                        <span class="badge rounded-pill bg-danger ms-auto px-2 py-1" style="font-size: 0.72rem;">@State.PendingApprovalsCount</span>
+                    }
+                </NavLink>
+                <NavLink class="nav-link" href="/admin/services" @onclick="CloseSidebar">
+                    <i class="fas fa-briefcase"></i> 
+                    <span class="nav-text">إدارة الخدمات</span>
+                </NavLink>
                 <NavLink class="nav-link" href="/admin/users" @onclick="CloseSidebar">
                     <i class="fas fa-users"></i> 
-                    <span class="nav-text">المستخدمين</span>
+                    <span class="nav-text">المستخدمين والمزودين</span>
                 </NavLink>
                 <NavLink class="nav-link" href="/admin/subscriptions" @onclick="CloseSidebar">
                     <i class="fas fa-crown text-warning"></i> 
                     <span class="nav-text">إدارة الاشتراكات والباقات</span>
                 </NavLink>
+                <NavLink class="nav-link" href="/admin/send-notification" @onclick="CloseSidebar">
+                    <i class="fas fa-paper-plane text-success"></i> 
+                    <span class="nav-text">إرسال التنبيهات</span>
+                </NavLink>
+                <NavLink class="nav-link" href="/admin/complaints" @onclick="CloseSidebar">
+                    <i class="fas fa-headset text-danger"></i> 
+                    <span class="nav-text">الشكاوى والبلاغات</span>
+                </NavLink>
+                <NavLink class="nav-link" href="/admin/moderation" @onclick="CloseSidebar">
+                    <i class="fas fa-shield-halved text-primary"></i> 
+                    <span class="nav-text">مراقبة المحتوى</span>
+                </NavLink>
+                <NavLink class="nav-link" href="/admin/marketplace" @onclick="CloseSidebar">
+                    <i class="fas fa-store"></i> 
+                    <span class="nav-text">سوق الحراج والمستلزمات</span>
+                </NavLink>
                 <NavLink class="nav-link" href="/admin/ads" @onclick="CloseSidebar">
                     <i class="fas fa-rectangle-ad"></i> 
                     <span class="nav-text">إدارة الإعلانات</span>
+                </NavLink>
+                <NavLink class="nav-link" href="/admin/ad-packages" @onclick="CloseSidebar">
+                    <i class="fas fa-box-open"></i> 
+                    <span class="nav-text">باقات الإعلانات</span>
                 </NavLink>
                 <NavLink class="nav-link" href="/admin/reminders" @onclick="CloseSidebar">
                     <i class="fas fa-bell"></i> 
@@ -77,58 +109,42 @@
                     <i class="fab fa-google-play text-primary"></i> 
                     <span class="nav-text">مختبرو Google Play</span>
                 </NavLink>
-                <NavLink class="nav-link" href="/admin/send-notification" @onclick="CloseSidebar">
-                    <i class="fas fa-paper-plane"></i> 
-                    <span class="nav-text">إرسال التنبيهات</span>
-                </NavLink>
-                 <NavLink class="nav-link" href="/admin/approvals" @onclick="CloseSidebar">
-                    <i class="fas fa-stamp text-warning"></i> 
-                    <span class="nav-text">مركز الموافقات</span>
-                    @if (State.PendingApprovalsCount > 0)
-                    {
-                        <span class="badge rounded-pill bg-danger ms-auto px-2 py-1" style="font-size: 0.72rem;">@State.PendingApprovalsCount</span>
-                    }
-                </NavLink>
 
-                <!-- Services Group -->
-                <div class="nav-group-label text-muted x-small fw-bold mt-3 mb-2 px-3">الخدمات</div>
+                <!-- Structure & Data Group -->
+                <div class="nav-group-label text-muted x-small fw-bold mt-3 mb-2 px-3">البيانات والهيكل</div>
                 
-                 <NavLink class="nav-link" href="/admin/services" @onclick="CloseSidebar">
-                    <i class="fas fa-briefcase"></i> 
-                    <span class="nav-text">إدارة الخدمات</span>
-                </NavLink>
-                 <NavLink class="nav-link" href="/admin/categories" @onclick="CloseSidebar">
+                <NavLink class="nav-link" href="/admin/categories" @onclick="CloseSidebar">
                     <i class="fas fa-th-large"></i> 
-                    <span class="nav-text">التصنيفات</span>
+                    <span class="nav-text">التصنيفات والأقسام</span>
                 </NavLink>
-                 <NavLink class="nav-link" href="/admin/locations" @onclick="CloseSidebar">
+                <NavLink class="nav-link" href="/admin/locations" @onclick="CloseSidebar">
                     <i class="fas fa-map-marker-alt"></i> 
-                    <span class="nav-text">المناطق</span>
+                    <span class="nav-text">المناطق والمحافظات</span>
+                </NavLink>
+                <NavLink class="nav-link" href="/admin/reports" @onclick="CloseSidebar">
+                    <i class="fas fa-file-alt"></i> 
+                    <span class="nav-text">التقارير والإحصائيات</span>
+                </NavLink>
+                <NavLink class="nav-link" href="/admin/logs" @onclick="CloseSidebar">
+                    <i class="fas fa-history"></i> 
+                    <span class="nav-text">سجل العمليات والنشاط</span>
                 </NavLink>
 
                 <!-- System Group (SuperAdmin Only) -->
                 <AuthorizeView Roles="SuperAdmin">
-                    <div class="nav-group-label text-muted x-small fw-bold mt-3 mb-2 px-3">النظام</div>
+                    <div class="nav-group-label text-muted x-small fw-bold mt-3 mb-2 px-3">النظام والإعدادات</div>
                     
-                     <NavLink class="nav-link" href="/admin/complaints" @onclick="CloseSidebar">
-                        <i class="fas fa-headset"></i> 
-                        <span class="nav-text">الشكاوى</span>
+                    <NavLink class="nav-link" href="/admin/branding" @onclick="CloseSidebar">
+                        <i class="fas fa-palette"></i> 
+                        <span class="nav-text">الهوية والمظهر</span>
                     </NavLink>
-                     <NavLink class="nav-link" href="/admin/reports" @onclick="CloseSidebar">
-                        <i class="fas fa-file-alt"></i> 
-                        <span class="nav-text">التقارير</span>
-                    </NavLink>
-                     <NavLink class="nav-link" href="/admin/logs" @onclick="CloseSidebar">
-                        <i class="fas fa-history"></i> 
-                        <span class="nav-text">سجل النشاط</span>
-                    </NavLink>
-                     <NavLink class="nav-link" href="/admin/settings" @onclick="CloseSidebar">
+                    <NavLink class="nav-link" href="/admin/systemsettings" @onclick="CloseSidebar">
                         <i class="fas fa-cogs"></i> 
-                        <span class="nav-text">الإعدادات</span>
+                        <span class="nav-text">إعدادات النظام العامة</span>
                     </NavLink>
                 </AuthorizeView>
                 
-                 <div class="mt-auto"></div>
+                <div class="mt-auto"></div>
                  <NavLink class="nav-link text-primary" href="/" @onclick="CloseSidebar">
                     <i class="fas fa-home"></i> 
                     <span class="nav-text">العودة للموقع</span>

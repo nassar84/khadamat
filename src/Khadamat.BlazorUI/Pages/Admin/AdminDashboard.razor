@@ -10,14 +10,19 @@
 @inject ApiClient Api
 
 <div class="px-3 pt-3 pb-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <!-- Top Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <h3 class="fw-bold mb-0 gradient-text">مركز الإدارة</h3>
-            <p class="text-muted small">مرحباً بك مجدداً، إليك نظرة شاملة على حالة النظام</p>
+            <h3 class="fw-bold mb-0 gradient-text">مركز الإدارة والتحكم</h3>
+            <p class="text-muted small mb-0">مرحباً بك مجدداً، إليك نظرة شاملة على حالة النظام وروابط التحكم السريع</p>
         </div>
         <div class="d-flex gap-2">
-            <button class="btn btn-icon-glass shadow-sm"><i class="fa-solid fa-bell"></i></button>
-            <button class="btn btn-icon-glass shadow-sm"><i class="fa-solid fa-gear"></i></button>
+            <button class="btn btn-icon-glass shadow-sm" title="إرسال تنبيه فوري" @onclick='() => Navigation.NavigateTo("/admin/send-notification")'>
+                <i class="fa-solid fa-paper-plane text-success"></i>
+            </button>
+            <button class="btn btn-icon-glass shadow-sm" title="إعدادات النظام" @onclick='() => Navigation.NavigateTo("/admin/systemsettings")'>
+                <i class="fa-solid fa-gear text-primary"></i>
+            </button>
         </div>
     </div>
 
@@ -81,174 +86,125 @@
         </div>
     </div>
 
-    <!-- Floating Action Alert -->
-    <div class="glass-card status-alert p-3 mb-4 d-flex align-items-center justify-content-between overflow-hidden position-relative">
-        <div class="d-flex align-items-center z-1">
-            <div class="alert-icon-box bg-warning text-white me-3">
-                <i class="fa-solid fa-bullhorn animate-tada"></i>
+    <!-- Floating Action Alert (Review Requests) -->
+    @if (pendingCount > 0)
+    {
+        <div class="glass-card status-alert p-3 mb-4 d-flex align-items-center justify-content-between overflow-hidden position-relative">
+            <div class="d-flex align-items-center z-1 flex-wrap gap-2">
+                <div class="alert-icon-box bg-warning text-white me-3">
+                    <i class="fa-solid fa-bell animate-tada"></i>
+                </div>
+                <div>
+                    <div class="fw-bold">طلبات مراجعة واعتماد بانتظارك (@pendingCount طلب)</div>
+                    <div class="small opacity-75 d-flex gap-2 flex-wrap mt-1">
+                        @if (pendingProvidersCount > 0)
+                        {
+                            <span class="badge bg-warning text-dark"><i class="fa-solid fa-user-clock me-1"></i> @pendingProvidersCount مزود</span>
+                        }
+                        @if (pendingServicesCount > 0)
+                        {
+                            <span class="badge bg-info text-white"><i class="fa-solid fa-file-circle-check me-1"></i> @pendingServicesCount خدمة</span>
+                        }
+                        @if (pendingEditRequestsCount > 0)
+                        {
+                            <span class="badge bg-secondary text-white"><i class="fa-solid fa-pen me-1"></i> @pendingEditRequestsCount تعديل</span>
+                        }
+                    </div>
+                </div>
             </div>
-            <div>
-                <div class="fw-bold">طلبات مراجعة جديدة</div>
-                <div class="small opacity-75">هناك @pendingCount طلباً جديداً يحتاج لموافقتك</div>
-            </div>
+            <button class="btn btn-warning btn-sm rounded-pill px-4 fw-bold z-1 shadow-sm text-nowrap" @onclick="NavigateToReview">
+                ابدأ المراجعة <i class="fa-solid fa-arrow-left ms-1"></i>
+            </button>
+            <div class="alert-bg-pattern"></div>
         </div>
-        <button class="btn btn-warning btn-sm rounded-pill px-4 fw-bold z-1 shadow-sm" @onclick="NavigateToReview">
-            ابدأ المراجعة
-        </button>
-        <div class="alert-bg-pattern"></div>
-    </div>
+    }
 
     <div class="row g-4 mb-4">
         <!-- Management Modules Grid -->
         <div class="col-12 col-xl-8">
-            <h6 class="fw-bold mb-3 d-flex align-items-center">
-                <i class="fa-solid fa-grip me-2 text-primary"></i> إدارة النظام
-            </h6>
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                <h6 class="fw-bold mb-0 d-flex align-items-center">
+                    <i class="fa-solid fa-grip me-2 text-primary"></i> لوحة التحكم وروابط الإدارة
+                </h6>
+
+                <!-- Live Search Box -->
+                <div class="search-input-wrapper position-relative">
+                    <i class="fa-solid fa-magnifying-glass search-icon text-muted"></i>
+                    <input type="text" class="form-control form-control-sm search-input rounded-pill pe-5 ps-3" 
+                           placeholder="ابحث عن أداة أو رابط..." 
+                           @bind="searchTerm" 
+                           @bind:event="oninput" />
+                    @if (!string.IsNullOrEmpty(searchTerm))
+                    {
+                        <button class="btn btn-link btn-sm clear-search-btn p-0 text-muted" @onclick='() => searchTerm = ""'>
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Category Filter Pills -->
+            <div class="category-pills d-flex gap-2 mb-3 overflow-auto pb-1 text-nowrap">
+                <button class="pill-btn @(selectedCategory == "all" ? "active" : "")" @onclick='() => selectedCategory = "all"'>
+                    <i class="fa-solid fa-border-all me-1"></i> الكل (@Modules.Count)
+                </button>
+                <button class="pill-btn @(selectedCategory == "core" ? "active" : "")" @onclick='() => selectedCategory = "core"'>
+                    <i class="fa-solid fa-bolt me-1 text-warning"></i> العمليات والاعتمادات
+                </button>
+                <button class="pill-btn @(selectedCategory == "comms" ? "active" : "")" @onclick='() => selectedCategory = "comms"'>
+                    <i class="fa-solid fa-headset me-1 text-danger"></i> الدعم والتواصل
+                </button>
+                <button class="pill-btn @(selectedCategory == "marketing" ? "active" : "")" @onclick='() => selectedCategory = "marketing"'>
+                    <i class="fa-solid fa-bullhorn me-1 text-success"></i> التسويق والإعلانات
+                </button>
+                <button class="pill-btn @(selectedCategory == "system" ? "active" : "")" @onclick='() => selectedCategory = "system"'>
+                    <i class="fa-solid fa-sliders me-1 text-primary"></i> النظام والتقارير
+                </button>
+            </div>
+
+            <!-- Cards Grid -->
             <div class="row g-3">
-                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/users")'>
-                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up">
-                        <div class="module-icon bg-light-primary mb-3">
-                            <i class="fa-solid fa-user-gear text-primary"></i>
+                @foreach (var module in FilteredModules)
+                {
+                    <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo(module.Route)'>
+                        <div class="mgmt-module-card p-3 rounded-4 bg-white shadow-sm border animate-up position-relative h-100 d-flex flex-column">
+                            @if (!string.IsNullOrEmpty(module.BadgeText))
+                            {
+                                <span class="position-absolute top-0 end-0 m-2 badge rounded-pill @module.BadgeClass shadow-sm" style="font-size: 0.7rem;">
+                                    @module.BadgeText
+                                </span>
+                            }
+                            <div class="module-icon @module.ColorClass mb-2">
+                                <i class="@module.Icon"></i>
+                            </div>
+                            <div class="module-title fw-bold text-dark">@module.Title</div>
+                            <div class="module-desc text-muted x-small mt-1 flex-grow-1">@module.Description</div>
+                            <div class="module-action-arrow text-primary mt-2 x-small fw-semibold d-flex align-items-center gap-1">
+                                <span>دخول</span>
+                                <i class="fa-solid fa-angle-left"></i>
+                            </div>
                         </div>
-                        <div class="module-title fw-bold">المستخدمين</div>
-                        <div class="module-desc x-small text-muted">إدارة الصلاحيات والأدوار</div>
                     </div>
-                </div>
-                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/categories")'>
-                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up">
-                        <div class="module-icon bg-light-success mb-3">
-                            <i class="fa-solid fa-list-check text-success"></i>
-                        </div>
-                        <div class="module-title fw-bold">التصنيفات</div>
-                        <div class="module-desc x-small text-muted">التنظيم الهيكلي للخدمات</div>
+                }
+
+                @if (!FilteredModules.Any())
+                {
+                    <div class="col-12 text-center py-5">
+                        <div class="text-muted mb-2"><i class="fa-solid fa-magnifying-glass fa-2x opacity-50"></i></div>
+                        <div class="fw-bold">لم يتم العثور على أداة مطابقة</div>
+                        <div class="x-small text-muted">جرب البحث بكلمة أخرى أو اختر تبويب "الكل"</div>
                     </div>
-                </div>
-                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/reports")'>
-                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up">
-                        <div class="module-icon bg-light-danger mb-3">
-                            <i class="fa-solid fa-chart-pie text-danger"></i>
-                        </div>
-                        <div class="module-title fw-bold">التقارير</div>
-                        <div class="module-desc x-small text-muted">إحصائيات وأداء النظام</div>
-                    </div>
-                </div>
-                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/systemsettings")'>
-                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up">
-                        <div class="module-icon bg-light-muted mb-3">
-                            <i class="fa-solid fa-sliders text-muted"></i>
-                        </div>
-                        <div class="module-title fw-bold">الإعدادات</div>
-                        <div class="module-desc x-small text-muted">تكوينات النظام العامة</div>
-                    </div>
-                </div>
-                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/locationsmanagement")'>
-                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up">
-                        <div class="module-icon bg-light-danger mb-3" style="background: rgba(239, 68, 68, 0.1);">
-                            <i class="fa-solid fa-map-location-dot text-danger"></i>
-                        </div>
-                        <div class="module-title fw-bold">المناطق</div>
-                        <div class="module-desc x-small text-muted">المحافظات والمدن</div>
-                    </div>
-                </div>
-                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/approvals?tab=providers")'>
-                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up position-relative">
-                        @if (pendingProvidersCount > 0)
-                        {
-                            <span class="position-absolute top-0 end-0 m-3 badge rounded-pill bg-danger shadow-sm">@pendingProvidersCount جديد</span>
-                        }
-                        <div class="module-icon bg-light-warning mb-3">
-                            <i class="fa-solid fa-user-check text-warning"></i>
-                        </div>
-                        <div class="module-title fw-bold">اعتماد المزودين</div>
-                        <div class="module-desc x-small text-muted">مراجعة وتوثيق المزودين</div>
-                    </div>
-                </div>
-                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/approvals?tab=services")'>
-                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up position-relative">
-                        @if (pendingServicesCount > 0)
-                        {
-                            <span class="position-absolute top-0 end-0 m-3 badge rounded-pill bg-danger shadow-sm">@pendingServicesCount جديد</span>
-                        }
-                        <div class="module-icon bg-light-info mb-3">
-                            <i class="fa-solid fa-clipboard-check text-info"></i>
-                        </div>
-                        <div class="module-title fw-bold">طلبات الخدمات</div>
-                        <div class="module-desc x-small text-muted">مراجعة وقبول الخدمات الجديدة</div>
-                    </div>
-                </div>
-                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/services")'>
-                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up">
-                        <div class="module-icon bg-light-primary mb-3">
-                            <i class="fa-solid fa-briefcase text-primary"></i>
-                        </div>
-                        <div class="module-title fw-bold">الخدمات</div>
-                        <div class="module-desc x-small text-muted">إدارة جميع الخدمات</div>
-                    </div>
-                </div>
-                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/approvals?tab=edits")'>
-                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up">
-                        <div class="module-icon bg-light-warning mb-3">
-                            <i class="fa-solid fa-pen-to-square text-warning"></i>
-                        </div>
-                        <div class="module-title fw-bold">تعديلات الخدمات</div>
-                        <div class="module-desc x-small text-muted">مراجعة اقتراحات المستخدمين</div>
-                    </div>
-                </div>
-                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/complaints")'>
-                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up">
-                        <div class="module-icon bg-light-danger mb-3">
-                            <i class="fa-solid fa-headset text-danger"></i>
-                        </div>
-                        <div class="module-title fw-bold">الشكاوى</div>
-                        <div class="module-desc x-small text-muted">متابعة بلاغات المستخدمين</div>
-                    </div>
-                </div>
-                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/ads")'>
-                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up">
-                        <div class="module-icon mb-3" style="background: rgba(234, 179, 8, 0.12);">
-                            <i class="fa-solid fa-rectangle-ad" style="color: #ca8a04;"></i>
-                        </div>
-                        <div class="module-title fw-bold">الإعلانات</div>
-                        <div class="module-desc x-small text-muted">إدارة الإعلانات والحملات</div>
-                    </div>
-                </div>
-                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/testers")'>
-                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up">
-                        <div class="module-icon mb-3" style="background: rgba(37, 99, 235, 0.12);">
-                            <i class="fa-brands fa-google-play text-primary"></i>
-                        </div>
-                        <div class="module-title fw-bold">مختبرو المتجر</div>
-                        <div class="module-desc x-small text-muted">متابعة اختبار الـ 14 يوماً</div>
-                    </div>
-                </div>
-                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/reminders")'>
-                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up">
-                        <div class="module-icon mb-3" style="background: rgba(99, 102, 241, 0.12);">
-                            <i class="fa-solid fa-bell text-primary"></i>
-                        </div>
-                        <div class="module-title fw-bold">إدارة التذكيرات</div>
-                        <div class="module-desc x-small text-muted">حملات الإشعارات والتذكيرات</div>
-                    </div>
-                </div>
-                <div class="col-6 col-sm-4" @onclick='() => Navigation.NavigateTo("/admin/send-notification")'>
-                    <div class="mgmt-module-card p-4 rounded-4 bg-white shadow-sm border animate-up">
-                        <div class="module-icon mb-3" style="background: rgba(16, 185, 129, 0.12);">
-                            <i class="fa-solid fa-paper-plane text-success"></i>
-                        </div>
-                        <div class="module-title fw-bold">إرسال التنبيهات</div>
-                        <div class="module-desc x-small text-muted">إشعارات فورية للمستخدمين</div>
-                    </div>
-                </div>
+                }
             </div>
         </div>
 
         <!-- Recent Activity Side Panel -->
         <div class="col-12 col-xl-4">
             <h6 class="fw-bold mb-3 d-flex align-items-center">
-                <i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i> النشاط الأخير
+                <i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i> سجل النشاط الأخير
             </h6>
-            <div class="glass-card p-3 h-100">
-                <div class="activity-timeline">
+            <div class="glass-card p-3 h-100 d-flex flex-column">
+                <div class="activity-timeline flex-grow-1">
                     @foreach (var activity in recentActivities)
                     {
                         <div class="activity-item d-flex gap-3 mb-3 border-bottom pb-2">
@@ -262,7 +218,9 @@
                         </div>
                     }
                 </div>
-                <button class="btn btn-link w-100 text-decoration-none x-small fw-bold">مشاهدة جميع السجلات</button>
+                <button class="btn btn-outline-primary btn-sm rounded-pill w-100 x-small fw-bold mt-3" @onclick='() => Navigation.NavigateTo("/admin/logs")'>
+                    مشاهدة جميع السجلات <i class="fa-solid fa-arrow-left ms-1"></i>
+                </button>
             </div>
         </div>
     </div>
@@ -270,78 +228,137 @@
 
 <style>
     .gradient-text {
-        background: linear-gradient(135deg, var(--primary), #4f46e5);
+        background: linear-gradient(135deg, var(--primary, #4f46e5), #06b6d4);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
 
-    @@media (max-width: 767px) {
-        .mgmt-module-card {
-            padding: 0.85rem !important;
-            border-radius: 12px !important;
-            margin-bottom: 5px !important;
-        }
-        .module-icon {
-            width: 36px !important; height: 36px !important;
-            font-size: 1rem !important;
-            margin-bottom: 0.4rem !important;
-        }
-        .module-title { font-size: 0.75rem !important; font-weight: 800 !important; }
-        .module-desc { display: none !important; } /* Hide description on mobile to save space */
-        
-        .row.g-3, .row.g-4 { --bs-gutter-x: 0.5rem; --bs-gutter-y: 0.5rem; }
-        .px-3 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+    /* Search Bar */
+    .search-input-wrapper {
+        min-width: 220px;
+    }
+    .search-input {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        font-size: 0.8rem;
+        height: 34px;
+        transition: all 0.2s;
+    }
+    .search-input:focus {
+        background: #fff;
+        border-color: var(--primary, #4f46e5);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    }
+    .search-icon {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.8rem;
+        pointer-events: none;
+    }
+    .clear-search-btn {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        line-height: 1;
+    }
+
+    /* Category Filter Pills */
+    .pill-btn {
+        background: #f1f5f9;
+        border: 1px solid transparent;
+        color: #475569;
+        font-size: 0.78rem;
+        font-weight: 600;
+        padding: 0.35rem 0.85rem;
+        border-radius: 9999px;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+    .pill-btn:hover {
+        background: #e2e8f0;
+        color: #1e293b;
+    }
+    .pill-btn.active {
+        background: var(--primary, #4f46e5);
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
     }
 
     .btn-icon-glass {
         width: 42px; height: 42px;
         border-radius: 12px;
-        background: rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.85);
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(0,0,0,0.05);
+        border: 1px solid rgba(0,0,0,0.06);
         color: var(--text-muted);
         transition: all 0.2s;
+        display: flex; align-items: center; justify-content: center;
     }
     .btn-icon-glass:hover {
         background: white;
-        color: var(--theme-primary);
         transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
 
+    /* Cards */
     .mgmt-module-card {
         cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        border: 1px solid rgba(0,0,0,0.05) !important;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(0,0,0,0.06) !important;
+        position: relative;
     }
     .mgmt-module-card:hover {
-        border-color: var(--primary) !important;
-        box-shadow: 0 15px 30px rgba(0,0,0,0.08) !important;
-        transform: translateY(-8px);
+        border-color: var(--primary, #4f46e5) !important;
+        box-shadow: 0 12px 24px rgba(0,0,0,0.08) !important;
+        transform: translateY(-4px);
+    }
+    .module-action-arrow {
+        opacity: 0;
+        transform: translateX(4px);
+        transition: all 0.2s;
+    }
+    .mgmt-module-card:hover .module-action-arrow {
+        opacity: 1;
+        transform: translateX(0);
     }
 
     .module-icon {
-        width: 45px; height: 45px;
+        width: 44px; height: 44px;
         border-radius: 12px;
         display: flex; align-items: center; justify-content: center;
         font-size: 1.2rem;
     }
-    .bg-light-primary { background: rgba(99, 102, 241, 0.1); }
-    .bg-light-success { background: rgba(16, 185, 129, 0.1); }
-    .bg-light-info { background: rgba(6, 182, 212, 0.1); }
-    .bg-light-warning { background: rgba(245, 158, 11, 0.1); }
-    .bg-light-danger { background: rgba(239, 68, 68, 0.1); }
-    .bg-light-muted { background: rgba(100, 116, 139, 0.1); }
+    .module-title {
+        font-size: 0.9rem;
+    }
+    .module-desc {
+        line-height: 1.4;
+    }
+
+    .icon-primary { background: rgba(99, 102, 241, 0.12); color: #4f46e5; }
+    .icon-success { background: rgba(16, 185, 129, 0.12); color: #059669; }
+    .icon-info { background: rgba(6, 182, 212, 0.12); color: #0891b2; }
+    .icon-warning { background: rgba(245, 158, 11, 0.15); color: #d97706; }
+    .icon-danger { background: rgba(239, 68, 68, 0.12); color: #dc2626; }
+    .icon-purple { background: rgba(168, 85, 247, 0.12); color: #9333ea; }
+    .icon-teal { background: rgba(20, 184, 166, 0.12); color: #0d9488; }
+    .icon-amber { background: rgba(217, 119, 6, 0.12); color: #b45309; }
+    .icon-slate { background: rgba(100, 116, 139, 0.12); color: #475569; }
+    .icon-pink { background: rgba(236, 72, 153, 0.12); color: #db2777; }
 
     .status-alert {
         border-right: 5px solid #f59e0b !important;
-        background: linear-gradient(90deg, #fff 0%, rgba(245, 158, 11, 0.05) 100%) !important;
+        background: linear-gradient(90deg, #fff 0%, rgba(245, 158, 11, 0.08) 100%) !important;
     }
     .alert-icon-box {
-        width: 50px; height: 50px;
-        border-radius: 15px;
+        width: 48px; height: 48px;
+        border-radius: 14px;
         display: flex; align-items: center; justify-content: center;
         font-size: 1.3rem;
-        box-shadow: 0 8px 15px rgba(245, 158, 11, 0.3);
+        box-shadow: 0 6px 15px rgba(245, 158, 11, 0.25);
     }
 
     .activity-icon-sm {
@@ -361,16 +378,15 @@
         100% { transform: scale(1) rotate(0); }
     }
 
-    /* ── Skeleton Loading for Stats Cards ── */
+    /* Skeleton Loading */
     .stats-skeleton-card {
-        background: var(--glass-bg, rgba(255,255,255,0.22));
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255,255,255,0.3);
+        background: rgba(255,255,255,0.8);
+        border: 1px solid rgba(0,0,0,0.06);
         border-radius: 16px;
         padding: 1.25rem;
         display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
         min-height: 110px; justify-content: center;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.04);
     }
     .skeleton-icon {
         width: 44px; height: 44px;
@@ -391,6 +407,21 @@
         0%   { background-position: -200% 0; }
         100% { background-position:  200% 0; }
     }
+
+    @@media (max-width: 767px) {
+        .mgmt-module-card {
+            padding: 0.75rem !important;
+            border-radius: 14px !important;
+        }
+        .module-icon {
+            width: 38px !important; height: 38px !important;
+            font-size: 1.05rem !important;
+        }
+        .module-title { font-size: 0.8rem !important; font-weight: 700 !important; }
+        .module-desc { font-size: 0.68rem !important; }
+        .module-action-arrow { display: none !important; }
+        .search-input-wrapper { min-width: 100%; width: 100%; }
+    }
 </style>
 
 @code {
@@ -402,17 +433,247 @@
     private int pendingCount => pendingProvidersCount + pendingServicesCount + pendingEditRequestsCount;
     private List<RecentActivityDto> recentActivities = new();
 
+    private string searchTerm = "";
+    private string selectedCategory = "all";
+
     [CascadingParameter]
     private Task<AuthenticationState> authStateTask { get; set; } = default!;
 
+    public class AdminModuleItem
+    {
+        public string Title { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Route { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public string ColorClass { get; set; } = "";
+        public string Category { get; set; } = "core"; // core, comms, marketing, system
+        public string? BadgeText { get; set; }
+        public string BadgeClass { get; set; } = "bg-danger";
+        public int Order { get; set; }
+    }
+
+    private List<AdminModuleItem> Modules => new()
+    {
+        // ── 1. العمليات والاعتمادات اليومية الأساسية (Highest Priority) ──
+        new AdminModuleItem
+        {
+            Order = 1,
+            Title = "مركز الموافقات",
+            Description = "مراجعة واعتماد المزودين والخدمات والتعديلات",
+            Route = "/admin/approvals",
+            Icon = "fa-solid fa-stamp",
+            ColorClass = "icon-warning",
+            Category = "core",
+            BadgeText = pendingCount > 0 ? $"{pendingCount} بانتظارك" : null,
+            BadgeClass = "bg-danger"
+        },
+        new AdminModuleItem
+        {
+            Order = 2,
+            Title = "إدارة الخدمات",
+            Description = "تصفح وتعديل وإدارة كافة خدمات المنصة وحالاتها",
+            Route = "/admin/services",
+            Icon = "fa-solid fa-briefcase",
+            ColorClass = "icon-primary",
+            Category = "core"
+        },
+        new AdminModuleItem
+        {
+            Order = 3,
+            Title = "المستخدمين والمزودين",
+            Description = "إدارة الصلاحيات، الأدوار والتحقق وحظر الحسابات",
+            Route = "/admin/users",
+            Icon = "fa-solid fa-users-gear",
+            ColorClass = "icon-info",
+            Category = "core"
+        },
+        new AdminModuleItem
+        {
+            Order = 4,
+            Title = "إدارة الاشتراكات والباقات",
+            Description = "خطط اشتراكات المزودين والتجديد والتعديل المجمع",
+            Route = "/admin/subscriptions",
+            Icon = "fa-solid fa-crown",
+            ColorClass = "icon-amber",
+            Category = "core",
+            BadgeText = "جديد ✨",
+            BadgeClass = "bg-warning text-dark"
+        },
+
+        // ── 2. التواصل والدعم ومراقبة المحتوى (Daily Communications & Support) ──
+        new AdminModuleItem
+        {
+            Order = 5,
+            Title = "إرسال التنبيهات",
+            Description = "بث إشعارات فورية عبر FCM لهواتف المستخدمين",
+            Route = "/admin/send-notification",
+            Icon = "fa-solid fa-paper-plane",
+            ColorClass = "icon-success",
+            Category = "comms"
+        },
+        new AdminModuleItem
+        {
+            Order = 6,
+            Title = "الشكاوى والبلاغات",
+            Description = "متابعة تذاكر وبلاغات العملاء وحل النزاعات",
+            Route = "/admin/complaints",
+            Icon = "fa-solid fa-headset",
+            ColorClass = "icon-danger",
+            Category = "comms"
+        },
+        new AdminModuleItem
+        {
+            Order = 7,
+            Title = "مراقبة وفحص المحتوى",
+            Description = "فحص التقييمات والتعليقات والمنشورات المخالفة",
+            Route = "/admin/moderation",
+            Icon = "fa-solid fa-shield-halved",
+            ColorClass = "icon-purple",
+            Category = "comms"
+        },
+        new AdminModuleItem
+        {
+            Order = 8,
+            Title = "سوق الحراج والمستلزمات",
+            Description = "متابعة وإدارة السلع والمنتجات المعروضة من الأعضاء",
+            Route = "/admin/marketplace",
+            Icon = "fa-solid fa-store",
+            ColorClass = "icon-teal",
+            Category = "core"
+        },
+
+        // ── 3. التسويق والإعلانات والتفاعل (Marketing & Campaigns) ──
+        new AdminModuleItem
+        {
+            Order = 9,
+            Title = "إدارة الإعلانات",
+            Description = "الحملات الترويجية والبنرات الإعلانية المميزة",
+            Route = "/admin/ads",
+            Icon = "fa-solid fa-rectangle-ad",
+            ColorClass = "icon-amber",
+            Category = "marketing"
+        },
+        new AdminModuleItem
+        {
+            Order = 10,
+            Title = "باقات الإعلانات",
+            Description = "تخصيص وتسعير باقات الظهور والترويج الإعلاني",
+            Route = "/admin/ad-packages",
+            Icon = "fa-solid fa-box-open",
+            ColorClass = "icon-warning",
+            Category = "marketing"
+        },
+        new AdminModuleItem
+        {
+            Order = 11,
+            Title = "إحصائيات الإعلانات",
+            Description = "تحليل المشاهدات والنقرات ومعدلات تفاعل الإعلانات",
+            Route = "/admin/ad-analytics",
+            Icon = "fa-solid fa-chart-line",
+            ColorClass = "icon-info",
+            Category = "marketing"
+        },
+        new AdminModuleItem
+        {
+            Order = 12,
+            Title = "إدارة التذكيرات الآلية",
+            Description = "جدولة رسائل وتنبيهات المواعيد التلقائية للنظام",
+            Route = "/admin/reminders",
+            Icon = "fa-solid fa-bell",
+            ColorClass = "icon-primary",
+            Category = "marketing"
+        },
+
+        // ── 4. البيانات والهيكل والتقارير (Data & Platform Structure) ──
+        new AdminModuleItem
+        {
+            Order = 13,
+            Title = "التقارير والإحصائيات",
+            Description = "مؤشرات أداء المنصة، المبيعات وتحليلات النمو",
+            Route = "/admin/reports",
+            Icon = "fa-solid fa-chart-pie",
+            ColorClass = "icon-danger",
+            Category = "system"
+        },
+        new AdminModuleItem
+        {
+            Order = 14,
+            Title = "سجل العمليات والنشاط",
+            Description = "تتبع حركات المشرفين والعمليات الحساسة في النظام",
+            Route = "/admin/logs",
+            Icon = "fa-solid fa-clock-rotate-left",
+            ColorClass = "icon-slate",
+            Category = "system"
+        },
+        new AdminModuleItem
+        {
+            Order = 15,
+            Title = "التصنيفات والأقسام",
+            Description = "الهيكل الشجري للأقسام والتصنيفات والمهن",
+            Route = "/admin/categories",
+            Icon = "fa-solid fa-sitemap",
+            ColorClass = "icon-success",
+            Category = "core"
+        },
+        new AdminModuleItem
+        {
+            Order = 16,
+            Title = "المناطق والمحافظات",
+            Description = "المحافظات والمدن ومناطق التغطية الجغرافية",
+            Route = "/admin/locations",
+            Icon = "fa-solid fa-map-location-dot",
+            ColorClass = "icon-danger",
+            Category = "core"
+        },
+
+        // ── 5. الإعدادات العامة والمتجر (Configuration & Store) ──
+        new AdminModuleItem
+        {
+            Order = 17,
+            Title = "إعدادات النظام العامة",
+            Description = "تكوينات المنصة، سياسات رفع الصور، وبوابات الدفع",
+            Route = "/admin/systemsettings",
+            Icon = "fa-solid fa-sliders",
+            ColorClass = "icon-slate",
+            Category = "system"
+        },
+        new AdminModuleItem
+        {
+            Order = 18,
+            Title = "الهوية والمظهر (Branding)",
+            Description = "شعار المنصة، الألوان وهوية التطبيق البصرية",
+            Route = "/admin/branding",
+            Icon = "fa-solid fa-palette",
+            ColorClass = "icon-pink",
+            Category = "system"
+        },
+        new AdminModuleItem
+        {
+            Order = 19,
+            Title = "مختبرو Google Play",
+            Description = "متابعة فترة الـ 14 يوماً لاختبار التطبيق قبل النشر",
+            Route = "/admin/testers",
+            Icon = "fa-brands fa-google-play",
+            ColorClass = "icon-primary",
+            Category = "system"
+        }
+    };
+
+    private IEnumerable<AdminModuleItem> FilteredModules => Modules
+        .Where(m => (selectedCategory == "all" || m.Category == selectedCategory) &&
+                    (string.IsNullOrWhiteSpace(searchTerm) ||
+                     m.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                     m.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+        .OrderBy(m => m.Order);
+
     protected override async Task OnInitializedAsync()
     {
-        await authStateTask; // Ensure headers are set by CustomAuthenticationStateProvider
+        await authStateTask;
         try
         {
             stats = await Api.GetAdminStatsAsync();
             isLoadingStats = false;
-            StateHasChanged(); // Update UI immediately after stats load
+            StateHasChanged();
             
             var pendingProviders = await Api.GetPendingProvidersAsync();
             pendingProvidersCount = pendingProviders?.Count ?? 0;
