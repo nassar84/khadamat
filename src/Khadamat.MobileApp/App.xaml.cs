@@ -137,15 +137,12 @@ public partial class App : MauiApp
     {
         if (tapData == null) return;
 
+        string targetRoute = !string.IsNullOrWhiteSpace(tapData.Route) && tapData.Route != "/" && tapData.Route != "//"
+            ? tapData.Route
+            : "notifications";
+
         // 1. Navigate to specific route if available; otherwise go to notifications list
-        if (!string.IsNullOrWhiteSpace(tapData.Route) && tapData.Route != "/" && tapData.Route != "//")
-        {
-            await NavigateDeepLinkSafelyAsync(tapData.Route);
-        }
-        else
-        {
-            await NavigateDeepLinkSafelyAsync("notifications");
-        }
+        await NavigateDeepLinkSafelyAsync(targetRoute);
 
         // 2. Display the notification text in an in-app dialog so the user can easily read it
         if (!string.IsNullOrWhiteSpace(tapData.Message) && !string.IsNullOrWhiteSpace(tapData.Title))
@@ -174,14 +171,23 @@ public partial class App : MauiApp
 
     public static async Task NavigateDeepLinkSafelyAsync(string? url)
     {
-        if (string.IsNullOrWhiteSpace(url)) return;
+        if (string.IsNullOrWhiteSpace(url)) 
+        {
+            url = "notifications";
+        }
 
         var clean = url.Trim();
-        if (clean == "/" || clean == "//") return;
+        if (clean == "/" || clean == "//")
+        {
+            clean = "notifications";
+        }
 
         // Strip scheme / host if full URI
         clean = clean.Replace("khadamat://", "").Replace("https://khadamat.com/", "").TrimStart('/');
-        if (string.IsNullOrWhiteSpace(clean)) return;
+        if (string.IsNullOrWhiteSpace(clean))
+        {
+            clean = "notifications";
+        }
 
         // If Shell is not ready yet (e.g. cold start), retry up to 20 times (10 seconds total)
         for (int i = 0; i < 20; i++)

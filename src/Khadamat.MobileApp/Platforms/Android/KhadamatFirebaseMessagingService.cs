@@ -82,26 +82,28 @@ public class KhadamatFirebaseMessagingService : FirebaseMessagingService
                 channel.LightColor = global::Android.Graphics.Color.ParseColor("#6366f1");
                 channel.EnableVibration(true);
                 channel.SetShowBadge(true);
+                channel.LockscreenVisibility = NotificationVisibility.Public;
                 notificationManager.CreateNotificationChannel(channel);
             }
         }
 
         // Tap action -> launches MainActivity with action_route
-        var mainIntent = PackageManager?.GetLaunchIntentForPackage(PackageName)
-                         ?? new Intent(this, Java.Lang.Class.FromType(typeof(MainActivity)));
+        var mainIntent = new Intent(this, Java.Lang.Class.FromType(typeof(MainActivity)));
         mainIntent.SetPackage(PackageName);
-        mainIntent.SetAction(Intent.ActionMain);
-        mainIntent.AddCategory(Intent.CategoryLauncher);
-        mainIntent.SetFlags(ActivityFlags.NewTask | ActivityFlags.SingleTop);
+        mainIntent.SetAction("com.nassar84.khadamawy.NOTIFICATION_OPEN");
+        mainIntent.AddFlags(ActivityFlags.NewTask | ActivityFlags.ClearTop | ActivityFlags.SingleTop);
 
         mainIntent.PutExtra("from_push", true);
         mainIntent.PutExtra("notification_title", title);
+        mainIntent.PutExtra("title", title);
         mainIntent.PutExtra("notification_message", body);
+        mainIntent.PutExtra("body", body);
 
         string effectiveRoute = !string.IsNullOrWhiteSpace(actionRoute) && actionRoute != "/" && actionRoute != "//"
             ? actionRoute
             : "notifications";
         mainIntent.PutExtra("action_route", effectiveRoute);
+        mainIntent.PutExtra("navigate_to", effectiveRoute);
 
         var notificationId = (int)(DateTime.UtcNow.Ticks & 0x7FFFFFFF);
 

@@ -37,10 +37,10 @@ public static class DeepLinkBridge
     public static void RaiseNotificationTapped(NotificationTapData data)
     {
         PendingNotification = data;
-        if (!string.IsNullOrWhiteSpace(data.Route) && data.Route != "/" && data.Route != "//")
-        {
-            PendingRoute = data.Route;
-        }
+        string effectiveRoute = !string.IsNullOrWhiteSpace(data.Route) && data.Route != "/" && data.Route != "//"
+            ? data.Route
+            : "notifications";
+        PendingRoute = effectiveRoute;
 
         MainThread.BeginInvokeOnMainThread(() =>
         {

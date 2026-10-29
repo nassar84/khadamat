@@ -41,6 +41,7 @@ public class AndroidReminderScheduler : IPlatformReminderScheduler
                 channel.LightColor = global::Android.Graphics.Color.ParseColor("#6366f1");
                 channel.EnableVibration(true);
                 channel.SetShowBadge(true);
+                channel.LockscreenVisibility = NotificationVisibility.Public;
                 notificationManager.CreateNotificationChannel(channel);
             }
         }

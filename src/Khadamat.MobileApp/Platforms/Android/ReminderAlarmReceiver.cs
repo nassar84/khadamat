@@ -63,27 +63,29 @@ public class ReminderAlarmReceiver : BroadcastReceiver
                 channel.LightColor = global::Android.Graphics.Color.ParseColor("#6366f1");
                 channel.EnableVibration(true);
                 channel.SetShowBadge(true);
+                channel.LockscreenVisibility = NotificationVisibility.Public;
                 notificationManager.CreateNotificationChannel(channel);
             }
         }
 
         // Intent to launch MainActivity with deep link route
-        var mainIntent = context.PackageManager?.GetLaunchIntentForPackage(context.PackageName)
-                         ?? new Intent(context, Java.Lang.Class.FromType(typeof(MainActivity)));
+        var mainIntent = new Intent(context, Java.Lang.Class.FromType(typeof(MainActivity)));
         mainIntent.SetPackage(context.PackageName);
-        mainIntent.SetAction(Intent.ActionMain);
-        mainIntent.AddCategory(Intent.CategoryLauncher);
-        mainIntent.SetFlags(ActivityFlags.NewTask | ActivityFlags.SingleTop);
+        mainIntent.SetAction("com.nassar84.khadamawy.NOTIFICATION_OPEN");
+        mainIntent.AddFlags(ActivityFlags.NewTask | ActivityFlags.ClearTop | ActivityFlags.SingleTop);
 
         mainIntent.PutExtra("from_reminder", true);
         mainIntent.PutExtra("reminder_id", id);
         mainIntent.PutExtra("notification_title", title);
+        mainIntent.PutExtra("title", title);
         mainIntent.PutExtra("notification_message", message);
+        mainIntent.PutExtra("body", message);
 
         string effectiveRoute = !string.IsNullOrWhiteSpace(actionRoute) && actionRoute != "/" && actionRoute != "//"
             ? actionRoute
             : "notifications";
         mainIntent.PutExtra("action_route", effectiveRoute);
+        mainIntent.PutExtra("navigate_to", effectiveRoute);
 
         var pendingIntent = PendingIntent.GetActivity(
             context,

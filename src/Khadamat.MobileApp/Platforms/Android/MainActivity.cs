@@ -13,7 +13,7 @@ namespace Khadamat.MobileApp;
     Exported = true,
     LaunchMode = LaunchMode.SingleTop,
     ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
-[IntentFilter(new[] { "OPEN_APP" }, Categories = new[] { global::Android.Content.Intent.CategoryDefault })]
+[IntentFilter(new[] { "OPEN_APP", "com.nassar84.khadamawy.NOTIFICATION_OPEN" }, Categories = new[] { global::Android.Content.Intent.CategoryDefault })]
 public class MainActivity : MauiAppCompatActivity
 {
     protected override void OnCreate(Bundle? savedInstanceState)
@@ -54,24 +54,56 @@ public class MainActivity : MauiAppCompatActivity
 
         var fromReminder = intent.GetBooleanExtra("from_reminder", false);
         var fromPush = intent.GetBooleanExtra("from_push", false);
-        var route = intent.GetStringExtra("action_route");
-        var title = intent.GetStringExtra("notification_title") ?? "";
-        var message = intent.GetStringExtra("notification_message") ?? "";
+        
+        // Check for Google Play Services FCM background extras
+        bool hasFcmMarker = intent.HasExtra("google.message_id") || 
+                            intent.HasExtra("from") || 
+                            intent.HasExtra("gcm.notification.title") ||
+                            intent.HasExtra("google.c.a.e");
+        
+        if (hasFcmMarker)
+        {
+            fromPush = true;
+        }
+
+        // Comprehensive route resolution (from both foreground and background FCM payloads)
+        var route = intent.GetStringExtra("action_route") 
+                    ?? intent.GetStringExtra("navigate_to") 
+                    ?? intent.GetStringExtra("route");
+
+        // Comprehensive title resolution
+        var title = intent.GetStringExtra("notification_title") 
+                    ?? intent.GetStringExtra("title") 
+                    ?? intent.GetStringExtra("gcm.notification.title") 
+                    ?? "";
+
+        // Comprehensive body/message resolution
+        var message = intent.GetStringExtra("notification_message") 
+                      ?? intent.GetStringExtra("body") 
+                      ?? intent.GetStringExtra("gcm.notification.body") 
+                      ?? intent.GetStringExtra("message") 
+                      ?? "";
+
         var reminderId = intent.GetIntExtra("reminder_id", 0);
 
-        if (fromReminder || fromPush || !string.IsNullOrEmpty(route) || !string.IsNullOrEmpty(title))
+        // Normalize route: if it's empty, "/" or "//", point to the notifications inbox
+        string effectiveRoute = !string.IsNullOrWhiteSpace(route) && route != "/" && route != "//"
+            ? route
+            : "notifications";
+
+        if (fromReminder || fromPush || hasFcmMarker || !string.IsNullOrEmpty(title) || !string.IsNullOrEmpty(message))
         {
             var tapData = new Services.NotificationTapData
             {
-                Title = title,
+                Title = !string.IsNullOrWhiteSpace(title) ? title : "خدماوى",
                 Message = message,
-                Route = route ?? "",
+                Route = effectiveRoute,
                 ReminderId = reminderId,
                 FromReminder = fromReminder,
-                FromPush = fromPush
+                FromPush = fromPush || hasFcmMarker
             };
 
-            Console.WriteLine($"[MainActivity] Notification tapped: '{title}' (Route: '{route}', FromReminder: {fromReminder}, FromPush: {fromPush})");
+            Console.WriteLine($"[MainActivity] Notification tapped: '{tapData.Title}' (Route: '{tapData.Route}', FromReminder: {fromReminder}, FromPush: {tapData.FromPush})");
             Services.DeepLinkBridge.RaiseNotificationTapped(tapData);
         }
     }
