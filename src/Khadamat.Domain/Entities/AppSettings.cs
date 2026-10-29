@@ -44,6 +44,8 @@ public class AppSettings : BaseEntity
     public int MaxServiceImages { get; set; } = 3; // الحد الأقصى لصور الخدمة
     public bool EnableReviewAutoApproval { get; set; } = true;
     public bool EnableTesterTracking { get; set; } = true;
+    public bool ShowContactNumbers { get; set; } = false;
+    public bool RequireLoginToViewContactNumbers { get; set; } = true;
 
     // Marketplace Settings
     public int MarketplaceDefaultListingDays { get; set; } = 30;  // مدة عرض الإعلان الافتراضية بالأيام

@@ -41,6 +41,8 @@ public class AppSettingsDto
     public int MaxServiceImages { get; set; } = 3; // الحد الأقصى لصور الخدمة
     public bool EnableReviewAutoApproval { get; set; }
     public bool EnableTesterTracking { get; set; } = true;
+    public bool ShowContactNumbers { get; set; } = false;
+    public bool RequireLoginToViewContactNumbers { get; set; } = true;
 
     // Marketplace Settings (Adding these as they probably exist in entity but missed in DTO)
     public int MarketplaceDefaultListingDays { get; set; } = 30;

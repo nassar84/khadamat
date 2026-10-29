@@ -450,6 +450,9 @@
                 if (!string.IsNullOrEmpty(settingsResult.Data.ContactWhatsApp))
                     AppState.ContactWhatsApp = settingsResult.Data.ContactWhatsApp;
 
+                AppState.ShowContactNumbers = settingsResult.Data.ShowContactNumbers;
+                AppState.RequireLoginToViewContactNumbers = settingsResult.Data.RequireLoginToViewContactNumbers;
+
                 // Apply theme from URL param (e.g. mobile app) or fallback to server default theme
                 var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
                 var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);

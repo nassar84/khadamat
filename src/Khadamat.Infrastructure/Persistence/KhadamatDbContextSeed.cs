@@ -32,6 +32,10 @@ public static class KhadamatDbContextSeed
                         ALTER TABLE AppSettings ADD PaymentInstructions nvarchar(max) NULL;
                     IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('AppSettings') AND name = 'EnableTesterTracking')
                         ALTER TABLE AppSettings ADD EnableTesterTracking BIT NOT NULL CONSTRAINT DF_AppSettings_EnableTesterTracking DEFAULT 1;
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('AppSettings') AND name = 'ShowContactNumbers')
+                        ALTER TABLE AppSettings ADD ShowContactNumbers BIT NOT NULL CONSTRAINT DF_AppSettings_ShowContactNumbers DEFAULT 0;
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('AppSettings') AND name = 'RequireLoginToViewContactNumbers')
+                        ALTER TABLE AppSettings ADD RequireLoginToViewContactNumbers BIT NOT NULL CONSTRAINT DF_AppSettings_RequireLoginToViewContactNumbers DEFAULT 1;
 
                     IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'ServiceImages')
                     BEGIN

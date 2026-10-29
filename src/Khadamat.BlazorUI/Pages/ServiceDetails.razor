@@ -1,4 +1,4 @@
-@implements IDisposable
+﻿@implements IDisposable
 @page "/service/{Id:int}"
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
@@ -65,568 +65,374 @@
                     </div>
                 </div>
             }
-            <!-- Top Actions -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <button class="btn btn-glass-dark" @onclick="GoBack">
-                    <i class="fa-solid fa-arrow-right"></i>
+            <!-- App Top Navigation Bar (Inspired by Reference) -->
+            <div class="ref-top-header d-flex justify-content-between align-items-center mb-3">
+                <button class="btn ref-circle-btn" @onclick="GoBack" title="رجوع">
+                    <i class="fa-solid fa-chevron-right"></i>
                 </button>
-                <div class="d-flex gap-2">
+                <div class="ref-header-logo d-flex align-items-center gap-2">
+                    <span class="fw-bold fs-5 text-primary">خدماوى</span>
+                    <i class="fa-solid fa-helmet-safety text-warning fs-5"></i>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn ref-circle-btn" @onclick="OpenShareModal" title="مشاركة">
+                        <i class="fa-solid fa-share-nodes"></i>
+                    </button>
                     @if (CanEdit)
                     {
-                        <button class="btn btn-glass-dark text-warning" @onclick='() => OpenEdit("main")'>
+                        <button class="btn ref-circle-btn text-warning" @onclick='() => OpenEdit("main")' title="تعديل">
                             <i class="fa-solid fa-pen"></i>
                         </button>
                     }
                     else if (IsAuthenticated)
                     {
-                        <button class="btn btn-glass-dark text-info" title="اقتراح تعديل بيانات الخدمة" @onclick="OpenRequestEditModal">
+                        <button class="btn ref-circle-btn text-info" @onclick="OpenRequestEditModal" title="اقتراح تصحيح">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </button>
                     }
-                    <button class="btn btn-glass-dark @(service.IsFavorite ? "text-danger" : "")" @onclick="ToggleFavorite">
-                        <i class="@(service.IsFavorite ? "fa-solid" : "fa-regular") fa-heart"></i>
+                </div>
+            </div>
+
+            <!-- Main Scrollable Content Container -->
+            <div class="ref-content-container mx-auto" style="max-width: 680px;">
+                
+                <!-- 1. Hero Media Card -->
+                <div class="ref-hero-media position-relative rounded-4 overflow-hidden mb-3 shadow-sm bg-light">
+                    <!-- Favorite Button (Top Corner) -->
+                    <button class="btn ref-fav-floating-btn position-absolute top-0 start-0 m-3 z-3 shadow-sm @(service.IsFavorite ? "active" : "")" 
+                            @onclick="ToggleFavorite" title="إضافة للمفضلة">
+                        <i class="@(service.IsFavorite ? "fa-solid text-danger" : "fa-regular text-danger") fa-heart fs-5"></i>
                     </button>
-                </div>
-            </div>
 
-            <div class="mb-4">
-                <nav aria-label="breadcrumb" class="mb-2">
-                    <ol class="breadcrumb-v3 d-flex flex-wrap align-items-center gap-1 mb-0 p-0 list-unstyled">
-                        <li>
-                            <a class="category-tag breadcrumb-link"
-                               href="/explore/main/@service.MainCategoryId/@Uri.EscapeDataString(service.MainCategoryName ?? "")">
-                                <i class="fa-solid fa-house-chimney me-1 opacity-75" style="font-size:0.7rem"></i>
-                                @service.MainCategoryName
-                            </a>
-                        </li>
-                        @if (!string.IsNullOrEmpty(service.CategoryName) && service.CategoryId.HasValue)
-                        {
-                            <li class="breadcrumb-sep"><i class="fa-solid fa-chevron-left"></i></li>
-                            <li>
-                                <a class="category-tag bg-indigo-light text-indigo breadcrumb-link"
-                                   href="/explore/category/@service.CategoryId/@Uri.EscapeDataString(service.CategoryName ?? "")">
-                                    @service.CategoryName
-                                </a>
-                            </li>
-                        }
-                        @if (!string.IsNullOrEmpty(service.SubCategoryName) && service.SubCategoryId.HasValue)
-                        {
-                            <li class="breadcrumb-sep"><i class="fa-solid fa-chevron-left"></i></li>
-                            <li>
-                                <a class="category-tag bg-purple-light text-purple breadcrumb-link"
-                                   href="/explore/subcategory/@service.SubCategoryId/@Uri.EscapeDataString(service.SubCategoryName ?? "")">
-                                    @service.SubCategoryName
-                                </a>
-                            </li>
-                        }
-                        @if (!string.IsNullOrEmpty(service.Specialization))
-                        {
-                            <li class="breadcrumb-sep"><i class="fa-solid fa-chevron-left"></i></li>
-                            <li>
-                                <span class="category-tag bg-teal-light text-teal fw-bold">
-                                    <i class="fa-solid fa-graduation-cap me-1"></i>@service.Specialization
-                                </span>
-                            </li>
-                        }
-                    </ol>
-                </nav>
-                <div class="d-flex align-items-center gap-3 flex-wrap">
-                    <h1 class="fw-900 mb-0 display-5 text-dark">@service.Title</h1>
-                    @if (!string.IsNullOrEmpty(service.Specialization))
-                    {
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2 fs-6">
-                            <i class="fa-solid fa-book-open me-1"></i>المادة: @service.Specialization
-                        </span>
-                    }
-                </div>
-            </div>
-
-            <!-- Main Info Row -->
-            <div class="row g-4 mb-5">
-                <!-- Physycal Right (Start in RTL): Image & Stats -->
-                <div class="col-12 col-md-5">
-                    <div class="main-image-v3 rounded-5 overflow-hidden shadow-lg position-relative mb-4 service-carousel-container"
+                    <!-- Gallery Carousel -->
+                    <div class="w-100 h-100 position-relative" style="min-height: 280px; max-height: 380px;"
                          @onmouseenter="PauseCarousel" @onmouseleave="ResumeCarousel"
                          @ontouchstart="PauseCarousel" @ontouchend="ResumeCarousel">
                         
-                        <!-- Blurred Background Image to fill space beautifully without cropping -->
                         <img src="@activeCarouselImageUrl" 
-                             class="position-absolute w-100 h-100 carousel-bg-blur" 
-                             style="top: 0; left: 0; object-fit: cover; filter: blur(22px); opacity: 0.35; z-index: 1; transform: scale(1.15); transition: all 0.4s ease;" />
+                             class="w-100 h-100 position-absolute top-0 start-0 carousel-bg-blur" 
+                             alt="@service.Title" />
                         
-                        <!-- Semi-transparent overlay to enhance contrast -->
-                        <div class="position-absolute top-0 start-0 w-100 h-100" style="background: rgba(255, 255, 255, 0.15); z-index: 2;"></div>
-                        
-                        <!-- Sharp Foreground Image (Clickable for Fullscreen Lightbox) -->
                         <img src="@activeCarouselImageUrl" 
-                             class="w-100 h-100 position-relative z-3 carousel-active-img" 
-                             style="object-fit: contain; cursor: zoom-in;" 
+                             class="w-100 h-100 position-relative z-2" 
+                             style="object-fit: contain; min-height: 280px; max-height: 380px; cursor: zoom-in;" 
                              alt="@service.Title" 
                              @onclick="() => selectedImage = activeCarouselImageUrl"
-                             title="انقر لتكبير ومعاينة الصورة" />
-                        
-                        <!-- Favorite Button Overlay -->
-                        <div class="position-absolute top-0 start-0 m-3 z-3">
-                            <button class="btn btn-glass-dark @(service.IsFavorite ? "text-danger" : "") shadow" @onclick="ToggleFavorite" title="إضافة للمفضلة">
-                                <i class="@(service.IsFavorite ? "fa-solid" : "fa-regular") fa-heart"></i>
-                            </button>
-                        </div>
+                             title="انقر للتكبير" />
 
+                        <!-- Photo Counter Badge (e.g. 1/5) -->
                         @if (service.Images != null && service.Images.Count > 1)
                         {
-                            <!-- Image Counter Badge -->
-                            <div class="position-absolute top-0 end-0 m-3 z-3">
-                                <span class="badge bg-dark bg-opacity-75 text-white rounded-pill px-3 py-1 small shadow-sm">
-                                    <i class="fa-solid fa-camera me-1"></i> @(currentCarouselIndex + 1) / @service.Images.Count
+                            <div class="position-absolute bottom-0 start-0 m-3 z-3">
+                                <span class="badge bg-dark bg-opacity-75 text-white rounded-pill px-3 py-1 small shadow-sm d-flex align-items-center gap-1">
+                                    <i class="fa-regular fa-image"></i>
+                                    <span>@(currentCarouselIndex + 1) / @service.Images.Count</span>
                                 </span>
                             </div>
 
-                            <!-- Carousel Navigation Arrows -->
-                            <button type="button" class="carousel-nav-btn carousel-prev z-3" @onclick="PrevCarouselImage" @onclick:stopPropagation="true" title="الصورة السابقة">
+                            <!-- Carousel Nav Buttons -->
+                            <button type="button" class="carousel-nav-btn carousel-prev z-3" @onclick="PrevCarouselImage" @onclick:stopPropagation="true">
                                 <i class="fa-solid fa-chevron-right"></i>
                             </button>
-                            <button type="button" class="carousel-nav-btn carousel-next z-3" @onclick="NextCarouselImage" @onclick:stopPropagation="true" title="الصورة التالية">
+                            <button type="button" class="carousel-nav-btn carousel-next z-3" @onclick="NextCarouselImage" @onclick:stopPropagation="true">
                                 <i class="fa-solid fa-chevron-left"></i>
                             </button>
-
-                            <!-- Mini Carousel Dots / Indicators -->
-                            <div class="carousel-indicators-strip z-3">
-                                @for (int i = 0; i < service.Images.Count; i++)
-                                {
-                                    int imgIndex = i;
-                                    <button type="button" class="carousel-dot @(imgIndex == currentCarouselIndex ? "active" : "")" 
-                                            @onclick="() => SelectCarouselImage(imgIndex)" 
-                                            @onclick:stopPropagation="true"
-                                            title="صورة @(imgIndex + 1)">
-                                    </button>
-                                }
-                            </div>
-                        }
-                    </div>
-                    
-                    <!-- Star Rating Display (clickable) -->
-                    <div class="rating-display-v3 mb-3 text-center py-2 bg-light bg-opacity-50 rounded-4">
-                        <div class="stars-v3 text-warning d-flex justify-content-center gap-1">
-                            @for (int i = 1; i <= 5; i++)
-                            {
-                                int starVal = i;
-                                @if (i <= Math.Floor(service.Rating))
-                                {
-                                    <i class="fa-solid fa-star fs-3 rating-star-clickable" title="قيّم بـ @starVal نجوم" @onclick="() => StartRating(starVal)"></i>
-                                }
-                                else if (i == Math.Ceiling(service.Rating) && service.Rating % 1 >= 0.3)
-                                {
-                                    <i class="fa-solid fa-star-half-stroke fs-3 rating-star-clickable" title="قيّم بـ @starVal نجوم" @onclick="() => StartRating(starVal)"></i>
-                                }
-                                else
-                                {
-                                    <i class="fa-regular fa-star fs-3 rating-star-clickable" title="قيّم بـ @starVal نجوم" @onclick="() => StartRating(starVal)"></i>
-                                }
-                            }
-                        </div>
-                        <div class="fw-bold mt-1" style="color: #444;">
-                            @service.Rating.ToString("0.1")
-                            <span class="text-muted small fw-normal ms-1">(إجمالي @service.RatersCount تقييم)</span>
-                        </div>
-                        <button class="btn btn-sm btn-warning rounded-pill px-3 mt-2 fw-bold" style="font-size:0.78rem;" @onclick="() => StartRating(0)">
-                            <i class="fa-solid fa-star me-1"></i> قيّم واكتب رأيك
-                        </button>
-                    </div>
-
-                    <!-- Stats Box (Below Image) -->
-                    <div class="stats-box-v3 p-4 rounded-5 shadow-sm border bg-white mb-4">
-                        <div class="row g-2 align-items-center text-center">
-                            <div class="col-4 border-start">
-                                <div class="x-small text-muted">السعر</div>
-                                <div class="fw-900 fs-5 text-gradient">@service.Price?.ToString("N0") ج.م</div>
-                            </div>
-                            <div class="col-4 border-start">
-                                <div class="x-small text-muted">المشاهدات</div>
-                                <div class="fw-900 fs-5 text-indigo">
-                                    <i class="fa-solid fa-eye"></i> @service.ViewsCount
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="x-small text-muted">إعجاب</div>
-                                <div class="fw-900 fs-5 text-danger">
-                                     <i class="fa-solid fa-heart"></i> @service.LikesCount
-                                </div>
-                            </div>
-                        </div>
-                        <hr class="my-3 opacity-10" />
-                        <div class="text-center x-small text-muted px-2">
-                             <span><i class="fa-solid fa-calendar-alt me-1"></i> تم النشر في @service.CreatedAt.ToString("yyyy/MM/dd")</span>
-                        </div>
-                    </div>
-
-                    <div class="contact-actions-v3 d-flex flex-column gap-2 mt-auto">
-                        @if (!CanEdit)
-                        {
-                            <button class="btn btn-request-main w-100 py-3 shadow-lg d-flex align-items-center justify-content-center gap-2" @onclick="OpenRequestModal">
-                                <i class="fa-solid fa-calendar-check fs-4"></i>
-                                <span class="fs-6 fw-bold">طلب الخدمة الآن</span>
-                            </button>
-                        }
-                        
-                        @if (!string.IsNullOrEmpty(service.YouTubeUrl))
-                        {
-                            <a href="@service.YouTubeUrl" target="_blank" class="btn btn-outline-danger w-100 rounded-4 py-2 mt-1">
-                                <i class="fa-brands fa-youtube me-1"></i> مشاهدة العرض المرئي
-                            </a>
                         }
                     </div>
                 </div>
 
-                <!-- Physycal Left (End in RTL): Details -->
-                <div class="col-12 col-md-7">
-                    <div class="details-content-v3 ps-md-3">
-                        <!-- Description -->
-                        <div class="service-description-v3 mb-4">
-                            <p class="text-muted fs-5 leading-relaxed">@service.Description</p>
-                        </div>
+                <!-- 2. Header Info (Title, Category, Rating) -->
+                <div class="text-center mb-3">
+                    <div class="d-flex align-items-center justify-content-center gap-2 mb-1">
+                        <h2 class="fw-bold text-dark mb-0 fs-3">@service.Title</h2>
+                        <span class="badge-verified-ref" title="مقدم خدمة موثق">
+                            <i class="fa-solid fa-circle-check text-primary fs-5"></i>
+                        </span>
+                    </div>
 
-
-                        <div class="info-grid-v3 mb-4">
-                            <!-- Location: Governorate & City -->
-                            <div class="info-item-v3">
-                                <i class="fa-solid fa-location-dot text-danger"></i>
-                                <div>
-                                    <div class="fw-bold">الموقع</div>
-                                    <div class="small">@service.GovernorateName - @service.CityName</div>
-                                    <div class="x-small text-muted">@service.Address</div>
-                                </div>
-                            </div>
-
-                            <!-- Appointments -->
-                            <div class="info-item-v3">
-                                <i class="fa-solid fa-clock text-primary"></i>
-                                <div>
-                                    <div class="fw-bold">المواعيد</div>
-                                    <div class="small">@(string.IsNullOrEmpty(service.WorkDays) ? "متاح يومياً" : service.WorkDays)</div>
-                                    <div class="small text-muted">@service.WorkHours</div>
-                                </div>
-                            </div>
-
-                            <!-- Contact Numbers -->
-                            <div class="info-item-v3">
-                                <i class="fa-solid fa-phone text-success"></i>
-                                <div>
-                                    <div class="fw-bold">أرقام التواصل</div>
-                                    <div class="small" dir="ltr" style="unicode-bidi: isolate; text-align: right;">@service.Phone1</div>
-                                    @if (!string.IsNullOrEmpty(service.Phone2))
-                                    {
-                                        <div class="small" dir="ltr" style="unicode-bidi: isolate; text-align: right;">@service.Phone2</div>
-                                    }
-                                </div>
-                            </div>
-
-                            <!-- Social Links -->
-                            @if (!string.IsNullOrEmpty(service.WhatsApp) || !string.IsNullOrEmpty(service.Telegram) || !string.IsNullOrEmpty(service.Facebook) || !string.IsNullOrEmpty(service.YouTubeUrl))
-                            {
-                                <div class="info-item-v3">
-                                    <i class="fa-solid fa-share-nodes text-primary"></i>
-                                    <div>
-                                        <div class="fw-bold">روابط التواصل</div>
-                                        <div class="d-flex gap-2 mt-1 social-links-v3 flex-wrap">
-                                            @if (!string.IsNullOrEmpty(service.WhatsApp))
-                                            {
-                                                <a href="@GetWhatsAppDirectUrl(service.WhatsApp)" target="_blank" rel="noopener noreferrer" title="مراسلة عبر واتساب" class="social-icon-btn whatsapp shadow-sm">
-                                                    <i class="fa-brands fa-whatsapp fs-5"></i>
-                                                </a>
-                                            }
-                                            @if (!string.IsNullOrEmpty(service.Telegram))
-                                            {
-                                                <a href="@GetTelegramUrl(service.Telegram)" target="_blank" rel="noopener noreferrer" title="تليجرام" class="social-icon-btn telegram shadow-sm">
-                                                    <i class="fa-brands fa-telegram fs-5"></i>
-                                                </a>
-                                            }
-                                            @if (!string.IsNullOrEmpty(service.Facebook))
-                                            {
-                                                <a href="@GetFacebookUrl(service.Facebook)" target="_blank" rel="noopener noreferrer" title="فيسبوك" class="social-icon-btn facebook shadow-sm">
-                                                    <i class="fa-brands fa-facebook-f fs-5"></i>
-                                                </a>
-                                            }
-                                            @if (!string.IsNullOrEmpty(service.YouTubeUrl))
-                                            {
-                                                <a href="@GetYouTubeUrl(service.YouTubeUrl)" target="_blank" rel="noopener noreferrer" title="يوتيوب" class="social-icon-btn youtube shadow-sm">
-                                                    <i class="fa-brands fa-youtube fs-5"></i>
-                                                </a>
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-
-                        <!-- Disclaimer Alert -->
-                        <div class="disclaimer-alert p-3 rounded-4 mb-3 border bg-warning bg-opacity-10 border-warning border-opacity-25 d-flex align-items-start gap-3">
-                            <i class="fa-solid fa-shield-halved text-warning fs-4 flex-shrink-0 mt-1"></i>
-                            <div class="small">
-                                <strong class="text-dark d-block mb-1">إخلاء مسؤولية وتأكيد الطلب:</strong>
-                                <span class="text-muted leading-relaxed">
-                                    التطبيق غير مسؤول عن الطلبات والتعاملات المالية أو الاتفاقات المبرمة بين العملاء ومقدمي الخدمات.
-                                    يُرجى تأكيد طلبك دائماً بالاتصال المباشر مع مقدم الخدمة عبر طرق التواصل المتاحة في بيانات الخدمة (الاتصال الهاتفي أو عبر واتساب).
-                                </span>
-                            </div>
-                        </div>
-
-
-                        <!-- Action Buttons: Direct Phone Call -->
-                        <div class="action-buttons-v3 mb-2">
-                            <button class="btn btn-call w-100 py-3 shadow-sm d-flex align-items-center justify-content-center gap-2" @onclick="CallProvider" disabled="@(string.IsNullOrEmpty(service.Phone1) && string.IsNullOrEmpty(service.Phone2))">
-                                <i class="fa-solid fa-phone fs-5"></i>
-                                <span class="fs-6 fw-bold">اتصال هاتفياً</span>
-                            </button>
-                        </div>
-
-                        <!-- Action Buttons: Message Provider -->
-                        @if (!string.IsNullOrEmpty(service.UserId) && !CanEdit)
+                    <div class="text-muted small mb-2">
+                        <span>@(string.IsNullOrEmpty(service.Specialization) ? (string.IsNullOrEmpty(service.SubCategoryName) ? service.CategoryName : service.SubCategoryName) : service.Specialization)</span>
+                        @if (!string.IsNullOrEmpty(service.ProviderName))
                         {
-                            <div class="action-buttons-v3 mb-2">
-                                <AuthorizeView>
-                                    <Authorized>
-                                        <button class="btn btn-message w-100 py-3 shadow-sm d-flex align-items-center justify-content-center gap-2"
-                                                @onclick="StartChat">
-                                            <i class="fa-solid fa-comment-dots fs-5"></i>
-                                            <span class="fs-6 fw-bold">راسل المزود</span>
-                                        </button>
-                                    </Authorized>
-                                    <NotAuthorized>
-                                        <button class="btn btn-message w-100 py-3 shadow-sm d-flex align-items-center justify-content-center gap-2"
-                                                @onclick='() => Navigation.NavigateTo("/login")'>
-                                            <i class="fa-solid fa-comment-dots fs-5"></i>
-                                            <span class="fs-6 fw-bold">راسل المزود</span>
-                                        </button>
-                                    </NotAuthorized>
-                                </AuthorizeView>
-                            </div>
+                            <span class="mx-1">•</span>
+                            <span class="fw-semibold">@service.ProviderName</span>
                         }
+                    </div>
 
-                        <!-- Share Button (Opens Share Modal) -->
-                        <div class="d-flex gap-2 mb-4">
-                            <button class="btn btn-share-premium flex-grow-1 py-3 shadow" @onclick="OpenShareModal">
-                                <i class="fa-solid fa-share-nodes me-2"></i> مشاركة الخدمة
-                            </button>
-                            <button class="btn btn-outline-secondary py-3 px-3 shadow-sm rounded-4" @onclick="CopyShareLink" title="نسخ الرابط">
-                                <i class="fa-solid @(shareCopyStatus != null ? "fa-check text-success" : "fa-link")"></i>
-                            </button>
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <div class="d-flex text-warning">
+                            <i class="fa-solid fa-star"></i>
                         </div>
-                        @if (!string.IsNullOrEmpty(shareCopyStatus))
-                        {
-                            <div class="alert alert-success py-2 text-center small rounded-4 mb-3">@shareCopyStatus</div>
-                        }
-
-                        <!-- New Request Edit Enhancement Button -->
-                        <div class="edit-request-banner p-4 rounded-5 mt-4 mb-4 shadow-sm border border-info border-opacity-25 bg-info bg-opacity-5 animate-up">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="icon-circle bg-info text-white shadow-sm">
-                                    <i class="fa-solid fa-circle-info fs-4"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <h6 class="fw-800 mb-1">هل لاحظت شيئاً غير دقيق؟</h6>
-                                    <p class="small text-muted mb-0">ساعدنا وساعد بقية المستخدمين بتصحيح بيانات هذه الخدمة لتبقى تجربتكم دائماً الأفضل.</p>
-                                </div>
-                                <button class="btn btn-info rounded-pill px-3 py-1 text-white fw-bold shadow-sm flex-shrink-0" style="font-size:0.8rem; white-space:nowrap;" @onclick="OpenRequestEditModal">
-                                    تحديث البيانات <i class="fa-solid fa-magic-wand-sparkles ms-1"></i>
-                                </button>
-                            </div>
-                        </div>
+                        <span class="fw-bold text-dark">@service.Rating.ToString("0.1")</span>
+                        <span class="text-muted small">(@service.RatersCount تقييم)</span>
                     </div>
                 </div>
-            </div>
 
-            <!-- Posts Section -->
-            <div class="mb-5 pt-4 border-top">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h4 class="fw-900 mb-0 border-right-styled pe-3">أحدث المنشورات</h4>
-                    @if (CanEdit)
+                <!-- 3. Triple Features Bar (المعلومات الثلاثية: موثقة | السعر/الخبرة | الموقع) -->
+                <div class="ref-triple-bar bg-light rounded-4 p-2 mb-3 border d-flex justify-content-around align-items-center text-center">
+                    <!-- 1. Verification status -->
+                    <div class="ref-bar-item flex-fill">
+                        <div class="d-flex align-items-center justify-content-center gap-1 text-success fw-bold small">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <span>موثقة</span>
+                        </div>
+                        <span class="x-small text-muted d-block mt-1">حساب معتمد</span>
+                    </div>
+
+                    <div class="ref-bar-sep"></div>
+
+                    <!-- 2. Price or Experience -->
+                    <div class="ref-bar-item flex-fill">
+                        <div class="d-flex align-items-center justify-content-center gap-1 text-primary fw-bold small">
+                            <i class="fa-solid fa-briefcase"></i>
+                            <span>@(service.Price.HasValue ? $"{service.Price:N0} ج.م" : "مواعيد العمل")</span>
+                        </div>
+                        <span class="x-small text-muted d-block mt-1">@(string.IsNullOrEmpty(service.WorkDays) ? "طوال الأسبوع" : service.WorkDays)</span>
+                    </div>
+
+                    <div class="ref-bar-sep"></div>
+
+                    <!-- 3. Location -->
+                    <div class="ref-bar-item flex-fill">
+                        <div class="d-flex align-items-center justify-content-center gap-1 text-danger fw-bold small">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <span>@(string.IsNullOrEmpty(service.GovernorateName) ? "مصر" : service.GovernorateName)</span>
+                        </div>
+                        <span class="x-small text-muted d-block mt-1">@(string.IsNullOrEmpty(service.CityName) ? "كافة المناطق" : service.CityName)</span>
+                    </div>
+                </div>
+
+                <!-- 4. Quick Action Call & Share Buttons -->
+                <div class="d-flex gap-2 mb-4">
+                    <button class="btn btn-primary-ref flex-grow-1 py-3 rounded-pill shadow-sm d-flex align-items-center justify-content-center gap-2"
+                            @onclick="CallProvider" 
+                            disabled="@(string.IsNullOrEmpty(service.Phone1) && string.IsNullOrEmpty(service.Phone2))">
+                        <i class="fa-solid fa-phone-volume fs-5"></i>
+                        <span class="fw-bold fs-6">تواصل مع مقدم الخدمة</span>
+                    </button>
+
+                    @if (!string.IsNullOrEmpty(service.WhatsApp))
                     {
-                        <button class="btn btn-primary btn-sm rounded-pill px-3" @onclick="() => showCreatePostBox = !showCreatePostBox">
-                            <i class="fa-solid @(showCreatePostBox ? "fa-xmark" : "fa-plus") me-1"></i>
-                            @(showCreatePostBox ? "إلغاء" : "منشور جديد")
+                        <button class="btn btn-whatsapp-ref px-3 rounded-pill shadow-sm d-flex align-items-center justify-content-center"
+                                @onclick="ContactWhatsApp" title="واتساب">
+                            <i class="fa-brands fa-whatsapp fs-4"></i>
                         </button>
                     }
-                </div>
 
-                @if (CanEdit && showCreatePostBox)
-                {
-                    <div class="glass-card-v3 p-4 mb-4 animate-pop">
-                        <label class="form-label fw-bold small">اكتب منشوراً جديداً لعملائك</label>
-                        <textarea @bind="newPostContent" class="form-control border-light mb-3" rows="3" placeholder="أخبر عملائك عن تخفيضاتك أو أعمالك الجديدة..."></textarea>
-                        <div class="d-flex justify-content-end">
-                            <button class="btn btn-primary rounded-pill px-4" @onclick="CreatePost" disabled="@isPostingPost">
-                                @if (isPostingPost)
-                                {
-                                    <span class="spinner-border spinner-border-sm me-2"></span>
-                                }
-                                <i class="fa-solid fa-paper-plane me-1"></i> نشر الآن
-                            </button>
-                        </div>
-                    </div>
-                }
-
-                @if (service.Posts.Any())
-                {
-                    <div class="row g-4">
-                        @foreach (var post in service.Posts)
-                        {
-                            <div class="col-12 col-lg-6">
-                                <div class="glass-card-v3 p-4 h-100">
-                                    <div class="d-flex align-items-center gap-2 mb-3">
-                                        <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(service.ProviderName, null, service.ProviderPhoto)" class="rounded-circle" width="35" />
-                                        <div class="x-small fw-bold">@service.ProviderName</div>
-                                        <div class="ms-auto x-small text-muted">@post.CreatedAt.ToString("dd/MM")</div>
-                                    </div>
-                                    @if (!string.IsNullOrEmpty(post.ImageUrl))
-                                    {
-                                        <img src="@post.ImageUrl" class="w-100 rounded-4 mb-3" />
-                                    }
-                                    <p class="mb-3 small">@post.Content</p>
-                                    <div class="d-flex gap-3 pt-3 border-top x-small">
-                                        <span><i class="fa-regular fa-heart"></i> @post.LikesCount</span>
-                                        <span class="cursor-pointer" @onclick="() => ToggleComments(post.Id)">
-                                            <i class="fa-regular fa-comment"></i> @post.CommentsCount تعليقات
-                                        </span>
-                                    </div>
-
-                                    @if (expandedPostId == post.Id)
-                                    {
-                                        <div class="comments-section mt-3 pt-3 border-top animate-fade-in">
-                                            @if (post.Comments != null && post.Comments.Any())
-                                            {
-                                                <div class="comments-list mb-3">
-                                                    @foreach (var comment in post.Comments)
-                                                    {
-                                                        <div class="comment-item mb-2 p-2 rounded-3 bg-light">
-                                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                                <span class="fw-bold x-small">@comment.UserName</span>
-                                                                <span class="text-muted xx-small">@comment.CreatedAt.ToString("MM/dd HH:mm")</span>
-                                                            </div>
-                                                            <div class="small">@comment.Text</div>
-                                                        </div>
-                                                    }
-                                                </div>
-                                            }
-                                            else
-                                            {
-                                                <div class="text-center text-muted x-small py-2">لا توجد تعليقات بعد</div>
-                                            }
-
-                                            <div class="add-comment-box d-flex gap-2">
-                                                <input type="text" @bind="newCommentText" class="form-control form-control-sm rounded-pill" placeholder="أضف تعليقاً..." />
-                                                <button class="btn btn-primary btn-sm rounded-circle" @onclick="() => AddComment(post.Id)" disabled="@isPostingComment">
-                                                    <i class="fa-solid fa-paper-plane"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        }
-                    </div>
-                }
-                else
-                {
-                    <div class="text-center py-5 bg-white rounded-5 border border-dashed">
-                        <div class="mb-3 opacity-25"><i class="fa-solid fa-newspaper fs-1"></i></div>
-                        <div class="text-muted">لا توجد منشورات حالياً</div>
-                    </div>
-                }
-            </div>
-
-            <!-- Reviews List -->
-            <div class="mb-5 pt-4 border-top">
-                <div class="d-flex align-items-center justify-content-between mb-4">
-                    <h4 class="fw-900 mb-0 border-right-styled pe-3">تقييمات العملاء</h4>
-                    <button class="btn btn-warning rounded-pill px-3 fw-bold" style="font-size:0.82rem;" @onclick="() => StartRating(0)">
-                        <i class="fa-solid fa-star me-1"></i> أضف تقييمك
+                    <button class="btn btn-share-ref px-3 rounded-pill shadow-sm d-flex align-items-center justify-content-center"
+                            @onclick="OpenShareModal" title="مشاركة الخدمة">
+                        <i class="fa-solid fa-share-nodes fs-5 text-primary"></i>
                     </button>
                 </div>
 
-                @if (service.Reviews == null || !service.Reviews.Any())
+                <!-- Optional Phone Numbers (Controlled by System Settings) -->
+                @if (State.ShowContactNumbers)
                 {
-                    <div class="text-center py-5">
-                        <i class="fa-regular fa-star fs-1 text-warning opacity-50 mb-3 d-block"></i>
-                        <p class="text-muted fw-semibold mb-1">لا توجد تقييمات أو تعليقات حتى الآن.</p>
-                        <p class="text-muted small mb-3">كن أول من يقيّم هذه الخدمة ويشارك تجربته!</p>
-                        <button class="btn btn-warning rounded-pill px-4 fw-bold" @onclick="() => StartRating(5)">
-                            <i class="fa-solid fa-star me-1"></i> أضف تقييمك الآن
+                    @if (!State.RequireLoginToViewContactNumbers || IsAuthenticated)
+                    {
+                        <div class="alert alert-light border rounded-4 py-2 px-3 text-center small text-muted mb-3">
+                            <i class="fa-solid fa-phone text-success me-1"></i>
+                            <span class="fw-bold me-1">أرقام التواصل المباشرة:</span>
+                            <span dir="ltr" class="fw-bold text-dark me-2">@service.Phone1</span>
+                            @if (!string.IsNullOrEmpty(service.Phone2))
+                            {
+                                <span dir="ltr" class="fw-bold text-dark">| @service.Phone2</span>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-light border rounded-4 py-2 px-3 text-center xx-small text-muted mb-3">
+                            <i class="fa-solid fa-lock text-muted me-1"></i>
+                            <a href="/login" class="text-primary fw-semibold">سجّل دخولك</a> لعرض الأرقام كنص، أو اضغط زر التواصل بالأعلى مباشرة.
+                        </div>
+                    }
+                }
+
+                <!-- 5. About Service Card (نبذة عن الخدمة) -->
+                <div class="ref-card bg-white rounded-4 p-4 mb-3 border shadow-sm">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="fa-solid fa-file-lines text-primary fs-5"></i>
+                        <h5 class="fw-bold text-dark mb-0 fs-6">نبذة عن الخدمة</h5>
+                    </div>
+
+                    <div class="ref-description-box text-muted leading-relaxed @(isDescriptionExpanded ? "expanded" : "collapsed")">
+                        @service.Description
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(service.Description) && service.Description.Length > 140)
+                    {
+                        <div class="text-center mt-2">
+                            <button class="btn btn-link text-primary text-decoration-none fw-semibold small p-0" 
+                                    @onclick="() => isDescriptionExpanded = !isDescriptionExpanded">
+                                @(isDescriptionExpanded ? "عرض أقل ∧" : "عرض المزيد ∨")
+                            </button>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(service.Address))
+                    {
+                        <div class="pt-3 mt-3 border-top d-flex align-items-center justify-content-between small text-muted">
+                            <div>
+                                <i class="fa-solid fa-map-pin text-danger me-1"></i>
+                                <span>@service.Address</span>
+                            </div>
+                            <button class="btn btn-sm btn-link text-primary text-decoration-none p-0 fw-semibold" @onclick="OpenMap">
+                                الخريطة
+                            </button>
+                        </div>
+                    }
+                </div>
+
+                <!-- 6. Ratings & Reviews Card (التقييمات وآراء العملاء) -->
+                <div class="ref-card bg-white rounded-4 p-4 mb-3 border shadow-sm">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-star text-warning fs-5"></i>
+                            <h5 class="fw-bold text-dark mb-0 fs-6">التقييمات وآراء العملاء</h5>
+                        </div>
+                        <button class="btn btn-link text-primary text-decoration-none fw-semibold small p-0" @onclick="() => StartRating(5)">
+                            أضف تقييمك <i class="fa-solid fa-chevron-left xx-small"></i>
                         </button>
                     </div>
-                }
-                else
-                {
-                    <div class="row g-3">
-                        @foreach (var review in service.Reviews)
-                        {
-                            <div class="col-12 col-md-6">
-                                <div class="glass-card-v3 p-4 h-100" style="border-radius:16px;">
-                                    <div class="d-flex align-items-center gap-3 mb-3">
-                                        <img src="@Khadamat.BlazorUI.Helpers.DefaultImages.GetUserAvatar(review.UserName, null, review.UserAvatar)"
-                                             class="rounded-circle border shadow-sm" width="44" height="44" style="object-fit:cover;" />
-                                        <div class="flex-grow-1">
-                                            <div class="fw-bold" style="color:#1e293b;font-size:0.95rem;">@review.UserName</div>
-                                            <div class="x-small text-muted">
-                                                <i class="fa-regular fa-calendar me-1"></i>
-                                                @review.CreatedAt.ToString("yyyy/MM/dd")
-                                            </div>
-                                        </div>
-                                        <div class="text-warning d-flex gap-1">
-                                            @for (int i = 1; i <= 5; i++)
-                                            {
-                                                <i class="@(i <= review.Rating ? "fa-solid" : "fa-regular") fa-star small"></i>
-                                            }
-                                        </div>
+
+                    <div class="row align-items-center g-3">
+                        <!-- Left (in RTL): Rating Average -->
+                        <div class="col-5 text-center border-start">
+                            <div class="display-5 fw-bold text-dark">@service.Rating.ToString("0.1")</div>
+                            <div class="text-warning d-flex justify-content-center gap-1 my-1 small">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <i class="@(i <= Math.Round(service.Rating) ? "fa-solid" : "fa-regular") fa-star"></i>
+                                }
+                            </div>
+                            <span class="text-muted xx-small">@service.RatersCount تقييماً</span>
+                        </div>
+
+                        <!-- Right (in RTL): Star Breakdown Bars -->
+                        <div class="col-7">
+                            @for (int star = 5; star >= 1; star--)
+                            {
+                                int currentStar = star;
+                                int starCount = service.Reviews?.Count(r => r.Rating == currentStar) ?? 0;
+                                int totalReviews = service.Reviews?.Count ?? 0;
+                                int pct = totalReviews > 0 ? (starCount * 100 / totalReviews) : (currentStar == 5 ? 75 : (currentStar == 4 ? 20 : 5));
+
+                                <div class="d-flex align-items-center gap-2 mb-1 xx-small text-muted">
+                                    <div class="progress flex-grow-1" style="height: 6px; border-radius: 4px; background: #e2e8f0;">
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: @(pct)%; border-radius: 4px;"></div>
+                                    </div>
+                                    <span style="width: 20px;">@star <i class="fa-solid fa-star text-warning" style="font-size: 0.6rem;"></i></span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Reviews Snippet -->
+                    @if (service.Reviews != null && service.Reviews.Any())
+                    {
+                        <div class="mt-3 pt-3 border-top">
+                            @foreach (var review in service.Reviews.Take(3))
+                            {
+                                <div class="mb-2 p-2 rounded-3 bg-light border">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="fw-bold x-small text-dark">@review.UserName</span>
+                                        <span class="text-muted xx-small">@review.CreatedAt.ToString("yyyy/MM/dd")</span>
+                                    </div>
+                                    <div class="text-warning xx-small mb-1">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            <i class="@(i <= review.Rating ? "fa-solid" : "fa-regular") fa-star"></i>
+                                        }
                                     </div>
                                     @if (!string.IsNullOrWhiteSpace(review.Comment))
                                     {
-                                        <p class="text-muted mb-0" style="font-size:0.88rem;line-height:1.6;">@review.Comment</p>
+                                        <div class="x-small text-muted">@review.Comment</div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <!-- 7. Provider Posts Card (منشورات مقدم الخدمة) -->
+                @if (service.Posts != null && service.Posts.Any())
+                {
+                    <div class="ref-card bg-white rounded-4 p-4 mb-3 border shadow-sm">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-bullhorn text-primary fs-5"></i>
+                                <h5 class="fw-bold text-dark mb-0 fs-6">منشورات مقدم الخدمة</h5>
+                            </div>
+                            @if (CanEdit)
+                            {
+                                <button class="btn btn-link text-primary text-decoration-none fw-semibold small p-0" @onclick="() => showCreatePostBox = !showCreatePostBox">
+                                    + منشور جديد
+                                </button>
+                            }
+                        </div>
+
+                        <!-- Horizontal Scroll Strip of Posts -->
+                        <div class="ref-posts-strip d-flex gap-3 overflow-auto pb-2" style="scrollbar-width: thin;">
+                            @foreach (var post in service.Posts)
+                            {
+                                <div class="ref-post-item rounded-3 border overflow-hidden flex-shrink-0 bg-light" style="width: 200px;">
+                                    @if (!string.IsNullOrEmpty(post.ImageUrl))
+                                    {
+                                        <img src="@post.ImageUrl" class="w-100" style="height: 110px; object-fit: cover;" alt="منشور" />
                                     }
                                     else
                                     {
-                                        <p class="text-muted mb-0 fst-italic" style="font-size:0.82rem;">لم يترك تعليقاً</p>
+                                        <div class="w-100 bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center text-muted" style="height: 110px;">
+                                            <i class="fa-solid fa-newspaper fs-4 opacity-50"></i>
+                                        </div>
                                     }
+                                    <div class="p-2">
+                                        <div class="fw-bold x-small text-dark text-truncate mb-1">@post.Content</div>
+                                        <div class="xx-small text-muted">@post.CreatedAt.ToString("yyyy/MM/dd")</div>
+                                    </div>
                                 </div>
-                            </div>
-                        }
+                            }
+                        </div>
                     </div>
                 }
-            </div>
 
-            <!-- Similar Services -->
-            <div class="mb-5 pt-4 border-top">
-                <h4 class="fw-900 mb-4 border-right-styled pe-3">@similarServicesLabel</h4>
-                @if (similarServices == null)
+                <!-- 8. Similar Services Card (خدمات مشابهة) -->
+                @if (similarServices != null && similarServices.Any())
                 {
-                    <div class="row g-3">
-                        <Khadamat.BlazorUI.Shared.SkeletonLoader Type="card" Count="3" />
-                    </div>
-                }
-                else if (!similarServices.Any())
-                {
-                    <p class="text-muted small text-center">لا توجد خدمات مشابهة في الوقت الحالي</p>
-                }
-                else
-                {
-                    <div class="row g-3">
-                        @foreach (var s in similarServices)
-                        {
-                            <div class="col-6 col-md-3">
-                                <div class="glass-card-v3 p-0 overflow-hidden h-100 cursor-pointer" @onclick='() => Navigation.NavigateTo($"/service/{s.Id}")'>
-                                    <div class="w-100 bg-light d-flex align-items-center justify-content-center p-2" style="height: 140px; overflow: hidden;">
+                    <div class="ref-card bg-white rounded-4 p-4 mb-4 border shadow-sm">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-layer-group text-primary fs-5"></i>
+                                <h5 class="fw-bold text-dark mb-0 fs-6">خدمات مشابهة</h5>
+                            </div>
+                            <span class="xx-small text-muted">اقتراحات قد تهمك</span>
+                        </div>
+
+                        <!-- Horizontal Scroll of Similar Services -->
+                        <div class="ref-similar-strip d-flex gap-3 overflow-auto pb-2" style="scrollbar-width: thin;">
+                            @foreach (var s in similarServices)
+                            {
+                                <div class="ref-similar-item rounded-3 border overflow-hidden flex-shrink-0 bg-white cursor-pointer shadow-sm" 
+                                     style="width: 150px; transition: transform 0.2s;"
+                                     @onclick='() => Navigation.NavigateTo($"/service/{s.Id}")'>
+                                    <div class="w-100 bg-light d-flex align-items-center justify-content-center p-1" style="height: 95px; overflow: hidden;">
                                         <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(s.Images.FirstOrDefault(), s.SubCategoryName, s.CategoryName, s.MainCategoryName, s.SubCategoryImageUrl, s.CategoryImageUrl, s.MainCategoryImageUrl))" 
                                              onerror="this.onerror=null;this.src='/images/services/default_service.png';"
                                              class="w-100 h-100" 
                                              style="object-fit: contain;" 
                                              alt="@s.Title" />
                                     </div>
-                                    <div class="p-2">
-                                        <div class="fw-bold x-small text-truncate">@s.Title</div>
-                                        <div class="text-muted xx-small" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">@s.Description</div>
+                                    <div class="p-2 text-center">
+                                        <div class="fw-bold xx-small text-dark text-truncate">@s.Title</div>
+                                        @if (s.Price.HasValue)
+                                        {
+                                            <div class="text-primary xx-small fw-bold mt-1">@s.Price?.ToString("N0") ج.م</div>
+                                        }
                                     </div>
                                 </div>
-                            </div>
-                        }
+                            }
+                        </div>
                     </div>
                 }
             </div>
@@ -1136,6 +942,399 @@
 }
 
 <style>
+    /* === Khadamawy Reference Image Styles (Ultra-accurate UI) === */
+    .ref-circle-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        color: #1e293b;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        transition: all 0.2s;
+    }
+    .ref-circle-btn:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        color: #2563eb;
+    }
+
+    .ref-fav-floating-btn {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: #ffffff;
+        border: 1px solid rgba(0,0,0,0.06);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s;
+    }
+    .ref-fav-floating-btn:hover {
+        transform: scale(1.08);
+    }
+
+    .ref-hero-media {
+        border-radius: 24px !important;
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+    }
+
+    .ref-triple-bar {
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 18px !important;
+    }
+    .ref-bar-sep {
+        width: 1px;
+        height: 32px;
+        background: #e2e8f0;
+    }
+
+    .btn-primary-ref {
+        background: #2563eb !important;
+        color: #ffffff !important;
+        border: none;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        transition: all 0.2s;
+    }
+    .btn-primary-ref:hover:not(:disabled) {
+        background: #1d4ed8 !important;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+    }
+    .btn-primary-ref:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+    }
+
+    .btn-share-ref {
+        background: #eff6ff !important;
+        border: 1px solid #dbeafe !important;
+        width: 52px;
+        height: 52px;
+        color: #2563eb !important;
+        transition: all 0.2s;
+    }
+    .btn-share-ref:hover {
+        background: #dbeafe !important;
+    }
+
+    .btn-whatsapp-ref {
+        background: #25d366 !important;
+        color: #ffffff !important;
+        border: none;
+        width: 52px;
+        height: 52px;
+        box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25);
+        transition: all 0.2s;
+    }
+    .btn-whatsapp-ref:hover {
+        background: #1eb956 !important;
+        transform: translateY(-1px);
+    }
+
+    .ref-card {
+        border-radius: 20px !important;
+        border: 1px solid #edf2f7 !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02) !important;
+    }
+
+    .ref-description-box {
+        font-size: 0.95rem;
+        line-height: 1.8;
+        transition: max-height 0.3s ease;
+    }
+    .ref-description-box.collapsed {
+        max-height: 60px;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+    .ref-description-box.expanded {
+        max-height: 2000px;
+    }
+
+    .ref-posts-strip::-webkit-scrollbar,
+    .ref-similar-strip::-webkit-scrollbar {
+        height: 4px;
+    }
+    .ref-posts-strip::-webkit-scrollbar-thumb,
+    .ref-similar-strip::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
+
+    /* Modern Service Details V4 Theme & Responsive Styles */
+    :root {
+        --primary-blue: #2563eb;
+        --primary-blue-dark: #1d4ed8;
+        --primary-blue-light: #3b82f6;
+        --primary-blue-bg: #dbeafe;
+        --whatsapp-green: #25d366;
+        --whatsapp-green-dark: #128c7e;
+        --card-border: #e2e8f0;
+        --text-heading: #0f172a;
+        --text-sub: #64748b;
+    }
+
+    /* Top Navigation Bar */
+    .btn-action-back {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        color: #1e293b;
+        padding: 8px 16px;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .btn-action-back:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        color: var(--primary-blue);
+    }
+
+    .btn-action-tool {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        color: #475569;
+        height: 40px;
+        padding: 0 14px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .btn-action-tool:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        transform: translateY(-1px);
+    }
+    .btn-action-fav-active {
+        background: #fee2e2 !important;
+        border-color: #fca5a5 !important;
+        color: #ef4444 !important;
+    }
+
+    /* Breadcrumbs */
+    .breadcrumb-chip {
+        display: inline-flex;
+        align-items: center;
+        background: #f1f5f9;
+        color: #475569;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.82rem;
+        text-decoration: none;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+    }
+    .breadcrumb-chip:hover {
+        background: #e2e8f0;
+        color: var(--primary-blue);
+    }
+    .breadcrumb-chip-active {
+        background: var(--primary-blue-bg);
+        color: var(--primary-blue-dark);
+        font-weight: 600;
+        border-color: #bfdbfe;
+    }
+    .badge-specialization {
+        background: #fef3c7;
+        color: #92400e;
+        border: 1px solid #fde68a;
+        font-weight: 600;
+    }
+    .breadcrumb-divider {
+        font-size: 0.65rem;
+        color: #94a3b8;
+    }
+
+    /* Hero Section Card */
+    .service-hero-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 20px !important;
+    }
+    .service-main-title {
+        font-size: 1.65rem;
+        line-height: 1.4;
+        color: var(--text-heading);
+    }
+    @@media (max-width: 768px) {
+        .service-main-title {
+            font-size: 1.35rem;
+        }
+    }
+
+    /* Service Gallery */
+    .service-gallery-wrap {
+        height: 340px;
+        background: #0f172a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    @@media (max-width: 576px) {
+        .service-gallery-wrap {
+            height: 260px;
+        }
+    }
+    .gallery-glass-overlay {
+        background: rgba(15, 23, 42, 0.25);
+        z-index: 1;
+    }
+    .carousel-bg-blur {
+        object-fit: cover;
+        filter: blur(24px);
+        opacity: 0.45;
+        transform: scale(1.2);
+    }
+
+    /* Provider Snippet */
+    .provider-badge-card {
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+    }
+    .provider-name {
+        font-size: 0.98rem;
+    }
+
+    /* Highlight Stats Strip */
+    .hero-stats-strip {
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+    }
+    .stat-divider {
+        width: 1px;
+        height: 28px;
+        background: #e2e8f0;
+    }
+
+    /* Action & Contact Buttons */
+    .btn-primary-call {
+        background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+        color: #ffffff;
+        border: none;
+        font-size: 1rem;
+        transition: all 0.25s ease;
+    }
+    .btn-primary-call:hover:not(:disabled) {
+        background: linear-gradient(135deg, var(--primary-blue-light), var(--primary-blue));
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+    }
+    .btn-primary-call:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .btn-whatsapp-v4 {
+        background: linear-gradient(135deg, var(--whatsapp-green), var(--whatsapp-green-dark));
+        color: #ffffff;
+        border: none;
+        font-size: 1rem;
+        transition: all 0.25s ease;
+    }
+    .btn-whatsapp-v4:hover {
+        background: linear-gradient(135deg, #2ae06d, var(--whatsapp-green));
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(37, 211, 102, 0.35);
+    }
+
+    .btn-chat-v4 {
+        background: #ffffff;
+        border-color: #cbd5e1 !important;
+        color: #1e293b;
+        transition: all 0.2s;
+    }
+    .btn-chat-v4:hover {
+        background: var(--primary-blue-bg);
+        border-color: #93c5fd !important;
+        color: var(--primary-blue-dark);
+    }
+
+    .btn-order-v4 {
+        background: #f0fdf4;
+        border-color: #bbf7d0 !important;
+        color: #166534;
+        transition: all 0.2s;
+    }
+    .btn-order-v4:hover {
+        background: #dcfce7;
+        border-color: #86efac !important;
+    }
+
+    /* Tabs Styling (Clean Modern RTL Tabs) */
+    .service-nav-tabs {
+        border-bottom: 2px solid #e2e8f0 !important;
+        background: #ffffff !important;
+        overflow-x: auto;
+        white-space: nowrap;
+        scrollbar-width: none;
+    }
+    .service-nav-tabs::-webkit-scrollbar {
+        display: none;
+    }
+    .tab-btn {
+        color: #64748b;
+        position: relative;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+        border-radius: 10px 10px 0 0;
+    }
+    .tab-btn:hover {
+        color: var(--primary-blue);
+        background: #f8fafc;
+    }
+    .tab-btn.active {
+        color: var(--primary-blue);
+        background: #ffffff;
+    }
+    .tab-btn.active::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--primary-blue);
+        border-radius: 3px 3px 0 0;
+    }
+
+    .tab-content-panel {
+        border-color: #e2e8f0 !important;
+    }
+
+    /* Cards inside tabs */
+    .info-card-box {
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        transition: all 0.2s;
+    }
+    .info-card-box:hover {
+        border-color: #cbd5e1 !important;
+        background: #ffffff !important;
+    }
+
+    .similar-card {
+        border: 1px solid #e2e8f0 !important;
+        transition: all 0.25s ease;
+    }
+    .similar-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        border-color: #cbd5e1 !important;
+    }
+
     .service-v3-container {
         min-height: 100vh;
         background: #f8fafc;
@@ -1651,6 +1850,7 @@
     private List<ServiceDto>? similarServices;
     private string similarServicesLabel = "خدمات مشابهة قد تهمك";
     private string activeTab = "details";
+    private bool isDescriptionExpanded = false;
     private bool showRateModal = false;
     private bool showShareModal = false;
     private bool isGeneratingCard = false;
@@ -3079,3 +3279,5 @@
         box-shadow: 0 0 8px rgba(37, 99, 235, 0.7);
     }
 </style>
+
+

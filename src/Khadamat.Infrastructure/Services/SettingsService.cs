@@ -78,6 +78,8 @@ public class SettingsService : ISettingsService
                 AppStoreUrl = settings.AppStoreUrl,
                 GooglePlayUrl = settings.GooglePlayUrl,
                 EnableTesterTracking = settings.EnableTesterTracking,
+                ShowContactNumbers = settings.ShowContactNumbers,
+                RequireLoginToViewContactNumbers = settings.RequireLoginToViewContactNumbers,
                 DefaultTheme = settings.DefaultTheme
             });
         }
@@ -141,6 +143,8 @@ public class SettingsService : ISettingsService
             if (request.GooglePlayUrl != null) settings.GooglePlayUrl = request.GooglePlayUrl;
             if (!string.IsNullOrEmpty(request.DefaultTheme)) settings.DefaultTheme = request.DefaultTheme;
             settings.EnableTesterTracking = request.EnableTesterTracking;
+            settings.ShowContactNumbers = request.ShowContactNumbers;
+            settings.RequireLoginToViewContactNumbers = request.RequireLoginToViewContactNumbers;
             settings.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();

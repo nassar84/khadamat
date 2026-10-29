@@ -194,6 +194,29 @@
                         <input type="number" @bind="settings.MaxServiceImages" class="form-control rounded-pill px-3" min="1" max="10">
                         <div class="text-muted x-small mt-1">العدد الافتراضي 3 صور، ويتم ضغطها تلقائياً لأقل من 150KB بصيغة WebP</div>
                     </div>
+
+                    <div class="setting-toggle-row mb-3 mt-3">
+                        <div>
+                            <div class="fw-bold small mb-0">إظهار أرقام التواصل في صفحة الخدمة</div>
+                            <div class="text-muted x-small">عند التعطيل، يتم إخفاء أرقام الهواتف واستبدالها بأزرار اتصال وواتساب مباشرة دون كشف الأرقام</div>
+                        </div>
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input fs-4" type="checkbox" @bind="settings.ShowContactNumbers">
+                        </div>
+                    </div>
+
+                    @if (settings.ShowContactNumbers)
+                    {
+                        <div class="setting-toggle-row mb-0 animate-pop">
+                            <div>
+                                <div class="fw-bold small mb-0">اشتراط تسجيل الدخول لرؤية الأرقام</div>
+                                <div class="text-muted x-small">إظهار الأرقام للأعضاء المسجلين فقط وحجبها عن الزوار مع بقاء أزرار الاتصال متاحة للجميع</div>
+                            </div>
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input fs-4" type="checkbox" @bind="settings.RequireLoginToViewContactNumbers">
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
 
@@ -743,6 +766,8 @@
             MaxServiceImages = settings.MaxServiceImages > 0 ? settings.MaxServiceImages : 3,
             EnableReviewAutoApproval = settings.EnableReviewAutoApproval,
             EnableTesterTracking = settings.EnableTesterTracking,
+            ShowContactNumbers = settings.ShowContactNumbers,
+            RequireLoginToViewContactNumbers = settings.RequireLoginToViewContactNumbers,
             MarketplaceDefaultListingDays = settings.MarketplaceDefaultListingDays,
             MarketplaceMaxListingsPerUser = settings.MarketplaceMaxListingsPerUser,
             MarketplaceRequireApproval = settings.MarketplaceRequireApproval,
@@ -781,6 +806,8 @@
                 AppState.ContactEmail = settings.ContactEmail ?? string.Empty;
                 AppState.ContactPhone = settings.ContactPhone ?? string.Empty;
                 AppState.ContactWhatsApp = settings.ContactWhatsApp ?? string.Empty;
+                AppState.ShowContactNumbers = settings.ShowContactNumbers;
+                AppState.RequireLoginToViewContactNumbers = settings.RequireLoginToViewContactNumbers;
                 AppState.TriggerStateChanged();
 
                 // Reload fresh copy from DB

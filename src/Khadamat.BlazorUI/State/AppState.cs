@@ -94,6 +94,10 @@ public class AppState
     public string AppStoreUrl { get; set; } = "";
     public string GooglePlayUrl { get; set; } = "";
 
+    // Contact Visibility Controls
+    public bool ShowContactNumbers { get; set; } = false;
+    public bool RequireLoginToViewContactNumbers { get; set; } = true;
+
     // Contact Information
     public string ContactEmail { get; set; } = "khadamawy@gmail.com";
     public string ContactPhone { get; set; } = "201065016032";
