@@ -70,6 +70,18 @@ public class ServiceDto
     public string? SubCategoryImageUrl { get; set; }
     public string? CategoryImageUrl { get; set; }
     public string? MainCategoryImageUrl { get; set; }
+
+    // Government Service Flag
+    private bool? _isGovernment;
+    public bool IsGovernment
+    {
+        get => _isGovernment ?? (
+            (!string.IsNullOrEmpty(MainCategoryName) && (MainCategoryName.Contains("حكوم") || MainCategoryName.Contains("gov", StringComparison.OrdinalIgnoreCase))) ||
+            (!string.IsNullOrEmpty(CategoryName) && CategoryName.Contains("حكوم")) ||
+            (!string.IsNullOrEmpty(SubCategoryName) && SubCategoryName.Contains("حكوم"))
+        );
+        set => _isGovernment = value;
+    }
 }
 
 public class ServiceCreateDto

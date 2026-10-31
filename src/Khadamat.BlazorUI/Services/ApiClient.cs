@@ -1,4 +1,4 @@
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using Khadamat.Application.DTOs;
 using Khadamat.Application.Common.Models;
 using Khadamat.Application.Features.Services.Queries;
@@ -250,7 +250,7 @@ public class ApiClient
     }
  
     // Services
-    public async Task<PaginatedResult<ServiceDto>> GetServicesAsync(string? search = null, int? categoryId = null, int? subCategoryId = null, int? governorateId = null, int? cityId = null, string? userId = null, bool? isApproved = true, string? sortBy = "latest", int page = 1, int pageSize = 10, string? specialization = null)
+    public async Task<PaginatedResult<ServiceDto>> GetServicesAsync(string? search = null, int? categoryId = null, int? subCategoryId = null, int? governorateId = null, int? cityId = null, string? userId = null, bool? isApproved = true, string? sortBy = "latest", int page = 1, int pageSize = 10, string? specialization = null, bool? excludeGovernment = null)
     {
         var url = $"v1/services?page={page}&pageSize={pageSize}";
         if (!string.IsNullOrEmpty(search)) url += $"&search={Uri.EscapeDataString(search)}";
@@ -263,6 +263,7 @@ public class ApiClient
         if (!string.IsNullOrEmpty(sortBy)) url += $"&sortBy={sortBy}";
         if (!string.IsNullOrEmpty(specialization)) url += $"&specialization={Uri.EscapeDataString(specialization)}";
         
+        if (excludeGovernment.HasValue) url += $"&excludeGovernment={excludeGovernment.Value.ToString().ToLower()}";
         try
         {
             return await _http.GetFromJsonAsync<PaginatedResult<ServiceDto>>(url) ?? new PaginatedResult<ServiceDto>(new List<ServiceDto>(), 0, page, pageSize);

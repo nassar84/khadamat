@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Khadamat.Application.Features.Services.Queries;
 using Khadamat.Application.Features.Services.Commands;
@@ -173,14 +173,14 @@ public class ServicesController : ControllerBase
         {
             CategoryId = service.CategoryId,
             SubCategoryId = service.SubCategoryId,
-            PageSize = count + 1, // +1 to exclude current
-            IsApproved = true
+            PageSize = count + 5, // extra to account for filtering
+            IsApproved = true,
+            ExcludeGovernment = true
         };
 
         var result = await _mediator.Send(query);
-        // Exclude current service
-        result.Items = result.Items.Where(i => i.Id != id).Take(count).ToList();
-        
+        // Exclude current service and government services from suggestions
+        result.Items = result.Items.Where(i => i.Id != id && !i.IsGovernment).Take(count).ToList();
         return Ok(result);
     }
 

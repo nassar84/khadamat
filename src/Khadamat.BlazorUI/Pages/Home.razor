@@ -1,4 +1,4 @@
-@page "/"
+﻿@page "/"
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
 @using Khadamat.BlazorUI.Components.ServiceRelated
@@ -537,8 +537,9 @@
             
             if (cachedServices != null && cachedServices.Any())
             {
-                featuredServices = cachedServices.Take(6).ToList();
-                nearbyServices = cachedServices.Skip(1).Take(4).ToList();
+                var validCached = cachedServices.Where(s => !s.IsGovernment).ToList();
+                featuredServices = validCached.Take(6).ToList();
+                nearbyServices = validCached.Skip(1).Take(4).ToList();
             }
             if (cachedCats != null && cachedCats.Any())
             {
@@ -554,8 +555,8 @@
             if (ct.IsCancellationRequested) return;
 
             // 2. Parallel loading of fresh data from API
-            // ── خدمات مميزة: بدون فلتر مدينة دائماً
-            var servicesTask    = Api.GetServicesAsync(pageSize: 10);
+            // ── خدمات مميزة: بدون فلتر مدينة دائماً (استثناء الخدمات الحكومية)
+            var servicesTask    = Api.GetServicesAsync(pageSize: 10, excludeGovernment: true);
             var categoriesTask  = Api.GetMainCategoriesAsync();
             var marketTask      = Api.GetLatestMarketplaceItemsAsync(6);
 
@@ -569,26 +570,27 @@
 
             if (servicesResult?.Items != null && servicesResult.Items.Any())
             {
-                featuredServices = servicesResult.Items.Take(6).ToList();
+                featuredServices = servicesResult.Items.Where(s => !s.IsGovernment).Take(6).ToList();
                 await OfflineData.SaveServicesAsync(servicesResult.Items);
             }
 
-            // ── الخدمات القريبة: مفلترة بمدينة/محافظة المستخدم إذا كان مسجلاً
+            // ── الخدمات القريبة: مفلترة بمدينة/محافظة المستخدم إذا كان مسجلاً (استثناء الخدمات الحكومية)
             if (AppState.IsLoggedIn && AppState.CityId.HasValue)
             {
                 // أولاً: حاول بالمدينة
-                var byCityResult = await Api.GetServicesAsync(cityId: AppState.CityId, pageSize: 5);
-                if (byCityResult?.Items != null && byCityResult.Items.Any())
+                var byCityResult = await Api.GetServicesAsync(cityId: AppState.CityId, pageSize: 5, excludeGovernment: true);
+                var validCity = byCityResult?.Items?.Where(s => !s.IsGovernment).ToList();
+                if (validCity != null && validCity.Any())
                 {
-                    nearbyServices = byCityResult.Items;
+                    nearbyServices = validCity;
                     // اسم المدينة من أول خدمة
-                    nearbyLocationName = byCityResult.Items.FirstOrDefault()?.CityName;
+                    nearbyLocationName = validCity.FirstOrDefault()?.CityName;
                 }
                 else if (AppState.GovernorateId.HasValue)
                 {
                     // ثانياً: إذا لا توجد نتائج في المدينة، جرب المحافظة
-                    var byGovResult = await Api.GetServicesAsync(governorateId: AppState.GovernorateId, pageSize: 5);
-                    nearbyServices = byGovResult?.Items ?? new List<ServiceDto>();
+                    var byGovResult = await Api.GetServicesAsync(governorateId: AppState.GovernorateId, pageSize: 5, excludeGovernment: true);
+                    nearbyServices = byGovResult?.Items?.Where(s => !s.IsGovernment).ToList() ?? new List<ServiceDto>();
                     nearbyLocationName = byGovResult?.Items?.FirstOrDefault()?.GovernorateName;
                 }
                 else
@@ -600,10 +602,9 @@
             else
             {
                 // غير مسجل: أظهر خدمات عامة
-                nearbyServices     = servicesResult?.Items?.Skip(1).Take(4).ToList() ?? new List<ServiceDto>();
+                nearbyServices     = servicesResult?.Items?.Where(s => !s.IsGovernment).Skip(1).Take(4).ToList() ?? new List<ServiceDto>();
                 nearbyLocationName = null;
             }
-
             if (mainCategories != null)
                 await OfflineData.SaveMainCategoriesAsync(mainCategories);
 

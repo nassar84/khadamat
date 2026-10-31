@@ -17,4 +17,5 @@ public record GetServiceQuery : IRequest<PaginatedResult<ServiceDto>>
     public string? SortBy { get; init; }
     public int Page { get; init; } = 1;
     public int PageSize { get; init; } = 10;
+    public bool? ExcludeGovernment { get; init; }
 }

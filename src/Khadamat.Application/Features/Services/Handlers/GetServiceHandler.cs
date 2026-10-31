@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
 using Khadamat.Domain.Entities;
@@ -36,6 +36,12 @@ public class GetServiceHandler : IRequestHandler<Queries.GetServiceQuery, Pagina
         var page = request.Page > 0 ? request.Page : 1;
         var pageSize = request.PageSize > 0 ? request.PageSize : 10;
         var search = request.Search?.ToLower();
+        var isSearching = !string.IsNullOrWhiteSpace(search);
+        var isFilteringCategory = request.CategoryId.HasValue || request.SubCategoryId.HasValue;
+
+        // User requirement:
+        // الخدمات الحكومية . اجعلها لا تظهر فى الخدمات المقترحة او القريبة او المميزة . هى لا تظهر الا اذا بحث عنها المستخدم
+        bool excludeGovernment = request.ExcludeGovernment ?? (!isSearching && !isFilteringCategory);
 
         Expression<Func<Service, bool>> filter = s => 
             (!request.IsApproved.HasValue || s.Approved == request.IsApproved.Value) &&
@@ -46,7 +52,13 @@ public class GetServiceHandler : IRequestHandler<Queries.GetServiceQuery, Pagina
             (!request.CityId.HasValue || s.CityId == request.CityId) &&
             (!request.GovernorateId.HasValue || (s.City != null && s.City.GovernorateId == request.GovernorateId)) &&
             (string.IsNullOrEmpty(request.Specialization) || (s.Specialization != null && s.Specialization.Contains(request.Specialization))) &&
-            (string.IsNullOrEmpty(request.Location) || (s.Address != null && s.Address.Contains(request.Location)));
+            (string.IsNullOrEmpty(request.Location) || (s.Address != null && s.Address.Contains(request.Location))) &&
+            (!excludeGovernment || !(
+                (s.Category != null && s.Category.MainCategory != null && (s.Category.MainCategory.Name.Contains("حكوم") || s.Category.MainCategory.Color == "gov")) ||
+                (s.SubCategory != null && s.SubCategory.Category != null && s.SubCategory.Category.MainCategory != null && (s.SubCategory.Category.MainCategory.Name.Contains("حكوم") || s.SubCategory.Category.MainCategory.Color == "gov")) ||
+                (s.Category != null && s.Category.Name.Contains("حكوم")) ||
+                (s.SubCategory != null && s.SubCategory.Name.Contains("حكوم"))
+            ));
         
         // Includes for mapping
         string includes = "Category,Category.MainCategory,SubCategory,SubCategory.Category,SubCategory.Category.MainCategory,City,City.Governorate,Ratings,Likes";
