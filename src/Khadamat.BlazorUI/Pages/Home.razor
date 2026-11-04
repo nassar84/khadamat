@@ -14,7 +14,7 @@
 
 
 
-<div class="px-3" style="@(AppState.IsMobileApp && !AppState.IsNativeApp ? "margin-top: 15px;" : "")">
+<div class="@(AppState.IsMobileApp ? "px-3" : "px-0")" style="@(AppState.IsMobileApp && !AppState.IsNativeApp ? "margin-top: 15px;" : "")">
     <!-- Ads Slider (Dynamic System) -->
     <Khadamat.BlazorUI.Components.Ads.AdsSlider />
 

@@ -924,11 +924,32 @@ body[data-theme="glass"]::after {
 
 /* Conflicting marker removed in favor of MainLayout.razor styles */
 
-.content-wrapper {
+.content-wrapper,
+.header-inner-container {
     width: 100%;
-    max-width: 1200px;
+    max-width: 1240px;
     margin: 0 auto;
-    padding: 20px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.content-wrapper {
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+@media (min-width: 1400px) {
+    .content-wrapper,
+    .header-inner-container {
+        max-width: 1360px;
+    }
+}
+
+@media (min-width: 1600px) {
+    .content-wrapper,
+    .header-inner-container {
+        max-width: 1440px;
+    }
 }
 
 /* ===== APP HEADER (GLASS) ===== */
@@ -2831,4 +2852,4 @@ body[data-theme="glass"]::after {
     background: linear-gradient(135deg, #047857 0%, #059669 100%);
     box-shadow: 0 10px 24px -4px rgba(16, 185, 129, 0.55);
 }
-
+

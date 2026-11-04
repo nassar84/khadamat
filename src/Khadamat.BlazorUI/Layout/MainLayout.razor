@@ -32,16 +32,14 @@
             </div>
         }
         
-        @if (ShowHeroAds && !AppState.IsMobileApp)
-        {
-            <div class="mt-3">
-                <HeroAds />
-            </div>
-        }
-
         <main class="app-content">
-
             <div class="content-wrapper">
+                @if (ShowHeroAds && !AppState.IsMobileApp)
+                {
+                    <div class="mt-3 mb-2">
+                        <HeroAds />
+                    </div>
+                }
                 @Body
             </div>
         </main>
