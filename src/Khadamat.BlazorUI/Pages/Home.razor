@@ -58,10 +58,10 @@
                 }
                 else
                 {
-                    <div class="d-flex gap-3 pb-2 horizontal-scroll-container" style="overflow-x: auto !important; overflow-y: hidden; touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none; overscroll-behavior-x: contain;">
+                    <div class="d-flex gap-3 pb-2 horizontal-scroll-container align-items-stretch" style="overflow-x: auto !important; overflow-y: hidden; touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none; overscroll-behavior-x: contain;">
                         @foreach (var service in featuredServices)
                         {
-                            <div style="min-width: 280px; max-width: 280px; flex-shrink: 0;">
+                            <div class="service-card-wrapper" style="min-width: 285px; max-width: 285px; flex-shrink: 0; display: flex; flex-direction: column;">
                                 <ServiceCard Service="service" OnClick="OnServiceSelected" />
                             </div>
                         }
@@ -225,6 +225,23 @@
     .featured-scroll-container::-webkit-scrollbar,
     .horizontal-scroll-container::-webkit-scrollbar {
         display: none;
+    }
+
+    .featured-scroll-container .horizontal-scroll-container {
+        align-items: stretch !important;
+    }
+
+    .featured-scroll-container .service-card-wrapper {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .featured-scroll-container .service-card {
+        height: 100% !important;
+        min-height: 100% !important;
+        margin-bottom: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
     }
 
 
