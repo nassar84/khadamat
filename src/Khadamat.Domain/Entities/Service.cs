@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Khadamat.Domain.Common;
 using Khadamat.Domain.Exceptions;
 
 namespace Khadamat.Domain.Entities;
@@ -110,9 +111,9 @@ public class Service : BaseEntity
         Description = description;
         Address = address;
         Price = price;
-        Phone1 = phone1;
-        Phone2 = phone2;
-        WhatsApp = whatsApp;
+        Phone1 = PhoneNumberHelper.NormalizeDigits(phone1);
+        Phone2 = PhoneNumberHelper.NormalizeDigits(phone2);
+        WhatsApp = PhoneNumberHelper.NormalizeDigits(whatsApp);
         Facebook = facebook;
         Telegram = telegram;
         Work_Days = workDays;

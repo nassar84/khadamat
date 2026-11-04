@@ -1,5 +1,6 @@
 @page "/admin/testers"
 @using Khadamat.Application.DTOs
+@using Khadamat.Domain.Common
 @using Khadamat.BlazorUI.Services
 @inject ApiClient Api
 @inject NavigationManager Navigation
@@ -368,7 +369,7 @@
 
             <div class="mb-3">
                 <label class="form-label small fw-bold text-muted">رقم الهاتف / الواتساب (لإرسال التذكيرات)</label>
-                <input type="tel" class="form-control rounded-3" placeholder="010xxxxxxxx أو 2010xxxxxxxx" @bind="editRequest.PhoneNumber" />
+                <input type="tel" dir="ltr" lang="en" inputmode="tel" class="form-control rounded-3 text-start" placeholder="010xxxxxxxx أو 2010xxxxxxxx" @bind="editRequest.PhoneNumber" />
             </div>
 
             <div class="mb-3">
@@ -735,10 +736,10 @@
 
     private string GetWhatsAppReminderLink(TesterDeviceDto tester)
     {
-        var rawPhone = tester.PhoneNumber ?? "";
-        // Clean phone number: remove spaces and non-digits
-        var digits = new string(rawPhone.Where(char.IsDigit).ToArray());
-        if (digits.StartsWith("01")) digits = "2" + digits; // Format Egypt 01xxxx to 201xxxx
+
+
+
+
 
         var name = !string.IsNullOrEmpty(tester.TesterName) ? tester.TesterName : "عزيزي المختبر";
         var streak = tester.ConsecutiveDaysStreak;
@@ -749,7 +750,7 @@
                       $"سلسلتك الحالية: {streak} يوم (المتبقي: {remaining} يوم).\n" +
                       $"شكراً جزيلاً لتعاونك ودعمك! 🚀";
 
-        var url = $"https://wa.me/{digits}?text={Uri.EscapeDataString(message)}";
-        return url;
+        return PhoneNumberHelper.GetWhatsAppUrl(tester.PhoneNumber, message);
+
     }
 }

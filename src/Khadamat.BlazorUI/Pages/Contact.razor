@@ -1,4 +1,5 @@
 @page "/contact"
+@using Khadamat.Domain.Common
 @inject Khadamat.BlazorUI.State.AppState State
 @inject IJSRuntime JS
 
@@ -267,11 +268,11 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label xx-small fw-bold text-muted mb-1">رقم الهاتف الأساسي <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control form-control-sm premium-input" @bind="svcApplicantPhone" placeholder="01xxxxxxxxx" />
+                                    <input type="tel" dir="ltr" lang="en" inputmode="tel" class="form-control form-control-sm premium-input text-start" @bind="svcApplicantPhone" placeholder="01xxxxxxxxx" />
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label xx-small fw-bold text-muted mb-1">رقم الواتساب للتواصل (إن اختلف)</label>
-                                    <input type="text" class="form-control form-control-sm premium-input" @bind="svcApplicantWhatsApp" placeholder="01xxxxxxxxx" />
+                                    <input type="tel" dir="ltr" lang="en" inputmode="tel" class="form-control form-control-sm premium-input text-start" @bind="svcApplicantWhatsApp" placeholder="01xxxxxxxxx" />
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label xx-small fw-bold text-muted mb-1">البريد الإلكتروني (اختياري)</label>
@@ -593,7 +594,7 @@
     private string activeTab = "general"; // "general" or "service"
 
     private string WhatsAppNumber => !string.IsNullOrWhiteSpace(State.ContactWhatsApp)
-        ? State.ContactWhatsApp.TrimStart('+').Replace(" ", "")
+        ? PhoneNumberHelper.NormalizeForWhatsApp(State.ContactWhatsApp)
         : "201065016032";
 
     private string WhatsAppDisplay => $"+{WhatsAppNumber}";

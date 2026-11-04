@@ -4,6 +4,7 @@
 @using Khadamat.BlazorUI.Helpers
 @using Microsoft.AspNetCore.Authorization
 @using Khadamat.Shared.Interfaces
+@using Khadamat.Domain.Common
 @inject ApiClient Api
 @inject NavigationManager Navigation
 @inject IPhoneService Phone
@@ -285,7 +286,7 @@
                                         @if (!string.IsNullOrEmpty(item.ContactPhone) && !isOwner)
                                         {
                                             <div class="mt-1">
-                                                <a class="text-muted small text-decoration-none" href="tel:@item.ContactPhone">
+                                                <a class="text-muted small text-decoration-none" href="@PhoneNumberHelper.GetTelUrl(item.ContactPhone)">
                                                     <i class="fa-solid fa-phone me-1"></i>@item.ContactPhone
                                                 </a>
                                             </div>

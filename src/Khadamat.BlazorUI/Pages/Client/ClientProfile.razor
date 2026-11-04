@@ -83,7 +83,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">رقم الهاتف <span class="text-danger">*</span></label>
-                                <InputText @bind-Value="profile.PhoneNumber" class="form-control form-control-lg" placeholder="+20xxxxxxxxxx" />
+                                <InputText @bind-Value="profile.PhoneNumber" type="tel" dir="ltr" lang="en" inputmode="tel" class="form-control form-control-lg text-start" placeholder="+20xxxxxxxxxx" />
                                 <ValidationMessage For="@(() => profile.PhoneNumber)" />
                                 @if (profile.PhoneNumberConfirmed)
                                 {

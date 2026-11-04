@@ -1,6 +1,7 @@
 @page "/provider/incoming-requests"
 @using Khadamat.Application.DTOs
 @using Khadamat.Domain.Enums
+@using Khadamat.Domain.Common
 @using Khadamat.BlazorUI.Services
 @inject ApiClient Api
 @inject NavigationManager Navigation
@@ -74,10 +75,10 @@
                                     }
                                     @if (!string.IsNullOrEmpty(r.CustomerPhone))
                                     {
-                                        <a href="tel:@r.CustomerPhone" class="btn btn-sm btn-light border rounded-pill px-2 py-0 text-dark" style="font-size: 0.75rem;">
+                                        <a href="@PhoneNumberHelper.GetTelUrl(r.CustomerPhone)" class="btn btn-sm btn-light border rounded-pill px-2 py-0 text-dark" style="font-size: 0.75rem;">
                                             <i class="fa-solid fa-phone text-success me-1"></i> @r.CustomerPhone
                                         </a>
-                                        <a href="https://wa.me/@(r.CustomerPhone.Replace("+","").Replace(" ",""))" target="_blank" class="btn btn-sm btn-success rounded-pill px-2 py-0 text-white" style="font-size: 0.75rem;">
+                                        <a href="@PhoneNumberHelper.GetWhatsAppUrl(r.CustomerPhone)" target="_blank" class="btn btn-sm btn-success rounded-pill px-2 py-0 text-white" style="font-size: 0.75rem;">
                                             <i class="fa-brands fa-whatsapp me-1"></i> واتساب
                                         </a>
                                     }
@@ -320,10 +321,10 @@
                                 @if (!string.IsNullOrEmpty(selectedCustomerRequest.CustomerPhone))
                                 {
                                     <div class="d-flex gap-2">
-                                        <a href="tel:@selectedCustomerRequest.CustomerPhone" class="btn btn-outline-primary rounded-pill flex-grow-1 fw-bold py-2">
+                                        <a href="@PhoneNumberHelper.GetTelUrl(selectedCustomerRequest.CustomerPhone)" class="btn btn-outline-primary rounded-pill flex-grow-1 fw-bold py-2">
                                             <i class="fa-solid fa-phone me-1"></i> اتصال: @selectedCustomerRequest.CustomerPhone
                                         </a>
-                                        <a href="https://wa.me/@(selectedCustomerRequest.CustomerPhone.Replace("+","").Replace(" ",""))" target="_blank" class="btn btn-success rounded-pill px-3 fw-bold py-2" title="محادثة واتساب">
+                                        <a href="@PhoneNumberHelper.GetWhatsAppUrl(selectedCustomerRequest.CustomerPhone)" target="_blank" class="btn btn-success rounded-pill px-3 fw-bold py-2" title="محادثة واتساب">
                                             <i class="fa-brands fa-whatsapp fs-5"></i>
                                         </a>
                                     </div>

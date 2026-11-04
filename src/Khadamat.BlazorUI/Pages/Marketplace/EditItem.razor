@@ -83,7 +83,7 @@
                         <!-- Price & Condition -->
                         <div class="col-md-6">
                             <label class="form-label fw-bold">السعر (ج.م)</label>
-                            <InputNumber @bind-Value="model.Price" class="form-control form-control-lg bg-light border-0 rounded-4" />
+                            <InputNumber @bind-Value="model.Price" dir="ltr" lang="en" inputmode="decimal" class="form-control form-control-lg bg-light border-0 rounded-4 text-start" />
                         </div>
 
                         <div class="col-md-6">
@@ -101,8 +101,8 @@
                         <!-- Contact -->
                         <div class="col-12">
                             <label class="form-label fw-bold">رقم التواصل</label>
-                            <InputText @bind-Value="model.ContactPhone"
-                                       class="form-control form-control-lg bg-light border-0 rounded-4"
+                            <InputText @bind-Value="model.ContactPhone" type="tel" dir="ltr" lang="en" inputmode="tel"
+                                       class="form-control form-control-lg bg-light border-0 rounded-4 text-start"
                                        placeholder="01xxxxxxxxx" />
                         </div>
 

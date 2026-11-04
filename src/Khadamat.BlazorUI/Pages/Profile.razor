@@ -213,7 +213,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label small fw-bold">رقم الهاتف</label>
-                                    <InputText @bind-Value="model.PhoneNumber" class="form-control premium-input" placeholder="01xxxxxxxxx" />
+                                    <InputText @bind-Value="model.PhoneNumber" type="tel" dir="ltr" lang="en" inputmode="tel" class="form-control premium-input text-start" placeholder="01xxxxxxxxx" />
                                     <ValidationMessage For="@(() => model.PhoneNumber)" class="text-danger small" />
                                 </div>
                                 <div class="col-md-6">

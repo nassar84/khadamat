@@ -21,7 +21,7 @@
              <h4 class="text-muted">إنشاء حساب جديد</h4>
         </div>
         
-        <EditForm Model="@registerModel" OnValidSubmit="HandleRegister">
+        <EditForm Model="@registerModel" OnValidSubmit="HandleRegister" OnInvalidSubmit="HandleInvalidSubmit">
             <DataAnnotationsValidator />
             
             <div class="row">
@@ -78,7 +78,7 @@
                     <label class="form-label">اسم المستخدم</label>
                     <div class="input-group">
                          <span class="input-group-text glass-input-addon"><i class="fas fa-user-tag"></i></span>
-                         <InputText @bind-Value="registerModel.UserName" class="form-control glass-input" placeholder="مثال: ahmed_2024" />
+                         <InputText @bind-Value="registerModel.UserName" class="form-control glass-input" placeholder="مثال: ahmed_2024 أو أحمد_2024" />
                     </div>
                     <ValidationMessage For="@(() => registerModel.UserName)" />
                 </div>
@@ -96,7 +96,7 @@
                     <label class="form-label">رقم الهاتف</label>
                     <div class="input-group">
                          <span class="input-group-text glass-input-addon"><i class="fas fa-phone"></i></span>
-                         <InputText @bind-Value="registerModel.PhoneNumber" type="tel" class="form-control glass-input" placeholder="01xxxxxxxxx" pattern="[0-9]*" />
+                         <InputText @bind-Value="registerModel.PhoneNumber" type="tel" dir="ltr" lang="en" inputmode="tel" class="form-control glass-input text-start" placeholder="01xxxxxxxxx" pattern="[0-9]*" />
                     </div>
                      <ValidationMessage For="@(() => registerModel.PhoneNumber)" />
                 </div>
@@ -219,6 +219,51 @@
                     <i class="fa-solid fa-arrow-right ms-1"></i> تخطي والذهاب للرئيسية
                 </a>
             </div>
+
+            @if (showErrorPopup)
+            {
+                <div class="modal-backdrop-custom animate-fade" @onclick="CloseErrorPopup">
+                    <div class="modal-dialog-custom glass-card p-4 rounded-4 shadow-lg text-center animate-scale-up" @onclick:stopPropagation="true" role="dialog" aria-modal="true">
+                        <!-- Close Button -->
+                        <button type="button" class="btn-close position-absolute top-0 end-0 m-3" aria-label="Close" @onclick="CloseErrorPopup"></button>
+
+                        <!-- Status Icon -->
+                        <div class="error-popup-icon-wrapper mb-3 mx-auto">
+                            <i class="fa-solid fa-circle-exclamation text-danger fs-1"></i>
+                        </div>
+
+                        <!-- Title -->
+                        <h4 class="fw-bold mb-2 text-dark">@popupErrorTitle</h4>
+                        <p class="text-muted small mb-3">يرجى مراجعة وتصحيح الآتي للمتابعة:</p>
+
+                        <!-- Body Message / List -->
+                        <div class="popup-error-body mb-4 text-start bg-danger bg-opacity-10 p-3 rounded-3 border border-danger border-opacity-25" style="max-height: 250px; overflow-y: auto;">
+                            @if (popupErrorMessages.Count == 1)
+                            {
+                                <p class="text-danger mb-0 fw-semibold text-center">@popupErrorMessages[0]</p>
+                            }
+                            else
+                            {
+                                <ul class="mb-0 pe-2 ps-0 list-unstyled">
+                                    @foreach (var err in popupErrorMessages)
+                                    {
+                                        <li class="text-danger small mb-2 d-flex align-items-start gap-2">
+                                            <i class="fa-solid fa-circle-xmark mt-1 flex-shrink-0"></i>
+                                            <span>@err</span>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                        </div>
+
+                        <!-- Action Button -->
+                        <button type="button" class="btn btn-primary-premium w-100 rounded-pill py-2 fw-bold" @onclick="CloseErrorPopup">
+                            حسناً، فهمت
+                        </button>
+                    </div>
+                </div>
+            }
+
         </EditForm>
     </div>
 </div>
@@ -313,9 +358,96 @@
     .upload-btn:hover {
         transform: scale(1.1);
     }
+
+    .modal-backdrop-custom {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(15, 23, 42, 0.65);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        box-sizing: border-box;
+    }
+
+    .modal-dialog-custom {
+        width: 100%;
+        max-width: 440px;
+        background: #ffffff;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        position: relative;
+        z-index: 100000;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+    }
+
+    .error-popup-icon-wrapper {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: rgba(239, 68, 68, 0.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .animate-scale-up {
+        animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @@keyframes scaleUp {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
 </style>
 
 @code {
+
+    private bool showErrorPopup = false;
+    private string popupErrorTitle = "تنبيه";
+    private List<string> popupErrorMessages = new();
+
+    private void ShowPopupError(string title, List<string> messages)
+    {
+        popupErrorTitle = title;
+        popupErrorMessages = messages.Where(m => !string.IsNullOrWhiteSpace(m)).Distinct().ToList();
+        if (!popupErrorMessages.Any())
+        {
+            popupErrorMessages.Add("يرجى مراجعة البيانات المدخلة والتأكد من صحتها.");
+        }
+        showErrorPopup = true;
+        StateHasChanged();
+    }
+
+    private void CloseErrorPopup()
+    {
+        showErrorPopup = false;
+        StateHasChanged();
+    }
+
+    private void HandleInvalidSubmit(EditContext context)
+    {
+        var validationErrors = context.GetValidationMessages().Distinct().ToList();
+        if (!validationErrors.Any())
+        {
+            validationErrors.Add("يرجى ملء جميع الحقول المطلوبة والتأكد من صحتها.");
+        }
+
+        ShowPopupError("يرجى مراجعة البيانات", validationErrors);
+    }
+
     private Khadamat.Application.DTOs.RegisterRequest registerModel = new();
     private string confirmPassword = "";
     private bool isBusy = false;
@@ -429,18 +561,21 @@
         if (!agreeToTerms)
         {
             errorMessage = "يرجى الموافقة على الشروط والأحكام للمتابعة";
+            ShowPopupError("الشروط والأحكام", new List<string> { errorMessage });
             return;
         }
         
         if (registerModel.Password != confirmPassword)
         {
-            errorMessage = "كلمة المرور وتأكيدها غير متطابقين";
+            errorMessage = "كلمة المرور وتأكيد كلمة المرور غير متطابقين";
+            ShowPopupError("كلمة المرور", new List<string> { errorMessage });
             return;
         }
 
         if (registerModel.CityId == 0)
         {
-            errorMessage = "الرجاء اختيار المدينة";
+            errorMessage = "الرجاء اختيار المحافظة والمدينة للمتابعة";
+            ShowPopupError("اختيار المدينة", new List<string> { errorMessage });
             return;
         }
 
@@ -456,15 +591,29 @@
             else
             {
                 errorMessage = result.Message ?? "حدث خطأ أثناء التسجيل";
+                var errors = new List<string>();
+                if (!string.IsNullOrEmpty(result.Message))
+                {
+                    errors.Add(result.Message);
+                }
                 if (result.Errors != null && result.Errors.Any())
                 {
                     apiErrors = result.Errors;
+                    foreach (var err in result.Errors)
+                    {
+                        if (!errors.Contains(err))
+                        {
+                            errors.Add(err);
+                        }
+                    }
                 }
+                ShowPopupError("تعذر إنشاء الحساب", errors.Any() ? errors : new List<string> { "حدث خطأ أثناء التسجيل، يرجى المحاولة مرة أخرى." });
             }
         }
         catch (Exception ex)
         {
             errorMessage = "حدث خطأ غير متوقع: " + ex.Message;
+            ShowPopupError("خطأ في الاتصال", new List<string> { errorMessage });
         }
         finally
         {

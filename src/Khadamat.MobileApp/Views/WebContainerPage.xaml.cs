@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Khadamat.MobileApp.Security;
 using Khadamat.MobileApp.Helpers;
 using Khadamat.MobileApp.Views.Popups;
+using Khadamat.Domain.Common;
 
 namespace Khadamat.MobileApp.Views;
 
@@ -647,7 +648,7 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
         {
             e.Cancel = true;
             if (Microsoft.Maui.ApplicationModel.Communication.PhoneDialer.Default.IsSupported)
-                Microsoft.Maui.ApplicationModel.Communication.PhoneDialer.Default.Open(url.Replace("tel:", ""));
+                Microsoft.Maui.ApplicationModel.Communication.PhoneDialer.Default.Open(PhoneNumberHelper.NormalizeForCall(url.Replace("tel:", "")));
             return;
         }
 

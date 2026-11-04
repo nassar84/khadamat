@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Khadamat.Domain.Common;
 using Khadamat.Domain.Entities;
 using Khadamat.Application.Interfaces;
 using MediatR;
@@ -31,9 +32,9 @@ public class CreateServiceEditRequestHandler : IRequestHandler<Commands.CreateSe
             ProposedDescription = request.ProposedDescription,
             ProposedAddress = request.ProposedAddress,
             ProposedPrice = request.ProposedPrice,
-            ProposedPhone1 = request.ProposedPhone1,
-            ProposedPhone2 = request.ProposedPhone2,
-            ProposedWhatsApp = request.ProposedWhatsApp,
+            ProposedPhone1 = PhoneNumberHelper.NormalizeDigits(request.ProposedPhone1),
+            ProposedPhone2 = PhoneNumberHelper.NormalizeDigits(request.ProposedPhone2),
+            ProposedWhatsApp = PhoneNumberHelper.NormalizeDigits(request.ProposedWhatsApp),
             Status = "Pending"
         };
 

@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @layout Khadamat.BlazorUI.Layout.MainLayout
 @using Khadamat.Application.DTOs
+@using Khadamat.Domain.Common
 @using Khadamat.BlazorUI.Services
 @inject ApiClient Api
 @inject NavigationManager Navigation
@@ -173,7 +174,7 @@
 
             @if (!string.IsNullOrEmpty(paymentSettings.ContactWhatsApp))
             {
-                <a href="https://wa.me/@(paymentSettings.ContactWhatsApp)" target="_blank" rel="noopener"
+                <a href="@PhoneNumberHelper.GetWhatsAppUrl(paymentSettings.ContactWhatsApp)" target="_blank" rel="noopener"
                    class="btn btn-success w-100 rounded-pill py-3 fw-bold shadow-sm">
                     <i class="fa-brands fa-whatsapp me-2 fs-5"></i>
                     تواصل مع الإدارة على واتساب
@@ -181,7 +182,7 @@
             }
             else if (!string.IsNullOrEmpty(paymentSettings.ContactPhone))
             {
-                <a href="tel:@paymentSettings.ContactPhone"
+                <a href="@PhoneNumberHelper.GetTelUrl(paymentSettings.ContactPhone)"
                    class="btn btn-outline-primary w-100 rounded-pill py-3 fw-bold">
                     <i class="fa-solid fa-phone me-2"></i>
                     اتصل بالإدارة: @paymentSettings.ContactPhone

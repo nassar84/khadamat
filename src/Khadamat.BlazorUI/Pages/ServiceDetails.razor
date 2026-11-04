@@ -1,6 +1,7 @@
-﻿@implements IDisposable
+@implements IDisposable
 @page "/service/{Id:int}"
 @using Khadamat.Application.DTOs
+@using Khadamat.Domain.Common
 @using Khadamat.BlazorUI.Services
 @using Khadamat.BlazorUI.Services.Auth
 @using Microsoft.AspNetCore.Components.Authorization
@@ -145,9 +146,12 @@
                 <div class="text-center mb-3">
                     <div class="d-flex align-items-center justify-content-center gap-2 mb-1">
                         <h2 class="fw-bold text-dark mb-0 fs-3">@service.Title</h2>
-                        <span class="badge-verified-ref" title="مقدم خدمة موثق">
+                        @if (service.IsProviderVerified)
+                        {
+                            <span class="badge-verified-ref" title="مقدم خدمة موثق بالوثائق الرسمية">
                             <i class="fa-solid fa-circle-check text-primary fs-5"></i>
-                        </span>
+                            </span>
+                        }
                     </div>
 
                     <div class="text-muted small mb-2">
@@ -172,11 +176,22 @@
                 <div class="ref-triple-bar bg-light rounded-4 p-2 mb-3 border d-flex justify-content-around align-items-center text-center">
                     <!-- 1. Verification status -->
                     <div class="ref-bar-item flex-fill">
-                        <div class="d-flex align-items-center justify-content-center gap-1 text-success fw-bold small">
-                            <i class="fa-solid fa-shield-halved"></i>
-                            <span>موثقة</span>
-                        </div>
-                        <span class="x-small text-muted d-block mt-1">حساب معتمد</span>
+                        @if (service.IsProviderVerified)
+                        {
+                            <div class="d-flex align-items-center justify-content-center gap-1 text-success fw-bold small">
+                                <i class="fa-solid fa-shield-halved"></i>
+                                <span>موثق</span>
+                            </div>
+                            <span class="x-small text-muted d-block mt-1">حساب معتمد</span>
+                        }
+                        else
+                        {
+                            <div class="d-flex align-items-center justify-content-center gap-1 text-secondary fw-semibold small">
+                                <i class="fa-solid fa-shield"></i>
+                                <span>غير موثق</span>
+                            </div>
+                            <span class="x-small text-muted d-block mt-1">حساب غير معتمد</span>
+                        }
                     </div>
 
                     <div class="ref-bar-sep"></div>
@@ -781,15 +796,15 @@
                             <div class="d-flex gap-2">
                                 @if (!string.IsNullOrWhiteSpace(service?.Phone1))
                                 {
-                                    <a href="tel:@service.Phone1" class="btn btn-outline-primary flex-grow-1 rounded-pill py-2 small">
+                                    <a href="@PhoneNumberHelper.GetTelUrl(service?.Phone1)" class="btn btn-outline-primary flex-grow-1 rounded-pill py-2 small">
                                         <i class="fa-solid fa-phone me-1"></i> اتصال الآن
                                     </a>
                                 }
                                 @if (!string.IsNullOrWhiteSpace(service?.WhatsApp))
                                 {
-                                    var waNum = service.WhatsApp.Trim();
-                                    if (waNum.StartsWith("0")) waNum = "2" + waNum;
-                                    <a href="https://wa.me/@waNum" target="_blank" class="btn btn-outline-success flex-grow-1 rounded-pill py-2 small">
+
+
+                                    <a href="@PhoneNumberHelper.GetWhatsAppUrl(service?.WhatsApp)" target="_blank" class="btn btn-outline-success flex-grow-1 rounded-pill py-2 small">
                                         <i class="fa-brands fa-whatsapp me-1"></i> واتساب
                                     </a>
                                 }
@@ -2758,10 +2773,10 @@
     private string GetWhatsAppDirectUrl(string? rawNumber)
     {
         if (string.IsNullOrWhiteSpace(rawNumber)) return "#";
-        var digits = new string(rawNumber.Where(char.IsDigit).ToArray());
-        if (digits.StartsWith("01") && digits.Length == 11) digits = "2" + digits;
-        var msg = Uri.EscapeDataString($"مرحباً، بخصوص خدمتك على منصة خدماوي ({service?.Title})");
-        return $"https://wa.me/{digits}?text={msg}";
+        return PhoneNumberHelper.GetWhatsAppUrl(rawNumber, $"مرحباً، بخصوص خدمتك على منصة خدماوي ({service?.Title})");
+
+
+
     }
 
     private string GetTelegramUrl(string? rawTelegram)
@@ -2796,9 +2811,9 @@
     {
         if (!string.IsNullOrEmpty(service?.WhatsApp))
         {
-            var digits = new string(service.WhatsApp.Where(char.IsDigit).ToArray());
-            if (digits.StartsWith("01") && digits.Length == 11) digits = "2" + digits;
-            await PhoneService.OpenWhatsAppChatAsync(digits, $"مرحباً، بخصوص خدمتك على منصة خدماوي ({service?.Title})");
+            await PhoneService.OpenWhatsAppChatAsync(service.WhatsApp, $"مرحباً، بخصوص خدمتك على منصة خدماوي ({service?.Title})");
+    
+
         }
     }
 

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
 <head>
@@ -982,7 +982,10 @@
                     phonePart = qIdx !== -1 ? afterWa.substring(0, qIdx) : afterWa;
                 }
 
+                phonePart = phonePart.replace(/[\u0660-\u0669]/g, function(d) { return String.fromCharCode(d.charCodeAt(0) - 0x0660 + 48); }).replace(/[\u06F0-\u06F9]/g, function(d) { return String.fromCharCode(d.charCodeAt(0) - 0x06F0 + 48); });
                 phonePart = phonePart.replace(/[^0-9]/g, '');
+                if (phonePart.startsWith('01') && phonePart.length === 11) phonePart = '2' + phonePart;
+                targetUrl = targetUrl.replace(/[\u0660-\u0669]/g, function(d) { return String.fromCharCode(d.charCodeAt(0) - 0x0660 + 48); }).replace(/[\u06F0-\u06F9]/g, function(d) { return String.fromCharCode(d.charCodeAt(0) - 0x06F0 + 48); });
 
                 let waScheme = 'whatsapp://send?';
                 if (phonePart) waScheme += 'phone=' + encodeURIComponent(phonePart) + '&';
@@ -1403,7 +1406,10 @@
                     phonePart = qIdx !== -1 ? afterWa.substring(0, qIdx) : afterWa;
                 }
 
+                phonePart = phonePart.replace(/[\u0660-\u0669]/g, function(d) { return String.fromCharCode(d.charCodeAt(0) - 0x0660 + 48); }).replace(/[\u06F0-\u06F9]/g, function(d) { return String.fromCharCode(d.charCodeAt(0) - 0x06F0 + 48); });
                 phonePart = phonePart.replace(/[^0-9]/g, '');
+                if (phonePart.startsWith('01') && phonePart.length === 11) phonePart = '2' + phonePart;
+                targetUrl = targetUrl.replace(/[\u0660-\u0669]/g, function(d) { return String.fromCharCode(d.charCodeAt(0) - 0x0660 + 48); }).replace(/[\u06F0-\u06F9]/g, function(d) { return String.fromCharCode(d.charCodeAt(0) - 0x06F0 + 48); });
 
                 let waScheme = 'whatsapp://send?';
                 if (phonePart) waScheme += 'phone=' + encodeURIComponent(phonePart) + '&';
@@ -1483,6 +1489,7 @@
         }, true);
     </script>
     <script src="js/app-dialogs.js?v=2030"></script>
+    <script src="js/en-numbers-force.js?v=1"></script>
     <script src="js/tester-tracker.js?v=20261024"></script>
     <script src="_framework/blazor.webassembly.js"></script>
     <script>

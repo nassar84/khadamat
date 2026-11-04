@@ -34,7 +34,7 @@ public class ImageStorageService : IImageStorageService
         }
 
         string resolvedPath = null;
-        if (Path.IsPathRooted(configuredPath) && Directory.Exists(configuredPath))
+        if (Path.IsPathRooted(configuredPath))
         {
             resolvedPath = configuredPath;
         }

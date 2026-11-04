@@ -3,6 +3,7 @@
 @using Khadamat.BlazorUI.Services
 @using Khadamat.BlazorUI.Services.Admin
 @using Khadamat.Application.Features.Services.Commands
+@using Khadamat.Domain.Common
 @inject ApiClient Api
 @inject IAdminService AdminService
 @inject NavigationManager Navigation
@@ -271,7 +272,7 @@
                                                 <i class="fa-solid fa-phone text-primary"></i>
                                                 <span class="fw-bold text-truncate" dir="ltr">@provider.Phone</span>
                                                 <div class="ms-auto d-flex gap-1">
-                                                    <a href="tel:@provider.Phone" class="btn btn-xs btn-outline-primary rounded-circle" title="اتصال">
+                                                    <a href="@PhoneNumberHelper.GetTelUrl(provider.Phone)" class="btn btn-xs btn-outline-primary rounded-circle" title="اتصال">
                                                         <i class="fa-solid fa-phone-volume"></i>
                                                     </a>
                                                     <a href="@GetWhatsAppLink(provider.Phone)" target="_blank" class="btn btn-xs btn-outline-success rounded-circle" title="واتساب">
@@ -509,7 +510,7 @@
                                         @if (!string.IsNullOrEmpty(service.Phone1))
                                         {
                                             <div class="d-flex gap-1">
-                                                <a href="tel:@service.Phone1" class="btn btn-xs btn-outline-primary rounded-circle" title="اتصال">
+                                                <a href="@PhoneNumberHelper.GetTelUrl(service.Phone1)" class="btn btn-xs btn-outline-primary rounded-circle" title="اتصال">
                                                     <i class="fa-solid fa-phone"></i>
                                                 </a>
                                                 <a href="@GetWhatsAppLink(service.Phone1)" target="_blank" class="btn btn-xs btn-outline-success rounded-circle" title="واتساب">
@@ -1122,9 +1123,9 @@
     private string GetWhatsAppLink(string? phone)
     {
         if (string.IsNullOrWhiteSpace(phone)) return "#";
-        var clean = new string(phone.Where(char.IsDigit).ToArray());
-        if (clean.StartsWith("0")) clean = "2" + clean;
-        return $"https://wa.me/{clean}";
+        return PhoneNumberHelper.GetWhatsAppUrl(phone);
+
+
     }
 
     // ── معاينة المستندات والصور ──

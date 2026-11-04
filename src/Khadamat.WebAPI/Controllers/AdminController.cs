@@ -567,31 +567,20 @@ public class AdminController : ControllerBase
 
         service.Approve();
 
-        // Auto-verify provider and user if not already verified
+        // Ensure user is marked as provider, but do not auto-verify official documents (handled strictly via ApproveProvider)
         var provider = await _context.ProviderProfiles.FindAsync(service.ProviderProfileId);
         if (provider == null && !string.IsNullOrEmpty(service.UserCreated))
         {
             provider = await _context.ProviderProfiles.FirstOrDefaultAsync(p => p.UserId == service.UserCreated);
         }
 
-        if (provider != null)
+        var providerUserId = provider?.UserId ?? service.UserCreated;
+        if (!string.IsNullOrEmpty(providerUserId))
         {
-            provider.Verified = true;
-            var user = await _userManager.FindByIdAsync(provider.UserId);
-            if (user != null)
+            var user = await _userManager.FindByIdAsync(providerUserId);
+            if (user != null && !user.IsProvider)
             {
                 user.IsProvider = true;
-                user.IsVerified = true;
-                await _userManager.UpdateAsync(user);
-            }
-        }
-        else if (!string.IsNullOrEmpty(service.UserCreated))
-        {
-            var user = await _userManager.FindByIdAsync(service.UserCreated);
-            if (user != null)
-            {
-                user.IsProvider = true;
-                user.IsVerified = true;
                 await _userManager.UpdateAsync(user);
             }
         }

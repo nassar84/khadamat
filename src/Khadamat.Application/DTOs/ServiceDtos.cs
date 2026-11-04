@@ -42,6 +42,7 @@ public class ServiceDto
     public int? SpecializationId { get; set; }
     public bool IsProviderSubscriptionActive { get; set; } = true;
     public string? ProviderSubscriptionMessage { get; set; }
+    public bool IsProviderVerified { get; set; }
 
     // Flattened Properties
     public string ProviderName { get; set; } = string.Empty;

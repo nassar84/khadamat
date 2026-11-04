@@ -25,6 +25,7 @@ public static class DependencyInjection
             options.Password.RequireNonAlphanumeric = false;
             options.Password.RequireUppercase = false;
             options.Password.RequireLowercase = false;
+            options.User.AllowedUserNameCharacters = null;
         })
         .AddEntityFrameworkStores<KhadamatDbContext>()
         .AddDefaultTokenProviders();

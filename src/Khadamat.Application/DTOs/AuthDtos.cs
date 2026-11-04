@@ -1,16 +1,24 @@
 using System.ComponentModel.DataAnnotations;
+using Khadamat.Domain.Common;
 
 namespace Khadamat.Application.DTOs;
 
 public class RegisterRequest
 {
+    private string _userName = string.Empty;
+    private string _phoneNumber = string.Empty;
+
     [Required(ErrorMessage = "الاسم الكامل مطلوب")]
     [StringLength(100, MinimumLength = 3, ErrorMessage = "الاسم يجب أن يكون بين 3 و 100 حرف")]
     public string FullName { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "اسم المستخدم مطلوب")]
-    [RegularExpression(@"^[a-zA-Z0-9_]{3,20}$", ErrorMessage = "اسم المستخدم يجب أن يتكون من 3 إلى 20 حرف (أحرف، أرقام، أو _) ولا يسمح بعلامة @")]
-    public string UserName { get; set; } = string.Empty;
+    [RegularExpression(@"^[a-zA-Z0-9_\u0600-\u06FF]{3,20}$", ErrorMessage = "اسم المستخدم يجب أن يتكون من 3 إلى 20 حرف (أحرف عربية أو إنجليزية، أرقام، أو _) ولا يسمح بعلامة @")]
+    public string UserName
+    {
+        get => _userName;
+        set => _userName = value?.Trim() ?? string.Empty;
+    }
 
     [Required(ErrorMessage = "البريد الإلكتروني مطلوب")]
     [EmailAddress(ErrorMessage = "صيغة البريد الإلكتروني غير صحيحة")]
@@ -26,7 +34,11 @@ public class RegisterRequest
     [Required(ErrorMessage = "رقم الهاتف مطلوب")]
     [Phone(ErrorMessage = "رقم الهاتف غير صحيح")]
     [RegularExpression(@"^01[0125][0-9]{8}$", ErrorMessage = "رقم الهاتف يجب أن يكون رقم مصري صحيح (11 رقم)")]
-    public string PhoneNumber { get; set; } = string.Empty;
+    public string PhoneNumber
+    {
+        get => _phoneNumber;
+        set => _phoneNumber = PhoneNumberHelper.NormalizeDigits(value?.Trim() ?? string.Empty);
+    }
 
     [Required(ErrorMessage = "الرجاء اختيار المدينة")]
     [Range(1, int.MaxValue, ErrorMessage = "الرجاء اختيار المدينة")]
@@ -38,8 +50,14 @@ public class RegisterRequest
 
 public class LoginRequest
 {
+    private string _userName = string.Empty;
+
     [Required(ErrorMessage = "اسم المستخدم مطلوب")]
-    public string UserName { get; set; } = string.Empty;
+    public string UserName
+    {
+        get => _userName;
+        set => _userName = value?.Trim() ?? string.Empty;
+    }
 
     [Required(ErrorMessage = "كلمة المرور مطلوبة")]
     public string Password { get; set; } = string.Empty;
@@ -98,6 +116,7 @@ public class AuthResponse
 
 public class UpdateProfileRequest
 {
+    private string _phoneNumber = string.Empty;
     [Required(ErrorMessage = "الاسم الكامل مطلوب")]
     [StringLength(100, MinimumLength = 3, ErrorMessage = "الاسم يجب أن يكون بين 3 و 100 حرف")]
     public string FullName { get; set; } = string.Empty;
@@ -105,7 +124,11 @@ public class UpdateProfileRequest
     [Required(ErrorMessage = "رقم الهاتف مطلوب")]
     [Phone(ErrorMessage = "رقم الهاتف غير صحيح")]
     [RegularExpression(@"^01[0125][0-9]{8}$", ErrorMessage = "رقم الهاتف يجب أن يكون رقم مصري صحيح (11 رقم)")]
-    public string PhoneNumber { get; set; } = string.Empty;
+    public string PhoneNumber
+    {
+        get => _phoneNumber;
+        set => _phoneNumber = PhoneNumberHelper.NormalizeDigits(value?.Trim() ?? string.Empty);
+    }
 
     [Required(ErrorMessage = "الرجاء اختيار المدينة")]
     [Range(1, int.MaxValue, ErrorMessage = "الرجاء اختيار المدينة")]

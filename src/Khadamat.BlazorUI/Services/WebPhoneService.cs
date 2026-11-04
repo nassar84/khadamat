@@ -1,3 +1,4 @@
+using Khadamat.Domain.Common;
 using Khadamat.Shared.Interfaces;
 using Microsoft.JSInterop;
 
@@ -14,20 +15,29 @@ public class WebPhoneService : IPhoneService
 
     public async Task MakePhoneCallAsync(string phoneNumber)
     {
-        await _js.InvokeVoidAsync("location.assign", $"tel:{phoneNumber}");
+        var telUrl = PhoneNumberHelper.GetTelUrl(phoneNumber);
+        if (!string.IsNullOrEmpty(telUrl) && telUrl != "#")
+        {
+            await _js.InvokeVoidAsync("location.assign", telUrl);
+        }
     }
 
     public async Task SendSmsAsync(string phoneNumber, string message)
     {
-        await _js.InvokeVoidAsync("location.assign", $"sms:{phoneNumber}?body={Uri.EscapeDataString(message)}");
+        var clean = PhoneNumberHelper.NormalizeForCall(phoneNumber);
+        if (!string.IsNullOrEmpty(clean))
+        {
+            await _js.InvokeVoidAsync("location.assign", $"sms:{clean}?body={Uri.EscapeDataString(message)}");
+        }
     }
 
     public async Task OpenWhatsAppChatAsync(string phoneNumber, string? message = null)
     {
-        var url = string.IsNullOrEmpty(message) 
-            ? $"https://wa.me/{phoneNumber}"
-            : $"https://wa.me/{phoneNumber}?text={Uri.EscapeDataString(message)}";
-        await _js.InvokeVoidAsync("location.assign", url);
+        var url = PhoneNumberHelper.GetWhatsAppUrl(phoneNumber, message);
+        if (!string.IsNullOrEmpty(url) && url != "#")
+        {
+            await _js.InvokeVoidAsync("location.assign", url);
+        }
     }
 
     public bool CanMakePhoneCalls => true;

@@ -1,3 +1,4 @@
+using Khadamat.Domain.Common;
 using Khadamat.Shared.Interfaces;
 using Khadamat.MobileApp.Helpers;
 using Khadamat.MobileApp.Views.Popups;
@@ -18,16 +19,16 @@ public class PhoneService : IPhoneService
                 return;
             }
 
-            // Clean phone number
-            phoneNumber = new string(phoneNumber.Where(char.IsDigit).ToArray());
+            // Clean phone number for call
+            var cleanPhone = PhoneNumberHelper.NormalizeForCall(phoneNumber);
 
-            if (string.IsNullOrEmpty(phoneNumber))
+            if (string.IsNullOrEmpty(cleanPhone))
             {
                 await KhadamatDialogHelper.ShowErrorAsync("خطأ", "رقم الهاتف غير صحيح");
                 return;
             }
 
-            PhoneDialer.Default.Open(phoneNumber);
+            PhoneDialer.Default.Open(cleanPhone);
         }
         catch (Exception ex)
         {
@@ -46,7 +47,8 @@ public class PhoneService : IPhoneService
                 return;
             }
 
-            var smsMessage = new SmsMessage(message, new[] { phoneNumber });
+            var cleanPhone = PhoneNumberHelper.NormalizeForCall(phoneNumber);
+            var smsMessage = new SmsMessage(message, new[] { cleanPhone });
             await Sms.Default.ComposeAsync(smsMessage);
         }
         catch (Exception ex)
@@ -60,26 +62,15 @@ public class PhoneService : IPhoneService
     {
         try
         {
-            // Clean phone number and ensure it starts with country code
-            phoneNumber = new string(phoneNumber.Where(char.IsDigit).ToArray());
-            
-            // If Egyptian number starting with 0, replace with +20
-            if (phoneNumber.StartsWith("0"))
+            var cleanWhatsApp = PhoneNumberHelper.NormalizeForWhatsApp(phoneNumber);
+
+            if (string.IsNullOrEmpty(cleanWhatsApp))
             {
-                phoneNumber = "20" + phoneNumber.Substring(1);
-            }
-            else if (!phoneNumber.StartsWith("20"))
-            {
-                phoneNumber = "20" + phoneNumber;
+                await KhadamatDialogHelper.ShowErrorAsync("خطأ", "رقم واتساب غير صحيح");
+                return;
             }
 
-            var whatsappUrl = $"https://wa.me/{phoneNumber}";
-            
-            if (!string.IsNullOrEmpty(message))
-            {
-                whatsappUrl += $"?text={Uri.EscapeDataString(message)}";
-            }
-
+            var whatsappUrl = PhoneNumberHelper.GetWhatsAppUrl(cleanWhatsApp, message);
             var uri = new Uri(whatsappUrl);
             var canOpen = await Launcher.Default.CanOpenAsync(uri);
 
@@ -90,7 +81,7 @@ public class PhoneService : IPhoneService
             else
             {
                 // Try opening WhatsApp app directly
-                var appUri = new Uri($"whatsapp://send?phone={phoneNumber}");
+                var appUri = new Uri($"whatsapp://send?phone={cleanWhatsApp}");
                 await Launcher.Default.OpenAsync(appUri);
             }
         }

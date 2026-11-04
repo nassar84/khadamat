@@ -99,8 +99,17 @@ public class GetServiceByIdHandler : IRequestHandler<GetServiceByIdQuery, Servic
             includeProperties: "Subscription");
         var provider = providers.FirstOrDefault();
 
+        if (provider == null && !string.IsNullOrEmpty(service.UserCreated))
+        {
+            var userProviders = await _providerRepo.GetPagedAsync(1, 1,
+                filter: p => p.UserId == service.UserCreated,
+                includeProperties: "Subscription");
+            provider = userProviders.FirstOrDefault();
+        }
+
         if (provider != null)
         {
+            dto.IsProviderVerified = provider.Verified;
             // Check Subscription Active State
             bool isSubActive = provider.Subscription != null 
                 && provider.Subscription.IsActive 

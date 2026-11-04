@@ -56,7 +56,7 @@
 
                     <div class="col-md-6">
                         <label class="form-label small fw-bold">رقم الهاتف</label>
-                        <InputText class="form-control rounded-pill px-4" @bind-Value="Model.PhoneNumber" disabled="@IsReadOnly" placeholder="01xxxxxxxxx" />
+                        <InputText class="form-control rounded-pill px-4 text-start" dir="ltr" lang="en" type="tel" inputmode="tel" @bind-Value="Model.PhoneNumber" disabled="@IsReadOnly" placeholder="01xxxxxxxxx" />
                         <ValidationMessage For="@(() => Model.PhoneNumber)" class="text-danger small" />
                     </div>
 

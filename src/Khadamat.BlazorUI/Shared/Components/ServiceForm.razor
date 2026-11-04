@@ -1,5 +1,6 @@
 @using Khadamat.Application.DTOs
 @using Khadamat.Application.Features.Services.Commands
+@using Khadamat.Domain.Common
 @using System.ComponentModel.DataAnnotations
 
 <div class="row g-4">
@@ -35,7 +36,7 @@
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
                         <label class="form-label fw-bold">السعر التقريبي (ج.م)</label>
-                        <InputNumber class="form-control rounded-3 border-0 bg-light" @bind-Value="Model.Price" disabled="@ReadOnly" />
+                        <InputNumber class="form-control rounded-3 border-0 bg-light text-start" dir="ltr" lang="en" inputmode="decimal" @bind-Value="Model.Price" disabled="@ReadOnly" />
                     </div>
                 </div>
 
@@ -161,11 +162,11 @@
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
                         <label class="form-label fw-bold small">رقم الهاتف 1</label>
-                        <InputText class="form-control rounded-3 border-0 bg-light" @bind-Value="Model.Phone1" placeholder="010XXXXXXXX" disabled="@ReadOnly" />
+                        <InputText class="form-control rounded-3 border-0 bg-light text-start" dir="ltr" lang="en" inputmode="tel" type="tel" @bind-Value="Model.Phone1" placeholder="010XXXXXXXX" disabled="@ReadOnly" />
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-bold small">رقم واتساب</label>
-                        <InputText class="form-control rounded-3 border-0 bg-light" @bind-Value="Model.WhatsApp" placeholder="2010XXXXXXXX" disabled="@ReadOnly" />
+                        <InputText class="form-control rounded-3 border-0 bg-light text-start" dir="ltr" lang="en" inputmode="tel" type="tel" @bind-Value="Model.WhatsApp" placeholder="2010XXXXXXXX" disabled="@ReadOnly" />
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-bold small">رابط فيسبوك</label>
@@ -359,8 +360,10 @@
          public string? Specialization { get; set; }
          public int? SpecializationId { get; set; }
          
-         public string? Phone1 { get; set; }
-         public string? WhatsApp { get; set; }
+         private string? _phone1;
+         public string? Phone1 { get => _phone1; set => _phone1 = PhoneNumberHelper.NormalizeDigits(value); }
+         private string? _whatsApp;
+         public string? WhatsApp { get => _whatsApp; set => _whatsApp = PhoneNumberHelper.NormalizeDigits(value); }
          public string? Facebook { get; set; }
          public string? Telegram { get; set; }
          
@@ -545,6 +548,8 @@
     
     private async Task HandleSubmit()
     {
+        Model.Phone1 = PhoneNumberHelper.NormalizeDigits(Model.Phone1);
+        Model.WhatsApp = PhoneNumberHelper.NormalizeDigits(Model.WhatsApp);
         if (Model.CategoryId == null && Model.SubCategoryId == null) 
         {
              // Custom validation if needed

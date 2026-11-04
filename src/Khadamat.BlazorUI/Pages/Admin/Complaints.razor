@@ -1,5 +1,6 @@
 @page "/admin/complaints"
 @using Khadamat.BlazorUI.Services
+@using Khadamat.Domain.Common
 @inject ApiClient Api
 @inject IJSRuntime JS
 
@@ -121,7 +122,7 @@
                                    class="btn btn-sm btn-outline-success rounded-pill px-3">
                                     <i class="fa-brands fa-whatsapp me-1"></i>تواصل واتساب
                                 </a>
-                                <a href="tel:@phone" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                <a href="@PhoneNumberHelper.GetTelUrl(phone)" class="btn btn-sm btn-outline-primary rounded-pill px-3">
                                     <i class="fa-solid fa-phone me-1"></i>اتصال
                                 </a>
                             }
@@ -209,9 +210,9 @@
 
     private string FormatWhatsAppDigits(string raw)
     {
-        var digits = new string(raw.Where(char.IsDigit).ToArray());
-        if (digits.StartsWith("01") && digits.Length == 11) digits = "2" + digits;
-        return digits;
+        return PhoneNumberHelper.NormalizeForWhatsApp(raw);
+
+
     }
 
     private string SubjectLabel(string? type) => type switch

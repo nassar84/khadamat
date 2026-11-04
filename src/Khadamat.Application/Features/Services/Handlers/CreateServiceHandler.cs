@@ -1,6 +1,7 @@
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
+using Khadamat.Domain.Common;
 using Khadamat.Domain.Entities;
 using Khadamat.Application.Interfaces;
 using Khadamat.Application.Common.Helpers;
@@ -58,7 +59,7 @@ public class CreateServiceHandler : IRequestHandler<Commands.CreateServiceComman
                 Bio = !string.IsNullOrEmpty(request.Description) && request.Description.Length > 200 
                       ? request.Description.Substring(0, 200) 
                       : request.Description,
-                ContactNumber = request.Phone1 ?? string.Empty,
+                ContactNumber = PhoneNumberHelper.NormalizeDigits(request.Phone1) ?? string.Empty,
                 CityId = request.CityId,
                 Location = request.Address ?? string.Empty,
                 Verified = false // Pending approval

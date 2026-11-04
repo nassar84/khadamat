@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
 using Khadamat.Domain.Entities;
@@ -168,6 +168,7 @@ public class GetServiceHandler : IRequestHandler<Queries.GetServiceQuery, Pagina
                     ? provider.BusinessName
                     : actualUserName;
                 dto.ProviderPhoto = provider.Photo;
+                dto.IsProviderVerified = provider.Verified;
             }
         }
         

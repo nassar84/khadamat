@@ -1,4 +1,4 @@
-﻿@page "/"
+@page "/"
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
 @using Khadamat.BlazorUI.Components.ServiceRelated
@@ -58,7 +58,7 @@
                 }
                 else
                 {
-                    <div class="d-flex gap-3 pb-2 horizontal-scroll-container" style="overflow-x: auto !important; overflow-y: hidden !important; touch-action: pan-x; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none;">
+                    <div class="d-flex gap-3 pb-2 horizontal-scroll-container" style="overflow-x: auto !important; overflow-y: hidden; touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none; overscroll-behavior-x: contain;">
                         @foreach (var service in featuredServices)
                         {
                             <div style="min-width: 280px; max-width: 280px; flex-shrink: 0;">
@@ -222,7 +222,8 @@
 </div>
 
 <style>
-    .featured-scroll-container::-webkit-scrollbar {
+    .featured-scroll-container::-webkit-scrollbar,
+    .horizontal-scroll-container::-webkit-scrollbar {
         display: none;
     }
 

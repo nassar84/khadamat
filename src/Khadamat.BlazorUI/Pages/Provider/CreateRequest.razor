@@ -2,6 +2,7 @@
 @layout Khadamat.BlazorUI.Layout.MainLayout
 @using Khadamat.Application.DTOs
 @using Khadamat.Application.Features.Services.Commands
+@using Khadamat.Domain.Common
 @using Khadamat.BlazorUI.Services
 @using Khadamat.BlazorUI.Services.Auth
 @inject ApiClient Api
@@ -191,16 +192,16 @@
                         <div class="row g-4">
                             <div class="col-md-4">
                                 <label class="form-label fw-bold small">رقم الهاتف 1</label>
-                                <InputText @bind-Value="model.Phone1" class="form-control premium-input text-start" dir="ltr" placeholder="01xxxxxxxxx" />
+                                <InputText @bind-Value="model.Phone1" type="tel" dir="ltr" lang="en" inputmode="tel" class="form-control premium-input text-start" placeholder="01xxxxxxxxx" />
                                 <ValidationMessage For="@(() => model.Phone1)" class="text-danger small mt-1" />
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-bold small">رقم الهاتف 2</label>
-                                <InputText @bind-Value="model.Phone2" class="form-control premium-input text-start" dir="ltr" placeholder="رقم إضافي" />
+                                <InputText @bind-Value="model.Phone2" type="tel" dir="ltr" lang="en" inputmode="tel" class="form-control premium-input text-start" placeholder="رقم إضافي" />
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-bold small">رقم واتساب</label>
-                                <InputText @bind-Value="model.WhatsApp" class="form-control premium-input text-start" dir="ltr" placeholder="رقم مخصص للواتساب" />
+                                <InputText @bind-Value="model.WhatsApp" type="tel" dir="ltr" lang="en" inputmode="tel" class="form-control premium-input text-start" placeholder="رقم مخصص للواتساب" />
                             </div>
 
                             <div class="col-md-6">
@@ -599,6 +600,9 @@
             return;
         }
 
+        model.Phone1 = PhoneNumberHelper.NormalizeDigits(model.Phone1);
+        model.Phone2 = PhoneNumberHelper.NormalizeDigits(model.Phone2);
+        model.WhatsApp = PhoneNumberHelper.NormalizeDigits(model.WhatsApp);
         isSaving = true;
         try
         {
