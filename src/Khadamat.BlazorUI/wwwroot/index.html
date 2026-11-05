@@ -783,6 +783,10 @@
             if (!isNative) return;
             const a = e.target.closest('a');
             if (a && a.href) {
+                const rawHref = a.getAttribute('href') || '';
+                if (rawHref === '#' || rawHref.startsWith('#') || rawHref.startsWith('javascript:')) {
+                    return;
+                }
                 const href = a.href;
                 const isExternal = href.startsWith('https://wa.me') || 
                                    href.startsWith('https://api.whatsapp.com') ||

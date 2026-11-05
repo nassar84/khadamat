@@ -36,7 +36,7 @@ public class WebPhoneService : IPhoneService
         var url = PhoneNumberHelper.GetWhatsAppUrl(phoneNumber, message);
         if (!string.IsNullOrEmpty(url) && url != "#")
         {
-            await _js.InvokeVoidAsync("location.assign", url);
+            await _js.InvokeVoidAsync("openExternalUrl", url);
         }
     }
 

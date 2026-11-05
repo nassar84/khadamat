@@ -691,14 +691,55 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
                     }
 
                     string target = url;
-                    if (target.Contains("wa.me/"))
+                    if (target.Contains("wa.me/") || target.Contains("api.whatsapp.com"))
                     {
-                        // Open wa.me links directly in external browser — most reliable method
-                        // avoids double-encoding issues with whatsapp:// URI scheme
-                        await Microsoft.Maui.ApplicationModel.Browser.Default.OpenAsync(
-                            new Uri(target),
-                            Microsoft.Maui.ApplicationModel.BrowserLaunchMode.External);
-                        return;
+                        try
+                        {
+                            string phonePart = "";
+                            string textPart = "";
+
+                            var qIdx = target.IndexOf('?');
+                            var basePart = qIdx != -1 ? target.Substring(0, qIdx) : target;
+                            var queryPart = qIdx != -1 ? target.Substring(qIdx + 1) : "";
+
+                            if (basePart.Contains("wa.me/"))
+                            {
+                                phonePart = basePart.Substring(basePart.IndexOf("wa.me/") + 6).Trim('/');
+                            }
+                            else if (queryPart.Contains("phone="))
+                            {
+                                var pMatch = System.Text.RegularExpressions.Regex.Match(queryPart, @"(?:^|&)phone=([^&]+)");
+                                if (pMatch.Success) phonePart = Uri.UnescapeDataString(pMatch.Groups[1].Value);
+                            }
+
+                            var tMatch = System.Text.RegularExpressions.Regex.Match(queryPart, @"(?:^|&)text=([^&]+)");
+                            if (tMatch.Success) textPart = Uri.UnescapeDataString(tMatch.Groups[1].Value);
+
+                            phonePart = PhoneNumberHelper.NormalizeForWhatsApp(phonePart);
+
+                            string waScheme = $"whatsapp://send?phone={phonePart}";
+                            if (!string.IsNullOrEmpty(textPart))
+                            {
+                                waScheme += $"&text={Uri.EscapeDataString(textPart)}";
+                            }
+
+                            var waUri = new Uri(waScheme);
+                            if (await Microsoft.Maui.ApplicationModel.Launcher.Default.CanOpenAsync(waUri))
+                            {
+                                await Microsoft.Maui.ApplicationModel.Launcher.Default.OpenAsync(waUri);
+                                return;
+                            }
+
+                            if (await Microsoft.Maui.ApplicationModel.Launcher.Default.CanOpenAsync(new Uri(target)))
+                            {
+                                await Microsoft.Maui.ApplicationModel.Launcher.Default.OpenAsync(new Uri(target));
+                                return;
+                            }
+                        }
+                        catch (Exception waEx)
+                        {
+                            Console.WriteLine($"ANTIGRAVITY_LOG: Direct WhatsApp launch error: {waEx.Message}");
+                        }
                     }
                     else if (target.Contains("t.me/share/url?"))
                     {

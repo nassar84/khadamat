@@ -6,6 +6,7 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 @inject Khadamat.BlazorUI.State.AppState State
+@inject Khadamat.Shared.Interfaces.IPhoneService PhoneService
 
 <PageTitle>متابعة مختبري Google Play - الإدارة</PageTitle>
 
@@ -304,14 +305,23 @@
                                 <td class="text-center pe-4">
                                     <div class="d-flex justify-content-center align-items-center gap-1">
                                         <!-- WhatsApp Direct Reminder Button -->
-                                        @if (!string.IsNullOrEmpty(tester.PhoneNumber) || !string.IsNullOrEmpty(tester.TesterEmail))
+                                        @if (!string.IsNullOrEmpty(tester.PhoneNumber))
                                         {
-                                            <a href="@GetWhatsAppReminderLink(tester)"
-                                               target="_blank"
-                                               class="btn btn-sm btn-outline-success rounded-circle shadow-2xs action-circle-btn"
-                                               title="إرسال تذكير واتساب للمختبر">
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-success rounded-circle shadow-2xs action-circle-btn"
+                                                    @onclick="() => SendWhatsAppReminderAsync(tester)"
+                                                    title="إرسال تذكير واتساب للمختبر">
                                                 <i class="fa-brands fa-whatsapp"></i>
-                                            </a>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-secondary opacity-50 rounded-circle shadow-2xs action-circle-btn"
+                                                    @onclick="() => PromptMissingPhone(tester)"
+                                                    title="لا يوجد رقم هاتف مسجل - انقر لإضافة رقم المختبر">
+                                                <i class="fa-brands fa-whatsapp"></i>
+                                            </button>
                                         }
 
                                         <!-- View Detailed Visit History -->
@@ -734,12 +744,13 @@
         }
     }
 
-    private string GetWhatsAppReminderLink(TesterDeviceDto tester)
+    private async Task SendWhatsAppReminderAsync(TesterDeviceDto tester)
     {
-
-
-
-
+        if (string.IsNullOrWhiteSpace(tester.PhoneNumber))
+        {
+            PromptMissingPhone(tester);
+            return;
+        }
 
         var name = !string.IsNullOrEmpty(tester.TesterName) ? tester.TesterName : "عزيزي المختبر";
         var streak = tester.ConsecutiveDaysStreak;
@@ -750,7 +761,21 @@
                       $"سلسلتك الحالية: {streak} يوم (المتبقي: {remaining} يوم).\n" +
                       $"شكراً جزيلاً لتعاونك ودعمك! 🚀";
 
-        return PhoneNumberHelper.GetWhatsAppUrl(tester.PhoneNumber, message);
+        try
+        {
+            await PhoneService.OpenWhatsAppChatAsync(tester.PhoneNumber, message);
+        }
+        catch (Exception ex)
+        {
+            statusMessage = "تعذر فتح تطبيق واتساب: " + ex.Message;
+            statusMessageType = "danger";
+        }
+    }
 
+    private void PromptMissingPhone(TesterDeviceDto tester)
+    {
+        statusMessage = $"المختبر ({tester.TesterName ?? tester.DeviceModel ?? "الجهاز"}) ليس لديه رقم هاتف مسجل. يرجى إدخال رقم الهاتف في النموذج أدناه.";
+        statusMessageType = "warning";
+        OpenEditModal(tester);
     }
 }
