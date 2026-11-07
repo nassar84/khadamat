@@ -5,7 +5,7 @@
         <item name="android:windowTranslucentStatus">true</item>
     </style>
     <style name="Maui.SplashTheme" parent="Maui.MainTheme">
-        <item name="android:windowBackground">@drawable/maui_splash</item>
+        <item name="android:windowBackground">@drawable/maui_splash_image</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
