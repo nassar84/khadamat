@@ -1,4 +1,4 @@
-using Microsoft.Maui.Networking;
+﻿using Microsoft.Maui.Networking;
 using Microsoft.Maui.Controls;
 using System;
 using System.Threading.Tasks;
@@ -953,7 +953,7 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
 #if ANDROID
                                 Android.OS.Process.KillProcess(Android.OS.Process.MyPid());
 #else
-                                Application.Current?.Quit();
+                                Microsoft.Maui.Controls.Application.Current?.Quit();
 #endif
                             }
                             else
