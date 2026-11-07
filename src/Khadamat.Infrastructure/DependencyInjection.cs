@@ -49,6 +49,9 @@ public static class DependencyInjection
         services.AddScoped<Khadamat.Application.Interfaces.IReferralService, ReferralService>();
         services.AddScoped<Khadamat.Application.Interfaces.ITesterTrackingService, Khadamat.Infrastructure.Services.TesterTrackingService>();
 
+        var jwtKeyManager = new Khadamat.Infrastructure.Identity.JwtKeyManager(configuration);
+        services.AddSingleton<Khadamat.Infrastructure.Identity.IJwtKeyManager>(jwtKeyManager);
+
         services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
@@ -57,17 +60,7 @@ public static class DependencyInjection
         })
         .AddJwtBearer(options =>
         {
-            options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                ValidIssuer = configuration["JwtSettings:Issuer"],
-                ValidAudience = configuration["JwtSettings:Audience"],
-                IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
-                    System.Text.Encoding.UTF8.GetBytes(configuration["JwtSettings:Secret"]!))
-            };
+            options.TokenValidationParameters = jwtKeyManager.CreateTokenValidationParameters();
         })
         .AddGoogle(options =>
         {

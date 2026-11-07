@@ -72,7 +72,9 @@ public class ImageStorageServiceTests : IDisposable
     [Fact]
     public void When_ConfiguredPath_IsEmpty_UsesDefaultKhadamawyImages()
     {
-        // Arrange
+        // Arrange: prepare isolated default folder in test environment
+        var defaultFolder = Path.Combine(_tempTestDir, "KhadamawyImages");
+        Directory.CreateDirectory(defaultFolder);
         var config = CreateConfig("");
 
         // Act

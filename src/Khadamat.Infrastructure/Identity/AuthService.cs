@@ -363,7 +363,7 @@ public class AuthService : IAuthService
     private string GenerateJwtToken(ApplicationUser user, IList<string> roles)
     {
         var jwtSettings = _configuration.GetSection("JwtSettings");
-        var secretKey = Encoding.UTF8.GetBytes(jwtSettings["Secret"]!);
+        var jwtKeyManager = new JwtKeyManager(_configuration);
 
         var claims = new List<Claim>
         {
@@ -381,8 +381,7 @@ public class AuthService : IAuthService
             claims.Add(new Claim(ClaimTypes.Role, role));
         }
 
-        var key = new SymmetricSecurityKey(secretKey);
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var creds = jwtKeyManager.GetSigningCredentials();
 
         var token = new JwtSecurityToken(
             issuer: jwtSettings["Issuer"],
@@ -405,14 +404,10 @@ public class AuthService : IAuthService
 
     private ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)
     {
-        var tokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateAudience = false,
-            ValidateIssuer = false,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:Secret"]!)),
-            ValidateLifetime = false
-        };
+        var jwtKeyManager = new JwtKeyManager(_configuration);
+        var tokenValidationParameters = jwtKeyManager.CreateTokenValidationParameters(validateLifetime: false);
+        tokenValidationParameters.ValidateAudience = false;
+        tokenValidationParameters.ValidateIssuer = false;
 
         var tokenHandler = new JwtSecurityTokenHandler();
         var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);

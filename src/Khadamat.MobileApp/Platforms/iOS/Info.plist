@@ -2,6 +2,16 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <key>CFBundleIdentifier</key>
+    <string>com.nassar84.khadamawy</string>
+    <key>CFBundleDisplayName</key>
+    <string>خدماوي</string>
+    <key>CFBundleName</key>
+    <string>خدماوي</string>
+    <key>CFBundleShortVersionString</key>
+    <string>2.9</string>
+    <key>CFBundleVersion</key>
+    <string>21</string>
     <key>LSRequiresIPhoneOS</key>
     <true/>
     <key>UIDeviceFamily</key>
@@ -31,10 +41,10 @@
     
     <!-- Privacy Descriptions -->
     <key>NSCameraUsageDescription</key>
-    <string>نحتاج للوصول إلى الكاميرا لالتقاط صور الخدمات</string>
+    <string>نحتاج للوصول إلى الكاميرا لالتقاط صور الخدمات والملف الشخصي</string>
     
     <key>NSPhotoLibraryUsageDescription</key>
-    <string>نحتاج للوصول إلى معرض الصور لاختيار صور الخدمات</string>
+    <string>نحتاج للوصول إلى معرض الصور لاختيار صور الخدمات والملف الشخصي</string>
     
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>نحتاج لحفظ الصور في معرض الصور</string>
@@ -45,17 +55,11 @@
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
     <string>نحتاج لموقعك لعرض الخدمات القريبة منك</string>
     
-    <key>NSMicrophoneUsageDescription</key>
-    <string>نحتاج للوصول إلى الميكروفون للمكالمات الصوتية</string>
-    
-    <key>NSContactsUsageDescription</key>
-    <string>نحتاج للوصول إلى جهات الاتصال لمشاركة الخدمات</string>
-    
-    <!-- App Transport Security -->
+    <!-- App Transport Security: Enforces secure HTTPS connections for App Store compliance -->
     <key>NSAppTransportSecurity</key>
     <dict>
         <key>NSAllowsArbitraryLoads</key>
-        <true/>
+        <false/>
     </dict>
     
     <!-- Background Modes -->
@@ -70,7 +74,7 @@
     <array>
         <dict>
             <key>CFBundleURLName</key>
-            <string>com.khadamat.app</string>
+            <string>com.nassar84.khadamawy</string>
             <key>CFBundleURLSchemes</key>
             <array>
                 <string>khadamat</string>
@@ -78,7 +82,7 @@
         </dict>
     </array>
     
-    <!-- Queries Schemes for WhatsApp -->
+    <!-- Queries Schemes for External Apps -->
     <key>LSApplicationQueriesSchemes</key>
     <array>
         <string>whatsapp</string>

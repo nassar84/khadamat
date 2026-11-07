@@ -20,6 +20,7 @@
         <!-- Versions -->
         <ApplicationDisplayVersion>2.9</ApplicationDisplayVersion>
         <ApplicationVersion>21</ApplicationVersion>
+        <!-- Target API Level 36 (Android 16) -->
         <AndroidTargetSdkVersion>36</AndroidTargetSdkVersion>
 
         <!-- Required for C# Hot Reload -->
@@ -31,8 +32,8 @@
         <!-- Fix for JAVA0000 R8/D8 Build errors: duplicate ArrayMapKt from collection.jvm vs collection.ktx -->
         <AndroidDexTool>d8</AndroidDexTool>
         <AndroidEnableMultiDex>true</AndroidEnableMultiDex>
-        <!-- Disable R8 globally to avoid duplicate class errors from conflicting AndroidX packages -->
-        <UseR8>false</UseR8>
+        <!-- R8 Code Shrinker & Optimizer enabled for Release production packaging -->
+        <UseR8>true</UseR8>
         
         <!-- Debug Configurations (No optimizations) -->
         <AndroidLinkTool Condition="'$(Configuration)' == 'Debug'">d8</AndroidLinkTool>
@@ -42,8 +43,9 @@
 
     <!-- Release Configurations (AOT enabled for fast startup — fixes ANR) -->
     <PropertyGroup Condition="'$(Configuration)' == 'Release' and $(TargetFramework.Contains('-android'))">
-        <!-- Single RID: arm64 covers 95%+ of modern Android devices, produces ONE APK -->
-        <RuntimeIdentifier>android-arm64</RuntimeIdentifier>
+        <!-- Single RID for fast direct APK; Multi-RID for Google Play AAB -->
+        <RuntimeIdentifier Condition="'$(AndroidPackageFormat)' != 'aab'">android-arm64</RuntimeIdentifier>
+        <RuntimeIdentifiers Condition="'$(AndroidPackageFormat)' == 'aab'">android-arm64;android-arm;android-x64</RuntimeIdentifiers>
         <JavaMaxHeapSize>4G</JavaMaxHeapSize>
         <!-- AOT: Pre-compiles .NET to native ARM → eliminates Mono JIT startup delay -->
         <RunAOTCompilation>true</RunAOTCompilation>
@@ -63,8 +65,9 @@
         <!-- Android -->
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
         
-        <!-- iOS -->
-        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">12.0</SupportedOSPlatformVersion>
+        <!-- iOS: SupportedOSPlatformVersion 15.0+ required for .NET 8/9 MAUI iOS -->
+        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
+        <CodesignEntitlements Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">Platforms\iOS\Entitlements.plist</CodesignEntitlements>
         
         <!-- Windows -->
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
@@ -122,6 +125,7 @@
         <PackageReference Include="Plugin.Fingerprint" Version="2.1.5" />
         <PackageReference Include="Plugin.Maui.Audio" Version="3.1.1" />
         <PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
+        <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.10" />
     </ItemGroup>
 
     <ItemGroup>
