@@ -892,6 +892,8 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
         await KhadamatDialogHelper.ShowAlertAsync("تقرير التشخيص", report.ToString(), "موافق", MobileDialogType.Info, this);
     }
 
+    private DateTime _lastBackPressTime = DateTime.MinValue;
+
     protected override bool OnBackButtonPressed()
     {
         // 0. If Flyout (side menu) is open, close it first
@@ -902,12 +904,80 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
             return true; // Consumed — don't go back further
         }
 
-        // 1. Try to go back in the WebView (Blazor's internal history)
-        if (MainWebView != null && MainWebView.CanGoBack)
+        // 1. Try to go back in the WebView (Blazor SPA internal history)
+        if (MainWebView != null)
         {
-            Console.WriteLine("ANTIGRAVITY_LOG: WebView can go back, navigating back internally.");
-            MainWebView.GoBack();
-            return true; // Prevent app exit
+            try
+            {
+                MainThread.BeginInvokeOnMainThread(async () =>
+                {
+                    try
+                    {
+                        var jsResult = await MainWebView.EvaluateJavaScriptAsync(@"(function() {
+                            try {
+                                var path = window.location.pathname || '';
+                                if (path !== '/' && path !== '' && path !== '/index.html' && path !== '/Client_Home' && path !== '/Guest_Home') {
+                                    window.history.back();
+                                    return 'went_back';
+                                }
+                            } catch(e) {}
+                            return 'at_root';
+                        })()");
+
+                        string res = (jsResult ?? "").Trim('\"', ' ');
+                        if (res == "at_root")
+                        {
+                            // If at root of the WebView, check Shell navigation stack
+                            if (Shell.Current.Navigation.NavigationStack.Count > 1)
+                            {
+                                await Shell.Current.Navigation.PopAsync();
+                                return;
+                            }
+
+                            // If on another tab than Home, return to Home Tab
+                            var currentState = Shell.Current.CurrentState;
+                            var currentRoute = currentState.Location.ToString();
+                            if (!currentRoute.Contains("Home") && !currentRoute.Contains("Dashboard") && !currentRoute.EndsWith("//"))
+                            {
+                                string target = (Shell.Current.BindingContext is ViewModels.ShellViewModel vm && vm.IsProviderActive) 
+                                    ? "//Provider_Dashboard" 
+                                    : (Shell.Current.BindingContext is ViewModels.ShellViewModel vm2 && vm2.IsAuthenticated ? "//Client_Home" : "//Guest_Home");
+                                try { await Shell.Current.GoToAsync(target); } catch { }
+                                return;
+                            }
+
+                            // At home root: double tap to exit
+                            var now = DateTime.Now;
+                            if ((now - _lastBackPressTime).TotalSeconds < 2.5)
+                            {
+#if ANDROID
+                                Android.OS.Process.KillProcess(Android.OS.Process.MyPid());
+#else
+                                Application.Current?.Quit();
+#endif
+                            }
+                            else
+                            {
+                                _lastBackPressTime = now;
+#if ANDROID
+                                Android.Widget.Toast.MakeText(Android.App.Application.Context, "اضغط مرة أخرى للخروج من التطبيق", Android.Widget.ToastLength.Short)?.Show();
+#endif
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"ANTIGRAVITY_LOG: Back button JS error: {ex.Message}");
+                        if (MainWebView.CanGoBack) MainWebView.GoBack();
+                    }
+                });
+
+                return true; // Consumed — prevent immediate activity destruction
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ANTIGRAVITY_LOG: Back button exception: {ex.Message}");
+            }
         }
 
         // 2. Try to go back in the Shell navigation stack (if we pushed any pages)
@@ -918,23 +988,6 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
             return true;
         }
 
-        // 3. Fallback: If we are not on the HomePage root, go there instead of exiting
-        var currentState = Shell.Current.CurrentState;
-        var currentRoute = currentState.Location.ToString();
-        
-        // If we are on sub-pages or other tabs, return to Home Tab
-        if (!currentRoute.Contains("Home") && !currentRoute.Contains("Dashboard") && !currentRoute.EndsWith("//"))
-        {
-            Console.WriteLine($"ANTIGRAVITY_LOG: Not on Home ({currentRoute}), returning to Home Tab.");
-            string target = (Shell.Current.BindingContext is ViewModels.ShellViewModel vm && vm.IsProviderActive) 
-                ? "//Provider_Dashboard" 
-                : (Shell.Current.BindingContext is ViewModels.ShellViewModel vm2 && vm2.IsAuthenticated ? "//Client_Home" : "//Guest_Home");
-            try { Shell.Current.GoToAsync(target); } catch { }
-            return true;
-        }
-
-        // 4. Default: Exit the app (we are at the home root)
-        Console.WriteLine("ANTIGRAVITY_LOG: No back history, exiting application.");
         return false;
     }
 
