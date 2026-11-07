@@ -35,6 +35,8 @@ public interface IJwtKeyManager
     IEnumerable<SecurityKey> GetValidationKeys();
     SecurityKey? ResolveSigningKey(string? kid);
     TokenValidationParameters CreateTokenValidationParameters(string? issuer = null, string? audience = null, bool validateLifetime = true);
+    DateTime? GetLegacyTokensCutoffUtc();
+    bool AreLegacyTokensAllowed();
 }
 
 public class JwtKeyManager : IJwtKeyManager
@@ -43,12 +45,25 @@ public class JwtKeyManager : IJwtKeyManager
     private readonly JwtKeyEntry _activeKey;
     private readonly string? _defaultIssuer;
     private readonly string? _defaultAudience;
+    private readonly DateTime? _legacyTokensCutoffUtc;
+    private readonly HashSet<string> _revokedTokenIds = new(StringComparer.OrdinalIgnoreCase);
 
     public JwtKeyManager(IConfiguration configuration)
     {
         var jwtSection = configuration.GetSection("JwtSettings");
         _defaultIssuer = jwtSection["Issuer"];
         _defaultAudience = jwtSection["Audience"];
+
+        // Configurable cutoff for legacy tokens without kid (sunset period)
+        if (DateTime.TryParse(jwtSection["LegacyTokensCutoffUtc"], out var cutoff))
+        {
+            _legacyTokensCutoffUtc = cutoff.ToUniversalTime();
+        }
+        else
+        {
+            // Default: 30 days transition grace period from initial deployment
+            _legacyTokensCutoffUtc = DateTime.UtcNow.AddDays(30);
+        }
 
         // 1. Check for explicit multi-key configuration under JwtSettings:Keys
         var keysSection = jwtSection.GetSection("Keys").GetChildren();
@@ -99,6 +114,14 @@ public class JwtKeyManager : IJwtKeyManager
 
     public string GetActiveKeyId() => _activeKey.Id;
 
+    public DateTime? GetLegacyTokensCutoffUtc() => _legacyTokensCutoffUtc;
+
+    public bool AreLegacyTokensAllowed()
+    {
+        if (!_legacyTokensCutoffUtc.HasValue) return true;
+        return DateTime.UtcNow <= _legacyTokensCutoffUtc.Value;
+    }
+
     public IEnumerable<SecurityKey> GetValidationKeys()
     {
         return _keyRing
@@ -110,7 +133,13 @@ public class JwtKeyManager : IJwtKeyManager
     {
         if (string.IsNullOrWhiteSpace(kid))
         {
-            // Legacy token without kid in header: validate against active or grace-period keys
+            // Legacy token without kid in header: check whether legacy acceptance has expired
+            if (!AreLegacyTokensAllowed())
+            {
+                // Sunset cutoff reached: reject tokens without kid
+                return null;
+            }
+
             return _activeKey.ToSecurityKey();
         }
 
@@ -136,6 +165,10 @@ public class JwtKeyManager : IJwtKeyManager
             ValidAudience = audience ?? _defaultAudience,
             ValidateLifetime = validateLifetime,
             ValidateIssuerSigningKey = true,
+            // Algorithm allow-list to prevent algorithm confusion attacks
+            ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 },
+            // Tight clock skew tolerance (1 minute instead of default 5 minutes)
+            ClockSkew = TimeSpan.FromMinutes(1),
             IssuerSigningKeys = validationKeys,
             IssuerSigningKeyResolver = (token, securityToken, kid, validationParams) =>
             {

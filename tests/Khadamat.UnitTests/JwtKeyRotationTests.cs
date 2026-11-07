@@ -16,7 +16,7 @@ public class JwtKeyRotationTests
     private const string KeyV2 = "SecretKey_Version2_Minimum32CharactersRequired!";
     private const string KeyRetired = "SecretKey_Retired_Minimum32CharactersRequired!";
 
-    private IConfiguration CreateRotationConfiguration()
+    private IConfiguration CreateRotationConfiguration(DateTime? legacyCutoff = null)
     {
         var inMemorySettings = new Dictionary<string, string?>
         {
@@ -36,6 +36,11 @@ public class JwtKeyRotationTests
             {"JwtSettings:Keys:2:Secret", KeyRetired},
             {"JwtSettings:Keys:2:Status", "Retired"}
         };
+
+        if (legacyCutoff.HasValue)
+        {
+            inMemorySettings["JwtSettings:LegacyTokensCutoffUtc"] = legacyCutoff.Value.ToString("o");
+        }
 
         return new ConfigurationBuilder()
             .AddInMemoryCollection(inMemorySettings)
@@ -108,8 +113,8 @@ public class JwtKeyRotationTests
     [Fact]
     public void Test3_LegacyToken_WithoutKid_DuringGracePeriod_Validation_Succeeds()
     {
-        // Backward compatibility: token without kid header should still validate against active/grace keys
-        var config = CreateRotationConfiguration();
+        // Backward compatibility: token without kid header should still validate before cutoff
+        var config = CreateRotationConfiguration(legacyCutoff: DateTime.UtcNow.AddDays(7));
         var keyManager = new JwtKeyManager(config);
         var validationParams = keyManager.CreateTokenValidationParameters();
 
@@ -195,5 +200,36 @@ public class JwtKeyRotationTests
         Assert.NotNull(newPrincipal);
         Assert.Equal(oldPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value,
                      newPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+    }
+
+    [Fact]
+    public void Test8_LegacyToken_WithoutKid_AfterCutoff_FailsValidation()
+    {
+        // Security requirement: Legacy tokens without kid must be rejected after the sunset cutoff date
+        var pastCutoff = DateTime.UtcNow.AddDays(-1); // Cutoff expired yesterday
+        var config = CreateRotationConfiguration(legacyCutoff: pastCutoff);
+        var keyManager = new JwtKeyManager(config);
+        var validationParams = keyManager.CreateTokenValidationParameters();
+
+        var legacyTokenWithoutKid = CreateToken(KeyV2, null, DateTime.UtcNow.AddMinutes(30));
+
+        var handler = new JwtSecurityTokenHandler();
+        Assert.ThrowsAny<SecurityTokenException>(() =>
+        {
+            handler.ValidateToken(legacyTokenWithoutKid, validationParams, out _);
+        });
+    }
+
+    [Fact]
+    public void Test9_AlgorithmAllowList_Enforces_HmacSha256()
+    {
+        var config = CreateRotationConfiguration();
+        var keyManager = new JwtKeyManager(config);
+        var validationParams = keyManager.CreateTokenValidationParameters();
+
+        Assert.NotNull(validationParams.ValidAlgorithms);
+        Assert.Contains(SecurityAlgorithms.HmacSha256, validationParams.ValidAlgorithms);
+        Assert.DoesNotContain("none", validationParams.ValidAlgorithms);
+        Assert.Equal(TimeSpan.FromMinutes(1), validationParams.ClockSkew);
     }
 }
