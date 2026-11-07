@@ -5,7 +5,7 @@
 - **اسم المنظومة والتطبيق:** خدماوي (Khadamawy)
 - **معرّف الحزمة (Package ID / ApplicationId):** `com.nassar84.khadamawy`
 - **إصدار التطبيق (Version / VersionCode):** Version `1.0.0` / VersionCode `1`
-- **الالتزام المصدري المعتمد (Base Commit Hash):** `90bf7ac8`
+- **الالتزام المصدري المعتمد (Base Commit Hash):** `34378305` (المبني مباشرة فوق `90bf7ac8`)
 - **تاريخ إصدار البيان (Manifest Release Date):** 2026-11-07
 - **بيئة البناء والتحقق المعتمدة:** Windows Server 64-bit / .NET SDK 9.0.320 & .NET SDK 10.0.403 LTS
 
