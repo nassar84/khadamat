@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Khadamat.Application.Features.Services.Queries;
 using Khadamat.Application.Features.Services.Commands;
@@ -198,5 +198,58 @@ public class ServicesController : ControllerBase
         
         if (!result) return NotFound();
         return Ok(new { message = "تم إرسال طلب التعديل بنجاح" });
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize]
+    public async Task<IActionResult> DeleteService(int id)
+    {
+        var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var isAdmin = User.IsInRole("Admin") || User.IsInRole("Supervisor");
+
+        var service = await _context.Services.FindAsync(id);
+        if (service == null) return NotFound(new { message = "الخدمة غير موجودة" });
+
+        // Only Admin, Supervisor, or the service owner can delete
+        if (!isAdmin)
+        {
+            var isOwner = service.UserCreated == currentUserId;
+            if (!isOwner && service.ProviderProfileId > 0)
+            {
+                var provider = await _context.ProviderProfiles.FindAsync(service.ProviderProfileId);
+                isOwner = provider?.UserId == currentUserId;
+            }
+
+            if (!isOwner)
+            {
+                return Forbid();
+            }
+        }
+
+        // Soft Delete
+        service.Reject("تم الحذف من النظام");
+        service.IsDeleted = true;
+        service.DeletedAt = DateTime.UtcNow;
+        service.DeletedBy = currentUserId;
+
+        // Clean up image if present
+        if (!string.IsNullOrEmpty(service.ImageUrl))
+        {
+            try
+            {
+                var cleanImage = ImageNamingHelper.ExtractFileName(service.ImageUrl);
+                if (!string.IsNullOrEmpty(cleanImage))
+                {
+                    _imageStorage.DeleteFile("services", cleanImage);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ServicesController] Error deleting service image: {ex.Message}");
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        return Ok(new { success = true, message = "تم حذف الخدمة بنجاح" });
     }
 }

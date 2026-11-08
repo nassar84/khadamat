@@ -923,7 +923,12 @@
         if (!await JS.InvokeAsync<bool>("confirm", $"هل أنت متأكد من حذف الخدمة: {node.Name}؟")) return;
         try
         {
-            await Api.DeleteServiceAsync(node.Id);
+            var success = await Api.DeleteServiceAsync(node.Id);
+            if (!success)
+            {
+                await JS.InvokeVoidAsync("alert", "فشل حذف الخدمة من الخادم، يرجى المحاولة مرة أخرى.");
+                return;
+            }
             if (isDirect)
             {
                 if (directServicesOfCat.TryGetValue(parentId, out var dList))
