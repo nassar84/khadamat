@@ -77,7 +77,8 @@
     </div>
 </header>
 
-<div class="mobile-search-bar px-3 pb-2" @onclick="GoToSearch">
+@if (!IsHomePage)
+{<div class="mobile-search-bar px-3 pb-2" @onclick="GoToSearch">
     <div class="search-tap-btn">
         <div class="search-tap-inner">
             <div class="search-tap-icon-wrap">
@@ -90,6 +91,7 @@
         </div>
     </div>
 </div>
+}
 @* <CategoryMarquee /> *@
 
 
@@ -454,6 +456,14 @@
 </style>
 
 @code {
+    private bool IsHomePage
+    {
+        get
+        {
+            var relative = Navigation.ToBaseRelativePath(Navigation.Uri);
+            return string.IsNullOrEmpty(relative) || relative.Equals("home", StringComparison.OrdinalIgnoreCase);
+        }
+    }
     private bool isThemeMenuOpen;
     private bool _disposed = false;
 

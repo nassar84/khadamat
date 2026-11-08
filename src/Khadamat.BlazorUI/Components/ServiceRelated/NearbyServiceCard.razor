@@ -2,7 +2,7 @@
 @inject NavigationManager Navigation
 @inject ApiClient Api
 
-<div class="nearby-card" @onclick="OnClickInternal">
+<div class="nearby-card shadow-sm" @onclick="OnClickInternal">
     <div class="nearby-image-wrapper">
         <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(Service.Images?.FirstOrDefault(), Service.SubCategoryName, Service.CategoryName, Service.MainCategoryName, Service.SubCategoryImageUrl, Service.CategoryImageUrl, Service.MainCategoryImageUrl))" 
              onerror="this.onerror=null;this.src='/images/placeholders/default_service.png';"
@@ -11,19 +11,28 @@
     </div>
     <div class="nearby-info">
         <h4 class="nearby-title">@Service.Title</h4>
-        <div class="nearby-meta">
-            <div class="stars small">
+        <div class="nearby-meta d-flex align-items-center gap-2 mb-1">
+            <span class="fw-bold text-dark small">@Service.Rating.ToString("F1")</span>
+            <div class="stars small d-inline-flex">
                 @for (int i = 0; i < 5; i++)
                 {
-                    <i class="fa-solid fa-star" style="color: #f59e0b !important; @(i < (int)Service.Rating ? "" : "opacity: 0.3;")"></i>
+                    <i class="fa-solid fa-star" style="color: #f59e0b !important; font-size: 0.72rem; @(i < (int)Service.Rating ? "" : "opacity: 0.25;")"></i>
                 }
-                <span class="ms-1 text-muted">@Service.Rating</span>
             </div>
         </div>
-        <p class="nearby-description">@Service.Description</p>
+        @if (!string.IsNullOrEmpty(Service.Description))
+        {
+            <p class="nearby-description">@Service.Description</p>
+        }
+        @if (!string.IsNullOrEmpty(Service.CityName) || !string.IsNullOrEmpty(Service.Address))
+        {
+            <div class="text-muted text-truncate mt-1" style="font-size: 0.72rem;">
+                <i class="fa-solid fa-location-dot text-primary opacity-75 me-1"></i>
+                <span>@(!string.IsNullOrEmpty(Service.CityName) ? Service.CityName + (!string.IsNullOrEmpty(Service.GovernorateName) ? " - " + Service.GovernorateName : "") : Service.Address)</span>
+            </div>
+        }
     </div>
 </div>
-
 <style>
     .nearby-card {
         background: var(--glass-bg);

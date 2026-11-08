@@ -5,19 +5,19 @@
 @inject NavigationManager Navigation
 @inject Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider AuthStateProvider
 
-<div class="service-card animate-up card-variant-@(Service.Id % 6) h-100 d-flex flex-column" @onclick="HandleClick" style="overflow: visible; margin-bottom: 0; min-height: 175px;">
+<div class="service-card animate-up card-variant-@(Service.Id % 6) h-100 d-flex flex-column rounded-4" @onclick="HandleClick" style="overflow: visible; margin-bottom: 0;">
     <div class="card-accent-bar"></div>
     <div class="p-3 d-flex flex-column flex-grow-1 h-100" style="position: relative; z-index: 1;">
-        <div class="d-flex gap-3 flex-grow-1 h-100">
-            <div class="service-img rounded-4 bg-light overflow-hidden position-relative align-self-center" style="width: 85px; height: 85px; min-width: 85px; min-height: 85px; max-width: 85px; max-height: 85px; flex-shrink: 0;">
+        <div class="d-flex gap-3 flex-grow-1">
+            <div class="service-img rounded-4 bg-light overflow-hidden position-relative align-self-start" style="width: 80px; height: 80px; min-width: 80px; min-height: 80px; max-width: 80px; max-height: 80px; flex-shrink: 0;">
                 <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(Service.Images?.FirstOrDefault(), Service.SubCategoryName, Service.CategoryName, Service.MainCategoryName, Service.SubCategoryImageUrl, Service.CategoryImageUrl, Service.MainCategoryImageUrl))" 
                      onerror="this.onerror=null;this.src='/images/services/default_service.png';"
                      class="w-100 h-100 object-fit-contain p-1" alt="@Service.Title" />
             </div>
-            <div class="flex-grow-1 overflow-hidden d-flex flex-column justify-content-between h-100">
+            <div class="flex-grow-1 overflow-hidden d-flex flex-column justify-content-between">
                 <div class="d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-start mb-1">
-                        <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.95rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.35; word-break: break-word; height: 2.7em; min-height: 2.7em; max-height: 2.7em;">@Service.Title</h6>
+                        <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.95rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.35; word-break: break-word;">@Service.Title</h6>
                         <button type="button" class="btn p-0 border-0 bg-transparent ms-2 favorite-toggle-btn shadow-none flex-shrink-0" 
                                 title="@(IsFavorite ? "إزالة من المفضلة" : "إضافة إلى المفضلة")"
                                 @onclick="ToggleFavorite" 
@@ -28,29 +28,42 @@
                     @if (!string.IsNullOrEmpty(Service.Specialization))
                     {
                         <div class="mb-1">
-                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1 text-truncate d-inline-block" style="font-size: 0.72rem; max-width: 100%;">
-                                <i class="fa-solid fa-graduation-cap me-1"></i>@Service.Specialization
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 text-truncate d-inline-block" style="font-size: 0.7rem; max-width: 100%;">
+                                @Service.Specialization
                             </span>
                         </div>
                     }
-                    <p class="text-muted small mb-2" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; height: 2.8em; min-height: 2.8em; max-height: 2.8em;">@(string.IsNullOrWhiteSpace(Service.Description) ? "\u00A0" : Service.Description)</p>
+                    @if (!string.IsNullOrEmpty(Service.CityName) || !string.IsNullOrEmpty(Service.Address))
+                    {
+                        <div class="text-muted text-truncate mb-1" style="font-size: 0.75rem;">
+                            <i class="fa-solid fa-location-dot text-primary opacity-75 me-1"></i>
+                            <span>@(!string.IsNullOrEmpty(Service.CityName) ? Service.CityName + (!string.IsNullOrEmpty(Service.GovernorateName) ? " - " + Service.GovernorateName : "") : Service.Address)</span>
+                        </div>
+                    }
                 </div>
                 
-                <div class="d-flex justify-content-between align-items-center mt-auto pt-1">
+                <div class="d-flex justify-content-between align-items-center mt-2">
                     <div class="d-flex align-items-center gap-1 text-muted x-small">
                         <i class="fa-solid fa-heart text-danger opacity-75"></i>
                         <span class="fw-bold">@Service.LikesCount</span>
-                        <span class="text-muted" style="font-size:0.75rem;">تفضيل</span>
+                        <span class="text-muted" style="font-size:0.75rem;">تقييماً</span>
                     </div>
-                    <div class="bg-warning bg-opacity-10 text-warning rounded-pill px-2 py-1 small fw-bold">
+                    <div class="bg-warning bg-opacity-10 text-warning rounded-pill px-2 py-0.5 small fw-bold">
                         <i class="fa-solid fa-star me-1 small"></i> @Service.Rating.ToString("F1")
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Full-width Action Button as in Target Mockup -->
+        <div class="mt-2 pt-2 border-top">
+            <div class="btn btn-sm btn-light w-100 rounded-pill py-1 fw-bold text-muted d-flex align-items-center justify-content-center gap-2" style="font-size: 0.78rem; background: rgba(99,102,241,0.06); color: #475569 !important;">
+                <span>تفاصيل الخدمة وبيانات التواصل</span>
+                <i class="fa-solid fa-arrow-left text-primary" style="font-size: 0.72rem;"></i>
+            </div>
+        </div>
     </div>
 </div>
-
 @code {
     [Parameter] public ServiceDto Service { get; set; } = new();
     [Parameter] public EventCallback<ServiceDto> OnClick { get; set; }

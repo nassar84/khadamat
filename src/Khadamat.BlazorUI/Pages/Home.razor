@@ -15,35 +15,66 @@
 
 
 <div class="@(AppState.IsMobileApp ? "px-3" : "px-0")" style="@(AppState.IsMobileApp && !AppState.IsNativeApp ? "margin-top: 15px;" : "")">
-    <!-- Ads Slider (Dynamic System) -->
-    <Khadamat.BlazorUI.Components.Ads.AdsSlider />
 
-    <!-- Join as Provider / Offer Services Card (Shown only inside Mobile App) -->
-    @if (AppState.IsMobileApp)
-    {
-    <div class="card glass-card p-3 mb-4 rounded-4 shadow-sm border-0 position-relative overflow-hidden cursor-pointer"
+    <!-- 1. Search Bar (ما الخدمة التي تبحث عنها؟) -->
+    <div class="home-search-bar mb-4" @onclick='() => Navigation.NavigateTo("/search")'>
+        <div class="search-capsule shadow-sm">
+            <span class="search-capsule-text">ما الخدمة التي تبحث عنها؟</span>
+            <div class="search-capsule-icon">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Service Categories (تصنيفات الخدمات) -->
+    <div class="home-categories-section mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex align-items-center gap-2">
+                <i class="fa-solid fa-table-cells-large text-primary fs-5"></i>
+                <h5 class="fw-bold mb-0 text-dark">تصنيفات الخدمات</h5>
+            </div>
+            <a href="/services" class="btn btn-sm btn-light border text-primary rounded-pill px-3 fw-bold small text-decoration-none">
+                كل التصنيفات <i class="fa-solid fa-arrow-left me-1"></i>
+            </a>
+        </div>
+        <div class="home-categories-track">
+            <Khadamat.BlazorUI.Shared.CategoryMarquee />
+        </div>
+    </div>
+
+    <!-- 3. Promotional Slider (الإعلانات والاقتراحات) -->
+    <div class="home-promo-slider mb-4">
+        <Khadamat.BlazorUI.Components.Ads.AdsSlider />
+    </div>
+
+    <!-- 4. Provider Registration Card -->
+    <div class="provider-cta-card p-3 mb-4 rounded-4 shadow-sm border-0 position-relative overflow-hidden cursor-pointer"
          style="background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(243,244,246,0.98)); border: 1px solid rgba(99,102,241,0.2) !important; box-shadow: 0 4px 20px rgba(99,102,241,0.08);"
          @onclick="GoToRegisterProvider">
         <div class="d-flex align-items-center justify-content-between z-2 position-relative">
             <div>
-                <h5 class="fw-bold text-primary mb-1">صنايعي أو مهني؟</h5>
-                <p class="text-muted small mb-2">سجل خدماتك وزود دخلك معانا</p>
+                <h5 class="fw-bold text-dark mb-1">صنايعي أو مهني؟ ✨</h5>
+                <p class="text-muted small mb-2">سجل خدماتك وزود دخلك مجاناً</p>
                 <span class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">
                     اعرض خدماتك <i class="fa-solid fa-arrow-left me-1"></i>
                 </span>
             </div>
-            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 55px; height: 55px;">
-                <i class="fa-solid fa-briefcase fs-3"></i>
+            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 58px; height: 58px;">
+                <i class="fa-solid fa-shop fs-3"></i>
             </div>
         </div>
     </div>
-    }
 
-    <!-- Featured Services (Horizontal Scroll) -->
-    <div class="mb-5">
+    <!-- 5. Featured Services (Horizontal Scroll) -->
+    <div class="mb-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold mb-0">⭐ خدمات مميزة</h5>
-            <a href="services" class="text-primary text-decoration-none fw-bold small">عرض الكل</a>
+            <div class="d-flex align-items-center gap-2">
+                <span class="fs-5">⭐</span>
+                <h5 class="fw-bold mb-0 text-dark">خدمات مميزة</h5>
+            </div>
+            <a href="services" class="btn btn-sm btn-light border text-primary rounded-pill px-3 fw-bold small text-decoration-none">
+                المزيد <i class="fa-solid fa-arrow-left me-1"></i>
+            </a>
         </div>
         
         <div class="featured-scroll-container">
@@ -61,7 +92,7 @@
                     <div class="d-flex gap-3 pb-2 horizontal-scroll-container align-items-stretch" style="overflow-x: auto !important; overflow-y: hidden; touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none; overscroll-behavior-x: contain;">
                         @foreach (var service in featuredServices)
                         {
-                            <div class="service-card-wrapper" style="min-width: 285px; max-width: 285px; height: 175px; flex-shrink: 0; display: flex; flex-direction: column;">
+                            <div class="service-card-wrapper" style="min-width: 300px; max-width: 300px; flex-shrink: 0; display: flex; flex-direction: column;">
                                 <ServiceCard Service="service" OnClick="OnServiceSelected" />
                             </div>
                         }
@@ -77,21 +108,25 @@
         </div>
     </div>
 
-    <!-- Nearby Services Section -->
+    <!-- 6. Nearby Services Section (Vertical List) -->
     <div class="mb-5">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold mb-0">
-                📍
-                @if (AppState.IsLoggedIn && !string.IsNullOrEmpty(nearbyLocationName))
-                {
-                    <span>خدمات في @nearbyLocationName</span>
-                }
-                else
-                {
-                    <span>قريبة منك</span>
-                }
-            </h5>
-            <a href="services" class="text-primary text-decoration-none fw-bold small">عرض الكل</a>
+            <div class="d-flex align-items-center gap-2">
+                <span class="fs-5">📍</span>
+                <h5 class="fw-bold mb-0 text-dark">
+                    @if (AppState.IsLoggedIn && !string.IsNullOrEmpty(nearbyLocationName))
+                    {
+                        <span>خدمات في @nearbyLocationName</span>
+                    }
+                    else
+                    {
+                        <span>قريبة منك</span>
+                    }
+                </h5>
+            </div>
+            <a href="services" class="btn btn-sm btn-light border text-primary rounded-pill px-3 fw-bold small text-decoration-none">
+                المزيد <i class="fa-solid fa-arrow-left me-1"></i>
+            </a>
         </div>
 
         <div class="nearby-list">
@@ -119,7 +154,6 @@
             }
         </div>
     </div>
-
     <!-- Mobile App Promo Section - Hidden when running inside MAUI App -->
     @if (!isMauiApp)
     {
