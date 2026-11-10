@@ -1,4 +1,4 @@
-@page "/profile"
+﻿@page "/profile"
 @page "/user/dashboard"
 @page "/user/settings"
 @using Khadamat.Application.DTOs
@@ -572,6 +572,19 @@
         }
     }
 
+        private async Task HandleSetTheme(string theme)
+    {
+        AppState.SetTheme(theme);
+        try 
+        {
+            await JS.InvokeVoidAsync("setBodyTheme", theme);
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error setting theme: {ex.Message}");
+        }
+    }
     private async Task HandleProfileSave()
     {
         isSaving = true;

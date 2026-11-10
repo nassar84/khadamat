@@ -8,12 +8,7 @@
 <div class="service-card animate-up card-variant-@(Service.Id % 6) h-100 d-flex flex-column rounded-4" @onclick="HandleClick" style="overflow: visible; margin-bottom: 0;">
     <div class="card-accent-bar"></div>
     <div class="p-3 d-flex flex-column flex-grow-1 h-100" style="position: relative; z-index: 1;">
-        <div class="d-flex gap-3 flex-grow-1">
-            <div class="service-img rounded-4 bg-light overflow-hidden position-relative align-self-start" style="width: 80px; height: 80px; min-width: 80px; min-height: 80px; max-width: 80px; max-height: 80px; flex-shrink: 0;">
-                <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(Service.Images?.FirstOrDefault(), Service.SubCategoryName, Service.CategoryName, Service.MainCategoryName, Service.SubCategoryImageUrl, Service.CategoryImageUrl, Service.MainCategoryImageUrl))" 
-                     onerror="this.onerror=null;this.src='/images/services/default_service.png';"
-                     class="w-100 h-100 object-fit-contain p-1" alt="@Service.Title" />
-            </div>
+        <div class="d-flex justify-content-between align-items-start gap-3 flex-grow-1">
             <div class="flex-grow-1 overflow-hidden d-flex flex-column justify-content-between">
                 <div class="d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-start mb-1">
@@ -52,6 +47,11 @@
                         <i class="fa-solid fa-star me-1 small"></i> @Service.Rating.ToString("F1")
                     </div>
                 </div>
+            </div>
+            <div class="service-img rounded-4 bg-light overflow-hidden position-relative align-self-start" style="width: 82px; height: 82px; min-width: 82px; min-height: 82px; max-width: 82px; max-height: 82px; flex-shrink: 0; border-radius: 16px !important;">
+                <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.DefaultImages.GetServiceImage(Service.Images?.FirstOrDefault(), Service.SubCategoryName, Service.CategoryName, Service.MainCategoryName, Service.SubCategoryImageUrl, Service.CategoryImageUrl, Service.MainCategoryImageUrl))" 
+                     onerror="this.onerror=null;this.src='/images/services/default_service.png';"
+                     class="w-100 h-100 object-fit-cover" alt="@Service.Title" />
             </div>
         </div>
 

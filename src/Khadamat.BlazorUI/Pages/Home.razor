@@ -1,4 +1,4 @@
-@page "/"
+﻿@page "/"
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
 @using Khadamat.BlazorUI.Components.ServiceRelated
@@ -14,14 +14,15 @@
 
 
 
-<div class="@(AppState.IsMobileApp ? "px-3" : "px-0")" style="@(AppState.IsMobileApp && !AppState.IsNativeApp ? "margin-top: 15px;" : "")">
+<div class="home-ref-container @(AppState.IsMobileApp ? "mobile-viewport" : "")">
+    <div class="home-curved-sheet">
 
     <!-- 1. Search Bar (ما الخدمة التي تبحث عنها؟) -->
     <div class="home-search-bar mb-4" @onclick='() => Navigation.NavigateTo("/search")'>
         <div class="search-capsule shadow-sm">
-            <span class="search-capsule-text">ما الخدمة التي تبحث عنها؟</span>
-            <div class="search-capsule-icon">
-                <i class="fa-solid fa-magnifying-glass"></i>
+            <div class="d-flex align-items-center justify-content-between w-100 px-2" dir="rtl">
+                <span class="search-capsule-text">ما الخدمة التي تبحث عنها؟</span>
+                <i class="fa-solid fa-magnifying-glass search-capsule-icon"></i>
             </div>
         </div>
     </div>
@@ -48,19 +49,19 @@
     </div>
 
     <!-- 4. Provider Registration Card -->
-    <div class="provider-cta-card p-3 mb-4 rounded-4 shadow-sm border-0 position-relative overflow-hidden cursor-pointer"
-         style="background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(243,244,246,0.98)); border: 1px solid rgba(99,102,241,0.2) !important; box-shadow: 0 4px 20px rgba(99,102,241,0.08);"
+    <div class="provider-cta-card p-3 mb-4 rounded-4 shadow-sm position-relative overflow-hidden cursor-pointer"
+         style="background: #EFF6FF !important; border: 1.5px solid #DBEAFE !important; box-shadow: 0 4px 18px rgba(37, 99, 235, 0.06);"
          @onclick="GoToRegisterProvider">
-        <div class="d-flex align-items-center justify-content-between z-2 position-relative">
+        <div class="d-flex align-items-center justify-content-between z-2 position-relative" dir="rtl">
             <div>
                 <h5 class="fw-bold text-dark mb-1">صنايعي أو مهني؟ ✨</h5>
-                <p class="text-muted small mb-2">سجل خدماتك وزود دخلك مجاناً</p>
-                <span class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">
+                <p class="text-muted small mb-3">سجل خدماتك وزود دخلك مجاناً</p>
+                <span class="btn rounded-pill px-4 py-2 fw-bold text-white shadow-sm" style="background: #1D4ED8; font-size: 0.85rem;">
                     اعرض خدماتك <i class="fa-solid fa-arrow-left me-1"></i>
                 </span>
             </div>
-            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 58px; height: 58px;">
-                <i class="fa-solid fa-shop fs-3"></i>
+            <div class="rounded-4 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 68px; height: 68px; background: #DBEAFE; color: #1D4ED8;">
+                <i class="fa-solid fa-shop fs-2"></i>
             </div>
         </div>
     </div>
@@ -108,7 +109,29 @@
         </div>
     </div>
 
-    <!-- 6. Nearby Services Section (Vertical List) -->
+    <!-- 6. Special Offers & Discounts Card (عروض وخصومات مميزة) -->
+    <div class="special-offers-card p-3 mb-4 rounded-4 shadow-sm position-relative overflow-hidden cursor-pointer"
+         @onclick='() => Navigation.NavigateTo("/services")'>
+        <div class="d-flex align-items-center justify-content-between z-2 position-relative">
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-success bg-opacity-10 text-success rounded-4 d-flex align-items-center justify-content-center flex-shrink-0 shadow-xs" style="width: 58px; height: 58px; background: rgba(16, 185, 129, 0.12) !important;">
+                    <i class="fa-solid fa-gift fs-2 text-success"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-1" style="font-size: 1.05rem; color: #065f46;">عروض وخصومات مميزة ✨</h5>
+                    <p class="mb-0 small fw-medium" style="color: #047857; font-size: 0.82rem;">لا تفوت الفرصة!</p>
+                </div>
+            </div>
+            <div>
+                <span class="btn btn-sm btn-success rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1 shadow-sm" style="font-size: 0.82rem; background: #10b981; border: none;">
+                    <span>اكتشف الآن</span>
+                    <i class="fa-solid fa-arrow-left" style="font-size: 0.7rem;"></i>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. Nearby Services Section (Vertical List) -->
     <div class="mb-5">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div class="d-flex align-items-center gap-2">
@@ -253,6 +276,7 @@
 
     <!-- Bottom Page Ads -->
     <Khadamat.BlazorUI.Components.Ads.AdLocation Placement="Bottom" />
+    </div>
 </div>
 
 <style>
@@ -714,3 +738,87 @@
         await AppShareHelper.ShareAppAsync(DeviceShareService, AppState, Navigation.BaseUri, JS);
     }
 }
+
+
+<style>
+    .home-ref-container {
+        width: 100%;
+        background: #4F46E5;
+        margin: 0;
+        padding: 0;
+    }
+    .home-curved-sheet {
+        background: #F8FAFC;
+        border-top-left-radius: 28px;
+        border-top-right-radius: 28px;
+        padding: 18px 16px 36px 16px;
+        min-height: calc(100vh - 60px);
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.04);
+        position: relative;
+    }
+    @@media (min-width: 992px) {
+        .home-ref-container {
+            background: transparent;
+        }
+        .home-curved-sheet {
+            background: transparent;
+            border-radius: 0;
+            padding: 0;
+            box-shadow: none;
+        }
+    }
+    .home-search-bar {
+        width: 100%;
+        margin-top: 4px;
+    }
+    .search-capsule {
+        display: flex;
+        align-items: center;
+        background: #ffffff;
+        border-radius: 9999px;
+        padding: 12px 20px;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+        border: 1.5px solid rgba(226, 232, 240, 0.9);
+        cursor: pointer;
+        transition: all 0.25s ease;
+    }
+    .search-capsule:hover {
+        border-color: rgba(99, 102, 241, 0.4);
+        box-shadow: 0 6px 22px rgba(99, 102, 241, 0.1);
+        transform: translateY(-1px);
+    }
+    .search-capsule-text {
+        color: #94a3b8;
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+    .search-capsule-icon {
+        color: #4f46e5;
+        font-size: 1.15rem;
+        margin-inline-end: 8px;
+    }
+    .special-offers-card {
+        background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+        border: 1.5px solid rgba(16, 185, 129, 0.25) !important;
+        border-radius: 20px !important;
+        box-shadow: 0 4px 20px rgba(16, 185, 129, 0.07);
+        cursor: pointer;
+        transition: all 0.25s ease;
+    }
+    .special-offers-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.12);
+    }
+    .provider-cta-card {
+        background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%);
+        border: 1.5px solid rgba(59, 130, 246, 0.2) !important;
+        border-radius: 20px !important;
+        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.06);
+        cursor: pointer;
+        transition: all 0.25s ease;
+    }
+    .provider-cta-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.12);
+    }
+</style>

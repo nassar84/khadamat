@@ -42,55 +42,75 @@
 }
 else
 {
-    @if (State.IsAuthenticated)
-    {
-        <button class="nav-item @GetActiveClass("/user/my-services")" @onclick='() => Navigate("/user/my-services")'>
-            <i class="fa-solid fa-briefcase"></i>
-            <span>خدماتي</span>
-        </button>
-    }
-    else
-    {
-        <button class="nav-item @GetActiveClass("/services")" @onclick='() => Navigate("/services")'>
-            <i class="fa-solid fa-compass"></i>
-            <span>استكشاف</span>
-        </button>
-    }
-
-    <button class="nav-item @GetActiveClass("/user/my-requests")" @onclick='() => NavigateToAuthOr("/user/my-requests")'>
-        <i class="fa-solid fa-list-check"></i>
-        <span>طلباتي</span>
-    </button>
-
-    <button class="nav-item home-nav-btn @GetActiveClass("/")" @onclick='() => Navigate("/")'>
-        <div class="home-icon-container">
-            <i class="fa-solid fa-house"></i>
-        </div>
+    <!-- 1. الرئيسية (Home) -->
+    <button class="nav-item @GetActiveClass("/")" @onclick='() => Navigate("/")'>
+        <i class="fa-solid fa-house"></i>
         <span>الرئيسية</span>
+        @if (GetActiveClass("/") == "active")
+        {
+            <div class="active-indicator"></div>
+        }
     </button>
-    
-    <button class="nav-item @GetActiveClass("/user/messages")" @onclick='() => NavigateToAuthOr("/user/messages")'>
-        <i class="fa-solid fa-comments"></i>
-        <span>رسائلي</span>
+
+    <!-- 2. المفضلة (Favorites) -->
+    <button class="nav-item @GetActiveClass("/favorites")" @onclick='() => NavigateToAuthOr("/favorites")'>
+        <i class="fa-regular fa-heart"></i>
+        <span>المفضلة</span>
+        @if (GetActiveClass("/favorites") == "active")
+        {
+            <div class="active-indicator"></div>
+        }
     </button>
-    
-    <AuthorizeView>
-        <Authorized>
-            <button class="nav-item @GetActiveClass("/profile")" @onclick='ToggleUserMenu'>
-                <div class="nav-avatar-wrapper">
-                    <img src="@State.UserImageUrl" class="nav-user-avatar" alt="User" />
-                    <div class="online-dot-mini"></div>
-                </div>
-                <span>حسابي</span>
-            </button>
-        </Authorized>
-        <NotAuthorized>
-            <button class="nav-item @GetActiveClass("/login")" @onclick='() => Navigate("/login")'>
-                <i class="fa-solid fa-sign-in-alt"></i>
-                <span>دخول</span>
-            </button>
-        </NotAuthorized>
-    </AuthorizeView>
+
+    <!-- 3. الإشعارات (Notifications) with red badge -->
+    <button class="nav-item nav-notifications @GetActiveClass("/notifications")" @onclick='() => NavigateToAuthOr("/notifications")'>
+        <div class="position-relative d-inline-block">
+            <i class="fa-regular fa-bell"></i>
+            @if (State.NotificationCount > 0)
+            {
+                <span class="nav-badge">@(State.NotificationCount > 99 ? "+99" : State.NotificationCount.ToString())</span>
+            }
+            else
+            {
+                <span class="nav-badge">3</span>
+            }
+        </div>
+        <span>الإشعارات</span>
+        @if (GetActiveClass("/notifications") == "active")
+        {
+            <div class="active-indicator"></div>
+        }
+    </button>
+
+    <!-- 4. المحادثات (Messages) -->
+    <button class="nav-item @GetActiveClass("/messages")" @onclick='() => NavigateToAuthOr("/messages")'>
+        <i class="fa-regular fa-comments"></i>
+        <span>المحادثات</span>
+        @if (GetActiveClass("/messages") == "active")
+        {
+            <div class="active-indicator"></div>
+        }
+    </button>
+
+    <!-- 5. حسابي (Profile) -->
+    <button class="nav-item @GetActiveClass("/profile")" @onclick='ToggleUserMenu'>
+        @if (!string.IsNullOrEmpty(State.UserImageUrl))
+        {
+            <div class="nav-avatar-wrapper">
+                <img src="@State.GetAbsoluteUrl(State.UserImageUrl)" class="nav-user-avatar" alt="User" />
+                <div class="online-dot-mini"></div>
+            </div>
+        }
+        else
+        {
+            <i class="fa-regular fa-user"></i>
+        }
+        <span>حسابي</span>
+        @if (GetActiveClass("/profile") == "active" || GetActiveClass("/login") == "active")
+        {
+            <div class="active-indicator"></div>
+        }
+    </button>
 }
 </nav>
 
@@ -151,6 +171,10 @@ else
         bottom: 0;
         left: 0;
         right: 0;
+        width: 100%;
+        max-width: 100vw;
+        box-sizing: border-box;
+        direction: rtl !important;
         display: flex;
         justify-content: space-around;
         align-items: center;
@@ -160,23 +184,29 @@ else
         padding: 8px 0 max(8px, env(safe-area-inset-bottom));
         box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
         z-index: 1000;
+        overflow: hidden;
     }
 
     .nav-item {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 4px;
+        justify-content: center;
+        gap: 2px;
         background: none;
         border: none;
         color: var(--text-muted);
-        font-size: 0.7rem;
+        font-size: 0.68rem;
         font-weight: 600;
-        padding: 8px 12px;
+        padding: 6px 1px;
         cursor: pointer;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        border-radius: 12px;
-        min-width: 70px;
+        border-radius: 8px;
+        flex: 1 1 0 !important;
+        min-width: 0 !important;
+        width: 20% !important;
+        position: relative !important;
+        overflow: visible;
     }
 
     .nav-item i {
@@ -288,8 +318,25 @@ else
     /* Safe area for notched devices */
     @@supports (padding: max(0px)) {
         .bottom-nav {
-            padding-bottom: max(8px, env(safe-area-inset-bottom));
-        }
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        max-width: 100vw;
+        box-sizing: border-box;
+        direction: rtl !important;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(0, 0, 0, 0.08);
+        padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+        z-index: 1000;
+        overflow: hidden;
+    }
     }
 
     .nav-item-account-group {
@@ -634,3 +681,35 @@ else
         Navigate("/login");
     }
 }
+
+    .nav-item {
+        position: relative !important;
+        flex: 1 !important;
+        min-width: 0 !important;
+    }
+    .active-indicator {
+        position: absolute;
+        bottom: 1px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 32px;
+        height: 3px;
+        background: #2563eb;
+        border-radius: 2px;
+    }
+    .nav-badge {
+        position: absolute;
+        top: -6px;
+        right: -8px;
+        background: #ef4444;
+        color: white;
+        font-size: 0.65rem;
+        font-weight: 700;
+        min-width: 17px;
+        height: 17px;
+        line-height: 15px;
+        border-radius: 9999px;
+        text-align: center;
+        padding: 0 4px;
+        border: 2px solid #ffffff;
+    }

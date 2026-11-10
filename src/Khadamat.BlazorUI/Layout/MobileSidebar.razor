@@ -1,4 +1,4 @@
-@using System.Security.Claims
+﻿@using System.Security.Claims
 @using Khadamat.BlazorUI.State
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Authorization
@@ -313,7 +313,28 @@
                 }
 
                 <!-- المشترك لجميع المستخدمين المسجلين: الحساب والخروج -->
-                <div class="menu-section mt-auto">
+                
+                    <!-- Theme Selector Section (سمات ومظهر التطبيق) -->
+                    <div class="menu-section my-3 px-3">
+                        <div class="theme-card-sidebar p-3 rounded-4 shadow-sm" style="background: rgba(var(--theme-primary-rgb), 0.05); border: 1.5px solid rgba(var(--theme-primary-rgb), 0.15);">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa-solid fa-palette text-primary"></i>
+                                    <span class="fw-bold small text-dark">مظهر التطبيق</span>
+                                </div>
+                                <span class="badge bg-primary bg-opacity-10 text-primary small">السمات</span>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between pt-1">
+                                <span class="theme-dot-sidebar @(State.CurrentTheme == "default" ? "active" : "")" style="background: #4F46E5;" @onclick='() => HandleSetTheme("default")' title="أزرق ملكي"></span>
+                                <span class="theme-dot-sidebar @(State.CurrentTheme == "sunset" ? "active" : "")" style="background: #EA580C;" @onclick='() => HandleSetTheme("sunset")' title="غروب"></span>
+                                <span class="theme-dot-sidebar @(State.CurrentTheme == "ocean" ? "active" : "")" style="background: #0284C7;" @onclick='() => HandleSetTheme("ocean")' title="محيط"></span>
+                                <span class="theme-dot-sidebar @(State.CurrentTheme == "forest" ? "active" : "")" style="background: #059669;" @onclick='() => HandleSetTheme("forest")' title="غابة"></span>
+                                <span class="theme-dot-sidebar @(State.CurrentTheme == "lavender" ? "active" : "")" style="background: #7C3AED;" @onclick='() => HandleSetTheme("lavender")' title="لافندر"></span>
+                                <span class="theme-dot-sidebar @(State.CurrentTheme == "royal" ? "active" : "")" style="background: #1E293B;" @onclick='() => HandleSetTheme("royal")' title="ملكي"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="menu-section mt-auto">
                     <h6 class="section-title">الحساب والمساعدة</h6>
                     <div class="menu-items">
                         <div class="menu-item @GetActiveClass("profile")" @onclick='() => NavigateTo("/profile")'>
@@ -430,6 +451,20 @@
         pointer-events: auto;
     }
 
+        .theme-dot-sidebar {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: inline-block;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 2px solid white;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .theme-dot-sidebar.active {
+        transform: scale(1.25);
+        box-shadow: 0 0 0 2.5px var(--theme-primary);
+    }
     .mobile-sidebar-drawer {
         position: fixed;
         top: 0;
@@ -813,6 +848,18 @@
         }
     }
 
+        private async Task HandleSetTheme(string theme)
+    {
+        State.SetTheme(theme);
+        try 
+        {
+            await JS.InvokeVoidAsync("setBodyTheme", theme);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error setting theme: {ex.Message}");
+        }
+    }
     private async Task RefreshApp()
     {
         CloseSidebar();

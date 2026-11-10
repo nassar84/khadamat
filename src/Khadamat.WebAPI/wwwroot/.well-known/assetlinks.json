@@ -1,11 +1,13 @@
-﻿[
+[
   {
-    "relation": ["delegate_permission/common.handle_all_urls"],
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
     "target": {
       "namespace": "android_app",
-      "package_name": "com.khadamawy.app",
+      "package_name": "com.nassar84.khadamawy",
       "sha256_cert_fingerprints": [
-        "PLACEHOLDER:REPLACE_WITH_ACTUAL_SHA256_FROM_KEYSTORE"
+        "2D:CD:90:8A:00:CC:43:A2:95:1C:4D:6E:F8:E3:0D:AC:C0:6D:7D:D8:37:C1:34:1C:72:E8:AD:30:B5:5A:EF:95"
       ]
     }
   }

@@ -4,8 +4,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <!-- NU1903: AutoMapper 13.0.1 vulnerability. -->
-    <NoWarn>$(NoWarn);NU1903</NoWarn>
+    <!-- NU1903: AutoMapper 13.0.1 vulnerability. NU1902: ImageSharp 2.1.9 (free Apache license) -->
+    <NoWarn>$(NoWarn);NU1903;NU1902</NoWarn>
     <ErrorOnDuplicatePublishAssets>false</ErrorOnDuplicatePublishAssets>
     <ErrorOnDuplicateBuildAssets>false</ErrorOnDuplicateBuildAssets>
   </PropertyGroup>
@@ -19,7 +19,7 @@
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.2.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.9" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.11" />

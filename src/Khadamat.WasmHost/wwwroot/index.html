@@ -6,53 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>خدماوي | Khadamawy</title>
     <base href="/" />
-
-    <!-- Antigravity: Auto-Heal & Cache-Purge for Mobile App WebViews -->
-    <script>
-        (function() {
-            var CURRENT_BUILD = '20261024_01';
-            try {
-                var cached = localStorage.getItem('khadamawy_build_id');
-                if (cached !== CURRENT_BUILD) {
-                    if ('serviceWorker' in navigator) {
-                        navigator.serviceWorker.getRegistrations().then(function(regs) {
-                            for (var i = 0; i < regs.length; i++) regs[i].unregister();
-                        });
-                    }
-                    if ('caches' in window) {
-                        caches.keys().then(function(keys) {
-                            for (var j = 0; j < keys.length; j++) caches.delete(keys[j]);
-                        });
-                    }
-                    localStorage.setItem('khadamawy_build_id', CURRENT_BUILD);
-                    if (cached !== null) {
-                        window.location.reload(true);
-                    }
-                }
-            } catch(e) { }
-        })();
-
-        window.forceHardPurgeReload = function(e) {
-            if (e && e.preventDefault) e.preventDefault();
-            try {
-                if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.getRegistrations().then(function(regs) {
-                        for (var i = 0; i < regs.length; i++) regs[i].unregister();
-                    });
-                }
-                if ('caches' in window) {
-                    caches.keys().then(function(keys) {
-                        for (var j = 0; j < keys.length; j++) caches.delete(keys[j]);
-                    });
-                }
-                localStorage.removeItem('khadamawy_build_id');
-                sessionStorage.clear();
-            } catch(err) { }
-            setTimeout(function() {
-                window.location.href = window.location.origin + '/?_t=' + Date.now();
-            }, 100);
-        };
-    </script>
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
@@ -170,13 +123,8 @@
     <link rel="stylesheet" href="_content/Khadamat.BlazorUI/css/app.css" />
     <link rel="stylesheet" href="_content/Khadamat.BlazorUI/lib/fontawesome/css/all.min.css" />
     <link rel="stylesheet" href="_content/Khadamat.BlazorUI/lib/swiper/swiper-bundle.min.css" />
-    <!-- Favicon & Touch Icons -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico?v=5" />
-    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=5" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=5" />
-    <link rel="icon" type="image/png" href="/favicon.png?v=5" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=5" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=4" />
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=4" />
     <link rel="manifest" href="manifest.json" />
     <!-- Antigravity Update: 2026-09-14 (Mobile UI Fix & Cache Purge) -->
     <meta name="version" content="1.2.0-20260914" />
@@ -447,11 +395,11 @@
 
                 <!-- Action buttons -->
                 <div class="err-actions">
-                    <a href="." class="err-btn-primary" onclick="forceHardPurgeReload(event)">
+                    <a href="." class="err-btn-primary">
                         <span class="err-icon-spin">↻</span>
                         إعادة تحميل الصفحة
                     </a>
-                    <a href="/" class="err-btn-secondary" onclick="forceHardPurgeReload(event)">
+                    <a href="/" class="err-btn-secondary">
                         🏠 العودة للرئيسية
                     </a>
                 </div>
@@ -834,8 +782,10 @@
             }
             return 'fallback';
         };
-        // 5. Native share on mobile or platform picker
+
+        // 5. Native share on mobile or custom share dialog on desktop
         window.shareCardWithPlatform = async (elementId, shareUrl, fileName, shareText, imageUrl) => {
+            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
             const isNative = (navigator.userAgent && navigator.userAgent.indexOf('KhadamatNativeApp') !== -1) ||
                              window.location.search.indexOf('nativeapp=1') !== -1 || 
                              sessionStorage.getItem('nativeapp') === '1';
@@ -847,51 +797,45 @@
                 if (shareUrl) shareUri += '&url=' + encodeURIComponent(shareUrl);
                 if (imageUrl) shareUri += '&image=' + encodeURIComponent(imageUrl);
                 window.location.href = shareUri;
-                return 'native';
+                return 'shared';
             }
 
-            // Web Share API (Mobile browsers and modern desktop browsers)
-            if (navigator.share) {
+            // On mobile browser: call navigator.share immediately while user gesture is active!
+            if (isMobile && navigator.share) {
                 try {
-                    let file = null;
-                    if (navigator.canShare) {
-                        try {
-                            const canvas = await window._captureElementAsCanvas(elementId, shareUrl);
-                            if (canvas) {
-                                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-                                if (blob) {
-                                    file = new File([blob], (fileName || 'khadamat_service') + '.png', { type: 'image/png' });
-                                }
-                            }
-                        } catch (cErr) { }
-
-                        if (file && navigator.canShare({ files: [file] })) {
-                            await navigator.share({
-                                files: [file],
-                                title: 'منصة خدماوي',
-                                text: shareText || ''
-                            });
-                            return 'shared';
-                        }
-                    }
-
-                    // Fallback to text + url share
-                    await navigator.share({
-                        title: 'منصة خدماوي',
-                        text: shareText || '',
-                        url: shareUrl
-                    });
+                    await navigator.share({ title: 'منصة خدماوي', text: shareText || '', url: shareUrl });
                     return 'shared';
                 } catch (e) {
                     if (e.name === 'AbortError') return 'cancelled';
-                    console.warn('[ShareCard] navigator.share failed:', e.message);
+                    console.warn('[ShareCard] Direct navigator.share failed:', e.message);
                 }
             }
 
-            return 'platform_picker';
+            let dataUrl = null;
+            let file = null;
+
+            try {
+                const canvas = await window._captureElementAsCanvas(elementId, shareUrl);
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                if (blob) {
+                    dataUrl = canvas.toDataURL('image/png');
+                    file = new File([blob], (fileName || 'khadamat_service') + '.png', { type: 'image/png' });
+                }
+            } catch (err) {
+                console.warn('[ShareCard] Canvas capture failed:', err.message);
+            }
+
+            // Desktop or fallback: custom bottom-sheet share dialog
+            try {
+                window._showShareOptions(dataUrl, shareUrl, shareText, fileName);
+            } catch (err) {
+                console.error('[ShareCard] Share dialog failed:', err.message);
+                window.openExternalUrl(shareUrl);
+            }
+            return 'dialog';
         };
 
-        // Custom bottom-sheet share dialog (modal fallback for standalone share options)
+        // Custom bottom-sheet share dialog (modal fallback for desktop or native failure)
         window._showShareOptions = (imageDataUrl, shareUrl, shareText, fileName) => {
             try {
                 const existing = document.getElementById('khadamat-share-dialog');
@@ -904,12 +848,16 @@
                 dialog.id = 'khadamat-share-dialog';
 
                 const imgHtml = imageDataUrl ? `<img src="${imageDataUrl}" style="width:100%;border-radius:14px;margin-bottom:18px;box-shadow:0 6px 20px rgba(0,0,0,0.12);" />` : '';
+                const downloadBtnHtml = imageDataUrl ? `
+                    <button id="ksd-download-btn" style="width:100%;padding:14px;background:linear-gradient(135deg,#6366f1 0%,#4f46e5 100%);color:white;border:none;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:10px;box-shadow:0 4px 12px rgba(99,102,241,0.35);">
+                        📥 تحميل البطاقة كصورة
+                    </button>` : '';
 
                 dialog.innerHTML = `
                     <div id="khadamat-share-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:999999;display:flex;align-items:flex-end;justify-content:center;animation:ksdo-in 0.25s ease;">
                         <div onclick="event.stopPropagation()" style="background:white;border-radius:28px 28px 0 0;padding:24px 20px 36px;width:100%;max-width:560px;font-family:'Tajawal',sans-serif;direction:rtl;animation:ksds-in 0.3s cubic-bezier(.4,0,.2,1);">
                             <div style="width:44px;height:5px;background:#e2e8f0;border-radius:3px;margin:0 auto 18px;"></div>
-                            <p style="font-weight:800;font-size:1.1rem;color:#1e293b;margin:0 0 14px;text-align:center;">اختر المنصة التي تريد النشر عليها</p>
+                            <p style="font-weight:800;font-size:1.1rem;color:#1e293b;margin:0 0 14px;text-align:center;">🔗 شارك الخدمة</p>
                             ${imgHtml}
                             <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
                                 <a href="https://api.whatsapp.com/send?text=${encodedText}" target="_blank" rel="noopener noreferrer" onclick="window._shareClick(event, 'https://api.whatsapp.com/send?text=${encodedText}')" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 4px;background:#dcfce7;border-radius:16px;text-decoration:none;color:#166534;font-size:0.78rem;font-weight:700;cursor:pointer;">
@@ -924,11 +872,15 @@
                                     <svg width="28" height="28" viewBox="0 0 448 512" fill="#1877F2" xmlns="http://www.w3.org/2000/svg"><path d="M400 32H48A48 48 0 0 0 0 80v352a48 48 0 0 0 48 48h137.3V327.7h-63V256h63v-54.6c0-62.2 37-96.5 93.7-96.5 27.1 0 55.5 4.8 55.5 4.8v61h-31.3c-30.8 0-40.4 19.1-40.4 38.7V256h68.8l-11 71.7h-57.8V480H400a48 48 0 0 0 48-48V80a48 48 0 0 0-48-48z"/></svg>
                                     فيسبوك
                                 </a>
-                                <a href="https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}" target="_blank" rel="noopener noreferrer" onclick="window._shareClick(event, 'https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}')" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 4px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:16px;text-decoration:none;color:#0f172a;font-size:0.78rem;font-weight:700;cursor:pointer;">
-                                    <svg width="28" height="28" viewBox="0 0 512 512" fill="#0f172a" xmlns="http://www.w3.org/2000/svg"><path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z"/></svg>
-                                    منصة X
-                                </a>
+                                <button id="ksd-copy-btn" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 4px;background:#f5f3ff;border-radius:16px;border:none;color:#6d28d9;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:'Tajawal',sans-serif;">
+                                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="16" cy="16" r="16" fill="#7C3AED"/>
+                                        <path d="M21 10h-7a1 1 0 0 0-1 1v1h-1a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1v-1h1a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1zm-2 11H12v-8h7v8zm2-2h-1v-7a1 1 0 0 0-1-1h-6v-1h8v9z" fill="white"/>
+                                    </svg>
+                                    نسخ الرابط
+                                </button>
                             </div>
+                            ${downloadBtnHtml}
                             <button id="ksd-close-btn" style="width:100%;padding:12px;background:#f1f5f9;color:#475569;border:none;border-radius:14px;font-family:'Tajawal',sans-serif;font-size:0.95rem;font-weight:600;cursor:pointer;">
                                 إغلاق
                             </button>
@@ -936,7 +888,7 @@
                     </div>
                     <style>
                         @keyframes ksdo-in { from { opacity:0 } to { opacity:1 } }
-                        @keyframes ksds-in { transform:translateY(100%) } to { transform:translateY(0) } }
+                        @keyframes ksds-in { from { transform:translateY(100%) } to { transform:translateY(0) } }
                     </style>`;
                 document.body.appendChild(dialog);
 
@@ -945,8 +897,30 @@
 
                 const closeBtn = document.getElementById('ksd-close-btn');
                 if (closeBtn) closeBtn.addEventListener('click', () => dialog.remove());
+
+                const downloadBtn = document.getElementById('ksd-download-btn');
+                if (downloadBtn) {
+                    downloadBtn.addEventListener('click', () => {
+                        const a = document.createElement('a');
+                        a.href = imageDataUrl;
+                        a.download = (fileName || 'khadamat_service') + '.png';
+                        a.click();
+                        dialog.remove();
+                    });
+                }
+
+                const copyBtn = document.getElementById('ksd-copy-btn');
+                if (copyBtn) {
+                    copyBtn.addEventListener('click', async () => {
+                        try {
+                            await navigator.clipboard.writeText(shareUrl);
+                            copyBtn.innerHTML = '<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#10B981"/><path d="M9 16l5 5 9-10" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>تم النسخ!';
+                            setTimeout(() => dialog.remove(), 1200);
+                        } catch (_) { alert(shareUrl); }
+                    });
+                }
             } catch (err) {
-                console.error('[ShareCard] Share options dialog error:', err.message);
+                console.error('[ShareDialog] Error showing share options:', err.message, err);
             }
         };
 
@@ -982,10 +956,7 @@
                     phonePart = qIdx !== -1 ? afterWa.substring(0, qIdx) : afterWa;
                 }
 
-                phonePart = phonePart.replace(/[\u0660-\u0669]/g, function(d) { return String.fromCharCode(d.charCodeAt(0) - 0x0660 + 48); }).replace(/[\u06F0-\u06F9]/g, function(d) { return String.fromCharCode(d.charCodeAt(0) - 0x06F0 + 48); });
                 phonePart = phonePart.replace(/[^0-9]/g, '');
-                if (phonePart.startsWith('01') && phonePart.length === 11) phonePart = '2' + phonePart;
-                targetUrl = targetUrl.replace(/[\u0660-\u0669]/g, function(d) { return String.fromCharCode(d.charCodeAt(0) - 0x0660 + 48); }).replace(/[\u06F0-\u06F9]/g, function(d) { return String.fromCharCode(d.charCodeAt(0) - 0x06F0 + 48); });
 
                 let waScheme = 'whatsapp://send?';
                 if (phonePart) waScheme += 'phone=' + encodeURIComponent(phonePart) + '&';
@@ -1327,8 +1298,7 @@
 
         window.updateWebDetails = (title, logoUrl) => {
             if (title) document.title = title;
-            // Only update favicon if a dedicated favicon/icon URL is provided
-            if (logoUrl && (logoUrl.indexOf('favicon') !== -1 || logoUrl.indexOf('app-icon') !== -1)) {
+            if (logoUrl) {
                 let link = document.querySelector("link[rel*='icon']") || document.createElement('link');
                 link.type = 'image/png';
                 link.rel = 'icon';
@@ -1406,10 +1376,7 @@
                     phonePart = qIdx !== -1 ? afterWa.substring(0, qIdx) : afterWa;
                 }
 
-                phonePart = phonePart.replace(/[\u0660-\u0669]/g, function(d) { return String.fromCharCode(d.charCodeAt(0) - 0x0660 + 48); }).replace(/[\u06F0-\u06F9]/g, function(d) { return String.fromCharCode(d.charCodeAt(0) - 0x06F0 + 48); });
                 phonePart = phonePart.replace(/[^0-9]/g, '');
-                if (phonePart.startsWith('01') && phonePart.length === 11) phonePart = '2' + phonePart;
-                targetUrl = targetUrl.replace(/[\u0660-\u0669]/g, function(d) { return String.fromCharCode(d.charCodeAt(0) - 0x0660 + 48); }).replace(/[\u06F0-\u06F9]/g, function(d) { return String.fromCharCode(d.charCodeAt(0) - 0x06F0 + 48); });
 
                 let waScheme = 'whatsapp://send?';
                 if (phonePart) waScheme += 'phone=' + encodeURIComponent(phonePart) + '&';
@@ -1468,10 +1435,6 @@
             if (!isNative) return;
             const a = e.target.closest('a');
             if (a && a.href) {
-                const rawHref = a.getAttribute('href') || '';
-                if (rawHref === '#' || rawHref.startsWith('#') || rawHref.startsWith('javascript:')) {
-                    return;
-                }
                 const href = a.href;
                 const isExternal = href.startsWith('https://wa.me') || 
                                    href.startsWith('https://api.whatsapp.com') ||
@@ -1493,10 +1456,21 @@
         }, true);
     </script>
     <script src="js/app-dialogs.js?v=2030"></script>
-    <script src="js/en-numbers-force.js?v=1"></script>
-    <script src="js/tester-tracker.js?v=20261024"></script>
-    <script src="_framework/blazor.webassembly.js"></script>
+    <script src="_framework/blazor.webassembly.js" autostart="false"></script>
     <script>
+        Blazor.start({
+            loadBootResource: function (type, name, defaultUri, integrity) {
+                if (type === 'dotnetjs' || type === 'manifest') {
+                    return defaultUri;
+                }
+                return fetch(defaultUri, { cache: 'no-cache' });
+            }
+        });
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js');
+        }
         window.shareApp = async (title, text, url, imageUrl) => {
             try {
                 const isNative = (navigator.userAgent && navigator.userAgent.indexOf('KhadamatNativeApp') !== -1) ||
@@ -1596,7 +1570,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
-                navigator.serviceWorker.register('/service-worker.js?v=5')
+                navigator.serviceWorker.register('/service-worker.js')
                     .then(function (reg) {
                         console.log('[SW] Registered successfully. Scope:', reg.scope);
                     })

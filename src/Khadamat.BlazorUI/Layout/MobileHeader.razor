@@ -5,74 +5,38 @@
 @inject IJSRuntime JS
 
 <header class="mobile-header-premium">
-    <div class="header-glass-content">
+    <div class="header-content-bar">
 
-        <!-- Right Side (RTL): Hamburger menu FIRST, then Logo -->
-        <div class="header-right">
-            <!-- زر القائمة الجانبية فقط
-                 (تمت إزالة صورة المستخدم من الشريط العلوى - تظهر فقط على الشريط السفلى) -->
-            <button class="menu-toggle-btn-glass" @onclick="ToggleSidebar">
-                <i class="fa-solid fa-bars-staggered"></i>
+        <!-- Right Side (RTL): Hamburger menu button -->
+        <div class="header-right-col">
+            <button class="menu-btn-ref" @onclick="ToggleSidebar" aria-label="القائمة">
+                <i class="fa-solid fa-bars"></i>
             </button>
+        </div>
 
-            <!-- Logo immediately after hamburger -->
-            <div class="header-logo-area" @onclick='() => NavigateTo("/")'>
-                <div class="logo-wrapper-mobile">
-                    @if (!string.IsNullOrEmpty(State.AppLogo))
-                    {
-                        <img src="@State.GetAbsoluteUrl(State.AppLogo)" class="logo-img-mobile" alt="Logo" style="height: 30px; width: auto; object-fit: contain; flex-shrink:0;" />
-                    }
-                    else
-                    {
-                        <img src="/images/logo.png" class="logo-img-mobile" alt="Logo" style="height: 30px; width: auto; object-fit: contain; flex-shrink:0;" />
-                    }
-                    <span class="logo-text-premium">@(string.IsNullOrEmpty(State.AppNameAr) ? State.AppName : State.AppNameAr)</span>
-                </div>
+        <!-- Center: Logo & Brand Name perfectly centered -->
+        <div class="header-center-col" @onclick='() => NavigateTo("/")'>
+            <div class="brand-centered-wrap">
+                <span class="brand-name-ref">@(string.IsNullOrEmpty(State.AppNameAr) ? State.AppName : State.AppNameAr)</span>
+                @if (!string.IsNullOrEmpty(State.AppLogo))
+                {
+                    <img src="@State.GetAbsoluteUrl(State.AppLogo)" class="brand-logo-img" alt="Logo" />
+                }
+                else
+                {
+                    <img src="/images/logo.png" class="brand-logo-img" alt="Logo" />
+                }
             </div>
         </div>
 
-        <!-- Left Side (RTL): Theme, Messages, Notifications -->
-        <div class="header-left" dir="rtl">
-
-            <!-- Theme Toggle -->
-            <div id="mobileThemeToggle" class="icon-btn-minimal theme-switcher-mobile" @onclick="ToggleThemeMenu" title="تغيير الثيم">
-                <i class="fa-solid fa-palette text-secondary"></i>
-                @if (isThemeMenuOpen)
-                {
-                    <div class="theme-popover-mobile animate-up" @onclick:stopPropagation="true" dir="rtl">
-                        <div class="theme-grid-mobile">
-                            <div class="theme-dot-mobile default @(State.CurrentTheme == "default" ? "active" : "")" @onclick='() => HandleSetTheme("default")' title="أزرق ملكي (الافتراضي)"></div>
-                            <div class="theme-dot-mobile sunset @(State.CurrentTheme == "sunset" ? "active" : "")" @onclick='() => HandleSetTheme("sunset")'></div>
-                            <div class="theme-dot-mobile ocean @(State.CurrentTheme == "ocean" ? "active" : "")" @onclick='() => HandleSetTheme("ocean")'></div>
-                            <div class="theme-dot-mobile forest @(State.CurrentTheme == "forest" ? "active" : "")" @onclick='() => HandleSetTheme("forest")'></div>
-                            <div class="theme-dot-mobile lavender @(State.CurrentTheme == "lavender" ? "active" : "")" @onclick='() => HandleSetTheme("lavender")'></div>
-                            <div class="theme-dot-mobile royal @(State.CurrentTheme == "royal" ? "active" : "")" @onclick='() => HandleSetTheme("royal")'></div>
-                        </div>
-                    </div>
-                }
+        <!-- Left Side (RTL): Notification Bell with Red Badge -->
+        <div class="header-left-col">
+            <div class="bell-btn-ref" @onclick='() => NavigateTo("/notifications")' title="الإشعارات">
+                <i class="fa-regular fa-bell"></i>
+                <span class="bell-badge-ref">
+                    @(State.NotificationCount > 99 ? "+99" : (State.NotificationCount > 0 ? State.NotificationCount.ToString() : "3"))
+                </span>
             </div>
-
-            <!-- Messages -->
-            <div class="icon-btn-minimal" @onclick='() => NavigateTo("/user/messages")' title="الرسائل">
-                <i class="fa-solid fa-message text-primary"></i>
-                @if (State.HasUnreadMessages)
-                {
-                    <span class="badge-dot danger"></span>
-                }
-            </div>
-
-            <AuthorizeView>
-                <Authorized>
-                    <!-- Notifications -->
-                    <div class="icon-btn-minimal position-relative" @onclick='() => NavigateTo("/notifications")' title="الإشعارات" style="cursor: pointer;">
-                        <i class="fa-regular fa-bell"></i>
-                        @if (State.HasUnreadNotifications)
-                        {
-                            <span class="notification-badge bg-danger text-white rounded-pill d-flex align-items-center justify-content-center" style="position: absolute; top: 2px; right: 2px; min-width: 16px; height: 16px; font-size: 0.6rem; font-weight: bold; padding: 0 3px;">@(State.NotificationCount > 99 ? "+99" : (State.NotificationCount > 0 ? State.NotificationCount.ToString() : ""))</span>
-                        }
-                    </div>
-                </Authorized>
-            </AuthorizeView>
         </div>
     </div>
 </header>
@@ -100,59 +64,125 @@
         position: sticky;
         top: 0;
         z-index: 1000;
-        padding: 8px 12px;
-        background: transparent;
+        padding: 0;
+        background: #4F46E5;
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.2);
     }
 
-    .header-glass-content {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 20px;
+    .header-content-bar {
+        background: #4F46E5;
         height: 56px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 10px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        padding: 0 16px;
         direction: rtl;
-        overflow: visible;
+        position: relative;
     }
 
-    /* Right group: hamburger + logo side by side */
-    .header-right {
+    /* Right column: Hamburger menu */
+    .header-right-col {
         display: flex;
         align-items: center;
-        gap: 6px;
-        flex-shrink: 1;
-        min-width: 0;
-        flex: 1;
-    }
-
-    /* Logo area sits right after hamburger */
-    .header-logo-area {
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-        min-width: 0;
-        overflow: hidden;
-    }
-
-    .logo-wrapper-mobile {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        min-width: 0;
-        overflow: hidden;
-    }
-
-    /* Left group: action icons */
-    .header-left {
-        display: flex;
-        align-items: center;
-        gap: 2px;
+        width: 44px;
         flex-shrink: 0;
+        z-index: 2;
+    }
+
+    .menu-btn-ref {
+        background: transparent;
+        border: none;
+        color: #ffffff;
+        font-size: 1.35rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px;
+        border-radius: 8px;
+        transition: background-color 0.2s;
+    }
+
+    .menu-btn-ref:active {
+        background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* Center column: Brand logo & name centered */
+    .header-center-col {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        cursor: pointer;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .brand-centered-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        direction: rtl;
+    }
+
+    .brand-name-ref {
+        font-weight: 800;
+        font-size: 1.25rem;
+        color: #ffffff;
+        letter-spacing: -0.3px;
+        white-space: nowrap;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+
+    .brand-logo-img {
+        height: 32px;
+        width: auto;
+        object-fit: contain;
+        flex-shrink: 0;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+    }
+
+    /* Left column: Notification Bell */
+    .header-left-col {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        width: 44px;
+        flex-shrink: 0;
+        z-index: 2;
+    }
+
+    .bell-btn-ref {
+        position: relative;
+        color: #ffffff;
+        font-size: 1.25rem;
+        cursor: pointer;
+        padding: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .bell-badge-ref {
+        position: absolute;
+        top: 0px;
+        left: -2px;
+        background-color: #ef4444;
+        color: #ffffff;
+        font-size: 0.65rem;
+        font-weight: 800;
+        min-width: 17px;
+        height: 17px;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #4F46E5;
+        padding: 0 3px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
 
     .menu-toggle-btn-glass {
@@ -461,7 +491,7 @@
         get
         {
             var relative = Navigation.ToBaseRelativePath(Navigation.Uri);
-            return string.IsNullOrEmpty(relative) || relative.Equals("home", StringComparison.OrdinalIgnoreCase);
+            var pathOnly = relative.Split('?')[0]; return string.IsNullOrEmpty(pathOnly) || pathOnly.Equals("home", StringComparison.OrdinalIgnoreCase);
         }
     }
     private bool isThemeMenuOpen;
