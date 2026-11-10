@@ -1,4 +1,4 @@
-﻿using Microsoft.Maui.Networking;
+using Microsoft.Maui.Networking;
 using Microsoft.Maui.Controls;
 using System;
 using System.Threading.Tasks;
@@ -60,7 +60,7 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
 
     private void Current_ConnectivityChanged(object? sender, ConnectivityChangedEventArgs e)
     {
-        if (e.NetworkAccess == NetworkAccess.Internet)
+        if (e.NetworkAccess != NetworkAccess.None)
         {
             MainThread.BeginInvokeOnMainThread(() =>
             {
@@ -163,8 +163,14 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
     private void LoadContent(bool force = false)
     {
         // 1. Resolve base url from preferences or configuration with solid fallback
-        string baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", "https://khadamawy.eis-dev.com/");
-        if (string.IsNullOrWhiteSpace(baseUrl)) baseUrl = "https://khadamawy.eis-dev.com/";
+#if DEBUG
+        string defaultUrl = "http://localhost:5028/";
+        string baseUrl = defaultUrl;
+#else
+        string defaultUrl = "https://khadamawy.eis-dev.com/";
+        string baseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("WebAppBaseUrl", defaultUrl);
+#endif
+        if (string.IsNullOrWhiteSpace(baseUrl)) baseUrl = defaultUrl;
         if (!baseUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)) baseUrl = "https://" + baseUrl.TrimStart('/');
 
         string apiBaseUrl = Microsoft.Maui.Storage.Preferences.Default.Get("ApiBaseUrl", "https://khadamawy.eis-dev.com/");
@@ -197,7 +203,7 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
 
     private void LoadUrl(string url, bool force = false)
     {
-        if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
+        if (Connectivity.Current.NetworkAccess == NetworkAccess.None)
         {
             ShowOfflineState(true);
             return;

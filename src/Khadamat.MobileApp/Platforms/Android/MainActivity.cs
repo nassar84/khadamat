@@ -22,6 +22,13 @@ public class MainActivity : MauiAppCompatActivity
         {
             base.OnCreate(savedInstanceState);
             
+            // Modern Edge-to-Edge support for Android 15+ (API 35+)
+            try
+            {
+                AndroidX.Activity.EdgeToEdge.Enable(this);
+            }
+            catch { }
+
             // Force RTL Layout at the Activity level to ensure the Toolbar and Flyout respect the Right-to-Left flow.
             if (Window != null && Window.DecorView != null)
             {

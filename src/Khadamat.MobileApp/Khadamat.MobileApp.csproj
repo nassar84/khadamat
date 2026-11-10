@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net10.0-android;net8.0-ios;net8.0-maccatalyst;net8.0-windows10.0.19041.0</TargetFrameworks>
-        <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">net10.0-android;net8.0-windows10.0.19041.0</TargetFrameworks>
+        <TargetFrameworks>net9.0-android;net8.0-ios;net8.0-maccatalyst;net8.0-windows10.0.19041.0</TargetFrameworks>
+        <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">net9.0-android;net8.0-windows10.0.19041.0</TargetFrameworks>
         
         <OutputType>Exe</OutputType>
         <RootNamespace>Khadamat.MobileApp</RootNamespace>
@@ -20,9 +20,9 @@
         <!-- Versions -->
         <ApplicationDisplayVersion>2.9.1</ApplicationDisplayVersion>
         <ApplicationVersion>22</ApplicationVersion>
-        <!-- Target API Level 36 (Android 16) -->
-        <AndroidTargetSdkVersion>36</AndroidTargetSdkVersion>
-        <RuntimeIdentifiers Condition="$(TargetFramework.Contains('-android')) or '$(TargetFramework)' == ''">android-arm64</RuntimeIdentifiers>
+        <!-- Target API Level 35 (Android 15) -->
+        <AndroidTargetSdkVersion>35</AndroidTargetSdkVersion>
+        <RuntimeIdentifiers Condition="$(TargetFramework.Contains('-android')) or '$(TargetFramework)' == ''">android-arm64;android-x64</RuntimeIdentifiers>
 
         <!-- Required for C# Hot Reload -->
         <UseInterpreter Condition="'$(Configuration)' == 'Debug'">True</UseInterpreter>
@@ -65,7 +65,7 @@
 
         <!-- Android -->
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
-        <TargetPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">36.0</TargetPlatformVersion>
+        <TargetPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">35.0</TargetPlatformVersion>
         
         <!-- iOS: SupportedOSPlatformVersion 15.0+ required for .NET 8/9 MAUI iOS -->
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
@@ -96,14 +96,10 @@
         <GoogleServicesJson Condition="$(TargetFramework.Contains('-android'))" Include="Platforms\Android\google-services.json" />
     </ItemGroup>
 
-<PropertyGroup>
-        <MauiVersion Condition="'$(MauiVersion)' == ''">10.0.110</MauiVersion>
-    </PropertyGroup>
     <ItemGroup Condition="$(TargetFramework.Contains('-android'))">
         <PackageReference Include="Xamarin.Firebase.Messaging" Version="123.4.1" />
         <!-- Pin collection.ktx to same version as collection.jvm brought by Firebase to prevent duplicate ArrayMapKt.class -->
-        <PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.5.0.1" Condition="!$(TargetFramework.Contains('net10'))" />
-        <PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.5.0.3" Condition="$(TargetFramework.Contains('net10'))" />
+        <PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.5.0.1" />
     </ItemGroup>
 
     <ItemGroup>
@@ -114,8 +110,8 @@
     <ItemGroup>
         <!-- MAUI Core -->
         <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="8.0.0" />
-        <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.110" />
-        <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.110" />
+        <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+        <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
         
         <!-- Extensions -->
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />

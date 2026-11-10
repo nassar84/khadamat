@@ -64,27 +64,23 @@
     </Shell.MenuItemTemplate>
 
     <Shell.TitleView>
-        <Grid Padding="10,0" VerticalOptions="Fill" FlowDirection="RightToLeft">
+        <Grid Padding="0" VerticalOptions="Fill" HorizontalOptions="FillAndExpand" FlowDirection="RightToLeft">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="56" />
             </Grid.ColumnDefinitions>
-            
-            <!-- Right side spacer (Hamburger menu button sits to the right of TitleView) -->
-            <ContentView Grid.Column="0" />
 
-            <!-- Exact Center: Brand Name & Logo -->
-            <HorizontalStackLayout Grid.Column="1" HorizontalOptions="Center" VerticalOptions="Center" Spacing="8">
+            <!-- Exact Physical Screen Center: Brand Name & Logo -->
+            <HorizontalStackLayout Grid.Column="0" HorizontalOptions="Center" VerticalOptions="Center" Spacing="8">
                 <HorizontalStackLayout.GestureRecognizers>
                     <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="home" />
                 </HorizontalStackLayout.GestureRecognizers>
                 <Label Text="{Binding AppName}" FontSize="18" FontAttributes="Bold" TextColor="White" VerticalOptions="Center"/>
-                <Image Source="{Binding AppLogo}" HeightRequest="28" WidthRequest="28" Aspect="AspectFit"/>
+                <Image Source="{Binding AppLogo, FallbackValue='app_logo.png', TargetNullValue='app_logo.png'}" HeightRequest="28" WidthRequest="28" Aspect="AspectFit"/>
             </HorizontalStackLayout>
 
-            <!-- Left side: Notification Bell with Red Badge -->
-            <Grid Grid.Column="2" HorizontalOptions="End" VerticalOptions="Center" WidthRequest="36" HeightRequest="36" Margin="0,0,10,0">
+            <!-- Left side (RTL): 56dp width container balancing 56dp hamburger menu on right -->
+            <Grid Grid.Column="1" HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="56" HeightRequest="44">
                 <ImageButton Source="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F514;', Color=White}"
                              HeightRequest="28" WidthRequest="28"
                              HorizontalOptions="Center" VerticalOptions="Center"
@@ -99,8 +95,8 @@
                         HeightRequest="17"
                         MinimumWidthRequest="17"
                         Padding="3,0"
-                        TranslationX="3"
-                        TranslationY="-2"
+                        TranslationX="-4"
+                        TranslationY="2"
                         InputTransparent="True">
                     <Border.StrokeShape>
                         <RoundRectangle CornerRadius="8.5" />

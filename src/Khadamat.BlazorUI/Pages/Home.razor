@@ -1,4 +1,4 @@
-﻿@page "/"
+@page "/"
 @using Khadamat.Application.DTOs
 @using Khadamat.BlazorUI.Services
 @using Khadamat.BlazorUI.Components.ServiceRelated
@@ -27,17 +27,8 @@
         </div>
     </div>
 
-    <!-- 2. Service Categories (تصنيفات الخدمات) -->
+    <!-- 2. Service Categories (تصنيفات الخدمات مباشرة بدون عنوان) -->
     <div class="home-categories-section mb-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div class="d-flex align-items-center gap-2">
-                <i class="fa-solid fa-table-cells-large text-primary fs-5"></i>
-                <h5 class="fw-bold mb-0 text-dark">تصنيفات الخدمات</h5>
-            </div>
-            <a href="/services" class="btn btn-sm btn-light border text-primary rounded-pill px-3 fw-bold small text-decoration-none">
-                كل التصنيفات <i class="fa-solid fa-arrow-left me-1"></i>
-            </a>
-        </div>
         <div class="home-categories-track">
             <Khadamat.BlazorUI.Shared.CategoryMarquee />
         </div>
@@ -743,17 +734,17 @@
 <style>
     .home-ref-container {
         width: 100%;
-        background: #4F46E5;
+        background: #6366f1;
         margin: 0;
-        padding: 0;
+        padding: 16px 0 0 0;
     }
     .home-curved-sheet {
         background: #F8FAFC;
         border-top-left-radius: 28px;
         border-top-right-radius: 28px;
-        padding: 18px 16px 36px 16px;
+        padding: 20px 16px 36px 16px;
         min-height: calc(100vh - 60px);
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.04);
+        box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.12);
         position: relative;
     }
     @@media (min-width: 992px) {

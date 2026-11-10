@@ -2,12 +2,13 @@
     <style name="Maui.MainTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="android:windowBackground">#FFFFFF</item>
         <item name="android:colorBackground">#FFFFFF</item>
-        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
     <style name="Maui.SplashTheme" parent="Maui.MainTheme">
         <item name="android:windowBackground">@drawable/maui_splash_image</item>
         <item name="android:windowNoTitle">true</item>
-        <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowActionBar">false</item>
     </style>
