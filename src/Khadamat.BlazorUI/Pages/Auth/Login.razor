@@ -11,13 +11,9 @@
 
 <div class="glass-card auth-card">
     <div class="auth-header">
-        @if (!string.IsNullOrEmpty(AppState.AppLogo))
+        @if (!AppState.IsNativeApp && !AppState.IsMobileApp)
         {
-            <img src="@AppState.AppLogo" alt="@AppState.AppName" class="auth-logo mb-3" />
-        }
-        else
-        {
-            <h2 class="brand-name">@AppState.AppName</h2>
+            <img src="_content/Khadamat.BlazorUI/images/logo.png" alt="@AppState.AppName" class="auth-logo mb-3" />
         }
         <h3>تسجيل الدخول</h3>
         <p>مرحباً بعودتك! الرجاء إدخال بياناتك</p>

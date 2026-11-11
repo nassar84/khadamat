@@ -247,3 +247,94 @@ h2 .fa-shop.store-anim, h3 .fa-shop.store-anim {
   vertical-align: middle;
 }
 
+/* ========================================================
+   GLOBAL HEADER CURVED TRANSITION SYSTEM (UNIVERSAL)
+   ======================================================== */
+.global-fixed-curved-transition {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 32px;
+    pointer-events: none;
+    z-index: 1050;
+    transform: translate3d(0, 0, 0) !important;
+    -webkit-transform: translate3d(0, 0, 0) !important;
+    will-change: transform;
+}
+
+.global-fixed-curved-transition .curve-corner {
+    position: absolute;
+    top: 0;
+    width: 32px;
+    height: 32px;
+    display: block;
+    pointer-events: none;
+}
+
+.global-fixed-curved-transition .curve-corner.left {
+    left: 0 !important;
+    right: auto !important;
+}
+
+.global-fixed-curved-transition .curve-corner.right {
+    right: 0 !important;
+    left: auto !important;
+}
+
+/* In web mobile mode when MobileHeader is shown */
+.khadamat-app.mobile-mode:not(.native-mode) .global-fixed-curved-transition,
+.auth-layout.mobile-mode:not(.native-mode) .global-fixed-curved-transition,
+.admin-layout.mobile-app-mode:not(.native-mode) .global-fixed-curved-transition,
+.provider-layout.mobile-app-mode:not(.native-mode) .global-fixed-curved-transition,
+.mobile-app.mobile-mode:not(.native-mode) .global-fixed-curved-transition {
+    top: 56px;
+}
+
+.khadamat-app.mobile-mode .app-main-view,
+.khadamat-app.native-mode .app-main-view,
+.auth-layout.mobile-mode,
+.auth-layout.native-mode,
+.admin-layout.mobile-app-mode,
+.provider-layout.mobile-app-mode,
+.mobile-app.native-mode,
+.mobile-app.mobile-mode {
+    background: #1e40af !important;
+}
+
+.global-curved-sheet {
+    position: relative;
+    background: #f8fafc !important;
+    border-top-left-radius: 28px !important;
+    border-top-right-radius: 28px !important;
+    min-height: 100vh;
+    min-height: 100dvh;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-top: 0 !important;
+    padding-top: 14px !important;
+    box-sizing: border-box;
+}
+
+@media (min-width: 992px) {
+    .global-fixed-curved-transition {
+        display: none !important;
+    }
+    .global-curved-sheet {
+        border-radius: 0 !important;
+        background: transparent !important;
+        padding-top: 0 !important;
+        min-height: auto;
+    }
+    .khadamat-app.mobile-mode .app-main-view,
+    .khadamat-app.native-mode .app-main-view,
+    .auth-layout.mobile-mode,
+    .auth-layout.native-mode,
+    .admin-layout.mobile-app-mode,
+    .provider-layout.mobile-app-mode {
+        background: transparent !important;
+    }
+}
+
+

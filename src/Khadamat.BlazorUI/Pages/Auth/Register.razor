@@ -10,12 +10,9 @@
 <div class="auth-container d-flex justify-content-center align-items-center py-5">
     <div class="glass-card p-4 p-md-5 w-100" style="max-width: 700px;">
         <div class="text-center mb-4">
-             @if (!string.IsNullOrEmpty(AppState.AppLogo))
+             @if (!AppState.IsNativeApp && !AppState.IsMobileApp)
              {
-                 <img src="@AppState.AppLogo" alt="@AppState.AppName" class="auth-logo mb-3" style="max-height: 80px;" />
-             }
-             else
-             {
+                 <img src="_content/Khadamat.BlazorUI/images/logo.png" alt="@AppState.AppName" class="auth-logo mb-3" style="max-height: 80px;" />
                  <h2 class="brand-name mb-2">@AppState.AppName</h2>
              }
              <h4 class="text-muted">إنشاء حساب جديد</h4>

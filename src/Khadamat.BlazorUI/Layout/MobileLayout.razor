@@ -24,16 +24,27 @@
 }
 else
 {
-    <div class="mobile-app">
+    <div class="mobile-app @(AppState.IsNativeApp ? "native-mode" : "mobile-mode")">
         @if (!AppState.IsNativeApp)
         {
             <MobileHeader />
             <MobileSidebar />
         }
         
-        <main class="mobile-content">
-            @Body
-        </main>
+        <!-- Global Permanent Fixed Header Curve -->
+        <div class="global-fixed-curved-transition" aria-hidden="true">
+            <svg class="curve-corner left" width="32" height="32" viewBox="0 0 32 32">
+                <path d="M0,0 L32,0 A32,32 0 0,0 0,32 Z" fill="#1e40af" />
+            </svg>
+            <svg class="curve-corner right" width="32" height="32" viewBox="0 0 32 32">
+                <path d="M32,0 L0,0 A32,32 0 0,1 32,32 Z" fill="#1e40af" />
+            </svg>
+        </div>
+        <div class="global-curved-sheet">
+            <main class="mobile-content">
+                @Body
+            </main>
+        </div>
         
         @if (!AppState.IsNativeApp)
         {

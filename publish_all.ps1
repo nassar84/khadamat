@@ -13,6 +13,7 @@ if (!(Test-Path $publishDir)) {
     New-Item -ItemType Directory -Path $publishDir -Force | Out-Null
 }
 
+$env:JAVA_TOOL_OPTIONS = "-Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8"
 $now = Get-Date
 
 # ==============================================================================

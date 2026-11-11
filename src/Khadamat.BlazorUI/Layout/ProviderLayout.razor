@@ -5,20 +5,40 @@
 @inject Khadamat.BlazorUI.State.AppState State
 @inject IJSRuntime JS
 
-<div class="provider-layout @(IsCollapsed ? "collapsed" : "")" dir="rtl">
+<div class="provider-layout @(IsCollapsed ? "collapsed" : "") @(State.IsNativeApp || State.IsMobileApp ? "mobile-app-mode" : "") @(State.IsNativeApp ? "native-mode" : "")" dir="rtl">
     @if (State.IsNativeApp)
     {
-        <main class="mobile-content">
+        <div class="global-fixed-curved-transition" aria-hidden="true">
+            <svg class="curve-corner left" width="32" height="32" viewBox="0 0 32 32">
+                <path d="M0,0 L32,0 A32,32 0 0,0 0,32 Z" fill="#1e40af" />
+            </svg>
+            <svg class="curve-corner right" width="32" height="32" viewBox="0 0 32 32">
+                <path d="M32,0 L0,0 A32,32 0 0,1 32,32 Z" fill="#1e40af" />
+            </svg>
+        </div>
+        <div class="global-curved-sheet">
+            <main class="mobile-content">
             @Body
-        </main>
+            </main>
+        </div>
     }
     else if (State.IsMobileApp)
     {
         <MobileHeader />
         <MobileSidebar />
-        <main class="mobile-content">
+        <div class="global-fixed-curved-transition" aria-hidden="true">
+            <svg class="curve-corner left" width="32" height="32" viewBox="0 0 32 32">
+                <path d="M0,0 L32,0 A32,32 0 0,0 0,32 Z" fill="#1e40af" />
+            </svg>
+            <svg class="curve-corner right" width="32" height="32" viewBox="0 0 32 32">
+                <path d="M32,0 L0,0 A32,32 0 0,1 32,32 Z" fill="#1e40af" />
+            </svg>
+        </div>
+        <div class="global-curved-sheet">
+            <main class="mobile-content">
             @Body
-        </main>
+            </main>
+        </div>
         <MobileBottomNav />
     }
     else
