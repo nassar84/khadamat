@@ -12,7 +12,7 @@ public class AppSettings : BaseEntity
     public string? ApkFilename { get; set; } = "خدماوى | Khadamawy.apk";
     public string? ApkIconUrl { get; set; } = "";
 
-    public string PrimaryColor { get; set; } = "#2563eb";
+    public string PrimaryColor { get; set; } = "#1e40af";
     public string SecondaryColor { get; set; } = "#0ea5e9";
     
     // Default Theme for all users (fallback before user picks their own)

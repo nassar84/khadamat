@@ -938,6 +938,18 @@ body[data-theme="glass"]::after {
     padding-bottom: 20px;
 }
 
+/* Zero gap & full bleed for Home Page and Native Mobile Container */
+.home-content-wrapper,
+.content-wrapper.home-content-wrapper,
+.native-mode .content-wrapper,
+.native-mode .app-content,
+.home-active .content-wrapper {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
 @media (min-width: 1400px) {
     .content-wrapper,
     .header-inner-container {
@@ -1169,8 +1181,12 @@ body[data-theme="glass"]::after {
         min-width: 600px; /* Minimum width for tables to trigger scroll */
     }
     
-    .content-wrapper {
+    .content-wrapper:not(.home-content-wrapper) {
         padding: 10px !important;
+    }
+    .home-content-wrapper {
+        padding: 0 !important;
+        margin: 0 !important;
     }
 }
 

@@ -15,7 +15,6 @@
 
 
 <div class="home-ref-container @(AppState.IsMobileApp ? "mobile-viewport" : "")">
-    <div class="home-curved-sheet">
 
     <!-- 1. Search Bar (ما الخدمة التي تبحث عنها؟) -->
     <div class="home-search-bar mb-4" @onclick='() => Navigation.NavigateTo("/search")'>
@@ -267,7 +266,6 @@
 
     <!-- Bottom Page Ads -->
     <Khadamat.BlazorUI.Components.Ads.AdLocation Placement="Bottom" />
-    </div>
 </div>
 
 <style>
@@ -733,29 +731,17 @@
 
 <style>
     .home-ref-container {
-        width: 100%;
-        background: #6366f1;
-        margin: 0;
-        padding: 0;
-    }
-    .home-curved-sheet {
-        background: #F8FAFC;
-        border-top-left-radius: 32px;
-        border-top-right-radius: 32px;
-        padding: 18px 16px 36px 16px;
-        min-height: calc(100vh - 60px);
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
-        position: relative;
+        width: 100% !important;
+        max-width: 100% !important;
+        background: transparent !important;
+        margin: 0 !important;
+        padding: 0 16px 36px 16px !important;
+        border: none !important;
+        box-sizing: border-box;
     }
     @@media (min-width: 992px) {
         .home-ref-container {
-            background: transparent;
-        }
-        .home-curved-sheet {
-            background: transparent;
-            border-radius: 0;
-            padding: 0;
-            box-shadow: none;
+            padding: 0 !important;
         }
     }
     .home-search-bar {

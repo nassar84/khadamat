@@ -21,10 +21,11 @@ public static class DependencyInjection
 
         services.AddIdentity<ApplicationUser, IdentityRole>(options => {
             options.Password.RequireDigit = false;
-            options.Password.RequiredLength = 6;
+            options.Password.RequiredLength = 4;
             options.Password.RequireNonAlphanumeric = false;
             options.Password.RequireUppercase = false;
             options.Password.RequireLowercase = false;
+            options.Password.RequiredUniqueChars = 0;
             options.User.AllowedUserNameCharacters = null;
         })
         .AddEntityFrameworkStores<KhadamatDbContext>()

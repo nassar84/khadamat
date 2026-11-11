@@ -1556,12 +1556,18 @@
                 var dy = e.touches[0].clientY - _startY;
                 var scrollTop = _startEl.scrollTop;
 
-                // ONLY block native pull-to-refresh when the element is at the very top
-                // and the user is pulling DOWN. This avoids blocking normal upward scrolling.
-                if (dy > 0 && scrollTop === 0) {
+                // 1. Block pull-to-refresh when dragging down at the top
+                if (dy > 0 && scrollTop <= 0) {
                     e.preventDefault();
+                    return;
                 }
-                // When scrollTop > 0 (not at top): do nothing — allow native scroll freely
+
+                // 2. Block elastic rubber-band overscroll when dragging up at the bottom
+                var isAtBottom = (_startEl.scrollHeight - _startEl.scrollTop <= _startEl.clientHeight + 2);
+                if (dy < 0 && isAtBottom) {
+                    e.preventDefault();
+                    return;
+                }
             }, { passive: false });
         })();
     </script>

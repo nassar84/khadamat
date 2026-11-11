@@ -21,7 +21,7 @@
 
         <Grid.Resources>
             <Color x:Key="InactiveColor">#475569</Color>
-            <Color x:Key="ActiveColor">#6366f1</Color>
+            <Color x:Key="ActiveColor">#1e40af</Color>
         </Grid.Resources>
 
         <!-- ═══════ Bar Background (Row 1) ═══════ -->

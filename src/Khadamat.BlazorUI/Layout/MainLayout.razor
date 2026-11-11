@@ -2,7 +2,7 @@
 @implements IDisposable
 
 <PageTitle>@AppState.AppName</PageTitle>
-<div class="khadamat-app @(AppState.IsMobileApp ? "mobile-mode" : "") @(AppState.IsNativeApp ? "native-mode" : "") @(isSidebarCollapsed ? "collapsed" : "")" dir="rtl">
+<div class="khadamat-app @(AppState.IsMobileApp ? "mobile-mode" : "") @(AppState.IsNativeApp ? "native-mode" : "") @(IsHomePage ? "home-active" : "") @(isSidebarCollapsed ? "collapsed" : "")" dir="rtl">
     @if (!AppState.IsNativeApp)
     {
         <MobileSidebar />
@@ -25,24 +25,39 @@
             }
         }
         
-        @if (!IsAdminPage && !IsProviderPage && !IsHomePage)
+        <!-- Global Permanent Fixed Header Curve (Visible on ALL pages across the entire application) -->
+        @if (AppState.IsMobileApp || AppState.IsNativeApp)
         {
-            <div class="sticky-categories-bar pb-0 pt-1 border-bottom" style="min-height: 95px; display: block !important;">
-                <Khadamat.BlazorUI.Shared.CategoryMarquee />
+            <div class="global-fixed-curved-transition" aria-hidden="true">
+                <svg class="curve-corner left" width="32" height="32" viewBox="0 0 32 32">
+                    <path d="M0,0 L32,0 A32,32 0 0,0 0,32 Z" fill="#1e40af" />
+                </svg>
+                <svg class="curve-corner right" width="32" height="32" viewBox="0 0 32 32">
+                    <path d="M32,0 L0,0 A32,32 0 0,1 32,32 Z" fill="#1e40af" />
+                </svg>
             </div>
         }
-        
-        <main class="app-content">
-            <div class="content-wrapper">
-                @if (ShowHeroAds && !AppState.IsMobileApp)
-                {
-                    <div class="mt-3 mb-2">
-                        <HeroAds />
-                    </div>
-                }
-                @Body
-            </div>
-        </main>
+
+        <div class="global-curved-sheet">
+            @if (!IsAdminPage && !IsProviderPage && !IsHomePage)
+            {
+                <div class="sticky-categories-bar pb-0 pt-1 border-bottom" style="min-height: 95px; display: block !important;">
+                    <Khadamat.BlazorUI.Shared.CategoryMarquee />
+                </div>
+            }
+            
+            <main class="app-content @(IsHomePage ? "home-content" : "")">
+                <div class="content-wrapper @(IsHomePage ? "home-content-wrapper" : "")">
+                    @if (ShowHeroAds && !AppState.IsMobileApp)
+                    {
+                        <div class="mt-3 mb-2">
+                            <HeroAds />
+                        </div>
+                    }
+                    @Body
+                </div>
+            </main>
+        </div>
 
         @if (!AppState.IsNativeApp)
         {
@@ -98,6 +113,83 @@
 </div>
 
 <style>
+    /* ══════════════════════════════════════════════════════════════════════
+       Global Curved Header Transition (Applies across the ENTIRE app)
+       ══════════════════════════════════════════════════════════════════════ */
+    html, body, .khadamat-app {
+        overscroll-behavior-y: none !important;
+        overscroll-behavior-x: none !important;
+    }
+
+    .global-fixed-curved-transition {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 32px;
+        pointer-events: none;
+        z-index: 1050;
+        transform: translate3d(0, 0, 0) !important;
+        -webkit-transform: translate3d(0, 0, 0) !important;
+        will-change: transform;
+    }
+    .global-fixed-curved-transition .curve-corner {
+        position: absolute;
+        top: 0;
+        width: 32px;
+        height: 32px;
+        display: block;
+        pointer-events: none;
+    }
+    .global-fixed-curved-transition .curve-corner.left {
+        left: 0 !important;
+        right: auto !important;
+    }
+    .global-fixed-curved-transition .curve-corner.right {
+        right: 0 !important;
+        left: auto !important;
+    }
+
+    /* In web mobile mode when MobileHeader is shown */
+    .khadamat-app.mobile-mode:not(.native-mode) .global-fixed-curved-transition {
+        top: 56px;
+    }
+
+    .khadamat-app.mobile-mode .app-main-view,
+    .khadamat-app.native-mode .app-main-view {
+        background: #1e40af !important;
+    }
+
+    .global-curved-sheet {
+        position: relative;
+        background: #f8fafc !important;
+        border-top-left-radius: 28px !important;
+        border-top-right-radius: 28px !important;
+        min-height: 100vh;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-top: 0 !important;
+        padding-top: 14px !important;
+        box-sizing: border-box;
+    }
+
+    @@media (min-width: 992px) {
+        .global-fixed-curved-transition {
+            display: none !important;
+        }
+        .global-curved-sheet {
+            border-radius: 0 !important;
+            background: transparent !important;
+            padding-top: 0 !important;
+            min-height: auto;
+        }
+        .khadamat-app.mobile-mode .app-main-view,
+        .khadamat-app.native-mode .app-main-view {
+            background: transparent !important;
+        }
+    }
+
     .khadamat-app {
         display: flex;
         flex-direction: row;
@@ -194,6 +286,25 @@
     .native-mode .app-main-view {
         padding-top: 0 !important;
         margin-top: 0 !important;
+    }
+
+    /* Seamless Header & Zero Gap for Home / Native Mobile */
+    .home-active .content-wrapper,
+    .home-content-wrapper,
+    .native-mode .content-wrapper,
+    .native-mode .app-content,
+    .native-mode .app-main-view,
+    .mobile-mode.home-active .content-wrapper,
+    .mobile-mode.home-active .app-content {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    .khadamat-app.native-mode.home-active,
+    .khadamat-app.mobile-mode.home-active {
+        background-color: #1e40af !important;
     }
 
     /* In-App Notification Toast Banner */
@@ -424,7 +535,7 @@
                 AppState.AppNameAr = settingsResult.Data.ApplicationNameAr;
                 AppState.AppNameEn = settingsResult.Data.ApplicationNameEn;
                 AppState.AppLogo = settingsResult.Data.LogoUrl;
-                AppState.PrimaryColor = settingsResult.Data.PrimaryColor;
+                AppState.PrimaryColor = string.IsNullOrEmpty(settingsResult.Data.PrimaryColor) || settingsResult.Data.PrimaryColor.Equals("#6366f1", StringComparison.OrdinalIgnoreCase) || settingsResult.Data.PrimaryColor.Equals("#4f46e5", StringComparison.OrdinalIgnoreCase) || settingsResult.Data.PrimaryColor.Equals("#4338ca", StringComparison.OrdinalIgnoreCase) ? "#1e40af" : settingsResult.Data.PrimaryColor;
                 AppState.SecondaryColor = settingsResult.Data.SecondaryColor;
 
                 AppState.OpenAppSound = settingsResult.Data.OpenAppSound;

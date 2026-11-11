@@ -25,7 +25,7 @@ public class RegisterRequest
     public string Email { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "كلمة المرور مطلوبة")]
-    [MinLength(6, ErrorMessage = "كلمة المرور يجب أن لا تقل عن 6 أحرف")]
+    [MinLength(4, ErrorMessage = "كلمة المرور يجب أن لا تقل عن 4 أحرف")]
     public string Password { get; set; } = string.Empty;
     
     [Required]
@@ -71,7 +71,7 @@ public class ChangeMyPasswordRequest
     public string OldPassword { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "كلمة المرور الجديدة مطلوبة")]
-    [MinLength(6, ErrorMessage = "كلمة المرور يجب أن لا تقل عن 6 أحرف")]
+    [MinLength(4, ErrorMessage = "كلمة المرور يجب أن لا تقل عن 4 أحرف")]
     public string NewPassword { get; set; } = string.Empty;
 
     [Compare("NewPassword", ErrorMessage = "كلمة المرور الجديدة غير متطابقة")]
@@ -163,7 +163,7 @@ public class CreateUserDto
     public string Email { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "كلمة المرور مطلوبة")]
-    [MinLength(6, ErrorMessage = "كلمة المرور يجب أن لا تقل عن 6 أحرف")]
+    [MinLength(4, ErrorMessage = "كلمة المرور يجب أن لا تقل عن 4 أحرف")]
     public string Password { get; set; } = string.Empty;
 
     public string? UserName { get; set; }
@@ -198,7 +198,7 @@ public class ResetPasswordRequest
     public string Token { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "كلمة المرور الجديدة مطلوبة")]
-    [MinLength(6, ErrorMessage = "كلمة المرور يجب أن لا تقل عن 6 أحرف")]
+    [MinLength(4, ErrorMessage = "كلمة المرور يجب أن لا تقل عن 4 أحرف")]
     public string NewPassword { get; set; } = string.Empty;
 
     [Compare("NewPassword", ErrorMessage = "كلمة المرور الجديدة غير متطابقة")]

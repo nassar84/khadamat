@@ -25,13 +25,13 @@ public class SettingsService : ISettingsService
             if (settings == null)
             {
                 // Seed default settings if not exists
-                settings = new AppSettings { ContactEmail = "khadamawy@gmail.com" };
+                settings = new AppSettings { ContactEmail = "khadamawy@gmail.com", PrimaryColor = "#1e40af", DefaultTheme = "default" };
                 _context.AppSettings.Add(settings);
                 await _context.SaveChangesAsync();
             }
-            else if (string.IsNullOrWhiteSpace(settings.ContactEmail))
+            else if (string.IsNullOrWhiteSpace(settings.ContactEmail) || string.IsNullOrWhiteSpace(settings.PrimaryColor) || settings.PrimaryColor.Equals("#6366f1", StringComparison.OrdinalIgnoreCase) || settings.PrimaryColor.Equals("#4f46e5", StringComparison.OrdinalIgnoreCase) || settings.PrimaryColor.Equals("#4338ca", StringComparison.OrdinalIgnoreCase))
             {
-                settings.ContactEmail = "khadamawy@gmail.com";
+                settings.ContactEmail = "khadamawy@gmail.com"; settings.PrimaryColor = "#1e40af"; settings.DefaultTheme = "default";
                 await _context.SaveChangesAsync();
             }
 

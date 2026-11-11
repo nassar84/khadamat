@@ -5,6 +5,7 @@
 @inject ApiClient Api
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
+@inject Khadamat.Application.Interfaces.IOfflineDataService OfflineData
 
 <div class="search-page-wrapper">
 
@@ -93,15 +94,38 @@
                     <span class="section-icon"><i class="fa-solid fa-grid-2"></i></span>
                     تصفح التصنيفات
                 </h6>
-                <div class="quick-cats">
-                    @foreach (var (label, icon, query) in quickCategories)
-                    {
-                        <div class="quick-cat-item" @onclick="() => RunSearch(query)">
-                            <div class="quick-cat-icon">@icon</div>
-                            <span>@label</span>
-                        </div>
-                    }
-                </div>
+                @if (categoriesList == null)
+                {
+                    <div class="quick-cats">
+                        @for (int i = 0; i < 8; i++)
+                        {
+                            <div class="quick-cat-item">
+                                <div class="quick-cat-img-wrap skeleton-glow"></div>
+                                <div class="skeleton-glow rounded-pill mt-1" style="width: 45px; height: 10px;"></div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="quick-cats">
+                        @foreach (var cat in categoriesList)
+                        {
+                            var c = cat;
+                            var iconUrl = Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.CategoryIconResolver.GetMainCategoryIcon(c.Name, c.ImageUrl));
+                            <div class="quick-cat-item" @onclick="() => OnCategorySelected(c)">
+                                <div class="quick-cat-img-wrap">
+                                    <img src="@iconUrl"
+                                         class="quick-cat-img"
+                                         alt="@c.Name"
+                                         onerror="this.onerror=null;this.src='/images/maincategories/default.jpg';"
+                                         loading="lazy" />
+                                </div>
+                                <span class="quick-cat-title text-truncate">@c.Name</span>
+                            </div>
+                        }
+                    </div>
+                }
             </div>
         }
         else
@@ -425,13 +449,38 @@
         background: rgba(99, 102, 241, 0.05);
     }
 
-    .quick-cat-icon { font-size: 1.5rem; }
+    .quick-cat-img-wrap {
+        width: 54px;
+        height: 54px;
+        border-radius: 14px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8fafc;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        margin-bottom: 2px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+    }
 
-    .quick-cat-item span {
-        font-size: 0.72rem;
+    .quick-cat-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.25s ease;
+    }
+
+    .quick-cat-item:hover .quick-cat-img {
+        transform: scale(1.08);
+    }
+
+    .quick-cat-title {
+        font-size: 0.75rem;
         font-weight: 700;
         color: #374151;
         line-height: 1.2;
+        max-width: 100%;
     }
 
     /* ── No results ── */
@@ -471,17 +520,34 @@
         "نجار", "دهانات", "نقل عفش", "شبكات"
     };
 
-    private List<(string Label, string Icon, string Query)> quickCategories = new()
+    private List<MainCategoryDto>? categoriesList;
+
+    protected override async Task OnInitializedAsync()
     {
-        ("سباكة",      "🔧", "سباك"),
-        ("كهرباء",     "⚡", "كهربائي"),
-        ("تنظيف",      "🧹", "تنظيف"),
-        ("نجارة",      "🪚", "نجار"),
-        ("دهانات",     "🎨", "دهان"),
-        ("تمريض",      "💊", "تمريض"),
-        ("نقل عفش",    "🚚", "نقل عفش"),
-        ("تصميم",      "💻", "تصميم"),
-    };
+        try
+        {
+            var cached = await OfflineData.GetMainCategoriesAsync();
+            if (cached != null && cached.Any())
+            {
+                categoriesList = cached;
+            }
+            var remote = await Api.GetMainCategoriesAsync();
+            if (remote != null && remote.Any())
+            {
+                categoriesList = remote;
+                _ = OfflineData.SaveMainCategoriesAsync(remote);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Search: error loading categories - {ex.Message}");
+        }
+    }
+
+    private void OnCategorySelected(MainCategoryDto category)
+    {
+        Navigation.NavigateTo($"/explore/main/{category.Id}/{Uri.EscapeDataString(category.Name)}");
+    }
 
     [Parameter]
     [SupplyParameterFromQuery(Name = "q")]

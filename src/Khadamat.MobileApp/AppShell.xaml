@@ -8,6 +8,9 @@
     xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
     x:DataType="viewModels:ShellViewModel"
     Title="{Binding AppName}"
+    Shell.BackgroundColor="#1e40af"
+    Shell.ForegroundColor="White"
+    Shell.TitleColor="White"
     FlyoutBackgroundColor="#ffffff"
     FlyoutBehavior="Flyout"
     FlowDirection="RightToLeft">
@@ -16,7 +19,7 @@
         <ResourceDictionary>
             <!-- Converters -->
             <toolkit:BoolToObjectConverter x:Key="BooleanToColorConverter" 
-                                           TrueObject="#6366f1" 
+                                           TrueObject="#1e40af" 
                                            FalseObject="#94a3b8" />
 
             <Style TargetType="Label" Class="FlyoutItemLabel">
@@ -71,35 +74,35 @@
             </Grid.ColumnDefinitions>
 
             <!-- Exact Physical Screen Center: Brand Name & Logo -->
-            <HorizontalStackLayout Grid.Column="0" HorizontalOptions="Center" VerticalOptions="Center" Spacing="8">
+            <HorizontalStackLayout Grid.Column="0" HorizontalOptions="Center" VerticalOptions="Center" Spacing="10">
                 <HorizontalStackLayout.GestureRecognizers>
                     <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="home" />
                 </HorizontalStackLayout.GestureRecognizers>
-                <Label Text="{Binding AppName}" FontSize="18" FontAttributes="Bold" TextColor="White" VerticalOptions="Center"/>
-                <Image Source="{Binding AppLogo, FallbackValue='app_logo.png', TargetNullValue='app_logo.png'}" HeightRequest="28" WidthRequest="28" Aspect="AspectFit"/>
+                <Image Source="app_logo.png" HeightRequest="38" WidthRequest="38" Aspect="AspectFit" VerticalOptions="Center"/>
+                <Label Text="{Binding AppName}" FontSize="20" FontAttributes="Bold" TextColor="White" VerticalOptions="Center"/>
             </HorizontalStackLayout>
 
             <!-- Left side (RTL): 56dp width container balancing 56dp hamburger menu on right -->
-            <Grid Grid.Column="1" HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="56" HeightRequest="44">
+            <Grid Grid.Column="1" HorizontalOptions="Center" VerticalOptions="Center" WidthRequest="56" HeightRequest="44" Margin="6,0,0,0">
                 <ImageButton Source="{FontImageSource FontFamily=OpenSansRegular, Glyph='&#x1F514;', Color=White}"
                              HeightRequest="28" WidthRequest="28"
                              HorizontalOptions="Center" VerticalOptions="Center"
                              Command="{Binding NavigateCommand}" CommandParameter="notifications" />
                 
-                <!-- Red Badge Counter -->
+                <!-- Red Badge Counter (anchored safely towards screen center, away from phone left bezel) -->
                 <Border BackgroundColor="#ef4444"
                         StrokeThickness="1.5"
                         Stroke="White"
-                        HorizontalOptions="End"
-                        VerticalOptions="Start"
-                        HeightRequest="17"
-                        MinimumWidthRequest="17"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center"
+                        HeightRequest="18"
+                        MinimumWidthRequest="18"
                         Padding="3,0"
-                        TranslationX="-4"
-                        TranslationY="2"
+                        TranslationX="-10"
+                        TranslationY="-10"
                         InputTransparent="True">
                     <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="8.5" />
+                        <RoundRectangle CornerRadius="9" />
                     </Border.StrokeShape>
                     <Label Text="{Binding UnreadNotificationsBadgeText}"
                            TextColor="White"
@@ -123,11 +126,11 @@
                     <!-- GUEST Header: White bg, logo + app name -->
                     <VerticalStackLayout IsVisible="{Binding IsGuest}" Padding="20,50,20,10" Spacing="0">
                         <!-- Logo + App Name -->
-                        <HorizontalStackLayout Spacing="10" VerticalOptions="Center" HorizontalOptions="Start">
+                        <HorizontalStackLayout Spacing="12" VerticalOptions="Center" HorizontalOptions="Start">
                             <HorizontalStackLayout.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding NavigateCommand}" CommandParameter="home" />
                             </HorizontalStackLayout.GestureRecognizers>
-                            <Image Source="{Binding AppLogo}" HeightRequest="32" WidthRequest="32" Aspect="AspectFit" VerticalOptions="Center" />
+                            <Image Source="app_logo.png" HeightRequest="38" WidthRequest="38" Aspect="AspectFit" VerticalOptions="Center" />
                             <Label Text="{Binding AppName}" FontSize="24" FontAttributes="Bold"
                                    TextColor="{DynamicResource Primary}" VerticalOptions="Center" />
                         </HorizontalStackLayout>
@@ -163,11 +166,15 @@
                         </Border>
 
                         <!-- Overlay Content -->
-                        <Grid Padding="20,45,20,15" ColumnDefinitions="*,Auto">
+                        <Grid Padding="20,40,20,15" ColumnDefinitions="*,Auto">
                             <!-- Name + Welcome + Role Badge -->
                             <VerticalStackLayout VerticalOptions="Center" Spacing="4">
-                                <Label Text="مرحباً بك،" TextColor="White" FontSize="13" Opacity="0.85" />
-                                <Label Text="{Binding UserName}" TextColor="White" FontSize="18" FontAttributes="Bold" />
+                                <HorizontalStackLayout Spacing="7" Margin="0,0,0,3">
+                                    <Image Source="app_logo.png" HeightRequest="22" WidthRequest="22" Aspect="AspectFit" VerticalOptions="Center" />
+                                    <Label Text="{Binding AppName}" TextColor="White" FontSize="14" FontAttributes="Bold" Opacity="0.95" VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                                <Label Text="مرحباً بك،" TextColor="White" FontSize="12" Opacity="0.85" />
+                                <Label Text="{Binding UserName}" TextColor="White" FontSize="17" FontAttributes="Bold" />
                                 
                                 <!-- Role Badge & Mode Switch -->
                                 <HorizontalStackLayout Spacing="6" Margin="0,4,0,0">

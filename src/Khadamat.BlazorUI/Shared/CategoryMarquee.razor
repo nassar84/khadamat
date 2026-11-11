@@ -37,7 +37,7 @@ else
                             {
                                 <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.ImagePathResolver.MainCategory(c.ImageUrl))"
                                      class="cat-img draggable-img" alt="@c.Name"
-                                     onerror="this.onerror=null;this.src='/images/maincategories/default.jpg';" loading="lazy" />
+                                     onerror="if(!this.dataset.triedLocal){this.dataset.triedLocal='1';this.src='/images/maincategories/@(c.ImageUrl ?? "default.webp")';}else{this.onerror=null;this.src='/images/maincategories/default.webp';}" loading="lazy" />
                             }
                             else if (!string.IsNullOrEmpty(c.Icon))
                             {
@@ -63,7 +63,7 @@ else
                             {
                                 <img src="@Api.GetAbsoluteUrl(Khadamat.BlazorUI.Helpers.ImagePathResolver.MainCategory(c.ImageUrl))"
                                      class="cat-img draggable-img" alt="@c.Name"
-                                     onerror="this.onerror=null;this.src='/images/maincategories/default.jpg';" loading="lazy" />
+                                     onerror="if(!this.dataset.triedLocal){this.dataset.triedLocal='1';this.src='/images/maincategories/@(c.ImageUrl ?? "default.webp")';}else{this.onerror=null;this.src='/images/maincategories/default.webp';}" loading="lazy" />
                             }
                             else if (!string.IsNullOrEmpty(c.Icon))
                             {

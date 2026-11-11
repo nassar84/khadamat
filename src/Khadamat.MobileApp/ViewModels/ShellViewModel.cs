@@ -216,7 +216,7 @@ public partial class ShellViewModel : ObservableObject
         string savedTheme = prefs.Get("AppTheme", "");
         if (string.IsNullOrEmpty(savedTheme))
         {
-            // Try cached server default theme, fallback to "default"
+            // Try cached server default theme, fallback to "royal_blue"
             savedTheme = prefs.Get("ServerDefaultTheme", "default");
         }
         ApplyThemeResources(savedTheme);
@@ -249,17 +249,24 @@ public partial class ShellViewModel : ObservableObject
             });
         }
 
-        // Restore Brand Colors from Cache
+        // Restore Brand Colors from Cache - default to Royal Blue (#1e40af)
         string cachedPrimary = prefs.Get("BrandPrimary", "");
-        string cachedSecondary = prefs.Get("BrandSecondary", "");
-        if (!string.IsNullOrEmpty(cachedPrimary) && savedTheme == "default")
+        if (string.IsNullOrEmpty(cachedPrimary) || cachedPrimary.Equals("#6366f1", StringComparison.OrdinalIgnoreCase) || cachedPrimary.Equals("#4f46e5", StringComparison.OrdinalIgnoreCase) || cachedPrimary.Equals("#4338ca", StringComparison.OrdinalIgnoreCase))
         {
-            try { 
-                var res = Microsoft.Maui.Controls.Application.Current.Resources;
-                res["Primary"] = Color.FromArgb(cachedPrimary);
-                if (!string.IsNullOrEmpty(cachedSecondary)) res["Secondary"] = Color.FromArgb(cachedSecondary);
-            } catch { }
+            cachedPrimary = "#1e40af";
+            prefs.Set("BrandPrimary", cachedPrimary);
         }
+        string cachedSecondary = prefs.Get("BrandSecondary", "");
+        if (string.IsNullOrEmpty(cachedSecondary) || cachedSecondary.Equals("#a855f7", StringComparison.OrdinalIgnoreCase))
+        {
+            cachedSecondary = "#f97316";
+            prefs.Set("BrandSecondary", cachedSecondary);
+        }
+        try { 
+            var res = Microsoft.Maui.Controls.Application.Current.Resources;
+            res["Primary"] = Color.FromArgb(cachedPrimary);
+            res["Secondary"] = Color.FromArgb(cachedSecondary);
+        } catch { }
     }
 
     [RelayCommand]
@@ -653,19 +660,26 @@ public partial class ShellViewModel : ObservableObject
                 {
                     try
                     {
-                        var primaryColor = Color.FromArgb(response.Data.PrimaryColor);
+                        var primaryHex = response.Data.PrimaryColor;
+                        if (string.IsNullOrEmpty(primaryHex) || primaryHex.Equals("#6366f1", StringComparison.OrdinalIgnoreCase) || primaryHex.Equals("#4f46e5", StringComparison.OrdinalIgnoreCase) || primaryHex.Equals("#4338ca", StringComparison.OrdinalIgnoreCase))
+                        {
+                            primaryHex = "#1e40af";
+                        }
+                        var primaryColor = Color.FromArgb(primaryHex);
                         Microsoft.Maui.Controls.Application.Current.Resources["Primary"] = primaryColor;
                         
-                        if (!string.IsNullOrEmpty(response.Data.SecondaryColor))
+                        var secHex = response.Data.SecondaryColor;
+                        if (string.IsNullOrEmpty(secHex) || secHex.Equals("#a855f7", StringComparison.OrdinalIgnoreCase))
                         {
-                            var secondaryColor = Color.FromArgb(response.Data.SecondaryColor);
-                            Microsoft.Maui.Controls.Application.Current.Resources["Secondary"] = secondaryColor;
+                            secHex = "#f97316";
                         }
+                        var secondaryColor = Color.FromArgb(secHex);
+                        Microsoft.Maui.Controls.Application.Current.Resources["Secondary"] = secondaryColor;
 
                         // Save to cache for next startup
                         var p = Microsoft.Maui.Storage.Preferences.Default;
-                        p.Set("BrandPrimary", response.Data.PrimaryColor);
-                        p.Set("BrandSecondary", response.Data.SecondaryColor);
+                        p.Set("BrandPrimary", primaryHex);
+                        p.Set("BrandSecondary", secHex);
                     }
                     catch { }
                 }

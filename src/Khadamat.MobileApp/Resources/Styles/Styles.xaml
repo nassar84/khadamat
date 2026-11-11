@@ -32,12 +32,12 @@
     </Style>
 
     <Style TargetType="Shell" ApplyToDerivedTypes="True">
-        <Setter Property="Shell.BackgroundColor" Value="{DynamicResource Primary}" />
+        <Setter Property="Shell.BackgroundColor" Value="#1e40af" />
         <Setter Property="Shell.ForegroundColor" Value="{StaticResource White}" />
         <Setter Property="Shell.TitleColor" Value="{StaticResource White}" />
         <Setter Property="Shell.UnselectedColor" Value="{StaticResource Secondary}" />
         <Setter Property="Shell.TabBarBackgroundColor" Value="{StaticResource White}" />
-        <Setter Property="Shell.TabBarTitleColor" Value="{DynamicResource Primary}" />
+        <Setter Property="Shell.TabBarTitleColor" Value="#1e40af" />
         <Setter Property="Shell.TabBarUnselectedColor" Value="#94a3b8" />
     </Style>
 
