@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net9.0-android;net8.0-ios;net8.0-maccatalyst;net8.0-windows10.0.19041.0</TargetFrameworks>
-        <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">net9.0-android;net8.0-windows10.0.19041.0</TargetFrameworks>
+        <TargetFrameworks>net10.0-android;net8.0-ios;net8.0-maccatalyst;net8.0-windows10.0.19041.0</TargetFrameworks>
+        <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">net10.0-android;net8.0-windows10.0.19041.0</TargetFrameworks>
         
         <OutputType>Exe</OutputType>
         <RootNamespace>Khadamat.MobileApp</RootNamespace>
@@ -18,11 +18,11 @@
         <ApplicationId>com.nassar84.khadamawy</ApplicationId>
 
         <!-- Versions -->
-        <ApplicationDisplayVersion>2.9.4</ApplicationDisplayVersion>
-        <ApplicationVersion>25</ApplicationVersion>
-        <!-- Target API Level 35 (Android 15) -->
-        <AndroidTargetSdkVersion>35</AndroidTargetSdkVersion>
-        <RuntimeIdentifiers Condition="$(TargetFramework.Contains('-android')) or '$(TargetFramework)' == ''">android-arm64;android-x64</RuntimeIdentifiers>
+        <ApplicationDisplayVersion>2.9.5</ApplicationDisplayVersion>
+        <ApplicationVersion>26</ApplicationVersion>
+        <!-- Target API Level 36 (Android 16) -->
+        <AndroidTargetSdkVersion>36</AndroidTargetSdkVersion>
+        <RuntimeIdentifiers Condition="$(TargetFramework.Contains('-android')) or '$(TargetFramework)' == ''">android-arm64</RuntimeIdentifiers>
 
         <!-- Required for C# Hot Reload -->
         <UseInterpreter Condition="'$(Configuration)' == 'Debug'">True</UseInterpreter>
@@ -33,7 +33,7 @@
         <!-- Dex Tool & Optimizations -->
         <AndroidDexTool>d8</AndroidDexTool>
         <AndroidEnableMultiDex>true</AndroidEnableMultiDex>
-        <UseR8>false</UseR8>
+        <UseR8>true</UseR8>
         
         <!-- Debug Configurations (No optimizations) -->
         <AndroidLinkTool Condition="'$(Configuration)' == 'Debug'">d8</AndroidLinkTool>
@@ -44,7 +44,7 @@
     <!-- Release Configurations (AOT enabled for fast startup — fixes ANR) -->
     <PropertyGroup Condition="'$(Configuration)' == 'Release' and $(TargetFramework.Contains('-android'))">
         <!-- Single RID for fast direct APK; Multi-RID for Google Play AAB -->
-        <RuntimeIdentifier Condition="'$(AndroidPackageFormat)' != 'aab'">android-arm64</RuntimeIdentifier>
+        <RuntimeIdentifier>android-arm64</RuntimeIdentifier>
         
         <JavaMaxHeapSize>4G</JavaMaxHeapSize>
         <!-- AOT: Pre-compiles .NET to native ARM → eliminates Mono JIT startup delay -->
@@ -52,7 +52,7 @@
         <PublishTrimmed>false</PublishTrimmed>
         <TrimMode>partial</TrimMode>
         <!-- R8 is OFF globally (see main PropertyGroup) to avoid duplicate AndroidX class errors -->
-        <AndroidLinkMode>None</AndroidLinkMode>
+        <AndroidLinkMode>SdkOnly</AndroidLinkMode>
         <!-- Default package format is apk for website download, can be overridden with -p:AndroidPackageFormat=aab for Google Play -->
         <AndroidPackageFormat Condition="'$(AndroidPackageFormat)' == ''">apk</AndroidPackageFormat>
         <AndroidManagedSymbols>true</AndroidManagedSymbols>
@@ -69,7 +69,7 @@
 
         <!-- Android -->
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
-        <TargetPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">35.0</TargetPlatformVersion>
+        <TargetPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">36.0</TargetPlatformVersion>
         
         <!-- iOS: SupportedOSPlatformVersion 15.0+ required for .NET 8/9 MAUI iOS -->
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
@@ -103,7 +103,8 @@
     <ItemGroup Condition="$(TargetFramework.Contains('-android'))">
         <PackageReference Include="Xamarin.Firebase.Messaging" Version="123.4.1" />
         <!-- Pin collection.ktx to same version as collection.jvm brought by Firebase to prevent duplicate ArrayMapKt.class -->
-        <PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.5.0.1" />
+        <PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.5.0.1" Condition="!$(TargetFramework.Contains('net10'))" />
+        <PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.5.0.3" Condition="$(TargetFramework.Contains('net10'))" />
     </ItemGroup>
 
     <ItemGroup>
@@ -114,8 +115,8 @@
     <ItemGroup>
         <!-- MAUI Core -->
         <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="8.0.0" />
-        <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
-        <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
+        <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.110" />
+        <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.110" />
         
         <!-- Extensions -->
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
@@ -176,5 +177,14 @@
         <Delete Files="$(MSBuildProjectDirectory)\..\..\Khadamawy-Signed.apk" ContinueOnError="true" />
         <Delete Files="$(MSBuildProjectDirectory)\..\..\Khadamawy.apk" ContinueOnError="true" />
         <Delete Files="$(MSBuildProjectDirectory)\..\..\خدماوى.apk" ContinueOnError="true" />
+    </Target>
+
+    <!-- Comprehensive Reference Resolution for Android ILLink / AssemblyModifierPipeline / GenerateJavaStubs -->
+    <Target Name="_PrepareUniqueAssemblies" BeforeTargets="_AfterILLinkAdditionalSteps;_LinkAssembliesNoShrink;_GenerateJavaStubs" Condition="$(TargetFramework.Contains('-android'))">
+        <WriteLinesToFile File="$(IntermediateOutputPath)reference_paths.txt" Lines="@(ReferencePath)" Overwrite="true" />
+        <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\filter_assemblies.ps1&quot; -IntermediateDir &quot;$(MSBuildProjectDirectory)\$(IntermediateOutputPath)&quot;" />
+        <PropertyGroup>
+            <_XATargetFrameworkDirectories>$(_XATargetFrameworkDirectories);$(MSBuildProjectDirectory)\$(IntermediateOutputPath)</_XATargetFrameworkDirectories>
+        </PropertyGroup>
     </Target>
 </Project>
