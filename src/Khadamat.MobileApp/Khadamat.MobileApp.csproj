@@ -18,10 +18,10 @@
         <ApplicationId>com.nassar84.khadamawy</ApplicationId>
 
         <!-- Versions -->
-        <ApplicationDisplayVersion>2.9.3</ApplicationDisplayVersion>
-        <ApplicationVersion>24</ApplicationVersion>
-        <!-- Target API Level 36 (Android 16) -->
-        <AndroidTargetSdkVersion>36</AndroidTargetSdkVersion>
+        <ApplicationDisplayVersion>2.9.4</ApplicationDisplayVersion>
+        <ApplicationVersion>25</ApplicationVersion>
+        <!-- Target API Level 35 (Android 15) -->
+        <AndroidTargetSdkVersion>35</AndroidTargetSdkVersion>
         <RuntimeIdentifiers Condition="$(TargetFramework.Contains('-android')) or '$(TargetFramework)' == ''">android-arm64;android-x64</RuntimeIdentifiers>
 
         <!-- Required for C# Hot Reload -->
@@ -32,7 +32,7 @@
         
         <!-- Dex Tool & Optimizations -->
         <AndroidDexTool>d8</AndroidDexTool>
-        <AndroidEnableMultiDex>false</AndroidEnableMultiDex>
+        <AndroidEnableMultiDex>true</AndroidEnableMultiDex>
         <UseR8>false</UseR8>
         
         <!-- Debug Configurations (No optimizations) -->
