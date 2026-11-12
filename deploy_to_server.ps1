@@ -42,7 +42,13 @@ if (-not $SkipApk) {
         exit $LASTEXITCODE
     }
 
-    $apkSource = "src/Khadamat.MobileApp/bin/Release/net9.0-android/android-arm64/publish/com.nassar84.khadamawy-Signed.apk"
+    $apkSource = "src/Khadamat.MobileApp/bin/Release/net9.0-android/publish/com.nassar84.khadamawy-Signed.apk"
+    if (-not (Test-Path $apkSource)) {
+        $apkSource = "src/Khadamat.MobileApp/bin/Release/net9.0-android/com.nassar84.khadamawy-Signed.apk"
+    }
+    if (-not (Test-Path $apkSource)) {
+        $apkSource = "src/Khadamat.MobileApp/bin/Release/net9.0-android/android-arm64/publish/com.nassar84.khadamawy-Signed.apk"
+    }
     if (-not (Test-Path $apkSource)) {
         $apkSource = "src/Khadamat.MobileApp/bin/Release/net9.0-android/android-arm64/com.nassar84.khadamawy-Signed.apk"
     }
@@ -85,7 +91,7 @@ if ($LASTEXITCODE -ne 0) {
 $uploadDirsToExclude = @(
     "ads",
     "categories",
-    "maincategories",
+    #"maincategories",
     "subcategories",
     "Services",
     "users",
@@ -161,7 +167,7 @@ $skipRules = @(
     "-skip:objectName=dirPath,absolutePath=`".*KhadamawyImages.*`"",
     "-skip:objectName=dirPath,absolutePath=`".*wwwroot\\\\images\\\\ads.*`"",
     "-skip:objectName=dirPath,absolutePath=`".*wwwroot\\\\images\\\\categories.*`"",
-    "-skip:objectName=dirPath,absolutePath=`".*wwwroot\\\\images\\\\maincategories.*`"",
+    #"-skip:objectName=dirPath,absolutePath=`".*wwwroot\\\\images\\\\maincategories.*`"",
     "-skip:objectName=dirPath,absolutePath=`".*wwwroot\\\\images\\\\subcategories.*`"",
     "-skip:objectName=dirPath,absolutePath=`".*wwwroot\\\\images\\\\Services.*`"",
     "-skip:objectName=dirPath,absolutePath=`".*wwwroot\\\\images\\\\users.*`"",

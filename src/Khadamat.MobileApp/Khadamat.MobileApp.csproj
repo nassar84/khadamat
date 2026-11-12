@@ -18,10 +18,10 @@
         <ApplicationId>com.nassar84.khadamawy</ApplicationId>
 
         <!-- Versions -->
-        <ApplicationDisplayVersion>2.9.2</ApplicationDisplayVersion>
-        <ApplicationVersion>23</ApplicationVersion>
-        <!-- Target API Level 35 (Android 15) -->
-        <AndroidTargetSdkVersion>35</AndroidTargetSdkVersion>
+        <ApplicationDisplayVersion>2.9.3</ApplicationDisplayVersion>
+        <ApplicationVersion>24</ApplicationVersion>
+        <!-- Target API Level 36 (Android 16) -->
+        <AndroidTargetSdkVersion>36</AndroidTargetSdkVersion>
         <RuntimeIdentifiers Condition="$(TargetFramework.Contains('-android')) or '$(TargetFramework)' == ''">android-arm64;android-x64</RuntimeIdentifiers>
 
         <!-- Required for C# Hot Reload -->
@@ -44,7 +44,7 @@
     <!-- Release Configurations (AOT enabled for fast startup — fixes ANR) -->
     <PropertyGroup Condition="'$(Configuration)' == 'Release' and $(TargetFramework.Contains('-android'))">
         <!-- Single RID for fast direct APK; Multi-RID for Google Play AAB -->
-        <RuntimeIdentifier>android-arm64</RuntimeIdentifier>
+        <RuntimeIdentifier Condition="'$(AndroidPackageFormat)' != 'aab'">android-arm64</RuntimeIdentifier>
         
         <JavaMaxHeapSize>4G</JavaMaxHeapSize>
         <!-- AOT: Pre-compiles .NET to native ARM → eliminates Mono JIT startup delay -->
@@ -58,6 +58,11 @@
         <AndroidManagedSymbols>true</AndroidManagedSymbols>
         <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
         <AndroidUseAssemblyStore>false</AndroidUseAssemblyStore>
+        <AndroidKeyStore>true</AndroidKeyStore>
+        <AndroidSigningKeyStore>D:\DEV\khadamat\khadamawy_release.keystore</AndroidSigningKeyStore>
+        <AndroidSigningKeyAlias>khadamawy</AndroidSigningKeyAlias>
+        <AndroidSigningKeyPass>khadamawy2026</AndroidSigningKeyPass>
+        <AndroidSigningStorePass>khadamawy2026</AndroidSigningStorePass>
     </PropertyGroup>
 
     <PropertyGroup>

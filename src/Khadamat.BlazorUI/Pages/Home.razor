@@ -16,8 +16,8 @@
 
 <div class="home-ref-container @(AppState.IsMobileApp ? "mobile-viewport" : "")">
 
-    <!-- 1. Search Bar (ما الخدمة التي تبحث عنها؟) -->
-    <div class="home-search-bar mb-4" @onclick='() => Navigation.NavigateTo("/search")'>
+    <!-- 1. Search Bar (ما الخدمة التي تبحث عنها؟ - يظهر في الهاتف فقط لأن شريط البحث بالكمبيوتر موجود في الهيدر) -->
+    <div class="home-search-bar mb-4 d-block d-lg-none" @onclick='() => Navigation.NavigateTo("/search")'>
         <div class="search-capsule shadow-sm">
             <div class="d-flex align-items-center justify-content-between w-100 px-2" dir="rtl">
                 <span class="search-capsule-text">ما الخدمة التي تبحث عنها؟</span>

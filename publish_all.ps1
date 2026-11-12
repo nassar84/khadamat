@@ -40,7 +40,13 @@ if (-not $SkipApk) {
         exit $LASTEXITCODE
     }
 
-    $apkSource = "src/Khadamat.MobileApp/bin/Release/net9.0-android/android-arm64/publish/com.nassar84.khadamawy-Signed.apk"
+    $apkSource = "src/Khadamat.MobileApp/bin/Release/net9.0-android/publish/com.nassar84.khadamawy-Signed.apk"
+    if (-not (Test-Path $apkSource)) {
+        $apkSource = "src/Khadamat.MobileApp/bin/Release/net9.0-android/com.nassar84.khadamawy-Signed.apk"
+    }
+    if (-not (Test-Path $apkSource)) {
+        $apkSource = "src/Khadamat.MobileApp/bin/Release/net9.0-android/android-arm64/publish/com.nassar84.khadamawy-Signed.apk"
+    }
     if (-not (Test-Path $apkSource)) {
         $apkSource = "src/Khadamat.MobileApp/bin/Release/net9.0-android/android-arm64/com.nassar84.khadamawy-Signed.apk"
     }
@@ -89,7 +95,7 @@ Write-Host "==========================================================" -Foregro
 $uploadDirsToExclude = @(
     "ads",
     "categories",
-    "maincategories",
+    #"maincategories",
     "subcategories",
     "Services",
     "users",
