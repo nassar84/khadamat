@@ -201,7 +201,260 @@ public static class KhadamatDbContextSeed
                         CREATE INDEX [IX_TesterActivityLogs_VisitDate] ON [dbo].[TesterActivityLogs]([VisitDate]);
                         CREATE INDEX [IX_TesterActivityLogs_TesterDeviceId] ON [dbo].[TesterActivityLogs]([TesterDeviceId]);
                     END
+
+                    -- 1. Services distinction columns
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Services') AND name = 'DistinctionReason')
+                        ALTER TABLE Services ADD DistinctionReason NVARCHAR(50) NOT NULL DEFAULT 'None';
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Services') AND name = 'IsDistinctionEnabled')
+                        ALTER TABLE Services ADD IsDistinctionEnabled BIT NOT NULL DEFAULT 1;
+                    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Services') AND name = 'DistinctionNotes')
+                        ALTER TABLE Services ADD DistinctionNotes NVARCHAR(MAX) NULL;
+
+                    -- 2. ServiceDistinctionConfigs table
+                    IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'ServiceDistinctionConfigs')
+                    BEGIN
+                        CREATE TABLE [dbo].[ServiceDistinctionConfigs] (
+                            [Id] INT IDENTITY(1,1) PRIMARY KEY,
+                            [IsEnabledGlobally] BIT NOT NULL DEFAULT 1,
+                            [HeaderText] NVARCHAR(500) NOT NULL DEFAULT '🌟 *خبر مميز ليك!*',
+                            [AdminSelectionText] NVARCHAR(1000) NOT NULL DEFAULT 'تم اختيار خدمتك وإضافتها ضمن الخدمات المميزة على تطبيق خدماوي',
+                            [CommunityNominationText] NVARCHAR(1000) NOT NULL DEFAULT 'تم ترشيح خدمتك من أعضاء مجتمع خدماوي لتكون ضمن الخدمات المميزة',
+                            [PositiveReviewsText] NVARCHAR(1000) NOT NULL DEFAULT 'خدمتك من الخدمات التي حصلت على تقييمات إيجابية من مستخدمي خدماوي',
+                            [SpecialPromotionText] NVARCHAR(1000) NOT NULL DEFAULT 'تم اختيار خدمتك ضمن الاختيارات الترويجية المميزة على خدماوي',
+                            [GeneralWelcomeText] NVARCHAR(1000) NOT NULL DEFAULT 'سعداء بانضمامك لمنصة خدماوي لتوصيل خدماتك لأهل بلدك ومساعدتك في الوصول لعملاء جدد في منطقتك! 🚀',
+                            [FollowUpText] NVARCHAR(MAX) NOT NULL DEFAULT 'إحنا بنهتم نعرّف أهل بلدك بأصحاب الخدمات المميزة، ونساعد شغلك يوصل للناس اللي بتدور على الخدمة اللي بتقدمها.
+
+وجودك معانا خطوة جديدة علشان شغلك ينتشر ويكون أسهل للعملاء إنهم يلاقوك ويتواصلوا معاك! 🚀',
+                            [CreatedAt] DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+                            [CreatedBy] NVARCHAR(100) NULL,
+                            [UpdatedAt] DATETIME2 NULL,
+                            [UpdatedBy] NVARCHAR(100) NULL,
+                            [IsDeleted] BIT NOT NULL DEFAULT 0,
+                            [DeletedAt] DATETIME2 NULL,
+                            [DeletedBy] NVARCHAR(100) NULL
+                        );
+                    END
+
+                    -- 3. MarketingCampaigns table
+                    IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'MarketingCampaigns')
+                    BEGIN
+                        CREATE TABLE [dbo].[MarketingCampaigns] (
+                            [Id] INT IDENTITY(1,1) PRIMARY KEY,
+                            [CampaignName] NVARCHAR(200) NOT NULL,
+                            [CityId] INT NULL,
+                            [CityName] NVARCHAR(100) NOT NULL DEFAULT '',
+                            [GovernorateId] INT NULL,
+                            [GovernorateName] NVARCHAR(100) NOT NULL DEFAULT '',
+                            [IsActive] BIT NOT NULL DEFAULT 1,
+                            [IsDefault] BIT NOT NULL DEFAULT 0,
+                            [StartDate] DATETIME2 NULL,
+                            [EndDate] DATETIME2 NULL,
+                            [Slogan] NVARCHAR(300) NOT NULL DEFAULT 'خدماوي.. خدمات بلدنا في مكان واحد ❤️',
+                            [MessageTemplate] NVARCHAR(MAX) NOT NULL DEFAULT '',
+                            [SubscriptionOfferMonths] INT NOT NULL DEFAULT 3,
+                            [SubscriptionOfferText] NVARCHAR(300) NOT NULL DEFAULT 'اشتراك مجاني لأول 3 شهور! ❤️',
+                            [AppDownloadUrl] NVARCHAR(500) NULL,
+                            [FacebookCommunityUrl] NVARCHAR(500) NOT NULL DEFAULT 'https://www.facebook.com/profile.php?id=61595461124579',
+                            [TargetStage] NVARCHAR(50) NOT NULL DEFAULT 'Launch',
+                            [CreatedAt] DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+                            [CreatedBy] NVARCHAR(100) NULL,
+                            [UpdatedAt] DATETIME2 NULL,
+                            [UpdatedBy] NVARCHAR(100) NULL,
+                            [IsDeleted] BIT NOT NULL DEFAULT 0,
+                            [DeletedAt] DATETIME2 NULL,
+                            [DeletedBy] NVARCHAR(100) NULL
+                        );
+                    END
+
+                    -- 4. ProfessionalTitleRules table
+                    IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'ProfessionalTitleRules')
+                    BEGIN
+                        CREATE TABLE [dbo].[ProfessionalTitleRules] (
+                            [Id] INT IDENTITY(1,1) PRIMARY KEY,
+                            [ProfessionKeyword] NVARCHAR(100) NOT NULL,
+                            [DefaultTitle] NVARCHAR(50) NOT NULL,
+                            [MaleTitle] NVARCHAR(50) NULL,
+                            [FemaleTitle] NVARCHAR(50) NULL,
+                            [Priority] INT NOT NULL DEFAULT 0,
+                            [IsActive] BIT NOT NULL DEFAULT 1,
+                            [CreatedAt] DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+                            [CreatedBy] NVARCHAR(100) NULL,
+                            [UpdatedAt] DATETIME2 NULL,
+                            [UpdatedBy] NVARCHAR(100) NULL,
+                            [IsDeleted] BIT NOT NULL DEFAULT 0,
+                            [DeletedAt] DATETIME2 NULL,
+                            [DeletedBy] NVARCHAR(100) NULL
+                        );
+                    END
+
+                    -- 5. ProviderEngagementReminders table
+                    IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'ProviderEngagementReminders')
+                    BEGIN
+                        CREATE TABLE [dbo].[ProviderEngagementReminders] (
+                            [Id] INT IDENTITY(1,1) PRIMARY KEY,
+                            [ReminderType] NVARCHAR(100) NOT NULL,
+                            [Title] NVARCHAR(200) NOT NULL,
+                            [Description] NVARCHAR(MAX) NOT NULL DEFAULT '',
+                            [TargetChannel] NVARCHAR(50) NOT NULL DEFAULT 'All',
+                            [WhatsAppTemplate] NVARCHAR(MAX) NOT NULL DEFAULT '',
+                            [PushTitleTemplate] NVARCHAR(200) NOT NULL DEFAULT '',
+                            [PushBodyTemplate] NVARCHAR(MAX) NOT NULL DEFAULT '',
+                            [DeepLinkRoute] NVARCHAR(300) NOT NULL DEFAULT '/service/{ServiceId}',
+                            [DaysAfterRegistration] INT NOT NULL DEFAULT 3,
+                            [IsActive] BIT NOT NULL DEFAULT 1,
+                            [DisplayOrder] INT NOT NULL DEFAULT 0,
+                            [CreatedAt] DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+                            [CreatedBy] NVARCHAR(100) NULL,
+                            [UpdatedAt] DATETIME2 NULL,
+                            [UpdatedBy] NVARCHAR(100) NULL,
+                            [IsDeleted] BIT NOT NULL DEFAULT 0,
+                            [DeletedAt] DATETIME2 NULL,
+                            [DeletedBy] NVARCHAR(100) NULL
+                        );
+                    END
+
+                    -- 6. ProviderEngagementLogs table
+                    IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'ProviderEngagementLogs')
+                    BEGIN
+                        CREATE TABLE [dbo].[ProviderEngagementLogs] (
+                            [Id] INT IDENTITY(1,1) PRIMARY KEY,
+                            [ServiceId] INT NOT NULL,
+                            [ProviderUserId] NVARCHAR(450) NULL,
+                            [ProviderProfileId] INT NULL,
+                            [Channel] NVARCHAR(50) NOT NULL,
+                            [ReminderType] NVARCHAR(100) NOT NULL,
+                            [RecipientName] NVARCHAR(200) NOT NULL DEFAULT '',
+                            [RecipientPhone] NVARCHAR(50) NOT NULL DEFAULT '',
+                            [ProfessionalTitle] NVARCHAR(50) NOT NULL DEFAULT '',
+                            [CityName] NVARCHAR(100) NOT NULL DEFAULT '',
+                            [CampaignId] INT NULL,
+                            [CampaignName] NVARCHAR(200) NULL,
+                            [Title] NVARCHAR(200) NOT NULL DEFAULT '',
+                            [MessageText] NVARCHAR(MAX) NOT NULL DEFAULT '',
+                            [Status] NVARCHAR(50) NOT NULL DEFAULT 'Prepared',
+                            [AdminUserId] NVARCHAR(450) NULL,
+                            [AdminUserName] NVARCHAR(200) NULL,
+                            [PreparedAt] DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+                            [SentConfirmedAt] DATETIME2 NULL,
+                            [DistinctionReason] NVARCHAR(50) NULL,
+                            [IsDistinctionIncluded] BIT NOT NULL DEFAULT 0,
+                            [AdminNotes] NVARCHAR(MAX) NULL,
+                            [CreatedAt] DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+                            [CreatedBy] NVARCHAR(100) NULL,
+                            [UpdatedAt] DATETIME2 NULL,
+                            [UpdatedBy] NVARCHAR(100) NULL,
+                            [IsDeleted] BIT NOT NULL DEFAULT 0,
+                            [DeletedAt] DATETIME2 NULL,
+                            [DeletedBy] NVARCHAR(100) NULL
+                        );
+                        CREATE INDEX [IX_ProviderEngagementLogs_ServiceId] ON [dbo].[ProviderEngagementLogs]([ServiceId]);
+                    END
+                    ELSE
+                    BEGIN
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('ProviderEngagementLogs') AND name = 'DistinctionReason')
+                            ALTER TABLE ProviderEngagementLogs ADD DistinctionReason NVARCHAR(50) NULL;
+                        IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('ProviderEngagementLogs') AND name = 'IsDistinctionIncluded')
+                            ALTER TABLE ProviderEngagementLogs ADD IsDistinctionIncluded BIT NOT NULL DEFAULT 0;
+                    END
+
+                    -- 7. FacebookIntegrationConfigs table
+                    IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'FacebookIntegrationConfigs')
+                    BEGIN
+                        CREATE TABLE [dbo].[FacebookIntegrationConfigs] (
+                            [Id] INT IDENTITY(1,1) PRIMARY KEY,
+                            [AppId] NVARCHAR(100) NOT NULL DEFAULT '1546767603438579',
+                            [PageName] NVARCHAR(250) NOT NULL DEFAULT N'خدماوى | Khadamawy',
+                            [PageUsername] NVARCHAR(100) NOT NULL DEFAULT 'KhadamawyApp',
+                            [PageUrl] NVARCHAR(500) NOT NULL DEFAULT 'https://www.facebook.com/khadamawyApp/',
+                            [PageId] NVARCHAR(100) NULL,
+                            [ProtectedPageAccessToken] NVARCHAR(MAX) NULL,
+                            [IsConnected] BIT NOT NULL DEFAULT 0,
+                            [ConnectedAt] DATETIME2 NULL,
+                            [ConnectedByAdminUserId] NVARCHAR(450) NULL,
+                            [ConnectedByAdminName] NVARCHAR(250) NULL,
+                            [PermissionsGranted] NVARCHAR(500) NULL,
+                            [PageTasks] NVARCHAR(500) NULL,
+                            [PublishMode] NVARCHAR(50) NOT NULL DEFAULT 'ManualOnly',
+                            [AutoPublishOnApproval] BIT NOT NULL DEFAULT 0,
+                            [LastConnectionCheck] DATETIME2 NULL,
+                            [LastConnectionSuccess] BIT NOT NULL DEFAULT 0,
+                            [LastConnectionError] NVARCHAR(MAX) NULL,
+                            [CreatedAt] DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+                            [CreatedBy] NVARCHAR(100) NULL,
+                            [UpdatedAt] DATETIME2 NULL,
+                            [UpdatedBy] NVARCHAR(100) NULL,
+                            [IsDeleted] BIT NOT NULL DEFAULT 0,
+                            [DeletedAt] DATETIME2 NULL,
+                            [DeletedBy] NVARCHAR(100) NULL
+                        );
+                    END
+
+                    -- 8. FacebookPublishLogs table
+                    IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'FacebookPublishLogs')
+                    BEGIN
+                        CREATE TABLE [dbo].[FacebookPublishLogs] (
+                            [Id] INT IDENTITY(1,1) PRIMARY KEY,
+                            [ServiceId] INT NULL,
+                            [PostType] NVARCHAR(50) NOT NULL DEFAULT 'ServiceCard',
+                            [FacebookPageId] NVARCHAR(100) NULL,
+                            [FacebookPostId] NVARCHAR(100) NULL,
+                            [PostUrl] NVARCHAR(1000) NULL,
+                            [PostText] NVARCHAR(MAX) NOT NULL,
+                            [ImageUrl] NVARCHAR(MAX) NULL,
+                            [Status] NVARCHAR(50) NOT NULL DEFAULT 'PendingReview',
+                            [AttemptedAt] DATETIME2 NULL,
+                            [PublishedAt] DATETIME2 NULL,
+                            [RetryCount] INT NOT NULL DEFAULT 0,
+                            [ErrorMessage] NVARCHAR(MAX) NULL,
+                            [AdminUserId] NVARCHAR(450) NULL,
+                            [AdminUserName] NVARCHAR(250) NULL,
+                            [AdminNotes] NVARCHAR(MAX) NULL,
+                            [CreatedAt] DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+                            [CreatedBy] NVARCHAR(100) NULL,
+                            [UpdatedAt] DATETIME2 NULL,
+                            [UpdatedBy] NVARCHAR(100) NULL,
+                            [IsDeleted] BIT NOT NULL DEFAULT 0,
+                            [DeletedAt] DATETIME2 NULL,
+                            [DeletedBy] NVARCHAR(100) NULL,
+                            CONSTRAINT FK_FacebookPublishLogs_Services FOREIGN KEY ([ServiceId]) REFERENCES [Services]([Id]) ON DELETE SET NULL
+                        );
+                        CREATE INDEX [IX_FacebookPublishLogs_ServiceId] ON [dbo].[FacebookPublishLogs]([ServiceId]);
+                        CREATE INDEX [IX_FacebookPublishLogs_Status] ON [dbo].[FacebookPublishLogs]([Status]);
+                    END
                 ");
+
+                // Ensure default FacebookIntegrationConfig
+                if (!await context.FacebookIntegrationConfigs.AnyAsync())
+                {
+                    await context.FacebookIntegrationConfigs.AddAsync(new FacebookIntegrationConfig
+                    {
+                        AppId = "1546767603438579",
+                        PageName = "خدماوى | Khadamawy",
+                        PageUsername = "KhadamawyApp",
+                        PageUrl = "https://www.facebook.com/khadamawyApp/",
+                        PublishMode = "ManualOnly",
+                        AutoPublishOnApproval = false,
+                        IsConnected = false
+                    });
+                    await context.SaveChangesAsync();
+                }
+
+                // Ensure default ServiceDistinctionConfig
+                if (!await context.ServiceDistinctionConfigs.AnyAsync())
+                {
+                    await context.ServiceDistinctionConfigs.AddAsync(new ServiceDistinctionConfig
+                    {
+                        IsEnabledGlobally = true,
+                        HeaderText = "🌟 *خبر مميز ليك!*",
+                        AdminSelectionText = "تم اختيار خدمتك وإضافتها ضمن الخدمات المميزة على تطبيق خدماوي",
+                        CommunityNominationText = "تم ترشيح خدمتك من أعضاء مجتمع خدماوي لتكون ضمن الخدمات المميزة",
+                        PositiveReviewsText = "خدمتك من الخدمات التي حصلت على تقييمات إيجابية من مستخدمي خدماوي",
+                        SpecialPromotionText = "تم اختيار خدمتك ضمن الاختيارات الترويجية المميزة على خدماوي",
+                        GeneralWelcomeText = "سعداء بانضمامك لمنصة خدماوي لتوصيل خدماتك لأهل بلدك ومساعدتك في الوصول لعملاء جدد في منطقتك! 🚀",
+                        FollowUpText = "إحنا بنهتم نعرّف أهل بلدك بأصحاب الخدمات المميزة، ونساعد شغلك يوصل للناس اللي بتدور على الخدمة اللي بتقدمها.\n\nوجودك معانا خطوة جديدة علشان شغلك ينتشر ويكون أسهل للعملاء إنهم يلاقوك ويتواصلوا معاك! 🚀"
+                    });
+                    await context.SaveChangesAsync();
+                }
 
                 // Seed / renew the default Google Play tester campaign
                 var existingTesterCampaign = await context.ReminderCampaigns

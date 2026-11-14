@@ -1,0 +1,893 @@
+@page "/admin/facebook"
+@attribute [Authorize(Roles = "SuperAdmin,SystemAdmin,Admin")]
+@inject ApiClient Api
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<div class="container-fluid px-3 px-md-4 py-4" dir="rtl">
+    <!-- Header -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fs-7 fw-bold">
+                    <i class="fa-brands fa-facebook me-1"></i> Meta Graph API v19.0
+                </span>
+                @if (status?.IsConnected == true)
+                {
+                    <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fs-7 fw-bold">
+                        <i class="fa-solid fa-circle-check me-1"></i> متصل بالصفحة الرسمية
+                    </span>
+                }
+                else
+                {
+                    <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill fs-7 fw-bold">
+                        <i class="fa-solid fa-triangle-exclamation me-1"></i> الصفحة غير مربوطة
+                    </span>
+                }
+            </div>
+            <h3 class="fw-bold text-dark mb-1">نشر وتكامل صفحة خدماوي الرسمية على فيسبوك</h3>
+            <p class="text-muted small mb-0">إدارة ربط الصفحة الرسمية (خدماوى | Khadamawy)، ونشر كروت الخدمات المعتمدة، وضبط أوضاع النشر التلقائي بأمان كامل دون التأثير على تسجيل الدخول.</p>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <a href="https://www.facebook.com/khadamawyApp/" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary rounded-pill px-3 py-2 btn-sm fw-bold shadow-sm">
+                <i class="fa-brands fa-facebook me-1"></i> فتح صفحة فيسبوك
+            </a>
+            <button class="btn btn-primary rounded-pill px-3 py-2 btn-sm fw-bold shadow-sm" @onclick="LoadDataAsync" disabled="@isLoading">
+                <i class="fa-solid fa-rotate @(isLoading ? "fa-spin" : "") me-1"></i> تحديث الحالة
+            </button>
+        </div>
+    </div>
+
+    <!-- Alert / Status Notifications -->
+    @if (!string.IsNullOrEmpty(feedbackMessage))
+    {
+        <div class="alert @(feedbackIsError ? "alert-danger" : "alert-success") alert-dismissible fade show rounded-4 shadow-sm mb-4" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="fa-solid @(feedbackIsError ? "fa-circle-xmark" : "fa-circle-check") fs-5 me-2"></i>
+                <div>@feedbackMessage</div>
+            </div>
+            <button type="button" class="btn-close" @onclick='() => feedbackMessage = null'></button>
+        </div>
+    }
+
+    <!-- Tabs Navigation -->
+    <ul class="nav nav-pills nav-fill bg-white p-2 rounded-4 shadow-sm mb-4 border" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link rounded-pill fw-bold @(activeTab == "connection" ? "active" : "")" @onclick='() => activeTab = "connection"'>
+                <i class="fa-solid fa-link me-1"></i> الربط وحالة الاتصال
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link rounded-pill fw-bold @(activeTab == "modes" ? "active" : "")" @onclick='() => activeTab = "modes"'>
+                <i class="fa-solid fa-sliders me-1"></i> أوضاع النشر التلقائي
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link rounded-pill fw-bold @(activeTab == "publisher" ? "active" : "")" @onclick='() => activeTab = "publisher"'>
+                <i class="fa-solid fa-paper-plane me-1"></i> أداة نشر كروت الخدمات
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link rounded-pill fw-bold @(activeTab == "logs" ? "active" : "")" @onclick='() => activeTab = "logs"'>
+                <i class="fa-solid fa-clock-rotate-left me-1"></i> سجل المنشورات
+                @if (status?.PendingReviewCount > 0)
+                {
+                    <span class="badge bg-danger rounded-pill ms-1">@status.PendingReviewCount</span>
+                }
+            </button>
+        </li>
+    </ul>
+
+    <!-- TAB 1: CONNECTION & PAGE LINKING -->
+    @if (activeTab == "connection")
+    {
+        <div class="row g-4 mb-4">
+            <!-- Facebook Login Baseline (Untouched & Independent) -->
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 h-100 p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-circle" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+                                <i class="fa-brands fa-facebook-f fs-5"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-0">تسجيل الدخول الحالي (Facebook Login)</h5>
+                                <span class="text-muted small">تكامل المستخدمين العاديين الأساسي</span>
+                            </div>
+                        </div>
+                        <span class="badge bg-success rounded-pill px-3 py-1">نشط ومستقر 100%</span>
+                    </div>
+
+                    <div class="vstack gap-3">
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span class="text-muted small">معرف التطبيق (Meta App ID):</span>
+                            <span class="fw-bold font-monospace bg-light px-2 py-1 rounded">@status?.MaskedAppId</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span class="text-muted small">صلاحيات المستخدم العادي:</span>
+                            <span class="badge bg-light text-dark border">email, public_profile</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span class="text-muted small">نوع العزل الأمني:</span>
+                            <span class="text-success small fw-bold"><i class="fa-solid fa-shield-halved me-1"></i> معزول تماماً عن صلاحيات الإدارة</span>
+                        </div>
+                        <div class="alert alert-info py-2 px-3 small rounded-3 mb-0">
+                            <i class="fa-solid fa-circle-info me-1"></i>
+                            تسجيل دخول المستخدمين عبر فيسبوك لم ولن يتأثر بإدارة الصفحة، حيث يتم طلب صلاحيات إدارة الصفحة في جلسة مستقلة ومخصصة لحساب المدير فقط.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Official Page Connection Card -->
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 h-100 p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="bg-success bg-opacity-10 text-success p-2 rounded-circle" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+                                <i class="fa-solid fa-flag fs-5"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-0">صفحة خدماوي الرسمية</h5>
+                                <span class="text-muted small">خدماوى | Khadamawy (@status?.PageUsername)</span>
+                            </div>
+                        </div>
+                        @if (status?.IsConnected == true)
+                        {
+                            <span class="badge bg-success rounded-pill px-3 py-1">مربوطة وجاهزة</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary rounded-pill px-3 py-1">غير مربوطة</span>
+                        }
+                    </div>
+
+                    <div class="vstack gap-3">
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span class="text-muted small">معرف الصفحة في Meta (Page ID):</span>
+                            <span class="fw-bold font-monospace bg-light px-2 py-1 rounded">
+                                @(status?.PageId ?? "لم يتم الاستخراج بعد")
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span class="text-muted small">صلاحيات النشر المعتمدة:</span>
+                            <span class="badge bg-light text-primary border">
+                                @(status?.PermissionsGranted ?? "pages_manage_posts, pages_read_engagement, pages_show_list")
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span class="text-muted small">تاريخ آخر ربط:</span>
+                            <span class="small text-muted">@(status?.ConnectedAt?.ToLocalTime().ToString("yyyy-MM-dd HH:mm") ?? "—")</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span class="text-muted small">المدير المسؤول:</span>
+                            <span class="small fw-bold">@(status?.ConnectedByAdminName ?? "—")</span>
+                        </div>
+                    </div>
+
+                    <!-- Connection Action Buttons -->
+                    <div class="mt-4 pt-3 border-top d-flex flex-wrap gap-2">
+                        <button class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" @onclick="StartOAuthFlowAsync" disabled="@isConnecting">
+                            <i class="fa-brands fa-facebook me-1"></i> @(status?.IsConnected == true ? "إعادة تفويض / ربط الصفحة" : "بدء تفويض وربط صفحة خدماوي")
+                        </button>
+                        @if (status?.IsConnected == true)
+                        {
+                            <button class="btn btn-outline-success rounded-pill px-3 fw-bold" @onclick="TestConnectionAsync" disabled="@isTesting">
+                                <i class="fa-solid fa-stethoscope @(isTesting ? "fa-spin" : "") me-1"></i> فحص الاتصال الحي
+                            </button>
+                            <button class="btn btn-outline-danger rounded-pill px-3 fw-bold" @onclick="DisconnectPageAsync" disabled="@isDisconnecting">
+                                <i class="fa-solid fa-link-slash me-1"></i> إلغاء الربط
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Managed Pages Selection Modal (Shows when OAuth returns pages) -->
+        @if (discoveredPages != null && discoveredPages.Any())
+        {
+            <div class="card border-primary border-2 shadow rounded-4 p-4 mb-4 bg-light">
+                <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                    <h5 class="fw-bold text-primary mb-0">
+                        <i class="fa-solid fa-list-check me-2"></i> اختر صفحة خدماوي الرسمية من الصفحات المتاحة في حسابك:
+                    </h5>
+                    <button class="btn-close" @onclick='() => discoveredPages = null'></button>
+                </div>
+                <p class="text-muted small">تم استدعاء <code>GET /me/accounts</code> واستخراج الصفحات التي تديرها. اختر الصفحة لاعتماد Page ID الحقيقي ورمز Page Access Token الدائم المشفر:</p>
+                
+                <div class="row g-3">
+                    @foreach (var p in discoveredPages)
+                    {
+                        <div class="col-md-6">
+                            <div class="card h-100 p-3 rounded-4 border @(p.IsOfficialKhadamawyPage ? "border-success bg-white shadow-sm" : "")">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h6 class="fw-bold mb-1">
+                                            @p.Name 
+                                            @if (p.IsOfficialKhadamawyPage)
+                                            {
+                                                <span class="badge bg-success ms-1">صفحة خدماوي الرسمية</span>
+                                            }
+                                        </h6>
+                                        <span class="text-muted small">ID: <code>@p.Id</code></span>
+                                        @if (!string.IsNullOrEmpty(p.Username))
+                                        {
+                                            <span class="d-block text-primary small">@@@p.Username</span>
+                                        }
+                                    </div>
+                                    @if (p.CanCreateContent)
+                                    {
+                                        <span class="badge bg-success bg-opacity-10 text-success small">صلاحية النشر متوفرة</span>
+                                    }
+                                </div>
+                                <div class="mt-auto pt-2 border-top">
+                                    <button class="btn @(p.IsOfficialKhadamawyPage ? "btn-success" : "btn-outline-primary") w-100 rounded-pill py-2 fw-bold" 
+                                            @onclick="() => SelectAndConnectPageAsync(p)" 
+                                            disabled="@isConnecting">
+                                        <i class="fa-solid fa-check me-1"></i> اعتماد وربط هذه الصفحة
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+
+    <!-- TAB 2: PUBLISHING MODES -->
+    @if (activeTab == "modes")
+    {
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+            <h5 class="fw-bold mb-3 border-bottom pb-3"><i class="fa-solid fa-sliders me-2 text-primary"></i>تحديد وضع النشر على صفحة فيسبوك الرسمية</h5>
+            <p class="text-muted small mb-4">اختر كيف يتعامل النظام مع نشر كروت الخدمات الجديدة بعد اعتمادها من لوحة الإدارة. يمكنك دائماً التغيير في أي وقت.</p>
+
+            <div class="row g-3 mb-4">
+                <!-- Mode 1: Manual Only -->
+                <div class="col-md-4">
+                    <div class="card h-100 p-3 rounded-4 cursor-pointer border-2 @(selectedMode == "ManualOnly" ? "border-primary bg-primary bg-opacity-10 shadow-sm" : "border-light")"
+                         @onclick='() => selectedMode = "ManualOnly"'>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="publishMode" id="mode1" checked="@(selectedMode == "ManualOnly")">
+                            <label class="form-check-label fw-bold text-dark fs-6" for="mode1">
+                                1. النشر اليدوي فقط (الافتراضي)
+                            </label>
+                        </div>
+                        <p class="text-muted small mb-0">لا يتم النشر تلقائياً بعد الاعتماد. يقوم المسؤول بنشر كارت أي خدمة يدوياً من خلال أداة النشر وقتما يشاء.</p>
+                    </div>
+                </div>
+
+                <!-- Mode 2: Review Before Publish -->
+                <div class="col-md-4">
+                    <div class="card h-100 p-3 rounded-4 cursor-pointer border-2 @(selectedMode == "ReviewBeforePublish" ? "border-primary bg-primary bg-opacity-10 shadow-sm" : "border-light")"
+                         @onclick='() => selectedMode = "ReviewBeforePublish"'>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="publishMode" id="mode2" checked="@(selectedMode == "ReviewBeforePublish")">
+                            <label class="form-check-label fw-bold text-dark fs-6" for="mode2">
+                                2. معاينة ومراجعة قبل النشر
+                            </label>
+                        </div>
+                        <p class="text-muted small mb-0">عند اعتماد الخدمة، يقوم النظام بتجهيز مسودة المنشور مع الكارت ونص الترحيب، لتظهر في قائمة الانتظار للمسؤول ليراجعها ويعدلها وينشرها بضغطة زر واحدة.</p>
+                    </div>
+                </div>
+
+                <!-- Mode 3: Automatic After Approval -->
+                <div class="col-md-4">
+                    <div class="card h-100 p-3 rounded-4 cursor-pointer border-2 @(selectedMode == "AutomaticAfterApproval" ? "border-primary bg-primary bg-opacity-10 shadow-sm" : "border-light")"
+                         @onclick='() => selectedMode = "AutomaticAfterApproval"'>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="publishMode" id="mode3" checked="@(selectedMode == "AutomaticAfterApproval")">
+                            <label class="form-check-label fw-bold text-dark fs-6" for="mode3">
+                                3. النشر التلقائي بعد الاعتماد
+                            </label>
+                        </div>
+                        <p class="text-muted small mb-0">بمجرد قيام الإدارة بالموافقة على الخدمة واعتمادها، يقوم النظام تلقائياً بنشر كارت الخدمة ونص الترحيب على صفحة فيسبوك فوراً.</p>
+                    </div>
+                </div>
+            </div>
+
+            @if (selectedMode == "AutomaticAfterApproval")
+            {
+                <div class="form-check form-switch mb-4 p-3 bg-light rounded-3">
+                    <input class="form-check-input ms-0 me-3" type="checkbox" id="autoPublishSwitch" @bind="autoPublishOnApproval">
+                    <label class="form-check-label fw-bold text-dark" for="autoPublishSwitch">
+                        تأكيد تفعيل النشر التلقائي المباشر لجميع الخدمات المعتمدة
+                    </label>
+                    <span class="d-block text-muted small mt-1">يُشترط أن تكون صفحة فيسبوك مربوطة وتعمل بنجاح قبل التفعيل.</span>
+                </div>
+            }
+
+            <div>
+                <button class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm" @onclick="SavePublishModeAsync" disabled="@isSavingMode">
+                    <i class="fa-solid fa-floppy-disk me-1"></i> حفظ إعدادات وضع النشر
+                </button>
+            </div>
+        </div>
+    }
+
+    <!-- TAB 3: POST PUBLISHER & PREVIEW -->
+    @if (activeTab == "publisher")
+    {
+        <div class="row g-4 mb-4">
+            <!-- Left: Publisher Controls -->
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                    <h5 class="fw-bold mb-3 border-bottom pb-2">
+                        <i class="fa-solid fa-pen-nib me-2 text-primary"></i>تجهيز ونشر كارت الخدمة
+                    </h5>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">معرف الخدمة (Service ID):</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control rounded-pill-start" @bind="targetServiceId" placeholder="مثال: 12" />
+                            <button class="btn btn-outline-primary rounded-pill-end px-3 fw-bold" @onclick="LoadServicePreviewAsync" disabled="@(targetServiceId <= 0 || isLoadingPreview)">
+                                <i class="fa-solid fa-eye me-1"></i> معاينة الكارت والنص
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">نص المنشور الترحيبي (يمكنك تعديله قبل النشر):</label>
+                        <textarea class="form-control rounded-4 p-3 small" rows="12" @bind="customPostCaption" placeholder="اضغط على زر المعاينة لتوليد النص الترحيبي الافتراضي المميز..."></textarea>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between pt-3 border-top mt-auto">
+                        <span class="text-muted small">
+                            <i class="fa-solid fa-image me-1 text-success"></i> سيتم إرفاق كارت الخدمة عالي الدقة (1200x630) تلقائياً
+                        </span>
+                        <button class="btn btn-success rounded-pill px-4 py-2 fw-bold shadow-sm" @onclick="PublishCurrentServiceCardAsync" disabled="@(targetServiceId <= 0 || isPublishingNow || status?.IsConnected != true)">
+                            <i class="fa-brands fa-facebook me-1"></i> @(isPublishingNow ? "جاري النشر..." : "نشر الآن على الصفحة الرسمية")
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Facebook Mobile Mockup Preview -->
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-light">
+                    <h5 class="fw-bold mb-3 border-bottom pb-2">
+                        <i class="fa-solid fa-mobile-screen me-2 text-primary"></i>معاينة شكل المنشور على فيسبوك
+                    </h5>
+
+                    <!-- Facebook Post Card Mockup -->
+                    <div class="card border rounded-4 bg-white shadow-sm p-3 mx-auto" style="max-width: 450px; width: 100%;">
+                        <!-- Post Header -->
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 44px; height: 44px; font-weight: bold;">
+                                <i class="fa-solid fa-bullhorn"></i>
+                            </div>
+                            <div>
+                                <span class="fw-bold d-block text-dark small">خدماوى | Khadamawy <i class="fa-solid fa-circle-check text-primary ms-1" style="font-size:0.8rem;"></i></span>
+                                <span class="text-muted xx-small">الآن · <i class="fa-solid fa-earth-americas"></i></span>
+                            </div>
+                        </div>
+
+                        <!-- Post Body / Text -->
+                        <div class="post-text-preview mb-3 small text-dark" style="white-space: pre-line; line-height: 1.6; max-height: 250px; overflow-y: auto;">
+                            @if (!string.IsNullOrEmpty(customPostCaption))
+                            {
+                                @customPostCaption
+                            }
+                            else
+                            {
+                                <span class="text-muted italic">أدخل رقم الخدمة واضغط معاينة لعرض النص الترحيبي الحقيقي هنا...</span>
+                            }
+                        </div>
+
+                        <!-- Card Image Preview -->
+                        <div class="card-image-preview rounded-3 overflow-hidden border bg-dark text-center position-relative mb-2" style="min-height: 180px;">
+                            @if (targetServiceId > 0)
+                            {
+                                <img src="/share/service/@targetServiceId/og-image" 
+                                     alt="Service Card" 
+                                     class="w-100" 
+                                     style="object-fit: cover; max-height: 240px;" 
+                                     onerror="this.src='images/logo.png';" />
+                            }
+                            else
+                            {
+                                <div class="d-flex flex-column align-items-center justify-content-center text-white-50 p-4" style="height: 180px;">
+                                    <i class="fa-solid fa-id-card fs-1 mb-2"></i>
+                                    <span class="small">كارت الخدمة الرسمي (1200x630)</span>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Link Bar -->
+                        <div class="bg-light p-2 rounded-2 border small d-flex justify-content-between align-items-center">
+                            <span class="text-muted text-truncate">khadamawy.eis-dev.com</span>
+                            <span class="badge bg-secondary">عرض الخدمة</span>
+                        </div>
+
+                        <!-- Fake Reactions Bar -->
+                        <div class="d-flex justify-content-around pt-3 border-top mt-3 text-muted small">
+                            <span><i class="fa-regular fa-thumbs-up me-1"></i> إعجاب</span>
+                            <span><i class="fa-regular fa-comment me-1"></i> تعليق</span>
+                            <span><i class="fa-regular fa-share-from-square me-1"></i> مشاركة</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- TAB 4: PUBLISHING LOGS & HISTORY -->
+    @if (activeTab == "logs")
+    {
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 border-bottom pb-3">
+                <h5 class="fw-bold mb-0"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i>سجل عمليات النشر على فيسبوك</h5>
+                <button class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold" @onclick="LoadLogsAsync">
+                    <i class="fa-solid fa-rotate me-1"></i> تحديث السجل
+                </button>
+            </div>
+
+            @if (logs == null)
+            {
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="text-muted small mt-2">جاري تحميل السجلات...</p>
+                </div>
+            }
+            else if (!logs.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="fa-solid fa-inbox fs-1 text-muted opacity-50 mb-3"></i>
+                    <h6 class="fw-bold text-muted">لا توجد سجلات نشر سابقة حتى الآن</h6>
+                    <p class="text-muted small">عند نشر أي كارت خدمة أو صورة أو نص، ستظهر تفاصيل وحالة النشر ورابط المنشور هنا.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light small">
+                            <tr>
+                                <th>#</th>
+                                <th>الخدمة / العنوان</th>
+                                <th>النوع</th>
+                                <th>الحالة</th>
+                                <th>معرف المنشور (Post ID)</th>
+                                <th>التاريخ</th>
+                                <th>المدير</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody class="small">
+                            @foreach (var log in logs)
+                            {
+                                <tr>
+                                    <td>@log.Id</td>
+                                    <td>
+                                        <div class="fw-bold text-dark">@(log.ServiceName ?? "منشور مستقل")</div>
+                                        @if (log.ServiceId.HasValue)
+                                        {
+                                            <span class="text-muted xx-small">رقم الخدمة: @log.ServiceId</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border">@log.PostType</span>
+                                    </td>
+                                    <td>
+                                        @if (log.Status == "Published")
+                                        {
+                                            <span class="badge bg-success rounded-pill px-2 py-1"><i class="fa-solid fa-check me-1"></i> تم النشر</span>
+                                        }
+                                        else if (log.Status == "PendingReview")
+                                        {
+                                            <span class="badge bg-warning text-dark rounded-pill px-2 py-1"><i class="fa-solid fa-clock me-1"></i> بانتظار المراجعة</span>
+                                        }
+                                        else if (log.Status == "InProgress")
+                                        {
+                                            <span class="badge bg-info text-dark rounded-pill px-2 py-1"><i class="fa-solid fa-spinner fa-spin me-1"></i> جاري النشر</span>
+                                        }
+                                        else if (log.Status == "Failed")
+                                        {
+                                            <span class="badge bg-danger rounded-pill px-2 py-1" title="@log.ErrorMessage"><i class="fa-solid fa-xmark me-1"></i> فشل</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary rounded-pill px-2 py-1">@log.Status</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(log.FacebookPostId))
+                                        {
+                                            <span class="font-monospace text-primary small">@log.FacebookPostId</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">—</span>
+                                        }
+                                    </td>
+                                    <td class="text-muted">
+                                        @(log.PublishedAt?.ToLocalTime().ToString("yyyy-MM-dd HH:mm") ?? log.AttemptedAt?.ToLocalTime().ToString("yyyy-MM-dd HH:mm") ?? "—")
+                                    </td>
+                                    <td>@(log.AdminUserName ?? "النظام")</td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-1">
+                                            @if (!string.IsNullOrEmpty(log.PostUrl))
+                                            {
+                                                <a href="@log.PostUrl" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm rounded-pill px-2 py-1" title="عرض على فيسبوك">
+                                                    <i class="fa-brands fa-facebook"></i>
+                                                </a>
+                                            }
+                                            @if (log.Status == "Failed" || log.Status == "PendingReview")
+                                            {
+                                                <button class="btn btn-sm btn-success rounded-pill px-2 py-1" @onclick="() => RetryLogAsync(log.Id)" title="نشر / إعادة المحاولة">
+                                                    <i class="fa-solid fa-play"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" @onclick="() => CancelLogAsync(log.Id)" title="إلغاء">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private string activeTab = "connection";
+    private FacebookIntegrationStatusDto? status;
+    private List<FacebookPublishLogDto>? logs;
+    private List<FacebookManagedPageDto>? discoveredPages;
+
+    private bool isLoading = false;
+    private bool isConnecting = false;
+    private bool isTesting = false;
+    private bool isDisconnecting = false;
+    private bool isSavingMode = false;
+    private bool isPublishingNow = false;
+    private bool isLoadingPreview = false;
+
+    private string? feedbackMessage;
+    private bool feedbackIsError = false;
+
+    private string selectedMode = "ManualOnly";
+    private bool autoPublishOnApproval = false;
+
+    private int targetServiceId = 0;
+    private string customPostCaption = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+
+        // Check if returning from OAuth with code & state in query string
+        var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+        if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("code", out var code) &&
+            Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("state", out var state))
+        {
+            await HandleOAuthReturnAsync(code.ToString(), state.ToString());
+        }
+    }
+
+    private async Task LoadDataAsync()
+    {
+        isLoading = true;
+        try
+        {
+            status = await Api.GetFacebookStatusAsync();
+            if (status != null)
+            {
+                selectedMode = status.PublishMode;
+                autoPublishOnApproval = status.AutoPublishOnApproval;
+            }
+            await LoadLogsAsync();
+        }
+        catch (Exception ex)
+        {
+            SetFeedback("فشل تحميل إعدادات فيسبوك: " + ex.Message, true);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadLogsAsync()
+    {
+        logs = await Api.GetFacebookPublishLogsAsync(null, null, 50);
+    }
+
+    private async Task StartOAuthFlowAsync()
+    {
+        isConnecting = true;
+        try
+        {
+            var returnUrl = Navigation.BaseUri.TrimEnd('/') + "/admin/facebook";
+            var res = await Api.InitiateFacebookOAuthAsync(returnUrl);
+            if (res != null && !string.IsNullOrEmpty(res.OAuthUrl))
+            {
+                Navigation.NavigateTo(res.OAuthUrl, true);
+            }
+            else
+            {
+                SetFeedback("فشل إنشاء جلسة التفويض مع Meta", true);
+            }
+        }
+        catch (Exception ex)
+        {
+            SetFeedback("خطأ أثناء بدء التفويض: " + ex.Message, true);
+        }
+        finally
+        {
+            isConnecting = false;
+        }
+    }
+
+    private async Task HandleOAuthReturnAsync(string code, string state)
+    {
+        isConnecting = true;
+        SetFeedback("جاري استبدال كود التفويض واستخراج الصفحات المدارة من Meta API...", false);
+        try
+        {
+            var res = await Api.ProcessFacebookOAuthCallbackAsync(code, state);
+            if (res != null && res.Success && res.Data != null && res.Data.Any())
+            {
+                discoveredPages = res.Data;
+                SetFeedback("تم استخراج الصفحات بنجاح! يرجى اختيار صفحة خدماوي الرسمية أدناه لاعتمادها.", false);
+
+                // Clean URL query string
+                Navigation.NavigateTo("/admin/facebook", false);
+            }
+            else
+            {
+                SetFeedback(res?.Message ?? "فشل استخراج الصفحات من Meta", true);
+            }
+        }
+        catch (Exception ex)
+        {
+            SetFeedback("خطأ أثناء معالجة تفويض فيسبوك: " + ex.Message, true);
+        }
+        finally
+        {
+            isConnecting = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SelectAndConnectPageAsync(FacebookManagedPageDto page)
+    {
+        isConnecting = true;
+        try
+        {
+            var req = new FacebookConnectPageRequestDto
+            {
+                PageId = page.Id,
+                PageName = page.Name,
+                PageUsername = page.Username ?? "KhadamawyApp",
+                PageUrl = page.Link ?? "https://www.facebook.com/khadamawyApp/",
+                PageAccessToken = page.PageAccessToken ?? string.Empty,
+                Tasks = string.Join(", ", page.Tasks),
+                Permissions = "pages_show_list,pages_read_engagement,pages_manage_posts"
+            };
+
+            var res = await Api.ConnectFacebookPageAsync(req);
+            if (res != null && res.Success)
+            {
+                SetFeedback("تم ربط صفحة خدماوي الرسمية بنجاح واعتماد Page ID الحقيقي وحفظ رمز الوصول المشفر!", false);
+                discoveredPages = null;
+                await LoadDataAsync();
+            }
+            else
+            {
+                SetFeedback(res?.Message ?? "فشل ربط الصفحة", true);
+            }
+        }
+        catch (Exception ex)
+        {
+            SetFeedback("خطأ: " + ex.Message, true);
+        }
+        finally
+        {
+            isConnecting = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task TestConnectionAsync()
+    {
+        isTesting = true;
+        try
+        {
+            var res = await Api.TestFacebookConnectionAsync();
+            if (res != null && res.Success)
+            {
+                SetFeedback($"الاتصال بصفحة خدماوي ({res.PageName}) ناجح 100%! صلاحية النشر متوفرة عبر Meta Graph API.", false);
+            }
+            else
+            {
+                SetFeedback("فشل فحص الاتصال: " + (res?.ErrorMessage ?? "تعذر الوصول للملف التعريفي للصفحة"), true);
+            }
+            await LoadDataAsync();
+        }
+        catch (Exception ex)
+        {
+            SetFeedback("خطأ فحص الاتصال: " + ex.Message, true);
+        }
+        finally
+        {
+            isTesting = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task DisconnectPageAsync()
+    {
+        if (!await JS.InvokeAsync<bool>("confirm", "هل أنت متأكد من إلغاء ربط صفحة خدماوي الرسمية؟ لن يتمكن النظام من النشر على الصفحة حتى إعادة التفويض."))
+        {
+            return;
+        }
+
+        isDisconnecting = true;
+        try
+        {
+            var res = await Api.DisconnectFacebookPageAsync();
+            if (res != null && res.Success)
+            {
+                SetFeedback("تم إلغاء ربط الصفحة بنجاح", false);
+                await LoadDataAsync();
+            }
+            else
+            {
+                SetFeedback(res?.Message ?? "فشل إلغاء الربط", true);
+            }
+        }
+        catch (Exception ex)
+        {
+            SetFeedback("خطأ: " + ex.Message, true);
+        }
+        finally
+        {
+            isDisconnecting = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SavePublishModeAsync()
+    {
+        isSavingMode = true;
+        try
+        {
+            var res = await Api.UpdateFacebookPublishModeAsync(selectedMode, autoPublishOnApproval);
+            if (res != null && res.Success)
+            {
+                SetFeedback("تم حفظ إعدادات أوضاع النشر بنجاح!", false);
+                await LoadDataAsync();
+            }
+            else
+            {
+                SetFeedback(res?.Message ?? "فشل حفظ الإعدادات", true);
+            }
+        }
+        catch (Exception ex)
+        {
+            SetFeedback("خطأ: " + ex.Message, true);
+        }
+        finally
+        {
+            isSavingMode = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadServicePreviewAsync()
+    {
+        if (targetServiceId <= 0) return;
+        isLoadingPreview = true;
+        try
+        {
+            var caption = await Api.PreviewFacebookServiceCardAsync(targetServiceId);
+            if (!string.IsNullOrEmpty(caption))
+            {
+                customPostCaption = caption;
+            }
+            else
+            {
+                SetFeedback("تعذر توليد نص المعاينة. تأكد من أن رقم الخدمة صحيح.", true);
+            }
+        }
+        catch (Exception ex)
+        {
+            SetFeedback("خطأ في المعاينة: " + ex.Message, true);
+        }
+        finally
+        {
+            isLoadingPreview = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task PublishCurrentServiceCardAsync()
+    {
+        if (targetServiceId <= 0) return;
+        if (!await JS.InvokeAsync<bool>("confirm", $"هل أنت متأكد من نشر كارت الخدمة رقم ({targetServiceId}) على صفحة فيسبوك الرسمية الآن؟"))
+        {
+            return;
+        }
+
+        isPublishingNow = true;
+        try
+        {
+            var res = await Api.PublishFacebookServiceCardAsync(targetServiceId, customPostCaption);
+            if (res != null && res.Success)
+            {
+                SetFeedback(res.Message ?? "تم نشر كارت الخدمة على صفحة خدماوي الرسمية بنجاح!", false);
+                await LoadDataAsync();
+            }
+            else
+            {
+                SetFeedback(res?.Message ?? "فشل النشر على فيسبوك", true);
+            }
+        }
+        catch (Exception ex)
+        {
+            SetFeedback("خطأ النشر: " + ex.Message, true);
+        }
+        finally
+        {
+            isPublishingNow = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task RetryLogAsync(int logId)
+    {
+        try
+        {
+            var res = await Api.RetryFacebookPublishAsync(logId);
+            if (res != null && res.Success)
+            {
+                SetFeedback("تمت إعادة محاولة النشر بنجاح!", false);
+                await LoadDataAsync();
+            }
+            else
+            {
+                SetFeedback(res?.Message ?? "فشلت إعادة المحاولة", true);
+            }
+        }
+        catch (Exception ex)
+        {
+            SetFeedback("خطأ: " + ex.Message, true);
+        }
+    }
+
+    private async Task CancelLogAsync(int logId)
+    {
+        try
+        {
+            var res = await Api.CancelFacebookPublishAsync(logId);
+            if (res != null && res.Success)
+            {
+                SetFeedback("تم إلغاء المنشور بنجاح", false);
+                await LoadDataAsync();
+            }
+            else
+            {
+                SetFeedback(res?.Message ?? "فشل الإلغاء", true);
+            }
+        }
+        catch (Exception ex)
+        {
+            SetFeedback("خطأ: " + ex.Message, true);
+        }
+    }
+
+    private void SetFeedback(string msg, bool isError)
+    {
+        feedbackMessage = msg;
+        feedbackIsError = isError;
+        StateHasChanged();
+    }
+}

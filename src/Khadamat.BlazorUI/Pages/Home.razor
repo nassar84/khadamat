@@ -39,21 +39,24 @@
     </div>
 
     <!-- 4. Provider Registration Card -->
-    <div class="provider-cta-card p-3 mb-4 rounded-4 shadow-sm position-relative overflow-hidden cursor-pointer"
-         style="background: #EFF6FF !important; border: 1.5px solid #DBEAFE !important; box-shadow: 0 4px 18px rgba(37, 99, 235, 0.06);"
-         @onclick="GoToRegisterProvider">
+    <div class="provider-cta-card mb-4 cursor-pointer" @onclick="GoToRegisterProvider">
         <div class="d-flex align-items-center justify-content-between z-2 position-relative" dir="rtl">
-            <div>
-                <h5 class="fw-bold text-dark mb-1">صنايعي أو مهني؟ ✨</h5>
-                <p class="text-muted small mb-3">سجل خدماتك وزود دخلك مجاناً</p>
-                <span class="btn rounded-pill px-4 py-2 fw-bold text-white shadow-sm" style="background: #1D4ED8; font-size: 0.85rem;">
-                    اعرض خدماتك <i class="fa-solid fa-arrow-left me-1"></i>
+            <div class="provider-cta-content">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="provider-cta-badge">انضم لشبكة المحترفين</span>
+                    <span class="provider-cta-free">مجاناً 100%</span>
+                </div>
+                <h5 class="fw-bold text-dark mb-1 provider-cta-title">صنايعي أو مهني؟ ✨</h5>
+                <p class="text-muted small mb-3 provider-cta-desc">سجل خدماتك وزود دخلك ووصّل لشريحة عملاء أوسع في منطقتك</p>
+                <span class="btn rounded-pill px-4 py-2 fw-bold text-white shadow-sm provider-cta-btn">
+                    اعرض خدماتك الآن <i class="fa-solid fa-arrow-left me-1"></i>
                 </span>
             </div>
-            <div class="rounded-4 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 68px; height: 68px; background: #DBEAFE; color: #1D4ED8;">
-                <i class="fa-solid fa-shop fs-2"></i>
+            <div class="provider-cta-icon-wrapper rounded-4 d-flex align-items-center justify-content-center flex-shrink-0">
+                <i class="fa-solid fa-briefcase"></i>
             </div>
         </div>
+        <div class="provider-cta-ambient-glow"></div>
     </div>
 
     <!-- 5. Featured Services (Horizontal Scroll) -->
@@ -99,6 +102,7 @@
         </div>
     </div>
 
+    @* مخفي مؤقتاً لحين وجود عروض حقيقية
     <!-- 6. Special Offers & Discounts Card (عروض وخصومات مميزة) -->
     <div class="special-offers-card p-3 mb-4 rounded-4 shadow-sm position-relative overflow-hidden cursor-pointer"
          @onclick='() => Navigation.NavigateTo("/services")'>
@@ -120,6 +124,7 @@
             </div>
         </div>
     </div>
+    *@
 
     <!-- 7. Nearby Services Section (Vertical List) -->
     <div class="mb-5">
@@ -178,8 +183,8 @@
         <div class="row align-items-center position-relative z-1 p-4 p-md-5">
             <div class="col-lg-7 mb-4 mb-lg-0 text-center text-lg-start">
                 <div class="d-flex flex-column flex-lg-row align-items-center gap-3 mb-4">
-                    <div class="logo-orb shadow-lg d-flex align-items-center justify-content-center p-1 bg-white rounded-circle">
-                        <img src="images/logo.png" alt="Logo" style="height: 35px; width: auto; object-fit: contain;" />
+                    <div class="logo-orb shadow-lg d-flex align-items-center justify-content-center p-2 rounded-circle" style="background: #ffffff !important; width: 64px; height: 64px;">
+                        <img src="images/logo.png" alt="Logo" style="height: 44px; width: 44px; object-fit: contain;" />
                     </div>
                     <div>
                         <h2 class="fw-bold premium-text-glow mb-1 text-white">تطبيق @AppState.AppName</h2>
@@ -188,60 +193,69 @@
                 </div>
 
                 <div class="row g-3">
-                    <!-- 1. Direct Download -->
-                    <div class="col-sm-6">
-                        <a href="/downloads/khadamat.apk" download="خدماوى | Khadamawy.apk" class="store-link-card play-store-glow d-flex align-items-center p-3 rounded-4 text-decoration-none h-100 w-100">
-                            <div class="store-icon bg-white text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;min-width:45px;">
-                                <i class="fa-brands fa-android fs-4 text-success"></i>
+                    <!-- 1. Google Play Store Download (الرئيسي) -->
+                    <div class="col-12">
+                        <a href="@(!string.IsNullOrEmpty(AppState.GooglePlayUrl) ? AppState.GooglePlayUrl : "https://play.google.com/store/apps/details?id=com.nassar84.khadamawy")" 
+                           target="_blank" 
+                           rel="noopener noreferrer" 
+                           class="store-link-card play-store-glow d-flex align-items-center p-3 rounded-4 text-decoration-none h-100 w-100">
+                            <div class="store-icon bg-white text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width:48px;height:48px;min-width:48px;">
+                                <i class="fa-brands fa-google-play fs-4 text-primary"></i>
                             </div>
                             <div class="store-info text-white text-start">
-                                <span class="d-block xx-small opacity-75">تحميل مباشر</span>
-                                <span class="fw-bold fs-6">تنزيل (APK)</span>
+                                <span class="d-block xx-small opacity-75">متوفر الآن مجاناً</span>
+                                <span class="fw-bold fs-6">تحميل التطبيق من متجر Google Play</span>
                             </div>
+                            <span class="badge bg-success ms-auto rounded-pill px-3 py-2 fw-bold">تحميل مجاني</span>
                         </a>
                     </div>
-                    
 
-
-                    <!-- 3. Share App -->
+                    <!-- 2. Share App -->
                     <div class="col-sm-6">
                         <button type="button" @onclick="ShareApp" class="store-link-card share-app-glow border-0 d-flex align-items-center p-3 rounded-4 text-decoration-none w-100 h-100 text-start bg-transparent">
                             <div class="store-icon bg-white text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;min-width:45px;">
                                 <i class="fa-solid fa-share-nodes fs-4"></i>
                             </div>
                             <div class="store-info text-white text-start">
-                                <span class="d-block xx-small opacity-75">أخبر أصدقائك</span>
+                                <span class="d-block xx-small opacity-75">رابط متجر جوجل</span>
                                 <span class="fw-bold fs-6">مشاركة التطبيق</span>
                             </div>
                         </button>
                     </div>
 
-                    <!-- 4. Scan QR -->
+                    <!-- 3. Facebook Community Page -->
                     <div class="col-sm-6">
-                        <div class="store-link-card qr-code-glow d-flex align-items-center p-3 rounded-4 h-100 w-100">
-                            <div class="qr-code-mini-frame bg-white p-1 rounded-3 me-3 d-flex align-items-center justify-content-center" style="width:45px;height:45px;min-width:45px;">
-                                <i class="fa-solid fa-qrcode fs-3 text-dark"></i>
+                        <a href="@(!string.IsNullOrEmpty(AppState.FacebookUrl) ? AppState.FacebookUrl : "https://www.facebook.com/khadamawyApp/")" 
+                           target="_blank" 
+                           rel="noopener noreferrer" 
+                           class="store-link-card facebook-glow d-flex align-items-center p-3 rounded-4 text-decoration-none h-100 w-100">
+                            <div class="store-icon bg-white text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;min-width:45px;">
+                                <i class="fa-brands fa-facebook fs-4 text-primary"></i>
                             </div>
                             <div class="store-info text-white text-start">
-                                <span class="d-block fw-bold fs-6">امسح الكود ضوئياً</span>
-                                <span class="d-block xx-small opacity-75">للتنزيل مباشرة</span>
+                                <span class="d-block xx-small opacity-75">صفحة فيسبوك الرسمية</span>
+                                <span class="fw-bold fs-6">مجتمع خدماوي</span>
                             </div>
-                        </div>
+                        </a>
                     </div>
                 </div>
             </div>
 
+            <!-- Left Side: Real Scannable QR Code for Google Play Download -->
             <div class="col-lg-5 text-center mt-5 mt-lg-0 d-none d-md-block">
                 <div class="qr-scan-section-large mx-auto">
-                    <div class="qr-frame-large mx-auto mb-3">
+                    <div class="qr-frame-large mx-auto mb-3 d-flex align-items-center justify-content-center position-relative">
                         <div class="qr-corner-lg top-left"></div>
                         <div class="qr-corner-lg top-right"></div>
                         <div class="qr-corner-lg bottom-left"></div>
                         <div class="qr-corner-lg bottom-right"></div>
                         <div class="qr-scanner-line-large"></div>
-                        <i class="fa-solid fa-qrcode fa-6x text-white opacity-25"></i>
+                        <img src="/v1/upload/qrcode?text=@Uri.EscapeDataString(!string.IsNullOrEmpty(AppState.GooglePlayUrl) ? AppState.GooglePlayUrl : "https://play.google.com/store/apps/details?id=com.nassar84.khadamawy")" 
+                             alt="QR Code لتحميل تطبيق خدماوي من جوجل بلاي" 
+                             class="bg-white p-2 rounded-3 shadow" 
+                             style="width: 140px; height: 140px; object-fit: contain; z-index: 2; position: relative;" />
                     </div>
-                    <span class="text-white opacity-75 small fw-bold mt-2 d-block">افتح الكاميرا وامسح الكود ضوئياً</span>
+                    <span class="text-white opacity-90 small fw-bold mt-2 d-block">افتح الكاميرا وامسح الكود لتحميل التطبيق من جوجل بلاي</span>
                 </div>
             </div>
         </div>
@@ -464,16 +478,15 @@
     }
 
     .logo-orb {
-        width: 70px;
-        height: 70px;
-        background: linear-gradient(135deg, var(--theme-primary, #6366f1), var(--theme-secondary, #a855f7));
-        border-radius: 20px;
+        width: 64px;
+        height: 64px;
+        background: #ffffff !important;
+        border-radius: 50% !important;
         display: flex;
         align-items: center;
         justify-content: center;
         margin: 0 auto;
-        box-shadow: 0 10px 20px rgba(99, 102, 241, 0.4);
-        animation: orbPulse 4s infinite ease-in-out;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     }
 
     .premium-text-glow {
@@ -492,6 +505,8 @@
     }
 
     .play-store-glow { background: rgba(60, 186, 84, 0.1); }
+    .facebook-glow { background: rgba(24, 119, 242, 0.12); }
+    .facebook-glow:hover { background: rgba(24, 119, 242, 0.22); border-color: rgba(24, 119, 242, 0.4); }
     .play-store-glow:hover { background: rgba(60, 186, 84, 0.2); }
     
     .app-store-glow { background: rgba(255, 255, 255, 0.05); }
@@ -741,7 +756,123 @@
     }
     @@media (min-width: 992px) {
         .home-ref-container {
-            padding: 0 !important;
+            max-width: 1200px !important;
+            margin: 0 auto !important;
+            padding: 24px 20px 48px 20px !important;
+        }
+    }
+
+    /* Provider CTA Card Styling */
+    .provider-cta-card {
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 60%, #e0e7ff 100%) !important;
+        border: 1.5px solid #bfdbfe !important;
+        border-radius: 24px !important;
+        padding: 20px 24px !important;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 18px rgba(37, 99, 235, 0.08);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .provider-cta-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 28px rgba(37, 99, 235, 0.14) !important;
+        border-color: #93c5fd !important;
+    }
+    .provider-cta-badge {
+        background: rgba(29, 78, 216, 0.1);
+        color: #1d4ed8;
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 20px;
+    }
+    .provider-cta-free {
+        background: #10b981;
+        color: #ffffff;
+        font-size: 0.68rem;
+        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: 20px;
+    }
+    .provider-cta-title {
+        font-weight: 900 !important;
+        font-size: 1.25rem !important;
+        color: #1e293b !important;
+    }
+    .provider-cta-desc {
+        color: #475569 !important;
+        font-size: 0.88rem !important;
+        line-height: 1.5;
+        max-width: 650px;
+    }
+    .provider-cta-btn {
+        background: #1d4ed8 !important;
+        font-size: 0.85rem !important;
+        padding: 8px 22px !important;
+        transition: all 0.2s ease;
+    }
+    .provider-cta-btn:hover {
+        background: #1e40af !important;
+        transform: scale(1.02);
+    }
+    .provider-cta-icon-wrapper {
+        width: 72px;
+        height: 72px;
+        background: #ffffff;
+        color: #1d4ed8;
+        font-size: 1.9rem;
+        box-shadow: 0 6px 18px rgba(37, 99, 235, 0.12);
+        border: 1.5px solid #dbeafe;
+    }
+    .provider-cta-ambient-glow {
+        position: absolute;
+        top: -30px;
+        left: -30px;
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(59, 130, 246, 0.25) 0%, transparent 70%);
+        pointer-events: none;
+    }
+    @@media (min-width: 992px) {
+        .provider-cta-card {
+            padding: 26px 36px !important;
+        }
+        .provider-cta-title {
+            font-size: 1.45rem !important;
+        }
+        .provider-cta-desc {
+            font-size: 0.95rem !important;
+        }
+        .provider-cta-icon-wrapper {
+            width: 84px;
+            height: 84px;
+            font-size: 2.3rem;
+        }
+        .provider-cta-btn {
+            font-size: 0.9rem !important;
+            padding: 10px 26px !important;
+        }
+    }
+
+    /* Nearby Services Responsive Grid */
+    .nearby-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    @@media (min-width: 768px) {
+        .nearby-list {
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 16px !important;
+        }
+    }
+    @@media (min-width: 1200px) {
+        .nearby-list {
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 20px !important;
         }
     }
     .home-search-bar {

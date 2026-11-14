@@ -12,6 +12,7 @@ using Khadamat.Application.Features.Services.Commands;
 using Khadamat.Application.Features.Services.Queries;
 using Khadamat.Infrastructure.Services;
 using System.IO;
+using System.Security.Claims;
 
 using Khadamat.Application.Interfaces;
 
@@ -28,19 +29,25 @@ public class AdminController : ControllerBase
     private readonly INotificationService _notificationService;
 
     private readonly Khadamat.Application.Interfaces.IImageStorageService _imageStorage;
+    private readonly Khadamat.Application.Interfaces.IFacebookPublishService _facebookPublishService;
+    private readonly IConfiguration _configuration;
 
     public AdminController(
         UserManager<ApplicationUser> userManager, 
         KhadamatDbContext context, 
         MediatR.IMediator mediator,
         INotificationService notificationService,
-        Khadamat.Application.Interfaces.IImageStorageService imageStorage)
+        Khadamat.Application.Interfaces.IImageStorageService imageStorage,
+        Khadamat.Application.Interfaces.IFacebookPublishService facebookPublishService,
+        IConfiguration configuration)
     {
         _userManager = userManager;
         _context = context;
         _mediator = mediator;
         _notificationService = notificationService;
         _imageStorage = imageStorage;
+        _facebookPublishService = facebookPublishService;
+        _configuration = configuration;
     }
 
     [HttpGet("users")]
@@ -630,6 +637,60 @@ public class AdminController : ControllerBase
         catch (Exception ex)
         {
             Console.WriteLine($"[AdminController] Error broadcasting new service announcement: {ex.Message}");
+        }
+
+        // Facebook Official Page Integration
+        try
+        {
+            var fbConfig = await _context.FacebookIntegrationConfigs.FirstOrDefaultAsync();
+            if (fbConfig != null && fbConfig.IsConnected && !string.IsNullOrEmpty(fbConfig.PageId))
+            {
+                var adminUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var adminUserName = User.FindFirstValue(ClaimTypes.Name) ?? "Admin";
+
+                if (fbConfig.PublishMode == "AutomaticAfterApproval" && fbConfig.AutoPublishOnApproval)
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await _facebookPublishService.PublishServiceCardAsync(service.Id, null, adminUserId, adminUserName);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[AdminController] Error auto-publishing service {service.Id} to Facebook: {ex.Message}");
+                        }
+                    });
+                }
+                else if (fbConfig.PublishMode == "ReviewBeforePublish")
+                {
+                    var postCaption = await _facebookPublishService.PrepareServiceCardPostTextAsync(service.Id);
+                    var baseSiteUrl = _configuration["BaseUrl"] ?? "https://khadamawy.eis-dev.com";
+                    var cardImageUrl = $"{baseSiteUrl.TrimEnd('/')}/share/service/{service.Id}/og-image";
+
+                    var exists = await _context.FacebookPublishLogs.AnyAsync(l => l.ServiceId == service.Id);
+                    if (!exists)
+                    {
+                        var draftLog = new FacebookPublishLog
+                        {
+                            ServiceId = service.Id,
+                            PostType = "ServiceCard",
+                            PostText = postCaption.Data ?? string.Empty,
+                            ImageUrl = cardImageUrl,
+                            Status = "PendingReview",
+                            AdminUserId = adminUserId,
+                            AdminUserName = adminUserName,
+                            AttemptedAt = DateTime.UtcNow
+                        };
+                        await _context.FacebookPublishLogs.AddAsync(draftLog);
+                        await _context.SaveChangesAsync();
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AdminController] Facebook integration hook error: {ex.Message}");
         }
 
         return Ok(ApiResponse<bool>.Succeed(true));

@@ -558,6 +558,8 @@
                     AppState.ContactPhone = settingsResult.Data.ContactPhone;
                 if (!string.IsNullOrEmpty(settingsResult.Data.ContactWhatsApp))
                     AppState.ContactWhatsApp = settingsResult.Data.ContactWhatsApp;
+                if (!string.IsNullOrEmpty(settingsResult.Data.FacebookUrl))
+                    AppState.FacebookUrl = settingsResult.Data.FacebookUrl;
 
                 AppState.ShowContactNumbers = settingsResult.Data.ShowContactNumbers;
                 AppState.RequireLoginToViewContactNumbers = settingsResult.Data.RequireLoginToViewContactNumbers;

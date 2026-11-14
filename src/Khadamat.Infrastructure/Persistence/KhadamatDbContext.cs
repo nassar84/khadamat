@@ -66,6 +66,17 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<TesterDevice> TesterDevices { get; set; }
     public DbSet<TesterActivityLog> TesterActivityLogs { get; set; }
 
+    // ── Provider Engagement & Local Marketing ─────────────────────────────
+    public DbSet<MarketingCampaign> MarketingCampaigns { get; set; }
+    public DbSet<ProfessionalTitleRule> ProfessionalTitleRules { get; set; }
+    public DbSet<ProviderEngagementReminder> ProviderEngagementReminders { get; set; }
+    public DbSet<ProviderEngagementLog> ProviderEngagementLogs { get; set; }
+    public DbSet<ServiceDistinctionConfig> ServiceDistinctionConfigs { get; set; }
+
+    // ── Facebook Integration & Official Page Publishing ────────────────────
+    public DbSet<FacebookIntegrationConfig> FacebookIntegrationConfigs { get; set; }
+    public DbSet<FacebookPublishLog> FacebookPublishLogs { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -105,6 +116,11 @@ public class KhadamatDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<MarketplaceCategory>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<MarketplaceSubCategory>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<Specialization>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<MarketingCampaign>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<ProfessionalTitleRule>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<ProviderEngagementReminder>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<ProviderEngagementLog>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<ServiceDistinctionConfig>().HasQueryFilter(e => !e.IsDeleted);
 
         // Configure relationships and constraints
         builder.Entity<Governorate>().HasMany(g => g.Cities).WithOne(c => c.Governorate).HasForeignKey(c => c.GovernorateId);

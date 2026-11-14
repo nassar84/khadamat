@@ -6,86 +6,91 @@
 @inject NavigationManager Navigation
 @implements IDisposable
 
-<div class="ads-section-container mb-4">
-    <!-- Header: "اقتراحات 🟢" -->
-    <div class="d-flex align-items-center justify-content-between mb-2 px-1">
-        <div class="d-flex align-items-center gap-2">
-            <span class="live-dot-green"></span>
-            <span class="fw-bold fs-6" style="letter-spacing: -0.2px; color: #1e293b;">اقتراحات</span>
-        </div>
-    </div>
+<div class="ads-section-container mb-4" @ontouchstart="HandleTouchStart" @ontouchend="HandleTouchEnd">
 
     @if (ads == null)
     {
         <div class="skeleton ads-skeleton rounded-4"></div>
     }
-    else
+    else if (ads.Any())
     {
-        <!-- Horizontal Scrollable Track: Consecutive Cards Beside Each Other -->
-        <div class="ads-track-container" id="adsTrackContainer">
-            <div class="ads-track">
-                @for (int i = 0; i < ads.Count; i++)
-                {
-                    var ad = ads[i];
-                    var index = i;
-                    var imageUrl = ResolveAdImage(ad.ImageUrl);
+        <!-- Main Sliding Carousel Viewport: Only ONE slide visible at a time (Stacked & Smooth Transition) -->
+        <div class="ads-carousel-viewport rounded-4 overflow-hidden position-relative shadow-sm">
+            @for (int i = 0; i < ads.Count; i++)
+            {
+                var ad = ads[i];
+                var index = i;
+                var imageUrl = ResolveAdImage(ad.ImageUrl);
+                var isActive = (i == currentIndex);
 
-                    <div class="ad-card-item @(i == currentIndex ? "is-focused" : "")" 
-                         @onclick="() => OnAdClick(ad)">
-                        
-                        <!-- Background Image: Ambient Blur + 100% Contained Foreground Image (Zero Cropping) -->
-                        @if (!string.IsNullOrEmpty(imageUrl))
-                        {
-                            <img src="@imageUrl" 
-                                 alt="" 
-                                 aria-hidden="true"
-                                 class="ad-card-bg-blur" 
-                                 onerror="this.src='/images/ads/ad_electrician.jpg';" />
+                <div class="ad-slide-item @(isActive ? "active" : "")" 
+                     @onclick="() => OnAdClick(ad)">
+                    
+                    <!-- Ambient Blurred Background + 100% Contained Foreground (Zero Cropping) -->
+                    @if (!string.IsNullOrEmpty(imageUrl))
+                    {
+                        <img src="@imageUrl" 
+                             alt="" 
+                             aria-hidden="true"
+                             class="ad-card-bg-blur" 
+                             onerror="this.src='/images/ads/ad_electrician.jpg';" />
 
-                            <img src="@imageUrl" 
-                                 alt="" 
-                                 aria-hidden="true"
-                                 class="ad-card-bg-contain" 
-                                 onerror="this.src='/images/ads/ad_electrician.jpg';" />
-                        }
-                        else
-                        {
-                            <div class="ad-card-gradient-bg"></div>
-                        }
+                        <img src="@imageUrl" 
+                             alt="" 
+                             aria-hidden="true"
+                             class="ad-card-bg-contain" 
+                             onerror="this.src='/images/ads/ad_electrician.jpg';" />
+                    }
+                    else
+                    {
+                        <div class="ad-card-gradient-bg"></div>
+                    }
 
-                        <!-- Dark Cinematic Vignette Overlay -->
-                        <div class="ad-card-overlay"></div>
+                    <!-- Cinematic Vignette Overlay -->
+                    <div class="ad-card-overlay"></div>
 
-                        <!-- Top Floating Row: Badge "عرض" + Audio Action Circle -->
-                        <div class="ad-card-top-row">
-                            <span class="ad-offer-pill">عرض</span>
-                            <button class="ad-audio-circle" type="button" @onclick:stopPropagation="true" title="صوت">
-                                <i class="fa-solid fa-volume-high"></i>
-                            </button>
+                    <!-- Top Floating Row: Badge "عرض" + Audio Action Circle -->
+                    <div class="ad-card-top-row">
+                        <span class="ad-offer-pill">
+                            <span class="live-dot-green me-1"></span> عرض
+                        </span>
+                        <button class="ad-audio-circle" type="button" @onclick:stopPropagation="true" title="صوت">
+                            <i class="fa-solid fa-volume-high"></i>
+                        </button>
+                    </div>
+
+                    <!-- Bottom Content: Title + Subtitle + Action Button "دور دلوقتي ←" -->
+                    <div class="ad-card-bottom-row">
+                        <div class="ad-text-box">
+                            @if (!string.IsNullOrWhiteSpace(ad.Title))
+                            {
+                                <h3 class="ad-title-text">@ad.Title</h3>
+                            }
+                            <p class="ad-desc-text">@(!string.IsNullOrEmpty(ad.Description) ? ad.Description : ad.TextContent)</p>
                         </div>
-
-                        <!-- Bottom Content: Title + Subtitle + Action Button "دور دلوقتي ←" -->
-                        <div class="ad-card-bottom-row">
-                            <div class="ad-text-box">
-                                @if (!string.IsNullOrWhiteSpace(ad.Title))
-                                {
-                                    <h3 class="ad-title-text">@ad.Title</h3>
-                                }
-                                <p class="ad-desc-text">@(!string.IsNullOrEmpty(ad.Description) ? ad.Description : ad.TextContent)</p>
-                            </div>
-                            <div class="ad-action-pill">
-                                <span>دور دلوقتي</span>
-                                <i class="fa-solid fa-arrow-left"></i>
-                            </div>
+                        <div class="ad-action-pill">
+                            <span>دور دلوقتي</span>
+                            <i class="fa-solid fa-arrow-left"></i>
                         </div>
                     </div>
-                }
-            </div>
+                </div>
+            }
+
+            @if (ads.Count > 1)
+            {
+                <!-- Desktop Navigation Chevrons -->
+                <button class="ad-nav-btn ad-prev-btn" type="button" @onclick="PrevAd" @onclick:stopPropagation="true" aria-label="السابق">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+                <button class="ad-nav-btn ad-next-btn" type="button" @onclick="NextAd" @onclick:stopPropagation="true" aria-label="التالي">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+            }
         </div>
 
         @if (ads.Count > 1)
         {
-            <!-- Centered Indicators Below Cards: • • ▬ • • -->
+            <!-- Centered Indicators Below Card: • • ▬ • • -->
             <div class="ads-indicators-bar">
                 @for (int i = 0; i < ads.Count; i++)
                 {
@@ -103,16 +108,18 @@
         position: relative;
         width: 100%;
         margin-bottom: 24px;
+        user-select: none;
     }
 
     .live-dot-green {
         display: inline-block;
-        width: 10px;
-        height: 10px;
+        width: 8px;
+        height: 8px;
         background: #22c55e;
         border-radius: 50%;
-        box-shadow: 0 0 10px rgba(34, 197, 94, 0.7);
+        box-shadow: 0 0 8px rgba(34, 197, 94, 0.7);
         animation: pulse-live 2s infinite;
+        vertical-align: middle;
     }
 
     @@keyframes pulse-live {
@@ -120,75 +127,65 @@
         50% { opacity: 0.6; transform: scale(1.2); }
     }
 
-    /* Horizontal scroll track: Consecutive cards sitting beside each other */
-    .ads-track-container {
-        width: 100%;
-        overflow-x: auto;
-        overflow-y: hidden;
-        scroll-snap-type: x mandatory;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-        padding: 4px 0 6px 0;
-    }
-
-    .ads-track-container::-webkit-scrollbar {
-        display: none;
-    }
-
-    .ads-track {
-        display: flex;
-        gap: 14px;
-        width: max-content;
-        padding: 0 2px;
-    }
-
-    /* Card Item: takes ~86% width on mobile so the adjacent card peeks in! */
-    .ad-card-item {
-        flex: 0 0 86vw;
-        max-width: 440px;
-        height: 205px;
-        border-radius: 26px;
+    /* Viewport for single-slide carousel */
+    .ads-carousel-viewport {
         position: relative;
-        overflow: hidden;
-        scroll-snap-align: center;
-        scroll-snap-stop: always;
-        cursor: pointer;
+        width: 100%;
+        height: 215px;
         background: #0f172a;
-        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 24px;
+        overflow: hidden;
+    }
+
+    @@media (min-width: 768px) {
+        .ads-carousel-viewport {
+            height: 250px;
+        }
+    }
+
+    /* Stacked Slides: only the active slide is visible and interactive */
+    .ad-slide-item {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.5s ease-in-out, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: scale(0.98);
         display: flex;
         flex-direction: column;
         justify-content: space-between;
         padding: 16px 20px;
         color: #ffffff;
-        user-select: none;
+        cursor: pointer;
+        z-index: 1;
     }
 
     @@media (min-width: 768px) {
-        .ad-card-item {
-            flex: 0 0 420px;
-            height: 220px;
+        .ad-slide-item {
+            padding: 22px 28px;
         }
     }
 
-    .ad-card-item:hover {
-        transform: translateY(-2px);
+    .ad-slide-item.active {
+        opacity: 1;
+        pointer-events: auto;
+        transform: scale(1);
+        z-index: 2;
     }
 
-    /* Ambient blurred layer: smoothly fills the card corners and background */
+    /* Ambient blurred layer: smoothly fills the card background */
     .ad-card-bg-blur {
         position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
+        inset: -20px;
+        width: calc(100% + 40px);
+        height: calc(100% + 40px);
         object-fit: cover;
-        filter: blur(24px) brightness(0.6);
+        filter: blur(24px) brightness(0.55);
         transform: scale(1.15);
         z-index: 0;
         pointer-events: none;
-        font-size: 0 !important;
-        color: transparent !important;
     }
 
     /* Foreground image: 100% CONTAINED - zero cropping or missing parts */
@@ -202,11 +199,9 @@
         z-index: 1;
         pointer-events: none;
         transition: transform 0.4s ease;
-        font-size: 0 !important;
-        color: transparent !important;
     }
 
-    .ad-card-item:hover .ad-card-bg-contain {
+    .ad-slide-item:hover .ad-card-bg-contain {
         transform: scale(1.02);
     }
 
@@ -218,11 +213,7 @@
     }
 
     .ad-card-overlay {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(180deg, rgba(15, 23, 42, 0.35) 0%, rgba(15, 23, 42, 0.1) 35%, rgba(15, 23, 42, 0.75) 70%, rgba(15, 23, 42, 0.95) 100%);
-        z-index: 2;
-        pointer-events: none;
+        display: none !important;
     }
 
     /* Top Row: Offer pill + Audio button */
@@ -290,16 +281,22 @@
 
     .ad-title-text {
         font-weight: 900;
-        font-size: 1.22rem;
+        font-size: 1.25rem;
         margin: 0 0 4px 0;
         color: #ffffff;
         text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
         line-height: 1.3;
     }
 
+    @@media (min-width: 768px) {
+        .ad-title-text {
+            font-size: 1.4rem;
+        }
+    }
+
     .ad-desc-text {
-        font-size: 0.82rem;
-        color: rgba(255, 255, 255, 0.88);
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.9);
         margin: 0;
         line-height: 1.4;
         display: -webkit-box;
@@ -315,8 +312,8 @@
         background: #ffffff;
         color: #0f172a;
         font-weight: 800;
-        font-size: 0.8rem;
-        padding: 7px 18px;
+        font-size: 0.82rem;
+        padding: 8px 20px;
         border-radius: 25px;
         box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
         display: inline-flex;
@@ -326,9 +323,52 @@
         white-space: nowrap;
     }
 
-    .ad-card-item:hover .ad-action-pill {
+    .ad-slide-item:hover .ad-action-pill {
         transform: scale(1.04);
-        box-shadow: 0 6px 18px rgba(255, 255, 255, 0.2);
+        box-shadow: 0 6px 18px rgba(255, 255, 255, 0.25);
+    }
+
+    /* Desktop Navigation Buttons */
+    .ad-nav-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10;
+        transition: all 0.25s ease;
+        opacity: 0.85;
+    }
+
+    .ad-nav-btn:hover {
+        background: rgba(15, 23, 42, 0.9);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateY(-50%) scale(1.1);
+        opacity: 1;
+    }
+
+    .ad-prev-btn {
+        right: 14px;
+    }
+
+    .ad-next-btn {
+        left: 14px;
+    }
+
+    @@media (max-width: 767px) {
+        .ad-nav-btn {
+            display: none;
+        }
     }
 
     /* Indicators underneath the cards: • • ▬ • • */
@@ -358,7 +398,7 @@
     }
 
     .ads-skeleton {
-        height: 205px;
+        height: 215px;
         background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
         background-size: 200% 100%;
         animation: skeleton-loading 1.5s infinite;
@@ -374,6 +414,7 @@
     private List<EnhancedAdDto>? ads;
     private int currentIndex = 0;
     private System.Timers.Timer? timer;
+    private double _touchStartX = 0;
 
     protected override void OnInitialized()
     {
@@ -396,7 +437,6 @@
             }
             else
             {
-                // Fallback curated suggestions matching the exact design and categories
                 ads = GetCuratedFallbackAds();
             }
 
@@ -408,15 +448,7 @@
                     if (ads != null && ads.Count > 1)
                     {
                         currentIndex = (currentIndex + 1) % ads.Count;
-                        await InvokeAsync(async () => 
-                        {
-                            StateHasChanged();
-                            try 
-                            {
-                                await JSRuntime.InvokeVoidAsync("scrollAdsSlider", currentIndex);
-                            }
-                            catch { }
-                        });
+                        await InvokeAsync(StateHasChanged);
                     }
                 };
                 timer.AutoReset = true;
@@ -432,6 +464,60 @@
         }
     }
 
+    private void NextAd()
+    {
+        if (ads == null || ads.Count <= 1) return;
+        currentIndex = (currentIndex + 1) % ads.Count;
+        ResetTimer();
+        StateHasChanged();
+    }
+
+    private void PrevAd()
+    {
+        if (ads == null || ads.Count <= 1) return;
+        currentIndex = (currentIndex - 1 + ads.Count) % ads.Count;
+        ResetTimer();
+        StateHasChanged();
+    }
+
+    private void ScrollToIndex(int index)
+    {
+        currentIndex = index;
+        ResetTimer();
+        StateHasChanged();
+    }
+
+    private void ResetTimer()
+    {
+        timer?.Stop();
+        timer?.Start();
+    }
+
+    private void HandleTouchStart(TouchEventArgs e)
+    {
+        if (e.Touches.Length > 0)
+        {
+            _touchStartX = e.Touches[0].ClientX;
+        }
+    }
+
+    private void HandleTouchEnd(TouchEventArgs e)
+    {
+        if (e.ChangedTouches.Length > 0)
+        {
+            var delta = e.ChangedTouches[0].ClientX - _touchStartX;
+            // In RTL: swipe left (delta < -45) moves to next, swipe right (delta > 45) moves to prev
+            if (delta < -45)
+            {
+                NextAd();
+            }
+            else if (delta > 45)
+            {
+                PrevAd();
+            }
+        }
+    }
+
     private List<EnhancedAdDto> GetCuratedFallbackAds()
     {
         return new List<EnhancedAdDto>
@@ -440,7 +526,7 @@
             {
                 Id = -1,
                 Title = "بتدور على كهربائي؟",
-                Description = "فنيين محترفين جاهزين للتدخل السريع",
+                Description = "فنيين محترفين جاهزين للتدخل السريع بأعلى معايير الأمان",
                 ImageUrl = "/images/ads/ad_electrician.jpg",
                 TargetUrl = "/services?search=كهربائي"
             },
@@ -448,7 +534,7 @@
             {
                 Id = -2,
                 Title = "محتاج سباك شاطر؟",
-                Description = "صيانة وتأسيس أدوات صحية بأعلى كفاءة",
+                Description = "صيانة وتأسيس أدوات صحية بأعلى كفاءة وأسعار مناسبة",
                 ImageUrl = "/images/ads/ad_plumber.jpg",
                 TargetUrl = "/services?search=سباك"
             },
@@ -456,7 +542,7 @@
             {
                 Id = -3,
                 Title = "صيانة تكييفات فورية؟",
-                Description = "فحص وتنظيف وشحن فريون بخصومات مميزة",
+                Description = "فحص وتنظيف وشحن فريون بخصومات مميزة وجودة معتمدة",
                 ImageUrl = "/images/categories/c_2_1.webp",
                 TargetUrl = "/services?search=تكييف"
             },
@@ -464,7 +550,7 @@
             {
                 Id = -4,
                 Title = "نقل وتركيب عفش وأثاث؟",
-                Description = "سيارات مجهزة وعمالة مدربة بأمان وسرعة",
+                Description = "سيارات مجهزة وعمالة مدربة بأمان وسرعة فائقة",
                 ImageUrl = "/images/categories/c_3_1.webp",
                 TargetUrl = "/services?search=نقل"
             },
@@ -472,7 +558,7 @@
             {
                 Id = -5,
                 Title = "صيانة الأجهزة المنزلية؟",
-                Description = "تصليح غسالات وثلاجات في نفس اليوم بضمان",
+                Description = "تصليح غسالات وثلاجات في نفس اليوم بضمان معتمد",
                 ImageUrl = "/images/categories/c_4_1.webp",
                 TargetUrl = "/services?search=صيانة"
             }
@@ -517,19 +603,6 @@
             }
         }
         return "/services";
-    }
-
-    private async Task ScrollToIndex(int index)
-    {
-        currentIndex = index;
-        try 
-        {
-            await JSRuntime.InvokeVoidAsync("scrollAdsSlider", index);
-        }
-        catch { }
-        
-        timer?.Stop();
-        timer?.Start();
     }
 
     private void OnAdClick(EnhancedAdDto ad)

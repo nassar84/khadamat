@@ -205,10 +205,16 @@ public class ServicesController : ControllerBase
     public async Task<IActionResult> DeleteService(int id)
     {
         var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var isAdmin = User.IsInRole("Admin") || User.IsInRole("Supervisor");
+        var isAdmin = User.IsInRole("Admin") || User.IsInRole("Supervisor") || User.IsInRole("SystemAdmin") || User.IsInRole("SuperAdmin");
 
-        var service = await _context.Services.FindAsync(id);
+        var service = await _context.Services.IgnoreQueryFilters().FirstOrDefaultAsync(s => s.Id == id);
         if (service == null) return NotFound(new { message = "الخدمة غير موجودة" });
+
+        // Idempotent delete: if already deleted, return success
+        if (service.IsDeleted)
+        {
+            return Ok(new { success = true, message = "تم حذف الخدمة بنجاح" });
+        }
 
         // Only Admin, Supervisor, or the service owner can delete
         if (!isAdmin)

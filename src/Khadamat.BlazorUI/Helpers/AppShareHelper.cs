@@ -9,9 +9,9 @@ public static class AppShareHelper
 {
     public static string GetDownloadUrl(AppState state, string baseUri)
     {
-        if (!string.IsNullOrEmpty(state.AppShareUrl)) return state.AppShareUrl;
         if (!string.IsNullOrEmpty(state.GooglePlayUrl)) return state.GooglePlayUrl;
-        return $"{baseUri.TrimEnd('/')}/downloads/khadamat.apk";
+        if (!string.IsNullOrEmpty(state.AppShareUrl) && !state.AppShareUrl.EndsWith(".apk")) return state.AppShareUrl;
+        return "https://play.google.com/store/apps/details?id=com.nassar84.khadamawy";
     }
 
     public static string GetInvitationText(AppState state, string baseUri)

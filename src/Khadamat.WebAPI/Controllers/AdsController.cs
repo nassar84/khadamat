@@ -275,7 +275,7 @@ public class AdsController : ControllerBase
     {
         try
         {
-            var fileName = $"ad_{adId}_1.jpg";
+            var fileName = $"ad_{adId}_{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}.jpg";
             var filePath = _imageStorage.GetFilePath("ads", fileName);
 
             var data = base64Data.Contains(",") ? base64Data.Split(',')[1] : base64Data;

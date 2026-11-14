@@ -209,26 +209,32 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0 text-muted small">شرائح الهيرو الحالية (@heroSlots.Count)</h6>
+                            <a href="/admin/ads" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                <i class="fa-solid fa-rectangle-ad me-1"></i> إدارة وإضافة شرائح الهيرو
+                            </a>
+                        </div>
                         <div class="row g-3">
-                            @for (int s = 1; s <= 2; s++)
+                            @foreach (var slot in heroSlots)
                             {
-                                var slot = s;
-                                var imgUrl = slot == 1 ? "images/hero_banner.png" : $"images/hero_banner{slot}.png";
-                                <div class="col-12 col-md-6">
+                                var s = slot;
+                                var imgUrl = s == 1 ? "images/hero_banner.png" : $"images/hero_banner{s}.png";
+                                <div class="col-12 col-md-6 col-lg-4">
                                     <div class="p-3 border rounded-3 bg-white h-100">
                                         <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span class="fw-bold small">Hero Image #@slot</span>
-                                            <span class="badge bg-primary-subtle text-primary">الحالية</span>
+                                            <span class="fw-bold small">Hero Image #@s</span>
+                                            <span class="badge bg-primary-subtle text-primary">نشطة</span>
                                         </div>
                                         <div class="rounded-3 overflow-hidden mb-2 border" style="height:120px;background:#f1f5f9;">
                                             <img src="@(Api.GetAbsoluteUrl(imgUrl))?v=@heroTs"
-                                                 alt="Hero @slot"
+                                                 alt="Hero @s"
                                                  class="w-100 h-100"
                                                  style="object-fit:cover;"
                                                  onerror="this.style.display='none'" />
                                         </div>
                                         <label class="btn btn-sm btn-outline-primary rounded-pill w-100" style="cursor:pointer;">
-                                            @if (heroUploading == slot)
+                                            @if (heroUploading == s)
                                             {
                                                 <span class="spinner-border spinner-border-sm me-1"></span>
                                                 <span>جاري الرفع...</span>
@@ -236,14 +242,14 @@
                                             else
                                             {
                                                 <i class="fa-solid fa-upload me-1"></i>
-                                                <span>رفع صورة جديدة</span>
+                                                <span>رفع أو استبدال</span>
                                             }
-                                            <InputFile style="display:none;" OnChange="e => UploadHero(e, slot)" accept="image/*" disabled="@(heroUploading > 0)" />
+                                            <InputFile style="display:none;" OnChange="e => UploadHero(e, s)" accept="image/*" disabled="@(heroUploading > 0)" />
                                         </label>
-                                        @if (heroMsg.ContainsKey(slot))
+                                        @if (heroMsg.ContainsKey(s))
                                         {
-                                            <div class="mt-2 small alert @(heroOk.ContainsKey(slot) && heroOk[slot] ? "alert-success" : "alert-danger") py-1 px-2 rounded-3 mb-0">
-                                                @heroMsg[slot]
+                                            <div class="mt-2 small alert @(heroOk.ContainsKey(s) && heroOk[s] ? "alert-success" : "alert-danger") py-1 px-2 rounded-3 mb-0">
+                                                @heroMsg[s]
                                             </div>
                                         }
                                     </div>
@@ -302,10 +308,25 @@
     private bool isSuccess = false;
 
     // Hero image upload state
+    private List<int> heroSlots = new() { 1, 2 };
     private int heroUploading = 0;
     private long heroTs = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     private Dictionary<int, string> heroMsg = new();
     private Dictionary<int, bool> heroOk = new();
+
+    private async Task LoadHeroSlotsAsync()
+    {
+        try
+        {
+            var banners = await Api.GetHeroBannersAsync();
+            var existingSlots = banners.Select(b => b.Slot).Distinct().ToList();
+            if (existingSlots.Any())
+            {
+                heroSlots = existingSlots.OrderBy(s => s).ToList();
+            }
+        }
+        catch { }
+    }
 
     private async Task UploadHero(InputFileChangeEventArgs e, int slot)
     {
@@ -352,6 +373,8 @@
         isLoading = true;
         statusMessage = "";
         StateHasChanged();
+
+        await LoadHeroSlotsAsync();
 
         var result = await Api.GetSettingsAsync();
         if (result?.Success == true)

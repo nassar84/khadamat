@@ -82,6 +82,15 @@ namespace Khadamat.MobileApp
             }
         }
 
+        protected override bool OnBackButtonPressed()
+        {
+            if (CurrentPage is Views.WebContainerPage webPage)
+            {
+                return webPage.HandleBackPressed();
+            }
+            return base.OnBackButtonPressed();
+        }
+
         public async Task HandleDeepLink(string url)
         {
             try

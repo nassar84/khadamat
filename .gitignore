@@ -104,3 +104,12 @@ firebase-service-account.json
 
 GoogleService-Info.plist
 **/GoogleService-Info.plist
+
+# Local scratch / test files
+all_pkgs.txt
+read_webview_error.ps1
+test_browser.ps1
+backup_conversations.bat
+*.png
+Khadamat/
+

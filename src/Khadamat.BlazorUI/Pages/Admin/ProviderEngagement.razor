@@ -1,0 +1,1220 @@
+@page "/admin/provider-engagement"
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@using Khadamat.BlazorUI.Components.Admin
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "SystemAdmin,SuperAdmin,Admin")]
+@inject ApiClient Api
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<PageTitle>نظام متابعة وتنشيط مقدمي الخدمات والتسويق المحلي | خدماوي</PageTitle>
+
+<div class="px-2 pb-5">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 fw-bold">
+                    <i class="fa-brands fa-whatsapp fa-lg me-1"></i> KHADAMAWY ENGAGEMENT & MARKETING
+                </span>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1 x-small">
+                    إطلاق سرس الليان 🚀
+                </span>
+            </div>
+            <h3 class="fw-bold mt-2 mb-1">مركز متابعة وتنشيط مقدمي الخدمات</h3>
+            <p class="text-muted small mb-0">نظام إدارة التذكيرات، التواصل التسويقي عبر واتساب، وحملات المدن المحلية</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary rounded-pill px-3 shadow-sm btn-sm" @onclick="RefreshCurrentTab">
+                <i class="fa-solid fa-rotate me-1"></i> تحديث البيانات
+            </button>
+            <button class="btn btn-light border rounded-pill px-3 shadow-sm btn-sm" @onclick='() => Navigation.NavigateTo("/admin")'>
+                <i class="fa-solid fa-arrow-right me-1"></i> العودة للوحة التحكم
+            </button>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-pills custom-admin-tabs mb-4 gap-2 flex-wrap border-bottom pb-3">
+        <li class="nav-item">
+            <button class="nav-link @(activeTab == "services" ? "active" : "") rounded-pill" @onclick='() => SwitchTab("services")'>
+                <i class="fa-solid fa-users-gear me-1"></i> متابعة مقدمي الخدمات (@servicesList.Count)
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(activeTab == "campaigns" ? "active" : "") rounded-pill" @onclick='() => SwitchTab("campaigns")'>
+                <i class="fa-solid fa-bullhorn me-1"></i> حملات المدن والتسويق (@campaignsList.Count)
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(activeTab == "titles" ? "active" : "") rounded-pill" @onclick='() => SwitchTab("titles")'>
+                <i class="fa-solid fa-signature me-1"></i> قاموس الألقاب المهنية (@titlesList.Count)
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(activeTab == "templates" ? "active" : "") rounded-pill" @onclick='() => SwitchTab("templates")'>
+                <i class="fa-solid fa-file-lines me-1"></i> قوالب رسائل المتابعة (@templatesList.Count)
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(activeTab == "logs" ? "active" : "") rounded-pill" @onclick='() => SwitchTab("logs")'>
+                <i class="fa-solid fa-clock-rotate-left me-1"></i> سجل العمليات والتوثيق (@logsList.Count)
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(activeTab == "distinction" ? "active" : "") rounded-pill" @onclick='() => SwitchTab("distinction")'>
+                <i class="fa-solid fa-star me-1 text-warning"></i> نصوص وإعدادات تميز الخدمات
+            </button>
+        </li>
+    </ul>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 1: Services & KPIs Dashboard                                        -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    @if (activeTab == "services")
+    {
+        <!-- KPI Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3 col-xl-2">
+                <div class="kpi-mini-card p-3 rounded-4 bg-white border shadow-sm">
+                    <div class="text-muted x-small fw-bold mb-1">إجمالي الخدمات</div>
+                    <div class="fs-4 fw-bold text-dark">@(kpi?.TotalServices ?? 0)</div>
+                    <div class="x-small text-muted mt-1">متوسط الاكتمال: @(kpi?.AverageCompletenessPercentage.ToString("F0") ?? "0")%</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 col-xl-2">
+                <div class="kpi-mini-card p-3 rounded-4 bg-white border border-danger-subtle shadow-sm">
+                    <div class="text-danger x-small fw-bold mb-1"><i class="fa-solid fa-circle-exclamation me-1"></i>غير مكتملة (&lt;80%)</div>
+                    <div class="fs-4 fw-bold text-danger">@(kpi?.IncompleteServices ?? 0)</div>
+                    <div class="x-small text-muted mt-1">تحتاج متابعة وتنشيط</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 col-xl-2">
+                <div class="kpi-mini-card p-3 rounded-4 bg-white border border-warning-subtle shadow-sm">
+                    <div class="text-warning-emphasis x-small fw-bold mb-1"><i class="fa-solid fa-images me-1"></i>تحتاج صور أو أعمال</div>
+                    <div class="fs-4 fw-bold text-warning-emphasis">@(kpi?.NeedsImages ?? 0)</div>
+                    <div class="x-small text-muted mt-1">بدون صورة رئيسية أو نماذج</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 col-xl-2">
+                <div class="kpi-mini-card p-3 rounded-4 bg-white border border-info-subtle shadow-sm">
+                    <div class="text-info x-small fw-bold mb-1"><i class="fa-solid fa-align-right me-1"></i>تحتاج وصف / تواصل</div>
+                    <div class="fs-4 fw-bold text-info">@((kpi?.NeedsDescription ?? 0) + (kpi?.NeedsContacts ?? 0))</div>
+                    <div class="x-small text-muted mt-1">وصف موجز أو بدون هاتف</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 col-xl-2">
+                <div class="kpi-mini-card p-3 rounded-4 bg-white border border-success-subtle shadow-sm">
+                    <div class="text-success x-small fw-bold mb-1"><i class="fa-brands fa-whatsapp me-1"></i>واتساب تم تأكيده</div>
+                    <div class="fs-4 fw-bold text-success">@(kpi?.ConfirmedWhatsAppSent ?? 0)</div>
+                    <div class="x-small text-muted mt-1">تمت مراجعته وتأكيده</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 col-xl-2">
+                <div class="kpi-mini-card p-3 rounded-4 bg-white border border-primary-subtle shadow-sm">
+                    <div class="text-primary x-small fw-bold mb-1"><i class="fa-solid fa-check-double me-1"></i>اكتملت بعد المتابعة</div>
+                    <div class="fs-4 fw-bold text-primary">@(kpi?.CompletedAfterEngagement ?? 0)</div>
+                    <div class="x-small text-muted mt-1">تجاوزت 80% اكتمال</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="glass-card p-3 rounded-4 mb-4 border bg-white shadow-sm">
+            <div class="row g-2 align-items-center">
+                <div class="col-12 col-md-3">
+                    <div class="position-relative">
+                        <i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                        <input type="text" class="form-control form-control-sm rounded-pill ps-5 bg-light border-0"
+                               placeholder="بحث بالخدمة أو المزود أو الهاتف..."
+                               @bind="searchFilter" @bind:event="oninput" @bind:after="ApplyServicesFilter" />
+                    </div>
+                </div>
+                <div class="col-6 col-md-2">
+                    <select class="form-select form-select-sm rounded-pill bg-light border-0" @bind="cityFilter" @bind:after="ApplyServicesFilter">
+                        <option value="">جميع المدن</option>
+                        <option value="212">سرس الليان (الحملة الحالية)</option>
+                        <option value="211">منوف</option>
+                        <option value="209">شبين الكوم</option>
+                        <option value="213">أشمون</option>
+                        <option value="216">قويسنا</option>
+                        <option value="214">الباجور</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <select class="form-select form-select-sm rounded-pill bg-light border-0" @bind="completenessFilter" @bind:after="ApplyServicesFilter">
+                        <option value="">كل نسب الاكتمال</option>
+                        <option value="critical">حرجة (&lt;50%)</option>
+                        <option value="incomplete">غير مكتملة (&lt;80%)</option>
+                        <option value="complete">مكتملة (&gt;=80%)</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <select class="form-select form-select-sm rounded-pill bg-light border-0" @bind="missingFieldFilter" @bind:after="ApplyServicesFilter">
+                        <option value="">كل النواقص</option>
+                        <option value="mainImage">صورة الخدمة الرئيسية</option>
+                        <option value="workImages">معرض صور الأعمال</option>
+                        <option value="description">الوصف والتفاصيل</option>
+                        <option value="contacts">أرقام التواصل</option>
+                        <option value="location">الموقع والمدينة</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <select class="form-select form-select-sm rounded-pill bg-light border-0" @bind="contactStatusFilter" @bind:after="ApplyServicesFilter">
+                        <option value="">حالة التواصل</option>
+                        <option value="never">لم يتم التواصل أبداً</option>
+                        <option value="sent">تم التواصل مؤخراً</option>
+                        <option value="optout">طلب عدم التواصل 🚫</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-1 text-end">
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill w-100" @onclick="ResetFilters" title="إعادة ضبط الفلاتر">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Services Table -->
+        <div class="glass-card rounded-4 border bg-white shadow-sm overflow-hidden">
+            @if (isLoadingServices)
+            {
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <div class="mt-2 text-muted small">جاري تحميل خدمات المزودين...</div>
+                </div>
+            }
+            else if (!servicesList.Any())
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="fa-solid fa-briefcase fs-1 mb-2 opacity-25"></i>
+                    <p class="fw-bold mb-1">لا توجد خدمات مطابقة للفلاتر المحددة</p>
+                    <p class="small">جرب تعديل شروط البحث أو إزالة بعض الفلاتر</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small">
+                            <tr>
+                                <th>#</th>
+                                <th>الخدمة ومقدمها</th>
+                                <th>المدينة والمهنة</th>
+                                <th>الهاتف والواتساب</th>
+                                <th>نسبة الاكتمال والنواقص</th>
+                                <th>حالة المتابعة</th>
+                                <th class="text-end">إجراء المتابعة والتسويق</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var s in servicesList)
+                            {
+                                <tr>
+                                    <td class="text-muted small">@s.ServiceId</td>
+                                    <td>
+                                        <div class="fw-bold text-dark">@s.ServiceName</div>
+                                        <div class="x-small text-muted d-flex align-items-center gap-1">
+                                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2">@s.DetectedTitle</span>
+                                            <span>@s.ProviderName</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="small fw-semibold">
+                                            <i class="fa-solid fa-location-dot text-danger me-1"></i>@(string.IsNullOrEmpty(s.CityName) ? "غير محدد" : s.CityName)
+                                        </div>
+                                        <div class="x-small text-muted">@(s.CategoryName ?? "عام") @(!string.IsNullOrEmpty(s.Specialization) ? $"• {s.Specialization}" : "")</div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="small font-monospace">@(s.FormattedPhone.Length > 0 ? s.FormattedPhone : (s.Phone1 ?? "بدون"))</span>
+                                            @if (!string.IsNullOrEmpty(s.WhatsApp) || !string.IsNullOrEmpty(s.Phone1))
+                                            {
+                                                <button class="btn btn-sm btn-link text-success p-0" title="فتح واتساب سريع" @onclick="() => OpenOutreachModal(s.ServiceId)">
+                                                    <i class="fa-brands fa-whatsapp fa-lg"></i>
+                                                </button>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td style="min-width: 220px;">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <span class="x-small fw-bold">@s.CompletenessPercentage%</span>
+                                            <span class="badge @(s.CompletenessPercentage >= 80 ? "bg-success" : s.CompletenessPercentage >= 50 ? "bg-warning text-dark" : "bg-danger") rounded-pill x-small">
+                                                @(s.CompletenessPercentage >= 80 ? "مكتمل" : s.CompletenessPercentage >= 50 ? "متوسط" : "حرج")
+                                            </span>
+                                        </div>
+                                        <div class="progress" style="height: 6px;">
+                                            <div class="progress-bar @(s.CompletenessPercentage >= 80 ? "bg-success" : s.CompletenessPercentage >= 50 ? "bg-warning" : "bg-danger")"
+                                                 style="width: @s.CompletenessPercentage%"></div>
+                                        </div>
+                                        @if (s.MissingFields.Any())
+                                        {
+                                            <div class="d-flex flex-wrap gap-1 mt-1">
+                                                @foreach (var mf in s.MissingFields.Take(2))
+                                                {
+                                                    <span class="badge bg-light text-dark border x-small">@mf</span>
+                                                }
+                                                @if (s.MissingFields.Count > 2)
+                                                {
+                                                    <span class="badge bg-light text-muted border x-small">+@(s.MissingFields.Count - 2)</span>
+                                                }
+                                            </div>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (s.DoNotContact)
+                                        {
+                                            <span class="badge bg-danger rounded-pill x-small">طلب عدم التواصل 🚫</span>
+                                        }
+                                        else if (s.ContactAttemptsCount > 0)
+                                        {
+                                            <div>
+                                                <span class="badge @(s.LastContactStatus == "SentConfirmed" ? "bg-success" : "bg-info") rounded-pill x-small">
+                                                    @s.LastContactStatus
+                                                </span>
+                                                <div class="x-small text-muted mt-1">
+                                                    @(s.LastContactDate?.ToString("yyyy/MM/dd") ?? "") (@s.ContactAttemptsCount محاولات)
+                                                </div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary-subtle text-secondary rounded-pill x-small">لم يتم التواصل</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <button class="btn btn-success btn-sm rounded-pill px-3 shadow-sm fw-bold"
+                                                @onclick="() => OpenOutreachModal(s.ServiceId)">
+                                            <i class="fa-brands fa-whatsapp me-1"></i> تواصل وتسويق
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 2: City Marketing Campaigns (حملة سرس الليان والمدن)                 -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    else if (activeTab == "campaigns")
+    {
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h5 class="fw-bold mb-1">حملات التسويق المحلي والمدن</h5>
+                <p class="text-muted small mb-0">تخصيص الرسائل الترويجية والشعارات حسب كل مدينة ومرحلة إطلاق</p>
+            </div>
+            <button class="btn btn-primary rounded-pill px-4 btn-sm" @onclick="OpenCreateCampaignModal">
+                <i class="fa-solid fa-plus me-1"></i> إضافة حملة جديدة
+            </button>
+        </div>
+
+        <div class="row g-3">
+            @foreach (var c in campaignsList)
+            {
+                <div class="col-12 col-lg-6">
+                    <div class="p-4 rounded-4 bg-white border shadow-sm h-100 position-relative d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge @(c.IsActive ? "bg-success" : "bg-secondary") rounded-pill">
+                                    @(c.IsActive ? "حملة نشطة ✅" : "غير نشطة")
+                                </span>
+                                @if (c.IsDefault)
+                                {
+                                    <span class="badge bg-primary rounded-pill">الحملة الافتراضية ⭐️</span>
+                                }
+                                <span class="badge bg-light text-dark border rounded-pill">@c.TargetStage</span>
+                            </div>
+                            <div class="d-flex gap-1">
+                                <button class="btn btn-sm btn-link text-primary p-0" title="تعديل" @onclick="() => EditCampaign(c)">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                                @if (!c.IsDefault)
+                                {
+                                    <button class="btn btn-sm btn-link text-danger p-0 ms-2" title="حذف" @onclick="() => DeleteCampaign(c.Id)">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                }
+                            </div>
+                        </div>
+
+                        <h5 class="fw-bold mb-1 text-dark">@c.CampaignName</h5>
+                        <div class="text-muted small mb-3">
+                            <i class="fa-solid fa-location-dot text-danger me-1"></i>@(string.IsNullOrEmpty(c.CityName) ? "عام (كل المدن)" : $"{c.CityName} - {c.GovernorateName}")
+                        </div>
+
+                        <div class="p-3 rounded-3 bg-light border mb-3 flex-grow-1">
+                            <div class="small fw-bold text-primary mb-1">
+                                <i class="fa-solid fa-quote-right me-1"></i>الشعار التسويقي (Slogan):
+                            </div>
+                            <div class="text-dark fw-semibold mb-2">"@c.Slogan"</div>
+
+                            <div class="small fw-bold text-success mb-1">
+                                <i class="fa-solid fa-gift me-1"></i>العرض الترويجي:
+                            </div>
+                            <div class="x-small text-muted mb-2">@c.SubscriptionOfferText (@c.SubscriptionOfferMonths شهور مجاناً)</div>
+
+                            <div class="small fw-bold text-info mb-1">
+                                <i class="fa-brands fa-facebook me-1"></i>رابط مجتمع فيسبوك:
+                            </div>
+                            <a href="@c.FacebookCommunityUrl" target="_blank" class="x-small text-truncate d-block text-primary">
+                                @c.FacebookCommunityUrl
+                            </a>
+                        </div>
+
+                        <div class="x-small text-muted d-flex justify-content-between">
+                            <span>كود المدينة: @(c.CityId.HasValue ? c.CityId.ToString() : "افتراضي")</span>
+                            <span>أول 3 شهور مجاناً</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 3: Professional Titles Dictionary (قاموس الألقاب)                   -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    else if (activeTab == "titles")
+    {
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h5 class="fw-bold mb-1">قاموس الألقاب المهنية الذكية</h5>
+                <p class="text-muted small mb-0">قواعد المناداة التلقائية وفق طبيعة العمل (مدرس &larr; مستر، طبيب &larr; دكتور، مهندس &larr; باشمهندس)</p>
+            </div>
+            <button class="btn btn-primary rounded-pill px-4 btn-sm" @onclick="OpenCreateTitleModal">
+                <i class="fa-solid fa-plus me-1"></i> إضافة قاعدة لقب
+            </button>
+        </div>
+
+        <div class="glass-card rounded-4 border bg-white shadow-sm overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light small">
+                        <tr>
+                            <th>الكلمة المفتاحية للنشاط</th>
+                            <th>لقب المذكر</th>
+                            <th>لقب المؤنث</th>
+                            <th>اللقب الافتراضي</th>
+                            <th>الأولوية</th>
+                            <th>الحالة</th>
+                            <th>ملاحظات</th>
+                            <th class="text-end">إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var t in titlesList)
+                        {
+                            <tr>
+                                <td class="fw-bold text-primary">@t.ProfessionKeyword</td>
+                                <td><span class="badge bg-light text-dark border">@t.MaleTitle</span></td>
+                                <td><span class="badge bg-light text-dark border">@t.FemaleTitle</span></td>
+                                <td><span class="badge bg-primary-subtle text-primary border border-primary-subtle">@t.DefaultTitle</span></td>
+                                <td>@t.Priority</td>
+                                <td>
+                                    <span class="badge @(t.IsActive ? "bg-success" : "bg-secondary") rounded-pill">
+                                        @(t.IsActive ? "نشط" : "معطل")
+                                    </span>
+                                </td>
+                                <td class="x-small text-muted">@t.Notes</td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-link text-primary p-0" @onclick="() => EditTitle(t)">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-link text-danger p-0 ms-2" @onclick="() => DeleteTitle(t.Id)">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 4: Reminder Templates (قوالب التذكيرات العشرة)                      -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    else if (activeTab == "templates")
+    {
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h5 class="fw-bold mb-1">قوالب رسائل المتابعة والتذكير (10 قوالب مدمجة)</h5>
+                <p class="text-muted small mb-0">تعديل نصوص واتساب، الإشعارات الفورية والتوجيه الداخلي لكل نوع متابعة</p>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            @foreach (var tmpl in templatesList)
+            {
+                <div class="col-12 col-lg-6">
+                    <div class="p-3 rounded-4 bg-white border shadow-sm h-100 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-primary-subtle text-primary rounded-pill">@tmpl.ReminderType</span>
+                                <span class="badge bg-light text-dark border">@tmpl.TargetChannel</span>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary rounded-pill px-3" @onclick="() => EditTemplate(tmpl)">
+                                <i class="fa-solid fa-pen me-1"></i> تعديل القالب
+                            </button>
+                        </div>
+
+                        <h6 class="fw-bold text-dark mb-1">@tmpl.Title</h6>
+                        <p class="text-muted x-small mb-2">@tmpl.Description</p>
+
+                        <div class="p-2 rounded-3 bg-light border flex-grow-1 mb-2 font-monospace x-small" style="white-space: pre-line; max-height: 160px; overflow-y: auto;">
+                            @tmpl.WhatsAppTemplate
+                        </div>
+
+                        <div class="x-small text-muted d-flex justify-content-between">
+                            <span>مسار التوجيه: @tmpl.DeepLinkRoute</span>
+                            <span>بعد @tmpl.DaysAfterRegistration يوم</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 5: Audit Logs (سجل العمليات والتوثيق)                                -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    else if (activeTab == "logs")
+    {
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h5 class="fw-bold mb-1">سجل عمليات المتابعة والتوثيق الشامل</h5>
+                <p class="text-muted small mb-0">تتبع حركات التواصل وتأكيدات واتساب والإشعارات الفورية</p>
+            </div>
+            <button class="btn btn-outline-secondary rounded-pill px-3 btn-sm" @onclick="LoadLogs">
+                <i class="fa-solid fa-rotate me-1"></i> تحديث السجل
+            </button>
+        </div>
+
+        <div class="glass-card rounded-4 border bg-white shadow-sm overflow-hidden">
+            @if (!logsList.Any())
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="fa-solid fa-clock-rotate-left fs-1 mb-2 opacity-25"></i>
+                    <p class="fw-bold mb-0">لا توجد عمليات مسجلة حتى الآن</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 x-small">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>الخدمة</th>
+                                <th>المستلم والهاتف</th>
+                                <th>القناة</th>
+                                <th>نوع المتابعة</th>
+                                <th>الحالة</th>
+                                <th>التاريخ والتأكيد</th>
+                                <th>المشرف</th>
+                                <th>ملاحظات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var log in logsList)
+                            {
+                                <tr>
+                                    <td class="text-muted">@log.Id</td>
+                                    <td class="fw-bold">@log.ServiceName</td>
+                                    <td>
+                                        <div>@log.RecipientName</div>
+                                        <div class="text-muted font-monospace">@log.RecipientPhone</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge @(log.Channel == "WhatsApp" ? "bg-success" : log.Channel == "PushNotification" ? "bg-primary" : "bg-info") rounded-pill">
+                                            @log.Channel
+                                        </span>
+                                    </td>
+                                    <td>@log.ReminderTypeTitle</td>
+                                    <td>
+                                        <span class="badge @(log.Status == "SentConfirmed" ? "bg-success" : log.Status == "Sent" ? "bg-info" : "bg-secondary") rounded-pill">
+                                            @log.StatusArabic
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div>@log.PreparedAt.ToString("yyyy/MM/dd HH:mm")</div>
+                                        @if (log.SentConfirmedAt.HasValue)
+                                        {
+                                            <div class="text-success"><i class="fa-solid fa-check me-1"></i>@log.SentConfirmedAt.Value.ToString("HH:mm")</div>
+                                        }
+                                    </td>
+                                    <td>@(log.AdminUserName ?? "المشرف")</td>
+                                    <td class="text-muted">@log.AdminNotes</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- TAB 6: Service Distinction Configurations                              -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+@if (activeTab == "distinction")
+{
+    <div class="card border-0 rounded-4 shadow-sm bg-white p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2 border-bottom pb-3">
+            <div>
+                <h5 class="fw-bold mb-1">
+                    <i class="fa-solid fa-star text-warning me-2"></i>
+                    إعدادات فقرة تميز الخدمة والتسويق في واتساب
+                </h5>
+                <p class="text-muted small mb-0">
+                    تخصيص نصوص أسباب التميز والمقدمة والخاتمة لرسائل واتساب عند تسجيل ومتابعة الخدمات بدون الحاجة لتعديل الكود
+                </p>
+            </div>
+            <div class="form-check form-switch fs-5">
+                <input class="form-check-input" type="checkbox" id="swGlobalDist"
+                       @bind="distConfig.IsEnabledGlobally" />
+                <label class="form-check-label fs-6 fw-bold text-dark ms-2" for="swGlobalDist">
+                    تفعيل فقرة التميز عاماً
+                </label>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(distConfigFeedback))
+        {
+            <div class="alert @(distConfigSuccess ? "alert-success" : "alert-danger") rounded-3 py-2 px-3 small mb-3">
+                @distConfigFeedback
+            </div>
+        }
+
+        <div class="row g-3">
+            <div class="col-12 col-md-6">
+                <label class="form-label small fw-bold">عنوان الفقرة البارز (Header):</label>
+                <input type="text" class="form-control" @bind="distConfig.HeaderText" />
+                <div class="x-small text-muted mt-1">يظهر في بداية فقرة التميز مباشرة.</div>
+            </div>
+
+            <div class="col-12 col-md-6">
+                <label class="form-label small fw-bold">1. نص اختيار إدارة خدماوي (Admin Selection):</label>
+                <input type="text" class="form-control" @bind="distConfig.AdminSelectionText" />
+                <div class="x-small text-muted mt-1">«تم اختيار خدمتك وإضافتها ضمن الخدمات المميزة على تطبيق خدماوي»</div>
+            </div>
+
+            <div class="col-12 col-md-6">
+                <label class="form-label small fw-bold">2. نص ترشيح أعضاء مجتمع خدماوي (Community Nomination):</label>
+                <input type="text" class="form-control" @bind="distConfig.CommunityNominationText" />
+                <div class="x-small text-muted mt-1">«تم ترشيح خدمتك من أعضاء مجتمع خدماوي لتكون ضمن الخدمات المميزة»</div>
+            </div>
+
+            <div class="col-12 col-md-6">
+                <label class="form-label small fw-bold">3. نص التقييمات الإيجابية (Positive Reviews - بشرط وجود تقييمات حقيقية):</label>
+                <input type="text" class="form-control" @bind="distConfig.PositiveReviewsText" />
+                <div class="x-small text-muted mt-1">«خدمتك من الخدمات التي حصلت على تقييمات إيجابية من مستخدمي خدماوي»</div>
+            </div>
+
+            <div class="col-12 col-md-6">
+                <label class="form-label small fw-bold">4. نص الاختيار الترويجي الخاص (Special Promotion):</label>
+                <input type="text" class="form-control" @bind="distConfig.SpecialPromotionText" />
+                <div class="x-small text-muted mt-1">«تم اختيار خدمتك ضمن الاختيارات الترويجية المميزة على خدماوي»</div>
+            </div>
+
+            <div class="col-12 col-md-6">
+                <label class="form-label small fw-bold">5. نص الترحيب العام (عند عدم وجود تميز محدد):</label>
+                <input type="text" class="form-control" @bind="distConfig.GeneralWelcomeText" />
+                <div class="x-small text-muted mt-1">ترحيب عام دون ادعاء اختيار أو ترشيح أو تقييم.</div>
+            </div>
+
+            <div class="col-12">
+                <label class="form-label small fw-bold">الفقرة الترويجية التشجيعية (Follow-Up Text):</label>
+                <textarea class="form-control" rows="3" @bind="distConfig.FollowUpText"></textarea>
+                <div class="x-small text-muted mt-1">الفقرة التي توضح اهتمام خدماوي بالتعريف بأصحاب الخدمات والتواصل مع العملاء.</div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+            <button class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" @onclick="SaveDistinctionConfig" disabled="@isSavingDistConfig">
+                @if (isSavingDistConfig) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                <i class="fa-solid fa-floppy-disk me-1"></i> حفظ إعدادات ونصوص التميز
+            </button>
+        </div>
+    </div>
+}
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- Provider Outreach Modal                                                 -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<ProviderOutreachModal ServiceId="@selectedServiceIdForModal"
+                       IsOpen="@showOutreachModal"
+                       IsOpenChanged="@((val) => showOutreachModal = val)"
+                       OnActionCompleted="OnOutreachActionCompleted" />
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- Edit Campaign Modal                                                     -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+@if (showCampaignModal && editingCampaign != null)
+{
+    <div class="modal-backdrop-custom" @onclick="() => showCampaignModal = false">
+        <div class="modal-dialog-custom glass-card p-4 rounded-4 shadow-lg" @onclick:stopPropagation="true">
+            <h5 class="fw-bold mb-3 border-bottom pb-2">
+                <i class="fa-solid fa-bullhorn text-primary me-2"></i>
+                @(editingCampaign.Id == 0 ? "إضافة حملة مدينة جديدة" : "تعديل حملة التسويق")
+            </h5>
+            <div class="row g-2 mb-3">
+                <div class="col-12 col-md-6">
+                    <label class="form-label x-small fw-bold">اسم الحملة:</label>
+                    <input type="text" class="form-control form-control-sm" @bind="editingCampaign.CampaignName" />
+                </div>
+                <div class="col-6 col-md-3">
+                    <label class="form-label x-small fw-bold">كود المدينة (CityId):</label>
+                    <input type="number" class="form-control form-control-sm" @bind="editingCampaign.CityId" placeholder="212 لسرس الليان" />
+                </div>
+                <div class="col-6 col-md-3">
+                    <label class="form-label x-small fw-bold">اسم المدينة:</label>
+                    <input type="text" class="form-control form-control-sm" @bind="editingCampaign.CityName" placeholder="سرس الليان" />
+                </div>
+                <div class="col-12">
+                    <label class="form-label x-small fw-bold">الشعار التسويقي (Slogan):</label>
+                    <input type="text" class="form-control form-control-sm" @bind="editingCampaign.Slogan" />
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label x-small fw-bold">رابط صفحة مجتمع فيسبوك:</label>
+                    <input type="text" class="form-control form-control-sm" @bind="editingCampaign.FacebookCommunityUrl" />
+                </div>
+                <div class="col-6 col-md-3">
+                    <label class="form-label x-small fw-bold">شهور الاشتراك المجاني:</label>
+                    <input type="number" class="form-control form-control-sm" @bind="editingCampaign.SubscriptionOfferMonths" />
+                </div>
+                <div class="col-6 col-md-3">
+                    <label class="form-label x-small fw-bold">نص العرض:</label>
+                    <input type="text" class="form-control form-control-sm" @bind="editingCampaign.SubscriptionOfferText" />
+                </div>
+                <div class="col-12">
+                    <label class="form-label x-small fw-bold">قالب الرسالة الترحيبية:</label>
+                    <textarea class="form-control form-control-sm font-monospace" rows="4" @bind="editingCampaign.MessageTemplate"></textarea>
+                </div>
+                <div class="col-12 d-flex gap-3 mt-2">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="campActive" @bind="editingCampaign.IsActive" />
+                        <label class="form-check-label small" for="campActive">حملة نشطة</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="campDefault" @bind="editingCampaign.IsDefault" />
+                        <label class="form-check-label small" for="campDefault">الحملة الافتراضية</label>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                <button class="btn btn-light rounded-pill px-4" @onclick="() => showCampaignModal = false">إلغاء</button>
+                <button class="btn btn-primary rounded-pill px-4" @onclick="SaveCampaign">حفظ التغييرات</button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- Edit Title Rule Modal                                                   -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+@if (showTitleModal && editingTitle != null)
+{
+    <div class="modal-backdrop-custom" @onclick="() => showTitleModal = false">
+        <div class="modal-dialog-custom glass-card p-4 rounded-4 shadow-lg" @onclick:stopPropagation="true" style="max-width: 600px;">
+            <h5 class="fw-bold mb-3 border-bottom pb-2">
+                <i class="fa-solid fa-signature text-primary me-2"></i>
+                @(editingTitle.Id == 0 ? "إضافة قاعدة لقب جديد" : "تعديل قاعدة اللقب")
+            </h5>
+            <div class="row g-2 mb-3">
+                <div class="col-12">
+                    <label class="form-label x-small fw-bold">الكلمة المفتاحية (مثال: مدرس، طبيب، مهندس):</label>
+                    <input type="text" class="form-control form-control-sm" @bind="editingTitle.ProfessionKeyword" />
+                </div>
+                <div class="col-6">
+                    <label class="form-label x-small fw-bold">لقب المذكر (مثال: مستر / دكتور):</label>
+                    <input type="text" class="form-control form-control-sm" @bind="editingTitle.MaleTitle" />
+                </div>
+                <div class="col-6">
+                    <label class="form-label x-small fw-bold">لقب المؤنث (مثال: مس / دكتورة):</label>
+                    <input type="text" class="form-control form-control-sm" @bind="editingTitle.FemaleTitle" />
+                </div>
+                <div class="col-6">
+                    <label class="form-label x-small fw-bold">اللقب الافتراضي:</label>
+                    <input type="text" class="form-control form-control-sm" @bind="editingTitle.DefaultTitle" />
+                </div>
+                <div class="col-6">
+                    <label class="form-label x-small fw-bold">الأولوية (رقم أعلى يسبق):</label>
+                    <input type="number" class="form-control form-control-sm" @bind="editingTitle.Priority" />
+                </div>
+                <div class="col-12">
+                    <label class="form-label x-small fw-bold">ملاحظات:</label>
+                    <input type="text" class="form-control form-control-sm" @bind="editingTitle.Notes" />
+                </div>
+                <div class="col-12">
+                    <div class="form-check mt-1">
+                        <input class="form-check-input" type="checkbox" id="titleActive" @bind="editingTitle.IsActive" />
+                        <label class="form-check-label small" for="titleActive">قاعدة نشطة</label>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                <button class="btn btn-light rounded-pill px-4" @onclick="() => showTitleModal = false">إلغاء</button>
+                <button class="btn btn-primary rounded-pill px-4" @onclick="SaveTitle">حفظ القاعدة</button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- Edit Template Modal                                                     -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+@if (showTemplateModal && editingTemplate != null)
+{
+    <div class="modal-backdrop-custom" @onclick="() => showTemplateModal = false">
+        <div class="modal-dialog-custom glass-card p-4 rounded-4 shadow-lg" @onclick:stopPropagation="true">
+            <h5 class="fw-bold mb-3 border-bottom pb-2">
+                <i class="fa-solid fa-file-lines text-primary me-2"></i>
+                تعديل قالب: @editingTemplate.Title
+            </h5>
+            <div class="row g-2 mb-3">
+                <div class="col-12 col-md-6">
+                    <label class="form-label x-small fw-bold">عنوان القالب:</label>
+                    <input type="text" class="form-control form-control-sm" @bind="editingTemplate.Title" />
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label x-small fw-bold">مسار التوجيه Deep Link:</label>
+                    <input type="text" class="form-control form-control-sm" @bind="editingTemplate.DeepLinkRoute" />
+                </div>
+                <div class="col-12">
+                    <label class="form-label x-small fw-bold">قالب رسالة واتساب (استخدم المتغيرات: {ProfessionalTitle}, {ProviderName}, {ServiceName}, {CityName}, {MissingDataList}, {FacebookUrl}):</label>
+                    <textarea class="form-control form-control-sm font-monospace" rows="6" @bind="editingTemplate.WhatsAppTemplate"></textarea>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label x-small fw-bold">عنوان الإشعار الفوري FCM:</label>
+                    <input type="text" class="form-control form-control-sm" @bind="editingTemplate.PushTitleTemplate" />
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label x-small fw-bold">نص الإشعار الفوري FCM:</label>
+                    <input type="text" class="form-control form-control-sm" @bind="editingTemplate.PushBodyTemplate" />
+                </div>
+            </div>
+            <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                <button class="btn btn-light rounded-pill px-4" @onclick="() => showTemplateModal = false">إلغاء</button>
+                <button class="btn btn-primary rounded-pill px-4" @onclick="SaveTemplate">حفظ القالب</button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .custom-admin-tabs .nav-link {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #64748b;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        padding: 0.5rem 1.25rem;
+        transition: all 0.2s;
+    }
+    .custom-admin-tabs .nav-link.active {
+        background: #059669;
+        color: #ffffff;
+        border-color: #059669;
+        box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+    }
+    .kpi-mini-card {
+        transition: transform 0.2s;
+    }
+    .kpi-mini-card:hover {
+        transform: translateY(-2px);
+    }
+</style>
+
+@code {
+    private string activeTab = "services";
+    private bool isLoadingServices = true;
+    private EngagementKpiDto? kpi;
+    private List<ServiceEngagementSummaryDto> servicesList = new();
+    private List<MarketingCampaignDto> campaignsList = new();
+    private List<ProfessionalTitleRuleDto> titlesList = new();
+    private List<ProviderEngagementReminderDto> templatesList = new();
+    private List<EngagementLogDto> logsList = new();
+
+    // Filters
+    private string searchFilter = "";
+    private string cityFilter = "";
+    private string completenessFilter = "";
+    private string missingFieldFilter = "";
+    private string contactStatusFilter = "";
+
+    // Modal state
+    private bool showOutreachModal = false;
+    private int selectedServiceIdForModal = 0;
+
+    // Campaign edit
+    private bool showCampaignModal = false;
+    private MarketingCampaignDto? editingCampaign;
+
+    // Title edit
+    private bool showTitleModal = false;
+    private ProfessionalTitleRuleDto? editingTitle;
+
+    // Template edit
+    private bool showTemplateModal = false;
+    private ProviderEngagementReminderDto? editingTemplate;
+
+    // Distinction config
+    private ServiceDistinctionConfigDto distConfig = new();
+    private bool isSavingDistConfig = false;
+    private string? distConfigFeedback;
+    private bool distConfigSuccess = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadKpis();
+        await LoadServices();
+        await LoadCampaigns();
+        await LoadTitles();
+        await LoadTemplates();
+        await LoadLogs();
+        await LoadDistConfig();
+    }
+
+    private async Task SwitchTab(string tab)
+    {
+        activeTab = tab;
+        await RefreshCurrentTab();
+    }
+
+    private async Task RefreshCurrentTab()
+    {
+        if (activeTab == "services")
+        {
+            await LoadKpis();
+            await LoadServices();
+        }
+        else if (activeTab == "campaigns")
+        {
+            await LoadCampaigns();
+        }
+        else if (activeTab == "titles")
+        {
+            await LoadTitles();
+        }
+        else if (activeTab == "templates")
+        {
+            await LoadTemplates();
+        }
+        else if (activeTab == "logs")
+        {
+            await LoadLogs();
+        }
+        else if (activeTab == "distinction")
+        {
+            await LoadDistConfig();
+        }
+    }
+
+    private async Task LoadDistConfig()
+    {
+        try
+        {
+            var res = await Api.GetServiceDistinctionConfigAsync();
+            if (res != null) distConfig = res;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"LoadDistConfig: {ex.Message}");
+        }
+    }
+
+    private async Task SaveDistinctionConfig()
+    {
+        isSavingDistConfig = true;
+        distConfigFeedback = null;
+        try
+        {
+            var res = await Api.SaveServiceDistinctionConfigAsync(distConfig);
+            if (res != null && res.Success)
+            {
+                distConfigSuccess = true;
+                distConfigFeedback = "✅ تم حفظ نصوص وإعدادات تميز الخدمات بنجاح!";
+            }
+            else
+            {
+                distConfigSuccess = false;
+                distConfigFeedback = $"❌ فشل الحفظ: {res?.Message}";
+            }
+        }
+        catch (Exception ex)
+        {
+            distConfigSuccess = false;
+            distConfigFeedback = $"❌ خطأ: {ex.Message}";
+        }
+        finally
+        {
+            isSavingDistConfig = false;
+        }
+    }
+
+    private async Task LoadKpis()
+    {
+        try { kpi = await Api.GetEngagementKpisAsync(); }
+        catch (Exception ex) { Console.WriteLine($"LoadKpis: {ex.Message}"); }
+    }
+
+    private async Task LoadServices()
+    {
+        isLoadingServices = true;
+        try
+        {
+            int? cityId = int.TryParse(cityFilter, out int cid) ? cid : null;
+            servicesList = await Api.GetEngageableServicesAsync(
+                search: string.IsNullOrWhiteSpace(searchFilter) ? null : searchFilter,
+                cityId: cityId,
+                completeness: string.IsNullOrWhiteSpace(completenessFilter) ? null : completenessFilter,
+                missingField: string.IsNullOrWhiteSpace(missingFieldFilter) ? null : missingFieldFilter,
+                contactStatus: string.IsNullOrWhiteSpace(contactStatusFilter) ? null : contactStatusFilter
+            );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"LoadServices: {ex.Message}");
+        }
+        finally
+        {
+            isLoadingServices = false;
+        }
+    }
+
+    private async Task ApplyServicesFilter()
+    {
+        await LoadServices();
+    }
+
+    private async Task ResetFilters()
+    {
+        searchFilter = "";
+        cityFilter = "";
+        completenessFilter = "";
+        missingFieldFilter = "";
+        contactStatusFilter = "";
+        await LoadServices();
+    }
+
+    private async Task LoadCampaigns()
+    {
+        try { campaignsList = await Api.GetMarketingCampaignsAsync(); }
+        catch (Exception ex) { Console.WriteLine($"LoadCampaigns: {ex.Message}"); }
+    }
+
+    private async Task LoadTitles()
+    {
+        try { titlesList = await Api.GetProfessionalTitleRulesAsync(); }
+        catch (Exception ex) { Console.WriteLine($"LoadTitles: {ex.Message}"); }
+    }
+
+    private async Task LoadTemplates()
+    {
+        try { templatesList = await Api.GetEngagementTemplatesAsync(); }
+        catch (Exception ex) { Console.WriteLine($"LoadTemplates: {ex.Message}"); }
+    }
+
+    private async Task LoadLogs()
+    {
+        try { logsList = await Api.GetEngagementLogsAsync(limit: 100); }
+        catch (Exception ex) { Console.WriteLine($"LoadLogs: {ex.Message}"); }
+    }
+
+    private void OpenOutreachModal(int serviceId)
+    {
+        selectedServiceIdForModal = serviceId;
+        showOutreachModal = true;
+    }
+
+    private async Task OnOutreachActionCompleted()
+    {
+        await LoadKpis();
+        await LoadServices();
+        await LoadLogs();
+    }
+
+    // Campaign CRUD
+    private void OpenCreateCampaignModal()
+    {
+        editingCampaign = new MarketingCampaignDto
+        {
+            CampaignName = "حملة جديدة",
+            SubscriptionOfferMonths = 3,
+            SubscriptionOfferText = "اشتراك مجاني لأول 3 شهور! ❤️",
+            FacebookCommunityUrl = "https://www.facebook.com/profile.php?id=61595461124579",
+            Slogan = "خدماوي.. خدمات بلدنا في مكان واحد ❤️",
+            IsActive = true,
+            TargetStage = "Launch"
+        };
+        showCampaignModal = true;
+    }
+
+    private void EditCampaign(MarketingCampaignDto campaign)
+    {
+        editingCampaign = new MarketingCampaignDto
+        {
+            Id = campaign.Id,
+            CampaignName = campaign.CampaignName,
+            CityId = campaign.CityId,
+            CityName = campaign.CityName,
+            GovernorateId = campaign.GovernorateId,
+            GovernorateName = campaign.GovernorateName,
+            Slogan = campaign.Slogan,
+            MessageTemplate = campaign.MessageTemplate,
+            SubscriptionOfferMonths = campaign.SubscriptionOfferMonths,
+            SubscriptionOfferText = campaign.SubscriptionOfferText,
+            FacebookCommunityUrl = campaign.FacebookCommunityUrl,
+            IsActive = campaign.IsActive,
+            IsDefault = campaign.IsDefault,
+            TargetStage = campaign.TargetStage
+        };
+        showCampaignModal = true;
+    }
+
+    private async Task SaveCampaign()
+    {
+        if (editingCampaign == null) return;
+        try
+        {
+            var success = await Api.SaveMarketingCampaignAsync(editingCampaign);
+            if (success)
+            {
+                showCampaignModal = false;
+                await LoadCampaigns();
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", "فشل حفظ بيانات الحملة.");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "خطأ: " + ex.Message);
+        }
+    }
+
+    private async Task DeleteCampaign(int id)
+    {
+        if (!await JS.InvokeAsync<bool>("confirm", "هل أنت متأكد من حذف هذه الحملة؟")) return;
+        try
+        {
+            var success = await Api.DeleteMarketingCampaignAsync(id);
+            if (success) await LoadCampaigns();
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "خطأ: " + ex.Message);
+        }
+    }
+
+    // Title CRUD
+    private void OpenCreateTitleModal()
+    {
+        editingTitle = new ProfessionalTitleRuleDto
+        {
+            ProfessionKeyword = "",
+            MaleTitle = "أستاذ",
+            FemaleTitle = "أستاذة",
+            DefaultTitle = "أستاذ",
+            Priority = 50,
+            IsActive = true
+        };
+        showTitleModal = true;
+    }
+
+    private void EditTitle(ProfessionalTitleRuleDto title)
+    {
+        editingTitle = new ProfessionalTitleRuleDto
+        {
+            Id = title.Id,
+            ProfessionKeyword = title.ProfessionKeyword,
+            MaleTitle = title.MaleTitle,
+            FemaleTitle = title.FemaleTitle,
+            DefaultTitle = title.DefaultTitle,
+            Priority = title.Priority,
+            IsActive = title.IsActive,
+            Notes = title.Notes
+        };
+        showTitleModal = true;
+    }
+
+    private async Task SaveTitle()
+    {
+        if (editingTitle == null) return;
+        try
+        {
+            var success = await Api.SaveProfessionalTitleRuleAsync(editingTitle);
+            if (success)
+            {
+                showTitleModal = false;
+                await LoadTitles();
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "خطأ: " + ex.Message);
+        }
+    }
+
+    private async Task DeleteTitle(int id)
+    {
+        if (!await JS.InvokeAsync<bool>("confirm", "هل أنت متأكد من حذف هذه القاعدة؟")) return;
+        try
+        {
+            var success = await Api.DeleteProfessionalTitleRuleAsync(id);
+            if (success) await LoadTitles();
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "خطأ: " + ex.Message);
+        }
+    }
+
+    // Template CRUD
+    private void EditTemplate(ProviderEngagementReminderDto tmpl)
+    {
+        editingTemplate = new ProviderEngagementReminderDto
+        {
+            Id = tmpl.Id,
+            ReminderType = tmpl.ReminderType,
+            Title = tmpl.Title,
+            Description = tmpl.Description,
+            TargetChannel = tmpl.TargetChannel,
+            WhatsAppTemplate = tmpl.WhatsAppTemplate,
+            PushTitleTemplate = tmpl.PushTitleTemplate,
+            PushBodyTemplate = tmpl.PushBodyTemplate,
+            DeepLinkRoute = tmpl.DeepLinkRoute,
+            DaysAfterRegistration = tmpl.DaysAfterRegistration,
+            IsActive = tmpl.IsActive,
+            DisplayOrder = tmpl.DisplayOrder
+        };
+        showTemplateModal = true;
+    }
+
+    private async Task SaveTemplate()
+    {
+        if (editingTemplate == null) return;
+        try
+        {
+            var success = await Api.SaveEngagementTemplateAsync(editingTemplate);
+            if (success)
+            {
+                showTemplateModal = false;
+                await LoadTemplates();
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", "خطأ: " + ex.Message);
+        }
+    }
+}

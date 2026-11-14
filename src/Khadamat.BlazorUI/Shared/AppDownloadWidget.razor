@@ -53,15 +53,15 @@
             </div>
 
             <div class="portal-actions d-grid gap-2">
-                <a href="/downloads/khadamat.apk" download="خدماوى | Khadamawy.apk" class="store-link play-store-glow d-flex align-items-center p-2 rounded-4 text-decoration-none">
+                <a href="@(!string.IsNullOrEmpty(State.GooglePlayUrl) ? State.GooglePlayUrl : "https://play.google.com/store/apps/details?id=com.nassar84.khadamawy")" target="_blank" rel="noopener noreferrer" class="store-link play-store-glow d-flex align-items-center p-2 rounded-4 text-decoration-none">
                     <div class="store-icon bg-white text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width:32px;height:32px;min-width:32px;">
-                        <i class="fa-brands fa-android fs-6"></i>
+                        <i class="fa-brands fa-google-play fs-6 text-primary"></i>
                     </div>
                     <div class="store-info text-white text-start">
-                        <span class="d-block xx-small opacity-75">DIRECT DOWNLOAD</span>
-                        <span class="fw-bold fs-6">تنزيل مباشر (APK)</span>
+                        <span class="d-block xx-small opacity-75">GOOGLE PLAY</span>
+                        <span class="fw-bold fs-6">تحميل من متجر جوجل</span>
                     </div>
-                    <div class="download-badge ms-auto">FREE</div>
+                    <div class="download-badge ms-auto">مجاناً</div>
                 </a>
 
                 <button @onclick="ShareAppInvitation" class="store-link share-app-glow d-flex align-items-center p-2 rounded-4 text-decoration-none bg-transparent border-0 w-100 text-start">
@@ -77,12 +77,16 @@
             </div>
 
             <div class="qr-scan-section mt-4 pt-4 border-top border-white border-opacity-10 text-center">
-                <div class="qr-frame mx-auto mb-3" id="app-download-qr">
+                <div class="qr-frame mx-auto mb-3 d-flex align-items-center justify-content-center position-relative" id="app-download-qr">
                     <div class="qr-corner top-left"></div>
                     <div class="qr-corner top-right"></div>
                     <div class="qr-corner bottom-left"></div>
                     <div class="qr-corner bottom-right"></div>
                     <div class="qr-scanner-line"></div>
+                    <img src="/v1/upload/qrcode?text=@Uri.EscapeDataString(!string.IsNullOrEmpty(State.GooglePlayUrl) ? State.GooglePlayUrl : "https://play.google.com/store/apps/details?id=com.nassar84.khadamawy")" 
+                         alt="QR Code" 
+                         class="bg-white p-2 rounded-3 shadow" 
+                         style="width: 130px; height: 130px; object-fit: contain; z-index: 2;" />
                 </div>
             </div>
             <div class="share-options mt-4">
@@ -285,16 +289,15 @@
     }
 
     .logo-orb {
-        width: 40px; /* Reduced further from 50px */
-        height: 40px;
-        background: linear-gradient(135deg, var(--theme-primary, #6366f1), var(--theme-secondary, #a855f7));
-        border-radius: 12px;
+        width: 44px;
+        height: 44px;
+        background: #ffffff !important;
+        border-radius: 50% !important;
         display: flex;
         align-items: center;
         justify-content: center;
         margin: 0 auto;
-        box-shadow: 0 10px 20px rgba(99, 102, 241, 0.4);
-        animation: orbPulse 4s infinite ease-in-out;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     }
 
     /* Store Link Styles */

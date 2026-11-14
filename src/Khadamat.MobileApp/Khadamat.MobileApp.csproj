@@ -18,8 +18,8 @@
         <ApplicationId>com.nassar84.khadamawy</ApplicationId>
 
         <!-- Versions -->
-        <ApplicationDisplayVersion>2.9.6</ApplicationDisplayVersion>
-        <ApplicationVersion>27</ApplicationVersion>
+        <ApplicationDisplayVersion>2.9.7</ApplicationDisplayVersion>
+        <ApplicationVersion>28</ApplicationVersion>
         <!-- Target API Level 36 (Android 16) -->
         <AndroidTargetSdkVersion>36</AndroidTargetSdkVersion>
         <RuntimeIdentifiers Condition="$(TargetFramework.Contains('-android')) or '$(TargetFramework)' == ''">android-arm64;android-x64</RuntimeIdentifiers>

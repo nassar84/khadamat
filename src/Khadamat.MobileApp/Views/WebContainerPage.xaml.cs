@@ -363,8 +363,10 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
                     }
                 }
 
-                // If shareUrl is present and text doesn't contain it, append it
-                if (!string.IsNullOrEmpty(shareUrl) && !text.Contains(shareUrl))
+                // If shareUrl is present and text doesn't already contain it, append it
+                if (!string.IsNullOrEmpty(shareUrl) && 
+                    !text.Contains(shareUrl, StringComparison.OrdinalIgnoreCase) && 
+                    !text.Contains("/share/service/", StringComparison.OrdinalIgnoreCase))
                 {
                     text = string.IsNullOrEmpty(text) ? shareUrl : $"{text}\n\n{shareUrl}";
                 }
@@ -900,7 +902,7 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
 
     private DateTime _lastBackPressTime = DateTime.MinValue;
 
-    protected override bool OnBackButtonPressed()
+    public bool HandleBackPressed()
     {
         // 0. If Flyout (side menu) is open, close it first
         if (Shell.Current.FlyoutIsPresented)
@@ -995,6 +997,11 @@ public partial class WebContainerPage : ContentPage, IQueryAttributable
         }
 
         return false;
+    }
+
+    protected override bool OnBackButtonPressed()
+    {
+        return HandleBackPressed();
     }
 
     private async Task HandleNativeExternalLogin(string provider, string fallbackBaseUrl = "")

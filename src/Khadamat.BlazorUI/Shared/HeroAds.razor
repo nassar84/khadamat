@@ -3,31 +3,28 @@
 @inject NavigationManager Navigation
 @inject AppState State
 @inject AuthenticationStateProvider AuthStateProvider
+@inject Khadamat.BlazorUI.Services.ApiClient Api
 
-<div class="row mb-4">
-    <!-- Hero Slider Section -->
-    <div class="col-lg-8 mb-3 mb-lg-0">
-        <div class="hero-wrapper rounded-4 overflow-hidden position-relative shadow-lg" style="height: 340px;">
-            
-            <!-- Slides -->
-            @for (int i = 0; i < HeroImages.Count; i++)
+<div class="hero-ads-container">
+    <div class="row mb-4">
+        <!-- Hero Slider Section -->
+        <div class="col-lg-8 mb-3 mb-lg-0">
+            <div class="hero-wrapper rounded-4 overflow-hidden position-relative shadow-sm" style="height: 340px;">
+                
+                <!-- Slides (Fills full space without cropping) -->
+                @for (int i = 0; i < HeroImages.Count; i++)
+                {
+                    var index = i;
+                    <div class="hero-slide @(CurrentSlideIndex == index ? "active" : "")">
+                        <img src="@HeroImages[index]" alt="Hero Image @(index + 1)" class="hero-slide-img" />
+                    </div>
+                }
+            </div>
+
+            <!-- Slide Indicators Below the Image (Clean & Modern) -->
+            @if (HeroImages.Count > 1)
             {
-                var index = i;
-                <div class="hero-slide @(CurrentSlideIndex == index ? "active" : "")">
-                    <div class="hero-slide-bg" style="background-image: url('@HeroImages[index]');"></div>
-                    <div class="hero-slide-fg" style="background-image: linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url('@HeroImages[index]');"></div>
-                </div>
-            }
-
-            <!-- Content Overlay -->
-            <div class="hero-content position-absolute w-100 h-100 d-flex flex-column justify-content-center align-items-center text-center p-4">
-                <h2 class="display-5 fw-bold text-white mb-2 animate-up-delay-1" style="text-shadow: 0 4px 15px rgba(0,0,0,0.6);">
-                    منصة @State.AppName
-                </h2>
-                <p class="fs-5 text-white opacity-90 mb-4 fw-bold animate-up-delay-2" style="max-width: 80%; text-shadow: 0 2px 8px rgba(0,0,0,0.6);">
-                    أفضل الحرفيين والمهنيين المصريين في مكان واحد
-                </p>
-                <div class="slide-indicators d-flex gap-2 animate-up-delay-3">
+                <div class="hero-indicators-container mt-2 d-flex justify-content-center align-items-center gap-2">
                     @for (int i = 0; i < HeroImages.Count; i++)
                     {
                         var index = i;
@@ -35,64 +32,71 @@
                               @onclick="() => SetSlide(index)"></span>
                     }
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Invitation / Actions Section -->
-    <div class="col-lg-4 d-flex flex-column gap-3">
-        <!-- Join as Provider Card -->
-        <div class="action-card glass-card p-4 flex-grow-1 d-flex flex-row align-items-center justify-content-between position-relative overflow-hidden cursor-pointer"
-             @onclick="HandleRegisterClick">
-            <div class="z-2 position-relative">
-                <h5 class="fw-bold text-primary mb-1">صنايعي أو مهني؟</h5>
-                <p class="text-muted small mb-3">سجل خدماتك وزود دخلك معانا</p>
-                <span class="btn btn-sm btn-primary rounded-pill px-3">
-                   اعرض خدماتك <i class="fa-solid fa-arrow-left me-1"></i>
-                </span>
-            </div>
-            <div class="action-icon-wrapper bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                <i class="fa-solid fa-briefcase fs-3"></i>
-            </div>
-            <div class="hover-glow bg-primary"></div>
+            }
         </div>
 
-        <!-- Find Service Card (With Search) -->
-        <div class="action-card glass-card p-4 flex-grow-1 d-flex flex-column justify-content-center position-relative overflow-hidden">
-            <div class="d-flex justify-content-between align-items-start w-100 mb-2 z-2 position-relative">
-                <div>
-                    <h5 class="fw-bold text-secondary mb-1">محتاج صنايعي؟</h5>
-                    <p class="text-muted small mb-0">دور على أفضل الخدمات جنبك</p>
+        <!-- Invitation / Actions Section -->
+        <div class="col-lg-4 d-flex flex-column gap-3">
+            <!-- Join as Provider Card -->
+            <div class="action-card glass-card p-4 flex-grow-1 d-flex flex-row align-items-center justify-content-between position-relative overflow-hidden cursor-pointer"
+                 @onclick="HandleRegisterClick">
+                <div class="z-2 position-relative">
+                    <h5 class="fw-bold text-primary mb-1">صنايعي أو مهني؟</h5>
+                    <p class="text-muted small mb-3">سجل خدماتك وزود دخلك معانا</p>
+                    <span class="btn btn-sm btn-primary rounded-pill px-3">
+                       اعرض خدماتك <i class="fa-solid fa-arrow-left me-1"></i>
+                    </span>
                 </div>
-                <div class="action-icon-wrapper bg-secondary bg-opacity-10 text-secondary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 50px; height: 50px;">
-                    <i class="fa-solid fa-magnifying-glass-location fs-4"></i>
+                <div class="action-icon-wrapper bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                    <i class="fa-solid fa-briefcase fs-3"></i>
                 </div>
+                <div class="hover-glow bg-primary"></div>
             </div>
 
-            <!-- Embedded Search Bar (Full Width) -->
-            <div class="input-group mt-2 shadow-sm rounded-pill overflow-hidden bg-white w-100 z-2 position-relative" style="border: 1px solid rgba(0,0,0,0.08);">
-                <input type="text" class="form-control border-0 px-4 shadow-none text-end" placeholder="ابحث عن سباك، نجار..." 
-                       @bind="SearchTerm" @bind:event="oninput" @onkeyup="HandleKeyUp" 
-                       style="height: 50px; font-size: 1rem;" />
+            <!-- Find Service Card (With Search) -->
+            <div class="action-card glass-card p-4 flex-grow-1 d-flex flex-column justify-content-center position-relative overflow-hidden">
+                <div class="d-flex justify-content-between align-items-start w-100 mb-2 z-2 position-relative">
+                    <div>
+                        <h5 class="fw-bold text-secondary mb-1">محتاج صنايعي؟</h5>
+                        <p class="text-muted small mb-0">دور على أفضل الخدمات جنبك</p>
+                    </div>
+                    <div class="action-icon-wrapper bg-secondary bg-opacity-10 text-secondary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 50px; height: 50px;">
+                        <i class="fa-solid fa-magnifying-glass-location fs-4"></i>
+                    </div>
+                </div>
+
+                <!-- Embedded Search Bar (Full Width) -->
+                <div class="input-group mt-2 shadow-sm rounded-pill overflow-hidden bg-white w-100 z-2 position-relative" style="border: 1px solid rgba(0,0,0,0.08);">
+                    <input type="text" class="form-control border-0 px-4 shadow-none text-end" placeholder="ابحث عن سباك، نجار..." 
+                           @bind="SearchTerm" @bind:event="oninput" @onkeyup="HandleKeyUp" 
+                           style="height: 50px; font-size: 1rem;" />
+                    
+                    <button class="btn btn-link text-muted border-0 bg-white" title="بحث صوتي">
+                            <i class="fa-solid fa-microphone"></i>
+                    </button>
+
+                    <button class="btn btn-secondary px-4" @onclick="Search" style="z-index: 5;">
+                        <i class="fa-solid fa-magnifying-glass text-white fs-5"></i>
+                    </button>
+                </div>
                 
-                <button class="btn btn-link text-muted border-0 bg-white" title="بحث صوتي">
-                        <i class="fa-solid fa-microphone"></i>
-                </button>
-
-                <button class="btn btn-secondary px-4" @onclick="Search" style="z-index: 5;">
-                    <i class="fa-solid fa-magnifying-glass text-white fs-5"></i>
-                </button>
+                <div class="hover-glow bg-secondary"></div>
             </div>
-            
-            <div class="hover-glow bg-secondary"></div>
         </div>
     </div>
 </div>
 
 <style>
+    .hero-ads-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 16px;
+        box-sizing: border-box;
+    }
+
     /* Slider Styles */
     .hero-wrapper {
-        background: #1e293b;
+        background: #0f172a;
     }
     
     .hero-slide {
@@ -102,54 +106,41 @@
         width: 100%;
         height: 100%;
         opacity: 0;
-        transition: opacity 1s ease-in-out;
+        transition: opacity 0.8s ease-in-out;
         z-index: 1;
         overflow: hidden;
     }
     
     .hero-slide.active {
         opacity: 1;
-    }
-
-    .hero-slide-bg {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-size: cover;
-        background-position: center;
-        filter: blur(15px) brightness(0.6);
-        transform: scale(1.1);
-    }
-
-    .hero-slide-fg {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-size: cover;
-        background-repeat: no-repeat;
-        background-position: center;
-    }
-
-    .hero-content {
         z-index: 2;
     }
 
+    .hero-slide-img {
+        width: 100%;
+        height: 100%;
+        object-fit: fill;
+        display: block;
+    }
+
+    .hero-indicators-container {
+        padding: 4px 0;
+    }
+
     .indicator {
-        width: 10px;
-        height: 10px;
-        background: rgba(255,255,255,0.4);
+        width: 9px;
+        height: 9px;
+        background: #cbd5e1;
         border-radius: 50%;
         cursor: pointer;
-        transition: all 0.3s;
+        transition: all 0.3s ease;
     }
 
     .indicator.active {
-        background: white;
-        transform: scale(1.3);
+        background: var(--theme-primary, #2563eb);
+        width: 26px;
+        border-radius: 5px;
+        box-shadow: 0 0 8px rgba(37, 99, 235, 0.4);
     }
 
     /* Action Cards Styling */
@@ -196,24 +187,40 @@
 </style>
 
 @code {
-    private List<string> HeroImages = new() { 
-        "images/hero_banner.png", 
-        "images/hero_banner2.png" 
-    };
+    private List<string> HeroImages = new();
     private int CurrentSlideIndex = 0;
     private System.Threading.Timer? _timer;
     private string SearchTerm { get; set; } = "";
     private bool _disposed = false;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        // Start auto-rotation
-        _timer = new System.Threading.Timer(RotateSlide, null, 5000, 5000);
+        try
+        {
+            var banners = await Api.GetHeroBannersAsync();
+            if (banners != null && banners.Any())
+            {
+                HeroImages = banners.Select(b => Api.GetAbsoluteUrl(b.Url)).ToList();
+            }
+        }
+        catch { }
+
+        // Fallback default image if no hero banners have been uploaded yet
+        if (!HeroImages.Any())
+        {
+            HeroImages.Add("images/hero_banner.png");
+        }
+
+        // Start auto-rotation only if multiple slides exist
+        if (HeroImages.Count > 1)
+        {
+            _timer = new System.Threading.Timer(RotateSlide, null, 5000, 5000);
+        }
     }
 
     private void RotateSlide(object? state)
     {
-        if (_disposed) return;
+        if (_disposed || HeroImages.Count <= 1) return;
         var nextIndex = (CurrentSlideIndex + 1) % HeroImages.Count;
         SetSlide(nextIndex);
     }

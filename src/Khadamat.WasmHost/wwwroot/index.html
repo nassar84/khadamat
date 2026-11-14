@@ -20,6 +20,7 @@
     <meta name="revisit-after" content="7 days" />
     <meta name="rating" content="general" />
     <link rel="canonical" href="https://khadamawy.eis-dev.com" />
+    <meta name="google-site-verification" content="0fVHSOBCfZ6qu7M32nYB89c0W7aOIjUrpSvxI4xPr9s" />
 
     <!-- Social Media Meta Tags (Open Graph) -->
     <meta property="og:title" content="خدماوي - Khadamawy | منصة الخدمات المتكاملة" />
@@ -616,7 +617,6 @@
             // 1. Native mobile app (MAUI): pass intent with image + text
             if (isNative) {
                 let shareUri = 'khadamat://share?title=' + encodeURIComponent('منصة خدماوي') + '&text=' + encodeURIComponent(inviteText || '');
-                if (shareUrl) shareUri += '&url=' + encodeURIComponent(shareUrl);
                 if (fallbackImageUrl) shareUri += '&image=' + encodeURIComponent(fallbackImageUrl);
                 window.location.href = shareUri;
                 return 'native';
@@ -695,7 +695,6 @@
             // 1. Native mobile app (MAUI): pass intent with image + text
             if (isNative) {
                 let shareUri = 'khadamat://share?title=' + encodeURIComponent('منصة خدماوي') + '&text=' + encodeURIComponent(inviteText || '');
-                if (shareUrl) shareUri += '&url=' + encodeURIComponent(shareUrl);
                 if (fallbackImageUrl) shareUri += '&image=' + encodeURIComponent(fallbackImageUrl);
                 window.location.href = shareUri;
                 return 'native';

@@ -548,6 +548,11 @@
     </div>
 }
 
+<Khadamat.BlazorUI.Components.Admin.ProviderOutreachModal 
+    ServiceId="@engagementServiceId"
+    IsOpen="@showEngagementModal"
+    IsOpenChanged="@((val) => showEngagementModal = val)" />
+
 <style>
     /* ── شجرة Lazy ── */
     .lazy-tree { max-width: 900px; }
@@ -672,6 +677,15 @@
     private int  editServiceId;
     private bool showEditModal = false;
     private bool isSaving      = false;
+
+    // ── متابعة وتنشيط وتواصل واتساب ──
+    private bool showEngagementModal = false;
+    private int engagementServiceId = 0;
+    private void OpenEngagementModal(int serviceId)
+    {
+        engagementServiceId = serviceId;
+        showEngagementModal = true;
+    }
 
     // ── تغيير المالك ──
     private bool          showChangeOwnerModal   = false;
@@ -860,6 +874,11 @@
 
             <!-- أزرار الخدمة -->
             <div class="svc-actions d-flex gap-1">
+                <button class="btn btn-sm btn-light border text-success" title="متابعة وتواصل واتساب"
+                        @onclick:stopPropagation="true"
+                        @onclick="() => OpenEngagementModal(svc.Id)">
+                    <i class="fa-brands fa-whatsapp x-small"></i>
+                </button>
                 <button class="btn btn-sm btn-light border text-primary" title="تعديل"
                         @onclick:stopPropagation="true"
                         @onclick="() => OpenEditService(svc)">

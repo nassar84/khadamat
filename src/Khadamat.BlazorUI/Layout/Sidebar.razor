@@ -152,6 +152,10 @@
                         <i class="fa-solid fa-cogs text-primary"></i>
                         <span class="item-label">إعدادات لوحة التحكم</span>
                     </NavLink>
+                    <NavLink class="menu-item" href="/admin/facebook" title="تكامل ونشر صفحة فيسبوك">
+                        <i class="fa-brands fa-facebook text-primary"></i>
+                        <span class="item-label">صفحة فيسبوك والنشر</span>
+                    </NavLink>
                     @if (_isSuperAdmin)
                     {
                         <NavLink class="menu-item" href="/admin/systemsettings" title="إعدادات الموقع والتطبيق">
@@ -331,14 +335,20 @@
                     <i class="fa-solid fa-user-gear text-secondary"></i>
                     <span class="item-label">الملف الشخصي</span>
                 </NavLink>
-                <NavLink class="menu-item" href="/contact" title="تواصل معنا">
-                    <i class="fa-solid fa-headset text-success"></i>
-                    <span class="item-label">تواصل معنا</span>
-                </NavLink>
-                <NavLink class="menu-item" href="/support" title="الدعم والمساعدة">
-                    <span class="item-icon">🆘</span>
-                    <span class="item-label">الدعم والمساعدة</span>
-                </NavLink>
+                @if (_isAdmin)
+                {
+                    <NavLink class="menu-item" href="/admin/complaints" title="الدعم الفني والمساعدة">
+                        <i class="fa-solid fa-headset text-danger"></i>
+                        <span class="item-label">الدعم الفني والمساعدة</span>
+                    </NavLink>
+                }
+                else
+                {
+                    <NavLink class="menu-item" href="/contact" title="الدعم والمساعدة">
+                        <i class="fa-solid fa-headset text-success"></i>
+                        <span class="item-label">الدعم والمساعدة</span>
+                    </NavLink>
+                }
                 <div class="menu-item logout-item-new mt-2 cursor-pointer" @onclick="HandleLogout" title="تسجيل الخروج">
                     <i class="fa-solid fa-power-off text-danger"></i>
                     <span class="item-label text-danger fw-bold">تسجيل الخروج</span>

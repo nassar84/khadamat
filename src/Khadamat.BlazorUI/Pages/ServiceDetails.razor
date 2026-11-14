@@ -72,9 +72,8 @@
                 <button class="btn ref-circle-btn" @onclick="GoBack" title="رجوع">
                     <i class="fa-solid fa-chevron-right"></i>
                 </button>
-                <div class="ref-header-logo d-flex align-items-center gap-2">
-                    <span class="fw-bold fs-5 text-primary">خدماوى</span>
-                    <i class="fa-solid fa-helmet-safety text-warning fs-5"></i>
+                <div class="ref-header-logo d-flex align-items-center">
+                    <span class="fw-bold fs-6 text-dark">تفاصيل الخدمة</span>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <button class="btn ref-circle-btn" @onclick="OpenShareModal" title="مشاركة">
@@ -164,12 +163,18 @@
                         }
                     </div>
 
-                    <div class="d-flex align-items-center justify-content-center gap-2">
-                        <div class="d-flex text-warning">
-                            <i class="fa-solid fa-star"></i>
+                    <div class="d-flex align-items-center justify-content-center gap-3 flex-wrap">
+                        <div class="d-flex align-items-center gap-1">
+                            <i class="fa-solid fa-star text-warning"></i>
+                            <span class="fw-bold text-dark">@(service.Rating > 0 ? service.Rating.ToString("0.0") : "0.0")</span>
+                            <span class="text-muted small">(@service.RatersCount تقييم)</span>
                         </div>
-                        <span class="fw-bold text-dark">@service.Rating.ToString("0.1")</span>
-                        <span class="text-muted small">(@service.RatersCount تقييم)</span>
+                        <span class="text-muted opacity-50">•</span>
+                        <div class="d-flex align-items-center gap-1 text-muted small">
+                            <i class="fa-regular fa-eye text-primary"></i>
+                            <span class="fw-semibold text-dark">@service.ViewsCount.ToString("N0")</span>
+                            <span>مشاهدة</span>
+                        </div>
                     </div>
                 </div>
 
@@ -315,7 +320,7 @@
                     <div class="row align-items-center g-3">
                         <!-- Left (in RTL): Rating Average -->
                         <div class="col-5 text-center border-start">
-                            <div class="display-5 fw-bold text-dark">@service.Rating.ToString("0.1")</div>
+                            <div class="display-5 fw-bold text-dark">@(service.Rating > 0 ? service.Rating.ToString("0.0") : "0.0")</div>
                             <div class="text-warning d-flex justify-content-center gap-1 my-1 small">
                                 @for (int i = 1; i <= 5; i++)
                                 {
@@ -332,13 +337,16 @@
                                 int currentStar = star;
                                 int starCount = service.Reviews?.Count(r => r.Rating == currentStar) ?? 0;
                                 int totalReviews = service.Reviews?.Count ?? 0;
-                                int pct = totalReviews > 0 ? (starCount * 100 / totalReviews) : (currentStar == 5 ? 75 : (currentStar == 4 ? 20 : 5));
+                                int pct = totalReviews > 0 ? (starCount * 100 / totalReviews) : 0;
 
                                 <div class="d-flex align-items-center gap-2 mb-1 xx-small text-muted">
                                     <div class="progress flex-grow-1" style="height: 6px; border-radius: 4px; background: #e2e8f0;">
                                         <div class="progress-bar bg-primary" role="progressbar" style="width: @(pct)%; border-radius: 4px;"></div>
                                     </div>
-                                    <span style="width: 20px;">@star <i class="fa-solid fa-star text-warning" style="font-size: 0.6rem;"></i></span>
+                                    <span class="d-inline-flex align-items-center gap-1 text-nowrap" style="min-width: 28px;">
+                                        <span>@star</span>
+                                        <i class="fa-solid fa-star text-warning" style="font-size: 0.65rem;"></i>
+                                    </span>
                                 </div>
                             }
                         </div>
@@ -2348,14 +2356,15 @@
         return "خدمات عامة";
     }
 
+    public const string OfficialGooglePlayUrl = "https://play.google.com/store/apps/details?id=com.nassar84.khadamawy";
+
     private string AppDownloadUrl
     {
         get
         {
             if (!string.IsNullOrEmpty(State.GooglePlayUrl)) return State.GooglePlayUrl;
             if (!string.IsNullOrEmpty(State.AppShareUrl)) return State.AppShareUrl;
-            var baseUri = Navigation.BaseUri.TrimEnd('/');
-            return $"{baseUri}/downloads/khadamat.apk";
+            return OfficialGooglePlayUrl;
         }
     }
 
@@ -2379,7 +2388,7 @@
                $"🔗 رابط صفحة الخدمة بالتفصيل:\n{SharePageUrl}\n\n" +
                $"📲 *دعوة لتحميل تطبيق ومنصة خدماوي* 🇪🇬\n" +
                $"سوق الخدمات والأعمال الأول في مصر — تصفح آلاف الخدمات والوظائف القريبة منك وتواصل مباشرة مع أصحاب الأعمال والمهنيين!\n" +
-               $"👇 رابط تحميل التطبيق المباشر (APK):\n{AppDownloadUrl}";
+               $"📲 رابط تحميل التطبيق من متجر Google Play:\n{AppDownloadUrl}";
     }
 
     private string GetFacebookPostText() => GetUnifiedShareText();
@@ -2388,7 +2397,7 @@
     {
         var title = service?.Title ?? "";
         return $"🌟 {title}\n" +
-               $"📲 حمّل تطبيق خدماوي مجاناً:\n{AppDownloadUrl}\n" +
+               $"📲 حمّل تطبيق خدماوي من Google Play:\n{AppDownloadUrl}\n" +
                $"🔗 التفاصيل: {SharePageUrl}";
     }
 
@@ -2402,7 +2411,7 @@
         return $"🌟 *{service?.Title}*{addressLine}{phoneLine}\n\n" +
                $"📲 *دعوة لتجربة واستخدام تطبيق ومنصة {appName}* 🇪🇬\n" +
                $"سوق الخدمات والأعمال الأول في مصر — تصفح آلاف الخدمات والمهنيين وتواصل معهم مباشرة مجاناً!\n\n" +
-               $"👇 رابط تحميل التطبيق المباشر (APK):\n{AppDownloadUrl}\n\n" +
+               $"📲 رابط تحميل التطبيق من متجر Google Play:\n{AppDownloadUrl}\n\n" +
                $"🔗 أو تصفح تفاصيل الخدمة على الموقع:\n{SharePageUrl}";
     }
 

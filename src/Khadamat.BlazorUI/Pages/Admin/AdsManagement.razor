@@ -90,15 +90,20 @@
     <!-- Hero Banner Section -->
     <div class="card border-0 rounded-4 shadow-sm mb-4 overflow-hidden animate-up" style="background: linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(168,85,247,0.06) 100%); border-right: 4px solid #6366f1 !important;">
         <div class="card-body p-3 p-md-4">
-            <div class="d-flex align-items-center justify-content-between mb-3">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
                 <div>
                     <h5 class="fw-bold mb-1">
                         <i class="fa-solid fa-image me-2 text-primary"></i> صور الهيرو بانر
                         <span class="badge bg-primary-subtle text-primary ms-2 fw-normal" style="font-size:0.7rem;">Hero Slider</span>
                     </h5>
-                    <p class="text-muted small mb-0">صور الشريحة الرئيسية التي تظهر في أعلى الصفحة الرئيسية — تُحدَّث فوراً بعد الرفع</p>
+                    <p class="text-muted small mb-0">صور الشريحة الرئيسية التي تظهر في أعلى الصفحة الرئيسية — يمكنك إضافة أي عدد وتُحدَّث فوراً بعد الرفع</p>
                 </div>
-                <span class="badge bg-light text-muted border" style="font-size:0.72rem;">1920 × 1080 px</span>
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm fw-bold" @onclick="AddHeroSlot" type="button">
+                        <i class="fa-solid fa-plus me-1"></i> إضافة شريحة هيرو جديدة
+                    </button>
+                    <span class="badge bg-light text-muted border" style="font-size:0.72rem;">1920 × 1080 px</span>
+                </div>
             </div>
 
             @if (!string.IsNullOrEmpty(heroUploadMsg))
@@ -109,18 +114,26 @@
             }
 
             <div class="row g-3">
-                @for (int s = 1; s <= 2; s++)
+                @foreach (var s in heroSlots)
                 {
                     var slot = s;
                     var imgPath = slot == 1 ? "images/hero_banner.png" : $"images/hero_banner{slot}.png";
-                    <div class="col-12 col-md-6">
+                    <div class="col-12 col-md-6 col-lg-4">
                         <div class="p-3 border rounded-4 bg-white shadow-sm h-100">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <span class="fw-bold small">
                                     <i class="fa-solid fa-image text-primary me-1"></i>
                                     صورة Hero #@slot
                                 </span>
-                                <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size:0.68rem;">نشطة</span>
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size:0.68rem;">نشطة</span>
+                                    <button class="btn btn-sm btn-outline-danger border-0 p-1 rounded-circle" 
+                                            title="حذف هذه الشريحة"
+                                            type="button"
+                                            @onclick="() => DeleteHeroSlot(slot)">
+                                        <i class="fa-solid fa-trash-can" style="font-size: 0.8rem;"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="rounded-3 overflow-hidden mb-3 border" style="height:130px; background:#f1f5f9;">
                                 <img src="@(Api.GetAbsoluteUrl(imgPath))?v=@heroTs"
@@ -138,7 +151,7 @@
                                 else
                                 {
                                     <i class="fa-solid fa-upload me-1"></i>
-                                    <span>رفع صورة جديدة</span>
+                                    <span>رفع أو استبدال الصورة</span>
                                 }
                                 <InputFile style="display:none;" OnChange="e => UploadHeroBanner(e, slot)" accept="image/*" disabled="@(heroUploading > 0)" />
                             </label>
@@ -743,10 +756,56 @@
     private List<string> selectedDays = new();
 
     // Hero banner upload state
+    private List<int> heroSlots = new();
     private int heroUploading = 0;
     private long heroTs = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     private string heroUploadMsg = "";
     private bool heroUploadSuccess = false;
+
+    private async Task LoadHeroSlotsAsync()
+    {
+        try
+        {
+            var banners = await Api.GetHeroBannersAsync();
+            var existingSlots = banners.Select(b => b.Slot).Distinct().ToList();
+            heroSlots = existingSlots.OrderBy(s => s).ToList();
+        }
+        catch { }
+    }
+
+    private void AddHeroSlot()
+    {
+        var maxSlot = heroSlots.Any() ? heroSlots.Max() : 0;
+        var next = Math.Max(maxSlot + 1, 1);
+        if (next <= 20)
+        {
+            if (!heroSlots.Contains(next))
+            {
+                heroSlots.Add(next);
+                heroSlots = heroSlots.OrderBy(s => s).ToList();
+            }
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteHeroSlot(int slot)
+    {
+        if (!await JS.InvokeAsync<bool>("confirm", $"هل أنت متأكد من حذف شريحة Hero #{slot}؟")) return;
+        try
+        {
+            await Api.DeleteHeroImageAsync(slot);
+            heroSlots.Remove(slot);
+            heroUploadMsg = $"✅ تم حذف شريحة Hero #{slot} بنجاح.";
+            heroUploadSuccess = true;
+            heroTs = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        }
+        catch (Exception ex)
+        {
+            heroUploadMsg = $"❌ خطأ: {ex.Message}";
+            heroUploadSuccess = false;
+        }
+        StateHasChanged();
+    }
 
     private async Task UploadHeroBanner(InputFileChangeEventArgs e, int slot)
     {
@@ -802,6 +861,7 @@
         isPageLoading = true;
         try
         {
+            await LoadHeroSlotsAsync();
             await LoadAds();
             mainCategories = await Api.GetMainCategoriesAsync();
             var svcResult = await Api.GetServicesAsync(isApproved: true, pageSize: 200);
@@ -856,16 +916,28 @@
 
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
     {
-        var file = e.File;
-        var format = "image/jpeg";
-        var resizedImage = await file.RequestImageFileAsync(format, 1200, 600);
-        var buffer = new byte[resizedImage.Size];
-        using var stream = resizedImage.OpenReadStream();
-        await stream.ReadAsync(buffer);
-        
-        currentAd.ImageBase64 = Convert.ToBase64String(buffer);
-        imagePreview = $"data:{format};base64,{currentAd.ImageBase64}";
-        currentAd.ImageUrl = null; // Clear URL if uploading
+        try
+        {
+            var file = e.File;
+            if (file == null) return;
+
+            var format = "image/jpeg";
+            var resizedImage = await file.RequestImageFileAsync(format, 1200, 800);
+            using var stream = resizedImage.OpenReadStream(15 * 1024 * 1024);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            var buffer = ms.ToArray();
+            
+            currentAd.ImageBase64 = Convert.ToBase64String(buffer);
+            imagePreview = $"data:{format};base64,{currentAd.ImageBase64}";
+            currentAd.ImageUrl = null; // Clear URL if uploading
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[AdsManagement] HandleFileSelected error: {ex.Message}");
+            errorMessage = "حدث خطأ أثناء معالجة الصورة: " + ex.Message;
+        }
     }
 
     private async Task LoadAds()

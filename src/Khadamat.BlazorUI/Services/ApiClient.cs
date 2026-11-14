@@ -1,4 +1,4 @@
-﻿using System.Net.Http.Json;
+using System.Net.Http.Json;
 using Khadamat.Application.DTOs;
 using Khadamat.Application.Common.Models;
 using Khadamat.Application.Features.Services.Queries;
@@ -165,6 +165,53 @@ public class ApiClient
         catch (Exception ex)
         {
             Console.WriteLine($"[UploadHeroImageAsync] Error: {ex.Message}");
+            return false;
+        }
+    }
+
+    public class HeroListResponse
+    {
+        public bool Success { get; set; }
+        public List<HeroBannerItem> Items { get; set; } = new();
+    }
+
+    public class HeroBannerItem
+    {
+        public int Slot { get; set; }
+        public string Filename { get; set; } = "";
+        public string Url { get; set; } = "";
+    }
+
+    /// <summary>
+    /// جلب قائمة جميع شرائح الهيرو بانر النشطة
+    /// </summary>
+    public async Task<List<HeroBannerItem>> GetHeroBannersAsync()
+    {
+        try
+        {
+            var res = await _http.GetFromJsonAsync<HeroListResponse>("v1/upload/hero-list");
+            return res?.Items ?? new List<HeroBannerItem>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GetHeroBannersAsync] Error: {ex.Message}");
+            return new List<HeroBannerItem>();
+        }
+    }
+
+    /// <summary>
+    /// حذف شريحة هيرو بانر
+    /// </summary>
+    public async Task<bool> DeleteHeroImageAsync(int slot)
+    {
+        try
+        {
+            var response = await _http.DeleteAsync($"v1/upload/hero?slot={slot}");
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[DeleteHeroImageAsync] Error: {ex.Message}");
             return false;
         }
     }
@@ -2063,6 +2110,534 @@ public class ApiClient
         {
             Console.WriteLine($"[SeedSpecializationsAsync] Error: {ex.Message}");
             return 0;
+        }
+    }
+
+    // =========================================================================
+    // Provider Engagement & Marketing System (نظام متابعة وتنشيط مقدمي الخدمات)
+    // =========================================================================
+
+    public async Task<EngagementKpiDto?> GetEngagementKpisAsync()
+    {
+        try
+        {
+            var res = await _http.GetFromJsonAsync<ApiResponse<EngagementKpiDto>>("v1/engagement/kpis");
+            return res?.Data;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GetEngagementKpisAsync] Error: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<List<ServiceEngagementSummaryDto>> GetEngageableServicesAsync(
+        string? search = null,
+        int? cityId = null,
+        int? governorateId = null,
+        string? profession = null,
+        string? completeness = null,
+        string? contactStatus = null,
+        string? missingField = null)
+    {
+        try
+        {
+            var url = "v1/engagement/services?";
+            var q = new List<string>();
+            if (!string.IsNullOrWhiteSpace(search)) q.Add($"search={Uri.EscapeDataString(search)}");
+            if (cityId.HasValue) q.Add($"cityId={cityId.Value}");
+            if (governorateId.HasValue) q.Add($"governorateId={governorateId.Value}");
+            if (!string.IsNullOrWhiteSpace(profession)) q.Add($"profession={Uri.EscapeDataString(profession)}");
+            if (!string.IsNullOrWhiteSpace(completeness)) q.Add($"completeness={Uri.EscapeDataString(completeness)}");
+            if (!string.IsNullOrWhiteSpace(contactStatus)) q.Add($"contactStatus={Uri.EscapeDataString(contactStatus)}");
+            if (!string.IsNullOrWhiteSpace(missingField)) q.Add($"missingField={Uri.EscapeDataString(missingField)}");
+            url += string.Join("&", q);
+
+            var res = await _http.GetFromJsonAsync<ApiResponse<List<ServiceEngagementSummaryDto>>>(url);
+            return res?.Data ?? new List<ServiceEngagementSummaryDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GetEngageableServicesAsync] Error: {ex.Message}");
+            return new List<ServiceEngagementSummaryDto>();
+        }
+    }
+
+    public async Task<PreparedEngagementMessageDto?> PrepareEngagementMessageAsync(
+        int serviceId,
+        string reminderType = "WelcomeAfterRegistration",
+        string channel = "WhatsApp",
+        int? campaignId = null,
+        string? title = null,
+        string? city = null,
+        string? distinctionReason = null,
+        bool? isDistinctionEnabled = null)
+    {
+        try
+        {
+            var url = $"v1/engagement/prepare?serviceId={serviceId}&reminderType={reminderType}&channel={channel}";
+            if (campaignId.HasValue) url += $"&campaignId={campaignId.Value}";
+            if (!string.IsNullOrWhiteSpace(title)) url += $"&title={Uri.EscapeDataString(title)}";
+            if (!string.IsNullOrWhiteSpace(city)) url += $"&city={Uri.EscapeDataString(city)}";
+            if (!string.IsNullOrWhiteSpace(distinctionReason)) url += $"&distinctionReason={Uri.EscapeDataString(distinctionReason)}";
+            if (isDistinctionEnabled.HasValue) url += $"&enableDistinction={isDistinctionEnabled.Value}";
+
+            var res = await _http.GetFromJsonAsync<ApiResponse<PreparedEngagementMessageDto>>(url);
+            return res?.Data;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[PrepareEngagementMessageAsync] Error: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<ServiceDistinctionConfigDto?> GetServiceDistinctionConfigAsync()
+    {
+        try
+        {
+            var res = await _http.GetFromJsonAsync<ApiResponse<ServiceDistinctionConfigDto>>("v1/engagement/distinction-config");
+            return res?.Data;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GetServiceDistinctionConfigAsync] Error: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<ApiResponse<bool>?> SaveServiceDistinctionConfigAsync(ServiceDistinctionConfigDto dto)
+    {
+        try
+        {
+            var response = await _http.PostAsJsonAsync("v1/engagement/distinction-config", dto);
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
+            }
+            var err = await response.Content.ReadAsStringAsync();
+            return ApiResponse<bool>.Fail($"فشل الحفظ: {err}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[SaveServiceDistinctionConfigAsync] Error: {ex.Message}");
+            return ApiResponse<bool>.Fail(ex.Message);
+        }
+    }
+
+    public async Task<ApiResponse<bool>?> SetServiceDistinctionAsync(int serviceId, string reason, bool isEnabled, string? notes = null)
+    {
+        try
+        {
+            var url = $"v1/engagement/service-distinction/{serviceId}?reason={Uri.EscapeDataString(reason)}&isEnabled={isEnabled}";
+            if (!string.IsNullOrWhiteSpace(notes)) url += $"&notes={Uri.EscapeDataString(notes)}";
+            var response = await _http.PostAsync(url, null);
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
+            }
+            var err = await response.Content.ReadAsStringAsync();
+            return ApiResponse<bool>.Fail($"فشل التحديث: {err}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[SetServiceDistinctionAsync] Error: {ex.Message}");
+            return ApiResponse<bool>.Fail(ex.Message);
+        }
+    }
+
+    public async Task<ApiResponse<EngagementLogDto>?> SendEngagementAsync(SendEngagementRequestDto request)
+    {
+        try
+        {
+            var response = await _http.PostAsJsonAsync("v1/engagement/send", request);
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<ApiResponse<EngagementLogDto>>();
+            }
+            var err = await response.Content.ReadAsStringAsync();
+            return ApiResponse<EngagementLogDto>.Fail($"فشل الإرسال: {err}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[SendEngagementAsync] Error: {ex.Message}");
+            return ApiResponse<EngagementLogDto>.Fail(ex.Message);
+        }
+    }
+
+    public async Task<bool> ConfirmWhatsAppSentAsync(int logId, string? notes = null)
+    {
+        try
+        {
+            var url = $"v1/engagement/confirm-whatsapp/{logId}";
+            if (!string.IsNullOrWhiteSpace(notes)) url += $"?notes={Uri.EscapeDataString(notes)}";
+            var response = await _http.PostAsync(url, null);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ConfirmWhatsAppSentAsync] Error: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<bool> UpdateEngagementStatusAsync(int logId, string newStatus, string? notes = null)
+    {
+        try
+        {
+            var url = $"v1/engagement/status/{logId}?newStatus={Uri.EscapeDataString(newStatus)}";
+            if (!string.IsNullOrWhiteSpace(notes)) url += $"&notes={Uri.EscapeDataString(notes)}";
+            var response = await _http.PutAsync(url, null);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[UpdateEngagementStatusAsync] Error: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<bool> ToggleEngagementOptOutAsync(int serviceId, bool optOut, string? notes = null)
+    {
+        try
+        {
+            var url = $"v1/engagement/opt-out/{serviceId}?optOut={optOut.ToString().ToLower()}";
+            if (!string.IsNullOrWhiteSpace(notes)) url += $"&notes={Uri.EscapeDataString(notes)}";
+            var response = await _http.PostAsync(url, null);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ToggleEngagementOptOutAsync] Error: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<List<MarketingCampaignDto>> GetMarketingCampaignsAsync()
+    {
+        try
+        {
+            var res = await _http.GetFromJsonAsync<ApiResponse<List<MarketingCampaignDto>>>("v1/engagement/campaigns");
+            return res?.Data ?? new List<MarketingCampaignDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GetMarketingCampaignsAsync] Error: {ex.Message}");
+            return new List<MarketingCampaignDto>();
+        }
+    }
+
+    public async Task<bool> SaveMarketingCampaignAsync(MarketingCampaignDto dto)
+    {
+        try
+        {
+            var response = await _http.PostAsJsonAsync("v1/engagement/campaigns", dto);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[SaveMarketingCampaignAsync] Error: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<bool> DeleteMarketingCampaignAsync(int id)
+    {
+        try
+        {
+            var response = await _http.DeleteAsync($"v1/engagement/campaigns/{id}");
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[DeleteMarketingCampaignAsync] Error: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<List<ProfessionalTitleRuleDto>> GetProfessionalTitleRulesAsync()
+    {
+        try
+        {
+            var res = await _http.GetFromJsonAsync<ApiResponse<List<ProfessionalTitleRuleDto>>>("v1/engagement/titles");
+            return res?.Data ?? new List<ProfessionalTitleRuleDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GetProfessionalTitleRulesAsync] Error: {ex.Message}");
+            return new List<ProfessionalTitleRuleDto>();
+        }
+    }
+
+    public async Task<bool> SaveProfessionalTitleRuleAsync(ProfessionalTitleRuleDto dto)
+    {
+        try
+        {
+            var response = await _http.PostAsJsonAsync("v1/engagement/titles", dto);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[SaveProfessionalTitleRuleAsync] Error: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<bool> DeleteProfessionalTitleRuleAsync(int id)
+    {
+        try
+        {
+            var response = await _http.DeleteAsync($"v1/engagement/titles/{id}");
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[DeleteProfessionalTitleRuleAsync] Error: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<List<ProviderEngagementReminderDto>> GetEngagementTemplatesAsync()
+    {
+        try
+        {
+            var res = await _http.GetFromJsonAsync<ApiResponse<List<ProviderEngagementReminderDto>>>("v1/engagement/templates");
+            return res?.Data ?? new List<ProviderEngagementReminderDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GetEngagementTemplatesAsync] Error: {ex.Message}");
+            return new List<ProviderEngagementReminderDto>();
+        }
+    }
+
+    public async Task<bool> SaveEngagementTemplateAsync(ProviderEngagementReminderDto dto)
+    {
+        try
+        {
+            var response = await _http.PostAsJsonAsync("v1/engagement/templates", dto);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[SaveEngagementTemplateAsync] Error: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<List<EngagementLogDto>> GetEngagementLogsAsync(int? serviceId = null, int limit = 100)
+    {
+        try
+        {
+            var url = $"v1/engagement/logs?limit={limit}";
+            if (serviceId.HasValue) url += $"&serviceId={serviceId.Value}";
+            var res = await _http.GetFromJsonAsync<ApiResponse<List<EngagementLogDto>>>(url);
+            return res?.Data ?? new List<EngagementLogDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GetEngagementLogsAsync] Error: {ex.Message}");
+            return new List<EngagementLogDto>();
+        }
+    }
+
+    // ── Facebook Official Page Publishing Integration ────────────────────────
+    public async Task<FacebookIntegrationStatusDto?> GetFacebookStatusAsync()
+    {
+        try
+        {
+            var res = await _http.GetFromJsonAsync<ApiResponse<FacebookIntegrationStatusDto>>("v1/facebook/status");
+            return res?.Data;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GetFacebookStatusAsync] Error: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<FacebookOAuthInitResponseDto?> InitiateFacebookOAuthAsync(string returnUrl)
+    {
+        try
+        {
+            var res = await _http.GetFromJsonAsync<ApiResponse<FacebookOAuthInitResponseDto>>($"v1/facebook/oauth-init?returnUrl={Uri.EscapeDataString(returnUrl)}");
+            return res?.Data;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[InitiateFacebookOAuthAsync] Error: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<ApiResponse<List<FacebookManagedPageDto>>?> ProcessFacebookOAuthCallbackAsync(string code, string state)
+    {
+        try
+        {
+            return await _http.GetFromJsonAsync<ApiResponse<List<FacebookManagedPageDto>>>($"v1/facebook/oauth-callback?code={Uri.EscapeDataString(code)}&state={Uri.EscapeDataString(state)}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ProcessFacebookOAuthCallbackAsync] Error: {ex.Message}");
+            return ApiResponse<List<FacebookManagedPageDto>>.Fail(ex.Message);
+        }
+    }
+
+    public async Task<ApiResponse<bool>?> ConnectFacebookPageAsync(FacebookConnectPageRequestDto request)
+    {
+        try
+        {
+            var res = await _http.PostAsJsonAsync("v1/facebook/connect-page", request);
+            return await res.Content.ReadFromJsonAsync<ApiResponse<bool>>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ConnectFacebookPageAsync] Error: {ex.Message}");
+            return ApiResponse<bool>.Fail(ex.Message);
+        }
+    }
+
+    public async Task<ApiResponse<bool>?> DisconnectFacebookPageAsync()
+    {
+        try
+        {
+            var res = await _http.PostAsync("v1/facebook/disconnect-page", null);
+            return await res.Content.ReadFromJsonAsync<ApiResponse<bool>>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[DisconnectFacebookPageAsync] Error: {ex.Message}");
+            return ApiResponse<bool>.Fail(ex.Message);
+        }
+    }
+
+    public async Task<FacebookConnectionTestResultDto?> TestFacebookConnectionAsync()
+    {
+        try
+        {
+            var res = await _http.PostAsync("v1/facebook/test-connection", null);
+            var apiRes = await res.Content.ReadFromJsonAsync<ApiResponse<FacebookConnectionTestResultDto>>();
+            return apiRes?.Data;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[TestFacebookConnectionAsync] Error: {ex.Message}");
+            return new FacebookConnectionTestResultDto { Success = false, ErrorMessage = ex.Message };
+        }
+    }
+
+    public async Task<ApiResponse<FacebookPostResultDto>?> PublishFacebookTextAsync(string message)
+    {
+        try
+        {
+            var res = await _http.PostAsJsonAsync("v1/facebook/publish/text", new FacebookPublishTextRequestDto { Message = message });
+            return await res.Content.ReadFromJsonAsync<ApiResponse<FacebookPostResultDto>>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[PublishFacebookTextAsync] Error: {ex.Message}");
+            return ApiResponse<FacebookPostResultDto>.Fail(ex.Message);
+        }
+    }
+
+    public async Task<ApiResponse<FacebookPostResultDto>?> PublishFacebookPhotoAsync(string caption, string photoUrl)
+    {
+        try
+        {
+            var res = await _http.PostAsJsonAsync("v1/facebook/publish/photo", new FacebookPublishPhotoRequestDto { Caption = caption, PhotoUrl = photoUrl });
+            return await res.Content.ReadFromJsonAsync<ApiResponse<FacebookPostResultDto>>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[PublishFacebookPhotoAsync] Error: {ex.Message}");
+            return ApiResponse<FacebookPostResultDto>.Fail(ex.Message);
+        }
+    }
+
+    public async Task<ApiResponse<FacebookPostResultDto>?> PublishFacebookServiceCardAsync(int serviceId, string? customCaption = null)
+    {
+        try
+        {
+            var res = await _http.PostAsJsonAsync("v1/facebook/publish/service-card", new FacebookPublishServiceCardRequestDto { ServiceId = serviceId, CustomCaption = customCaption });
+            return await res.Content.ReadFromJsonAsync<ApiResponse<FacebookPostResultDto>>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[PublishFacebookServiceCardAsync] Error: {ex.Message}");
+            return ApiResponse<FacebookPostResultDto>.Fail(ex.Message);
+        }
+    }
+
+    public async Task<string?> PreviewFacebookServiceCardAsync(int serviceId)
+    {
+        try
+        {
+            var res = await _http.GetFromJsonAsync<ApiResponse<string>>($"v1/facebook/preview-service-card/{serviceId}");
+            return res?.Data;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[PreviewFacebookServiceCardAsync] Error: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<List<FacebookPublishLogDto>> GetFacebookPublishLogsAsync(int? serviceId = null, string? status = null, int take = 50)
+    {
+        try
+        {
+            var url = $"v1/facebook/logs?take={take}";
+            if (serviceId.HasValue) url += $"&serviceId={serviceId.Value}";
+            if (!string.IsNullOrEmpty(status)) url += $"&status={Uri.EscapeDataString(status)}";
+            var res = await _http.GetFromJsonAsync<ApiResponse<List<FacebookPublishLogDto>>>(url);
+            return res?.Data ?? new List<FacebookPublishLogDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[GetFacebookPublishLogsAsync] Error: {ex.Message}");
+            return new List<FacebookPublishLogDto>();
+        }
+    }
+
+    public async Task<ApiResponse<bool>?> RetryFacebookPublishAsync(int logId)
+    {
+        try
+        {
+            var res = await _http.PostAsync($"v1/facebook/retry/{logId}", null);
+            return await res.Content.ReadFromJsonAsync<ApiResponse<bool>>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[RetryFacebookPublishAsync] Error: {ex.Message}");
+            return ApiResponse<bool>.Fail(ex.Message);
+        }
+    }
+
+    public async Task<ApiResponse<bool>?> CancelFacebookPublishAsync(int logId)
+    {
+        try
+        {
+            var res = await _http.PostAsync($"v1/facebook/cancel/{logId}", null);
+            return await res.Content.ReadFromJsonAsync<ApiResponse<bool>>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[CancelFacebookPublishAsync] Error: {ex.Message}");
+            return ApiResponse<bool>.Fail(ex.Message);
+        }
+    }
+
+    public async Task<ApiResponse<bool>?> UpdateFacebookPublishModeAsync(string mode, bool autoPublishOnApproval)
+    {
+        try
+        {
+            var res = await _http.PostAsJsonAsync("v1/facebook/update-mode", new FacebookUpdateModeDto { PublishMode = mode, AutoPublishOnApproval = autoPublishOnApproval });
+            return await res.Content.ReadFromJsonAsync<ApiResponse<bool>>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[UpdateFacebookPublishModeAsync] Error: {ex.Message}");
+            return ApiResponse<bool>.Fail(ex.Message);
         }
     }
 }

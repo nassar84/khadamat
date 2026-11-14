@@ -38,6 +38,9 @@ public class MainActivity : MauiAppCompatActivity
             // Plugin.Fingerprint setup
             Plugin.Fingerprint.CrossFingerprint.SetCurrentActivityResolver(() => this);
 
+            // Register modern OnBackPressedCallback for predictive back and hardware back button
+            OnBackPressedDispatcher.AddCallback(this, new MainActivityBackCallback(this));
+
             // Handle incoming notification click intent
             HandleNotificationIntent(Intent);
         }
@@ -112,6 +115,39 @@ public class MainActivity : MauiAppCompatActivity
 
             Console.WriteLine($"[MainActivity] Notification tapped: '{tapData.Title}' (Route: '{tapData.Route}', FromReminder: {fromReminder}, FromPush: {tapData.FromPush})");
             Services.DeepLinkBridge.RaiseNotificationTapped(tapData);
+        }
+    }
+}
+
+public class MainActivityBackCallback : AndroidX.Activity.OnBackPressedCallback
+{
+    private readonly MainActivity _activity;
+
+    public MainActivityBackCallback(MainActivity activity) : base(true)
+    {
+        _activity = activity;
+    }
+
+    public override void HandleOnBackPressed()
+    {
+        bool handled = false;
+        try
+        {
+            if (Microsoft.Maui.Controls.Shell.Current != null)
+            {
+                handled = Microsoft.Maui.Controls.Shell.Current.SendBackButtonPressed();
+            }
+        }
+        catch (Exception ex)
+        {
+            Android.Util.Log.Error("MAUI_KHADAMAT", $"Back callback error: {ex.Message}");
+        }
+
+        if (!handled)
+        {
+            Enabled = false;
+            _activity.OnBackPressedDispatcher.OnBackPressed();
+            Enabled = true;
         }
     }
 }

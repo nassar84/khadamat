@@ -1,0 +1,792 @@
+@using Khadamat.Application.DTOs
+@using Khadamat.BlazorUI.Services
+@inject ApiClient Api
+@inject IJSRuntime JS
+
+@if (IsOpen)
+{
+    <div class="modal-backdrop-custom" @onclick="Close">
+        <div class="modal-dialog-custom glass-card p-4 rounded-4 shadow-lg animate-pop" @onclick:stopPropagation="true">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="channel-icon-header @GetChannelHeaderClass()">
+                        <i class="@GetChannelIconClass() fa-lg"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-1 d-flex align-items-center gap-2">
+                            <span>تواصل وتسويق خدماوي</span>
+                            @if (prepared != null && prepared.DoNotContact)
+                            {
+                                <span class="badge bg-danger rounded-pill x-small">طلب عدم التواصل 🚫</span>
+                            }
+                        </h5>
+                        <div class="text-muted small d-flex gap-2 flex-wrap">
+                            <span><i class="fa-solid fa-briefcase me-1"></i>@(prepared?.Subject ?? "تحميل...")</span>
+                            @if (!string.IsNullOrEmpty(prepared?.RecipientName))
+                            {
+                                <span><i class="fa-solid fa-user me-1"></i>@prepared.RecipientName</span>
+                            }
+                            @if (!string.IsNullOrEmpty(prepared?.RecipientPhone))
+                            {
+                                <span class="badge bg-light text-dark border"><i class="fa-brands fa-whatsapp text-success me-1"></i>@prepared.RecipientPhone</span>
+                            }
+                            @if (!string.IsNullOrEmpty(prepared?.CityName))
+                            {
+                                <span><i class="fa-solid fa-location-dot me-1"></i>@prepared.CityName</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" @onclick="Close"></button>
+            </div>
+
+            @if (isLoading)
+            {
+                <div class="text-center py-5">
+                    <div class="spinner-border text-success" role="status"></div>
+                    <div class="mt-2 text-muted small">جاري إعداد بيانات التواصل والرسالة الذكية...</div>
+                </div>
+            }
+            else if (prepared == null)
+            {
+                <div class="alert alert-danger">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                    تعذر تحميل بيانات الخدمة والتواصل.
+                </div>
+            }
+            else
+            {
+                <!-- Warning: DoNotContact -->
+                @if (prepared.DoNotContact)
+                {
+                    <div class="alert alert-danger py-2 px-3 small rounded-3 mb-3 d-flex align-items-center justify-content-between">
+                        <div>
+                            <i class="fa-solid fa-hand me-1"></i>
+                            <strong>تنبيه:</strong> هذا المزود طلب عدم التواصل التسويقي معه. يرجى احترام رغبته.
+                        </div>
+                        <button class="btn btn-sm btn-outline-danger rounded-pill px-3" @onclick="() => ToggleOptOut(false)">
+                            إلغاء الحظر
+                        </button>
+                    </div>
+                }
+
+                <!-- Completeness Bar & Missing Fields -->
+                <div class="completeness-box p-3 rounded-4 mb-3 bg-light border">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="small fw-bold">نسبة اكتمال ملف الخدمة:</span>
+                        <span class="badge @(prepared.CompletenessPercentage >= 80 ? "bg-success" : prepared.CompletenessPercentage >= 50 ? "bg-warning text-dark" : "bg-danger") rounded-pill">
+                            @prepared.CompletenessPercentage%
+                        </span>
+                    </div>
+                    <div class="progress mb-2" style="height: 8px;">
+                        <div class="progress-bar @(prepared.CompletenessPercentage >= 80 ? "bg-success" : prepared.CompletenessPercentage >= 50 ? "bg-warning" : "bg-danger")"
+                             role="progressbar" style="width: @prepared.CompletenessPercentage%"></div>
+                    </div>
+                    @if (prepared.MissingFields != null && prepared.MissingFields.Any())
+                    {
+                        <div class="d-flex flex-wrap gap-1 align-items-center mt-2">
+                            <span class="x-small text-muted me-1">البيانات الناقصة:</span>
+                            @foreach (var field in prepared.MissingFields)
+                            {
+                                <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill x-small">
+                                    <i class="fa-solid fa-circle-exclamation me-1 text-warning"></i>@field
+                                </span>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="x-small text-success fw-bold mt-1">
+                            <i class="fa-solid fa-circle-check me-1"></i>ملف الخدمة مكتمل بنسبة 100%!
+                        </div>
+                    }
+                </div>
+
+                <!-- Channel Selector -->
+                <div class="mb-3">
+                    <label class="form-label small fw-bold mb-2">قناة التواصل:</label>
+                    <div class="d-flex gap-2">
+                        <button class="channel-pill-btn @(selectedChannel == "WhatsApp" ? "active-whatsapp" : "")"
+                                @onclick='() => SwitchChannel("WhatsApp")'>
+                            <i class="fa-brands fa-whatsapp me-1"></i>
+                            واتساب WhatsApp (يدوي معتمد)
+                        </button>
+                        <button class="channel-pill-btn @(selectedChannel == "PushNotification" ? "active-push" : "")"
+                                @onclick='() => SwitchChannel("PushNotification")'>
+                            <i class="fa-solid fa-bell me-1"></i>
+                            إشعار فوري FCM
+                            @if (!prepared.HasActivePushDevice)
+                            {
+                                <span class="badge bg-secondary ms-1 x-small">لا يوجد جهاز</span>
+                            }
+                        </button>
+                        <button class="channel-pill-btn @(selectedChannel == "InAppNotification" ? "active-inapp" : "")"
+                                @onclick='() => SwitchChannel("InAppNotification")'>
+                            <i class="fa-solid fa-inbox me-1"></i>
+                            تنبيه داخلي In-App
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Parameters Row: Reminder Type, Title, City Campaign -->
+                <div class="row g-2 mb-3">
+                    <div class="col-12 col-md-4">
+                        <label class="form-label x-small fw-bold mb-1">نوع المتابعة والتذكير:</label>
+                        <select class="form-select form-select-sm rounded-3" @bind="selectedReminderType" @bind:after="OnReminderTypeChanged">
+                            <option value="WelcomeAfterRegistration">ترحيب بعد التسجيل (واتساب)</option>
+                            <option value="CompleteBasicData">استكمال البيانات الأساسية</option>
+                            <option value="AddProfileOrLogo">إضافة صورة شخصية أو لوجو</option>
+                            <option value="AddWorkImages">إضافة صور سابقة الأعمال</option>
+                            <option value="CompleteDescription">استكمال الوصف والتفاصيل</option>
+                            <option value="CompleteLocation">تحديد العنوان والموقع</option>
+                            <option value="UpdateContacts">تحديث أرقام التواصل</option>
+                            <option value="UpdateProfile">تحديث وتنشيط الملف</option>
+                            <option value="EncourageEngagement">تشجيع التفاعل ومشاركة الرابط</option>
+                            <option value="Custom">رسالة مخصصة</option>
+                        </select>
+                    </div>
+
+                    <div class="col-6 col-md-4">
+                        <label class="form-label x-small fw-bold mb-1">اللقب المهني الذكي:</label>
+                        <div class="input-group input-group-sm">
+                            <input type="text" class="form-control rounded-3" @bind="customTitle" @bind:after="RefreshMessagePreview" placeholder="مثال: مستر / دكتور" />
+                        </div>
+                    </div>
+
+                    <div class="col-6 col-md-4">
+                        <label class="form-label x-small fw-bold mb-1">المدينة / الحملة:</label>
+                        <select class="form-select form-select-sm rounded-3" @bind="selectedCampaignId" @bind:after="RefreshMessagePreview">
+                            <option value="">تلقائي حسب المدينة</option>
+                            @foreach (var c in campaigns)
+                            {
+                                <option value="@c.Id">@c.CampaignName (@(string.IsNullOrEmpty(c.CityName) ? "عام" : c.CityName))</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Service Distinction Settings Card -->
+                <div class="card border-0 rounded-4 mb-3 bg-white p-3 shadow-sm border-start border-warning border-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="checkbox" id="chkDistinction" class="form-check-input mt-0"
+                                   @bind="isDistinctionEnabled" @bind:after="RefreshMessagePreview" />
+                            <label for="chkDistinction" class="form-check-label fw-bold small text-dark cursor-pointer">
+                                🌟 تضمين فقرة تميز الخدمة في رسالة الواتساب
+                            </label>
+                        </div>
+
+                        @if (prepared.HasPositiveReviews)
+                        {
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill x-small">
+                                ⭐ يوجد تقييمات إيجابية حقيقية (@prepared.PositiveReviewsCount تقييم - متوسط @prepared.AverageRating)
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary-subtle text-secondary border rounded-pill x-small">
+                                ℹ️ لا توجد تقييمات حقيقية مسجلة في قاعدة البيانات
+                            </span>
+                        }
+                    </div>
+
+                    @if (isDistinctionEnabled)
+                    {
+                        <div class="row g-2 align-items-center">
+                            <div class="col-12 col-md-7">
+                                <label class="form-label x-small text-muted mb-1">سبب تميز الخدمة في الرسالة:</label>
+                                <select class="form-select form-select-sm rounded-pill" @bind="selectedDistinctionReason" @bind:after="RefreshMessagePreview">
+                                    <option value="None">لا يوجد سبب محدد (ترحيب عام بدون ادعاء اختيار أو تقييم)</option>
+                                    <option value="AdminSelection">اختيار إدارة خدماوي (ضمن الخدمات المميزة)</option>
+                                    <option value="CommunityNomination">ترشيح أعضاء مجتمع خدماوي</option>
+                                    @if (prepared.HasPositiveReviews)
+                                    {
+                                        <option value="PositiveReviews">تقييمات إيجابية من المستخدمين (@prepared.PositiveReviewsCount تقييم)</option>
+                                    }
+                                    <option value="SpecialPromotion">اختيار ترويجي خاص</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-5 text-md-end pt-md-3">
+                                <span class="x-small text-muted">
+                                    <i class="fa-solid fa-magic me-1 text-warning"></i>
+                                    يتم تحديث المعاينة فورياً بالسبب المحدد
+                                </span>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Message Editor & Live Preview -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label x-small fw-bold mb-0">نص الرسالة (قابلة للتعديل والمراجعة قبل الإرسال):</label>
+                        <span class="x-small text-muted">@editableMessage.Length حرف</span>
+                    </div>
+                    <textarea class="form-control font-monospace text-dark rounded-3 message-textarea"
+                              rows="8"
+                              @bind="editableMessage"></textarea>
+                </div>
+
+                <!-- Push Device Warning if FCM selected and no token -->
+                @if (selectedChannel == "PushNotification" && !prepared.HasActivePushDevice)
+                {
+                    <div class="alert alert-warning py-2 px-3 small rounded-3 mb-3">
+                        <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                        المزود ليس لديه جهاز نشط مسجل للإشعارات الفورية حالياً. يمكنك استخدام واتساب أو التنبيه الداخلي.
+                    </div>
+                }
+
+                <!-- Action Toolbar -->
+                <div class="p-3 bg-light rounded-4 border mb-3">
+                    @if (selectedChannel == "WhatsApp")
+                    {
+                        <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between">
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" @onclick="CopyToClipboard">
+                                    <i class="fa-solid fa-copy me-1"></i> نسخ الرسالة
+                                </button>
+                                <button class="btn btn-success btn-sm rounded-pill px-4 fw-bold shadow-sm"
+                                        disabled="@(string.IsNullOrEmpty(prepared.RecipientPhone) || isActionRunning)"
+                                        @onclick="OpenWhatsAppChat">
+                                    <i class="fa-brands fa-whatsapp fa-lg me-1"></i> فتح محادثة واتساب
+                                </button>
+                            </div>
+
+                            <div class="d-flex gap-2 align-items-center">
+                                @if (lastSentLogId.HasValue)
+                                {
+                                    <button class="btn btn-primary btn-sm rounded-pill px-3 fw-bold animate-pulse"
+                                            disabled="@isActionRunning"
+                                            @onclick="ConfirmWhatsAppSent">
+                                        <i class="fa-solid fa-check-double me-1"></i> تأكيد إرسال الرسالة
+                                    </button>
+                                }
+                                else
+                                {
+                                    <span class="x-small text-muted">
+                                        <i class="fa-solid fa-circle-info me-1"></i>اضغط فتح محادثة ثم أكد الإرسال
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    }
+                    else if (selectedChannel == "PushNotification")
+                    {
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <div class="small text-muted">
+                                سيتم إرسال إشعار فوري وتوجيه المستخدم مباشرة لصفحة استكمال الخدمة عبر Deep Link.
+                            </div>
+                            <button class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-sm"
+                                    disabled="@(!prepared.HasActivePushDevice || isActionRunning)"
+                                    @onclick="SendPushNotification">
+                                @if (isActionRunning) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                                <i class="fa-solid fa-paper-plane me-1"></i> إرسال الإشعار الفوري
+                            </button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <div class="small text-muted">
+                                سيظهر التنبيه داخل مركز إشعارات التطبيق للمستخدم.
+                            </div>
+                            <button class="btn btn-info text-white btn-sm rounded-pill px-4 fw-bold shadow-sm"
+                                    disabled="@isActionRunning"
+                                    @onclick="SendInAppNotification">
+                                @if (isActionRunning) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                                <i class="fa-solid fa-inbox me-1"></i> إرسال التنبيه الداخلي
+                            </button>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(actionFeedbackMessage))
+                    {
+                        <div class="alert @(actionFeedbackSuccess ? "alert-success" : "alert-danger") py-2 px-3 small rounded-3 mt-3 mb-0">
+                            @actionFeedbackMessage
+                        </div>
+                    }
+                </div>
+
+                <!-- Admin Notes & Opt-out Accordion -->
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <div class="form-check m-0">
+                        <input class="form-check-input" type="checkbox" id="chkOptOut"
+                               checked="@prepared.DoNotContact"
+                               @onchange="(e) => ToggleOptOut((bool)(e.Value ?? false))" />
+                        <label class="form-check-label x-small text-muted" for="chkOptOut">
+                            عدم التواصل مجدداً بناء على طلب صاحب الخدمة
+                        </label>
+                    </div>
+
+                    <button class="btn btn-link btn-sm text-decoration-none x-small p-0 text-muted"
+                            @onclick="() => showLogsHistory = !showLogsHistory">
+                        <i class="fa-solid fa-clock-rotate-left me-1"></i>
+                        @(showLogsHistory ? "إخفاء سجل التواصل السابق" : "عرض سجل التواصل السابق (" + serviceLogs.Count + ")")
+                    </button>
+                </div>
+
+                <!-- Logs History Table -->
+                @if (showLogsHistory)
+                {
+                    <div class="border rounded-4 p-3 bg-light-subtle mb-3">
+                        <h6 class="fw-bold x-small text-muted mb-2">سجل التواصل السابق مع هذه الخدمة:</h6>
+                        @if (!serviceLogs.Any())
+                        {
+                            <div class="text-center text-muted small py-2">لا توجد سجلات تواصل سابقة لهذه الخدمة</div>
+                        }
+                        else
+                        {
+                            <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                                <table class="table table-sm table-hover align-middle mb-0 x-small">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>التاريخ</th>
+                                            <th>القناة</th>
+                                            <th>النوع</th>
+                                            <th>الحالة</th>
+                                            <th>المسؤول</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var log in serviceLogs)
+                                        {
+                                            <tr>
+                                                <td>@log.PreparedAt.ToString("yyyy/MM/dd HH:mm")</td>
+                                                <td>
+                                                    <span class="badge @(log.Channel == "WhatsApp" ? "bg-success" : log.Channel == "PushNotification" ? "bg-primary" : "bg-info") rounded-pill">
+                                                        @log.Channel
+                                                    </span>
+                                                </td>
+                                                <td>@log.ReminderTypeTitle</td>
+                                                <td>
+                                                    <span class="badge @(log.Status == "SentConfirmed" ? "bg-success" : log.Status == "Sent" ? "bg-info" : "bg-secondary")">
+                                                        @log.StatusArabic
+                                                    </span>
+                                                </td>
+                                                <td>@(log.AdminUserName ?? "المشرف")</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                }
+            }
+
+            <!-- Footer -->
+            <div class="d-flex justify-content-end pt-3 border-top">
+                <button type="button" class="btn btn-light rounded-pill px-4" @onclick="Close">إغلاق</button>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .modal-backdrop-custom {
+        position: fixed; inset: 0; z-index: 2100;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(6px);
+        display: flex; align-items: center; justify-content: center;
+        padding: 1rem;
+    }
+    .modal-dialog-custom {
+        width: 100%;
+        max-width: 820px;
+        max-height: 92vh;
+        overflow-y: auto;
+        background: #ffffff;
+    }
+    .channel-icon-header {
+        width: 48px; height: 48px;
+        border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .channel-header-whatsapp { background: rgba(37, 211, 102, 0.15); color: #25d366; }
+    .channel-header-push     { background: rgba(79, 70, 229, 0.15); color: #4f46e5; }
+    .channel-header-inapp    { background: rgba(6, 182, 212, 0.15); color: #0891b2; }
+
+    .channel-pill-btn {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        color: #475569;
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 0.45rem 1rem;
+        border-radius: 9999px;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+    .channel-pill-btn:hover { background: #e2e8f0; }
+    .channel-pill-btn.active-whatsapp {
+        background: #25d366;
+        color: #ffffff;
+        border-color: #25d366;
+        box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+    }
+    .channel-pill-btn.active-push {
+        background: #4f46e5;
+        color: #ffffff;
+        border-color: #4f46e5;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+    .channel-pill-btn.active-inapp {
+        background: #0891b2;
+        color: #ffffff;
+        border-color: #0891b2;
+        box-shadow: 0 4px 12px rgba(8, 145, 178, 0.3);
+    }
+
+    .message-textarea {
+        font-size: 0.85rem;
+        line-height: 1.6;
+        background-color: #fafafa;
+        resize: vertical;
+    }
+
+    .animate-pop {
+        animation: pop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @@keyframes pop {
+        from { transform: scale(0.9); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+    .animate-pulse {
+        animation: pulse 1.5s infinite;
+    }
+    @@keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.03); }
+    }
+</style>
+
+@code {
+    [Parameter] public int ServiceId { get; set; }
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
+    [Parameter] public EventCallback OnActionCompleted { get; set; }
+
+    private bool isLoading = true;
+    private bool isActionRunning = false;
+    private PreparedEngagementMessageDto? prepared;
+    private List<MarketingCampaignDto> campaigns = new();
+    private List<EngagementLogDto> serviceLogs = new();
+
+    private string selectedChannel = "WhatsApp";
+    private string selectedReminderType = "WelcomeAfterRegistration";
+    private string customTitle = "";
+    private int? selectedCampaignId;
+    private string editableMessage = "";
+    private int? lastSentLogId;
+    private bool showLogsHistory = false;
+    private string? actionFeedbackMessage;
+    private bool actionFeedbackSuccess = true;
+    private bool isDistinctionEnabled = true;
+    private string selectedDistinctionReason = "AdminSelection";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IsOpen && ServiceId > 0)
+        {
+            await LoadData();
+        }
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        actionFeedbackMessage = null;
+        lastSentLogId = null;
+        try
+        {
+            var campTask = Api.GetMarketingCampaignsAsync();
+            var logsTask = Api.GetEngagementLogsAsync(ServiceId, 20);
+            var prepTask = Api.PrepareEngagementMessageAsync(ServiceId, selectedReminderType, selectedChannel, selectedCampaignId, customTitle);
+
+            await Task.WhenAll(campTask, logsTask, prepTask);
+            campaigns = campTask.Result ?? new();
+            serviceLogs = logsTask.Result ?? new();
+            prepared = prepTask.Result;
+
+            if (prepared != null)
+            {
+                customTitle = prepared.ProfessionalTitle;
+                isDistinctionEnabled = prepared.IsDistinctionEnabled;
+                selectedDistinctionReason = !string.IsNullOrEmpty(prepared.DistinctionReason) ? prepared.DistinctionReason : "AdminSelection";
+                editableMessage = prepared.FullMessageText;
+                if (prepared.CampaignId.HasValue && !selectedCampaignId.HasValue)
+                {
+                    selectedCampaignId = prepared.CampaignId;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ProviderOutreachModal] LoadData error: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task SwitchChannel(string channel)
+    {
+        selectedChannel = channel;
+        await RefreshMessagePreview();
+    }
+
+    private async Task OnReminderTypeChanged()
+    {
+        await RefreshMessagePreview();
+    }
+
+    private async Task RefreshMessagePreview()
+    {
+        if (ServiceId <= 0) return;
+        try
+        {
+            var res = await Api.PrepareEngagementMessageAsync(
+                ServiceId,
+                selectedReminderType,
+                selectedChannel,
+                selectedCampaignId,
+                string.IsNullOrWhiteSpace(customTitle) ? null : customTitle,
+                city: null,
+                distinctionReason: selectedDistinctionReason,
+                isDistinctionEnabled: isDistinctionEnabled);
+
+            if (res != null)
+            {
+                prepared = res;
+                editableMessage = res.FullMessageText;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[RefreshMessagePreview] Error: {ex.Message}");
+        }
+    }
+
+    private async Task CopyToClipboard()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", editableMessage);
+            actionFeedbackSuccess = true;
+            actionFeedbackMessage = "تم نسخ نص الرسالة إلى الحافظة بنجاح!";
+        }
+        catch
+        {
+            actionFeedbackSuccess = false;
+            actionFeedbackMessage = "فشل النسخ التلقائي. يرجى تحديد النص ونسخه يدوياً.";
+        }
+    }
+
+    private async Task OpenWhatsAppChat()
+    {
+        if (prepared == null || string.IsNullOrWhiteSpace(prepared.RecipientPhone)) return;
+
+        isActionRunning = true;
+        actionFeedbackMessage = null;
+        try
+        {
+            // 1. Log the outreach request in database with Prepared / Initiated status
+            var request = new SendEngagementRequestDto
+            {
+                ServiceId = ServiceId,
+                Channel = "WhatsApp",
+                ReminderType = selectedReminderType,
+                ProfessionalTitle = customTitle,
+                CampaignId = selectedCampaignId,
+                CustomMessage = editableMessage,
+                DistinctionReason = selectedDistinctionReason,
+                IsDistinctionIncluded = isDistinctionEnabled
+            };
+
+            var sendRes = await Api.SendEngagementAsync(request);
+            if (sendRes != null && sendRes.Success && sendRes.Data != null)
+            {
+                lastSentLogId = sendRes.Data.Id;
+            }
+
+            // 2. Open wa.me URL in new window/tab
+            var encodedText = Uri.EscapeDataString(editableMessage);
+            var cleanPhone = prepared.RecipientPhone.Replace("+", "").Replace(" ", "").Replace("-", "");
+            var waUrl = $"https://wa.me/{cleanPhone}?text={encodedText}";
+
+            await JS.InvokeVoidAsync("open", waUrl, "_blank");
+
+            actionFeedbackSuccess = true;
+            actionFeedbackMessage = "تم فتح واتساب! يرجى إرسال الرسالة ثم الضغط على زر 'تأكيد إرسال الرسالة' أدناه لتوثيقها في النظام.";
+        }
+        catch (Exception ex)
+        {
+            actionFeedbackSuccess = false;
+            actionFeedbackMessage = "خطأ: " + ex.Message;
+        }
+        finally
+        {
+            isActionRunning = false;
+        }
+    }
+
+    private async Task ConfirmWhatsAppSent()
+    {
+        if (!lastSentLogId.HasValue) return;
+
+        isActionRunning = true;
+        try
+        {
+            var success = await Api.ConfirmWhatsAppSentAsync(lastSentLogId.Value, "تم الإرسال والمراجعة يدوياً عبر المشرف");
+            if (success)
+            {
+                actionFeedbackSuccess = true;
+                actionFeedbackMessage = "تم تأكيد إرسال الرسالة وتوثيق العملية في سجل المتابعة بنجاح! ✅";
+                lastSentLogId = null;
+                serviceLogs = await Api.GetEngagementLogsAsync(ServiceId, 20);
+                await OnActionCompleted.InvokeAsync();
+            }
+            else
+            {
+                actionFeedbackSuccess = false;
+                actionFeedbackMessage = "فشل تأكيد الإرسال في الخادم.";
+            }
+        }
+        catch (Exception ex)
+        {
+            actionFeedbackSuccess = false;
+            actionFeedbackMessage = "خطأ في التأكيد: " + ex.Message;
+        }
+        finally
+        {
+            isActionRunning = false;
+        }
+    }
+
+    private async Task SendPushNotification()
+    {
+        if (prepared == null) return;
+        isActionRunning = true;
+        actionFeedbackMessage = null;
+        try
+        {
+            var request = new SendEngagementRequestDto
+            {
+                ServiceId = ServiceId,
+                Channel = "PushNotification",
+                ReminderType = selectedReminderType,
+                ProfessionalTitle = customTitle,
+                CampaignId = selectedCampaignId,
+                CustomTitle = prepared.InAppTitle,
+                CustomMessage = editableMessage
+            };
+
+            var res = await Api.SendEngagementAsync(request);
+            if (res != null && res.Success)
+            {
+                actionFeedbackSuccess = true;
+                actionFeedbackMessage = "تم إرسال الإشعار الفوري FCM بنجاح إلى هاتف المزود! 🚀";
+                serviceLogs = await Api.GetEngagementLogsAsync(ServiceId, 20);
+                await OnActionCompleted.InvokeAsync();
+            }
+            else
+            {
+                actionFeedbackSuccess = false;
+                actionFeedbackMessage = res?.Message ?? "فشل إرسال الإشعار الفوري.";
+            }
+        }
+        catch (Exception ex)
+        {
+            actionFeedbackSuccess = false;
+            actionFeedbackMessage = "خطأ: " + ex.Message;
+        }
+        finally
+        {
+            isActionRunning = false;
+        }
+    }
+
+    private async Task SendInAppNotification()
+    {
+        if (prepared == null) return;
+        isActionRunning = true;
+        actionFeedbackMessage = null;
+        try
+        {
+            var request = new SendEngagementRequestDto
+            {
+                ServiceId = ServiceId,
+                Channel = "InAppNotification",
+                ReminderType = selectedReminderType,
+                ProfessionalTitle = customTitle,
+                CampaignId = selectedCampaignId,
+                CustomTitle = prepared.InAppTitle,
+                CustomMessage = editableMessage
+            };
+
+            var res = await Api.SendEngagementAsync(request);
+            if (res != null && res.Success)
+            {
+                actionFeedbackSuccess = true;
+                actionFeedbackMessage = "تم إرسال التنبيه الداخلي لمركز إشعارات المزود بنجاح! 🔔";
+                serviceLogs = await Api.GetEngagementLogsAsync(ServiceId, 20);
+                await OnActionCompleted.InvokeAsync();
+            }
+            else
+            {
+                actionFeedbackSuccess = false;
+                actionFeedbackMessage = res?.Message ?? "فشل إرسال التنبيه الداخلي.";
+            }
+        }
+        catch (Exception ex)
+        {
+            actionFeedbackSuccess = false;
+            actionFeedbackMessage = "خطأ: " + ex.Message;
+        }
+        finally
+        {
+            isActionRunning = false;
+        }
+    }
+
+    private async Task ToggleOptOut(bool optOut)
+    {
+        try
+        {
+            var success = await Api.ToggleEngagementOptOutAsync(ServiceId, optOut, "تم التعديل بواسطة المشرف من نافذة المتابعة");
+            if (success && prepared != null)
+            {
+                prepared.DoNotContact = optOut;
+                actionFeedbackSuccess = true;
+                actionFeedbackMessage = optOut ? "تم تعيين عدم التواصل مع هذا المزود." : "تم إلغاء حظر التواصل مع هذا المزود.";
+            }
+        }
+        catch (Exception ex)
+        {
+            actionFeedbackSuccess = false;
+            actionFeedbackMessage = "خطأ: " + ex.Message;
+        }
+    }
+
+    private string GetChannelHeaderClass() => selectedChannel switch
+    {
+        "WhatsApp" => "channel-header-whatsapp",
+        "PushNotification" => "channel-header-push",
+        _ => "channel-header-inapp"
+    };
+
+    private string GetChannelIconClass() => selectedChannel switch
+    {
+        "WhatsApp" => "fa-brands fa-whatsapp",
+        "PushNotification" => "fa-solid fa-bell",
+        _ => "fa-solid fa-inbox"
+    };
+
+    private async Task Close()
+    {
+        IsOpen = false;
+        await IsOpenChanged.InvokeAsync(false);
+    }
+}

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QRCoder;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -212,8 +213,8 @@ public class UploadController : ControllerBase
         if (!AllowedExtensions.Contains(ext))
             return BadRequest(new { success = false, message = "نوع الملف غير مدعوم" });
 
-        if (slot < 1 || slot > 5)
-            return BadRequest(new { success = false, message = "slot يجب أن يكون بين 1 و 5" });
+        if (slot < 1 || slot > 20)
+            return BadRequest(new { success = false, message = "slot يجب أن يكون بين 1 و 20" });
 
         try
         {
@@ -232,7 +233,7 @@ public class UploadController : ControllerBase
             {
                 success = true,
                 filename = filename,
-                url = $"/images/{filename}",
+                url = $"images/{filename}",
                 slot = slot,
                 message = $"تم رفع صورة Hero #{slot} بنجاح"
             });
@@ -241,6 +242,89 @@ public class UploadController : ControllerBase
         {
             Console.WriteLine($"[UploadController] Hero upload error: {ex.Message}");
             return StatusCode(500, new { success = false, message = "حدث خطأ أثناء رفع الصورة" });
+        }
+    }
+
+    /// <summary>
+    /// جلب قائمة شرائح الهيرو بانر النشطة
+    /// GET /v1/upload/hero-list
+    /// </summary>
+    [HttpGet("hero-list")]
+    [AllowAnonymous]
+    public IActionResult GetHeroList()
+    {
+        try
+        {
+            var folderPath = _imageStorage.GetFolderPath("");
+            var list = new List<object>();
+
+            for (int s = 1; s <= 20; s++)
+            {
+                var baseName = s == 1 ? "hero_banner" : $"hero_banner{s}";
+                string? matchedFile = null;
+                foreach (var ext in new[] { ".webp", ".png", ".jpg", ".jpeg" })
+                {
+                    var testFile = Path.Combine(folderPath, $"{baseName}{ext}");
+                    if (System.IO.File.Exists(testFile))
+                    {
+                        matchedFile = $"{baseName}{ext}";
+                        break;
+                    }
+                }
+
+                if (matchedFile != null)
+                {
+                    list.Add(new
+                    {
+                        slot = s,
+                        filename = matchedFile,
+                        url = $"images/{matchedFile}"
+                    });
+                }
+            }
+
+            return Ok(new { success = true, items = list });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[UploadController] Hero list error: {ex.Message}");
+            return StatusCode(500, new { success = false, message = "حدث خطأ أثناء جلب قائمة صور الهيرو" });
+        }
+    }
+
+    /// <summary>
+    /// حذف شريحة هيرو بانر
+    /// DELETE /v1/upload/hero?slot=3
+    /// </summary>
+    [HttpDelete("hero")]
+    [Authorize(Policy = "RequireAdmin")]
+    public IActionResult DeleteHeroImage([FromQuery] int slot)
+    {
+        if (slot < 1 || slot > 20)
+            return BadRequest(new { success = false, message = "رقم الشريحة غير صحيح" });
+
+        try
+        {
+            var folderPath = _imageStorage.GetFolderPath("");
+            var baseName = slot == 1 ? "hero_banner" : $"hero_banner{slot}";
+            bool deleted = false;
+
+            foreach (var ext in new[] { ".webp", ".png", ".jpg", ".jpeg" })
+            {
+                var filePath = Path.Combine(folderPath, $"{baseName}{ext}");
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                    deleted = true;
+                }
+            }
+
+            return Ok(new { success = true, deleted = deleted, message = $"تم حذف صورة Hero #{slot}" });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[UploadController] Hero delete error: {ex.Message}");
+            return StatusCode(500, new { success = false, message = "حدث خطأ أثناء حذف الصورة" });
         }
     }
 
@@ -260,5 +344,25 @@ public class UploadController : ControllerBase
 
         _imageStorage.DeleteFile(folder, filename);
         return Ok(new { success = true, message = "تم حذف الصورة" });
+    }
+
+    /// <summary>
+    /// توليد كود QR عالي الدقة لأي نص أو رابط (مثل رابط متجر جوجل أو صفحة الخدمة)
+    /// GET /v1/upload/qrcode?text=...
+    /// </summary>
+    [HttpGet("qrcode")]
+    [AllowAnonymous]
+    public IActionResult GenerateQrCode([FromQuery] string? text)
+    {
+        var content = string.IsNullOrWhiteSpace(text)
+            ? "https://play.google.com/store/apps/details?id=com.nassar84.khadamawy"
+            : text.Trim();
+
+        using var qrGenerator = new QRCodeGenerator();
+        using var qrCodeData = qrGenerator.CreateQrCode(content, QRCodeGenerator.ECCLevel.Q);
+        using var qrCode = new PngByteQRCode(qrCodeData);
+        var qrCodeBytes = qrCode.GetGraphic(20);
+
+        return File(qrCodeBytes, "image/png");
     }
 }

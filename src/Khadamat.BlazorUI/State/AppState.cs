@@ -92,7 +92,8 @@ public class AppState
     public string AppShareUrl { get; set; } = "";
     public string AppShareText { get; set; } = "📲 تطبيق خدماوي — كل خدماتك في مكان واحد!\nتواصل مع أفضل الحرفيين والمهنيين بكل سهولة وأمان.\n\n🔗 حمل التطبيق الآن:";
     public string AppStoreUrl { get; set; } = "";
-    public string GooglePlayUrl { get; set; } = "";
+    public string GooglePlayUrl { get; set; } = "https://play.google.com/store/apps/details?id=com.nassar84.khadamawy";
+    public string FacebookUrl { get; set; } = "https://www.facebook.com/profile.php?id=61595461124579";
 
     // Contact Visibility Controls
     public bool ShowContactNumbers { get; set; } = false;

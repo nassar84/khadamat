@@ -14,6 +14,7 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddHttpClient();
+        services.AddDataProtection();
         services.AddDbContext<KhadamatDbContext>(options =>
             options.UseSqlServer(
                 configuration.GetConnectionString("DefaultConnection"),
@@ -39,6 +40,8 @@ public static class DependencyInjection
         services.AddScoped<Khadamat.Application.Interfaces.IFcmPushService, Khadamat.Infrastructure.Services.FcmPushService>();
         services.AddScoped<Khadamat.Application.Interfaces.IReminderService, Khadamat.Infrastructure.Services.ReminderService>();
         services.AddScoped<Khadamat.Application.Interfaces.IMarketplaceService, Khadamat.Infrastructure.Services.MarketplaceService>();
+        services.AddScoped<Khadamat.Application.Interfaces.IProviderEngagementService, Khadamat.Infrastructure.Services.ProviderEngagementService>();
+        services.AddScoped<Khadamat.Application.Interfaces.IFacebookPublishService, Khadamat.Infrastructure.Services.FacebookPublishService>();
         services.AddScoped(typeof(Khadamat.Application.Interfaces.IGenericRepository<>), typeof(Khadamat.Infrastructure.Persistence.Repositories.GenericRepository<>));
         services.AddScoped<Khadamat.Application.Interfaces.IUserService, Khadamat.Infrastructure.Identity.UserService>();
 

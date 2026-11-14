@@ -46,6 +46,12 @@ public class Service : BaseEntity
     public int? SpecializationId { get; private set; }
     public string? UserCreated { get; private set; }
     public int ViewsCount { get; private set; }
+    public bool DoNotContact { get; private set; } = false;
+    
+    // Service Distinction & Marketing Outreach
+    public string DistinctionReason { get; private set; } = "None"; // None, AdminSelection, CommunityNomination, PositiveReviews, SpecialPromotion
+    public bool IsDistinctionEnabled { get; private set; } = true;
+    public string? DistinctionNotes { get; private set; }
     
     // Navigation Properties
     public virtual Category? Category { get; private set; }
@@ -178,6 +184,20 @@ public class Service : BaseEntity
     {
         ProviderProfileId = providerProfileId;
         UserCreated = userId;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void SetDoNotContact(bool optOut)
+    {
+        DoNotContact = optOut;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void SetDistinction(string? reason, bool isEnabled = true, string? notes = null)
+    {
+        DistinctionReason = string.IsNullOrWhiteSpace(reason) ? "None" : reason.Trim();
+        IsDistinctionEnabled = isEnabled;
+        DistinctionNotes = notes;
         UpdatedAt = DateTime.UtcNow;
     }
 }
